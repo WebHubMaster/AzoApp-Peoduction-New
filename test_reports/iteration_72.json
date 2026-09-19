@@ -1,0 +1,25 @@
+{
+  "summary": "Verified web panel one-click demo login flow at /login for all 4 roles (Admin, Partner, Customer, Merchant). All buttons trigger POST /api/auth/send-otp -> 200 followed by POST /api/auth/verify-otp -> 200, show success toast 'Demo login: <name>', and redirect to the correct role home (/admin, /partner, /account, /merchant). No 'Demo login failed' toast and no CORS/network errors observed. Same-origin API baseURL fallback (window.location.origin + /api) works as intended with empty REACT_APP_BACKEND_URL.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard (charts)", "issues": ["Recharts warnings: 'width(-1) and height(-1) of chart should be greater than 0'. Non-blocking but should set explicit min height on ResponsiveContainer parents to silence warnings."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Recharts ResponsiveContainer emits repeated width/height=-1 warnings on admin dashboard; wrap containers with a fixed min-height parent.",
+    "Two 403 resource loads observed after customer login (likely a customer-only protected asset); investigate to keep console clean."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (not tested)", "frontend": "100% (4/4 demo logins succeeded)"},
+  "test_credentials": "OTP 123456 for all demo accounts; admin +919000000000, merchant +919000000002, partner +919000000003, customer +919000000004",
+  "seed_data_creation": "Used backend-seeded demo accounts only; no data created.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 4 demo one-click login buttons work end-to-end via same-origin /api. When automating, use wait_until='domcontentloaded' (not 'networkidle') for admin pages; admin dashboard keeps network active due to chart polling. Clear localStorage between role switches to avoid stale tokens. Toast text is 'Demo login: <name>'; failure text would be 'Demo login failed'.",
+  "rca of the issue": "No bug found. Initial partner/customer/merchant navigation timeouts in first automation run were due to using wait_until='networkidle' on admin dashboard (charts prevent idle). Retrying with 'domcontentloaded' confirmed all 4 flows pass."
+}
