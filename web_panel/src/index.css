@@ -1,0 +1,344 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    margin: 0;
+    font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #F8F7FA;
+    color: #6f6b7d;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv02","cv03","cv04","cv11";
+}
+
+h1, h2, h3, h4, h5, .font-heading {
+    font-family: 'Public Sans', -apple-system, 'Segoe UI', sans-serif;
+    letter-spacing: -0.01em;
+}
+
+/* Prevent mobile Safari/Chrome from auto-zooming the page when a form field is
+   focused (it zooms whenever the control's font-size is < 16px). Forcing 16px on
+   small screens keeps the whole site at a fixed zoom while typing / booking. */
+@media (max-width: 767px) {
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* App-like feel: hide scrollbars everywhere while keeping scroll working */
+* {
+    scrollbar-width: none;        /* Firefox */
+    -ms-overflow-style: none;     /* IE / old Edge */
+}
+*::-webkit-scrollbar {            /* Chrome / Safari / Edge */
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}
+.no-scrollbar::-webkit-scrollbar { display: none !important; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Mobile safety: never let the WHOLE app scroll sideways ──────────────────
+   Root cause of the "panel drags left/right on mobile" report: scrollbars are
+   hidden globally (above), so any stray full-width element let the entire page
+   be dragged horizontally on touch with no visible cue. Locking overflow-x on
+   the root elements clips such stray overflow. Intended horizontal carousels
+   use their OWN overflow-x-auto containers, so they keep scrolling normally. */
+html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+#root {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
+}
+
+
+/* Kill the 300ms double-tap "zoom" on interactive controls (mobile Safari/Chrome)
+   so tapping inputs, buttons, toggles or booking a service never zooms the page. */
+button, a, select, input, textarea, label, [role="button"], .cursor-pointer {
+    touch-action: manipulation;
+}
+
+/* Premium layered depth for the app's card blocks (soft, realistic elevation) */
+.rounded-2xl.border-slate-200,
+.rounded-3xl.border-slate-200,
+.rounded-2xl.border-slate-100 {
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -16px rgba(15, 23, 42, 0.22);
+    border-color: rgba(15, 23, 42, 0.06);
+}
+.dark .rounded-2xl.border-slate-800,
+.dark .rounded-3xl.border-slate-800 { box-shadow: 0 1px 2px rgba(0,0,0,0.3), 0 10px 30px -18px rgba(0,0,0,0.6); }
+.shadow-card { box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -16px rgba(15, 23, 42, 0.22); }
+.shadow-cardhover { box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06), 0 18px 40px -20px rgba(15, 23, 42, 0.3); }
+
+/* Floating native-style bottom nav elevation */
+.shadow-nav { box-shadow: 0 -1px 0 rgba(15,23,42,0.04), 0 -12px 40px -12px rgba(15,23,42,0.22); }
+.shadow-float { box-shadow: 0 10px 30px -10px rgba(15,23,42,0.35), 0 4px 12px -6px rgba(15,23,42,0.2); }
+
+/* Native tap feedback — pairs with active:scale on interactive tiles */
+.tap { transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease; }
+.tap:active { transform: scale(0.97); }
+
+/* Frosted glass surface (premium headers / sheets) */
+.glass { background: rgba(255,255,255,0.72); backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px); }
+.dark .glass { background: rgba(15,23,42,0.72); }
+
+/* Safe-area helpers for real on-device feel */
+.pt-safe { padding-top: env(safe-area-inset-top); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+
+/* Subtle rise-in for content blocks (premium, GPU-light) */
+@keyframes azRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.az-rise { animation: azRise .5s cubic-bezier(.2,.8,.2,1) both; }
+
+/* Smooth, GPU-light transitions for a premium yet fast feel on low networks */
+button, a, .transition-all { transition-duration: 150ms; }
+
+/* Smooth theme switch — .theme-anim is toggled on <html> only during a light/dark
+   switch so colors cross-fade without slowing down normal interactions. */
+.theme-anim, .theme-anim *, .theme-anim *::before, .theme-anim *::after {
+    transition: background-color .35s ease, border-color .35s ease, color .35s ease, fill .35s ease, box-shadow .35s ease !important;
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222 47% 11%;
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+        --primary: 217 85% 34%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 214 90% 96%;
+        --secondary-foreground: 217 74% 34%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215 16% 47%;
+        --accent: 38 92% 50%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 214 32% 91%;
+        --input: 214 32% 91%;
+        --ring: 217 85% 34%;
+        --chart-1: 217 85% 34%;
+        /* Dynamic brand palette (overridden at runtime from Admin > Branding & Theme) */
+        --p-50: hsl(214 90% 96%);
+        --p-100: hsl(214 90% 90%);
+        --p-200: hsl(214 85% 80%);
+        --p-300: hsl(215 82% 68%);
+        --p-400: hsl(216 80% 55%);
+        --p-500: hsl(217 83% 45%);
+        --p-600: hsl(217 84% 39%);
+        --p-700: hsl(217 85% 34%);
+        --p-800: hsl(217 86% 29%);
+        --p-900: hsl(218 88% 24%);
+        --chart-2: 38 92% 50%;
+        --chart-3: 160 60% 45%;
+        --chart-4: 199 89% 48%;
+        --chart-5: 340 75% 55%;
+        --radius: 0.6rem;
+    }
+    .dark {
+        --background: 222 47% 8%;
+        --foreground: 0 0% 98%;
+        --card: 222 47% 11%;
+        --card-foreground: 0 0% 98%;
+        --popover: 222 47% 11%;
+        --popover-foreground: 0 0% 98%;
+        --primary: 214 90% 60%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 38 92% 50%;
+        --accent-foreground: 222 47% 11%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 217 33% 20%;
+        --input: 217 33% 20%;
+        --ring: 263 70% 65%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+.azo-grid-bg {
+    background-image: radial-gradient(hsl(263 70% 50% / 0.08) 1px, transparent 1px);
+    background-size: 22px 22px;
+}
+
+/* Rich text editor placeholder */
+.rt-editor:empty:before { content: attr(data-placeholder); color: #94a3b8; }
+.rt-editor h3 { font-weight: 700; font-size: 1.05rem; margin: 0.4rem 0; }
+.rt-editor ul { list-style: disc; padding-left: 1.25rem; }
+.rt-editor ol { list-style: decimal; padding-left: 1.25rem; }
+.rt-editor a { color: #6D28D9; text-decoration: underline; }
+
+/* Hide scrollbar for horizontal scroll rows (Urban Company style) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Rich text (email) editor — WYSIWYG body styling */
+.rte-body:empty:before { content: attr(data-placeholder); color: #94a3b8; }
+.rte-body h1 { font-size: 1.5rem; font-weight: 800; margin: 0 0 .5rem; }
+.rte-body h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 .5rem; }
+.rte-body h3 { font-size: 1.1rem; font-weight: 700; margin: 0 0 .4rem; }
+.rte-body p { margin: 0 0 .6rem; }
+.rte-body ul { list-style: disc; padding-left: 1.4rem; margin: 0 0 .6rem; }
+.rte-body ol { list-style: decimal; padding-left: 1.4rem; margin: 0 0 .6rem; }
+.rte-body blockquote { border-left: 3px solid #cbd5e1; padding-left: .8rem; color: #475569; margin: 0 0 .6rem; }
+.rte-body a { color: #0D47A1; text-decoration: underline; }
+.rte-body img { max-width: 100%; border-radius: 8px; }
+
+/* ---- TipTap (ProseMirror) editor styling ---- */
+.ProseMirror { outline: none; min-height: 100%; }
+.ProseMirror:focus { outline: none; }
+/* Placeholder (empty node) */
+.ProseMirror p.is-editor-empty:first-child::before,
+.ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.rt-editor.ProseMirror h1, .rt-editor .ProseMirror h1 { font-size: 1.6rem; font-weight: 800; margin: .5rem 0; }
+.rt-editor h1 { font-size: 1.6rem; font-weight: 800; margin: .5rem 0; }
+.rt-editor h2 { font-size: 1.35rem; font-weight: 700; margin: .5rem 0; }
+.rt-editor h3 { font-size: 1.15rem; font-weight: 700; margin: .4rem 0; }
+.rt-editor h4 { font-size: 1.05rem; font-weight: 700; margin: .4rem 0; }
+.rt-editor h5 { font-size: .95rem; font-weight: 700; margin: .3rem 0; }
+.rt-editor h6 { font-size: .85rem; font-weight: 700; margin: .3rem 0; text-transform: uppercase; letter-spacing: .04em; }
+.rt-editor p { margin: 0 0 .6rem; }
+.rt-editor blockquote { border-left: 3px solid #cbd5e1; padding-left: .8rem; color: #475569; margin: 0 0 .6rem; font-style: italic; }
+.rt-editor pre { background: #0f172a; color: #e2e8f0; border-radius: 8px; padding: .8rem 1rem; overflow-x: auto; font-size: .85rem; margin: 0 0 .6rem; }
+.rt-editor pre code { background: none; color: inherit; padding: 0; }
+.rt-editor hr { border: none; border-top: 2px solid #e2e8f0; margin: 1rem 0; }
+.rt-editor img { max-width: 100%; height: auto; border-radius: 8px; }
+/* Tables */
+.rt-editor table, .ProseMirror table.tt-table { border-collapse: collapse; width: 100%; margin: 0 0 .6rem; table-layout: fixed; overflow: hidden; }
+.rt-editor td, .rt-editor th { border: 1px solid #cbd5e1; padding: 6px 10px; vertical-align: top; position: relative; min-width: 3rem; }
+.rt-editor th { background: #f1f5f9; font-weight: 700; text-align: left; }
+.ProseMirror .selectedCell:after { background: rgba(99,102,241,.15); content: ""; position: absolute; inset: 0; pointer-events: none; }
+.ProseMirror .column-resize-handle { position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: #6366f1; pointer-events: none; }
+/* Responsive embed wrapper */
+.tt-embed { position: relative; width: 100%; margin: 0 0 .6rem; }
+.tt-embed iframe { width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 8px; display: block; }
+/* Highlight mark */
+.ProseMirror mark { border-radius: 2px; padding: 0 1px; }
+
+/* Smooth area-chart draw + fill animation (GPU-light) */
+@keyframes azDraw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes azFade { from { opacity: 0; } to { opacity: 1; } }
+.az-area-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: azDraw 1s ease-out forwards; }
+.az-area-fill { opacity: 0; animation: azFade .9s ease-out .25s forwards; }
+
+/* Locked/approved merchant profile — keep disabled field VALUES fully readable (view-only) */
+.reg-readonly input:disabled,
+.reg-readonly textarea:disabled,
+.reg-readonly select:disabled {
+  opacity: 1 !important;
+  color: #1e293b !important;                 /* slate-800 */
+  -webkit-text-fill-color: #1e293b !important;
+  background-color: #f8fafc !important;       /* slate-50 */
+  cursor: default !important;
+}
+.reg-readonly button:disabled { opacity: 1 !important; }
+
+/* ===== AzoApp Customer Panel — Premium redesign utilities ===== */
+@keyframes azoFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes azoScaleIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes azoShimmer { 0% { background-position: -600px 0; } 100% { background-position: 600px 0; } }
+@keyframes azoSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes azoPop { 0% { transform: scale(.9); opacity: .4; } 100% { transform: scale(1); opacity: 1; } }
+
+.azo-fade-up { animation: azoFadeUp .42s cubic-bezier(.22,1,.36,1) both; }
+.azo-scale-in { animation: azoScaleIn .24s ease both; }
+.azo-pop { animation: azoPop .2s ease both; }
+.azo-stagger > * { animation: azoFadeUp .46s cubic-bezier(.22,1,.36,1) both; }
+.azo-stagger > *:nth-child(1) { animation-delay: .02s; }
+.azo-stagger > *:nth-child(2) { animation-delay: .06s; }
+.azo-stagger > *:nth-child(3) { animation-delay: .10s; }
+.azo-stagger > *:nth-child(4) { animation-delay: .14s; }
+.azo-stagger > *:nth-child(5) { animation-delay: .18s; }
+.azo-stagger > *:nth-child(6) { animation-delay: .22s; }
+.azo-stagger > *:nth-child(7) { animation-delay: .26s; }
+.azo-stagger > *:nth-child(8) { animation-delay: .30s; }
+
+.azo-shimmer {
+  background: linear-gradient(90deg, rgba(148,163,184,.12) 25%, rgba(148,163,184,.24) 37%, rgba(148,163,184,.12) 63%);
+  background-size: 800px 100%;
+  animation: azoShimmer 1.4s infinite linear;
+}
+.dark .azo-shimmer {
+  background: linear-gradient(90deg, rgba(148,163,184,.06) 25%, rgba(148,163,184,.14) 37%, rgba(148,163,184,.06) 63%);
+  background-size: 800px 100%;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.azo-elev { box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 12px 34px -20px rgba(15,23,42,.28); }
+.dark .azo-elev { box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 40px -22px rgba(0,0,0,.7); }
+.azo-press { transition: transform .12s ease; }
+.azo-press:active { transform: scale(.97); }
+.azo-hover-lift { transition: transform .2s ease, box-shadow .2s ease; }
+.azo-hover-lift:hover { transform: translateY(-2px); }
+
+/* hide horizontal scrollbar for card carousels (scratch cards etc.) */
+.azo-noscrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.azo-noscrollbar::-webkit-scrollbar { display: none; }
+
+/* mesh hero for command center */
+.azo-mesh {
+  background:
+    radial-gradient(900px 420px at 8% -10%, rgba(255,255,255,.20), transparent 60%),
+    radial-gradient(700px 380px at 110% 0%, rgba(13,71,161,.55), transparent 55%),
+    linear-gradient(135deg, var(--p-800), var(--p-600));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .azo-fade-up, .azo-scale-in, .azo-pop, .azo-stagger > *, .azo-shimmer { animation: none !important; }
+}
+
+
+/* Notification popover — force a TRUE viewport-centered modal on mobile.
+   Radix renders the panel inside a positioned wrapper ([data-radix-popper-content-wrapper])
+   whose inline `transform` (a) beats Tailwind translate utilities and (b) becomes the
+   containing block for position:fixed children — so fixing the inner panel alone keeps it
+   glued to the trigger (drifts right / clips). We must re-center the WRAPPER itself and
+   neutralise the inner panel's transform. Scoped via :has() so other popovers/menus are
+   untouched. */
+@media (max-width: 639px) {
+  [data-radix-popper-content-wrapper]:has([data-testid="notif-panel"]) {
+    position: fixed !important;
+    left: 50% !important;
+    right: auto !important;
+    top: 4.25rem !important;
+    bottom: auto !important;
+    transform: translateX(-50%) !important;
+    min-width: 0 !important;
+    z-index: 60 !important;
+  }
+  [data-testid="notif-panel"] {
+    position: static !important;
+    transform: none !important;
+    width: calc(100vw - 24px) !important;
+    max-width: 420px !important;
+  }
+}

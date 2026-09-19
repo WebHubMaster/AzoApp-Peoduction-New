@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "AzoApp Partner",
+    "slug": "azoapp-partner",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "azoapppartner",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D47A1"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.azoapp.partner",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Capture KYC documents and job photos",
+        "NSPhotoLibraryUsageDescription": "Upload documents and job proof photos",
+        "NSLocationWhenInUseUsageDescription": "Detect your shop and service address",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.azoapp.partner",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0D47A1"
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "VIBRATE",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "backgroundColor": "#0D47A1",
+          "resizeMode": "contain",
+          "imageWidth": 200
+        }
+      ],
+      "@react-native-vector-icons/material-design-icons",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Detect your shop and service address"
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-audio"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
