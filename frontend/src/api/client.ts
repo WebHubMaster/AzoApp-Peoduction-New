@@ -5,7 +5,7 @@
  */
 import { secureStorage } from "@/src/utils/storage";
 
-const RAW = process.env.EXPO_PUBLIC_BACKEND_URL || "";
+const RAW = process.env.EXPO_PUBLIC_BACKEND_URL || "https://api.webhubmaster.shop";
 export const API_BASE = `${RAW.replace(/\/+$/, "")}/api`;
 export const MEDIA_ORIGIN = RAW.replace(/\/+$/, "");
 export const TOKEN_KEY = "azo_token";
