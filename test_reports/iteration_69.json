@@ -1,0 +1,18 @@
+{
+  "summary": "Iter 69 - Verified Partner Job Request page + full-screen Incoming Job Ring overlay (web-parity port) on Expo web (390x844). Backend: 5/5 core partner endpoints pass (auth/config expiry, /bookings/partner/jobs, /bookings/partner/ring-pending, PUT /auth/partner/online-status, POST /partner/test-ring). Frontend: Login via skip-notifications-button -> demo-partner-login works. /jobs page renders live status bar 'Online - receiving requests' + jobs-refresh, and a real request card request-AZO9EC92E for 'Switchboard Repair' with Est. earning ₹599.25, Expiring... state, 4 meta chips (Distance/Travel/Payment/Requested), address (12 Kankarbagh Main Road, Patna 800020), accept-AZO9EC92E + decline-AZO9EC92E buttons. Test-ring flow: tapping test-ring-send on dashboard AlertsPanel triggers full-screen incoming-job-ring overlay within ~1s showing: label 'TEST JOB RING', ring-test-badge 'TEST · not a real job', Emergency pill, spinning avatar with ring-seconds counting up (verified 0:00 -> 0:10 after 10s, NO auto-dismiss), ring-title 'Test job ring', 'Alert check' subtitle, ring-amount '₹ 0 SERVICE AMOUNT · EXCL. TAXES', address glass row, '#TEST-RING' row, red round Reject (ring-reject) + green Accept (ring-accept), 'Ringing… · waiting for your response' footer. ring-accept -> overlay closes, TestRingCard shows 'You accepted it in Xs'. Repeat + ring-reject -> overlay closes, 'Test ring dismissed…' appears. Dashboard regression: ph-hero renders with dark bg, and toggling range-7d/range-30d keeps ph-hero mounted (no skeleton flash). All requested testIDs present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iter69_job_ring.py", "/app/test_reports/pytest/iter69.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "JobRingOverlay.tsx is a faithful 1:1 port of web IncomingJobRing.jsx: never auto-declines, SSE + 6s ring-pending poll fallback, distance/ETA via geolocation, DND/snooze aware, queue with 'more waiting' pill. Clean separation with useLoop/RingAvatar. Good use of testIDs on every interactive/informational element.",
+    "jobs.tsx correctly wires SSE job_taken -> instant card removal via qc.setQueryData, refetchInterval falls back to 10s when SSE disconnected. Countdown ring shows 'Expiring…' when past expiry (observed for older seed booking)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter69_job_ring.py"],
+  "success_rate": {"backend": "100% (5/5 partner-ring endpoints)", "frontend": "100% (all requested testIDs + flows verified)"},
+  "test_credentials": "Partner +919000000003 / OTP 123456 (demo-partner-login button on onboarding).",
+  "seed_data_creation": "None. Used existing seeded Switchboard Repair booking (AZO9EC92E, ₹599.25) already dispatched to demo partner.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Real accept/decline against seeded booking AZO9EC92E was NOT executed to avoid consuming the seed. Test-ring overlay path fully covers UI. For real accept flow verification: use admin +919000000000 POST /api/admin/partners/{partner_id}/test-ring or the 'ring again' endpoint to freshly enqueue after Partner accepts an existing seed. EXPO_PUBLIC_BACKEND_URL serves both /api and Expo web on same origin."
+}

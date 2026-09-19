@@ -156,3 +156,9 @@ See /app/memory/test_credentials.md (Partner 9000000003, Merchant 9000000002, OT
 - Fix: EarningsHero measures itself (onLayout) and draws backdrop in real pixels + solid slate900 fallback bg. Sparkline got 6px side padding so the end dot isn't clipped.
 - Range change no longer shows skeleton: `placeholderData: keepPreviousData` on partner-dashboard query + small spinner in hero while updating.
 - Expo Go URL: exps://live-app-staging.preview.emergentagent.com (QR at /app/memory/expo_qr.png).
+
+## Session (2026-06) — Job Request page web-parity (tested PASS, iter 69)
+- Incoming Job Ring rebuilt 1:1 from web IncomingJobRing.jsx → `src/components/JobRingOverlay.tsx`: request queue ("+N more waiting"), NEVER auto-declines (elapsed timer, not countdown), SSE job_request/job_taken + 6s `/bookings/partner/ring-pending` poll fallback (+ on foreground), handled-id dedupe, /seen ping, Smart Snooze + DND aware, GPS distance/ETA, service image w/ spinning arc, scheduled-work banner, partner_amount (visiting incl., coupon added back), services & add-ons breakdown, coupon card, call-style round Reject/Accept, test-ring support (emits test-ring-done accepted/dismissed).
+- RealtimeContext.playRing now honours admin ring prefs (customSoundUrl via player.replace + volume).
+- jobs.tsx: palette-based colours (P[200] fresh ring, P[600→400] strip, P[700] Accept), capitalize only Payment chip, SSE job_taken → instant card removal, decline removes card optimistically.
+- Credentials doc created: /app/memory/test_credentials.md.
