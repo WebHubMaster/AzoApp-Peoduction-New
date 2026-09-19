@@ -1,5 +1,5 @@
 /**
- * API client for the AzoApp Partner/Merchant app.
+ * API client for the AzoApp Partner/Merchant 
  * Talks to the SAME FastAPI backend that powers the web panels (feature parity).
  * Base URL comes from EXPO_PUBLIC_BACKEND_URL; the ingress routes /api → backend.
  */
