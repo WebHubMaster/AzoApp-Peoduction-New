@@ -1,0 +1,26 @@
+{
+  "summary": "Iter 30 — Verified the Cashfree /payment/return regression fix end-to-end. Backend: 6/6 pytest cases pass (booking creation, /api/payments/order returns Cashfree sandbox order, pay_order_id + pay_gateway are persisted on the booking, /api/payments/confirm-return returns 404 for unknown order, returns {ok:true, paid:false} for the real sandbox order without falsely marking the booking paid, booking stays pending_payment, listing sanity). Frontend: with the customer logged in, seeded cart of the ordered service, then navigated to /payment/return?gw=cashfree&order_id=<real>. Verified the PaymentReturn page renders (data-testid 'payment-return') — NOT the homepage — shows the pending state ('payment-return-pending'), the cart is CLEARED (azo_cart_v1 -> []), and the 'Go to My Bookings' button ('return-retry-bookings') routes to /account. Booking remains pending_payment in listing (not falsely paid). Active gateway confirmed = Cashfree sandbox (mock:false, method:'cashfree_sdk', cf_mode:'sandbox').",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_payment_return_iter30.py",
+    "/app/test_reports/pytest/iter30_payment_return.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "payment_controller.confirm_return correctly primary-matches on pay_order_id AND customer_id (prevents cross-user replay), plus a fallback code-prefix match for the Cashfree order_id shape '<CODE>-<hex8>'. Idempotent when payment_status=='paid' (returns already:true).",
+    "payment_service.check_order_paid maps Cashfree 'PAID', Juspay 'CHARGED/SUCCEEDED', Easebuzz 'success/successful' — good coverage; wrapped in try/except so a network hiccup returns paid:false (safer than false-positive).",
+    "PaymentReturn.jsx uses useRef to make the confirm-return call run only once even with React 18 StrictMode double-invoke — good.",
+    "PaymentReturn clears the cart BEFORE awaiting confirm-return so a redirect-back always removes the item (even if the confirm call errors); this matches the bug requirement.",
+    "Minor: PaymentReturn.jsx pending & error states share the same data-testid 'payment-return-pending' via a ternary inside one <p>. Copy differs but the testid is identical — fine for regression tests but consider a distinct 'payment-return-error' testid so future automation can differentiate a true error from a real 'pending' outcome.",
+    "cashfree_create_order builds order_id as '<receipt>-<hex8>' where receipt is the booking code — so pay_order_id shape is stable and the code-prefix fallback in confirm_return works. Keep receipt/booking-code stable to preserve this."
+  ],
+  "updated_files": ["/app/backend/tests/test_payment_return_iter30.py (new)"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (all 6 assertions: page renders, pending state, cart cleared, bookings redirect, booking pending_payment, cleanup)"},
+  "test_credentials": "Customer +919000000004 / OTP 123456 (dev_otp returned in send-otp)",
+  "seed_data_creation": "Test booking created and cancelled in the same run (both backend pytest module and Playwright flow perform cleanup) — no TEST_ rows left over.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Run backend suite with `cd /app/backend && pytest tests/test_payment_return_iter30.py -v -o addopts=''` (the repo's pytest.ini adds xdist which the file's session-scoped Cashfree order fixture is not safe under). If Cashfree sandbox is temporarily down, TestOrderLinksToBooking will fail — verify via `curl` to https://sandbox.cashfree.com/pg/orders first. The fix under test lives in: backend/controllers/payment_controller.py (create_order stores pay_order_id + new confirm_return), backend/services/payment_service.py (check_order_paid), backend/services/payment_gateways.py (return_url + cashfree_order_status), backend/routes/payment_routes.py (POST /payments/confirm-return), frontend/src/pages/customer/PaymentReturn.jsx + App.js route /payment/return.",
+  "rca of the issue": "Original bug: Cashfree hosted redirect back to /payment/return?gw=cashfree&order_id=... hit the SPA catch-all Route('*') which navigated to '/'. So the booking was left as pending_payment, the cart was never cleared (Checkout only clears on Phase-3 completion), and users saw the homepage while thinking they had paid. Fix verified: (1) create_order now writes pay_order_id + pay_gateway onto the booking so a return can be traced back; (2) a real /payment/return route with a dedicated PaymentReturn page exists and (a) unconditionally calls cart.clear() so the item is removed regardless of the server outcome, (b) POSTs /api/payments/confirm-return which server-side asks Cashfree for the order status and only marks the booking paid on 'PAID'; (3) unfinished sandbox orders correctly report paid:false and leave the booking pending_payment; (4) unknown order_id -> 404. All requested behaviours match."
+}

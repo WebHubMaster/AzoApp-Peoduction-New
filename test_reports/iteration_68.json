@@ -1,0 +1,25 @@
+{
+  "summary": "Comprehensive frontend testing of Expo web Partner Dashboard (mobile viewport 420x900) via http://localhost:8081. Login flow (skip-notifications-button → demo-partner-login) works. All 25 required testIDs present. Section order matches spec top→bottom: missed-ring-recovery(y=84) → pro-perks-section(289) → header (Good evening, Raj, RK avatar, AzoApp Pro badge, Patna) → ph-priority(920) → ph-hero(1016) → ph-wallet(1391) → ph-kpis(1710) → ph-chart(2154) → ph-performance(2450) → ph-growth(2778) → ph-recent(2939) → ph-quick(3606) → partner-alerts-panel(3915) (test-ring-card → snooze-card → partner-streak-card → missed-requests). Data cross-check with GET /api/bookings/partner/dashboard?range=30d MATCHES UI: earnings ₹449.25, wallet available/withdrawable ₹449.25, KPIs Completed=5, Active=2, Requests=1, Missed=0, Avg=₹89.85, Lifetime=42, Rating=4.8, Cancelled=0. Growth: Bronze 80% to Silver 8 jobs to go — matches backend. Range chips work: 7d/90d/custom (preset 'This month' → chip shows '1 Sep – 17 Sep', request uses date_from=2026-09-01&date_to=2026-09-17). Hero label updates ('LAST 7 DAYS', etc.). Online toggle → PUT /api/auth/partner/online-status called, ph-live label switches to 'Live'. Smart Snooze: snooze-30 → snooze-countdown '29:59', snooze-resume returns to initial state. Test ring: POST /api/partner/test-ring made, JobRingOverlay ([data-testid=job-ring-overlay]) appeared via SSE, ring-accept closes it, test-ring-result block shows Sent timestamp, 'Screen ring: delivered via live connection', 'You accepted it in 10.2s'. Navigation kpi-Requests → /jobs works. No page errors, only a benign RN Web useNativeDriver warning.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "TestRingCard.result", "issues": ["Push status line reads 'Push: not sent' — spec expected exact copy 'Push: skipped — device not registered' to match web panel. Cosmetic/wording only."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional / cosmetic) Align TestRingCard push-status copy to web panel: 'Push: skipped — device not registered' when device is unregistered."
+  ],
+  "critical_code_review_comments": [
+    "All new mobile Home components render mirrors of the web panel with matching data flow. No red boxes or console errors observed. Good use of data-testid across all interactive/informational elements."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (data endpoints verified)", "frontend": "100% (all flows working; 1 cosmetic wording nit)"},
+  "test_credentials": "Partner demo +919000000003 / OTP 123456 (via demo-partner-login button)",
+  "seed_data_creation": "None. Used existing seeded demo partner and missed booking (Switchboard Repair, ₹942.82).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expo web on 8081 is stable. All Partner Dashboard testIDs verified. If retesting after copy fix, just re-check test-ring-result inner text for 'Push: skipped — device not registered'. GPS permission prompts on web can be denied without impact."
+}

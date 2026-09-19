@@ -1,0 +1,204 @@
+{
+  "summary": {
+    "total_tests": 37,
+    "passed": 37,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "test_name": "Partner Cancellation Invoice JSON",
+      "passed": 11,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "role_earning exists",
+          "passed": true
+        },
+        {
+          "name": "is_cancellation == true",
+          "passed": true
+        },
+        {
+          "name": "net > 0 (Your Earning)",
+          "passed": true,
+          "value": 71.88
+        },
+        {
+          "name": "platform > 0 (Platform Share)",
+          "passed": true,
+          "value": 41.93
+        },
+        {
+          "name": "base > 0 (Cancellation Charge)",
+          "passed": true,
+          "value": 119.8
+        },
+        {
+          "name": "net_label == 'Your Earning'",
+          "passed": true
+        },
+        {
+          "name": "service_label == 'Cancellation Charge'",
+          "passed": true
+        },
+        {
+          "name": "platform_label == 'Platform Share'",
+          "passed": true
+        },
+        {
+          "name": "rate is a number",
+          "passed": true,
+          "value": 60.0
+        },
+        {
+          "name": "customer phone masked",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "test_name": "Partner Cancellation Invoice HTML",
+      "passed": 6,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "HTTP 200",
+          "passed": true
+        },
+        {
+          "name": "Contains 'Cancellation Charge'",
+          "passed": true
+        },
+        {
+          "name": "Contains 'Platform Share'",
+          "passed": true
+        },
+        {
+          "name": "Contains 'Your Earning'",
+          "passed": true
+        },
+        {
+          "name": "NO 'GST' in summary (cancellation has no tax)",
+          "passed": true
+        },
+        {
+          "name": "NO 'Balance' line in summary",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "test_name": "Partner Paid Booking Invoice (Regression)",
+      "passed": 12,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "List invoices",
+          "passed": true
+        },
+        {
+          "name": "Find booking invoice",
+          "passed": true
+        },
+        {
+          "name": "GET invoice detail",
+          "passed": true
+        },
+        {
+          "name": "role_earning exists",
+          "passed": true
+        },
+        {
+          "name": "service_cost > 0",
+          "passed": true,
+          "value": 599.0
+        },
+        {
+          "name": "commission present",
+          "passed": true,
+          "value": 359.4
+        },
+        {
+          "name": "net_label == 'Net Earning'",
+          "passed": true
+        },
+        {
+          "name": "net > 0",
+          "passed": true,
+          "value": 359.4
+        },
+        {
+          "name": "is_cancellation is falsy",
+          "passed": true
+        },
+        {
+          "name": "GET HTML view",
+          "passed": true
+        },
+        {
+          "name": "HTML order: cost lines \u2192 GST \u2192 Net Earning",
+          "passed": true
+        },
+        {
+          "name": "Customer PII masked",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "test_name": "Customer Invoice Ordering (Regression)",
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "List invoices",
+          "passed": true
+        },
+        {
+          "name": "Find booking invoice",
+          "passed": true
+        },
+        {
+          "name": "GET HTML view",
+          "passed": true
+        },
+        {
+          "name": "GST appears AFTER cost/charge lines",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "test_name": "No 500 Errors",
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Partner GET /invoices",
+          "url": "https://azo-app-live.preview.emergentagent.com/api/invoices",
+          "passed": true
+        },
+        {
+          "name": "Customer GET /invoices",
+          "url": "https://azo-app-live.preview.emergentagent.com/api/invoices",
+          "passed": true
+        },
+        {
+          "name": "Partner GET cancellation invoice",
+          "url": "https://azo-app-live.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e",
+          "passed": true
+        },
+        {
+          "name": "Partner GET cancellation HTML",
+          "url": "https://azo-app-live.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e/view",
+          "passed": true
+        }
+      ]
+    }
+  ]
+}

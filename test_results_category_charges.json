@@ -1,0 +1,177 @@
+{
+  "total_tests": 34,
+  "passed": 33,
+  "failed": 1,
+  "tests": [
+    {
+      "name": "Request OTP",
+      "passed": false,
+      "details": "Status: 404"
+    },
+    {
+      "name": "Verify OTP",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "TEST 1: EMERGENCY - 2 Different Categories - HTTP Status",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "TEST 1.1 - category_charges length == 2",
+      "passed": true,
+      "details": "Expected 2, got 2"
+    },
+    {
+      "name": "TEST 1.2 - Category 1 has emergency_charge > 0",
+      "passed": true,
+      "details": "Category 1 emergency_charge: \u20b9150.0"
+    },
+    {
+      "name": "TEST 1.3 - Category 2 has emergency_charge > 0",
+      "passed": true,
+      "details": "Category 2 emergency_charge: \u20b9150.0"
+    },
+    {
+      "name": "TEST 1.4 - Both categories have SAME emergency_charge",
+      "passed": true,
+      "details": "Category 1: \u20b9150.0, Category 2: \u20b9150.0"
+    },
+    {
+      "name": "TEST 1.5 - pricing.emergency_fee == sum of category emergency charges",
+      "passed": true,
+      "details": "Expected \u20b9300.0, got \u20b9300.0"
+    },
+    {
+      "name": "TEST 1.6 - Category 1 (>=500) has visiting_charge == 0",
+      "passed": true,
+      "details": "service_total: \u20b9599.0, visiting_charge: \u20b90.0"
+    },
+    {
+      "name": "TEST 1.7 - Category 2 (<500) has visiting_charge == 100",
+      "passed": true,
+      "details": "service_total: \u20b9449.0, visiting_charge: \u20b9100.0"
+    },
+    {
+      "name": "TEST 1.8 - pricing.visiting_charge == sum of category visiting charges",
+      "passed": true,
+      "details": "Expected \u20b9100.0, got \u20b9100.0"
+    },
+    {
+      "name": "TEST 2: SCHEDULE - 2 Different Categories - HTTP Status",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "TEST 2.1 - pricing.emergency_fee == 0",
+      "passed": true,
+      "details": "emergency_fee: \u20b90.0"
+    },
+    {
+      "name": "TEST 2.2 - Category 1 emergency_charge == 0",
+      "passed": true,
+      "details": "emergency_charge: \u20b90.0"
+    },
+    {
+      "name": "TEST 2.3 - Category 2 emergency_charge == 0",
+      "passed": true,
+      "details": "emergency_charge: \u20b90.0"
+    },
+    {
+      "name": "TEST 2.4 - Visiting charge still per-category",
+      "passed": true,
+      "details": "Sum of category visiting: \u20b9100.0, pricing.visiting_charge: \u20b9100.0"
+    },
+    {
+      "name": "TEST 3: EMERGENCY - Single Category (Carpentry) - HTTP Status",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "TEST 3.1 - category_charges length == 1",
+      "passed": true,
+      "details": "Expected 1, got 1"
+    },
+    {
+      "name": "TEST 3.2 - Emergency counted ONCE",
+      "passed": true,
+      "details": "Category emergency: \u20b9150.0, pricing.emergency_fee: \u20b9150.0"
+    },
+    {
+      "name": "TEST 4.1a - Visiting charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b9100.0, pricing: \u20b9100.0"
+    },
+    {
+      "name": "TEST 4.1b - Emergency charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b9300.0, pricing: \u20b9300.0"
+    },
+    {
+      "name": "TEST 4.1c1 - Category total reconciliation",
+      "passed": true,
+      "details": "Expected: \u20b9749.0 (service \u20b9599.0 + visiting \u20b90.0 + emergency \u20b9150.0), got: \u20b9749.0"
+    },
+    {
+      "name": "TEST 4.1c2 - Category total reconciliation",
+      "passed": true,
+      "details": "Expected: \u20b9699.0 (service \u20b9449.0 + visiting \u20b9100.0 + emergency \u20b9150.0), got: \u20b9699.0"
+    },
+    {
+      "name": "TEST 4.2a - Visiting charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b9100.0, pricing: \u20b9100.0"
+    },
+    {
+      "name": "TEST 4.2b - Emergency charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b90.0, pricing: \u20b90.0"
+    },
+    {
+      "name": "TEST 4.2c1 - Category total reconciliation",
+      "passed": true,
+      "details": "Expected: \u20b9599.0 (service \u20b9599.0 + visiting \u20b90.0 + emergency \u20b90.0), got: \u20b9599.0"
+    },
+    {
+      "name": "TEST 4.2c2 - Category total reconciliation",
+      "passed": true,
+      "details": "Expected: \u20b9549.0 (service \u20b9449.0 + visiting \u20b9100.0 + emergency \u20b90.0), got: \u20b9549.0"
+    },
+    {
+      "name": "TEST 4.3a - Visiting charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b90.0, pricing: \u20b90.0"
+    },
+    {
+      "name": "TEST 4.3b - Emergency charge reconciliation",
+      "passed": true,
+      "details": "Sum: \u20b9150.0, pricing: \u20b9150.0"
+    },
+    {
+      "name": "TEST 4.3c1 - Category total reconciliation",
+      "passed": true,
+      "details": "Expected: \u20b9798.0 (service \u20b9648.0 + visiting \u20b90.0 + emergency \u20b9150.0), got: \u20b9798.0"
+    },
+    {
+      "name": "TEST 5 - No 5xx errors encountered",
+      "passed": true,
+      "details": "All API calls returned 2xx status codes"
+    },
+    {
+      "name": "TEST 6: REGRESSION - Single Service - HTTP Status",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "TEST 6.1 - Returns 200 with pricing.total > 0",
+      "passed": true,
+      "details": "pricing.total: \u20b9470.82"
+    },
+    {
+      "name": "TEST 6.2 - category_charges length == 1",
+      "passed": true,
+      "details": "Expected 1, got 1"
+    }
+  ]
+}

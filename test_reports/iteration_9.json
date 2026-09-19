@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend-only E2E test of redesigned customer dashboard (mobile 390x844 then desktop 1920x800) for +919000000004. Verified: no horizontal overflow (scrollWidth==innerWidth==390) on Home, My Bookings, after timeline expand and filter chips; Home hero 'Hi Priya' + home-book-now navigates to '/', home-wallet-chip -> Wallet; spotlight (#AZORUGKAV, 'Finding your partner' pill) home-active-open prefills search with code and shows exactly 1 highlighted card (ring-2), home-active-viewall selects Active chip; quick actions qa-bookings/qa-wallet/qa-addresses/qa-support land on right sections; home-stats 3 tiles (16 / 2 / ₹250); home-refer -> Refer & Earn; home-recent shows exactly 4 rows and click opens that booking. Bottom nav with tab-home/orders(badge 8)/wallet/profile/more; more-sheet lists all menu items and navigates (My Invoices verified). Section header with back-home (mobile only) + book-new. My Bookings: chips with counts (All 16, Active 8, Searching 1, Ongoing 7, Completed 2, Cancelled 6), Cancelled filter shows only cancelled cards, search narrows to 1, clearing restores; pagination 'Showing 1–5 of 16' -> next '6–10 of 16', page buttons 1-4, prev disabled on p1, next disabled on last, filter change resets to page 1. Mobile timeline toggle shows latest ('Cancelled' + time + 'All 4'), expands chronologically Booked→Paid→Searching→Cancelled, 'Hide' collapses; desktop shows horizontal timeline with mobile block display:none (and vice versa on mobile). Desktop: sidebar first item Home, no bottom nav, 4 stat cards row above filters on My Bookings, no overflow. Wallet shows ₹250 balance + transactions, My Profile renders with Priya Verma, Cancel buttons present on all 5 active cards and enabled. Zero console errors on every screen.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Desktop 1920 Home", "issues": ["Quick action tiles stretch full container width (~330px each) with a small centered icon+label, looking sparse/unbalanced; consider capping tile width or a horizontal chip row on lg+", "Top app header bar is an empty white strip on desktop (no title/search), wasting vertical space"]},
+      {"screen": "Mobile More sheet", "issues": ["Sheet duplicates the 4 primary bottom-tab items (Home, My Bookings, Wallet, My Profile) in addition to the secondary items; spec listed only secondary items. Cosmetic/deviation only, navigation works"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": ["Optional: polish desktop Home quick-actions tile sizing and the empty desktop header bar", "Optional: filter primary tabs out of the More sheet list"],
+  "critical_code_review_comments": ["CustomerDashboard.jsx is 850 lines - consider splitting BookingTimeline/BookingFilters/Pagination and the section renderers into separate modules", "Chips with 0 count are hidden except All (code path verified by reading BookingFilters) but could not be exercised: this account has non-zero counts for every group"],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested", "frontend": "100% (all 30+ assertions passed)"},
+  "seed_data_creation": "none - used existing seeded customer bookings; no bookings cancelled or paid",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Customer +919000000004 / OTP 123456 (token via POST /api/auth/verify-otp -> localStorage azo_token)",
+  "context_for_next_testing_agent": "Customer redesign (Home tab, bottom nav, More sheet, booking filters/pagination, collapsible mobile timeline) fully verified at 390x844 and 1920x800 with no functional defects. Only cosmetic desktop-layout notes remain. Login helper: goto '/', fetch /api/auth/verify-otp, set localStorage azo_token, then goto /account. push-optin popup did not appear this run.",
+  "rca_of_the_issue": "n/a - no defects found"
+}

@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend-only test of Partner Dashboard (app/(partner)/index.tsx) after pixel-match edits. Dismissed 'Stay in the loop' onboarding, logged in via one-tap 'Partner Demo' (phone +919000000003, OTP 123456), and verified all 13 requested items on the dashboard render with REAL backend data and no crashes/red screens. Header (bell+unread badge=1, theme toggle, cog, RK profile chip), greeting card (Raj Kumar / AZP4587602 / Patna / Live green dot), earnings hero (\u20b92.1K, range chips toggle label 7D->'LAST 7 DAYS', 30D->'LAST 30 DAYS', All->'LIFETIME'), TODAY/THIS WEEK/THIS MONTH tiles, AVAILABLE BALANCE with WITHDRAWABLE/PENDING, Withdraw \u2192 /wallet, 8-tile stats grid with real numbers (Completed 5, Active 3, Requests 0, Missed 0, Avg/job \u20b989.85, Lifetime 8, Rating 5.0, Cancelled 0), Earnings trend LineChart, Performance rings (Completion 62%, Acceptance 100% 1/1) + rows, Growth card (trophy + 'Your growth' + 'New Partner' pill + '80% to Bronze' + '2 jobs to go' + green progress bar + 'You've completed 8 jobs. Reach 10 to unlock Bronze.'), Recent jobs (3 rows, each navigates to /booking/{id}), Quick actions (Requests/Active/Wallet/Earnings/Invoices/Support) all navigate, Alert Check shows 'Background push: OFF (device not registered)' with orange Fix link that fires notification permission, Smart Snooze buttons set offline, Accept Streak gradient card renders ACCEPT STREAK/BEST STREAK, THIS WEEK label, \u2713 accepted/\u2717 missed row and reward box with correct copy, Missed Requests card shows subtitle 'Jobs you did not answer in time'. Online toggle PUT /auth/partner/online-status succeeds and refresh() updates the Live indicator. No console errors beyond expected web-only expo-notifications warnings and Animated.useNativeDriver warning.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_55.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "app/(partner)/index.tsx is ~487 lines and rapidly approaching the >700 line guideline; consider extracting Greeting / EarningsHero / StatsGrid / AcceptStreak / AlertCheck into sub-components before it grows further.",
+    "8 parallel useQuery hooks fire on every mount without staleTime; consider adding staleTime to reduce refetch churn on tab switches."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100%"},
+  "seed_data_creation": "None. Used existing seeded Raj Kumar partner (AZP4587602).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Partner Dashboard fully verified against pixel-match reference on mobile viewport 390x844. Onboarding /onboarding/notifications shows before login; dismiss via 'Maybe later'. Then click 'Partner Demo'. Backend URL from frontend/.env EXPO_PUBLIC_BACKEND_URL. All testIDs verified: partner-notifications, theme-toggle, partner-settings, partner-profile-chip, partner-online-toggle, range-{7D|30D|90D|1Y|All|Custom}, dashboard-withdraw, qa-{Requests|Active|Wallet|Earnings|Invoices|Support}, recent-{bookingId}, fix-push, test-job-ring, snooze-30, snooze-60.",
+  "rca_of_issue": "N/A \u2014 no bugs found this iteration."
+}

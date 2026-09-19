@@ -1,0 +1,35 @@
+{
+  "summary": "Verified issues #5 (admin visibility of partner registration data + uploaded documents) and #6 (partner self-view of PartnerProfileView) at the API layer. All 7 backend pytest assertions passed. Frontend structural review of Person360.jsx confirms profileItems now includes Education, Experience (with experience_display fallback) and Registered address; KYCCard/BankKyc renders viewable_documents via DocsGallery under data-testid=section-bank-kyc + viewable-documents; PartnerProfileView renders basic personal, work categories, address and 4 doc tiles. Frontend UI walk-through was partially blocked by a global 'Allow location' modal on the customer home shell (rendered after admin login redirect) and networkidle timeouts, so the pixel-level verification was not completed via Playwright — API-level evidence is strong.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Global (customer home)", "issues": ["'Allow location access' modal appears immediately on public home and blocks E2E automation on routes that transit through '/'. Consider dismissing on non-customer routes or persisting the 'Not now' choice per session."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_people_admin_visibility.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Main agent to open admin panel manually (or automated with location-modal dismissal) and visually confirm Person360 Profile tab shows Email, Gender, DOB, City=Patna, State=Bihar, Education (Diploma in Electrical), Categories (AC Repair & Service), Experience (3-5 years), Registered address (Kankarbagh/Patna) for +919000000003, and Bank & KYC tab renders 4 doc thumbnails opening a lightbox.",
+    "Optional: auto-suppress the 'Allow location' modal on /admin/* and /partner/* routes so it doesn't block admin/partner shells."
+  ],
+  "critical_code_review_comments": [
+    "people_admin_service._enrich_user_from_partner_profile is non-destructive (only fills blank keys) and correctly falls back to experience_label list -> experience_display CSV string, matching Person360.jsx profileItems fallback. Good.",
+    "section('kyc') aggregates viewable_documents from partner_profiles.documents + basic.live_photo_url + user-level urls — duplicates are de-duped by URL in _collect_viewable_docs. Solid.",
+    "Person360.jsx renders KYC viewable_documents via DocsGallery (data-testid=viewable-documents) and ProfileDocs also on Profile tab — dual placement matches the review request.",
+    "PartnerProfileView masks Aadhaar via maskAadhaar (XXXX XXXX <last4>) — meets #6 masking requirement."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_people_admin_visibility.py"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "N/A (blocked by geo modal; structural review only)"},
+  "test_credentials": "OTP 123456; admin +919000000000, partner +919000000003 (Raj Kumar), customer +919000000004, merchant +919000000002",
+  "seed_data_creation": "No new seed data created. Relied on existing demo partner Raj Kumar and 4 placeholder documents seeded by main agent.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend endpoints verified: (1) GET /api/admin/people/partner/{uid}/overview — user object is enriched with name/email/dob/gender/city/state/education/categories/experience_display/address_text from partner_profiles.basic/work/address. (2) GET /api/admin/people/partner/{uid}/sections/kyc — viewable_documents contains >=4 entries with labels covering Aadhaar Front, Aadhaar Back, Education Cert, Live Selfie (each with url + kind). (3) GET /api/partner/registration/profile (partner-auth) returns profile.basic (full_name/dob/gender/email/education_name/city/state), profile.work.categories, profile.documents (aadhaar_front/back, education certificate) and profile.address. Customer & merchant Person360 regression endpoints return 200. For UI verification, dismiss the 'Allow location' modal via 'Not now' or by pre-denying geolocation permission before navigating to /admin/people/partners; use data-testid=viewable-documents, doc-{type}, doc-lightbox, section-bank-kyc, partner-profile-view.",
+  "rca of the issue": "Original blank-profile symptom was caused by admin Person360.jsx reading fields directly from the users doc while partner registration writes name/email/dob/education/city/state into partner_profiles.basic/work/address. Fix: server-side _enrich_user_from_partner_profile fills blanks on the user object during overview(), and Person360.jsx profileItems was extended with Education/Experience/Registered address rows. Uploaded documents are collected from partner_profiles.documents + basic.live_photo_url by _collect_viewable_docs and surfaced via /sections/kyc.viewable_documents which the frontend renders through DocsGallery on both Bank & KYC and Profile tabs. Verified end-to-end at API layer with pytest."
+}

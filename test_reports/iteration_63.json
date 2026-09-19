@@ -1,0 +1,26 @@
+{
+  "summary": "Frontend-only smoke of the rebuilt Partner tabs (Dashboard / Job Request / Active Job / Wallet & Withdraw / More) on mobile web (390x844) using Partner Demo one-tap login. All target testIDs render, all API calls returned 200, no red-box or console errors (only benign useNativeDriver warning). Header (bell + unread badge, theme toggle light↔dark, profile dropdown with Edit Profile / Logout) works. Bottom nav shows 5 pills incl. Active-Job red badge (3) matching backend. Job Request shows Online status + Refresh + radar empty card + 'Live dispatch connected · Updated 07:55 PM' footer. Active tab lists 3 ActiveJob cards with WORK IN PROGRESS banner + running elapsed timer, job-stepper, Demo OTP hint, Navigate/Call/Chat, both Collapse sections; Completed chip toggles to green + 6 completed cards. Wallet hero shows ₹449.25 + Withdrawable/Pending/Withdrawn boxes, KYC amber blocker present (demo partner not eligible), Withdraw Money taps route to /partner/payouts, KPI cards + SegTabs + tx search + credit/debit/all + pagination + 3 withdrawal items all present. More sheet → Job History → /partner/history renders with All/Completed/Cancelled filters and list. Backend network sample: /site/config, /auth/config, /notifications, /partner/wallet, /partner/wallet/config, /partner/withdrawals, /partner/finance-kyc, /bookings/partner/{jobs,active,missed,history} all 200.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      { "screen": "Bottom nav", "issues": ["'Wallet & Withdraw' label truncates to 'Wallet & Wit…' at 390px because tab label maxWidth=64 with numberOfLines=1. Expected per spec ('may truncate'), acceptable but consider a shorter label like 'Wallet'."] }
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_63.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AppShellHeader.tsx uses `refetchInterval` implicitly missing on notifs query — unread badge only refreshes on tab focus/mount. Consider `refetchInterval: 60000` for parity with web bell polling.",
+    "active.tsx: `OtpBoxes` is reused for both Start-OTP and Complete-OTP but shares a single `otp` state; if a partner starts typing Start OTP then switches to another card the value can leak. Low-priority since only rendered per-card.",
+    "jobs.tsx `earnFracOf` defaults to 0.75 when commission_config is absent — matches web but may over-quote earning; keep in mind for consistency."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped by request)", "frontend": "100%" },
+  "seed_data_creation": "None. Used existing demo partner Raj Kumar (+919000000003).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Partner shell + 4 tab screens validated on mobile web viewport 390x844. Demo partner has ~3 active jobs (one 'started' with Demo OTPs visible), 6 completed jobs, wallet balance ₹449.25, not KYC-eligible (amber blocker + tap-through to /partner/payouts). All partner APIs return 200. Completing a real OTP was intentionally skipped to preserve seed data; OTP boxes render correctly and Complete Job button is disabled until 4 digits.",
+  "rca_of_issue": "N/A — no bugs found in this iteration."
+}

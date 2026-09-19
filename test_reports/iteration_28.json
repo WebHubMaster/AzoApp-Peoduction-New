@@ -1,0 +1,27 @@
+{
+  "summary": "Verified Phase A money-flow fixes (#5 tax excl. VC, #7 partner receives VC on completion with no double credit, #8 invoice visiting_charge + tax_label + always-live branding logo). Created /app/backend/tests/test_phase_a_money_flow.py with 5 tests — all PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_phase_a_money_flow.py",
+    "/app/test_reports/pytest/phase_a.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "engines.py PricingEngine.compute correctly excludes visiting_charge from `taxable` (line 170) and adds it back untaxed to total (line 183). CommissionEngine.settle credits partner_earning + visiting_charge via two separate _credit() calls to the SAME wallet (line 270, 274) — wallet grows by exactly partner_earning+visiting_charge, matching the new commission_ledger.partner_total field.",
+    "booking_controller.complete_job (~line 1949-1966) inserts an additional partner_ledger row (kind='visiting_charge') for visibility but does NOT re-inc wallet_balance — no double credit. partner_service.record_earning was already refactored to only write ledger (comment on line 449 confirms).",
+    "invoice_service.ensure_booking_invoice now stores numeric visiting_charge (line 177) and tax_label (line 175); subtotal excludes VC (114) and fees includes VC (117) so subtotal+fees+tax-discount == total.",
+    "fill_live_branding unconditionally overrides snapshot.logo with the current settings.branding.logo_light (line 568-569) — verified via direct test that even an old snapshot.logo is replaced by the LIVE logo.",
+    "InvoiceDocument.jsx totals rows use exactly 'Tax' / 'Visiting Charge' / 'Platform Fee' (lines 88-90); old labels 'GST', 'Platform / Service Fees', 'Commission (platform)' are gone from the totals block."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_phase_a_money_flow.py (new)"
+  ],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "source-level verified (grep) — no live UI run this iteration"},
+  "test_credentials": "Customer +919000000004 / Partner +919000000003 / Admin +919000000000 — all OTP 123456. Auth endpoints are /api/auth/send-otp + /api/auth/verify-otp (NOT /api/auth/otp/request).",
+  "seed_data_creation": "Each test seeds its own TEST_-prefixed booking/partner/invoice and cleans up in a finally/scenario tail. No residual data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test file /app/backend/tests/test_phase_a_money_flow.py drives money-flow via direct import (PricingEngine.compute + CommissionEngine.settle + invoice_service.ensure_booking_invoice) because Razorpay is LIVE-configured and /payments/mock is blocked. Uses a single shared asyncio loop (_SHARED_LOOP) so motor's client stays bound across tests — run with `-n 0` when invoking manually (pytest.ini forces -n 2 --dist loadscope, module-scoped so it stays on one worker). Assertions covered: (a) quote taxable = base+addons+emergency+surge+fees (excl VC); (b) engine math base=9, vc=5, gst=18 -> gst=1.62, total=15.62; (c) settle credits partner wallet by 400 for base=500 vc=100 partner_pct=60, commission_ledger.visiting_charge=100 + partner_total=400, txns kinds=['earning','visiting_charge'] each once, partner_ledger has exactly one 'earning' + one 'visiting_charge'; wallet_summary.total_earned=400; (d) invoice.visiting_charge/tax_label present + reconciles subtotal+fees+tax-discount=total; (e) fill_live_branding replaces snapshot.logo with settings.branding.logo_light even when snapshot already had one; (f) live API /api/invoices/{id} exposes visiting_charge + tax_label + business_snapshot.logo.",
+  "rca of the issue": "N/A — verification only."
+}

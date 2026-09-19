@@ -1,0 +1,31 @@
+{
+  "summary": "Verified the three requested enhancements + regressions. Backend endpoints pass (SMS test wired, bin purge/bulk-purge/bulk-restore work). Frontend: bin bulk bar shows BOTH Restore + Delete forever, single bulk-purge removes 'Bin Purge Test' from Deleted, bulk-restore returns 'Bin Restore Test' to All. Person360 for a deleted customer shows red 'Deleted' badge AND both green 'Restore' + red 'Delete forever' buttons. OTP resend timer counts down (29s -> 26s). Customer regression login /account works. One spec-vs-impl mismatch on SMS test tool: client-side short-number validation shows a TOAST rather than rendering the [data-testid=sms-test-result] panel; the panel only renders for backend responses.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Integration Center → Fast2SMS Configure → Send a test OTP", "issue": "When an invalid short number (e.g. '123') is entered, the frontend short-circuits with a toast ('Enter a valid 10-digit mobile number') and does NOT call the backend, so [data-testid=sms-test-result] is not rendered. The task description expected the result panel to appear for validation errors. Backend /admin/integrations/sms-test itself returns the validation JSON (tested via pytest), so the tool is wired — but the UI never surfaces it in the result panel for the '123' case.", "selector": "[data-testid=sms-test-result]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PeopleList (all admin lists)", "issues": ["Repeat of iteration_22 warning: React hydration warning '<span> cannot be a child of <option>' coming from ui.jsx Pager select — still not fixed."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_bin_and_sms.py"],
+  "action_items": [
+    "(LOW) In runSmsTest (adminTemplateIntegration.jsx), do NOT short-circuit invalid short numbers with only a toast — also set smsResult={ok:false, error:'Enter a valid 10-digit mobile number'} so the [data-testid=sms-test-result] panel renders, matching the task/testability spec.",
+    "(LOW) Fix ui.jsx Pager to remove inner <span> in <option> (hydration warning, unchanged from iteration_22)."
+  ],
+  "critical_code_review_comments": [
+    "sms_service.send_test: good — returns raw provider response, distinguishes disabled/no-key/invalid-number/gateway errors. No _id leakage.",
+    "adminTemplateIntegration.jsx runSmsTest: client-side validation is a UX choice but silently bypasses the sms-test-result contract that PROBLEM_STATEMENT and E2E test rely on. Recommend setting smsResult on any validation failure.",
+    "admin_people_routes.py /{role}/{uid}/purge and /{role}/bulk-purge: correct — hard delete flow is separate from soft delete. Backend permanently deletes as expected."
+  ],
+  "updated_files": ["/app/backend/tests/test_bin_and_sms.py"],
+  "success_rate": {"backend": "100% (4/4 pytest)", "frontend": "SMS_TEST partial (tool wired, validation-toast instead of result panel), BULK_BAR_BOTH=PASS, BULK_PURGE=PASS, BULK_RESTORE=PASS, PERSON360_DELETED=PASS, RESEND_TIMER=PASS, CUSTOMER_REGRESSION=PASS (6/7 = 86%)"},
+  "test_credentials": "From /app/memory/test_credentials.md — Admin +919000000000 / OTP 123456; Customer +919000000004 / OTP 123456.",
+  "seed_data_creation": "Seeded two deleted customers directly in Mongo for the Deleted tab: 'Bin Restore Test' +917000000401 id=azo-partner-network and 'Bin Purge Test' +917000000402 id=azo-partner-network. During testing: 'Bin Purge Test' was PERMANENTLY DELETED (as designed) — it no longer exists in the DB. 'Bin Restore Test' has been left in the ACTIVE state at end of run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Bin Purge Test is permanently gone. Only Bin Restore Test remains (active). If bin tests need re-running, re-seed both via the mongo one-liner used in this iteration. The Person360 'deleted-badge' + Restore + 'Delete forever' toolbar are correctly wired for soft-deleted users. Admin one-click login (Login as Admin button) sets localStorage key 'azo_token'. useTabParam ?tab=integration_center opens the SMS card; click the 'Configure' button whose containing div text matches /fast2sms/i to open the Configure modal, which contains [data-testid=sms-test-block/phone/btn/result].",
+  "rca of the issue": "SMS_TEST result panel not shown for invalid short number: adminTemplateIntegration.jsx line 756: `if (digits.length !== 10) { toast.error(...); return; }` — this returns before the fetch call, so setSmsResult(...) is never invoked and the sms-test-result element is not rendered. Fix: replace with `if (digits.length !== 10) { setSmsResult({ ok:false, error:'Enter a valid 10-digit mobile number' }); toast.error(...); return; }` OR remove the client guard and let the backend return the validation JSON (which it already does)."
+}

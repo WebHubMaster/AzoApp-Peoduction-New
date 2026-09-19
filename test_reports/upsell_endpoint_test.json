@@ -1,0 +1,333 @@
+{
+  "timestamp": "2026-09-10T02:25:04.576199",
+  "endpoint": "GET /api/catalog/upsell",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "summary": {
+    "total": 40,
+    "passed": 40,
+    "failed": 0,
+    "success_rate": "100.0%"
+  },
+  "tests": [
+    {
+      "name": "TC1.1: HTTP 200 response",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status code: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.2: Response has 'popular_addons' key",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Keys in response: ['popular_addons', 'frequently_together']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.3: Response has 'frequently_together' key",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Keys in response: ['popular_addons', 'frequently_together']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.4: popular_addons has requested service_id as key",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service ID 75dea3e8-77d3-4205-9d52-1c96aaec400b in popular_addons: True",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.5: popular_addons value is a list",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Type: <class 'list'>",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.6: popular_addons has max 3 items",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Count: 2",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.7: Each addon has 'name' field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "First addon keys: ['name', 'price', 'count']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.8: Each addon has 'price' field (numeric)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Price: 99 (type: <class 'int'>)",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.9: Each addon has 'count' field (numeric)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Count: 2 (type: <class 'int'>)",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.10: Addons ranked by count descending",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Counts: [2, 2]",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.11: frequently_together is a list",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Type: <class 'list'>",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.12: frequently_together has max 6 items",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Count: 2",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.13.id: Service has 'id' field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service keys: ['id', 'category_id', 'category_name', 'name', 'description', 'image', 'base_price', 'price_type', 'duration_min', 'required_skill', 'addons', 'status', 'rating', 'created_at', 'approval_status', 'at_doorstep', 'cancelable', 'discounted_price', 'is_featured', 'is_trending', 'max_qty', 'members_required', 'show_on_home', 'tax_inclusive', 'highlights', 'review_count']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.13.name: Service has 'name' field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service keys: ['id', 'category_id', 'category_name', 'name', 'description', 'image', 'base_price', 'price_type', 'duration_min', 'required_skill', 'addons', 'status', 'rating', 'created_at', 'approval_status', 'at_doorstep', 'cancelable', 'discounted_price', 'is_featured', 'is_trending', 'max_qty', 'members_required', 'show_on_home', 'tax_inclusive', 'highlights', 'review_count']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.13.base_price: Service has 'base_price' field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service keys: ['id', 'category_id', 'category_name', 'name', 'description', 'image', 'base_price', 'price_type', 'duration_min', 'required_skill', 'addons', 'status', 'rating', 'created_at', 'approval_status', 'at_doorstep', 'cancelable', 'discounted_price', 'is_featured', 'is_trending', 'max_qty', 'members_required', 'show_on_home', 'tax_inclusive', 'highlights', 'review_count']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.13.category_id: Service has 'category_id' field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service keys: ['id', 'category_id', 'category_name', 'name', 'description', 'image', 'base_price', 'price_type', 'duration_min', 'required_skill', 'addons', 'status', 'rating', 'created_at', 'approval_status', 'at_doorstep', 'cancelable', 'discounted_price', 'is_featured', 'is_trending', 'max_qty', 'members_required', 'show_on_home', 'tax_inclusive', 'highlights', 'review_count']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.14: frequently_together does NOT contain requested service_id",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Requested: 75dea3e8-77d3-4205-9d52-1c96aaec400b, Together IDs: ['5bdab8ea-1c74-409c-8406-72c19ec8d176', '075b6552-3ff4-481e-9514-7ab2b936d4e3']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC1.15: All frequently_together services have category_id",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Services with category_id: 2/2",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.1: HTTP 200 response",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status code: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.2: popular_addons has first service_id key",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service 75dea3e8-77d3-4205-9d52-1c96aaec400b in popular_addons: True",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.3: popular_addons has second service_id key",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service 5bdab8ea-1c74-409c-8406-72c19ec8d176 in popular_addons: True",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.4: frequently_together does NOT contain first service_id",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service 75dea3e8-77d3-4205-9d52-1c96aaec400b in together: False",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.5: frequently_together does NOT contain second service_id",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Service 5bdab8ea-1c74-409c-8406-72c19ec8d176 in together: False",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC2.6: frequently_together excludes ALL requested services",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Requested: [75dea3e8-77d3-4205-9d52-1c96aaec400b, 5bdab8ea-1c74-409c-8406-72c19ec8d176], Together IDs: ['075b6552-3ff4-481e-9514-7ab2b936d4e3']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.no service_ids param: Returns HTTP 200",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.no service_ids param: Returns correct structure",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Response: {\"popular_addons\": {}, \"frequently_together\": []}",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.no service_ids param: Returns empty data (not error)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "popular_addons count: 0, frequently_together count: 0",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.empty service_ids: Returns HTTP 200",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.empty service_ids: Returns correct structure",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Response: {\"popular_addons\": {}, \"frequently_together\": []}",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.empty service_ids: Returns empty data (not error)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "popular_addons count: 0, frequently_together count: 0",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.invalid service_ids: Returns HTTP 200",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.invalid service_ids: Returns correct structure",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Response: {\"popular_addons\": {}, \"frequently_together\": []}",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.invalid service_ids: Returns empty data (not error)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "popular_addons count: 0, frequently_together count: 0",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.whitespace only: Returns HTTP 200",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status: 200",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.whitespace only: Returns correct structure",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Response: {\"popular_addons\": {}, \"frequently_together\": []}",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC3.whitespace only: Returns empty data (not error)",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "popular_addons count: 0, frequently_together count: 0",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC4.2: All frequently_together services are currently visible/active",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Verified 2 services are in visible catalog",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC4.3: No frequently_together services are in requested cart",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Requested: ['75dea3e8-77d3-4205-9d52-1c96aaec400b'], Together: ['5bdab8ea-1c74-409c-8406-72c19ec8d176', '075b6552-3ff4-481e-9514-7ab2b936d4e3']",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC5.1: Endpoint works without Authorization header",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Status code: 200 (expected 200, not 401/403)",
+      "expected": "",
+      "actual": ""
+    },
+    {
+      "name": "TC5.2: Returns valid data without auth",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Response has required keys",
+      "expected": "",
+      "actual": ""
+    }
+  ]
+}

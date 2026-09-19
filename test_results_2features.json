@@ -1,0 +1,105 @@
+{
+  "feature1": {
+    "tests": [
+      {
+        "test": "Admin login",
+        "passed": true,
+        "details": "Admin ID: f8ed54bd-08a0-49b5-9781-27f107da4888",
+        "timestamp": "2026-09-11T04:09:17.183590"
+      },
+      {
+        "test": "GET /api/admin/coupons/absorption-report (no filters)",
+        "passed": true,
+        "details": "Keys present: ['coupons', 'orders', 'totals', 'note'], Coupons: 0, Orders: 0",
+        "timestamp": "2026-09-11T04:09:17.323619"
+      },
+      {
+        "test": "Totals structure verification",
+        "passed": true,
+        "details": "Totals keys: ['discount_absorbed', 'service_value', 'customer_paid_excl_tax', 'partner_paid', 'merchant_paid', 'platform_net', 'bookings', 'coupons']",
+        "timestamp": "2026-09-11T04:09:17.323656"
+      },
+      {
+        "test": "GET /api/admin/coupons/absorption-report (with date filters)",
+        "passed": true,
+        "details": "Date range: 2026-08-12 to 2026-09-11, Coupons: 0",
+        "timestamp": "2026-09-11T04:09:17.482336"
+      },
+      {
+        "test": "Partner blocked from absorption report (401/403)",
+        "passed": true,
+        "details": "Status: 403",
+        "timestamp": "2026-09-11T04:09:17.742425"
+      },
+      {
+        "test": "Customer blocked from absorption report (401/403)",
+        "passed": true,
+        "details": "Status: 403",
+        "timestamp": "2026-09-11T04:09:17.997169"
+      },
+      {
+        "test": "GET /api/admin/coupons (check existing coupons)",
+        "passed": true,
+        "details": "Total coupons: 3, Active: 3",
+        "timestamp": "2026-09-11T04:09:18.195901"
+      }
+    ],
+    "passed": 7,
+    "failed": 0
+  },
+  "feature2": {
+    "tests": [
+      {
+        "test": "Merchant login",
+        "passed": true,
+        "details": "Merchant ID: 1d61e169-59ee-42b9-baa8-ef0ad4afe566",
+        "timestamp": "2026-09-11T04:09:18.379081"
+      },
+      {
+        "test": "GET /api/merchant/panel/network?page_size=50",
+        "passed": true,
+        "details": "Total members: 15, Total: 15",
+        "timestamp": "2026-09-11T04:09:18.531468"
+      },
+      {
+        "test": "Find real members (is_real==true)",
+        "passed": true,
+        "details": "Real members found: 1",
+        "timestamp": "2026-09-11T04:09:18.531497"
+      },
+      {
+        "test": "GET /api/merchant/panel/network/member/{id} - structure",
+        "passed": true,
+        "details": "Has earning_jobs: True, earning_totals: True, commission_breakdown: True",
+        "timestamp": "2026-09-11T04:09:20.854763"
+      },
+      {
+        "test": "earning_totals structure",
+        "passed": true,
+        "details": "Keys: ['referral', 'customer', 'total', 'jobs'], Total: \u20b90.0, Jobs: 0",
+        "timestamp": "2026-09-11T04:09:20.854817"
+      },
+      {
+        "test": "commission_breakdown.total == earning_totals.total",
+        "passed": true,
+        "details": "commission_breakdown.total: 0.0, earning_totals.total: 0.0",
+        "timestamp": "2026-09-11T04:09:20.854823"
+      },
+      {
+        "test": "earning_jobs array",
+        "passed": true,
+        "details": "No jobs yet for this member (earning_jobs: [])",
+        "timestamp": "2026-09-11T04:09:20.854827"
+      },
+      {
+        "test": "Seeded member earning_jobs == []",
+        "passed": true,
+        "details": "earning_jobs: []",
+        "timestamp": "2026-09-11T04:09:20.977994"
+      }
+    ],
+    "passed": 8,
+    "failed": 0
+  },
+  "errors": []
+}

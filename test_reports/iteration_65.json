@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend-only verification for AzoApp Partner iteration 65 (More sheet redesign + Starter Kit + Rewards + Analytics + Profile & KYC read-only). Login via 'Partner Demo' works. More sheet shows title 'All Menu' + close X + exactly 9 tiles in the required order + pink Logout; Job History & Notifications tiles are correctly absent. All target pages render with expected testIDs, hero/gradients, data from correct backend endpoints, and no console/red-box errors. Starter Kit purchase mock flow was successfully completed (POST /starter-kit/order → mock:true → POST /starter-kit/mock → view switched to starter-kit-owned + kit-tracking). Analytics preset switching (today/7d/30d/90d/month/custom) and custom YYYY-MM-DD refetch GET /api/partner/analytics correctly. Rewards renders hero, auto-payout, 5★ streak (+streak-freeze), next-reward ring, challenges list, and green 'Spotless record' when penalties empty. Profile & KYC renders blue hero + KYC Verified chip + AzoApp Pro chip (activated by kit purchase) + 4.8 rating chip, amber locked notice, and all 5 sections; the onboarding banner correctly hides for approved partner. All 4 doc tiles show 'Not uploaded' as seeded (no bug).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_65.json"],
+  "action_items": [
+    "No functional issues found in this iteration. Feature is ready to ship.",
+    "Optional: seed the demo partner registration profile with DOB/gender/email/education and Aadhaar number + doc URLs so QA can visually verify the XXXX XXXX 1234 mask + zoom modal (currently masked value is '—' and all 4 doc tiles show 'Not uploaded' because the seed data has empty fields — the code paths themselves render correctly)."
+  ],
+  "critical_code_review_comments": [
+    "PartnerStarterKit: order response handling assumes exactly one of free/mock/gateway is truthy — fine for current API but worth a defensive fallback.",
+    "PartnerAnalytics custom preset does not client-side validate YYYY-MM-DD before refetching; the query key changes on every keystroke which can spam the backend. Consider debouncing or gating the fetch until both strings match /\\d{4}-\\d{2}-\\d{2}/.",
+    "PartnerVerification: mapLink uses `https://www.google.com/maps?q=...` which is fine for web; on native iOS/Android consider `maps:` or `geo:` intents for a better experience.",
+    "AppTabBar: navigating to a non-tabs route (e.g. /partner/starter-kit) hides the bottom tab bar entirely, which is expected but means users must use header back — the flow works but is worth confirming with product."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (skipped per request)", "frontend": "100% (5/5 features)"},
+  "seed_data_creation": "None. Reused existing demo partner (+919000000003) and performed one mock Starter Kit purchase on it (as explicitly permitted by the request).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Demo partner AZP4587602 (Raj Kumar, +919000000003) has already completed the mock Starter Kit purchase in this iteration, so /partner/starter-kit now renders the OWNED view (starter-kit-owned + kit-tracking) and the Profile & KYC hero shows the AzoApp Pro chip. To retest the SALES view of Starter Kit, either reset that partner's kit purchase in the DB or use a fresh partner phone. Auth flow: notifications onboarding screen appears first (tap 'Maybe later') then Login screen (tap 'Partner Demo' one-tap button).",
+  "rca_of_issue": "N/A — no bugs found. Test verification details:\n- MORE ORDER (verified from DOM): availability, bankkyc, earnings, invoices, incentives, analytics, starterkit, onboarding, support (matches spec exactly).\n- STARTER KIT NETWORK: POST /api/starter-kit/order → 200 (mock:true) → POST /api/starter-kit/mock → 200 → GET /api/auth/me → GET /api/starter-kit/me → owned view rendered.\n- ANALYTICS NETWORK: preset changes and custom-from/custom-to fills each trigger GET /api/partner/analytics?date_from=&date_to= (verified 3 refetches).\n- REWARDS: GET /api/partner/challenges + /api/partner/my-bonuses, all sections render with real data (Fleet rank #1/26, 1 active challenge, streak 0/5, Monthly Superstar closest reward, Spotless record).\n- PROFILE: GET /api/partner/registration/profile returns basic info with KYC approved; all 5 sections render; amber locked notice + hero + 4.8 rating chip + AzoApp Pro chip all visible."
+}

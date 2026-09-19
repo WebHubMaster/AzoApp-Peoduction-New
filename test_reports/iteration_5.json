@@ -1,0 +1,56 @@
+{
+  "summary": "Iteration 5: full backend + frontend verification of the push-diagnostics work (Firebase Web API key probe, push-status reporting, partners-without-device), the Admin 'Alert Sound & Ring' card in Integration Center, admin->partner alert_config propagation, audio upload, and the removal of the partner Alert Settings card. Backend: 20/20 pytest cases pass (new file /app/backend/tests/test_push_diag_alertsound.py). Frontend: Admin Diagnostics tab and partner push UI all verified correct. ONE HIGH-severity UI bug found: the PremiumSelect dropdown rendered inside a Radix Dialog (e.g. the ringtone select in the Alert Sound modal) is visible but NOT clickable - clicks fall through to the element underneath (volume slider), so an admin cannot change the ringtone at all.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/realtime/config", "issue": "Requires auth (401 for anonymous). Review request listed it as a public regression check; not a defect, just documenting the actual contract."},
+      {"endpoint": "POST /api/notifications/devices", "issue": "Empty token returns HTTP 200 with {ok:false,error:'no_token'} instead of 400 - status code should reflect the validation error."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PremiumSelect inside Dialog (AlertSoundModal ringtone select, /app/frontend/src/components/ui/PremiumSelect.jsx + ui/dialog.jsx)",
+        "issue": "Tone dropdown opens and renders options, but options are un-clickable. Radix DialogContent sets `pointer-events:none` on <body> while open; the PremiumSelect menu is portalled to document.body so it inherits pointer-events:none (verified: getComputedStyle(menu).pointerEvents === 'none', document.elementFromPoint(option center) returns the alert-volume range input). Result: (a) admin CANNOT change the ringtone from the UI (tone stays 'Classic Ring'), (b) a click intended for an option lands on the volume slider underneath and silently changes volume (observed 70% -> 45%, which then got saved). Playwright normal click times out with 'element intercepts pointer events'. Fix: add style/class pointer-events:auto on the menu container (and the mobile backdrop) in PremiumSelect, or portal the menu into the DialogContent node. This affects EVERY PremiumSelect used inside a Dialog across the admin app, not just Alert Sound.",
+        "selector": "[data-testid=\"alert-tone\"] / [data-testid=\"alert-tone-menu\"] / [data-testid=\"alert-tone-opt-chime\"]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "NotificationDiagnostics (adminSectionsPro.jsx:1640/1645)",
+        "issue": "Duplicate data-testid: the container div uses data-testid=\"diag-apikey-blocked\" and each blocked check <li> uses data-testid={`diag-apikey-${ok?'ok':'blocked'}`}, so the selector resolves to 2 elements (Playwright strict-mode violation). Rename the row testid e.g. diag-apikey-check-<api-slug>.",
+        "selector": "[data-testid=\"diag-apikey-blocked\"]",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [
+      {"flow": "Admin Alert Sound modal -> save -> card subtitle", "issue": "Save works (toast 'Alert sound settings saved…', modal closes, PUT /api/admin/settings persists) but the card subtitle can never change to a different tone because the tone cannot be selected (see PremiumSelect pointer-events bug). Subtitle correctly reflects the persisted tone ('Tone · Classic Ring').", "affected_selectors": ["[data-testid=\"intg-card-alertsound\"]", "[data-testid=\"alert-tone\"]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_push_diag_alertsound.py",
+    "/app/backend/tests/restore_iter5_state.py",
+    "/app/test_reports/pytest/iter5_push.xml"
+  ],
+  "action_items": [
+    "HIGH: Make PremiumSelect's portalled menu clickable inside Radix Dialogs (add pointer-events:auto to the menu wrapper, or portal into DialogContent). Currently the Alert Sound ringtone cannot be changed and stray clicks mutate the volume slider.",
+    "LOW: Fix duplicate data-testid 'diag-apikey-blocked' (container + per-check <li>) in NotificationDiagnostics.",
+    "LOW: Return 400 (not 200) from POST /api/notifications/devices when token is empty."
+  ],
+  "critical_code_review_comments": [
+    "PremiumSelect renders its menu via createPortal(document.body) with no pointer-events reset - incompatible with Radix Dialog/Sheet which set body{pointer-events:none}. dialog.jsx already special-cases [data-premium-select-menu] for dismissal, so the same hook should be used to restore pointer events.",
+    "fcm_service.check_web_api_key runs two blocking urllib probes with a 10s timeout each on every GET /api/admin/notifications/health call; consider caching the result (e.g. 60s TTL) so the Diagnostics tab / repeated admin polls don't add ~1-3s latency per request.",
+    "notification_health() builds the per-role device breakdown by loading every user id per role into memory ({'user_id': {'$in': ids}}); this will not scale - use an aggregation with $lookup or store role on fcm_devices."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_push_diag_alertsound.py",
+    "/app/backend/tests/restore_iter5_state.py"
+  ],
+  "success_rate": {"backend": "100% (20/20 pytest)", "frontend": "90% (all diagnostics + partner flows pass; tone select un-clickable)"},
+  "seed_data_creation": "No new seed data. Temporarily created fcm_devices token 'test-token-xyz' for Kundan Kumar and one alerts/*.wav upload - both deleted in fixtures teardown (verified 0 remaining). alert_config restored to seed values (tone classic, volume 0.7, dnd off) and Kundan's push_state restored to reason='token_failed' via restore_iter5_state.py. Note: a pre-existing leftover upload alerts/ebaf245640ee4707b5919e68e3fda763.wav (original 't.wav', created 05:20 before my run) still exists in backend/uploads + media collection - left untouched.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "Admin +919000000000 / OTP 123456; Partner Kundan Kumar +918252754050; Partner Raj Kumar +919000000003",
+  "context_for_next_testing_agent": "VERIFIED PASSING: (1) GET /api/admin/notifications/health returns web_api_key {ok:false, checks:[Firebase Installations API ok=false status=403 reason=API_KEY_SERVICE_BLOCKED, FCM Registration API ok=true]}, reasons.web_api_key string, ready_for_push=false, registration_attempts with user enrichment, partners_without_device with id/name/phone/push_state; admin-only (403 for partner). (2) POST /api/notifications/push-status persists + surfaces in health; GET /api/notifications/my-devices hides raw token. (3) POST /api/notifications/devices increments health.devices.total. (4) admin test-push returns push.skipped='no_devices' + push_state field. (5) PUT /api/admin/settings alert_config nested-merges, appears in integration-center, and partner GET /api/partner/alert-prefs returns admin values with per-partner snoozeUntil only (partner tone override ignored). (6) POST /api/media/upload-audio WAV ok / PNG 400 / non-admin 403; served file 200. (7) Regressions push-config, realtime/config(auth), ring-pending, dispatch-feed all 200. FRONTEND VERIFIED: Admin Diagnostics banner 'Push notifications are NOT ready' + web-API-key reason, diag-apikey-blocked card with BLOCKED/ALLOWED pills and 4 fix steps, diag-partners-without-device (10 online partners listed), diag-registration-attempts (5 rows incl. Kundan Kumar TOKEN_FAILED / installations/request-failed). Integration Center intg-card-alertsound + modal with alert-tone/alert-test-sound/alert-volume/alert-dnd(+start/end)/alert-sound-file/alert-sound-save works, save toast+close ok. Partner dashboard (nav testid is 'nav-home' not 'nav-dashboard'; partners with pending jobs land on Job Request page and may get a full-screen [data-testid=incoming-job-ring] overlay that blocks the bell - use Raj Kumar +919000000003 and click Dashboard first): no Alert Settings/Ringtone card, snooze-card + Missed Requests present, partner-alerts-banner 'Fix now', bell push-permission-row 'Device alerts: Blocked in browser' + Fix opens push-optin popup. Zero console errors on all pages. ONLY OPEN BUG: PremiumSelect options un-clickable inside Radix Dialog (pointer-events).",
+  "rca_of_the_issue": "PremiumSelect ringtone dropdown un-clickable: Radix UI Dialog applies `pointer-events: none` to document.body while open and re-enables it only on DialogContent. PremiumSelect renders its option menu with createPortal into document.body (z-9999), so the menu inherits pointer-events:none. Reproduction: Admin -> System/Integration Center -> Alert Sound & Ring -> Configure -> click [data-testid=alert-tone] -> menu appears -> click [data-testid=alert-tone-opt-chime]: Playwright normal click times out ('subtree intercepts pointer events'), forced click lands on [data-testid=alert-volume] underneath and changes the volume instead; the tone label stays 'Classic Ring'. Measured in-page: getComputedStyle(document.body).pointerEvents==='none', getComputedStyle('[data-premium-select-menu]').pointerEvents==='none', document.elementFromPoint(optionCenter) === input[data-testid=alert-volume]. Mitigation: set pointerEvents:'auto' on the PremiumSelect menu wrapper (and mobile backdrop) or portal the menu into the closest DialogContent."
+}

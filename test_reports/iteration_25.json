@@ -1,0 +1,26 @@
+{
+  "summary": "Regression tests for Fast2SMS DLT route key-mismatch fix. All Fast2SMS HTTP calls mocked — NO real SMS sent. Verified: send_test and send_otp_sms build route='dlt' with sender_id='AZOHOM' and message='220032' resolved from settings key `fast2sms_otp_template_id` (with fast2sms_message_id absent). Fallback to route='otp' still works. Backward-compat with legacy `fast2sms_message_id` also verified. 5/5 backend tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_sms_dlt_route_fix.py",
+    "/app/test_reports/pytest/sms_dlt_route_fix.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "sms_service.py duplicates the DLT-condition `route=='dlt' and sender_id and (otp_template_id or message_id)` and the params dict across send_test/send_otp_sms/send_text_sms. Extract a `_build_params(cfg, number, otp_or_msg)` helper to prevent future key-mismatch drift.",
+    "send_text_sms ignores `fast2sms_route` and unconditionally uses DLT whenever sender_id+template are set — inconsistent with the other two functions. Consider gating on route=='dlt' for symmetry.",
+    "DLT `message` field is documented by Fast2SMS as the numeric DLT template/message id — variable naming `message` is confusing next to actual message content in the `q`/`otp` branches; consider renaming to `template_id` in params or adding a comment.",
+    "No unit tests existed for sms_service prior to this iteration despite it being a live-billing integration — added coverage now, but recommend expanding to error paths (r.json() failure, non-10-digit number, sms_enabled=False)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_sms_dlt_route_fix.py (new)"
+  ],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "skipped (backend-only per request)"},
+  "test_credentials": "N/A — pure unit test with mocked HTTP; no auth used.",
+  "seed_data_creation": "None. _cfg() is monkeypatched via AsyncMock so no Mongo settings doc is touched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Run: `cd /app/backend && python -m pytest tests/test_sms_dlt_route_fix.py -o addopts= --asyncio-mode=auto`. pytest-asyncio was installed in this iteration. Tests mock httpx.AsyncClient with a fake context manager capturing last params — no network. If sms_service.py signatures/params change, update the assertions in the 5 tests.",
+  "rca of the issue": "Original bug: Fast2SMS returned status 998 'Route is blocked in your account, use DLT SMS route.' because the admin UI persisted the DLT template id under settings.integrations.fast2sms_otp_template_id but sms_service read fast2sms_message_id (empty). Condition `route=='dlt' and sender_id and message_id` evaluated False, so all sends fell through to the blocked `otp` route. Fix: send_test / send_otp_sms / send_text_sms now resolve the DLT template id via `(fast2sms_otp_template_id or fast2sms_message_id)`. Verified by test_dlt_reads_otp_template_id_key_only (new-key-only) and test_dlt_backward_compat_legacy_key (legacy-key-only) — both build route='dlt' correctly."
+}

@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 52 — RETEST of iteration_51 pricing bugs on frontend Checkout.jsx. Both critical bugs are FIXED. End-to-end verified with real UI + real bookings: (a) Checkout preview now sends `address` on /bookings/cart-quote so city-based surge (Patna 15%) appears in the preview; (b) coupon validation now validates against the WHOLE cart (POST /bookings/validate-coupon with items[]+address+schedule_type). Preview total matches Σ(created booking totals) to the paisa (₹1,188.73). Coupon negative gate works (SAVE100 rejected on ₹199 single-item cart) and MONSOON20 accepted on ₹399 Bathroom Cleaning.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Checkout.jsx — Price details section (StepSummary lines 892-923) & Category-wise charges table (lines 862-890)",
+       "issue": "No explicit 'Surge' row is rendered anywhere in the Price details or the category-wise breakdown. The numeric total is correct (surge is folded into Taxable amount), but from the customer's viewpoint there is an unlabelled ~₹131 delta between Services+Visiting and Taxable in the multi-category test (876+100 → 1107.4). Request explicitly asked that 'a Surge row MUST now appear in the preview'. Backend already returns pricing.surge; suggest adding `{totals.surge > 0 && <Row l=\"Surge\" v={fmt(totals.surge)} />}` above the Taxable row, plus a Surge column in the category-charges table using c.surge_charge (if apportioned).",
+       "selector": "[data-testid=\"category-charges-table\"] / #price-details Row list",
+       "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_52.json", "/app/test_reports/iteration_51.json"],
+  "action_items": [
+    "Add an explicit 'Surge' Row in Price details (and a 'Surge' column in Category-wise charges) so the customer sees the ₹131.40 charge instead of it being silently baked into 'Taxable amount'. Data is already present at cart-quote.pricing.surge and per-category on category_charges[].surge_charge."
+  ],
+  "critical_code_review_comments": [
+    "Checkout.jsx:196 now correctly ships `address: addr` in the cart-quote payload — surge/serviceability are reflected in the preview. ✔",
+    "Checkout.jsx:248 applyCoupon now sends the FULL items[] + address + schedule_type — full-cart min_order gate works. ✔",
+    "Checkout.jsx:208-211 gracefully clears an applied coupon if cart-quote later reports coupon_applied=false (with a user message). ✔",
+    "Missing surge line in Price details — see UI bug above."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (backend prev-iter matrix already covered)", "frontend": "100% for invariant Σ==preview and coupon validation; 1 UX transparency gap (no Surge row)"},
+  "test_credentials": "Demo Customer button on /login (phone +919000000004 · OTP 123456). Partner +919000000003. Admin +919000000000.",
+  "seed_data_creation": "Created 2 real customer bookings via UI grouped checkout for validation: Plumbing #AZ0L4YKLM ₹450.52 and Home Cleaning #AZ093ZD85 ₹738.21 — Σ=₹1,188.73 == preview exactly. Also created 2 stale bookings from iter51 test (still in DB) — no data cleanup done.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "iteration_51 critical bugs both closed. Verified E2E (customer 800001 Patna): multi-category cart [Tap & Mixer 199+Washer 79] + [Bathroom Cleaning 399+Grout 199], schedule mode, SAVE100 → preview {base 876, surge 131.4, visiting 100, discount 100, taxable 1007.4, gst 181.33, total 1188.73}. Order placed via dev-mock → 2 bookings: Plumbing pricing {base 278, surge 41.7, visiting 100, discount 37.9, taxable 381.8, gst 68.72, total 450.52} + Home Cleaning {base 598, surge 89.7, visiting 0, discount 62.1, taxable 625.6, gst 112.61, total 738.21}. Σ=1188.73 ✓. Apportionment split ratio matches category service totals (278:598). Negative: SAVE100 on 199 cart → 400 'Minimum order ₹499 required'. MONSOON20 on Bathroom Cleaning (399) → applied (discount 111.77 = 20% of 558.85 services+surge). Backend already-covered scenarios not re-verified: emergency-per-category (₹150×2=₹300) and single-category qty-2 add-on-not-multiplied — main agent can self-test or rely on prev iter's backend matrix (/app/backend/tests/test_pricing_scenario_matrix.py, passing).",
+  "rca of the issue": "Iteration_51 root causes both remediated: (1) cart-quote payload now carries `address` and re-fires on addr.city/pincode/lat/lng change (Checkout.jsx:196,221); (2) applyCoupon now sends {code, items:map(toReqItem), schedule_type, address} instead of items[0] only (Checkout.jsx:248). Backend endpoint /bookings/validate-coupon dispatches to validate_cart_coupon when items[] present. Only remaining UX gap: the Surge value is not displayed as a labelled line in the Price details or category-wise table — the customer sees the delta absorbed into 'Taxable amount' without explanation."
+}

@@ -1,0 +1,42 @@
+{
+  "summary": "Iter 31 — Phase 1 fix batch tested (Cashfree Starter Kit, cart tax display, persistent login, coupon->commissionable_base, invoice display_amount). Backend pytest: 8 passed, 1 skipped, 1 FAILED. One CRITICAL bug uncovered: the /api/payments/confirm-return endpoint is decorated with require_role('customer'), so when a PARTNER returns from Cashfree hosted checkout after buying the Starter Kit, PaymentReturn.jsx's POST /api/payments/confirm-return returns HTTP 403 'Forbidden for this role'. This defeats the entire #4 fix: an unpaid partner return will show error state (not the intended 'pending' state) and — more importantly — a genuinely-paid partner return can never activate Pro because the controller routing (KIT- -> starter_kit_service.purchase_confirm_return) is unreachable. Other findings confirmed working: (#4 order creation) POST /starter-kit/order returns real Cashfree sandbox order {mock:false, gateway:'cashfree', method:'cashfree_sdk', order_id starts with 'KIT-', payment_session_id present}; (#1 persistent login) JWT has NO exp claim and reload keeps user on /book (no redirect to /login); (#16 coupon->base) PricingEngine.compute: percentage coupon reduces commissionable_base (1000 -> 900 with 10% coupon; free_visiting coupon does NOT reduce base, verified via direct engine calls); (#8 cart tax) Checkout.jsx footer + OrderSidebar correctly gate Tax/Visiting/Total-payable behind `step >= 4` and show 'Services subtotal · taxes at checkout' + 'Taxes & other charges are calculated at checkout' on earlier steps (code review); (#7/#14 invoice list) list_invoices adds display_amount for every row; customer/admin: equals total_amount (verified via API); partner: switches to commission_ledger.partner_total for booking invoices (code review — partner had no invoice rows in this env to hit the branch).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/payments/confirm-return", "issue": "Route uses require_role('customer'); a partner returning from Cashfree hosted checkout for the Starter Kit gets HTTP 403 'Forbidden for this role'. PaymentReturn.jsx will render its 'error' state and — critically — a real paid partner return can never reach starter_kit_service.purchase_confirm_return, so Pro is never activated even for successful payments. Fix: allow both roles on this route (e.g. require_role('customer','partner') or a require_login dep). The controller's KIT- branch already assumes a partner user.", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Partner Starter Kit Cashfree return", "issue": "Frontend /payment/return page will always show 'Payment not completed' for a partner starter-kit return (even when actually paid) because the confirm-return API returns 403. Root cause is backend role gating (see backend_issues.critical).", "affected_selectors": ["payment-return", "payment-return-pending"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter31_phase1.py",
+    "/app/test_reports/pytest/iter31_phase1.xml"
+  ],
+  "action_items": [
+    "URGENT (#4): Change /api/payments/confirm-return in backend/routes/payment_routes.py from require_role('customer') to allow both customer and partner (e.g. `require_role('customer','partner')` or use a generic require_login dependency). Without this the Starter Kit Cashfree return path is completely broken for partners.",
+    "Optional: give PaymentReturn's error state a distinct data-testid ('payment-return-error') so tests can distinguish transient errors (e.g. 403) from genuine gateway 'pending' outcomes."
+  ],
+  "critical_code_review_comments": [
+    "payment_routes.confirm_return uses CUSTOMER-only role gating but the controller explicitly branches to starter_kit_service on KIT- receipts (partner flow) — a hard contradiction and the source of the bug.",
+    "starter_kit_service.purchase_confirm_return correctly returns {ok:true, paid:false, kind:'starter_kit'} for unpaid orders and is idempotent when the partner already owns the kit — good; only the route gating prevents it from ever being called.",
+    "engines.PricingEngine.compute correctly excludes free_visiting coupons from the commissionable_base reduction (verified via unit test): commissionable_base = max(service_value - discount_if_service_type, 0).",
+    "invoice_service.list_invoices sets display_amount = total_amount for customer/admin/withdrawal/transaction rows and swaps to commission_ledger.partner_total (or merchant_referral + merchant_customer) only for booking-type invoices for partner/merchant — matches spec, and detail/breakdown is untouched.",
+    "AuthContext + create_token: token has no exp claim; frontend reload flow verified to stay logged in — persistent login works as specified.",
+    "Checkout.jsx early-step footer & OrderSidebar gate every tax/visiting/total-payable field behind `step >= 4` and show the 'Services subtotal · taxes at checkout' label — matches #8 spec."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter31_phase1.py (new)"
+  ],
+  "success_rate": {"backend": "80% (8/10; 1 skipped for missing partner invoice rows)", "frontend": "partial (persistent-login reload verified via UI; cart tax display verified via code review only — services API returned empty in this env with `?limit=30`, so playwright cart seed was skipped)"},
+  "test_credentials": "Customer +919000000004, Partner +919000000003, OTP 123456 for all (per /app/memory/test_credentials.md).",
+  "seed_data_creation": "None persisted. Backend test creates a Cashfree KIT-... order via /api/starter-kit/order but does NOT pay it, so partner is not marked Pro (asserted). No TEST_ rows left behind.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run `cd /app/backend && pytest tests/test_iter31_phase1.py -v -o addopts=''` after the confirm-return role fix. The single failing test (TestStarterKitCashfree::test_confirm_return_kit_unpaid_does_not_grant_pro) will pass once the route allows partner. To exercise the partner-invoice display_amount branch, ensure the partner +919000000003 has at least one completed booking with a commission_ledger row (or use the wallet-pay flow to complete one) — otherwise the test will keep skipping. Playwright cart-tax test needs a services listing that actually returns items in ?limit=N form (this run's fetch returned zero services, so the seed step no-oped even though the code paths in Checkout.jsx look correct).",
+  "rca of the issue": "Iteration 30 fixed the Cashfree-return regression for BOOKING payments only. The team then re-used the same /api/payments/confirm-return endpoint for the new #4 Starter Kit return flow and added a KIT- branch in payment_controller.confirm_return. However /api/payments/... routes are gated to the 'customer' role in payment_routes.py (require_role('customer')). Because Starter Kit is a partner-only product, the partner's PaymentReturn.jsx call is rejected by the auth middleware with 403 BEFORE the controller ever runs — so purchase_confirm_return (and its unpaid vs paid branches) is never reached. Mitigation: broaden the role gate on /payments/confirm-return to include partners (both partner and customer), or move the confirm-return endpoint to a role-agnostic path that only requires login."
+}

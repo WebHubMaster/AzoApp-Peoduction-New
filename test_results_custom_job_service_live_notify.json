@@ -1,0 +1,120 @@
+{
+  "test_name": "Custom Job Service Live Notification",
+  "timestamp": "2026-09-10T11:56:06.241462",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "steps": [
+    {
+      "step": 1,
+      "description": "Create custom job",
+      "status": "PASS",
+      "details": {
+        "job_id": "35db0ee8-a0c8-4565-ada5-e1006cc31236",
+        "request_id": "CJR-69GWEDEK",
+        "customer_id": "e0476115-aaef-4bcb-8acb-ba0d0f4ae669",
+        "work_name": "Test Service Request 1789041367"
+      }
+    },
+    {
+      "step": 2,
+      "description": "Convert custom job to service",
+      "status": "PASS",
+      "details": {
+        "service_id": "317524f6-612d-4cf3-98c6-f82509a08b12",
+        "service_name": "Test Service Request 1789041367",
+        "service_status": "inactive",
+        "in_public_catalog": false
+      }
+    },
+    {
+      "step": 3,
+      "description": "Get customer notifications (before)",
+      "status": "PASS",
+      "details": {
+        "notification_count": 10
+      }
+    },
+    {
+      "step": 4,
+      "description": "Activate service",
+      "status": "PASS",
+      "details": {
+        "service_id": "317524f6-612d-4cf3-98c6-f82509a08b12",
+        "service_status": "active"
+      }
+    },
+    {
+      "step": 5,
+      "description": "Verify service live notification",
+      "status": "PASS",
+      "details": {
+        "notification_found": true,
+        "title": "Your requested service is now live! \ud83c\udf89",
+        "link": "/service/317524f6-612d-4cf3-98c6-f82509a08b12",
+        "event": "custom_job_service_live",
+        "data": {
+          "type": "custom_job",
+          "request_id": "CJR-69GWEDEK",
+          "service_id": "317524f6-612d-4cf3-98c6-f82509a08b12",
+          "event": "custom_job_service_live"
+        },
+        "checks": {
+          "title_contains_now_live": true,
+          "link_correct": true,
+          "event_correct": true,
+          "data_has_service_id": true
+        },
+        "count_before": 10,
+        "count_after": 11
+      }
+    },
+    {
+      "step": 6,
+      "description": "Verify custom job audit and public catalog",
+      "status": "PASS",
+      "details": {
+        "checks": {
+          "has_service_activated_audit": true,
+          "display_status_is_service_active": true,
+          "service_in_public_catalog": true
+        },
+        "display_status": "service_active",
+        "service_activated_audit": {
+          "action": "service_activated",
+          "by": "",
+          "by_name": "System",
+          "note": "Service 'Test Service Request 1789041367' is now live and bookable.",
+          "at": "2026-09-10T11:56:07.959277+00:00"
+        },
+        "service_in_public": true
+      }
+    },
+    {
+      "step": 7,
+      "description": "Test idempotency",
+      "status": "PASS",
+      "details": {
+        "count_before_reactivate": 11,
+        "count_after_reactivate": 11,
+        "notification_count_unchanged": true
+      }
+    },
+    {
+      "step": 8,
+      "description": "Verify normal service does NOT notify",
+      "status": "PASS",
+      "details": {
+        "normal_service_id": "0c3eaf64-bb33-429b-8694-bdf78c656915",
+        "count_before": 11,
+        "count_after": 11,
+        "has_notification_for_normal_service": false,
+        "no_notification_created": true
+      }
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "errors": []
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "summary": "Frontend-only test of Scan QR module. Verified Poster Content text fields removed, theme customization works, all downloads (PNG/JPG/PDF/QR PNG/QR SVG) trigger with full-size non-cropped outputs, analytics renders, template persistence works after reload. No console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ScanQRModule.jsx is 260 lines - fine. capturePoster correctly uses full poster size for width/height/windowWidth/windowHeight ensuring no crop.",
+    "Offscreen poster node at position:fixed left:0 top:0 zIndex:-1000 with no opacity — good for html2canvas.",
+    "html2canvas scale=2 gives high-res output; observed PNG ~700KB, JPG ~420KB, PDF ~425KB (full poster captured)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "One-click 'Login as Merchant' → Sharma Electricals (code H5L7RY2)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Scan QR module fully verified. Download bug fix confirmed working - html2canvas captures full poster dimensions. Persistence via /api/merchant/panel/qr/config works. Only theme customization panel remains (Business name/Tagline/Headline/etc text inputs correctly removed). 'Tagline' text still appears as a Show/Hide toggle label — that's expected.",
+  "results": {
+    "poster_content_removed": true,
+    "theme_controls_present": true,
+    "template_change_updates_preview": true,
+    "color_change_updates_preview": true,
+    "download_png_size_bytes": 718215,
+    "download_jpg_size_bytes": 422201,
+    "download_pdf_size_bytes": 425459,
+    "qr_png_downloaded": true,
+    "qr_svg_downloaded": true,
+    "analytics_rendered": true,
+    "template_persisted_after_reload": true,
+    "console_errors": 0
+  }
+}

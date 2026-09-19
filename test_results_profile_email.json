@@ -1,0 +1,173 @@
+{
+  "test_run_time": "2026-09-16T14:19:46.407116",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "name": "Admin login",
+      "passed": true,
+      "details": "Admin logged in successfully",
+      "response": null
+    },
+    {
+      "name": "Partner login",
+      "passed": true,
+      "details": "Partner logged in successfully",
+      "response": null
+    },
+    {
+      "name": "Get partner details",
+      "passed": true,
+      "details": "Partner: Raj Kumar, kyc_status=approved, verified=False",
+      "response": null
+    },
+    {
+      "name": "TEST (a) - Status code",
+      "passed": true,
+      "details": "Got 200 OK",
+      "response": null
+    },
+    {
+      "name": "TEST (a) - Name unchanged",
+      "passed": true,
+      "details": "Name correctly unchanged: 'Raj Kumar'",
+      "response": null
+    },
+    {
+      "name": "TEST (a) - Photo accepted",
+      "passed": true,
+      "details": "Photo field was accepted and processed (name was silently ignored)",
+      "response": null
+    },
+    {
+      "name": "TEST (b) - 403 on name-only",
+      "passed": true,
+      "details": "Got 403 as expected: Your profile is approved and locked. Only your profile picture can be changed.",
+      "response": null
+    },
+    {
+      "name": "Customer login",
+      "passed": true,
+      "details": "Customer logged in successfully",
+      "response": null
+    },
+    {
+      "name": "TEST (c) - Status code",
+      "passed": true,
+      "details": "Got 200 OK",
+      "response": null
+    },
+    {
+      "name": "TEST (c) - Name updated",
+      "passed": true,
+      "details": "Name correctly updated to 'New Cust Name'",
+      "response": null
+    },
+    {
+      "name": "TEST (c) - Email updated",
+      "passed": true,
+      "details": "Email correctly updated to 'newcust@example.com'",
+      "response": null
+    },
+    {
+      "name": "TEST (d) - 400 on oversize photo",
+      "passed": true,
+      "details": "Got 400 with correct message: Image too large (max 2 MB). Please use a smaller photo.",
+      "response": null
+    },
+    {
+      "name": "No 500 errors in profile lock",
+      "passed": true,
+      "details": "All endpoints returned expected status codes",
+      "response": null
+    },
+    {
+      "name": "Admin login for email test",
+      "passed": true,
+      "details": "Admin logged in successfully",
+      "response": null
+    },
+    {
+      "name": "TEST (1) - Status 200",
+      "passed": true,
+      "details": "Got 200 OK",
+      "response": null
+    },
+    {
+      "name": "TEST (1) - ok:false",
+      "passed": true,
+      "details": "Response has ok:false",
+      "response": null
+    },
+    {
+      "name": "TEST (1) - Has error message",
+      "passed": true,
+      "details": "Error message: 'SMTP Host is required.'",
+      "response": null
+    },
+    {
+      "name": "TEST (2) - Status 200",
+      "passed": true,
+      "details": "Got 200 OK",
+      "response": null
+    },
+    {
+      "name": "TEST (2) - ok:false",
+      "passed": true,
+      "details": "Response has ok:false",
+      "response": null
+    },
+    {
+      "name": "TEST (2) - Has error message",
+      "passed": true,
+      "details": "Error message: 'gaierror: [Errno -2] Name or service not known...'",
+      "response": null
+    },
+    {
+      "name": "TEST (2) - Has hint message",
+      "passed": true,
+      "details": "Hint message: 'SMTP host/port tak connect nahi ho paya. Host aur Port dobara check karein....'",
+      "response": null
+    },
+    {
+      "name": "TEST (3) - Status 200",
+      "passed": true,
+      "details": "Got 200 OK",
+      "response": null
+    },
+    {
+      "name": "TEST (3) - ok:false",
+      "passed": true,
+      "details": "Response has ok:false",
+      "response": null
+    },
+    {
+      "name": "TEST (3) - Error mentions valid email",
+      "passed": true,
+      "details": "Error message: 'Please provide a valid recipient email address.'",
+      "response": null
+    },
+    {
+      "name": "Customer login for email test",
+      "passed": true,
+      "details": "Customer logged in successfully",
+      "response": null
+    },
+    {
+      "name": "TEST (4) - Customer 403",
+      "passed": true,
+      "details": "Customer correctly denied with 403",
+      "response": null
+    },
+    {
+      "name": "No 500 errors in email test",
+      "passed": true,
+      "details": "All endpoints returned expected status codes (no 500)",
+      "response": null
+    }
+  ],
+  "summary": {
+    "total": 27,
+    "passed": 27,
+    "failed": 0
+  }
+}

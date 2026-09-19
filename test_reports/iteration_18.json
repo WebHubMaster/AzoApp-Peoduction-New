@@ -1,0 +1,25 @@
+{
+  "summary": "Verified both fixes: #8 Visiting Charge is EXCLUDED from GST (backend engine + live /api/bookings/quote + invoice reconciliation) and #3 Footer shows only ONE brand element (logo image alone on desktop 1920px and mobile 390px, no duplicate brand-name text).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_visiting_charge_tax.py",
+    "/app/backend/tests/test_engine_direct.py",
+    "/app/backend/tests/test_invoice_reconcile.py",
+    "/app/test_reports/pytest/iter18_visiting_tax.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "engines.py compute() correctly computes taxable = service+emergency+surge+conv+platform (excludes visiting_charge) and total = taxable + visiting_charge + gst - discount. Returns new 'taxable' field.",
+    "invoice_service.ensure_booking_invoice sets subtotal = pricing.subtotal - visiting_charge and fees includes visiting_charge; reconciliation subtotal+fees+tax-discount==total holds.",
+    "SiteFooter.jsx correctly conditionally renders EITHER <img> OR (badge + name span), never both."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (4/4 tests)", "frontend": "100% (footer verified desktop+mobile)"},
+  "test_credentials": "Demo OTP 123456; admin +919000000000, customer +919000000004 (not required for these tests).",
+  "seed_data_creation": "Synthetic in-memory booking used in test_invoice_reconcile.py; invoice created and deleted within test (idempotent, safe).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend pricing engine + quote endpoint + invoice generator all correctly EXCLUDE visiting_charge from GST base. For a ₹1000 service + ₹100 VC + 18% GST: taxable=1000, gst=180, total=1280. Invoice subtotal=1000, fees=100 (VC), tax=180, total=1280. Frontend SiteFooter renders logo image alone when branding.logo_dark is set (currently the case on preview URL).",
+  "rca of the issue": "N/A — both fixes verified working."
+}

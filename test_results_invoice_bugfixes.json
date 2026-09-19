@@ -1,0 +1,28 @@
+{
+  "total": 21,
+  "passed": 18,
+  "failed": 3,
+  "details": [
+    "\u2705 PASS - BUG 3 - GET /api/invoices: Status: 200",
+    "\u2705 PASS - BUG 3 - Cancellation display_amount == total_amount: Expected display_amount to equal total_amount (original booking value) | OBSERVED: display_amount=\u20b9706.82, total_amount=\u20b9706.82, refund=\u20b9565.46",
+    "\u2705 PASS - BUG 3 - Cancellation display_amount != refund: display_amount should NOT equal refund amount | OBSERVED: display_amount=\u20b9706.82, refund=\u20b9565.46",
+    "\u2705 PASS - BUG 3 - Refund receipt display_amount unchanged: Refund receipt display_amount should equal total_amount | OBSERVED: display_amount=\u20b9418.99, total_amount=\u20b9418.99",
+    "\u2705 PASS - BUG 1+2 - GET /api/invoices (partner): Status: 200",
+    "\u2705 PASS - BUG 1+2 - GET /api/invoices/{id}: Status: 200",
+    "\u2705 PASS - BUG 1 - role_earning exists: role_earning field should be present",
+    "\u2705 PASS - BUG 1 - service_cost > 0: service_cost should be itemised and > 0 | OBSERVED: service_cost=\u20b9899.0",
+    "\u274c FAIL - BUG 1 - visiting_charge > 0: visiting_charge should be itemised and > 0 | OBSERVED: visiting_charge=\u20b90.0",
+    "\u2705 PASS - BUG 1 - net present: net earning should be present | OBSERVED: net=\u20b9719.2",
+    "\u2705 PASS - BUG 2 - customer_snapshot.phone masked: Customer phone should be masked to '*****' | OBSERVED: phone='*****'",
+    "\u2705 PASS - BUG 2 - customer_snapshot.address masked: Customer address should be masked if present | OBSERVED: address='*****'",
+    "\u2705 PASS - BUG 2 - customer_pii_masked flag: customer_pii_masked should be true | OBSERVED: customer_pii_masked=True",
+    "\u2705 PASS - BUG 2 (cancel) - GET /api/invoices: Status: 200",
+    "\u2705 PASS - BUG 2 (cancel) - GET /api/invoices/{id}: Status: 200",
+    "\u2705 PASS - BUG 2 (cancel) - customer_snapshot.phone masked: Customer phone should be masked in cancellation invoice | OBSERVED: phone='*****'",
+    "\u2705 PASS - BUG 4 - GET /api/invoices/{id}/view (customer): Status: 200",
+    "\u274c FAIL - BUG 4 - Customer: Row order check: Could not find Visiting Charge or GST/Tax in HTML",
+    "\u2705 PASS - BUG 4 - GET /api/invoices/{id}/view (partner): Status: 200",
+    "\u274c FAIL - BUG 4 - Partner: Row order check: Could not find all expected rows in partner invoice HTML",
+    "\u2705 PASS - No 500 errors: All API calls completed without 500 errors (verified in previous tests)"
+  ]
+}

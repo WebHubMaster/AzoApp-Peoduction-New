@@ -1,0 +1,227 @@
+{
+  "total": 44,
+  "passed": 40,
+  "failed": 4,
+  "tests": [
+    {
+      "name": "GET /merchant/referral/report returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Report has NO contact fields",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/commission returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Commission history has NO contact fields",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Commission item 1 has NO contact fields",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Commission item 2 has NO contact fields",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/customers returns 200",
+      "passed": false,
+      "details": "Status: 500"
+    },
+    {
+      "name": "GET /merchant/referral/partners returns 200",
+      "passed": false,
+      "details": "Status: 500"
+    },
+    {
+      "name": "GET /merchant/referral/partners returns 200",
+      "passed": false,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/customers returns 200",
+      "passed": false,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/report returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Report has total commission",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Report has customer_commission",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Report has partner_commission",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Total = customer_commission + partner_commission",
+      "passed": true,
+      "details": "Total: 95.0, Expected: 95.0"
+    },
+    {
+      "name": "GET /merchant/referral/commission returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 1 has eligible_amount",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 1 has commission_pct",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 1 has earned",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 1 has referral_type",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 1 earned = eligible \u00d7 pct (merchant's cut only)",
+      "passed": true,
+      "details": "Earned: 45.0, Expected: 45.0 (3.0% of 1500.0)"
+    },
+    {
+      "name": "Item 1 earned < eligible_amount (not full base)",
+      "passed": true,
+      "details": "Earned: 45.0, Eligible: 1500.0"
+    },
+    {
+      "name": "Item 2 has eligible_amount",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 2 has commission_pct",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 2 has earned",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 2 has referral_type",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Item 2 earned = eligible \u00d7 pct (merchant's cut only)",
+      "passed": true,
+      "details": "Earned: 50.0, Expected: 50.0 (5.0% of 1000.0)"
+    },
+    {
+      "name": "Item 2 earned < eligible_amount (not full base)",
+      "passed": true,
+      "details": "Earned: 50.0, Eligible: 1000.0"
+    },
+    {
+      "name": "Customer and partner commission %s are independent",
+      "passed": true,
+      "details": "Customer: {3.0}, Partner: {5.0}"
+    },
+    {
+      "name": "GET /merchant/referral/commission with page_size=1 returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Response has pagination fields (items, total, page, page_size, pages)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "page_size=1 returns at most 1 item",
+      "passed": true,
+      "details": "Got 1 items"
+    },
+    {
+      "name": "pages > 1 when total >= 2",
+      "passed": true,
+      "details": "Total: 2, Pages: 2"
+    },
+    {
+      "name": "Page 2 navigation works",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Page 2 returns different items",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/commission with type=customer returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "type=customer returns only customer rows",
+      "passed": true,
+      "details": "Types: {'customer'}"
+    },
+    {
+      "name": "GET /merchant/referral/commission with type=partner returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "type=partner returns only partner rows",
+      "passed": true,
+      "details": "Types: {'partner'}"
+    },
+    {
+      "name": "GET /merchant/referral/commission with range=today returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/commission with range=this_month returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/commission with q=service returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /merchant/referral/commission returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Coupon non-impact test skipped (no coupon data)",
+      "passed": true,
+      "details": "No bookings with coupons in commission history"
+    }
+  ]
+}

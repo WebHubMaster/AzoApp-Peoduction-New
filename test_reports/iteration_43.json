@@ -1,0 +1,32 @@
+{
+  "summary": "Full E2E test of Admin → Starter Kit → Purchases redesigned page. Backend: 15/15 pytest cases pass covering response shape, methods list, all sort variants (newest/oldest/amount_high/amount_low/partner/partner_desc), q/status/method/date filters, and tracking status update round-trip (restored to 'processing'). Frontend: header switch, 4 analytics cards, search + clear, empty state, method dropdown w/ 'mock' option + active-filter tag, custom calendar (panel opens, cal-next disabled on current month, cal-title 'September 2026', Today picks single-day range, Apply→tag-date, Escape closes, date-clear), quick presets (7 activates and re-click clears), all 5 status chips w/ counts, sk-clear resets, table + sort headers, sk-showing 'Showing 1–1 of 1 purchase', drawer open + timeline + name/amount, drawer track change to 'shipped' updates chip and toast fires, Escape closes drawer, inline sk-track-<id> restores to processing, mobile 390px switches to sk-cards with no horizontal overflow. State restored to 'processing' at end as required.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin PanelLayout (parent of StarterKit page)", "issues": ["React DOM hydration warning: 'In HTML, <span> cannot be a child of <option>'. Not triggered by StarterKitPurchases (all its <option> children are plain text) — traced to a sibling component in PanelLayout / nav badges select. Cosmetic warning only, no functional impact."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_starter_kit_admin_purchases.py",
+    "/app/test_reports/pytest/sk_admin_purchases.xml"
+  ],
+  "action_items": [
+    "Optional: Track down the <span> inside <option> hydration warning in a shared admin layout Select (not blocking; source is outside StarterKitPurchases feature files)."
+  ],
+  "critical_code_review_comments": [
+    "StarterKitPurchases.jsx is ~340 lines and reads clean — Dropdown, SortHead, FilterTag well-factored.",
+    "Backend admin_purchases: uses ISO string range for created_at which correctly excludes future partial-day; ObjectId excluded via projection. Good.",
+    "SORT_API map in frontend correctly translates UI sort key to API sort param; all 6 variants exercised via pytest.",
+    "Empty state uses different subtitle when total_all==0 vs filtered==0 — good UX."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 / OTP 123456 (from /app/memory/test_credentials.md, also one-click 'Login as Admin' on /login).",
+  "seed_data_creation": "None. Used pre-existing single mock purchase (Raj Kumar, ₹999). Tracking status was toggled shipped→processing during tests and restored to 'processing' as required.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend regression file: /app/backend/tests/test_starter_kit_admin_purchases.py (15 tests). Run with: REACT_APP_BACKEND_URL=<url> pytest backend/tests/test_starter_kit_admin_purchases.py -o addopts=''. Frontend uses 'Login as Admin' one-click button on /login. All required data-testids present and functional.",
+  "rca of the issue": "N/A — no bugs found."
+}

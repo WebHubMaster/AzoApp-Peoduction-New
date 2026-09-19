@@ -1,0 +1,41 @@
+[1m
+================================================================================[0m
+[1mINVOICE PREVIEW = PDF DOWNLOAD = PRINT FIX - COMPREHENSIVE TEST[0m
+[1m================================================================================
+[0m
+[94mBASE_URL: https://azo-app-live.preview.emergentagent.com/api[0m
+[94mTest Date: 2026-09-10 09:59:59[0m
+[1m
+================================================================================[0m
+[1mAUTHENTICATION[0m
+[1m================================================================================[0m
+[94m
+🔐 Logging in as +919000000000...[0m
+[92m✅ Logged in successfully[0m
+[94m
+🔐 Logging in as +919000000002...[0m
+[92m✅ Logged in successfully[0m
+[94m
+🔐 Logging in as +919000000003...[0m
+[92m✅ Logged in successfully[0m
+[94m
+🔐 Logging in as +919000000004...[0m
+[92m✅ Logged in successfully[0m
+[1m
+================================================================================[0m
+[1mFETCHING INVOICES[0m
+[1m================================================================================[0m
+[94m
+🔍 Fetching booking invoices...[0m
+[93m  ⚠️  No booking invoices found[0m
+[94m
+🔍 Fetching cancellation invoices...[0m
+[93m  ⚠️  No cancellation invoices found[0m
+[94m
+🔍 Fetching refund invoices...[0m
+[93m  ⚠️  No refund invoices found[0m
+[94m
+🔍 Fetching withdrawal invoices...[0m
+[93m  ⚠️  No withdrawal invoices found[0m
+[91m
+❌ No invoices found to test[0m

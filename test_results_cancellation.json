@@ -1,0 +1,107 @@
+{
+  "total": 20,
+  "passed": 20,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "GET /api/invoices (default newest sort) \u2192 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Found invoices for AZODEMOCX1",
+      "passed": true,
+      "details": "Found 2 invoices"
+    },
+    {
+      "name": "Exactly ONE cancellation invoice exists",
+      "passed": true,
+      "details": "Cancellation invoice: INV-2026-000006"
+    },
+    {
+      "name": "Exactly ONE refund invoice exists",
+      "passed": true,
+      "details": "Refund invoice: INV-2026-000007"
+    },
+    {
+      "name": "Cancellation invoice appears BEFORE refund invoice in list",
+      "passed": true,
+      "details": "Cancellation at index 0, Refund at index 1"
+    },
+    {
+      "name": "Both invoices share the same issue_date",
+      "passed": true,
+      "details": "Cancellation: 2026-09-14T08:28:38.688172+00:00, Refund: 2026-09-14T08:28:38.688172+00:00"
+    },
+    {
+      "name": "Cancellation sort_rank (2) < Refund sort_rank (3)",
+      "passed": true,
+      "details": "Cancellation rank: 2, Refund rank: 3"
+    },
+    {
+      "name": "Refund invoice total_amount is correct (376.66)",
+      "passed": true,
+      "details": "Refund amount: \u20b9376.66"
+    },
+    {
+      "name": "Cancel already-cancelled booking \u2192 400 (rejected)",
+      "passed": true,
+      "details": "Status: 400, Response: {\"detail\":\"This booking can't be cancelled.\"}"
+    },
+    {
+      "name": "Refresh #1: Still exactly 1 cancellation + 1 refund",
+      "passed": true,
+      "details": "Cancellation: 1, Refund: 1"
+    },
+    {
+      "name": "Refresh #2: Still exactly 1 cancellation + 1 refund",
+      "passed": true,
+      "details": "Cancellation: 1, Refund: 1"
+    },
+    {
+      "name": "Refresh #3: Still exactly 1 cancellation + 1 refund",
+      "passed": true,
+      "details": "Cancellation: 1, Refund: 1"
+    },
+    {
+      "name": "Created unpaid booking",
+      "passed": true,
+      "details": "Code: AZOQWJXRM, Status: pending_payment, Payment: pending"
+    },
+    {
+      "name": "Cancel unpaid booking \u2192 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Cancellation note created for unpaid booking",
+      "passed": true,
+      "details": "Found 1 cancellation invoice(s)"
+    },
+    {
+      "name": "NO Refund Receipt for unpaid booking (refund_amt=0)",
+      "passed": true,
+      "details": "Found 0 refund invoice(s)"
+    },
+    {
+      "name": "Refund invoice total_amount == 376.66",
+      "passed": true,
+      "details": "total_amount: \u20b9376.66"
+    },
+    {
+      "name": "Refund invoice refund_amount == 376.66",
+      "passed": true,
+      "details": "refund_amount: \u20b9376.66"
+    },
+    {
+      "name": "Refund invoice amount matches booking.cancellation.refund",
+      "passed": true,
+      "details": "Invoice: \u20b9376.66, Booking: \u20b9376.66"
+    },
+    {
+      "name": "No 5xx errors encountered in any test",
+      "passed": true,
+      "details": "All endpoints returned 2xx or 4xx as expected"
+    }
+  ]
+}

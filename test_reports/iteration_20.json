@@ -1,0 +1,40 @@
+{
+  "summary": "Verified #7 Starter Kit LIVE payment gating and #10 booking accept race safety. All 4 backend gating tests pass. Frontend code inspection confirms /mock is not on the live path; Pro tag is only granted after /verify. Frontend UI reachability of the Starter Kit page could not be exercised in an approved-partner session (fresh demo partners land on profile-completion), but backend gating fully covers the security-critical assertions.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_starter_kit_and_accept_race.py",
+    "/app/test_reports/pytest/starter_kit_race.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "starter_kit_service.purchase_order (line 279-292): Correctly returns real order when payment_service.is_configured() returns keys (mock:false). Verified live: order_id=order_TZXCahEyd8Hefl, key_id=rzp_live_..., amount=99900 paise (₹999).",
+    "starter_kit_service.purchase_mock (line 295-303): Correctly rejects with HTTP 400 'Live payments enabled — use the payment gateway' when payment_service.is_configured() is True. Verified live.",
+    "starter_kit_service.purchase_verify (line 306-315): Signature is validated by payment_service.verify_signature BEFORE _activate is called. Bad signature returns 400 and never touches user record. Verified live: purchased state unchanged after bad-signature call.",
+    "starter_kit_service._activate (line 174-216): This is the ONLY code path that sets premium_partner=True + partner_badge and inserts starter_kit_purchases. It is called by (a) purchase_order when amount<=0 (free kit — not applicable in prod, price=999), (b) purchase_mock (blocked in live mode), and (c) purchase_verify (only after razorpay verify_payment_signature passes). Pro tag is therefore tied to verified payment in live mode.",
+    "booking_controller.accept_job (line 1592-1606): Atomic update {status:'searching'}->{status:'assigned'} with res.modified_count!=1 -> HTTPException 400 'Job no longer available'. This provides the correct optimistic-concurrency guard — only ONE partner can win the race. Confirmed via API: a second accept on an already-assigned booking returns 400 with the expected message.",
+    "PartnerStarterKit.jsx (line 26-56): Live-payment path calls /starter-kit/order → openCheckout → onVerify → /starter-kit/verify. /mock is ONLY called when the server explicitly returns order.mock===true (i.e. when live payments are NOT configured — which the backend blocks in prod). If Razorpay checkout is cancelled/failed, openCheckout returns falsy and the code short-circuits before any toast/refresh — no Pro tag granted."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_starter_kit_and_accept_race.py (new)"
+  ],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "code-review only (UI not exercised end-to-end)"},
+  "test_credentials": "Partner +919000000003 / +919000000005, Customer +919000000004, Admin +919000000000, OTP 123456",
+  "seed_data_creation": "None — used existing seeded users and bookings.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_starter_kit_and_accept_race.py — reuse as regression. Note: fresh demo-login partners on the frontend land in profile-completion (KYC), so exercising the Starter Kit BUY button in the browser requires an already-approved seeded partner with completed KYC. The critical GATING is fully verified server-side; the frontend code path was confirmed by inspection.",
+  "test_evidence": {
+    "starter_kit_order_live": "order_id starts 'order_', key_id starts 'rzp_live_', amount=99900 paise",
+    "starter_kit_mock_blocked": "HTTP 400 'Live payments enabled — use the payment gateway'",
+    "starter_kit_verify_bad_signature": "HTTP 400 'Payment verification failed'; /starter-kit/me purchased unchanged (false); /auth/me premium_partner not set",
+    "booking_accept_second_attempt": "HTTP 400 'Job no longer available' on already-assigned booking"
+  }
+}

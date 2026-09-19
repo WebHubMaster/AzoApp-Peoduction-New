@@ -1,0 +1,159 @@
+{
+  "feature_a": {
+    "full_response": {
+      "partners": [
+        {
+          "id": "dc602513-d665-44af-978b-3f293dbe48e2",
+          "phone": "+919000000003",
+          "name": "Raj Kumar",
+          "skills": [
+            "ac",
+            "electrical",
+            "appliance"
+          ],
+          "partner_status": "online",
+          "rating": 4.8,
+          "city": "Patna",
+          "live_location": {
+            "lat": 25.5941,
+            "lng": 85.1376
+          },
+          "live_location_at": "2026-09-16T12:26:10.365898+00:00",
+          "active_job": {
+            "code": "AZO5923A1",
+            "customer_name": "Priya Verma",
+            "service_name": "Fan Installation",
+            "category_name": "Electrician",
+            "address": {
+              "line": "12 Kankarbagh Main Road",
+              "city": "Patna",
+              "state": "Bihar",
+              "pincode": "800020",
+              "lat": 25.5941,
+              "lng": 85.1376
+            },
+            "status": "started",
+            "timeline": [
+              {
+                "status": "searching",
+                "at": "2026-09-16T11:51:39.838584+00:00"
+              },
+              {
+                "status": "assigned",
+                "at": "2026-09-16T11:51:39.838584+00:00"
+              },
+              {
+                "status": "arrived_customer",
+                "at": "2026-09-16T11:51:39.838584+00:00"
+              },
+              {
+                "status": "started",
+                "at": "2026-09-16T11:51:39.838584+00:00"
+              }
+            ],
+            "created_at": "2026-09-16T11:51:39.838584+00:00",
+            "eta_min": 0,
+            "eta_label": "On site",
+            "distance_km": null,
+            "elapsed_min": 41,
+            "delayed": false
+          },
+          "category": "Electrician",
+          "categories": [
+            "AC Repair & Service",
+            "Appliance Repair",
+            "Electrician"
+          ]
+        },
+        {
+          "id": "b6155aed-d8c5-4dff-a55c-14c048a24728",
+          "phone": "+919000000005",
+          "name": "Amit Singh",
+          "skills": [
+            "ac",
+            "cleaning",
+            "plumbing"
+          ],
+          "partner_status": "online",
+          "rating": 5.0,
+          "city": "Patna",
+          "live_location": {
+            "lat": 25.6,
+            "lng": 85.14
+          },
+          "live_location_at": "2026-09-16T12:26:10.369672+00:00",
+          "active_job": null,
+          "category": null,
+          "categories": [
+            "AC Repair & Service",
+            "Home Cleaning",
+            "Plumbing"
+          ]
+        }
+      ],
+      "count": 2,
+      "generated_at": "2026-09-16T12:32:44.216613+00:00",
+      "surge_by_city": {
+        "Patna": {
+          "pct": 15.0,
+          "rule": "Patna Peak Surge"
+        }
+      },
+      "areas": [
+        {
+          "name": "Patna Central",
+          "city": "Patna",
+          "center_lat": 25.5941,
+          "center_lng": 85.1376,
+          "radius_km": 15
+        },
+        {
+          "name": "Ranchi Zone",
+          "city": "Ranchi",
+          "center_lat": 23.3441,
+          "center_lng": 85.3096,
+          "radius_km": 12
+        }
+      ],
+      "filter_cities": [
+        "Patna",
+        "Ranchi"
+      ],
+      "filter_categories": [
+        "AC Repair & Service",
+        "Electrician",
+        "Home Cleaning",
+        "Plumbing",
+        "Appliance Repair",
+        "Carpentry"
+      ]
+    },
+    "filter_cities": "PASS",
+    "filter_categories": "PASS",
+    "partners_count": "PASS",
+    "partner_categories": "PASS",
+    "raj_electrician": "PASS",
+    "overall": "PASS"
+  },
+  "feature_b": {
+    "set_config": "PASS",
+    "verify_config": "PASS",
+    "find_service": "PASS",
+    "service_id": "85e17c04-5ebf-41cb-b621-37f94dee5d17",
+    "service_name": "Wiring & Fitting",
+    "create_booking": "PASS",
+    "booking_id": "f478f4f5-8a8b-42bd-8080-b9a60bf48a03",
+    "booking_code": "AZOIW08BH",
+    "pay_booking": "PASS",
+    "booking_status_after_payment": "searching",
+    "dispatch_feed": "PARTIAL - no attempts yet",
+    "dispatch_attempts": [],
+    "raj_offered": "FAIL - not in attempts",
+    "wave_size_constraint": "FAIL - 0 offered, 0 in wave 1"
+  },
+  "summary": {
+    "feature_a": "PASS",
+    "feature_b": "FAIL",
+    "overall": "FAIL"
+  }
+}

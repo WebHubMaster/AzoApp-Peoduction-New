@@ -1,0 +1,130 @@
+{
+  "customer": {
+    "role": "customer",
+    "status_code": 200,
+    "refund_count": 1,
+    "forbidden_keys_found": {
+      "platform_commission": false,
+      "partner_cancellation_pct": false,
+      "partner_cancellation_amount": false,
+      "partner_id": false,
+      "partner_name": false,
+      "service_cost": false,
+      "commissionable_base": false,
+      "partner_snapshot": false,
+      "merchant_snapshot": false,
+      "razorpay_refund_id": false,
+      "razorpay_payment_id": false,
+      "pay_gateway": false,
+      "pay_mode": false
+    },
+    "required_keys_found": {
+      "status": true,
+      "created_at": true
+    },
+    "amount_key_found": true,
+    "booking_ref_key_found": true,
+    "errors": [],
+    "sample_refund": {
+      "id": "483e00d4-fec5-4b96-8653-3533e006f0b0",
+      "booking_id": "180c3d3c-759f-41dd-b7f4-7d4b57c2ff6c",
+      "booking_code": "AZOYGGR43",
+      "customer_id": "4a170212-1908-45cc-a118-ac10a03431d2",
+      "customer_name": "Priya Verma",
+      "customer_phone": "+919000000004",
+      "service_name": "Door Repair",
+      "original_amount": 505.74,
+      "tax_amount": 61.89,
+      "cancellation_reason": "Test cancellation for refund snapshot",
+      "cancelled_at": "2026-09-09T02:45:29.434894+00:00",
+      "refund_pct": 80.0,
+      "amount": 404.59,
+      "refund_amount": 404.59,
+      "method": "source",
+      "status": "processed",
+      "status_history": [
+        {
+          "status": "initiated",
+          "at": "2026-09-09T02:45:29.434894+00:00",
+          "note": "Refund created on cancellation"
+        },
+        {
+          "status": "processing",
+          "at": "2026-09-09T02:45:29.436310+00:00",
+          "note": "Refunding to original payment method (bank/UPI)"
+        },
+        {
+          "status": "processed",
+          "at": "2026-09-09T02:45:29.439584+00:00",
+          "note": "Refund sent to original payment method \u2014 reflects in 5\u20137 business days"
+        }
+      ],
+      "webhook_response": null,
+      "initiated_at": "2026-09-09T02:45:29.434894+00:00",
+      "completed_at": "2026-09-09T02:45:29.439575+00:00",
+      "created_at": "2026-09-09T02:45:29.434894+00:00",
+      "updated_at": "2026-09-09T02:45:29.439571+00:00"
+    }
+  },
+  "admin": {
+    "role": "admin",
+    "status_code": 200,
+    "refund_count": 25,
+    "has_full_breakdown": true,
+    "platform_commission_found": true,
+    "partner_fields_found": true,
+    "errors": [],
+    "sample_refund": {
+      "id": "483e00d4-fec5-4b96-8653-3533e006f0b0",
+      "booking_id": "180c3d3c-759f-41dd-b7f4-7d4b57c2ff6c",
+      "booking_code": "AZOYGGR43",
+      "customer_id": "4a170212-1908-45cc-a118-ac10a03431d2",
+      "customer_name": "Priya Verma",
+      "customer_phone": "+919000000004",
+      "partner_id": null,
+      "partner_name": null,
+      "service_name": "Door Repair",
+      "original_amount": 505.74,
+      "service_cost": 299.0,
+      "tax_amount": 61.89,
+      "cancellation_reason": "Test cancellation for refund snapshot",
+      "cancelled_at": "2026-09-09T02:45:29.434894+00:00",
+      "refund_pct": 80.0,
+      "amount": 404.59,
+      "refund_amount": 404.59,
+      "partner_cancellation_pct": 20.0,
+      "partner_cancellation_amount": 101.15,
+      "platform_commission": 12.14,
+      "razorpay_payment_id": null,
+      "razorpay_order_id": null,
+      "razorpay_refund_id": null,
+      "pay_gateway": "razorpay",
+      "pay_mode": "test",
+      "pay_env": "sandbox",
+      "method": "source",
+      "status": "processed",
+      "status_history": [
+        {
+          "status": "initiated",
+          "at": "2026-09-09T02:45:29.434894+00:00",
+          "note": "Refund created on cancellation"
+        },
+        {
+          "status": "processing",
+          "at": "2026-09-09T02:45:29.436310+00:00",
+          "note": "Refunding to original payment method (bank/UPI)"
+        },
+        {
+          "status": "processed",
+          "at": "2026-09-09T02:45:29.439584+00:00",
+          "note": "Refund sent to original payment method \u2014 reflects in 5\u20137 business days"
+        }
+      ],
+      "webhook_response": null,
+      "initiated_at": "2026-09-09T02:45:29.434894+00:00",
+      "completed_at": "2026-09-09T02:45:29.439575+00:00",
+      "created_at": "2026-09-09T02:45:29.434894+00:00",
+      "updated_at": "2026-09-09T02:45:29.439571+00:00"
+    }
+  }
+}

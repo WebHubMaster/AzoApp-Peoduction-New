@@ -1,0 +1,41 @@
+{
+  "summary": "Iteration 53 — Unified Partner/Merchant Expo app (milestone-1). Backend 23/23 pytest tests pass covering /api/site/config, /api/auth/demo-status, OTP send/verify for both partner (+919000000003) and merchant (+919000000002), /api/auth/me, partner endpoints (wallet, earnings-summary, stats, bookings jobs/active/missed, PUT online-status), merchant endpoints (overview, wallet, customers), and cross-role auth boundaries. Frontend Playwright run: Splash → Notifications onboarding → Login screen renders with 'Partner Demo' / 'Merchant Demo' buttons; Partner Demo one-tap login opens Partner dashboard with wallet balance (₹449.25 shown live from backend), 4 stat cards (Today/Week/Month/Jobs Done), online toggle, quick actions and active jobs section; Jobs tab shows chip row Requests/Active/Missed; auto-login persistence verified (reload keeps user on /jobs); Logout returns to Login. Merchant Demo opens Merchant dashboard with real wallet ₹29,914.64, commission stats (Today ₹136, This Week ₹160), Customers/Partners counts and quick actions. React Native deprecation warnings detected in console: shadow* style props and props.pointerEvents.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Global styles (multiple screens)", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Detected on partner and merchant dashboards. Should migrate any StyleSheet using shadowColor/shadowOffset/shadowOpacity/shadowRadius to the new boxShadow prop (RN 0.76+ / SDK 57)."},
+      {"component": "Global (login/tab bar)", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Migrate any <View pointerEvents=\"...\" /> usages to style={{ pointerEvents: '...' }}."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_partner_merchant_app_iter53.py",
+    "/app/test_reports/pytest/iter53_partner_merchant.xml"
+  ],
+  "action_items": [
+    "Migrate shadow* style props → boxShadow across StyleSheets (grep 'shadowColor' in /app/frontend/src and /app/frontend/app).",
+    "Migrate <View pointerEvents=\"...\"> → style={{ pointerEvents: '...' }} (grep 'pointerEvents=' in /app/frontend)."
+  ],
+  "critical_code_review_comments": [
+    "AuthContext.refresh() correctly retains the session on transient/5xx and only clears on 401 — good defensive behaviour for auto-login persistence.",
+    "api client uses EXPO_PUBLIC_BACKEND_URL from env only; token stored via secureStorage with in-memory cache — matches spec.",
+    "Splash gate (app/index.tsx) applies role-based routing and gracefully surfaces an 'unsupported role' state with a logout escape hatch — good UX.",
+    "Login screen only depends on demo-status + auth/config queries; auto-fills dev_otp when returned — matches demo_mode contract.",
+    "All interactive elements observed have testID (partner-online-toggle, stat-*, jobs-chip-*, withdraw-button, logout-button, demo-partner-login, demo-merchant-login, etc.)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_partner_merchant_app_iter53.py (new)",
+    "/app/test_reports/pytest/iter53_partner_merchant.xml (new)"
+  ],
+  "success_rate": {"backend": "100% (23/23)", "frontend": "100% of critical flows (splash→onboarding→login→partner dashboard + jobs + wallet + auto-login reload + logout, merchant demo→dashboard→wallet)"},
+  "seed_data_creation": "None — used the backend-seeded demo accounts (partner +919000000003 / Raj Kumar; merchant +919000000002 / Sharma Electricals). OTP fixed at 123456 via demo_mode.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend base URL for tests must be exported as REACT_APP_BACKEND_URL and/or EXPO_PUBLIC_BACKEND_URL (conftest.py in /app/backend/tests requires REACT_APP_BACKEND_URL). Fresh browser context always shows Notifications onboarding first — tap [data-testid=skip-notifications-button] to reach Login. Demo one-tap buttons: [data-testid=demo-partner-login] and [data-testid=demo-merchant-login]. Reload after login should keep user on their role dashboard (auto-login via secureStorage / localStorage).",
+  "rca_of_issue": "N/A — no blocking bugs. Only two low-priority React Native deprecation warnings surfaced; they don't affect functionality but should be addressed before the next SDK bump."
+}

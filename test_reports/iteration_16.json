@@ -1,0 +1,39 @@
+{
+  "summary": "Regression test for performance optimizations (React.lazy route code-splitting + MongoDB indexes + Cache-Control on media + read-through caching of /api/site/*). NO regressions found. Backend: 12/12 pytest cases pass — public cached endpoints /api/site/homepage, /api/site/config, /api/site/promotions all return 200 and homepage responses are byte-identical on repeated calls (cache working). All 4 role logins (admin/customer/partner/merchant) succeed via /auth/send-otp + /auth/verify-otp with OTP 123456 and /auth/me returns the correct role. Admin /api/admin/dashboard, customer /api/bookings + /api/wallet return 200. Media upload POST /api/media/upload succeeds, returns a proxy URL (/api/media/s3/...), which is retrievable via GET and served as image/webp. Frontend: Playwright navigation across / (Landing, eager), /services (lazy), /membership (lazy) all resolve, the Suspense fallback data-testid='route-loading' disappears in every case, and all 4 protected panels /account /partner /merchant /admin load real content after OTP login (body text > 1300 chars, no lingering fallback, admin dashboard shows GMV/Bookings/Partners KPIs, customer shows bookings + wallet ₹250).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/media/s3/{key}", "issue": "Backend correctly sets 'Cache-Control: public, max-age=2592000, immutable' (verified via curl to localhost:8001), but the preview ingress/CDN rewrites the response header to 'no-store, no-cache, must-revalidate'. The perf win (30-day browser cache on media) will NOT reach real users on this preview domain — needs ingress config change or the header will only work in production. Test was made tolerant of this."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_perf_regression.py",
+    "/app/test_reports/pytest/perf_regression.xml"
+  ],
+  "action_items": [
+    "(Optional / infra) Preview ingress overrides Cache-Control to 'no-store, no-cache, must-revalidate' on /api/media/s3/* responses. Backend-set immutable header is stripped before reaching the browser. Confirm production ingress does not do the same — otherwise the 30-day media cache optimization is a no-op end-to-end."
+  ],
+  "critical_code_review_comments": [
+    "App.js code-split is clean: Landing eager, everything else lazy behind a single <Suspense fallback={<RouteFallback/>}> with data-testid='route-loading' — verified real chunks load for /services, /membership, /login, /account, /partner, /merchant, /admin without any blank screen or chunk-load error.",
+    "cache_service.cached wrappers on /api/site/homepage (45s), /api/site/config (120s), /api/site/promotions (60s) return identical payloads on back-to-back calls — cache is working. No stale-write issue observed in this run (admin settings save was not exercised in this regression pass; main agent should re-verify cache-bust after admin save if that path was refactored).",
+    "Media upload flow end-to-end works: POST /api/media/upload → 200 with proxy URL /api/media/s3/{key} → GET returns image/webp bytes. WebP method=4 change did not break encoding.",
+    "Backend logs are clean during the run (no tracebacks for the exercised paths)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_perf_regression.py (new)"
+  ],
+  "success_rate": {
+    "backend": "100% (12/12 pytest cases pass)",
+    "frontend": "100% (Landing + 3 public lazy routes + 4 role logins all render real content, no route-loading fallback stuck)"
+  },
+  "test_credentials": "OTP 123456 for all: admin +919000000000, customer +919000000004, partner +919000000003, merchant +919000000002.",
+  "seed_data_creation": "None. One test media file uploaded to bucket key azpapp/test/*.webp (small 8x8 png); safe to leave.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Perf-regression suite is at /app/backend/tests/test_perf_regression.py (12 tests, ~6s). It covers login for all 4 roles, /auth/me role check, cached public endpoints, homepage cache consistency, /api/admin/dashboard, /api/bookings, /api/wallet, and end-to-end media upload+serve. If E1 changes the caching layer again, re-run this file first. Note: the ingress in the preview domain strips 'Cache-Control: public, max-age=..., immutable' on /api/media/s3/{key} responses and replaces with 'no-store, no-cache, must-revalidate'; the backend header itself is correct (verified against localhost:8001). Frontend Playwright script is at /tmp/pw_login_test.py — reuse the pattern (data-testid='login-phone-input' + data-testid='login-otp-input'/maxlength=6 + wait for absence of data-testid='route-loading')."
+}

@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only regression for 3 merchant UI cleanup changes. All 3 targeted changes verified PASS on both desktop (1920x1080) and mobile (390x844): (1) 'Top Customers' removed from desktop sidebar and mobile 'More' sheet, (2) 'Network Tree' tab/toggle fully removed from My Network module (network-module renders members list + stats + toolbar cleanly, no 'Network Tree' text or button), (3) inner duplicate <h1> removed from My Network and Service Reminders modules — exactly one 'My Network' H1 and one 'Service Reminders' H1 visible (both come from PanelLayout's canonical section header). Regression check: My Customers, Wallet, Analytics, My Invoices, Commission (nav-earnings) modules all open without runtime errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Merchant / any recharts view", "issues": ["Recharts container prints repeated warning: 'The width(-1) and height(-1) of chart should be greater than 0'. Not a regression from this session, but should be fixed by adding minWidth/minHeight or fixed aspect to ResponsiveContainer parents."]},
+      {"screen": "My Network — page-size <select>", "issues": ["React hydration warning: '<span> cannot be a child of <option>' originating from /app/frontend/src/pages/merchant/NetworkParts.jsx line ~60 (the <option> for page-size 10). A <span> is being rendered inside <option>; browsers may render it but React warns. Pre-existing, unrelated to this session's 3 cleanup changes."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low) Clean up NetworkParts.jsx page-size <option>: remove the inline <span>/wrapper so option children are plain text to remove the hydration warning.",
+    "(Low) Give Recharts ResponsiveContainer parents an explicit height (or set aspect) to remove width(-1)/height(-1) warnings."
+  ],
+  "critical_code_review_comments": [
+    "The 3 requested cleanups look correct in the DOM: only the canonical PanelLayout section header renders the section title, and no duplicate inner <h1> was found in My Network or Service Reminders.",
+    "Nav registry no longer contains a 'topcustomers' entry — good; matches both desktop sidebar and mobile More sheet.",
+    "Note: The 'Commission' menu uses data-testid='nav-earnings' (label 'Commission'). If tests/docs elsewhere expect data-testid='nav-commission', consider standardising."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% for the 3 targeted cleanups + regression"},
+  "test_credentials": "Merchant demo: '/login' -> click 'Login as Merchant' (phone 9000000002, OTP 123456)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The two console noise items (Recharts size warnings and NetworkParts <option><span> hydration warning) pre-date this session's changes; they are cosmetic/console-only and do not block functionality. All 3 UI cleanup acceptance criteria are met on desktop and mobile.",
+  "rca of the issue": "N/A — no functional issues found for the requested changes."
+}

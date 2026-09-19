@@ -1,0 +1,179 @@
+{
+  "project_name": "AzoApp Merchant - Premium Financial & KYC Module UI/UX Redesign",
+  "brand_identity": {
+    "brand_name": "AzoApp",
+    "panel": "MERCHANT",
+    "example_merchant": "Sharma Electricals",
+    "primary_brand_color": "#0D47A1",
+    "design_aesthetic": "Enterprise SaaS Fintech, Stripe-level precision, trustworthy, clean, minimal, data-driven, high-end",
+    "theme_modes": {
+      "light": {
+        "background": "#F8FAFC",
+        "surface": "#FFFFFF",
+        "surface_subtle": "#F1F5F9",
+        "border": "#E2E8F0",
+        "text_primary": "#0F172A",
+        "text_secondary": "#475569",
+        "text_muted": "#64748B",
+        "primary": "#0D47A1",
+        "primary_hover": "#0A387E",
+        "primary_subtle": "#EFF6FF",
+        "card_shadow": "0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03)"
+      },
+      "dark": {
+        "background": "#0B1120",
+        "surface": "#1E293B",
+        "surface_subtle": "#111827",
+        "border": "#334155",
+        "text_primary": "#F8FAFC",
+        "text_secondary": "#CBD5E1",
+        "text_muted": "#94A3B8",
+        "primary": "#1D4ED8",
+        "primary_hover": "#2563EB",
+        "primary_subtle": "rgba(13, 71, 161, 0.25)",
+        "card_shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3)"
+      }
+    }
+  },
+  "typography": {
+    "font_family_heading": "Plus Jakarta Sans, sans-serif",
+    "font_family_body": "Inter, sans-serif",
+    "font_family_mono": "JetBrains Mono, monospace",
+    "scale": {
+      "hero_h1": "text-3xl sm:text-4xl font-extrabold tracking-tight",
+      "section_h2": "text-xl sm:text-2xl font-bold tracking-tight",
+      "card_h3": "text-lg font-semibold tracking-tight",
+      "subtitle": "text-sm text-slate-500 dark:text-slate-400 font-medium",
+      "body": "text-sm font-normal text-slate-700 dark:text-slate-300",
+      "small_label": "text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400",
+      "financial_number": "font-mono font-bold tracking-tight"
+    }
+  },
+  "status_badge_system": {
+    "verified": {
+      "bg": "bg-emerald-50 dark:bg-emerald-950/40",
+      "text": "text-emerald-700 dark:text-emerald-400",
+      "border": "border-emerald-200 dark:border-emerald-800",
+      "dot": "bg-emerald-500"
+    },
+    "approved": {
+      "bg": "bg-emerald-50 dark:bg-emerald-950/40",
+      "text": "text-emerald-700 dark:text-emerald-400",
+      "border": "border-emerald-200 dark:border-emerald-800",
+      "dot": "bg-emerald-500"
+    },
+    "pending": {
+      "bg": "bg-amber-50 dark:bg-amber-950/40",
+      "text": "text-amber-700 dark:text-amber-400",
+      "border": "border-amber-200 dark:border-amber-800",
+      "dot": "bg-amber-500"
+    },
+    "under_review": {
+      "bg": "bg-blue-50 dark:bg-blue-950/40",
+      "text": "text-blue-700 dark:text-blue-400",
+      "border": "border-blue-200 dark:border-blue-800",
+      "dot": "bg-blue-500"
+    },
+    "rejected": {
+      "bg": "bg-rose-50 dark:bg-rose-950/40",
+      "text": "text-rose-700 dark:text-rose-400",
+      "border": "border-rose-200 dark:border-rose-800",
+      "dot": "bg-rose-500"
+    },
+    "action_required": {
+      "bg": "bg-orange-50 dark:bg-orange-950/40",
+      "text": "text-orange-700 dark:text-orange-400",
+      "border": "border-orange-200 dark:border-orange-800",
+      "dot": "bg-orange-500"
+    }
+  },
+  "component_patterns": {
+    "hero_wallet_card": {
+      "description": "Gradient header background (#0D47A1 into deep navy) with available balance, action CTAs, withdrawable trend indicator and security badge",
+      "desktop_layout": "Flex/Grid split: Available balance on left, Withdraw & Deposit actions on right, supporting metric pills below",
+      "mobile_layout": "Stacked card with sticky quick CTA, high-contrast white text, clear touch targets"
+    },
+    "kpi_card": {
+      "description": "Clean 1px bordered card, 16px radius, soft shadow, icon container with subtle brand tint, trend percentage badge, subtext",
+      "padding": "p-5 sm:p-6"
+    },
+    "right_side_drawer": {
+      "description": "Shadcn Sheet / Drawer component sliding from right on desktop (min 480px width), full-screen overlay sheet on mobile",
+      "content": "Deep transaction metadata, timeline step tracker, status badge, receipt download, audit log"
+    },
+    "stepper": {
+      "description": "Profile & KYC 4-step guided verification header",
+      "desktop": "Horizontal progress track with numbered step badges, titles, and step connectors",
+      "mobile": "Compact header showing 'Step X of 4' with progress bar and current step title"
+    },
+    "responsive_tables": {
+      "desktop": "Shadcn Table with sortable column headers, fixed header option, hover rows, clear action triggers",
+      "mobile": "Card list view with key info upfront, status tag, expandable chevron for instant drawer view"
+    }
+  },
+  "module_blueprints": {
+    "module_1_wallet_withdraw": {
+      "file_target": "/app/frontend/src/pages/merchant/MerchantAdvanced.jsx",
+      "sections": [
+        "Hero Wallet Section (Available Balance, Withdrawable, Pending, Withdrawn, 'Withdraw Money' CTA)",
+        "KYC Blocker Warning (If incomplete: non-intrusive alert with 'Complete Bank & KYC' CTA)",
+        "Summary KPI Grid (Total Earned, Commission, Processing, Available, Pending, Withdrawn)",
+        "Segmented Tabs (Overview, Transactions, Withdrawals)",
+        "Overview Tab (Earnings Trend Chart, Recent Transactions Timeline, Recent Withdrawals)",
+        "Transactions Tab (Search, Date/Type/Status/Amount Filters, Desktop Table / Mobile Card List, Right Drawer)",
+        "Withdrawals Tab (History Table, Status Badges, Processing Times)",
+        "Multi-Step Withdraw Dialog Flow (Step 1 Amount -> Step 2 Select Bank -> Step 3 Review -> Step 4 OTP/Confirm -> Step 5 Success)"
+      ]
+    },
+    "module_2_bank_kyc": {
+      "file_target": "/app/frontend/src/pages/merchant/MerchantFinanceKyc.jsx",
+      "sections": [
+        "KYC Progress Bar Header (Completion stage e.g. 3/4 Verified)",
+        "PAN Card Verification Card (PAN input, Document Upload dropzone, Uploaded preview, Verification Status)",
+        "Bank Account Cards Grid (Bank logo/icon, Masked account number, IFSC, Primary badge, Set Primary/Edit/Remove/Verify actions)",
+        "Add Bank Account Form Dialog (Inline IFSC lookup validation, Savings/Current option)",
+        "Security & Compliance Footer (Shield icon, 256-bit encryption message, RBI compliance note)"
+      ]
+    },
+    "module_3_profile_kyc": {
+      "file_target": "/app/frontend/src/pages/merchant/MerchantRegistration.jsx",
+      "sections": [
+        "Approved & Locked Banner (Shown when verified: 'Profile approved & locked', Verified Merchant badge)",
+        "4-Step Stepper Navigation (1. Owner Info -> 2. Shop Info -> 3. Address & Location -> 4. Review & Submit)",
+        "Step 1 Owner: Live photo capture, full name, phone, email, DOB",
+        "Step 2 Shop: Business name, service category, description, shop photos multi-upload with previews",
+        "Step 3 Address: Street address, city, district, state, pincode, interactive location selector",
+        "Step 4 Review: Detailed section summaries with 'Edit' triggers and final verification submission CTA"
+      ]
+    },
+    "module_4_commission": {
+      "file_target": "/app/frontend/src/pages/merchant/MerchantAdvanced.jsx",
+      "sections": [
+        "KPI Cards Row (Total Commission, This Month, Pending, Paid, Growth %)",
+        "Interactive Daily Commission Chart (Recharts ResponsiveContainer, 7d/30d/3m/6m/1y toggles, custom tooltip, peak highlight)",
+        "Commission Source Breakdown (Referral, Booking, Network, Bonus, Adjustment distribution bar/donut)",
+        "Advanced Filter & Search Toolbar (Search ID, Source, Date range picker, Status filter, Mobile full-screen filter sheet)",
+        "Paginated Commission Transactions Table (Date, Txn ID, Source, Base Amount, Commission Rate, Earned, Status, Action Drawer)"
+      ]
+    }
+  },
+  "motion_guidance": {
+    "framer_motion_presets": {
+      "page_fade_in": "initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}",
+      "drawer_slide_in": "initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}",
+      "card_stagger": "variants={{ animate: { transition: { staggerChildren: 0.05 } } }}"
+    }
+  },
+  "accessibility_and_testing": {
+    "data_testid_rules": "All buttons, inputs, tabs, table rows, drawer triggers, status badges, and modals MUST include descriptive kebab-case data-testid attributes (e.g. data-testid='withdraw-money-button', data-testid='bank-account-card-0')",
+    "touch_targets": "Minimum 44x44px target area on all interactive elements in mobile views",
+    "focus_management": "Visible ring-2 ring-[#0D47A1] offset-2 on focused interactive controls"
+  },
+  "image_urls": [
+    {
+      "category": "office_team",
+      "url": "https://images.unsplash.com/photo-1675434301763-594b4d0c5819?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwyfHxmaW50ZWNoJTIwbWVyY2hhbnQlMjBiYW5raW5nJTIwYXZhdGFyJTIwb2ZmaWNlfGVufDB8fHx8MTc4ODY2NjUwOXww&ixlib=rb-4.1.0&q=85",
+      "description": "Office team workspace"
+    }
+  ]
+}

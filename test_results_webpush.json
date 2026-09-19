@@ -1,0 +1,151 @@
+{
+  "timestamp": "2026-09-16T12:19:22.382283",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "name": "Public key endpoint returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response has 'public_key' field",
+      "passed": true,
+      "details": "Keys: ['public_key', 'enabled']"
+    },
+    {
+      "name": "Response has 'enabled' field",
+      "passed": true,
+      "details": "Keys: ['public_key', 'enabled']"
+    },
+    {
+      "name": "Public key is ~87 chars",
+      "passed": true,
+      "details": "Length: 87"
+    },
+    {
+      "name": "Public key starts with 'B'",
+      "passed": true,
+      "details": "First char: B"
+    },
+    {
+      "name": "enabled is true",
+      "passed": true,
+      "details": "enabled: True"
+    },
+    {
+      "name": "GET my-devices returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Initial device count retrieved",
+      "passed": true,
+      "details": "count: 0, webpush_count: 0"
+    },
+    {
+      "name": "POST webpush/subscribe returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Subscribe response has ok:true",
+      "passed": true,
+      "details": "Response: {'ok': True}"
+    },
+    {
+      "name": "Device count increased",
+      "passed": true,
+      "details": "Before: 0, After: 1, webpush_count: 1"
+    },
+    {
+      "name": "Response has 'webpush' array",
+      "passed": true,
+      "details": "webpush length: 1"
+    },
+    {
+      "name": "Idempotent subscribe returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Count did NOT double (idempotent)",
+      "passed": true,
+      "details": "After first: 1, After second: 1"
+    },
+    {
+      "name": "Invalid subscription returns 400",
+      "passed": true,
+      "details": "Status: 400"
+    },
+    {
+      "name": "GET admin customers returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Found customer ID",
+      "passed": true,
+      "details": "Customer ID: 4251cca0-59d0-434b-86d3-69b6c1e340b5"
+    },
+    {
+      "name": "POST customer notify returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "channel_configured for push is true",
+      "passed": true,
+      "details": "channel_configured: True"
+    },
+    {
+      "name": "Note is professional English (no Hinglish)",
+      "passed": true,
+      "details": "Note: This user has no device registered for push yet, so an in-app notification was sent instead. Live pu"
+    },
+    {
+      "name": "Note has expected professional phrases",
+      "passed": true,
+      "details": "Note: This user has no device registered for push yet, so an in-app notification was sent instead. Live pu"
+    },
+    {
+      "name": "GET admin partners returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Found partner ID",
+      "passed": true,
+      "details": "Partner ID: dc602513-d665-44af-978b-3f293dbe48e2"
+    },
+    {
+      "name": "POST partner notify returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Partner channel_configured for push is true",
+      "passed": true,
+      "details": "channel_configured: True"
+    },
+    {
+      "name": "Partner note is professional English (no Hinglish)",
+      "passed": true,
+      "details": "Note: This user has no device registered for push yet, so an in-app notification was sent instead. Live pu"
+    },
+    {
+      "name": "Notification to user with no subscription returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response indicates in-app notification sent",
+      "passed": true,
+      "details": "Response: {\n  \"ok\": true,\n  \"channel\": \"push\",\n  \"channel_configured\": true,\n  \"note\": \"This user has no device registered for push yet, so an in-app notification was sent instead. Live push starts automaticall"
+    }
+  ],
+  "summary": {
+    "total": 28,
+    "passed": 28,
+    "failed": 0
+  }
+}

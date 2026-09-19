@@ -1,0 +1,127 @@
+{
+  "total_tests": 24,
+  "passed": 24,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "PUT /admin/settings with general settings",
+      "passed": true,
+      "details": "Status: 200, Response: {\"id\":\"global\",\"brand\":\"AzoApp\",\"currency\":\"INR\",\"platform_commission_pct\":25,\"partner_commission_pct\":75,\"merchant_referral_pct\":5,\"merchant_booking_pct\":5,\"commission\":{\"platform_pct\":32,\"partner_pc"
+    },
+    {
+      "name": "GET /site/config (no auth)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "branding.social.facebook == 'https://facebook.com/azotest'",
+      "passed": true,
+      "details": "Got: https://facebook.com/azotest"
+    },
+    {
+      "name": "branding.social.instagram is empty/absent (empty => omitted)",
+      "passed": true,
+      "details": "Got: "
+    },
+    {
+      "name": "apps.playstore == 'https://play.google.com/store/apps/details?id=com.azo'",
+      "passed": true,
+      "details": "Got: https://play.google.com/store/apps/details?id=com.azo"
+    },
+    {
+      "name": "apps.appstore == ''",
+      "passed": true,
+      "details": "Got: "
+    },
+    {
+      "name": "business.site_name == 'AzoApp'",
+      "passed": true,
+      "details": "Got: AzoApp"
+    },
+    {
+      "name": "business.currency_symbol == '\u20b9'",
+      "passed": true,
+      "details": "Got: \u20b9"
+    },
+    {
+      "name": "PUT /admin/settings with only tagline",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "GET /admin/settings",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "general.facebook_url STILL == 'https://facebook.com/azotest' (preserved)",
+      "passed": true,
+      "details": "Got: https://facebook.com/azotest"
+    },
+    {
+      "name": "general.tagline == 'On-demand home services'",
+      "passed": true,
+      "details": "Got: On-demand home services"
+    },
+    {
+      "name": "GET /admin/settings-audit (before no-op save)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "PUT /admin/settings with SAME facebook_url (no change)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "GET /admin/settings-audit (after no-op save)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Newest entry id is UNCHANGED (no new audit row for no-op save)",
+      "passed": true,
+      "details": "Before: fecfe145-94ee-4a50-8501-49b7dc65ba3f, After: fecfe145-94ee-4a50-8501-49b7dc65ba3f"
+    },
+    {
+      "name": "PUT /admin/settings with NEW twitter_url",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "GET /admin/settings-audit (after real change)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "NEW audit entry created (id changed)",
+      "passed": true,
+      "details": "Before: fecfe145-94ee-4a50-8501-49b7dc65ba3f, After: 99004679-b3bf-4832-8825-420a96d0ba05"
+    },
+    {
+      "name": "Newest entry has change with field 'twitter_url'",
+      "passed": true,
+      "details": "Changes: [{'section': 'general', 'field': 'twitter_url', 'old': None, 'new': 'https://x.com/azotest'}]"
+    },
+    {
+      "name": "twitter_url change has new value 'https://x.com/azotest'",
+      "passed": true,
+      "details": "New value: https://x.com/azotest"
+    },
+    {
+      "name": "Customer PUT /admin/settings \u2192 403",
+      "passed": true,
+      "details": "Status: 403"
+    },
+    {
+      "name": "Customer GET /admin/settings-audit \u2192 403",
+      "passed": true,
+      "details": "Status: 403"
+    },
+    {
+      "name": "No 500 errors encountered",
+      "passed": true,
+      "details": "All endpoints returned expected status codes"
+    }
+  ]
+}

@@ -1,0 +1,205 @@
+================================================================================
+MERCHANT REFERRAL ATTRIBUTION FLOW - END-TO-END TEST
+================================================================================
+
+### STEP 0: GET AUTH TOKENS ###
+Send OTP to +919000000002: 200
+Verify OTP for +919000000002: 200
+  Token obtained for +919000000002, user_id: 12744738-8978-4ece-9c87-fa3cf6571aaa, role: merchant
+Send OTP to +919000000004: 200
+Verify OTP for +919000000004: 200
+  Token obtained for +919000000004, user_id: da731dee-1ffb-4f0e-936d-1f1559ae3f55, role: customer
+Send OTP to +919000000003: 200
+Verify OTP for +919000000003: 200
+  Token obtained for +919000000003, user_id: f1c75d35-7156-4f22-9c9f-2332503baeb6, role: partner
+Send OTP to +919000000000: 200
+Verify OTP for +919000000000: 200
+  Token obtained for +919000000000, user_id: c8c84f4f-978b-469f-8c3e-c6887ddb87ef, role: admin
+
+Merchant ID: 12744738-8978-4ece-9c87-fa3cf6571aaa
+Customer ID: da731dee-1ffb-4f0e-936d-1f1559ae3f55
+Partner ID: f1c75d35-7156-4f22-9c9f-2332503baeb6
+
+GET /api/merchant/my-code: 200
+  Merchant code: 3L6MKM3
+  Merchant ID: None
+
+Merchant code: 3L6MKM3
+
+================================================================================
+### STEP 1: BASELINE - Get current merchant referral data ###
+================================================================================
+
+GET /api/merchant/referral/report: 200
+  Total: ₹508.0
+  Customer commission: ₹123.0
+  Customer count: 3
+
+GET /api/merchant/referral/customers: 200
+  Customer count: 0
+  Priya NOT found in customer list
+
+Baseline recorded:
+  Total: ₹508.0
+  Customer commission: ₹123.0
+  Customer count: 3
+  Priya commission: ₹0
+
+================================================================================
+### STEP 2: BOOK WITH MERCHANT REF CODE ###
+================================================================================
+
+GET /api/catalog/services: 200
+  Using service: Door Repair (id: dbd5caa4-4716-47bd-b3a8-70e27dfe7589, price: ₹None)
+
+POST /api/bookings/grouped with merchant_ref_code=3L6MKM3
+  Status: 200
+  Response keys: ['id', 'code', 'customer_id', 'customer_name', 'customer_phone', 'service_id', 'service_name', 'tier_label', 'category_id', 'category_name', 'merchant_id', 'merchant_name', 'booking_type', 'partner_id', 'partner_name', 'address', 'schedule_type', 'scheduled_at', 'notes', 'addons', 'pricing', 'coupon_code', 'status', 'otps', 'evidence', 'spare_parts', 'eligible_partner_ids', 'eligible_detail', 'timeline', 'payment_status', 'review', 'commission_config', 'partner_location', 'idempotency_key', 'created_at', 'updated_at', 'items', 'is_multi', 'order_group_id']
+  Booking created: AZOATHI2Z
+  Booking ID: 14a7f617-2e37-48ec-a0ad-3cd47a57c749
+  Merchant ID: 12744738-8978-4ece-9c87-fa3cf6571aaa
+  Status: pending_payment
+
+✅ TEST 2.1: Booking created with merchant_ref_code
+  Booking code: AZOATHI2Z
+  Booking merchant_id: 12744738-8978-4ece-9c87-fa3cf6571aaa
+  Booking OTPs: start=1298, complete=None
+  ✅ PASS: booking.merchant_id matches merchant ID
+
+GET /api/bookings (customer): 200
+  Total bookings: 37
+
+✅ TEST 2.2: Booking found in customer bookings list
+  Merchant ID from list: 12744738-8978-4ece-9c87-fa3cf6571aaa
+  ✅ PASS: booking.merchant_id persisted correctly
+
+### TEST 2.3: Create second booking WITHOUT merchant_ref_code (auto-link test) ###
+
+POST /api/bookings/grouped WITHOUT merchant_ref_code (testing auto-link)
+  Status: 200
+  Booking created: AZOFE91M0
+  Merchant ID: 12744738-8978-4ece-9c87-fa3cf6571aaa (should be auto-linked)
+  ✅ PASS: Second booking auto-linked to merchant (customer_merchant_id stamped)
+
+================================================================================
+### STEP 3: COMPLETE + SETTLE THE BOOKING ###
+================================================================================
+
+POST /api/payments/order for booking 14a7f617-2e37-48ec-a0ad-3cd47a57c749
+  Status: 200
+  Order created: None
+
+POST /api/payments/mock for booking 14a7f617-2e37-48ec-a0ad-3cd47a57c749
+  Status: 200
+  Payment successful
+
+POST /api/admin/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/assign
+  Status: 200
+  Partner assigned successfully
+  Booking status after assignment: assigned
+
+  Booking status after assignment: assigned
+
+GET /api/bookings/partner/ring-pending (checking for booking)
+  Status: 200
+  Pending jobs: 0
+  Our booking NOT in ring-pending, trying direct accept
+
+POST /api/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/accept
+  Status: 400
+  ERROR: {"detail":"Job no longer available"}
+
+  Trying alternative: POST /api/bookings/partner/14a7f617-2e37-48ec-a0ad-3cd47a57c749/accept
+  Status: 404
+  ERROR: {"detail":"Not Found"}
+
+⚠️ WARNING: Partner could not accept booking, but continuing (might be auto-accepted)
+
+POST /api/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/evidence (uploading before photos)
+  Status: 200
+  Evidence uploaded
+
+POST /api/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/start-otp with OTP 1298
+  Status: 200
+  Work started
+
+GET /api/admin/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/detail to get complete OTP
+
+GET /api/admin/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/detail
+  Status: 200
+  Booking detail keys: ['booking', 'partner', 'referral_merchant', 'customer_merchant', 'refunds', 'commission']
+  Full OTPs object: {'start': '1298', 'completion': '8915'}
+  Complete OTP from admin: 8915
+
+POST /api/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/evidence (uploading after photos)
+  Status: 200
+  After evidence uploaded
+
+POST /api/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/complete with OTP 8915
+  Status: 200
+  Work completed
+
+✅ Booking AZOATHI2Z completed successfully
+
+### Checking commission ledger via admin booking detail ###
+
+GET /api/admin/bookings/14a7f617-2e37-48ec-a0ad-3cd47a57c749/detail
+  Status: 200
+  Booking detail keys: ['booking', 'partner', 'referral_merchant', 'customer_merchant', 'refunds', 'commission']
+
+Commission data:
+  Kind: completion
+  Commission base: ₹0
+  Merchant customer commission: ₹0
+  Merchant customer pct: 0%
+
+❌ FAIL: No merchant customer commission generated
+
+================================================================================
+### STEP 4: MERCHANT PANEL REFLECTS IT ###
+================================================================================
+
+Waiting 2 seconds for settlement to complete...
+
+GET /api/merchant/referral/report (AFTER): 200
+  Total: ₹543.51
+  Customer commission: ₹136.32
+  Customer count: 4
+
+### TEST 4.1: Merchant referral report updated ###
+  Before: total=₹508.0, customer_commission=₹123.0, customer_count=3
+  After:  total=₹543.51, customer_commission=₹136.32, customer_count=4
+  Increase: total=₹35.50999999999999, customer_commission=₹13.319999999999993, customer_count=1
+  ✅ PASS: Customer count increased by 1
+
+GET /api/merchant/referral/customers (AFTER): 200
+  Customer count: 0
+  Priya NOT found in customer list
+
+❌ FAIL: Priya NOT found in merchant customers list after booking
+
+GET /api/merchant/referral/commission: 200
+  Commission items count: 10
+
+### TEST 4.4: Commission history shows Customer-type row ###
+  ❌ FAIL: Customer commission row NOT found for booking AZOATHI2Z
+
+================================================================================
+### STEP 5: CONSISTENCY CHECK ###
+================================================================================
+
+Single source of truth verification:
+  Commission base: ₹0
+  Merchant customer pct: 0%
+  Merchant customer commission: ₹0
+
+Consistency across all endpoints:
+  Report customer_commission increase: ₹13.319999999999993
+  Priya total_commission: ₹0
+Traceback (most recent call last):
+  File "/app/backend_merchant_referral_test.py", line 919, in <module>
+    main()
+  File "/app/backend_merchant_referral_test.py", line 869, in main
+    print(f"  Customer detail job earned: ₹{our_job.get('earned', 0) if our_job else 0}")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnboundLocalError: cannot access local variable 'our_job' where it is not associated with a value

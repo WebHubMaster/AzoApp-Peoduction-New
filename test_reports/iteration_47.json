@@ -1,0 +1,23 @@
+{
+  "summary": "Retest of iteration_46 fixes for (A) home_stats persistence (SettingsUpdate now declares home_stats/cashback/packages/pwa), (B) cache bust via cache_service.bust_prefix('site:') on admin settings + homepage-sections mutations, and (C) trending section title. All three fixes VERIFIED PASSING. Backend pytest 3/3 green; admin UI persists MANUAL toggle + 7 inputs after reload; public homepage hero/trust-bar/footer/CTAs render the exact manual strings immediately (no cache wait). LIVE toggle restored ON at end; /api/site/config returns live numeric stats.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_home_stats_and_cache.py", "/app/test_reports/pytest/home_stats.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SettingsUpdate pydantic model is still a strict allow-list — every new settings section must be added here or it will be silently dropped. Consider `model_config = ConfigDict(extra='allow')` to avoid future regressions of this class."
+  ],
+  "updated_files": ["/app/backend/tests/test_home_stats_and_cache.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "100% (all flows verified)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "home_stats.live is TRUE at end of run. DB still holds manual values (rating 4.7, reviews 12K+, jobs_done 47K+, verified_partners 2,500+, partners 3,500+, merchants 300+, customers 4.5L+) — they are dormant while live=true and will be shown again if toggle is flipped OFF. Backend test /app/backend/tests/test_home_stats_and_cache.py covers: (1) MANUAL persistence + immediate /api/site/config reflect, (2) LIVE toggle immediate reflect, (3) homepage-sections update cache bust for both / and ?city=Patna (title auto-restored to 'Trending near you').",
+  "verified_evidence": {
+    "backend": "3 pytest passed (home_stats manual + live + trending cache bust). Direct PUT /api/admin/settings home_stats returns home_stats in body; GET /api/admin/settings persists; GET /api/site/config immediately reflects live=false with exact strings; PUT homepage-sections title 'Trending TEST' immediately reflected in /api/site/homepage and /api/site/homepage?city=Patna; title restored to 'Trending near you'.",
+    "frontend_admin": "After MANUAL save + reload of /admin?tab=homepage: home-stats-mode=MANUAL, all 7 inputs preserved (rating=4.7, reviews=12K+, jobs_done=47K+, verified_partners=2,500+, partners=3,500+, merchants=300+, customers=4.5L+).",
+    "frontend_public_manual": "hero-stats: '4.7★ | 12K+ reviews | 47K+ Jobs completed | 2,500+ Verified pros'. Body also contains '3,500+', '300+' and 'Trending near you'. Note: '4.5L+' string not rendered on homepage (only used in registration flows per code) — expected.",
+    "frontend_public_live": "After toggling LIVE ON: hero shows live '5★ | 1 reviews | 9 Jobs completed | 9 Verified pros'. /api/site/config returns stats.live=true with numeric values."
+  }
+}

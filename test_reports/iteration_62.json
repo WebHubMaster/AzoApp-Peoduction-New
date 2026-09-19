@@ -1,0 +1,63 @@
+{
+  "summary": "Frontend-only regression for SDK-57 bump + Global Public Sans font + Merchant address cascade. TWO CRITICAL bugs found — both introduced by the new `installGlobalFont()` patch in /app/frontend/src/lib/globalFont.ts: (1) The OTP entry screen CRASHES with a red-screen ErrorBoundary as soon as it renders — `TypeError: Failed to set an indexed property [0] on 'CSSStyleDeclaration': Indexed property setter is not supported.` at react-dom's `setValueForStyle`. This blocks ALL new-phone registration flows (cannot reach /merchant/register or /partner/register via UI). (2) Public Sans is loaded but NOT applied — every non-icon <Text> on the app still renders in the system default (`-apple-system, BlinkMacSystemFont, ...`). Icons DO render correctly (MaterialDesignIcons font family preserved). Demo Partner (Raj Kumar/AZP4587602) & Demo Merchant (Sharma Electricals) dashboards load fine — no crash there — because demoLogin bypasses the OTP screen. Merchant cascade / Partner cascade could NOT be exercised end-to-end because we can't get past OTP. Wallet Withdraw modal on merchant partially tested (button visible on dashboard; deeper modal input assertion inconclusive on web preview).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Login/OTP screen (step 2)",
+        "issue": "RED-SCREEN CRASH on OTP step. As soon as user taps Send OTP and the app renders the 6 OTP TextInput boxes, react-dom throws `TypeError: Failed to set an indexed property [0] on 'CSSStyleDeclaration': Indexed property setter is not supported.` in setValueForStyle. Root cause: globalFont.ts patches TextInput.render via `React.cloneElement(el, { style: [{ fontFamily }, style] })`. When the original `style` is already an array (or when RN-Web passes it into the DOM style prop before flattening), react-dom receives an array style and tries to set numeric indices on the element's CSSStyleDeclaration. Reference: /app/frontend/src/lib/globalFont.ts:59-61. Blocks: brand-new phone registration for BOTH partner and merchant (all cascade tests). Repro: open app → skip onboarding → enter any new 10-digit phone → Send OTP → red screen.",
+        "testID": "otp-box-0",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "Global font patch (installGlobalFont)",
+        "issue": "Public Sans font is registered with document.fonts (MaterialDesignIcons, PublicSans-Regular/Medium/SemiBold/Bold/ExtraBold all present) but NOT applied to any Text element on web preview. Computed font-family on 'Welcome to AzoApp', 'MOBILE NUMBER', '+91', 'Send OTP', 'Register as Partner', 'Merchant Demo' etc. is all `-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif` (system default). Only MDI icon glyphs get MaterialDesignIcons family. The patch appears applied to TextInput (evidence: it crashes it), but has no visible effect on Text on RN-Web. Reference: /app/frontend/src/lib/globalFont.ts (whole module). The feature 'app-wide Public Sans to match web' is functionally not achieved on web preview.",
+        "testID": "n/a",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Merchant address cascade (Step 3) — new phone registration",
+        "issue": "Could NOT be exercised end-to-end. OTP screen crash prevents reaching /merchant/register. Backend /api/geo/states (36), /api/geo/districts?state=Maharashtra (33) and /api/geo/cities?state=Maharashtra&district=Pune (14) were manually curl-verified and return proper [{id,name}] arrays. Code in /app/frontend/app/merchant/register.tsx (lines 51-56 for fetches, 237-239 for PickRows, 299 for PickerSheet optionsKey resolution) mirrors the partner pattern that iteration-61 confirmed works for State (and after the optionsKey fix should now work for District/City). Cascade wiring looks correct on inspection but is UNVERIFIED at runtime.",
+        "affected_testIDs": ["pickrow-state", "pickrow-district", "pickrow-city-sub-district", "opt-<id>"]
+      },
+      {
+        "flow": "Partner address cascade (Step 0) — regression",
+        "issue": "Could NOT re-verify iteration-61 fix. OTP crash blocks new-partner registration. Code in /app/frontend/app/partner/register.tsx (lines 78-80 fetches, 193-196 PickRows, 294 optionsKey resolver) also uses the same optionsKey pattern that should fix the stale-closure bug — but UNVERIFIED at runtime this iteration.",
+        "affected_testIDs": ["pickrow-state", "pickrow-district", "pickrow-city-sub-district", "pickrow-village-optional"]
+      }
+    ],
+    "design_issues": [],
+    "react_native_issues": [
+      {
+        "component": "installGlobalFont (globalFont.ts)",
+        "issue": "Runtime patch of Text.render and TextInput.render via `Comp.render = function(...){ ... React.cloneElement(el, { style: [{ fontFamily }, style] }) }` is incompatible with react-native-web. On web, TextInput's inner element receives the resulting style array and passes it to react-dom which cannot iterate an array as a CSSStyleDeclaration. Recommended fixes (main agent to choose): (a) flatten before returning: `style: StyleSheet.flatten([{ fontFamily }, style])` so the final prop is a single object; (b) on web, drop the runtime render patch entirely and inject a CSS rule (e.g. `* { font-family: 'PublicSans-Regular', ... }` in a `<style>` tag via useEffect + Platform.OS==='web') because the patch also does NOT actually change computed font-family on web anyway; (c) use `Text.defaultProps.style` merge (RN legacy) or a Theme provider that supplies fontFamily to typography tokens. Reference: /app/frontend/src/lib/globalFont.ts:45-63. Also note: on native (Expo Go/iOS/Android) the same array-style form is fine, but the DOM issue is specific to react-native-web."
+      }
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_62.json"],
+  "action_items": [
+    "CRITICAL — Fix /app/frontend/src/lib/globalFont.ts to stop crashing TextInput on web. Simplest safe change: replace `style: [{ fontFamily }, style]` with `style: StyleSheet.flatten([{ fontFamily }, style])` so the cloneElement never emits a nested array to react-dom. Then reload and confirm OTP screen renders without red-screen.",
+    "HIGH — After the crash fix, verify Public Sans actually applies on web. If computed font-family still stays `-apple-system, ...` on Text nodes, switch to a web CSS-injection approach: on Platform.OS === 'web', inject a `<style>` tag with `body, * { font-family: 'PublicSans-Regular', -apple-system, ... !important; }` and let fontWeight pick the weight via `@font-face` declarations. The runtime render patch is not effective on RN-Web because Text uses generated class names, not inline style, for typography.",
+    "Re-run merchant cascade end-to-end AFTER the font/OTP fix: register brand-new phone → verify Step 3 PickRows State→District→City cascade populates from /api/geo/states, /api/geo/districts, /api/geo/cities (backend endpoints all green).",
+    "Re-run partner cascade regression AFTER the font/OTP fix: register brand-new phone → Step 0 → Bihar → verify districts (38) + cities load. Confirms iteration-61 optionsKey fix.",
+    "Wallet Withdraw modal on merchant: verify amount input opens above keyboard (KeyboardAvoidingView) on new phone/small viewport — this iteration only confirmed dashboard shows the 'Withdraw Money' button; the follow-up modal input selector didn't match on web (no <input> found after tap). Please add a testID='withdraw-amount-input' if not already present."
+  ],
+  "critical_code_review_comments": [
+    "globalFont.ts's runtime monkey-patch of forwardRef.render on Text/TextInput is fragile: it mutates a shared React internal, is not tree-shakeable, and breaks under RN-Web's style pipeline. Prefer a Platform.OS-gated CSS injection for web and (on native) use `Text.defaultProps` + StyleSheet.compose. Also, `installGlobalFont` is guarded with a module-level `patched` flag but is called from `RootLayout()` body directly on every render (`if (fontsLoaded) installGlobalFont();`) — safe due to idempotency, but move into a `useEffect` for clarity.",
+    "app/_layout.tsx line 97 `if (fontsLoaded) installGlobalFont();` runs during render — technically fine because of the `patched` guard, but preferred pattern is `useEffect(() => { if (fontsLoaded) installGlobalFont(); }, [fontsLoaded]);` to make side-effects explicit.",
+    "merchant/register.tsx line 239: PickRow for City checks `addr.district ? ... : toast.info('Select district first')` — correct wording. Address cascade wiring is symmetric to partner (states/districts/cities useEffects + optionsKey resolver in PickerSheet at line 299). Code review OK; only runtime verification is missing.",
+    "auth/login.tsx OTP boxes at lines 262-287 look fine on their own; crash is entirely due to the globalFont TextInput.render patch mutating the style array shape."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (curl verified /api/geo/states, /api/geo/districts, /api/geo/cities — all return valid arrays)",
+    "frontend": "~40% — Demo Partner & Demo Merchant dashboards load with correct data and icons. OTP-based registration is completely BLOCKED by red-screen crash. Global Public Sans font is NOT applied on web (though fonts are registered). Merchant cascade (the primary NEW feature) could NOT be tested at runtime."
+  },
+  "seed_data_creation": "No seed data created — could not complete registration due to crash.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Two blockers to fix in /app/frontend/src/lib/globalFont.ts before this iteration's core feature can be tested: (1) crash on OTP screen — fix by flattening the style before cloneElement (`style: StyleSheet.flatten([{ fontFamily }, style])`), and (2) Public Sans not visually applied on web — the render-patch approach doesn't affect RN-Web's generated CSS classes; a web-only <style> injection with font-family override is likely required. After both fixes, retest: (a) new-phone merchant register wizard reaches Step 3, State→District→City PickRows cascade using preview /api/geo/* endpoints; (b) new-phone partner register wizard Step 0 cascade regression; (c) computed font-family on Text nodes on login/dashboards. Demo logins (+919000000003 partner, +919000000002 merchant) and dashboards work fine — don't waste time re-verifying those. Backend /api/geo/states=36, /api/geo/districts?state=Maharashtra=33, /api/geo/cities?state=Maharashtra&district=Pune=14, ?district=Mumbai=0 (Mumbai has no cities — pick Pune/Nashik/Thane/Ahmadnagar for testing).",
+  "rca_of_issue": "PRIMARY BUG — OTP screen red-screen crash. Repro: (1) open https://azo-app-live.preview.emergentagent.com; (2) dismiss onboarding; (3) enter any new 10-digit mobile; (4) tap Send OTP → screen navigates to OTP step and immediately renders ErrorBoundary with message `Failed to set an indexed property [0] on 'CSSStyleDeclaration': Indexed property setter is not supported.` — stack: `at setValueForStyle (react-dom)`. Cause: globalFont.ts:52-62 patches `TextInput.render` and returns `React.cloneElement(el, { style: [{ fontFamily }, style] })`. When TextInput's internal render tree passes this array to a DOM node (react-native-web's input path in some flows), react-dom's `setValueForStyle` treats the array as a CSSStyleDeclaration object and tries `style['0'] = ...` which browsers reject. Login's single phone TextInput is small/simple and doesn't hit the same code path, but the OTP screen's 6 stacked TextInputs (or the KeyboardAwareScrollView interaction) does. Mitigation options for main agent: (A) flatten style — `React.cloneElement(el, { style: StyleSheet.flatten([{ fontFamily }, style]) })`; (B) skip the runtime patch entirely on Platform.OS === 'web' and inject a global CSS rule via a `<style>` tag; (C) revert the globalFont module and rely on a per-component fontFamily via theme tokens. Recommend (A)+(B): flatten on native, CSS on web. SECONDARY BUG — Public Sans not visually applied on web preview even though fonts are loaded. `document.fonts.check('16px PublicSans-Regular')` returns false and computed font-family stays system default on every non-icon Text. The runtime render-patch approach doesn't influence react-native-web's generated inline-style/class-based typography path."
+}

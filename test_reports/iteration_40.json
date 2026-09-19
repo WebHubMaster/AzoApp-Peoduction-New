@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only regression on the DYNAMIC commission engine + role-based invoice visibility. Wrote /app/backend/tests/test_iter40_dynamic_commission.py (19 tests, 7 classes). RESULT: 17 passed, 1 skipped, 1 FAILED. Validated: (a) PUT /api/admin/settings commission — rejects 4-pct != 100 with HTTP 400 and rejects cancellation split != 100; accepts+persists valid custom splits (70/15/10/5 etc.); (b) Every existing commission_ledger completion row reconciles: partner+platform+merchant_referral+merchant_customer == commissionable_base (verified via /api/admin/bookings/{id}/detail rows); (c) Platform correctly absorbs both merchant referral %s when neither referral is applicable (rows sum still == base, mref=mcust=0); (d) Role-based INVOICE DETAIL visibility at GET /api/invoices/{id}: customer NEVER sees commission/commission_pct/commission_base/role_earning/partner_snapshot/merchant_snapshot; partner sees role_earning={role:partner, commission_label:'Partner Commission', rate, commission, net} and NO commission*/commission_base/merchant_* fields; merchant sees NO partner_*/platform_*/commission_* fields and role_earning is either absent or clearly labelled 'Merchant Commission'; admin sees commission + commission_pct + commission_base and NO role_earning; (e) Invoice LIST summary — commission_amount present ONLY for admin, ABSENT for customer/partner/merchant; (f) Invoice commission_pct (12%) is computed against commission_base (service cost, GST-excluded) — commission == round(base * pct/100, 2); (g) No 500s on admin bookings, invoices, or partner earnings-summary. RESET commission → 80/12/5/3 + 80/20 at teardown (autouse module fixture). ONE REAL BUG surfaced (see backend_issues.critical).",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/invoices (role=partner)",
+        "issue": "Partner LIST display_amount FALLS BACK TO CUSTOMER GROSS when the underlying booking has NO commission_ledger entry. Reproduced on 2/3 sampled partner-scoped booking invoices — e.g. INV-2026-000005 shows display_amount=1060.82 (customer gross) instead of the partner net (ledger partner_earning=719.2 + VC). Root cause: services/invoice_service.list_invoices maps display_amount from commission_ledger.find({booking_id: {$in: bids}}) and silently leaves display_amount = total_amount when no ledger doc is found (older completed bookings pre-date the ledger, or their ledger was never written). Spec violation: 'Partner/merchant list display_amount = their own net, NOT the customer gross total.' Same fallback would affect merchants.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter40_dynamic_commission.py",
+    "/app/test_reports/pytest/iter40_dynamic_commission.xml"
+  ],
+  "action_items": [
+    "Fix partner/merchant list display_amount fallback in services/invoice_service.list_invoices (~lines 527-547): when commission_ledger is missing for a booking, either (a) backfill the ledger for legacy completed bookings on the fly, or (b) compute the partner/merchant share on-the-fly from booking.pricing.commissionable_base + booking.commission_config (mirror CommissionEngine.settle math) so display_amount is NEVER the customer gross for these roles. Reproduction bookings: 93184cfc-3e18-4621-8871-6c7872fc3f44 (INV-2026-000005), 79c59388-3adc-4e90-912a-26432a5abbd6 (INV-2026-000006)."
+  ],
+  "critical_code_review_comments": [
+    "engines.CommissionEngine.settle: dynamic split is correctly implemented via _cm(cfg) resolver + Decimal-safe money helpers. Platform absorbs remainder via base - partner - mref - mcust (won't over-distribute even if configured pcts drift). Good.",
+    "admin_controller.update_settings (line 682-697): 4-pct == 100 and cancellation == 100 guards work (verified with 105 and 90 sums returning 400 with 'must total 100' message). Good.",
+    "invoice_service.list_invoices (line 527-547): display_amount override for partner/merchant is guarded by ledger existence. This silently leaks the CUSTOMER GROSS to partner/merchant list UI whenever a ledger doc is missing (legacy bookings pre-ledger, or race where invoice existed before settle ran). Needs a safe fallback (compute from booking.pricing.commissionable_base * rate) or auto-backfill.",
+    "invoice_service.strip_for_role: correctly hides commission/commission_pct/commission_base + platform/partner cross-role fields for customer/partner/merchant. Admin gets full breakdown, no role_earning. Good.",
+    "invoice_service.ensure_booking_invoice (line 122, 178-180): commission = base * platform_pct/100 and commission_pct is snapshotted at invoice-creation time (correct per-role rate captured). commission_base is the service cost (GST-excluded). Verified against 3 admin invoices — math reconciles exactly.",
+    "invoice_service._attach_role_earning: for merchants, pct is summed across the two referral streams and shown ONLY if a stream is non-zero. Correctly labelled 'Merchant Commission' — never leaks platform.",
+    "invoice_service.list_invoices summary.commission_amount is correctly popped for non-admin roles (line 570-571). Good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter40_dynamic_commission.py (new)"
+  ],
+  "success_rate": {"backend": "89% (17/19 passed, 1 skipped, 1 failed)", "frontend": "n/a — backend-only per request"},
+  "test_credentials": "Demo OTP + demo phones per /app/memory/test_credentials.md — admin +919000000000, merchant +919000000002, partner +919000000003, customer +919000000004.",
+  "seed_data_creation": "None. Test PUT /api/admin/settings mutates the commission block temporarily; teardown fixture resets it to 80/12/5/3 + 80/20.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Re-run tests/test_iter40_dynamic_commission.py after E1 fixes the partner/merchant list display_amount fallback. If E1 adds an admin re-settle endpoint or a backfill_ledger script, run it before re-testing. Skipped test (partner earnings-summary math) will start passing once the +919000000003 partner has at least one completed booking with a ledger entry (it currently has none — the failing display_amount bookings belong to other partners).",
+  "rca of the issue": "invoice_service.list_invoices (line 534-547) only overrides display_amount when db.commission_ledger has a doc for the booking. For older completed bookings created before the ledger existed (or where settle failed to insert), no doc exists → the loop leaves display_amount = total_amount (customer gross). This directly violates the review-request spec 'Partner/merchant list display_amount = their own net'. Fix: replace the ledger-only mapping with a two-tier resolver — first try ledger; on miss, compute partner_earning / merchant_referral / merchant_customer on the fly from booking.pricing.commissionable_base × booking.commission_config (or current settings.commission as last resort), matching CommissionEngine.settle exactly. Alternative: run an idempotent backfill_ledger job at server startup to write ledger docs for all completed/paid bookings that lack one."
+}

@@ -1,0 +1,240 @@
+{
+  "iteration": 35,
+  "test_date": "2026-09-08",
+  "test_time": "19:51:18",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "environment": {
+    "container_restored": true,
+    "env_files_recreated": true,
+    "mongo_empty_and_reseeded": true,
+    "payment_gateway_keys": "none",
+    "mock_mode": "active"
+  },
+  "test_credentials": {
+    "admin": "+919000000000",
+    "partner": "+919000000003",
+    "customer": "+919000000004",
+    "otp": "123456"
+  },
+  "summary": {
+    "total_tests": 27,
+    "passed": 27,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "tasks": {
+    "task_13_combined_payment": {
+      "name": "Combined single payment for multi-category checkout",
+      "status": "PASS",
+      "tests_passed": 11,
+      "tests_failed": 0,
+      "tests": [
+        {
+          "name": "Booking 1 order_group_id",
+          "status": "PASS",
+          "description": "Created booking 1 with order_group_id TESTGRP-1788897057"
+        },
+        {
+          "name": "Booking 2 order_group_id",
+          "status": "PASS",
+          "description": "Created booking 2 with same order_group_id"
+        },
+        {
+          "name": "Payment order mock mode",
+          "status": "PASS",
+          "description": "POST /api/payments/order returned mock=true (expected in dev mode)"
+        },
+        {
+          "name": "Payment order amount",
+          "status": "PASS",
+          "description": "Payment amount is sum of both bookings"
+        },
+        {
+          "name": "Mock payment count",
+          "status": "PASS",
+          "description": "POST /api/payments/mock returned count=2 (both bookings)"
+        },
+        {
+          "name": "Both bookings paid",
+          "status": "PASS",
+          "description": "Both bookings have payment_status='paid'"
+        },
+        {
+          "name": "Both bookings searching",
+          "status": "PASS",
+          "description": "Both bookings have status='searching' (partner search triggered)"
+        },
+        {
+          "name": "Idempotency check",
+          "status": "PASS",
+          "description": "Repeat mock payment returned already=true"
+        },
+        {
+          "name": "Wallet group payment",
+          "status": "PASS",
+          "description": "POST /api/bookings/pay-wallet-group paid 2 bookings with one combined debit"
+        },
+        {
+          "name": "Single booking regression",
+          "status": "PASS",
+          "description": "Single grouped booking can be paid with purpose='booking'"
+        },
+        {
+          "name": "Guard: unknown group_id",
+          "status": "PASS",
+          "description": "Unknown group_id returns 404"
+        }
+      ]
+    },
+    "task_9_per_job_detail": {
+      "name": "Per-job individual detail in API payloads",
+      "status": "PASS",
+      "tests_passed": 6,
+      "tests_failed": 0,
+      "tests": [
+        {
+          "name": "is_multi flag",
+          "status": "PASS",
+          "description": "Multi-service booking has is_multi=true"
+        },
+        {
+          "name": "items array length",
+          "status": "PASS",
+          "description": "Booking has 2 items in items[] array"
+        },
+        {
+          "name": "Item structure",
+          "status": "PASS",
+          "description": "Items have required fields: name, qty, price"
+        },
+        {
+          "name": "Customer bookings list",
+          "status": "PASS",
+          "description": "GET /api/bookings includes items[] array"
+        },
+        {
+          "name": "Admin booking detail",
+          "status": "PASS",
+          "description": "GET /api/admin/bookings/{id}/detail includes items[] array"
+        },
+        {
+          "name": "Partner jobs list",
+          "status": "PASS",
+          "description": "GET /api/bookings/partner/jobs includes items[] field"
+        }
+      ]
+    },
+    "task_10_work_proof_images": {
+      "name": "Work-proof images data flow",
+      "status": "PASS",
+      "tests_passed": 7,
+      "tests_failed": 0,
+      "tests": [
+        {
+          "name": "Assign booking",
+          "status": "PASS",
+          "description": "Admin successfully assigned booking to partner"
+        },
+        {
+          "name": "Upload before evidence",
+          "status": "PASS",
+          "description": "Partner uploaded 'before' evidence photo, received URL"
+        },
+        {
+          "name": "Partner active jobs evidence",
+          "status": "PASS",
+          "description": "GET /api/bookings/partner/active includes before evidence"
+        },
+        {
+          "name": "Customer booking evidence",
+          "status": "PASS",
+          "description": "GET /api/bookings/{id} includes before evidence"
+        },
+        {
+          "name": "Admin booking evidence",
+          "status": "PASS",
+          "description": "GET /api/admin/bookings/{id}/detail includes before evidence"
+        },
+        {
+          "name": "Upload after evidence",
+          "status": "PASS",
+          "description": "Partner uploaded 'after' evidence photo"
+        },
+        {
+          "name": "Invalid stage guard",
+          "status": "PASS",
+          "description": "Invalid stage 'middle' correctly rejected with 400"
+        }
+      ]
+    },
+    "regression_sanity": {
+      "name": "Regression Sanity Checks",
+      "status": "PASS",
+      "tests_passed": 3,
+      "tests_failed": 0,
+      "tests": [
+        {
+          "name": "Categories endpoint",
+          "status": "PASS",
+          "description": "GET /api/catalog/categories returned 6 categories"
+        },
+        {
+          "name": "Customer bookings endpoint",
+          "status": "PASS",
+          "description": "GET /api/bookings returned 20 bookings"
+        },
+        {
+          "name": "Admin dashboard endpoint",
+          "status": "PASS",
+          "description": "GET /api/admin/dashboard?range=7d working"
+        }
+      ]
+    }
+  },
+  "key_findings": {
+    "task_13": {
+      "status": "FULLY FUNCTIONAL",
+      "evidence": [
+        "Created 2 bookings with different categories and same order_group_id",
+        "POST /api/payments/order {purpose:'booking_group', group_id} returned mock=true with combined amount",
+        "POST /api/payments/mock {purpose:'booking_group', group_id} paid both bookings (count=2)",
+        "Both bookings moved to payment_status='paid' and status='searching'",
+        "Idempotency working: repeat payment returned already=true",
+        "Wallet group payment working: POST /api/bookings/pay-wallet-group paid 2 bookings with one debit",
+        "Single booking regression passed: can pay with purpose='booking'",
+        "Guards working: unknown group_id returns 404"
+      ]
+    },
+    "task_9": {
+      "status": "FULLY FUNCTIONAL",
+      "evidence": [
+        "Multi-service booking created with is_multi=true and items[] array (2 items)",
+        "Items have correct structure: name, qty, price fields present",
+        "Customer GET /api/bookings includes items[] array",
+        "Admin GET /api/admin/bookings/{id}/detail includes items[] array",
+        "Partner GET /api/bookings/partner/jobs includes items[] field"
+      ]
+    },
+    "task_10": {
+      "status": "FULLY FUNCTIONAL",
+      "evidence": [
+        "Partner uploaded 'before' evidence via POST /api/bookings/{id}/evidence/upload",
+        "Evidence URL returned: https://azo-app-live.preview.emergentagent.com/api/media/file/evidence/7153708f72a84352b3fad1259922c787.webp",
+        "Partner GET /api/bookings/partner/active includes before evidence (1 photo)",
+        "Customer GET /api/bookings/{id} includes before evidence (1 photo)",
+        "Admin GET /api/admin/bookings/{id}/detail includes before evidence (1 photo)",
+        "Partner uploaded 'after' evidence successfully",
+        "Invalid stage 'middle' correctly rejected with 400"
+      ]
+    }
+  },
+  "no_critical_issues": true,
+  "notes": [
+    "All 3 Phase-3 tasks are fully functional end-to-end",
+    "Mock payment mode is active (no gateway keys configured)",
+    "Fresh seed data was used (container restored, DB re-seeded)",
+    "All regression sanity checks passed",
+    "No 500 errors encountered",
+    "All guards and error handling working correctly"
+  ]
+}

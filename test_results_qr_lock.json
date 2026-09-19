@@ -1,0 +1,92 @@
+{
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "STEP 1.1: GET /admin/physical-qr?status=unassigned&q=PAT",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "STEP 1.2: Found unassigned PAT token T1",
+      "passed": true,
+      "details": "Token: PATCATABK"
+    },
+    {
+      "name": "STEP 1.3: GET /admin/physical-qr/merchant-search?q=",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "STEP 1.4: Found two different merchant codes M1 and M2",
+      "passed": true,
+      "details": "M1: 3L6MKM3, M2: Q45S579"
+    },
+    {
+      "name": "STEP 2.1: POST /admin/physical-qr/{T1}/assign with M1 as AGENT Ravi",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "STEP 2.2: Response has qr object",
+      "passed": true,
+      "details": "Keys: ['ok', 'reassigned', 'qr', 'agent_earning']"
+    },
+    {
+      "name": "STEP 2.3: qr.status == 'active'",
+      "passed": true,
+      "details": "Status: active"
+    },
+    {
+      "name": "STEP 2.4: qr.merchant_code == M1",
+      "passed": true,
+      "details": "Merchant code: 3L6MKM3"
+    },
+    {
+      "name": "STEP 3.1: POST /admin/physical-qr/{T1}/assign with M2 as AGENT Ravi \u2192 409",
+      "passed": true,
+      "details": "Status: 409 (expected 409)"
+    },
+    {
+      "name": "STEP 3.2: Response detail contains 'already mapped'",
+      "passed": true,
+      "details": "Detail: This QR is already mapped to Sharma Electricals (3L6MKM3). It cannot be mapped again."
+    },
+    {
+      "name": "STEP 3b.1: POST /admin/physical-qr/{T1}/assign as AGENT Sita \u2192 403 (not in her batch)",
+      "passed": true,
+      "details": "Status: 403 (expected 403 - batch scoping)"
+    },
+    {
+      "name": "STEP 3b.2: Response detail contains 'not in your assigned batches'",
+      "passed": true,
+      "details": "Detail: This QR is not in your assigned batches"
+    },
+    {
+      "name": "STEP 4.1: POST /admin/physical-qr/{T1}/assign with M2 as ADMIN \u2192 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "STEP 4.2: Response has reassigned == true",
+      "passed": true,
+      "details": "reassigned: True"
+    },
+    {
+      "name": "STEP 4.3: qr.merchant_code == M2 (updated)",
+      "passed": true,
+      "details": "Merchant code: Q45S579"
+    },
+    {
+      "name": "STEP 5.1: Found another unassigned PAT token T2",
+      "passed": true,
+      "details": "Token: PATHNCY6F"
+    },
+    {
+      "name": "STEP 5.2: POST /admin/physical-qr/{T2}/assign with M1 as AGENT Ravi \u2192 200",
+      "passed": true,
+      "details": "Status: 200"
+    }
+  ]
+}

@@ -1,0 +1,172 @@
+{
+  "total_tests": 33,
+  "passed": 33,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Backend health check GET /api/",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Customer login",
+      "passed": true,
+      "details": "Token obtained for +919000000004"
+    },
+    {
+      "name": "AI chat returns 200 (NOT 500)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "AI chat response has session_id",
+      "passed": true,
+      "details": "session_id: fd3108ad-ba48-4134-8e3d-96e1cf4a884c"
+    },
+    {
+      "name": "AI chat returns graceful fallback message (no key configured)",
+      "passed": true,
+      "details": "Reply: AI assistant abhi configure nahi hua hai. Admin \u2192 Integration Center me AI Assistant provider aur us provider ki API key add karein."
+    },
+    {
+      "name": "AI chat with session_id returns 200 (history persistence)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Second AI chat response has same session_id",
+      "passed": true,
+      "details": "session_id: fd3108ad-ba48-4134-8e3d-96e1cf4a884c"
+    },
+    {
+      "name": "Partner login",
+      "passed": true,
+      "details": "Token obtained for +919000000003"
+    },
+    {
+      "name": "OCR endpoint returns 200 (NOT 500)",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "OCR returns ocr_ran:false (no key configured)",
+      "passed": true,
+      "details": "ocr_ran: False"
+    },
+    {
+      "name": "OCR returns graceful error message (ocr_not_configured)",
+      "passed": true,
+      "details": "error: ocr_not_configured"
+    },
+    {
+      "name": "Admin login",
+      "passed": true,
+      "details": "Token obtained for +919000000000"
+    },
+    {
+      "name": "Integration Center GET returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Integration Center has ai_enabled",
+      "passed": true,
+      "details": "ai_enabled: True"
+    },
+    {
+      "name": "Integration Center has ai_provider (default 'anthropic')",
+      "passed": true,
+      "details": "ai_provider: openai"
+    },
+    {
+      "name": "Integration Center has ai_model (default 'claude-3-5-sonnet-20241022')",
+      "passed": true,
+      "details": "ai_model: gpt-4o"
+    },
+    {
+      "name": "Integration Center has ai_api_key (empty string)",
+      "passed": true,
+      "details": "ai_api_key: (empty)"
+    },
+    {
+      "name": "Integration Center has ocr_provider",
+      "passed": true,
+      "details": "ocr_provider: gemini"
+    },
+    {
+      "name": "Integration Center has ocr_model",
+      "passed": true,
+      "details": "ocr_model: gemini-2.5-flash"
+    },
+    {
+      "name": "Integration Center has ocr_api_key",
+      "passed": true,
+      "details": "ocr_api_key: (empty)"
+    },
+    {
+      "name": "Update AI settings returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "AI provider persisted (openai)",
+      "passed": true,
+      "details": "ai_provider: openai"
+    },
+    {
+      "name": "AI model persisted (gpt-4o)",
+      "passed": true,
+      "details": "ai_model: gpt-4o"
+    },
+    {
+      "name": "AI API key persisted (sk-test-xxx)",
+      "passed": true,
+      "details": "ai_api_key: sk-test-xxx..."
+    },
+    {
+      "name": "Sibling key sms_provider NOT wiped",
+      "passed": true,
+      "details": "sms_provider: fast2sms (was fast2sms)"
+    },
+    {
+      "name": "Sibling key razorpay_mode NOT wiped",
+      "passed": true,
+      "details": "razorpay_mode: test (was test)"
+    },
+    {
+      "name": "Sibling key otp_expiry_sec NOT wiped",
+      "passed": true,
+      "details": "otp_expiry_sec: 600 (was 600)"
+    },
+    {
+      "name": "Reset AI settings to defaults returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "ai_provider reset to anthropic verified",
+      "passed": true,
+      "details": "ai_provider: anthropic"
+    },
+    {
+      "name": "ai_model reset to claude-3-5-sonnet-20241022 verified",
+      "passed": true,
+      "details": "ai_model: claude-3-5-sonnet-20241022"
+    },
+    {
+      "name": "ai_api_key reset to empty verified",
+      "passed": true,
+      "details": "ai_api_key: (empty)"
+    },
+    {
+      "name": "Existing endpoint GET /api/site/config still works",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Existing endpoint GET /api/admin/settings still works",
+      "passed": true,
+      "details": "Status: 200"
+    }
+  ]
+}

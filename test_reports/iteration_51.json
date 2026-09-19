@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 51 — E2E frontend pricing test: multi-category cart (Plumbing Tap & Mixer ₹199 + Washer Replacement ₹79; Home Cleaning Bathroom ₹399 + Grout Whitening ₹199) at Patna address, schedule mode. Two CRITICAL frontend bugs discovered that break Σ(booking totals)==checkout preview invariant. API sanity for coupon min_order gate PASSES; backend cart-quote is correct — the bugs are in Checkout.jsx.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Checkout.jsx — cart-quote effect (lines 183-211, payload built lines 186-192)",
+        "issue": "cart-quote payload omits `address`. Backend cannot compute city-based surge without it, so the preview shows surge=0 while the real per-category bookings (which DO carry the address) include surge. In Patna with 15% surge rule, preview showed Total ₹1,151.68 but Σ(booking totals) came out ₹1,306.73 (Plumbing ₹495.25 + Home Cleaning ₹811.48) — a ₹155.05 drift (₹131.40 surge + ₹23.65 GST on surge). This directly violates the invariant the main agent just fixed for coupons/convenience/membership. Fix: add `address: addr` to the cart-quote payload and re-run when addr changes.",
+        "selector": "[data-testid=\"price-estimating\"] / [data-testid=\"order-group-grand-total\"]",
+        "priority": "CRITICAL"
+      },
+      {
+        "component": "Checkout.jsx — applyCoupon (lines 235-256, body at 238)",
+        "issue": "Coupon validation is sent for items[0] ONLY (single service_id) instead of the whole cart. SAVE100 has min_order ₹499; the first item is Tap & Mixer ₹278 (with add-on ₹278), which is below ₹499, so validate-coupon rejects with 'Minimum order ₹499 required for this coupon' even though the actual cart subtotal is ₹876 (which >499) and the backend cart-quote with the SAME coupon_code returns coupon_applied=true, discount=100. Effect: the customer loses the discount at checkout — coupon is never sent on /bookings/grouped, so bookings are placed at the higher total. Fix: change validate-coupon path (or reuse cart-quote) to validate against the full cart / cart_service_total.",
+        "selector": "[data-testid=\"coupon-apply\"] / [data-testid=\"coupon-input\"]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Multi-category checkout → grouped booking",
+        "issue": "Preview total ≠ Σ(created booking totals) whenever surge (or any city-dependent rule) fires. Root cause: bug #1 above. Also, when the coupon UI-reject occurs (bug #2), coupon_code is not sent to /bookings/grouped so the discount is silently dropped — even though hitting /bookings/cart-quote directly with the full cart and same address DOES apply the coupon.",
+        "affected_selectors": ["[data-testid=\"order-group-grand-total\"]", "[data-testid=\"order-group-row-*\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter51_cart_quote_coupon.py",
+    "/app/test_reports/iteration_51.json"
+  ],
+  "action_items": [
+    "Checkout.jsx: include `address` in the cart-quote payload (useEffect at line 183) and re-run when address.city/pincode/lat/lng change. Without this, surge and any city-based rule are missing from the preview and Σ(bookings) drifts.",
+    "Checkout.jsx: replace applyCoupon single-service validate-coupon call with a full-cart validation. Either (a) call /bookings/cart-quote with coupon_code and check response.coupon_applied, or (b) add a /bookings/validate-cart-coupon endpoint that accepts the full items[] + address. Right now the UI blocks valid coupons whenever the FIRST item < min_order.",
+    "After fixing #1 & #2, add a customer-side E2E test that asserts Σ(created-booking totals) == checkout preview Total payable exactly (to the paisa) across: (a) surge city, (b) coupon applied, (c) emergency-per-category."
+  ],
+  "critical_code_review_comments": [
+    "Checkout.jsx:186-192 — cart-quote payload never carries `address`; every city/pincode-scoped pricing rule (surge, service-area gating, potentially city-scoped coupons) is invisible to the preview.",
+    "Checkout.jsx:237-238 — validate-coupon uses only items[0]; wrong for multi-service carts.",
+    "Checkout.jsx:357 — grouped booking body correctly forwards `cart_items` and `coupon_code: applied || null`. Because `applied` stays empty due to bug #2, the coupon silently drops. Consider ALWAYS sending the entered coupon and letting the backend gate it (backend already does min_order gating post-fix)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter51_cart_quote_coupon.py (new — 2 API sanity tests, both PASS)"
+  ],
+  "success_rate": {
+    "backend": "100% (2/2 API sanity: coupon min_order gate + MONSOON20 20% cap)",
+    "frontend": "Partial — preview vs booking totals DIVERGE by ₹155.05 (surge + GST on surge) in the primary multi-category scenario. Coupon UI rejects a valid coupon."
+  },
+  "test_credentials": "Customer demo login button on /login; +919000000004 / OTP 123456. Partner +919000000003. Admin +919000000000.",
+  "seed_data_creation": "Created 2 real bookings for customer demo (AZOJ82V0O Plumbing ₹495.25, AZOFH0P0E Home Cleaning ₹811.48) at Patna 800001 during E2E — evidence of the drift.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Reproduce: (1) demo-customer login, (2) add Tap & Mixer Repair (id afab5387-11f4-4cb8-bee3-c1285cf80d91) + Washer Replacement add-on, (3) add Bathroom Cleaning (1f6ccc2f-ee0d-4271-b0c4-a18a79ae9a32) + Grout Whitening add-on, (4) /book → progress to Summary; select saved Patna address ('12 MG Road', pincode 800001), any schedule slot, apply SAVE100 → UI rejects with 'Minimum order ₹499 required'. Note preview Total = ₹1,151.68 (surge missing, discount missing). Place order. Fetch /api/bookings — the two created orders sum to ₹1,306.73 (each includes surge). Delta = ₹155.05. Backend /api/bookings/cart-quote with the same items + address + coupon_code=SAVE100 returns coupon_applied=true, surge=131.40, total=1188.73 — i.e. backend is correct; the frontend Checkout.jsx (a) omits `address` from the cart-quote request, (b) validates the coupon against items[0] only. Fix both to restore Σ==preview invariant. After fix, re-run iter51 E2E and also confirm emergency-per-category (₹150×2) and single-category qty-2 add-on-not-multiplied scenarios (not run this iteration because bug #1 blocks the primary invariant).",
+  "rca of the issue": "Bug #1 RCA: Checkout.jsx line 186-192 builds the cart-quote body with schedule_type/coupon/items but no address. The backend surge engine (city-keyed rule 'Patna 15%') requires address.city, so it returns surge=0. The grouped-booking POST at line 357 sends the address, so backend properly applies surge per booking. Result: preview understates the total by (surge + GST*surge). Bug #2 RCA: applyCoupon (line 237-238) calls /bookings/validate-coupon with the FIRST cart line's service_id/addons only. The backend min_order check runs against that single line's gross, not the aggregated cart, so any coupon whose min_order exceeds the smallest line is falsely rejected in the UI. Backend cart-quote — which sees all items — correctly applies the coupon."
+}

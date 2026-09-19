@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 59 — Frontend regression test for the expo-notifications lazy-guarding fix on the AzoApp Partner/Merchant Expo app (web preview). App boots cleanly with ZERO uncaught errors on module load — the original `src/lib/notifications.ts:10` red-box no longer fires. 'Stay in the loop' onboarding renders and 'Maybe later' advances to Login. Partner Demo (+919000000003) and Merchant Demo (+919000000002) both load their dashboards without crash. Fresh partner and merchant registration flows still work (Register → Send OTP → segmented 6-digit OTP 123456 → Verify & Continue → 'Your full name' step, both roles, 0 errors). HOWEVER, a NEW regression was found: tapping the 'Send me a test job ring' button (`data-testid=\"test-job-ring\"`) on the Partner Dashboard throws a red-box 'Uncaught Error: The method or property Notifications.scheduleNotificationAsync is not available on web...' from `src/lib/notifications.ts:106`. Root cause: `pushSupported` only guards against Expo Go (`ExecutionEnvironment.StoreClient`) but NOT against web — on the web bundle `require('expo-notifications')` succeeds so `N()` returns a truthy object, but `scheduleNotificationAsync` (and vibration channel APIs) are stubs that throw on web. The request explicitly said this action must show an info toast on web and MUST NOT crash. The 'Fix' (requestNotificationPermission) button did NOT crash — permission APIs are polyfilled on web.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PartnerHome / sendTestRing",
+        "issue": "Tapping 'Send me a test job ring' on the Partner Dashboard triggers a red-box 'Uncaught Error: The method or property Notifications.scheduleNotificationAsync is not available on web, are you sure you've linked all the native dependencies properly?' from src/lib/notifications.ts:106. Expected (per problem statement): show info toast 'Job ring works on a real device build' and continue. Repro: login as Partner Demo → scroll to 'Alert check' card → tap 'Send me a test job ring'.",
+        "testID": "test-job-ring",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix `pushSupported` in /app/frontend/src/lib/notifications.ts to also exclude web. Recommended one-line change:\n  `export const pushSupported = Platform.OS !== \"web\" && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;`\n  This will make `N()` return null on web so `scheduleJobRing()` short-circuits to `return false`, which is the code path that shows the acceptable 'Job ring works on a real device build' info toast in app/(partner)/index.tsx:94.",
+    "OPTIONAL: also wrap the `_N.setNotificationHandler(...)` call inside a try/catch in N() so a future partial-native shim on web can't break module init.",
+    "After fix, retest: Partner Demo login → tap 'Send me a test job ring' → verify info toast appears and NO red-box. Also retest 'Fix' button next to 'Background push: OFF' — it should continue to prompt permission on web (currently working)."
+  ],
+  "critical_code_review_comments": [
+    "`src/lib/notifications.ts:27` — `pushSupported` only checks Expo Go via `ExecutionEnvironment.StoreClient`; on web preview `executionEnvironment` is `bare`/`standalone`, so the guard is bypassed and the (partially-broken) web build of expo-notifications is loaded. The stated intent in the file header comment (lines 4-9) says web should also be a safe no-op, but the implementation doesn't honor that. Add `Platform.OS !== 'web'` to the guard.",
+    "`app/_layout.tsx:54` — `setupAndroidChannels().catch(() => {})` correctly swallows errors, and inside the fn `Platform.OS !== 'android'` returns early, so this path is safe on web. Good.",
+    "`app/(partner)/index.tsx:43` — `getPermissionStatus()` is called on every mount; on web it currently succeeds (browser Notification API is polyfilled) so no crash, but if the guard is tightened to exclude web this call will simply return `{granted:false, canAskAgain:true}` which is still correct behavior for the Alert-check card.",
+    "No deprecated Expo packages detected in the files under review (`expo-notifications`, `expo-constants`, `expo-device`, `expo-linear-gradient`, `expo-status-bar`, `expo-image`, `expo-router`, `expo-splash-screen`, `expo-font` — all current for SDK 57)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only regression test)",
+    "frontend": "80% — 4/5 flows PASS (boot no-crash, onboarding→login, partner login+dash, merchant login+dash, fresh reg wizards). 1/5 FAIL: 'Send me a test job ring' still crashes on web."
+  },
+  "seed_data_creation": "Two fresh unregistered phone numbers were signed up via OTP (random 10-digit starting with 9, outside 900000000X demo range). No cleanup added — accounts left at 'Enter your full name' stage of the registration wizard, no PII.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend base = https://azo-app-live.preview.emergentagent.com. Dismiss 'Stay in the loop' with data-testid='skip-notifications-button' or text 'Maybe later' before the login form appears. OTP entry on the Register wizard is a SEGMENTED 6-input row: focus input.nth(0) then `page.keyboard.type('123456')` — do NOT use fill on the first input alone. Demo one-tap buttons: text 'Partner Demo' and 'Merchant Demo' on the login screen (only visible while demo_mode is on). To reproduce the reported crash: Partner Demo → scroll dashboard to 'Alert check' card → tap `[data-testid=\"test-job-ring\"]` → red-box appears. Fix requires editing src/lib/notifications.ts line 26-27 to add `Platform.OS !== 'web'` to the pushSupported guard.",
+  "rca_of_issue": "RCA — new crash on 'Send me a test job ring' (web preview):\n  1. Reproduction: log in as Partner Demo (+919000000003, OTP 123456) on the web preview, scroll to the 'Alert check' card, tap 'Send me a test job ring'.\n  2. Symptom: red-box 'Uncaught Error: The method or property Notifications.scheduleNotificationAsync is not available on web, are you sure you've linked all the native dependencies properly?' — stack trace: src/lib/notifications.ts:106 → scheduleJobRing → app/(partner)/index.tsx:92 sendTestRing.\n  3. Root cause: The lazy-guard in src/lib/notifications.ts:26-27 only excludes Expo Go: `pushSupported = Constants.executionEnvironment !== ExecutionEnvironment.StoreClient`. On the web bundle `executionEnvironment` is NOT `StoreClient`, so `pushSupported` is `true`, `N()` requires `expo-notifications`, and `n.scheduleNotificationAsync(...)` is invoked — but on web that function is a stub that throws. The file's own docstring (lines 4-9) states web should also be a safe no-op, but the code doesn't implement that.\n  4. Mitigation: Add `Platform.OS !== 'web'` to the pushSupported constant so `N()` returns null on web, causing `scheduleJobRing()` to return `false`, which triggers the intended `toast.info('Job ring works on a real device build')` fallback in app/(partner)/index.tsx:94. One-line, low-risk fix.\n  5. Note: the original iteration-58 bug (red-box at module load time in Expo Go) IS fixed — that specific crash cannot be reproduced via Playwright since it requires the Expo Go native runtime, but the module-eval no longer fails on any platform (verified: 0 uncaught errors on app boot on web). The remaining issue is only the runtime call to scheduleNotificationAsync from the partner dashboard test-ring button."
+}

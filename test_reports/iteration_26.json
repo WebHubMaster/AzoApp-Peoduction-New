@@ -1,0 +1,26 @@
+{
+  "summary": "Frontend verification of the styled-dialog refactor for AzoApp admin People. All three replaced flows now use the app's own components (Drawer for bulk-delete + bulk-purge in PeopleList, Modal for single purge in Person360) — window.confirm is completely gone. Confirmed by injecting an init script that overrides window.confirm/alert to count invocations: final counters were { confirm: 0, alert: 0 } across all three flows.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_flow_results": [
+    {"flow": "STYLED BULK DELETE (Customers → All)", "result": "PASS", "details": "Selected Dlg Del One (7000000501) + Dlg Del Two (7000000502), clicked [data-testid=bulk-delete]. Styled Drawer opened with [data-testid=confirm-bulk-delete]. Confirmed → both rows disappeared from All list, success toast shown. window.__nativeConfirmCalled=0."},
+    {"flow": "STYLED BULK PERMANENT DELETE (Customers → Deleted)", "result": "PASS", "details": "Selected Dlg Purge (7000000503) in Deleted tab, clicked [data-testid=bulk-purge]. Styled Drawer titled 'Permanently delete 1 account(s)?' with [data-testid=confirm-bulk-purge] appeared. Confirmed → Dlg Purge removed permanently from Deleted list. No native confirm invocation."},
+    {"flow": "STYLED SINGLE PERMANENT DELETE (Person360)", "result": "PASS", "details": "Opened Dlg Del One's 360 profile from Deleted tab, clicked 'Delete forever'. Styled Modal titled 'Delete forever?' with warning body and [data-testid=purge-confirm] rose-600 button appeared. Cancelled to preserve seed data. No native confirm invocation."}
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "SEED DATA MISSING: The initial DB had ONLY the admin user (+919000000000). The test-target customers Dlg Del One/Two/Purge (7000000501-503) referenced in the review request DID NOT EXIST, and neither did the demo customer +919000000004. Testing agent had to seed all four accounts directly into MongoDB to run the flows. Main agent should ensure seed_demo_users (or equivalent) is re-run whenever DB is reset — future testing agents will hit the same 'No customers found' state."
+  ],
+  "critical_code_review_comments": [
+    "PeopleList.jsx: bulkDelete() sets confirmCfg with body 'They move to the Deleted tab and can be restored within 30 days.' but title uses ${title.toLowerCase()} which for 'Customers' becomes 'customers' — OK. Consider unifying with a shared <ConfirmDialog/> component; the same Drawer confirmCfg pattern is duplicated inline with Person360's Modal approach, causing UI/UX inconsistency between the two admin pages.",
+    "Person360.jsx: the styled Modal for purge is distinct from the Drawer used in PeopleList. Both work but visually differ (bottom Drawer vs centered Modal). Consider using one shared danger-confirm component so admins get consistent affordance across bulk vs single purges."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (per request)", "frontend": "100% (3/3 flows verified, 0 native confirm invocations)"},
+  "test_credentials": "Admin +919000000000 OTP 123456. All seeded from /app/memory/test_credentials.md.",
+  "seed_data_creation": "Inserted 4 users directly into MongoDB.users collection (test env only): +917000000501 'Dlg Del One' (customer, active), +917000000502 'Dlg Del Two' (customer, active), +917000000503 'Dlg Purge' (customer, deleted=true), +919000000004 'Demo Customer' (customer, active). After tests, Dlg Del One/Two were restored (deleted=false). Dlg Purge was permanently removed as part of test 2 (expected). Demo Customer remains for demo login flows.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Styled-dialog refactor is fully verified. DB seed baseline is minimal — only admin ships by default. If subsequent iterations need customers/partners/merchants, either invoke the appropriate seed script or insert via motor as this iteration did. Selectors [data-testid=bulk-delete], [data-testid=bulk-purge], [data-testid=confirm-bulk-delete], [data-testid=confirm-bulk-purge] (PeopleList) and [data-testid=purge-confirm] (Person360) are stable. To catch any regression back to window.confirm, use the init-script override pattern used here: page.add_init_script that increments window.__nativeConfirmCalled — assert it stays 0 after each destructive click.",
+  "rca of the issue": "N/A — refactor works as expected. Only environmental gap: seed data absence for 3/4 test customers; addressed inline."
+}

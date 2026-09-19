@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 56 (fork continuation of iter 55) — verified 5 new features: Merchant Dashboard overhaul, Partner Active Job flow + tab, Job History with sub-filters, Payouts & Bank / Withdrawal flow, and Invoice viewer (WebView). Backend: 11/11 pytest cases pass on /api/bookings/partner/active (with demo_otps for demo partner) and /api/bookings/partner/history (status all|completed|cancelled), plus existing /start-otp, /evidence, /complete, /spare-parts endpoints reachable. Frontend: Partner Demo login shows the new Active Job tab in bottom nav (Dashboard/Job Request/Active Job/Wallet/More), Active Job screen displays multi-job tabs, WORK IN PROGRESS banner + elapsed timer, stepper (Assigned/Arrived/Started/Done), Navigate/Call/Details, the demo hint 'Demo — Start OTP 1234 · Completion OTP 1234', Spare parts Add, After Work photos Capture, and Complete the Job section with OTP input. Job History chip lists 5 completed+paid jobs with search box + All/Completed/Cancelled sub-filters. Wallet shows payout banner 'Set up payouts' + Withdraw to Bank which routes to /partner/payouts (KYC pending; PAN not verified + No verified bank blockers, Add PAN, Add bank buttons). My Invoices lists 9 invoices; detail sheet shows Booking/Date/Type/Status/Total and 'View full invoice' opens /partner/invoice/{id} rendering the FULL invoice HTML in an iframe/WebView (same template as web panel). Merchant Demo login opens the new dashboard: header (AzoApp logo, bell, theme toggle, SE chip), greeting card with QR button, COMMISSION navy hero (₹508 with Today/Week/Month/All chips), WALLET BALANCE card ₹29,914.64 with Withdraw Money, 6-card stats grid (Customers/Partners/Active partners/Transactions/From customers/From partners), Quick actions row, and Recent activity list with commission per booking. No red-screen errors; no console errors beyond expected Expo web warnings (useNativeDriver, expo-notifications web). All acceptance criteria pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter55_partner_active_history.py",
+    "/app/test_reports/pytest/iter55_active_history.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is 3596 lines — consider splitting into partner/customer/merchant sub-controllers for maintainability (non-blocking).",
+    "In-invoice WebView on web uses two nested iframes (WebView wrapper + inner). Works fine but adds one extra DOM layer; on native this collapses to a single WebView so it's a web-only artefact."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter55_partner_active_history.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "None. Used existing demo partner (+919000000003) and merchant (+919000000002) with pre-seeded jobs, invoices and wallet balances.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend BASE_URL comes from EXPO_PUBLIC_BACKEND_URL (frontend/.env). conftest.py requires REACT_APP_BACKEND_URL env var — run pytest with `REACT_APP_BACKEND_URL=$(grep '^EXPO_PUBLIC_BACKEND_URL=' /app/frontend/.env | cut -d= -f2)` prefix or export it. Demo partner OTPs for the active-job flow are exposed via the `demo_otps` field on /api/bookings/partner/active (both start and completion = 1234 in demo). Onboarding notification screen ('Stay in the loop') appears once and can be dismissed with 'Maybe later' before login screen.",
+  "rca_of_issue": "N/A — no failures."
+}

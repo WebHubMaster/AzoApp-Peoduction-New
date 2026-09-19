@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend regression targeted at (1) navbar vertical alignment, (2) 'booked' badge removal, (3) admin Homepage Trust Stats LIVE/MANUAL toggle + 7 manual fields, (4) location regression. Navbar alignment PERFECT (0.00px diff between All Services, Membership, Cart, Become a Partner and Sign In/Account at 1440px, all centered at cy=32 in h-16 header). Trending section no longer contains 'booked' badge. Location regression works (city 'Patna' -> 'Popular services near Patna'). ADMIN Homepage Trust Stats card renders with all live-value testids and the 7 manual inputs when toggled OFF, but the SAVE FAILS TO PERSIST: PUT /api/admin/settings returns 200 but home_stats never lands in DB / /api/site/config keeps returning live=true real values. Confirmed via direct curl (see RCA).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "PUT /api/admin/settings", "issue": "home_stats payload is silently dropped. Pydantic SettingsUpdate model in /app/backend/models/finance.py does NOT declare home_stats, so model_dump() strips it before reaching update_settings(). Result: toggle OFF + Save custom stats returns 200 but nothing persists; /api/site/config keeps returning live=true DB numbers. Also missing from the same model: cashback, packages, pwa (referenced in admin_controller merge list but not on the schema — same silent-drop risk).", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Admin Homepage Trust Stats save", "issue": "Toast shows 'Custom homepage stats saved' but reloading /admin?tab=homepage shows mode=LIVE again and hero/footer/trust-bar still render live DB numbers. Blocked by backend bug above.", "affected_selectors": ["home-stats-live-toggle","home-stats-save","home-stat-rating","home-stat-reviews","home-stat-jobs_done","home-stat-verified_partners","home-stat-partners","home-stat-merchants","home-stat-customers"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add `home_stats: Optional[dict] = None` (and cashback / packages / pwa for consistency with admin_controller.update_settings merge list) to SettingsUpdate in /app/backend/models/finance.py. After fix, retest the toggle OFF -> fill 7 values -> Save -> wait for 120s cache (or invalidate 'site:config' cache) -> /api/site/config should return stats.live=false with the exact strings, and hero/trust-bar/footer must render them.",
+    "Consider switching SettingsUpdate to `model_config = ConfigDict(extra='allow')` OR route admin settings through a permissive dict to avoid future silent-drop regressions whenever new settings sections are introduced."
+  ],
+  "critical_code_review_comments": [
+    "SettingsUpdate model is a fragile allow-list — every new settings section (home_stats, cashback, packages, pwa) MUST be added here or it will be silently dropped. This has already caused a shipped feature to look 'done' while being fully broken end-to-end.",
+    "site_controller._home_stats returns rating as a rounded float in LIVE mode but a raw string in MANUAL mode. Frontend hero/footer must handle both; ensure rendering does not do numeric formatting on the manual string."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only run; 1 backend blocker discovered)", "frontend": "75% (3/4 flows pass; admin trust stats blocked by backend)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Navbar alignment + trending 'booked' badge removal + location Patna regression are all VERIFIED PASSING. Only the Homepage Trust Stats manual toggle needs re-verification after SettingsUpdate model is patched. Test steps: (a) direct curl PUT /api/admin/settings {home_stats:{live:false,rating:'4.9',...}} -> GET must return home_stats populated; (b) UI toggle OFF + Save + wait ~130s (server cache 120s) -> GET /api/site/config stats.live=false with exact strings; (c) load / -> hero-stats shows 4.9 / 12K+ / 50K+ / 2,500+; footer shows '2,500+ verified professionals' and 'Rated 4.9 / 5'; (d) toggle back ON and LEAVE ON.",
+  "rca of the issue": "Symptom: Homepage Trust Stats save button toasts 'Custom homepage stats saved' and toggle temporarily flips to MANUAL in the UI, but after page reload it snaps back to LIVE and /api/site/config keeps returning live DB numbers. Repro: (1) login admin, (2) PUT /api/admin/settings with body {\"home_stats\":{\"live\":false,\"rating\":\"4.9\",...}}, (3) GET /api/admin/settings -> home_stats is still null/absent. Root cause: routes/admin_routes.py:63 uses `SettingsUpdate` pydantic model + `data.model_dump()`. The model in models/finance.py lines 5-35 has an explicit allow-list of accepted fields and does NOT include `home_stats`. Pydantic silently drops the unknown key during validation, so update_settings receives {} for that key and never writes it. Merge logic in admin_controller.py line 359 does list `home_stats` for nested-merge preservation, confirming this is an unfinished plumbing wire-up on the model side. Mitigation (one-line fix in /app/backend/models/finance.py after line 35): `home_stats: Optional[dict] = None` (and ideally cashback / packages / pwa too). No cache invalidation needed for the save itself — cache_service.invalidate('site:config') should be called on update to reflect within the 120s TTL; verify update_settings already does this."
+}

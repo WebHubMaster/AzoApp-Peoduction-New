@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only verification of the three enhancements (bulk delete, soft-delete+undo/recycle bin, OTP resend timer) plus customer login regression. All 5 required flows PASS end-to-end against the live preview URL using real backend calls.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Person360 header", "issue": "For a soft-deleted customer opened from the Deleted tab, the header status badge still renders 'Active' (green) instead of 'Deleted' — the toolbar correctly toggles Delete→Restore, but the badge doesn't reflect the deleted state. Cosmetic; does not block the restore flow.", "selector": "Person360 status Pill next to name", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "PeopleList Pager (all admin lists)", "issues": ["React hydration warning in console: '<span> cannot be a child of <option>' coming from /app/frontend/src/pages/admin/people/ui.jsx Pager <select> — the option label wraps children in a <span>. Non-blocking but pollutes console and can break SSR hydration."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(LOW) In Person360, when person.deleted_at is set, render the status Pill as 'Deleted' (red/amber) instead of 'active' — keep the Restore button behaviour that already works.",
+    "(LOW) Fix ui.jsx Pager: remove the inner <span> inside <option> elements to silence the React hydration warning."
+  ],
+  "critical_code_review_comments": [
+    "PeopleList.jsx bulk delete uses window.confirm() — works but is a browser-native modal (inconsistent with the app's shadcn confirm-dialog style used elsewhere like Person360 delete). Consider replacing with a styled AlertDialog for consistency.",
+    "In PeopleList.jsx line 141 (toggleRow) uses `n.has(id) ? n.delete(id) : n.add(id)` as an expression — works but eslint no-unused-expressions could flag; a plain if/else would be cleaner.",
+    "Selection state is reset on tab/filter/page change (good), but not on role change alone — currently included in deps; ok."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 / OTP 123456; Customer +919000000004 / OTP 123456. From /app/memory/test_credentials.md.",
+  "seed_data_creation": "None required — Bin Test A (7000000201, id d59fc46c-...), B (7000000202, id f0a0521c-...), C (7000000203, id 761d18cf-...) were already seeded and are all active at end of run (restored).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 3 Bin Test customers are ACTIVE again at end of this run (restored). Playwright cannot select the 'Deleted' tab via get_by_role('button', name='Deleted') because Tabs renders it with an icon+label mix; use JS evaluate to find a button whose textContent starts with 'Deleted' (see script). data-testids confirmed: select-all, select-<uid>, bulk-bar, bulk-delete, bulk-restore, recycle-bin-banner, action-delete, action-restore, delete-confirm-check, delete-confirm, resend-otp-button. OTP resend button starts disabled with text 'Resend in 30s' and ticks down each second (verified 30s→28s after 2.5s wait).",
+  "test_results": {
+    "OTP_RESEND_TIMER": "PASS - initial text 'Resend in 30s', disabled=true, decremented to 'Resend in 28s' after 2.5s",
+    "CUSTOMER_REGRESSION_LOGIN": "PASS - +919000000004 / 123456 → /account",
+    "BULK_DELETE": "PASS - selected Bin Test A+B, bulk-bar appeared, bulk-delete + confirm removed both from All (total 37→35)",
+    "BULK_RESTORE_FROM_BIN": "PASS - both A and B found in Deleted tab, bulk-restore returned them to All",
+    "SINGLE_DELETE_RESTORE_VIA_PERSON360": "PASS - Bin Test C deleted via action-delete + delete-confirm-check + delete-confirm; reopened from Deleted tab shows green Restore (action-restore) instead of Delete; restore returned C to All"
+  },
+  "rca of the issue": "N/A — all requested features work as specified."
+}

@@ -1,0 +1,49 @@
+{
+  "task1_30min_slots": {
+    "1a_status": 200,
+    "1a_has_0830": true,
+    "1a_has_1930": true,
+    "1a_has_invalid_15": false,
+    "1a_has_invalid_45": false,
+    "1a_result": "PASS",
+    "1b_status": 200,
+    "1b_result": "PASS",
+    "1b_booking_id": "a1de9bb5-5667-4bbc-acfb-bf59fe557e02",
+    "1c_status": 400,
+    "1c_detail": "Please pick a valid time slot",
+    "1c_result": "PASS",
+    "1d_result": "SKIP"
+  },
+  "task2_partner_online_sync": {
+    "2a_status": 200,
+    "2a_result": "PASS",
+    "2b_status": 200,
+    "2b_online_today": true,
+    "2b_online_date": "2026-09-15",
+    "2b_today_in_dates": true,
+    "2b_today_status": "available",
+    "2b_result": "PASS",
+    "2c_status": 200,
+    "2c_result": "PASS",
+    "2d_status": 200,
+    "2d_online_today": false,
+    "2d_today_status": "unavailable",
+    "2d_result": "PASS"
+  },
+  "task3_invoice_email": {
+    "booking_id": "03e90cf1-2968-4b5f-b232-5678e5537416",
+    "result": "FAIL",
+    "error": "Could not assign partner"
+  },
+  "summary": {
+    "task1_pass": 3,
+    "task1_total": 3,
+    "task2_pass": 4,
+    "task2_total": 4,
+    "task3_pass": 0,
+    "task3_total": 1,
+    "total_pass": 7,
+    "total_tests": 8,
+    "pass_rate": "87%"
+  }
+}

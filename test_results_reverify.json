@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-09-15T09:38:33.732054",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "tasks": {
+    "A": {
+      "task": "A",
+      "name": "Customer + Partner Invoice Email",
+      "tests": [
+        {
+          "name": "Invoice list endpoint (no 500)",
+          "pass": true,
+          "evidence": "Status: 200"
+        },
+        {
+          "name": "Booking invoice exists",
+          "pass": true,
+          "evidence": "Invoice: INV-2026-000002"
+        },
+        {
+          "name": "Invoice has customer_snapshot AND partner_snapshot",
+          "pass": true,
+          "evidence": "customer_snapshot: {\"name\": \"Customer\", \"email\": \"\", \"phone\": \"\", \"address\": \"\"}, partner_snapshot: {\"name\": \"Raj Kumar\", \"email\": \"\", \"phone\": \"+919000000003\"}"
+        },
+        {
+          "name": "Email flow idempotent (no 500 on refetch)",
+          "pass": true,
+          "evidence": "Refetch status: 200. Email flow is idempotent (emailed_at/partner_emailed_at guards prevent double-send). SMTP not configured, so emails gracefully skipped."
+        },
+        {
+          "name": "Partner-facing breakdown excludes platform fees",
+          "pass": true,
+          "evidence": "Partner breakdown does NOT contain convenience_fee or platform_fee. Additional charges: []"
+        }
+      ],
+      "pass_count": 5,
+      "fail_count": 0
+    },
+    "B": {
+      "task": "B",
+      "name": "Reschedule Respond Idempotency",
+      "tests": [
+        {
+          "name": "Create booking",
+          "pass": true,
+          "evidence": "Booking ID: 7d81594a-438e-4027-b25c-f01e5f1d2e5b"
+        },
+        {
+          "name": "Assign partner",
+          "pass": true,
+          "evidence": "Partner assigned"
+        },
+        {
+          "name": "Reschedule request rejects :15 time (400)",
+          "pass": true,
+          "evidence": "Status: 400, Response: {\"detail\":\"Please pick a valid time slot\"}"
+        },
+        {
+          "name": "Reschedule request rejects :45 time (400)",
+          "pass": true,
+          "evidence": "Status: 400, Response: {\"detail\":\"Please pick a valid time slot\"}"
+        },
+        {
+          "name": "Reschedule request accepts :30 time (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'id': '7d81594a-438e-4027-b25c-f01e5f1d2e5b', 'code': 'AZOITI2FQ', 'customer_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'customer_name': 'Priya Verma', 'customer_phone': '+919000000004', 'service_id': 'ccfb3317-5b56-488c-84d6-fff4bccded15', 'service_name': 'Door Repair', 'tier_label': None, 'category_id': '8d98295e-7b4d-4fb6-96b2-a0479ba0bbe7', 'category_name': 'Carpentry', 'merchant_id': None, 'merchant_name': None, 'booking_type': 'direct', 'partner_id': '5719040a-c01f-4b65-9360-c215012bf4f7', 'partner_name': 'Raj Kumar', 'address': {'line': '12 MG Road', 'pincode': '800001', 'city': 'Patna', 'state': 'Bihar', 'lat': 25.6, 'lng': 85.1}, 'schedule_type': 'schedule', 'scheduled_at': '2026-09-15T12:30:00', 'notes': 'Test booking for invoice verification', 'addons': [], 'pricing': {'base': 299.0, 'addons_total': 0.0, 'emergency_fee': 0.0, 'surge': 44.85, 'surge_rule': 'Patna Peak Surge', 'visiting_charge': 100.0, 'subtotal': 443.85, 'convenience_fee': 0.0, 'platform_fee': 0.0, 'discount': 0.0, 'gross_charges': 443.85, 'total_discount': 0.0, 'taxable': 443.85, 'gst_pct': 18.0, 'gst': 79.89, 'tax': 79.89, 'total': 523.74, 'commissionable_base': 443.85, 'platform_only_fees': 0.0}, 'coupon_code': None, 'status': 'assigned', 'otps': {'start': '7421', 'completion': '9618'}, 'evidence': {'before': [], 'after': []}, 'spare_parts': [], 'eligible_partner_ids': ['28cb115a-f2fd-4c56-ab94-055211c502a5', '5719040a-c01f-4b65-9360-c215012bf4f7'], 'eligible_detail': {'28cb115a-f2fd-4c56-ab94-055211c502a5': {'name': 'Deepak Singh', 'distance_km': 3.3, 'eta_min': 8}}, 'timeline': [{'status': 'pending_payment', 'at': '2026-09-15T09:38:35.739964+00:00'}, {'status': 'payment_received', 'at': '2026-09-15T09:38:35.858642+00:00'}, {'status': 'searching', 'at': '2026-09-15T09:38:35.859442+00:00'}, {'status': 'assigned', 'at': '2026-09-15T09:38:36.111088+00:00', 'by': 'admin', 'note': 'Manually assigned by admin'}, {'status': 'reschedule_requested', 'at': '2026-09-15T09:38:36.502019+00:00', 'by': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'by_role': 'customer', 'old': '2026-09-15T12:30:00', 'new': '2026-09-16T15:30:00'}], 'payment_status': 'paid', 'review': None, 'commission_config': {'platform_commission_pct': 25, 'partner_commission_pct': 75, 'merchant_referral_pct': 5, 'merchant_booking_pct': 5, 'referral_base': 'partner_earning', 'commission': {'platform_pct': 32, 'partner_pct': 60, 'merchant_partner_referral_pct': 5, 'merchant_customer_pct': 3, 'customer_refund_pct': 80, 'partner_cancellation_pct': 20}}, 'partner_location': None, 'idempotency_key': None, 'created_at': '2026-09-15T09:38:35.739971+00:00', 'updated_at': '2026-09-15T09:38:36.502016+00:00', 'pay_env': 'sandbox', 'pay_gateway': 'razorpay', 'pay_mock': True, 'pay_mode': 'test', 'paid_at': '2026-09-15T09:38:35.858632+00:00', 'dispatch_exhausted': True, 'dispatch_last_wave_at': '2026-09-15T09:38:35.859440+00:00', 'dispatch_started_at': '2026-09-15T09:38:35.859438+00:00', 'dispatch_wave': 0, 'reschedule_request': {'id': '3e99a681-4406-4177-bc32-67b77c17bdd1', 'requested_by_role': 'customer', 'requested_by_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'requester_name': 'Priya Verma', 'old_scheduled_at': '2026-09-15T12:30:00', 'new_scheduled_at': '2026-09-16T15:30:00', 'old_date': '15 Sep 2026', 'old_time': '12:30 PM', 'old_label': '15 Sep 2026 at 12:30 PM', 'new_date': '16 Sep 2026', 'new_time': '03:30 PM', 'new_label': '16 Sep 2026 at 03:30 PM', 'status': 'pending', 'created_at': '2026-09-15T09:38:36.501994+00:00'}, 'schedule': {'is_scheduled': True, 'schedule_type': 'schedule', 'scheduled_at': '2026-09-15T12:30:00', 'scheduled_at_utc': '2026-09-15T07:00:00+00:00', 'scheduled_date': '15 Sep 2026', 'scheduled_time': '12:30 PM', 'scheduled_label': '15 Sep 2026 at 12:30 PM', 'lead_minutes': 30, 'reminder_at': '2026-09-15T06:30:00+00:00', 'unlock_at': '2026-09-15T06:30:00+00:00', 'otp_visible_at': '2026-09-15T06:30:00+00:00', 'server_now': '2026-09-15T09:38:36.504409+00:00', 'seconds_to_start': -9516, 'seconds_to_unlock': -11316, 'comm_locked': False, 'otp_hidden': False, 'phase': 'due'}, 'breakdown': {'service_items': [{'name': 'Door Repair', 'category': 'Carpentry', 'qty': 1, 'rate': 299.0, 'amount': 299.0, 'addons': []}], 'services_subtotal': 299.0, 'additional_charges': [{'key': 'surge', 'label': 'Surge Charge', 'amount': 44.85, 'note': 'Patna Peak Surge'}, {'key': 'visiting_charge', 'label': 'Visiting Charge', 'amount': 100.0}], 'charges_total': 144.85, 'subtotal': 443.85, 'coupon_discount': 0.0, 'discount': 0.0, 'coupon_code': None, 'taxable': 443.85, 'gst_pct': 18.0, 'tax': 79.89, 'total': 523.74, 'paid': 523.74, 'payment_status': 'paid', 'refund': None, 'currency': 'INR'}, 'partner_phone': '+919000000003'}"
+        },
+        {
+          "name": "Partner accept reschedule (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'id': '7d81594a-438e-4027-b25c-f01e5f1d2e5b', 'code': 'AZOITI2FQ', 'customer_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'customer_name': 'Priya Verma', 'customer_phone': None, 'service_id': 'ccfb3317-5b56-488c-84d6-fff4bccded15', 'service_name': 'Door Repair', 'tier_label': None, 'category_id': '8d98295e-7b4d-4fb6-96b2-a0479ba0bbe7', 'category_name': 'Carpentry', 'merchant_id': None, 'merchant_name': None, 'booking_type': 'direct', 'partner_id': '5719040a-c01f-4b65-9360-c215012bf4f7', 'partner_name': 'Raj Kumar', 'address': {'line': '12 MG Road', 'pincode': '800001', 'city': 'Patna', 'state': 'Bihar', 'lat': 25.6, 'lng': 85.1}, 'schedule_type': 'schedule', 'scheduled_at': '2026-09-16T15:30:00', 'notes': 'Test booking for invoice verification', 'addons': [], 'pricing': {'base': 299.0, 'addons_total': 0.0, 'emergency_fee': 0.0, 'surge': 44.85, 'surge_rule': 'Patna Peak Surge', 'visiting_charge': 100.0, 'subtotal': 443.85, 'convenience_fee': 0.0, 'platform_fee': 0.0, 'discount': 0.0, 'gross_charges': 443.85, 'total_discount': 0.0, 'taxable': 443.85, 'gst_pct': 18.0, 'gst': 79.89, 'tax': 79.89, 'total': 523.74, 'commissionable_base': 443.85, 'platform_only_fees': 0.0}, 'coupon_code': None, 'status': 'assigned', 'otps': {}, 'evidence': {'before': [], 'after': []}, 'spare_parts': [], 'eligible_partner_ids': ['28cb115a-f2fd-4c56-ab94-055211c502a5', '5719040a-c01f-4b65-9360-c215012bf4f7'], 'eligible_detail': {'28cb115a-f2fd-4c56-ab94-055211c502a5': {'name': 'Deepak Singh', 'distance_km': 3.3, 'eta_min': 8}}, 'timeline': [{'status': 'pending_payment', 'at': '2026-09-15T09:38:35.739964+00:00'}, {'status': 'payment_received', 'at': '2026-09-15T09:38:35.858642+00:00'}, {'status': 'searching', 'at': '2026-09-15T09:38:35.859442+00:00'}, {'status': 'assigned', 'at': '2026-09-15T09:38:36.111088+00:00', 'by': 'admin', 'note': 'Manually assigned by admin'}, {'status': 'reschedule_requested', 'at': '2026-09-15T09:38:36.502019+00:00', 'by': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'by_role': 'customer', 'old': '2026-09-15T12:30:00', 'new': '2026-09-16T15:30:00'}, {'status': 'reschedule_accepted', 'at': '2026-09-15T09:38:36.631570+00:00', 'by': '5719040a-c01f-4b65-9360-c215012bf4f7', 'old': '2026-09-15T12:30:00', 'new': '2026-09-16T15:30:00'}], 'payment_status': 'paid', 'review': None, 'commission_config': {'platform_commission_pct': 25, 'partner_commission_pct': 75, 'merchant_referral_pct': 5, 'merchant_booking_pct': 5, 'referral_base': 'partner_earning', 'commission': {'platform_pct': 32, 'partner_pct': 60, 'merchant_partner_referral_pct': 5, 'merchant_customer_pct': 3, 'customer_refund_pct': 80, 'partner_cancellation_pct': 20}}, 'partner_location': None, 'idempotency_key': None, 'created_at': '2026-09-15T09:38:35.739971+00:00', 'updated_at': '2026-09-15T09:38:36.631567+00:00', 'pay_env': 'sandbox', 'pay_gateway': 'razorpay', 'pay_mock': True, 'pay_mode': 'test', 'paid_at': '2026-09-15T09:38:35.858632+00:00', 'dispatch_exhausted': True, 'dispatch_last_wave_at': '2026-09-15T09:38:35.859440+00:00', 'dispatch_started_at': '2026-09-15T09:38:35.859438+00:00', 'dispatch_wave': 0, 'reschedule_request': None, 'reschedule_history': [{'id': '3e99a681-4406-4177-bc32-67b77c17bdd1', 'requested_by_role': 'customer', 'requested_by_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'requester_name': 'Priya Verma', 'old_scheduled_at': '2026-09-15T12:30:00', 'new_scheduled_at': '2026-09-16T15:30:00', 'old_date': '15 Sep 2026', 'old_time': '12:30 PM', 'old_label': '15 Sep 2026 at 12:30 PM', 'new_date': '16 Sep 2026', 'new_time': '03:30 PM', 'new_label': '16 Sep 2026 at 03:30 PM', 'status': 'accepted', 'created_at': '2026-09-15T09:38:36.501994+00:00', 'resolved_at': '2026-09-15T09:38:36.631550+00:00', 'resolved_by_id': '5719040a-c01f-4b65-9360-c215012bf4f7'}], 'schedule': {'is_scheduled': True, 'schedule_type': 'schedule', 'scheduled_at': '2026-09-16T15:30:00', 'scheduled_at_utc': '2026-09-16T10:00:00+00:00', 'scheduled_date': '16 Sep 2026', 'scheduled_time': '03:30 PM', 'scheduled_label': '16 Sep 2026 at 03:30 PM', 'lead_minutes': 30, 'reminder_at': '2026-09-16T09:30:00+00:00', 'unlock_at': '2026-09-16T09:30:00+00:00', 'otp_visible_at': '2026-09-16T09:30:00+00:00', 'server_now': '2026-09-15T09:38:36.634176+00:00', 'seconds_to_start': 87683, 'seconds_to_unlock': 85883, 'comm_locked': True, 'otp_hidden': True, 'phase': 'scheduled'}, 'breakdown': {'service_items': [{'name': 'Door Repair', 'category': 'Carpentry', 'qty': 1, 'rate': 299.0, 'amount': 299.0, 'addons': []}], 'services_subtotal': 299.0, 'additional_charges': [{'key': 'surge', 'label': 'Surge Charge', 'amount': 44.85, 'note': 'Patna Peak Surge'}, {'key': 'visiting_charge', 'label': 'Visiting Charge', 'amount': 100.0}], 'charges_total': 144.85, 'subtotal': 443.85, 'coupon_discount': 0.0, 'discount': 0.0, 'coupon_code': None, 'taxable': 443.85, 'gst_pct': 18.0, 'tax': 79.89, 'total': 523.74, 'paid': 523.74, 'payment_status': 'paid', 'refund': None, 'currency': 'INR'}}"
+        },
+        {
+          "name": "Booking scheduled_at updated",
+          "pass": true,
+          "evidence": "scheduled_at updated to: 2026-09-16T15:30:00"
+        },
+        {
+          "name": "Second respond idempotent (no 500)",
+          "pass": true,
+          "evidence": "Status: 404 (idempotent, no 500). Response: {\"detail\":\"No pending reschedule request\"}"
+        }
+      ],
+      "pass_count": 8,
+      "fail_count": 0
+    },
+    "C": {
+      "task": "C",
+      "name": "Notification Diagnostics/Health",
+      "tests": [
+        {
+          "name": "Health endpoint returns all required fields",
+          "pass": true,
+          "evidence": "ready_for_push: False, reasons: {'service_account': 'Firebase service-account JSON not uploaded', 'web_config': 'Missing web_config field(s): apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId', 'vapid': 'VAPID key (fcm_vapid_key) not set', 'enabled': 'FCM integration toggle is off (integrations.fcm_enabled=false)'}, devices.by_role: {'partner': 0, 'customer': 1, 'merchant': 0, 'admin': 0}, web_api_key: {'ok': None, 'checks': []}, registration_attempts: [{'id': 'a84abcdd-43bd-4eac-96b5-a37d66b54799', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:38:03.325486+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': '21df4028-44c6-45d0-b2bd-65a7e835c640', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:36:46.806080+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': 'f4042aba-0c19-4e40-9685-85073fbad6a2', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:36:08.661325+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': 'beb75739-0328-4ba9-bcf9-02eb3d5af2c6', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:35:34.448113+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': '1733c177-9ac2-4266-ac97-8172abc1ce93', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:35:09.242489+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': '3ed51e1a-af68-4d30-892a-b8c92aea5571', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:34:36.462405+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}, {'id': 'f72c7dde-9822-489d-953c-0e957833293f', 'user_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'ok': False, 'reason': 'push_service', 'error': 'AbortError', 'permission': '', 'user_agent': '', 'at': '2026-09-15T09:33:59.781210+00:00', 'user': {'id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'phone': '+919000000004', 'role': 'customer', 'name': 'Priya Verma'}}], partners_without_device: []"
+        },
+        {
+          "name": "ready_for_push is false (FCM unconfigured)",
+          "pass": true,
+          "evidence": "ready_for_push: False"
+        },
+        {
+          "name": "reasons object names missing layers",
+          "pass": true,
+          "evidence": "reasons: {\"service_account\": \"Firebase service-account JSON not uploaded\", \"web_config\": \"Missing web_config field(s): apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId\", \"vapid\": \"VAPID key (fcm_vapid_key) not set\", \"enabled\": \"FCM integration toggle is off (integrations.fcm_enabled=false)\"}"
+        },
+        {
+          "name": "First device registration (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'ok': True}"
+        },
+        {
+          "name": "Second device registration (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'ok': True}"
+        },
+        {
+          "name": "Device registration idempotent (count stays same)",
+          "pass": true,
+          "evidence": "Device count before: 1, after: 1. Still one device row for (user, device_id)."
+        },
+        {
+          "name": "POST /notifications/push-status (200, ok:true)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'ok': True}"
+        }
+      ],
+      "pass_count": 7,
+      "fail_count": 0
+    },
+    "D": {
+      "task": "D",
+      "name": "Regression: 30-min Slots + Partner Online Sync",
+      "tests": [
+        {
+          "name": "Slots at 30-min interval (08:30, 19:30 present, no :15/:45)",
+          "pass": true,
+          "evidence": "Slots: ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30']. Has 08:30: True, Has 19:30: True, Has :15/:45: False"
+        },
+        {
+          "name": "PUT online-status {online:true} (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'id': '5719040a-c01f-4b65-9360-c215012bf4f7', 'phone': '+919000000003', 'role': 'partner', 'name': 'Raj Kumar', 'email': '', 'photo': '', 'gender': '', 'language': 'en', 'status': 'active', 'is_demo': True, 'addresses': [], 'wallet_balance': 449.25, 'loyalty_points': 0, 'skills': ['ac', 'electrical', 'appliance'], 'service_pincodes': ['800001'], 'kyc_status': 'approved', 'partner_status': 'online', 'rating': 4.8, 'jobs_completed': 42, 'referred_by_merchant': '96e3d664-6aba-4788-85bc-ca435bc6a201', 'shop_name': '', 'shop_type': '', 'dob': '', 'alternate_mobile': '', 'communication_pref': '', 'gst_number': '', 'company_name': '', 'created_at': '2026-09-15T09:16:43.092322+00:00', 'onboarding_tour_status': 'pending', 'city': 'Patna', 'state': 'Bihar', 'partner_badge': 'AzoApp Pro', 'premium_partner': True, 'pro_since': '2026-09-15T09:16:43.187959+00:00', 'starter_kit': {'status': 'paid', 'tracking_status': 'delivered', 'amount': 999, 'purchased_at': '2026-09-15T09:16:43.187965+00:00'}, 'live_location': {'lat': 25.5941, 'lng': 85.1376}, 'live_location_at': '2026-09-15T09:16:43.190341+00:00', 'total_jobs': 1, 'area_synced_at': '2026-09-15T09:16:49.223291+00:00', 'service_area_id': '123786fe-52e3-4152-991f-6de92ae8500b', 'service_area_name': 'Patna Central', 'partner_code': 'AZP4587602', 'availability': 'online', 'last_login_at': '2026-09-15T09:38:34.544328+00:00', 'auto_online': False, 'last_online_at': '2026-09-15T09:38:37.884975+00:00', 'online_date': '2026-09-15', 'online_pause_date': None, 'last_status_change_at': '2026-09-15T09:38:37.887909+00:00'}"
+        },
+        {
+          "name": "Calendar after online: today status='available', online_today=true",
+          "pass": true,
+          "evidence": "online_today: True, today entry: {'date': '2026-09-15', 'status': 'available'}"
+        },
+        {
+          "name": "PUT online-status {online:false} (200)",
+          "pass": true,
+          "evidence": "Status: 200, Response: {'id': '5719040a-c01f-4b65-9360-c215012bf4f7', 'phone': '+919000000003', 'role': 'partner', 'name': 'Raj Kumar', 'email': '', 'photo': '', 'gender': '', 'language': 'en', 'status': 'active', 'is_demo': True, 'addresses': [], 'wallet_balance': 449.25, 'loyalty_points': 0, 'skills': ['ac', 'electrical', 'appliance'], 'service_pincodes': ['800001'], 'kyc_status': 'approved', 'partner_status': 'offline', 'rating': 4.8, 'jobs_completed': 42, 'referred_by_merchant': '96e3d664-6aba-4788-85bc-ca435bc6a201', 'shop_name': '', 'shop_type': '', 'dob': '', 'alternate_mobile': '', 'communication_pref': '', 'gst_number': '', 'company_name': '', 'created_at': '2026-09-15T09:16:43.092322+00:00', 'onboarding_tour_status': 'pending', 'city': 'Patna', 'state': 'Bihar', 'partner_badge': 'AzoApp Pro', 'premium_partner': True, 'pro_since': '2026-09-15T09:16:43.187959+00:00', 'starter_kit': {'status': 'paid', 'tracking_status': 'delivered', 'amount': 999, 'purchased_at': '2026-09-15T09:16:43.187965+00:00'}, 'live_location': {'lat': 25.5941, 'lng': 85.1376}, 'live_location_at': '2026-09-15T09:16:43.190341+00:00', 'total_jobs': 1, 'area_synced_at': '2026-09-15T09:16:49.223291+00:00', 'service_area_id': '123786fe-52e3-4152-991f-6de92ae8500b', 'service_area_name': 'Patna Central', 'partner_code': 'AZP4587602', 'availability': 'offline', 'last_login_at': '2026-09-15T09:38:34.544328+00:00', 'auto_online': False, 'last_online_at': '2026-09-15T09:38:37.884975+00:00', 'online_date': '2026-09-15', 'online_pause_date': '2026-09-15', 'last_status_change_at': '2026-09-15T09:38:38.149924+00:00'}"
+        },
+        {
+          "name": "Calendar after offline: today status='unavailable', online_today=false",
+          "pass": true,
+          "evidence": "online_today: False, today entry: {'date': '2026-09-15', 'status': 'unavailable'}"
+        }
+      ],
+      "pass_count": 5,
+      "fail_count": 0
+    }
+  }
+}

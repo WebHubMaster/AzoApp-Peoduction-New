@@ -1,0 +1,162 @@
+{
+  "total": 31,
+  "passed": 31,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "1.1 - GET /api/invoices/{id} returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.1 - response.role_earning exists",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.1 - role_earning.role = 'partner'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.1 - role_earning.is_cancellation = true",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.1 - role_earning.base \u2248 79.80",
+      "passed": true,
+      "details": "Actual: 79.8"
+    },
+    {
+      "name": "1.1 - role_earning.rate = 80",
+      "passed": true,
+      "details": "Actual: 80.0"
+    },
+    {
+      "name": "1.1 - role_earning.net \u2248 63.84",
+      "passed": true,
+      "details": "Actual: 63.84"
+    },
+    {
+      "name": "1.1 - role_earning.platform \u2248 15.96",
+      "passed": true,
+      "details": "Actual: 15.96"
+    },
+    {
+      "name": "1.2 - GET /api/invoices/{id}/view returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Payment Summary'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Total Booking Amount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Amount Retained'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Your Earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Earning Breakdown'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains 'Net Earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - HTML contains Amount Retained \u2248 \u20b994.16",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.3 - GET /api/invoices/{id}/pdf returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.3 - Content-Type is application/pdf",
+      "passed": true,
+      "details": "Content-Type: application/pdf"
+    },
+    {
+      "name": "1.3 - PDF magic bytes present (%PDF)",
+      "passed": true,
+      "details": "Size: 15219 bytes"
+    },
+    {
+      "name": "1.3 - PDF body is non-empty (>1KB)",
+      "passed": true,
+      "details": "Size: 15219 bytes"
+    },
+    {
+      "name": "2 - GET /api/bookings returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2 - Booking AZODEMOCX1 found",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2 - booking.status = 'cancelled'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2 - booking.payment_status = 'refunded'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2 - booking.cancellation exists",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2 - cancellation.refund \u2248 376.66",
+      "passed": true,
+      "details": "Actual: 376.66"
+    },
+    {
+      "name": "2 - cancellation.refund_pct = 80",
+      "passed": true,
+      "details": "Actual: 80.0"
+    },
+    {
+      "name": "2 - cancellation.cancel_charge \u2248 79.80",
+      "passed": true,
+      "details": "Actual: 79.8"
+    },
+    {
+      "name": "2 - cancellation.original_amount \u2248 470.82",
+      "passed": true,
+      "details": "Actual: 470.82"
+    },
+    {
+      "name": "REG - GET /api/invoices returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "REG - Customer GET /api/invoices returns 200",
+      "passed": true,
+      "details": ""
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 7 e2e testing of the two new features: (1) Customer Live Dispatch Status (GET /api/bookings/{id}/dispatch-status + SearchingStatus.jsx) and (2) Partner Missed Ring Recovery (GET /api/bookings/partner/missed + MissedRingRecovery.jsx incl. one-tap re-grab). Backend: 17/17 checks pass (16 in the persisted suite + the mutating re-grab class run once). Frontend: customer panel and partner missed-jobs card both fully functional, real accept flow verified end-to-end (AZO86EXXQ now assigned to Raj Kumar; customer panel disappeared and dispatch-status returns searching:false / partner_name='Raj Kumar'). Regressions (ring-pending, partner/jobs, partner/active, partner/dashboard, admin dispatch-timeline API, TestRingCard, Smart Snooze) all OK. Only one real (minor) bug found: the customer elapsed timer runs at ~2x speed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/bookings/{id}/dispatch-status", "issue": "Auth of a non-owner customer/merchant returns 403 (correct) but a non-existent id returns 404 only after _get_booking — fine; no defect. Noted for completeness: 'elapsed_sec' is computed from dispatch_started_at||created_at with no upper bound, so long-stale seed bookings report ~9,700s (2.7h) which the UI renders as '161m 40s' (no hours unit)."},
+      {"endpoint": "GET /api/bookings/partner/missed", "issue": "Response is capped at 12h/50 docs (by design) but does not exclude bookings the partner is already assigned/active on other jobs for; not observed to break anything in seed data. Also latency of the preview backend was intermittently 10-30s during this run (auth/verify-otp), which made one pytest run flaky (4 failed/6 errored) before passing 16/16 on 3 subsequent runs — infra latency, not code."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SearchingStatus.jsx", "issue": "Elapsed timer counts ~2x too fast. `elapsed = st.elapsed_sec + tick` but `tick` is never reset when the 5s poll refreshes `st.elapsed_sec`, so both increase together. Measured 151m14s -> 151m22s over 3s of wall time. Fix: reset tick (setTick(0)) inside load(), or derive elapsed from a stored start timestamp.", "selector": "[data-testid^=\"searching-status-\"] (text 'Searching for Xm Ys')", "priority": "MEDIUM"},
+      {"component": "SearchingStatus.jsx", "issue": "fmtElapsed() has no hour unit — a 2.7h old search renders as '161m 40s'. Suggest 2h 41m formatting beyond 60 min.", "selector": "[data-testid^=\"searching-status-\"]", "priority": "LOW"},
+      {"component": "AdminBookings (pre-existing, blocked verification)", "issue": "Status filter chips (Pending/Searching/Assigned/...) and the row view (eye) action have no data-testid and are not role=button, and the search box only searches inside the currently selected status tab — so opening a 'searching' booking detail from the UI could not be automated (3 attempts). Admin dispatch-timeline API itself returns 200. Add data-testid to the status chips + row-view button.", "selector": "table tbody tr button", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Partner Dashboard", "issues": ["missed-ring-recovery renders at the top of PartnerAlertsPanel, which sits BELOW the KPI cards, earnings chart and 'Recent jobs' — i.e. far below the fold. Since the card is time-critical ('grab one before someone else does'), consider rendering it above the KPI row."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_livestatus_missed.py",
+    "/app/test_reports/pytest/iter7_results.xml"
+  ],
+  "action_items": [
+    "Fix double-counting elapsed timer in SearchingStatus.jsx (reset `tick` in load() or compute from a fixed start time).",
+    "Add hour formatting to fmtElapsed() in SearchingStatus.jsx.",
+    "Optional: move MissedRingRecovery above the partner KPI cards so it is visible without scrolling.",
+    "Optional: add data-testid to admin booking status filter chips and row view button to unblock automated Dispatch Timeline Map verification."
+  ],
+  "critical_code_review_comments": [
+    "booking_routes.py: /partner/active and /partner/dashboard are declared AFTER the dynamic /{booking_id}/dispatch-status route. It happens to work (second segment differs), but any future 1-segment dynamic route (/{booking_id}) placed above them would shadow them — keep all static /partner/* routes grouped above every dynamic route. Verified both return 200 today.",
+    "customer_dispatch_status(): correctly leaks no partner identities while searching and excludes _id; good. It fetches up to 500 dispatch rows per poll at a 5s interval per searching booking card — with N searching bookings on the My Bookings page this is N requests/5s. Consider a single batched endpoint if a customer can have many searching bookings (seed customer had 2).",
+    "partner_missed_jobs(): missed_reason maps anything that is not None/'timeout' to 'taken_back', so an explicitly 'rejected' dispatch would show 'Request re-opened'; rejected partners are already filtered by rejected_partner_ids, so this is currently unreachable but is fragile.",
+    "MissedRingRecovery.regrab(): optimistically removes the row before/independent of onAccepted; on error it reloads — good. It disables ALL Grab buttons via a single `busy` flag (disabled={!!busy}) which is acceptable but slightly misleading UX."
+  ],
+  "updated_files": ["/app/backend/tests/test_livestatus_missed.py"],
+  "success_rate": {"backend": "100% (17/17 checks)", "frontend": "95% (all new-feature flows pass; 1 minor timer bug)"},
+  "seed_data_creation": "No new data created. Exactly TWO bookings were accepted as required by the flow tests (one by the backend re-grab test, one by the frontend 'Grab now' click): booking cec74e51-... and AZO86EXXQ, both now assigned to Raj Kumar (+919000000003). Customer +919000000004 still has 1 searching booking (AZORUGKAV) and Raj still has 1 missed job (AZORUGKAV) for future iterations.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "/app/memory/test_credentials.md — customer +919000000004, partner +919000000003, admin +919000000000, OTP 123456. Login page phone input selector: input[placeholder*='mobile']; OTP is a SINGLE pre-filled input (not 6 boxes) -> just click 'Verify & Continue'. One-click demo buttons ('Login as Admin' etc.) also work. Must localStorage.clear() before switching roles or /login redirects to the existing session.",
+  "context_for_next_testing_agent": "Verified this iteration: dispatch-status shape/int types/403/401/404/admin-allowed/non-searching partner_name; partner/missed shape+reason enum+customer 403+pending-ring exclusion+empty list for ineligible partner (Suresh); full re-grab flow (missed -> accept -> removed from missed & open feed -> present in /partner/active -> customer sees searching:false + partner_name). Frontend verified: 2 searching panels with all chips/wave/timer/'Your booking stays confirmed'/manual note, no panel on the 14 non-searching bookings, panel disappears after assignment; partner missed card (2 rows -> 1 after Grab now), toast 'Job is yours!', missed-refresh, azo-partner-online refetch on online toggle, missed card above test-ring-card, Smart Snooze present, zero console errors (only benign navigator.vibrate warnings). NOT verified: admin Booking Detail Dispatch Timeline MAP via UI (selectors unavailable; API 200) — was already covered in iteration 6. Reusable suite: pytest tests/test_livestatus_missed.py --deselect tests/test_livestatus_missed.py::TestRegrab (TestRegrab mutates data — run only when a spare missed job exists).",
+  "rca_of_the_issue": "Timer bug: SearchingStatus keeps a monotonically increasing `tick` counter (1s interval, never reset) and adds it to `st.elapsed_sec`, which is itself refreshed by the 5s poll to the server-computed elapsed time. Both terms grow with wall-clock time, so the displayed value advances at roughly 2 s/s. Reproduce: open /account -> My Bookings as +919000000004, read 'Searching for Xm Ys' twice 3s apart -> value advances ~6-8s."
+}

@@ -1,0 +1,331 @@
+{
+  "total_tests": 8,
+  "passed": 8,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Customer login",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /api/bookings returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Bookings list is not empty",
+      "passed": true,
+      "details": "Found 6 bookings"
+    },
+    {
+      "name": "All bookings have breakdown object",
+      "passed": true,
+      "details": "6/6 have breakdown"
+    },
+    {
+      "name": "CRITICAL: No fees double-counted in services_subtotal",
+      "passed": true,
+      "details": "All fees properly separated"
+    },
+    {
+      "name": "All bookings pass reconciliation",
+      "passed": true,
+      "details": "All reconciliations passed"
+    },
+    {
+      "name": "Bookings with fees have them in additional_charges",
+      "passed": true,
+      "details": "Found 0 bookings with fees: []"
+    },
+    {
+      "name": "Add-on quantities are independent",
+      "passed": true,
+      "details": "All add-ons have independent quantities"
+    }
+  ],
+  "detailed_breakdowns": [
+    {
+      "booking_code": "AZO0D53AF",
+      "status": "cancelled",
+      "payment_status": "pending",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 599.0,
+      "charges_total": 0.0,
+      "subtotal": 599.0,
+      "taxable": 599.0,
+      "tax": 107.82,
+      "total": 706.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "AC Service (Split)",
+          "category": "AC Repair & Service",
+          "qty": 1,
+          "rate": 599.0,
+          "amount": 599.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    },
+    {
+      "booking_code": "AZO243CDF",
+      "status": "searching",
+      "payment_status": "pending",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 799.0,
+      "charges_total": 0.0,
+      "subtotal": 799.0,
+      "taxable": 799.0,
+      "tax": 143.82,
+      "total": 942.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "Switchboard Repair",
+          "category": "Electrician",
+          "qty": 1,
+          "rate": 799.0,
+          "amount": 799.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    },
+    {
+      "booking_code": "AZO780B25",
+      "status": "started",
+      "payment_status": "pending",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 1299.0,
+      "charges_total": 0.0,
+      "subtotal": 1299.0,
+      "taxable": 1299.0,
+      "tax": 233.82,
+      "total": 1532.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "Fan Installation",
+          "category": "Electrician",
+          "qty": 1,
+          "rate": 1299.0,
+          "amount": 1299.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    },
+    {
+      "booking_code": "AZOA4C36A",
+      "status": "assigned",
+      "payment_status": "pending",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 499.0,
+      "charges_total": 0.0,
+      "subtotal": 499.0,
+      "taxable": 499.0,
+      "tax": 89.82,
+      "total": 588.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "AC Gas Refill",
+          "category": "AC Repair & Service",
+          "qty": 1,
+          "rate": 499.0,
+          "amount": 499.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    },
+    {
+      "booking_code": "AZO91B9CB",
+      "status": "completed",
+      "payment_status": "pending",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 899.0,
+      "charges_total": 0.0,
+      "subtotal": 899.0,
+      "taxable": 899.0,
+      "tax": 161.82,
+      "total": 1060.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "AC Installation",
+          "category": "AC Repair & Service",
+          "qty": 1,
+          "rate": 899.0,
+          "amount": 899.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    },
+    {
+      "booking_code": "AZO3BEA88",
+      "status": "paid",
+      "payment_status": "paid",
+      "breakdown_present": true,
+      "breakdown_keys": [
+        "service_items",
+        "services_subtotal",
+        "additional_charges",
+        "charges_total",
+        "subtotal",
+        "coupon_discount",
+        "discount",
+        "coupon_code",
+        "taxable",
+        "gst_pct",
+        "tax",
+        "total",
+        "paid",
+        "payment_status",
+        "refund",
+        "currency"
+      ],
+      "services_subtotal": 599.0,
+      "charges_total": 0.0,
+      "subtotal": 599.0,
+      "taxable": 599.0,
+      "tax": 107.82,
+      "total": 706.82,
+      "additional_charges": [],
+      "service_items": [
+        {
+          "name": "AC Service (Split)",
+          "category": "AC Repair & Service",
+          "qty": 1,
+          "rate": 599.0,
+          "amount": 599.0,
+          "addons": []
+        }
+      ],
+      "pricing_emergency_fee": 0,
+      "pricing_surge": 0,
+      "pricing_visiting_charge": null,
+      "refund": null,
+      "critical_issues": [],
+      "reconciliation_issues": []
+    }
+  ]
+}

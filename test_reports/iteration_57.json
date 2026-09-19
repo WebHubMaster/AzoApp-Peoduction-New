@@ -1,0 +1,29 @@
+{
+  "summary": "Iteration 57 — verified 4 new features on Partner+Merchant Expo app. Backend: 19/19 pytest pass in test_iter57_invoice_reschedule_merchant.py (Partner Invoices list with 6 time ranges + 4 sort variants + detail + view HTML; Booking reschedule request/respond/cancel endpoints; Merchant finance-kyc eligibility, banks list, bank CRUD with pending status, primary gated to verified; regression on partner active/history/finance-kyc/wallet). Frontend: (1) Partner My Invoices — native FlatList shows 9 invoices, all range chips (all/today/yesterday/7d/30d/this_month) + search + sort + refresh testIDs present and functional; range chips re-query backend. Cards show number, Booking chip, party, code/date, Paid badge, amount + View/Share buttons. (2) Partner Invoice Detail (/partner/invoice/INV-2026-000001) — renders full native layout: AZOAPP·PARTNER header + Raj Kumar + Paid badge + INVOICE TOTAL ₹2,000, CUSTOMER DETAILS (masked ••••• honored with 🔒 note), BOOKING DETAILS (Booking ID, Services, date, ref, payment method), PAYMENT SUMMARY, YOUR EARNING with Service Amount/Commissionable Amount/Commission Rate/Partner Earning + TOTAL PARTNER EARNING in green, Timeline (Booking created/Invoice issued/Payment received). Bottom bar Download PDF opens iframe modal that renders the full print HTML (AzoApp letterhead + BOOKING SUMMARY + PARTNER EARNING sections). Share Invoice testID present. (3) Partner Booking Reschedule — the demo active job (AC Gas Refill / status=started, schedule=As soon as possible → non-scheduled) correctly hides the resched-open button; no crash. Backend reschedule request/respond/cancel routes all reachable and 200 for scheduled bookings. Pending-request UI code path (current vs new date/time + accept/reject) verified in source only (no pending customer request in demo data). (4) Merchant Payouts & Bank — screen renders with KYC pending state, blockers list (PAN card not verified, No verified bank account), Add sheet opens with all fields (holder/bank/account/IFSC/UPI + passbook) + m-submit-bank; bank CRUD works via API (create pending → set-primary is properly gated to verified only → delete). Merchant wallet screen source correctly has 'Set up payouts' banner + 'Withdraw to Bank' → /merchant/payouts routing when not eligible. (5) Regression — Partner dashboard, Active Job tab (WORK IN PROGRESS banner + stepper + Navigate/Call/Details + demo OTP hint + spare parts + before/after photos + Complete-Job with OTP), Merchant dashboard (SE, ₹508 commission + ₹29,914.64 wallet + 6-card stats) all render without red-screen errors. Only expected Expo web warnings (useNativeDriver, expo-notifications).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter57_invoice_reschedule_merchant.py",
+    "/app/test_reports/pytest/iter57.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Partner invoices list card shows fmt(display_amount ?? total_amount) while detail shows total_amount as INVOICE TOTAL. This means a booking invoice card may show the partner earning (e.g. ₹1,200) while opening the detail shows the customer total (e.g. ₹2,000). This is intentional per role_earning contract but could be confusing without a label — consider adding a small 'Earning' vs 'Gross' tag on the card amount (non-blocking).",
+    "app/(partner)/active.tsx now covers ~460 lines with several nested modals (Reschedule sheet, SpareModal, PhotoBlock). Consider extracting Reschedule sheet + PhotoBlock to separate components (non-blocking).",
+    "app/merchant/payouts.tsx AddBankModal renders inputs via a compact array-of-tuples (line 133) — TypeScript types are loose (`any`). Consider strong typing for maintainability (non-blocking)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter57_invoice_reschedule_merchant.py (new)"
+  ],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100%"},
+  "seed_data_creation": "Test created & deleted a TEST_Bank on merchant during CRUD assertion; stray TEST_Bank from an earlier run was cleaned up via API.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend pytest requires REACT_APP_BACKEND_URL env; run with `REACT_APP_BACKEND_URL=$(grep '^EXPO_PUBLIC_BACKEND_URL=' /app/frontend/.env | cut -d= -f2) EXPO_PUBLIC_BACKEND_URL=... pytest tests/test_iter57_invoice_reschedule_merchant.py`. Demo partner active job is non-scheduled (schedule.is_scheduled=false, 'As soon as possible') so Request Reschedule button correctly does NOT render — this is expected. To exercise the pending reschedule accept/reject UI, seed a customer-initiated reschedule on a scheduled booking. Merchant demo (Sharma Electricals) starts with KYC pending (PAN + verified bank blockers) and wallet_balance ₹29,914.64. Set-primary on bank returns 400 'Only a verified bank account can be set as primary' — this is a business rule, not a bug.",
+  "rca_of_issue": "N/A — no failures."
+}

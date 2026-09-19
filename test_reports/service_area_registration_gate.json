@@ -1,0 +1,187 @@
+{
+  "total": 36,
+  "passed": 36,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "F1: Out-of-area pincode not serviceable",
+      "passed": true,
+      "details": "Pincode 110001 correctly marked as not serviceable"
+    },
+    {
+      "name": "F2: Serviced cities includes Patna/Ranchi",
+      "passed": true,
+      "details": "Serviced cities: ['Patna', 'Ranchi']"
+    },
+    {
+      "name": "F3: Pincode 800001 is serviceable",
+      "passed": true,
+      "details": "Pincode 800001 correctly marked as serviceable"
+    },
+    {
+      "name": "F4: Pincode 834001 is serviceable",
+      "passed": true,
+      "details": "Pincode 834001 correctly marked as serviceable"
+    },
+    {
+      "name": "A1: Partner registration",
+      "passed": true,
+      "details": "Partner registered: +918548006607"
+    },
+    {
+      "name": "A2: Get partner metadata",
+      "passed": true,
+      "details": "Found 6 categories"
+    },
+    {
+      "name": "A3: Save basic section",
+      "passed": true,
+      "details": "Basic saved with pincode 110001"
+    },
+    {
+      "name": "A4: Save work section",
+      "passed": true,
+      "details": "Work section saved"
+    },
+    {
+      "name": "A5: Save documents section",
+      "passed": true,
+      "details": "Documents saved"
+    },
+    {
+      "name": "A6: Save address section",
+      "passed": true,
+      "details": "Address saved"
+    },
+    {
+      "name": "A7: Check profile completeness",
+      "passed": true,
+      "details": "Profile completion: 0%"
+    },
+    {
+      "name": "A8: Submit blocked by area gate",
+      "passed": true,
+      "details": "Correctly blocked with message: Registration is not available in your area yet. Pincode 110001 is outside our current service areas...."
+    },
+    {
+      "name": "A9: Error mentions pincode",
+      "passed": true,
+      "details": "Pincode 110001 mentioned in error"
+    },
+    {
+      "name": "A10: Error mentions serviced cities",
+      "passed": true,
+      "details": "Patna/Ranchi mentioned in error message"
+    },
+    {
+      "name": "B1: Partner registration",
+      "passed": true,
+      "details": "Partner registered: +915088068506"
+    },
+    {
+      "name": "B2: Get partner metadata",
+      "passed": true,
+      "details": "Found 6 categories"
+    },
+    {
+      "name": "B3: Save basic section",
+      "passed": true,
+      "details": "Basic saved with pincode 800001"
+    },
+    {
+      "name": "B4: Save work section",
+      "passed": true,
+      "details": "Work section saved"
+    },
+    {
+      "name": "B5: Save documents section",
+      "passed": true,
+      "details": "Documents saved"
+    },
+    {
+      "name": "B6: Save address section",
+      "passed": true,
+      "details": "Address saved"
+    },
+    {
+      "name": "B7: Submit NOT blocked by area gate",
+      "passed": true,
+      "details": "Submit succeeded with status: under_review"
+    },
+    {
+      "name": "C1: Merchant registration",
+      "passed": true,
+      "details": "Merchant registered: +911758077685"
+    },
+    {
+      "name": "C2: Get merchant metadata",
+      "passed": true,
+      "details": "Found 6 categories"
+    },
+    {
+      "name": "C3: Save basic section",
+      "passed": true,
+      "details": "Basic saved"
+    },
+    {
+      "name": "C4: Save shop section",
+      "passed": true,
+      "details": "Shop saved"
+    },
+    {
+      "name": "C5: Save address section",
+      "passed": true,
+      "details": "Address saved with pincode 110001"
+    },
+    {
+      "name": "C6: Submit blocked by area gate",
+      "passed": true,
+      "details": "Correctly blocked with message: Registration is not available in your area yet. Pincode 110001 is outside our current service areas...."
+    },
+    {
+      "name": "C7: Error mentions pincode",
+      "passed": true,
+      "details": "Pincode 110001 mentioned in error"
+    },
+    {
+      "name": "C8: Error mentions serviced cities",
+      "passed": true,
+      "details": "Patna/Ranchi mentioned in error message"
+    },
+    {
+      "name": "D1: Merchant registration",
+      "passed": true,
+      "details": "Merchant registered: +916851808953"
+    },
+    {
+      "name": "D2: Get merchant metadata",
+      "passed": true,
+      "details": "Found 6 categories"
+    },
+    {
+      "name": "D3: Save basic section",
+      "passed": true,
+      "details": "Basic saved"
+    },
+    {
+      "name": "D4: Save shop section",
+      "passed": true,
+      "details": "Shop saved"
+    },
+    {
+      "name": "D5: Save address section",
+      "passed": true,
+      "details": "Address saved with pincode 800002"
+    },
+    {
+      "name": "D6: Submit NOT blocked by area gate",
+      "passed": true,
+      "details": "Submit succeeded with status: under_review"
+    },
+    {
+      "name": "G1: No 500 errors encountered",
+      "passed": true,
+      "details": "All API calls completed without 500 errors"
+    }
+  ]
+}

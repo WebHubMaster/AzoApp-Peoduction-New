@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 60 — Retest of expo-notifications web-guard fix (frontend-only). The one-line guard in /app/frontend/src/lib/notifications.ts:26-28 (`pushSupported = Platform.OS !== 'web' && Constants.executionEnvironment !== ExecutionEnvironment.StoreClient`) is now in place. RESULT: PASS. The previously FAILING case from iteration_59 no longer crashes: tapping `[data-testid=\"test-job-ring\"]` on the Partner Dashboard triggers the expected info toast 'Job ring works on a real device build' within ~150ms and NO red-box appears. Zero uncaught pageerrors during app boot AND after tap. Merchant Demo (+919000000002) dashboard loads cleanly (Sharma Electricals, Wallet ₹29,914.64 visible). Onboarding 'Maybe later' (skip-notifications-button) → login screen works. Partner Demo (+919000000003) dashboard loads (Raj Kumar, AZP4587602, Patna) with the Alert-check card, quick actions, streak, and analytics all rendering.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "src/lib/notifications.ts:26-28 — guard now correctly excludes both web and Expo Go. N() returns null on web → scheduleJobRing() returns false → toast.info fallback fires as intended in app/(partner)/index.tsx:94. Matches the file's docstring intent."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only retest)",
+    "frontend": "100% — test-job-ring toast path, onboarding → login, Partner Demo dashboard, Merchant Demo dashboard, and 0 uncaught pageerrors on boot ALL pass."
+  },
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Fix verified on web preview. Reproduction path used: goto EXPO_PUBLIC_BACKEND_URL → dismiss onboarding via [data-testid='skip-notifications-button'] → tap 'Partner Demo' one-tap → scroll to 'Alert check' card → tap [data-testid='test-job-ring']. Poll document.body.innerText for the toast string 'Job ring works on a real device build' (it auto-hides in ~3s, so poll within 1s of tap).",
+  "rca_of_issue": "Original crash (iteration_59): pushSupported only excluded ExecutionEnvironment.StoreClient (Expo Go), so on the web bundle N() still required expo-notifications and called n.scheduleNotificationAsync() which is an unimplemented stub on web → red-box. Applied fix adds `Platform.OS !== 'web'` to the guard so N() returns null on web, scheduleJobRing() returns false, and the sendTestRing handler falls through to `toast.info('Job ring works on a real device build')` — verified end-to-end via Playwright."
+}

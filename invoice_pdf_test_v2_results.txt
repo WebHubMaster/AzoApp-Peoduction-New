@@ -1,0 +1,88 @@
+[1m
+================================================================================[0m
+[1mINVOICE PREVIEW = PDF DOWNLOAD = PRINT FIX - COMPREHENSIVE TEST[0m
+[1m================================================================================
+[0m
+[94mBASE_URL: https://azo-app-live.preview.emergentagent.com/api[0m
+[94mTest Date: 2026-09-10 10:00:48[0m
+[94m🔐 Logging in as +919000000000...[0m
+[92m✅ Logged in successfully[0m
+[1m
+================================================================================[0m
+[1mTEST: ADMIN RENDER ENDPOINT (WeasyPrint vs ReportLab)[0m
+[1m================================================================================
+[0m
+[94m
+📄 Testing Tax Invoice (booking)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: application/pdf[0m
+[92m  ✅ PDF body size: 17578 bytes[0m
+[92m  ✅ PDF starts with %PDF magic bytes[0m
+[92m  ✅ CRITICAL: PDF does NOT contain 'ReportLab' in first 3000 bytes[0m
+[92m  ✅ PDF does NOT contain 'ReportLab' anywhere - confirmed WeasyPrint[0m
+[94m
+📄 Testing Cancellation Note (cancellation)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: application/pdf[0m
+[92m  ✅ PDF body size: 17816 bytes[0m
+[92m  ✅ PDF starts with %PDF magic bytes[0m
+[92m  ✅ CRITICAL: PDF does NOT contain 'ReportLab' in first 3000 bytes[0m
+[92m  ✅ PDF does NOT contain 'ReportLab' anywhere - confirmed WeasyPrint[0m
+[94m
+📄 Testing Refund Document (refund)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: application/pdf[0m
+[92m  ✅ PDF body size: 17429 bytes[0m
+[92m  ✅ PDF starts with %PDF magic bytes[0m
+[92m  ✅ CRITICAL: PDF does NOT contain 'ReportLab' in first 3000 bytes[0m
+[92m  ✅ PDF does NOT contain 'ReportLab' anywhere - confirmed WeasyPrint[0m
+[94m
+📄 Testing Withdrawal Statement (withdrawal)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: application/pdf[0m
+[92m  ✅ PDF body size: 17538 bytes[0m
+[92m  ✅ PDF starts with %PDF magic bytes[0m
+[92m  ✅ CRITICAL: PDF does NOT contain 'ReportLab' in first 3000 bytes[0m
+[92m  ✅ PDF does NOT contain 'ReportLab' anywhere - confirmed WeasyPrint[0m
+[1m
+================================================================================[0m
+[1mTEST: ADMIN RENDER HTML ENDPOINT[0m
+[1m================================================================================
+[0m
+[94m
+🌐 Testing Tax Invoice HTML (booking)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: text/html; charset=utf-8[0m
+[92m  ✅ HTML contains <html tag[0m
+[92m  ✅ HTML contains invoice number[0m
+[92m  ✅ Tax invoice HTML contains 'TOTAL'[0m
+[94m
+🌐 Testing Cancellation Note HTML (cancellation)...[0m
+[92m  ✅ HTTP 200[0m
+[92m  ✅ Content-Type: text/html; charset=utf-8[0m
+[92m  ✅ HTML contains <html tag[0m
+[92m  ✅ HTML contains invoice number[0m
+[92m  ✅ Cancellation HTML contains 'Total Customer Refund'[0m
+[92m  ✅ Cancellation HTML does NOT contain 'Cancellation Charge'[0m
+[1m
+================================================================================[0m
+[1mTEST SUMMARY[0m
+[1m================================================================================
+[0m
+[1mPDF RENDER TESTS (WeasyPrint vs ReportLab):[0m
+[92m  ✅ BOOKING: PASS[0m
+[92m  ✅ CANCELLATION: PASS[0m
+[92m  ✅ REFUND: PASS[0m
+[92m  ✅ WITHDRAWAL: PASS[0m
+[1m
+HTML RENDER TESTS:[0m
+[92m  ✅ BOOKING: PASS[0m
+[92m  ✅ CANCELLATION: PASS[0m
+[1m
+================================================================================[0m
+[92m[1m✅ ALL TESTS PASSED (6/6) - 100%[0m
+[92m[1m
+🎉 INVOICE PREVIEW = PDF DOWNLOAD = PRINT FIX IS WORKING![0m
+[92m   WeasyPrint is generating PDFs from the SAME HTML template as preview.[0m
+[1m================================================================================
+[0m

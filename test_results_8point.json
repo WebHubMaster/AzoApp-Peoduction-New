@@ -1,0 +1,72 @@
+{
+  "total": 13,
+  "passed": 13,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "1. Coupon discount added to commission base",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "2a. Invoice PII masked for partner",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "2b. Invoice PII NOT masked for customer/merchant/admin",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "3a. role_earning object for partner",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "3b. role_earning object for merchant",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "4a. Add-on library CRUD operations",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "4b. Add-on creation permission (partner/customer rejected)",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "5. Merchant earnings includes partner_referral_pct and customer_pct",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "6. Merchant network auto-includes referred partners",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "7a. Invoices ordered newest-first",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "7b. Partner earnings ordered newest-first",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "7c. Merchant earnings ordered newest-first",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "8. No 500 errors on key endpoints",
+      "status": "PASS",
+      "error": null
+    }
+  ]
+}

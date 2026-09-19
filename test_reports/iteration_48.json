@@ -1,0 +1,18 @@
+{
+  "summary": "Iteration 48 — Verified City Landing Pages (/api/site/cities, /api/site/city/{slug}) and dynamic OG image (/api/site/og-image) + sitemap. All 6 backend pytest tests pass; frontend /city/patna, /city/ranchi, /city/unknown-city, homepage OG meta, footer 'Cities we serve' column, and mobile 390px overflow-free all pass. No regressions found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_city_and_og.py", "/app/test_reports/pytest/city_og.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "og_image_service.og_image_png() caches only the base64-encoded PNG (10-min TTL) keyed on `site:og-image`. Since the composition depends on branding.logo_light + theme.primary + seo.meta_description, ensure cache_service.bust_prefix('site:') is called when admin saves Branding & Theme / SEO — otherwise share previews stay stale up to 10 minutes.",
+    "city_service._city_page issues a full scan of services + bookings (up to 20000) per request. For hotter cities the current 60s cache is fine, but the fan-out per partner_id / category_id is O(n²) at scale; consider precomputing partner job counts in a bookings.aggregate pipeline."
+  ],
+  "updated_files": ["/app/backend/tests/test_city_and_og.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (all flows verified)"},
+  "test_credentials": "Not required — public pages",
+  "seed_data_creation": "None (used existing seed: Patna 6 partners / 2 completed / 1 review; Ranchi 1 partner / 0 jobs)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend regression file /app/backend/tests/test_city_and_og.py (uses timeout=60 to survive cold cache). Backend endpoints validated: GET /api/site/cities (Patna+Ranchi present), GET /api/site/city/patna (stats partners=6, jobs=2, reviews=1, rating=5, services<=24 with popular-first ordering, partners sorted verified→jobs, reviews have all fields), GET /api/site/city/nowhere → 404, GET /api/sitemap.xml contains /city/patna and /city/ranchi, GET /api/site/og-image → 1200x630 image/png with Cache-Control. Frontend validated at 1440px + 390px: breadcrumb, H1, city-hero, city-stats (2 completed / 5★ / 1 review / 5 online), all sections present (city-categories, city-services with 'Popular in Patna' badges, city-partners, city-reviews, city-coverage, city-others → click city-link-ranchi navigates to Ranchi page which shows 1 verified pro / 0 jobs / '—' rating / hides city-reviews section), city-set-location sets localStorage azo_location=Patna and navigates to /services, city-notfound displays for unknown slug, JSON-LD blocks BreadcrumbList + Service (aggregateRating present only when reviews>0), homepage index.html has og:image ending /api/site/og-image + twitter:card=summary_large_image, footer 'Cities we serve' column dynamic, mobile 390px scrollWidth=390 (no overflow) and footer collapses to 2 cols cleanly."
+}

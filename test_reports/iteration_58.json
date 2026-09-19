@@ -1,0 +1,42 @@
+{
+  "summary": "Iteration 58 — Full end-to-end backend + frontend testing of Partner & Merchant Registration Wizards. 20/20 pytest cases PASS (0 skipped, 0 fail) covering fresh-account OTP signup, PUT saves for basic/work/documents/address (partner) and basic/shop/shop-photo/address (merchant), score reaching 100, multipart /upload with real JPEGs, Aadhaar OCR path, geo cascade (states/districts/cities), /api/geo/serviceability, /submit → under_review on serviceable pincode (800001 Patna), and demo-approved profile lookup. Frontend Playwright flows also PASS: fresh partner signup routes to /partner/register with 4% score banner + stepper + Basic form; empty Save & Continue shows 'Please fill all required fields' toast; fresh merchant signup routes to /merchant/register; approved partner and approved merchant demo accounts land on the 'Account Under Review' screen (wizard is correctly hidden). No deprecated Expo packages detected in the reg wizard files reviewed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "POST /api/partner/registration/upload (and /merchant/registration/upload)",
+        "issue": "When the uploaded file is not a valid image, PIL raises UnidentifiedImageError which is NOT a subclass of ValueError, so the except in the route falls through and the API returns 500 Internal Server Error instead of a friendly 400. Repro: POST multipart with bytes b'\\xff\\xd8\\xffTESTJPEG'. Fix suggestion: catch (ValueError, PIL.UnidentifiedImageError, OSError) in routes/partner_reg_routes.py:73 and merchant_reg_routes.py:63, or normalize inside storage_service.save_image to raise ValueError for unreadable images."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter58_reg_wizards.py",
+    "/app/test_reports/pytest/iter58_reg_wizards.xml"
+  ],
+  "action_items": [
+    "OPTIONAL polish: harden /partner/registration/upload and /merchant/registration/upload to return 400 (not 500) on non-image bytes — catch UnidentifiedImageError/OSError in addition to ValueError. Frontend already only uploads real captures so this doesn't affect real users, but it improves error UX for edge cases and for automated smoke tests."
+  ],
+  "critical_code_review_comments": [
+    "partner_reg_service.compute_score gives 0/8 fields = 0% for a fresh profile, but `basic.mobile` is auto-populated from phone — mobile isn't in the weighted field list so this is intentional. Merchant _blank_profile pre-fills basic.full_name/email/mobile from the user record, which yields ~8% on a truly-fresh profile (test relaxed accordingly). Not a bug.",
+    "merchant save_shop enforces a single category server-side (cats = cats[:1]) — matches partner single-select UI. Good.",
+    "Partner submit correctly gates on Verhoeff Aadhaar, live_photo_url, pincode serviceability and 100% score (verified — submit blocked for 110001 Delhi, succeeded for 800001 Patna)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter58_reg_wizards.py (new pytest suite)"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests pass)",
+    "frontend": "100% of scripted flows verified (partner+merchant fresh signup wizards, validation toast, approved-account status screens)"
+  },
+  "seed_data_creation": "Each pytest run creates 2 fresh phone-numbered users (+919XXXXXXXXX) via OTP signup. Frontend Playwright runs create 2 additional fresh users. All are prefixed with 'TEST' in name/email; no cleanup script added (users are inert/incomplete profiles).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend pytest run command: REACT_APP_BACKEND_URL=<preview> EXPO_PUBLIC_BACKEND_URL=<preview> python -m pytest backend/tests/test_iter58_reg_wizards.py -v. The Aadhaar 234123412346 passes Verhoeff. Serviceable pincodes for E2E submit: 800001 (Patna), 834001 (Ranchi). Non-serviceable example: 110001 (Delhi) — expected to 400 on submit. Fresh phones must be outside +919000000000-+919000000009 (reserved demo range). Frontend intro screen 'Stay in the loop' must be dismissed with 'Maybe later' before login form is reachable.",
+  "rca_of_issue": "Minor 500 on non-image upload → PIL.UnidentifiedImageError isn't caught by `except ValueError` in the upload route. Reproduction: `curl -F file=@garbage.txt -F doc_type=live_photo -H 'Authorization: Bearer <partner_token>' <BASE>/api/partner/registration/upload` → 500. Mitigation: extend the except clause in partner_reg_routes.py:73 / merchant_reg_routes.py:63 to `except (ValueError, Exception) as e: raise HTTPException(400, ...)` — or, cleaner, catch PIL.UnidentifiedImageError inside storage_service._compress and re-raise as ValueError."
+}

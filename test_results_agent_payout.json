@@ -1,0 +1,241 @@
+{
+  "summary": {
+    "total": 44,
+    "passed": 44,
+    "failed": 0,
+    "success_rate": 100.0,
+    "all_passed": true
+  },
+  "test_state": {
+    "admin_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJkNTMwYzdlMy1mMGU0LTRhYjMtOTEwMi0xODE4Y2EwNTVhYzIiLCJyb2xlIjoiYWRtaW4ifQ.xnXJSKyBdT0kn2T3IMC-RNmaCABYOife8TpgjiJ6UgA",
+    "agent_phone": "+91900004280",
+    "agent_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2NjI3MjdiMy03MjI1LTRlNjEtOTEzMy1iMWI2OWI2YTM5NDQiLCJyb2xlIjoiYWdlbnQifQ.jcGAurKJXsmhyYwC_9SGKvxfd7hhzjv_Ui0BjVl6lWk",
+    "agent_id": "662727b3-7225-4e61-9133-b1b69b6a3944",
+    "batch_id": "d2eb2d93-39af-4f0e-b10b-805a9635738c",
+    "token_t1": "PQRHJBHN5",
+    "token_t2": "PQR5J33HU",
+    "withdrawal_id": "6af17cac-7a60-4a1c-9e83-87b3f14acca1"
+  },
+  "results": [
+    {
+      "test": "SETUP - Admin login",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "SETUP - Create batch",
+      "passed": true,
+      "details": "batch_id=qr-print-a6, T1=PQRHJBHN5, T2=PQR5J33HU"
+    },
+    {
+      "test": "SETUP - Create agent",
+      "passed": true,
+      "details": "agent_id=qr-print-a6"
+    },
+    {
+      "test": "SETUP - Assign batch",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "SETUP - Agent login",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "CONFIG - Update settings",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "CONFIG - commission_per_mapping",
+      "passed": true,
+      "details": "commission_per_mapping=20"
+    },
+    {
+      "test": "CONFIG - min_withdrawal",
+      "passed": true,
+      "details": "min_withdrawal=10"
+    },
+    {
+      "test": "CONFIG - Nested merge preserves siblings",
+      "passed": true,
+      "details": "enabled and max_withdrawal still present"
+    },
+    {
+      "test": "EARN - Fresh mapping pays commission",
+      "passed": true,
+      "details": "agent_earning=20.0"
+    },
+    {
+      "test": "EARN - QR status is active",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "EARN - Wallet total_earned",
+      "passed": true,
+      "details": "total_earned=20.0"
+    },
+    {
+      "test": "EARN - Wallet available",
+      "passed": true,
+      "details": "available=20.0"
+    },
+    {
+      "test": "EARN - Wallet mappings",
+      "passed": true,
+      "details": "mappings=1"
+    },
+    {
+      "test": "EARN - Config commission_per_mapping",
+      "passed": true,
+      "details": "commission_per_mapping=20"
+    },
+    {
+      "test": "EARN - No double pay on re-assign",
+      "passed": true,
+      "details": "agent_earning is None"
+    },
+    {
+      "test": "HISTORY - Earnings list not empty",
+      "passed": true,
+      "details": "Found 1 earnings"
+    },
+    {
+      "test": "HISTORY - Merchant name",
+      "passed": true,
+      "details": "merchant_name=Sharma Electricals"
+    },
+    {
+      "test": "HISTORY - Token",
+      "passed": true,
+      "details": "token=PQRHJBHN5"
+    },
+    {
+      "test": "HISTORY - Amount",
+      "passed": true,
+      "details": "amount=20.0"
+    },
+    {
+      "test": "BANK - Withdraw blocked before bank verify",
+      "passed": true,
+      "details": "Got expected 400: Verify your bank details before withdrawing"
+    },
+    {
+      "test": "BANK - Submit bank (verified=false)",
+      "passed": true,
+      "details": "verified=False"
+    },
+    {
+      "test": "BANK - Admin verify bank (verified=true)",
+      "passed": true,
+      "details": "verified=True"
+    },
+    {
+      "test": "WITHDRAW - Withdraw successful (status=pending)",
+      "passed": true,
+      "details": "withdrawal_id=qr-print-a6"
+    },
+    {
+      "test": "WITHDRAW - Amount < min rejected",
+      "passed": true,
+      "details": "Got expected 400: Minimum withdrawal is Rs.10"
+    },
+    {
+      "test": "WITHDRAW - Amount > available rejected",
+      "passed": true,
+      "details": "Got expected 400: Maximum withdrawal is Rs.25000"
+    },
+    {
+      "test": "WITHDRAW - Second pending rejected",
+      "passed": true,
+      "details": "Got expected 400: You already have a pending withdrawal request"
+    },
+    {
+      "test": "ADMIN - Pending withdrawals list",
+      "passed": true,
+      "details": "Found 2 pending withdrawals"
+    },
+    {
+      "test": "ADMIN - Withdrawal stats",
+      "passed": true,
+      "details": "pending=2, approved=2, rejected=0"
+    },
+    {
+      "test": "ADMIN - Find our withdrawal",
+      "passed": true,
+      "details": "Found withdrawal 6af17cac-7a60-4a1c-9e83-87b3f14acca1"
+    },
+    {
+      "test": "ADMIN - Approve withdrawal (status=approved)",
+      "passed": true,
+      "details": "status=approved"
+    },
+    {
+      "test": "ADMIN - Wallet withdrawn after approval",
+      "passed": true,
+      "details": "withdrawn=20.0"
+    },
+    {
+      "test": "ADMIN - Wallet available after approval",
+      "passed": true,
+      "details": "available=0.0"
+    },
+    {
+      "test": "ADMIN - Agent detail has wallet",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "ADMIN - Agent detail has earnings",
+      "passed": true,
+      "details": "Found 1 earnings"
+    },
+    {
+      "test": "ADMIN - Agent detail has approved withdrawal",
+      "passed": true,
+      "details": "Found 1 approved withdrawals"
+    },
+    {
+      "test": "ADMIN - Agent detail has shops (Sharma Electricals)",
+      "passed": true,
+      "details": "Found 1 shops with Sharma Electricals"
+    },
+    {
+      "test": "GUARDS - Customer login",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "GUARDS - Customer /agent/me blocked",
+      "passed": true,
+      "details": "Got expected 403"
+    },
+    {
+      "test": "GUARDS - Customer /admin/physical-qr/agent-withdrawals blocked",
+      "passed": true,
+      "details": "Got expected 403"
+    },
+    {
+      "test": "REGRESSION - Batch create",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "REGRESSION - Resolve valid",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "REGRESSION - Resolve active",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "test": "REGRESSION - Resolve merchant_code",
+      "passed": true,
+      "details": "merchant_code=3L6MKM3"
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "total": 17,
+  "passed": 17,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "TEST 1: Find Wiring & Fitting service",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Found service: Wiring & Fitting",
+      "data": null
+    },
+    {
+      "name": "TEST 1: Service has addons field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "addons field present: []",
+      "data": null
+    },
+    {
+      "name": "TEST 1: Wiring & Fitting addons == []",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 Service addons are empty (no hardcoded MCB Replace)",
+      "data": null
+    },
+    {
+      "name": "TEST 2: Response has popular_addons",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "popular_addons: {}",
+      "data": null
+    },
+    {
+      "name": "TEST 2: popular_addons has no entry for Wiring & Fitting",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 No popular addons for service (library empty): None",
+      "data": null
+    },
+    {
+      "name": "TEST 3: Service detail has addons field",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "addons field present: []",
+      "data": null
+    },
+    {
+      "name": "TEST 3: Service detail addons == []",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 Service detail addons are empty",
+      "data": null
+    },
+    {
+      "name": "TEST 4.1: POST /api/catalog/addons",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Created addon: MCB Replace (id: 997ebb42-0507-4e80-a69a-11c1199d9b04)",
+      "data": null
+    },
+    {
+      "name": "TEST 4.2: Wiring & Fitting addons now includes MCB Replace",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 Addon appears: {'name': 'MCB Replace', 'price': 199.0}",
+      "data": null
+    },
+    {
+      "name": "TEST 4.3: popular_addons includes MCB Replace",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 MCB Replace appears in upsell: [{'name': 'MCB Replace', 'price': 199.0, 'count': 0}]",
+      "data": null
+    },
+    {
+      "name": "TEST 5.1: DELETE /api/catalog/addons/{id}",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Deleted addon 997ebb42-0507-4e80-a69a-11c1199d9b04",
+      "data": null
+    },
+    {
+      "name": "TEST 5.2: Wiring & Fitting addons back to []",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 Service addons are empty again (library empty)",
+      "data": null
+    },
+    {
+      "name": "TEST 6: GET /api/catalog/categories no 500",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 No 500 error (200 OK)",
+      "data": null
+    },
+    {
+      "name": "TEST 6: GET /api/catalog/services no 500",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 No 500 error (200 OK)",
+      "data": null
+    },
+    {
+      "name": "TEST 6: GET /api/catalog/services (category filter) no 500",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 No 500 error (200 OK)",
+      "data": null
+    },
+    {
+      "name": "TEST 6: GET /api/catalog/service/{id} no 500",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 No 500 error (200 OK)",
+      "data": null
+    },
+    {
+      "name": "TEST 6: Other services still returned",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "\u2705 15 services returned",
+      "data": null
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend-only test of Partner registration State→District→City cascade + keyboard fix + demo regression. STATE picker fully works (36 states, Bihar selected, value persisted). But DISTRICT cascade is still BROKEN: `/api/geo/districts?state=Bihar` returns 200 with 38 items (verified via curl AND playwright network interceptor), yet the mobile PickerSheet opens with 0 options. Cascade bug is NOT fully fixed. Keyboard fix works: typing into Full name / Email / Pincode fields works and screen scrolls (no red-box errors). Partner demo login regression passes (Raj Kumar / AZP4587602 dashboard loads).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PartnerRegister · District/City cascade",
+        "issue": "After selecting a State (e.g. Bihar), the API GET /api/geo/districts?state=Bihar returns 200 with 38 items, but tapping the District PickRow opens the PickerSheet with 0 options ('No options available'). The `districts` state array in /app/frontend/app/partner/register.tsx (line 79) never receives the response — either .then(setDistricts) isn't running with the parsed array, or the array is being reset before the PickRow's onPress reads it. City cascade is unreachable until districts works. Repro: register brand-new partner phone → Step 0 → State → Bihar → District → picker empty.",
+        "testID": "pickrow-district",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Partner Registration Basic step geo cascade",
+        "issue": "State works, District/City do NOT populate despite backend returning proper [{id,name}] arrays. Confirmed backend contract is correct via curl + playwright fetch interceptor. Bug is in React state wiring inside PartnerRegister.",
+        "affected_testIDs": ["pickrow-state", "pickrow-district", "pickrow-city-sub-district"]
+      }
+    ],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_61.json"],
+  "action_items": [
+    "Debug why setDistricts isn't populating in /app/frontend/app/partner/register.tsx (line 79). Suggested next steps: (a) add `console.log('districts response', r)` inside `.then(r => { setDistricts(r); })` to confirm the shape received; (b) verify `api.get<{id;name}[]>` doesn't wrap the response; (c) ensure the fetch isn't being aborted by the AbortController's 45s timeout being hit prematurely by StrictMode double-invocation cancelling the request; (d) confirm the PickRow onPress captures the latest `districts` reference (memoization / stale closure); (e) rewrite as: `.then((r) => setDistricts(Array.isArray(r) ? r : []))` for safety.",
+    "Same fetch pattern is used for /geo/cities and /geo/villages — likely also broken until districts is fixed (test could not reach city step).",
+    "Merchant register uses free-text Fields for city/district/state (no cascade), so this bug is Partner-only."
+  ],
+  "critical_code_review_comments": [
+    "PickRow in RegKit.tsx previously had no testID → added a stable auto-generated testID from label (`pickrow-<slug>`) so tests can target rows reliably; PickerSheet options already had testID `opt-<id>`.",
+    "PartnerRegister.tsx line 195 toast message on missing state says 'Select district first' but should say 'Select state first' when opening District picker without state — inherited copy bug (not test-blocking).",
+    "`.then(setDistricts).catch(() => {})` in useEffect silently swallows errors; add a toast or console.error for observability."
+  ],
+  "updated_files": ["/app/frontend/src/components/RegKit.tsx"],
+  "success_rate": { "backend": "100%", "frontend": "~50% (State works, District/City cascade broken)" },
+  "seed_data_creation": "Created several throwaway partner accounts via /api/auth/verify-otp create_if_new for the wizard test (random 10-digit phones). No cleanup performed.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The bug is deterministic: State picker works (36 options render, selection persists as 'Bihar'). District picker opens (Pressable click confirmed via testID pickrow-district) but PickerSheet has 0 options despite backend returning 200 with 38 items (verified in-browser fetch log and via curl). Use these testIDs: pickrow-state / pickrow-district / pickrow-city-sub-district / pickrow-village-optional (auto-generated), and opt-<id> for options inside PickerSheet. Path to reach the screen: onboarding 'Maybe later' → Register-as-Partner toggle → phone → Send OTP → dev_otp auto-filled → Verify → signup name 'Test Partner' → routed to /partner/register. Files to look at: /app/frontend/app/partner/register.tsx (useEffect at lines 79–81 for the geo cascade fetch).",
+  "rca_of_issue": "Repro: (1) POST /api/auth/send-otp with new phone → returns dev_otp; (2) POST /api/auth/verify-otp with create_if_new=true, role='partner' → get token; (3) navigate /partner/register; (4) open State picker → 36 items load correctly; (5) select Bihar → State row updates and useEffect triggers `api.get('/geo/districts?state=Bihar')` (200, 38 items — confirmed via network intercept and curl); (6) tap District row → PickerSheet opens with 0 options. Mitigation: likely bug is in how setDistricts receives / stores the array (stale closure or non-array wrapping). Try replacing `.then(setDistricts)` with `.then((r) => setDistricts(Array.isArray(r) ? r : []))` and add a console.log to verify. Same fix should be applied to setCities and setVillages."
+}

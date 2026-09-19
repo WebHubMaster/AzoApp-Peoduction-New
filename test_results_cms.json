@@ -1,0 +1,307 @@
+{
+  "total_tests": 60,
+  "passed": 57,
+  "failed": 3,
+  "tests": [
+    {
+      "name": "Request OTP for +919000000000",
+      "passed": false,
+      "details": "Status: 404"
+    },
+    {
+      "name": "Verify OTP for +919000000000",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Request OTP for +919000000004",
+      "passed": false,
+      "details": "Status: 404"
+    },
+    {
+      "name": "Verify OTP for +919000000004",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "GET /content/faqs/grouped returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "First group has 'category' key",
+      "passed": true,
+      "details": "Keys: dict_keys(['category', 'faqs'])"
+    },
+    {
+      "name": "First group has 'faqs' key",
+      "passed": true,
+      "details": "Keys: dict_keys(['category', 'faqs'])"
+    },
+    {
+      "name": "'faqs' is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "GET /content/faq-categories returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "Found 12/12 seeded categories",
+      "passed": true,
+      "details": "Found: ['General', 'Booking', 'Pricing', 'Payment', 'Partner', 'Customer', 'Cancellation', 'Refund', 'Emergency Service', 'Visiting Charge', 'Account', 'Other']"
+    },
+    {
+      "name": "GET /content/blogs returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "Blog '5 signs your AC needs servicin' is not draft",
+      "passed": true,
+      "details": "Status: published"
+    },
+    {
+      "name": "GET /content/blog/non-existent-slug returns 404",
+      "passed": true,
+      "details": "Status: 404"
+    },
+    {
+      "name": "GET /site/homepage returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "Homepage includes a blog section",
+      "passed": true,
+      "details": "Found 1 blog section(s)"
+    },
+    {
+      "name": "Blog section has 'data' key",
+      "passed": true,
+      "details": "Keys: dict_keys(['type', 'title', 'subtitle', 'id', 'config', 'data'])"
+    },
+    {
+      "name": "Blog section data is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "POST /admin/blogs returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Slug auto-generated correctly",
+      "passed": true,
+      "details": "Expected: my-test-blog-special, Got: my-test-blog-special"
+    },
+    {
+      "name": "Status auto-set to 'scheduled'",
+      "passed": true,
+      "details": "Status: scheduled"
+    },
+    {
+      "name": "Body does NOT contain '<script'",
+      "passed": true,
+      "details": "Body: <p>Hialert(1)<b>b</b><img src=\"x\"></p>"
+    },
+    {
+      "name": "Body does NOT contain 'onerror'",
+      "passed": true,
+      "details": "Body: <p>Hialert(1)<b>b</b><img src=\"x\"></p>"
+    },
+    {
+      "name": "Body DOES contain '<b>'",
+      "passed": true,
+      "details": "Body: <p>Hialert(1)<b>b</b><img src=\"x\"></p>"
+    },
+    {
+      "name": "Body DOES contain '<img'",
+      "passed": true,
+      "details": "Body: <p>Hialert(1)<b>b</b><img src=\"x\"></p>"
+    },
+    {
+      "name": "Body DOES contain 'src'",
+      "passed": true,
+      "details": "Body: <p>Hialert(1)<b>b</b><img src=\"x\"></p>"
+    },
+    {
+      "name": "Scheduled blog NOT in public blogs list",
+      "passed": true,
+      "details": "Blog ID: 82d09328-2c58-4ba4-9849-f2f384d2ce27, Found in list: False"
+    },
+    {
+      "name": "PUT /admin/blogs/{id} returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Status updated to 'published'",
+      "passed": true,
+      "details": "Status: published"
+    },
+    {
+      "name": "Published blog NOW appears in public blogs list",
+      "passed": true,
+      "details": "Blog ID: 82d09328-2c58-4ba4-9849-f2f384d2ce27, Found in list: True"
+    },
+    {
+      "name": "GET /content/blog/my-test-blog-special returns 200",
+      "passed": false,
+      "details": "Status: 404"
+    },
+    {
+      "name": "DELETE /admin/blogs/{id} returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Deleted blog NOT in public blogs list",
+      "passed": true,
+      "details": "Blog ID: 82d09328-2c58-4ba4-9849-f2f384d2ce27, Found in list: False"
+    },
+    {
+      "name": "POST /admin/faqs returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Answer does NOT contain '<script'",
+      "passed": true,
+      "details": "Answer: <p>ax</p>"
+    },
+    {
+      "name": "Category is 'Booking'",
+      "passed": true,
+      "details": "Category: Booking"
+    },
+    {
+      "name": "DELETE /admin/faqs/{id} returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "POST /admin/faq-categories returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Slug auto-generated as 'warranty'",
+      "passed": true,
+      "details": "Slug: warranty"
+    },
+    {
+      "name": "POST same name returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Returns existing category (same ID)",
+      "passed": true,
+      "details": "Original ID: f08242bd-e744-4f06-9097-6bb61403602e, Returned ID: f08242bd-e744-4f06-9097-6bb61403602e"
+    },
+    {
+      "name": "GET /admin/faq-categories returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Created category in list",
+      "passed": true,
+      "details": "Category ID: f08242bd-e744-4f06-9097-6bb61403602e"
+    },
+    {
+      "name": "PUT /admin/faq-categories/{id} returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Name updated to 'Warranty Care'",
+      "passed": true,
+      "details": "Name: Warranty Care"
+    },
+    {
+      "name": "DELETE /admin/faq-categories/{id} returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "PUT /admin/pages/about returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Body does NOT contain '<script'",
+      "passed": true,
+      "details": "Body: <p>About usbad()</p>"
+    },
+    {
+      "name": "seo_title is 'About'",
+      "passed": true,
+      "details": "seo_title: About"
+    },
+    {
+      "name": "seo_description is 'desc'",
+      "passed": true,
+      "details": "seo_description: desc"
+    },
+    {
+      "name": "GET /content/about returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Body does NOT contain '<script'",
+      "passed": true,
+      "details": "Body: <p>About usbad()</p>"
+    },
+    {
+      "name": "seo_title is 'About'",
+      "passed": true,
+      "details": "seo_title: About"
+    },
+    {
+      "name": "Customer POST /admin/blogs returns 403",
+      "passed": true,
+      "details": "Status: 403"
+    },
+    {
+      "name": "Customer POST /admin/faqs returns 403",
+      "passed": true,
+      "details": "Status: 403"
+    },
+    {
+      "name": "Customer POST /admin/faq-categories returns 403",
+      "passed": true,
+      "details": "Status: 403"
+    },
+    {
+      "name": "Customer PUT /admin/pages/about returns 403",
+      "passed": true,
+      "details": "Status: 403"
+    }
+  ]
+}

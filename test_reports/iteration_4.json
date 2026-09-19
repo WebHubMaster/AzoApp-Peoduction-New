@@ -1,0 +1,45 @@
+{
+  "summary": "Phase-5 auth/account + Advanced Address Management (1.2) tested end-to-end. Backend: added /app/backend/tests/test_phase5_auth_address.py (22 new tests) covering forgot/reset-password OTP, guest checkout, address CRUD (full advanced payload), serviceability + admin pincode gating, account deletion + admin approve/reject endpoints, and auth/config exposure. All 22 pass; full regression of pre-existing suites also green (174/174) => 196/196 backend. Frontend: verified with Playwright on the public preview URL — (1) Forgot-password dialog: dev OTP toast + auto-fill, reset succeeds, login with NEW password works; (2) Guest checkout while logged out: 'Continue as Guest' reveals guest-name/guest-phone + full AddressForm, serviceability banner shows, POST /bookings/guest succeeds (AZO87798) and the same phone can OTP-login and see the booking; (3) Address book: add with all advanced fields (label chips, property type, wing/floor/flat, landmark, instructions, pet toggle+pet fields, parking/lift switches, set-default), edit, set-default (exactly one Default badge), delete — all work; (4) Booking with saved-address chips: saved chip hides inline form, 'New' shows AddressForm, normal booking confirmed (count 91->92); (5) Account deletion: danger zone -> dialog -> 'Deletion requested. An admin will review' toast, user NOT logged out; admin 'Account Deletions' shows the pending row and Reject restores the account (rejected, request removed from actionable list); (6) Admin 'Address Settings': all toggles + property types + serviceable pincodes save; with 800001 configured, 999999 shows 'Sorry, we don't deliver to this location yet' and confirm-booking is blocked, 800001 is accepted. Cleanup done: serviceable_pincodes emptied (verified /api/geo/serviceability?pincode=999999 -> serviceable:true, reason no_pincodes_configured), deletion request rejected (demo customer intact), test address deleted, address_config toggles restored.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/auth/forgot-password + POST /api/auth/reset-password", "issue": "No rate limiting / attempt counter. An attacker can spam OTP generation for a known identifier and brute-force the 6-digit OTP within the 10-minute window (unlimited reset-password attempts). Recommend max 5 wrong attempts -> invalidate record, and throttle forgot-password per identifier/IP."},
+      {"endpoint": "POST /api/auth/email", "issue": "Response always returns \"created\": false even when a brand-new account is created (misleading field for clients)."},
+      {"endpoint": "PUT /api/auth/address/{id}", "issue": "Full-document replace: fields absent from the payload are silently dropped, and if the payload sets is_default=false for the only default address the user ends up with zero default addresses (add/delete paths self-heal, update does not)."},
+      {"endpoint": "POST /api/bookings/guest -> OTP login", "issue": "Guest-created user keeps is_guest:true forever; after the guest later logs in via OTP the flag is never cleared, so downstream logic that treats guests differently will misclassify a real registered customer."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Forgot password / Add Address dialogs", "issues": ["React console warning: 'Missing Description or aria-describedby={undefined} for DialogContent' — add DialogDescription for a11y (repeats on every dialog open)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_phase5_auth_address.py",
+    "/app/test_reports/pytest/iter4_phase5.xml",
+    "/app/test_reports/pytest/iter4_regression.xml"
+  ],
+  "action_items": [
+    "Add throttling + wrong-attempt limit to forgot-password/reset-password OTP flow.",
+    "Clear is_guest when a guest-created user completes a real OTP login.",
+    "Make PUT /api/auth/address merge instead of replace, and guarantee exactly one default address after update.",
+    "Fix misleading \"created\": false in POST /api/auth/email response.",
+    "Add DialogDescription (or aria-describedby) to DialogContent to remove the a11y console warnings."
+  ],
+  "critical_code_review_comments": [
+    "auth_controller._hash_pw uses a hand-rolled PBKDF2-SHA256(100k) salted hash. Functionally correct and salted, but it deviates from the bcrypt ($2b$) convention in the auth playbook; if bcrypt is expected for parity with other Emergent apps, migrate with a hash-format-aware verifier. No httpOnly cookie session either — JWT is stored in localStorage (XSS-exposed) and there is no brute-force lockout on email login; those playbook checks (bcrypt format, httpOnly cookie, lockout, seed_admin password update) simply do not exist in this custom OTP-first design and should be confirmed as intentional.",
+    "geo_service.check_serviceable is called on every keystroke-blur from the client and re-reads settings; fine now, but consider caching settings to avoid a Mongo read per pincode check.",
+    "GET /api/auth/config correctly withholds serviceable_pincodes and all secret keys — verified by test.",
+    "frontend/src/pages/admin/adminSections.jsx is 654 lines and holds many unrelated admin sections; it is approaching the 700-line split threshold."
+  ],
+  "updated_files": ["/app/backend/tests/test_phase5_auth_address.py"],
+  "success_rate": {"backend": "100% (196/196: 22 new Phase-5 + 174 regression)", "frontend": "100% of the 7 requested flows verified"},
+  "seed_data_creation": "Transient test data only: email accounts test_p5_*@example.test / fe_p5_*@example.test, guest customers +919787744139 (booking AZO87798) and +919876500011 (blocked, no booking), one extra AC Service booking on the demo customer. All test addresses were deleted; serviceable_pincodes and address_config toggles restored to defaults; deletion request rejected so demo customer +919000000004 survives.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "/app/memory/test_credentials.md is present and accurate (demo OTP 123456; admin +919000000000, customer +919000000004). Email login enabled in DB (auth_config.email_login=true) even though the code default is false.",
+  "context_for_next_testing_agent": "New suite: /app/backend/tests/test_phase5_auth_address.py — run it with `-n 0` because TestServiceability and TestAdminAddressConfig both mutate settings.address_config and would race under the pytest.ini default `-n 2 --dist loadscope`. Both classes restore original config in a finally block. Note GET /api/bookings (not /bookings/my) is the customer booking list. GPS auto-detect was NOT functionally tested (headless, no geolocation) — only button presence/click. Demo customer profile fields are polluted with TEST_ prefixes from earlier iterations (name 'TEST_Priya Verma') — cosmetic only.",
+  "rca_of_the_issue": "No functional defects found. The main agent's inability to visually confirm the guest-mode toggle was a screenshot-tool re-navigation artifact, not an app bug: clicking continue-guest-btn reliably renders guest-name, guest-phone and the AddressForm (verified in-session before any re-navigation)."
+}

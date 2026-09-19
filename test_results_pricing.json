@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-09-12T05:14:55.416365",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "total_tests": 22,
+  "passed": 16,
+  "failed": 6,
+  "success_rate": "72%",
+  "tests": [
+    {
+      "name": "1.1a: Main qty=2 stored correctly",
+      "passed": true,
+      "details": "Expected 2, got 2"
+    },
+    {
+      "name": "1.1b: Addon qty=1 stored correctly",
+      "passed": true,
+      "details": "Expected 1, got 1"
+    },
+    {
+      "name": "1.1c: Line base total = base_price * main_qty",
+      "passed": true,
+      "details": "Expected 1198.0, got 1198.0"
+    },
+    {
+      "name": "1.1d: Line addon total = addon_price * addon_qty (NOT * main_qty)",
+      "passed": true,
+      "details": "Expected 199.0, got 199.0"
+    },
+    {
+      "name": "1.1e: Line service total = line_base_total + line_addon_total",
+      "passed": true,
+      "details": "Expected 1397.0, got 1397.0"
+    },
+    {
+      "name": "1.1f: Line total == line_service_total",
+      "passed": true,
+      "details": "Expected 1397.0, got 1397.0"
+    },
+    {
+      "name": "1.2a: Addon qty=2 stored correctly",
+      "passed": true,
+      "details": "Expected 2, got 2"
+    },
+    {
+      "name": "1.2b: Line addon total = addon_price * 2",
+      "passed": true,
+      "details": "Expected 398.0, got 398.0"
+    },
+    {
+      "name": "1.3a: Main qty=3, line_base_total = base_price * 3",
+      "passed": true,
+      "details": "Expected 1797.0, got 1797.0"
+    },
+    {
+      "name": "1.3b: Addon qty=1, line_addon_total = addon_price * 1 (NOT * 3)",
+      "passed": true,
+      "details": "Expected 199.0 (addon_price * 1), got 199.0"
+    },
+    {
+      "name": "1.4: Backward compatibility - plain string treated as qty=1",
+      "passed": true,
+      "details": "Expected qty=1 for plain string addon, got 1"
+    },
+    {
+      "name": "2.1a: Booking created successfully",
+      "passed": true,
+      "details": "Booking AZOPK93N5 created"
+    },
+    {
+      "name": "2.1b: Addon qty field persisted in booking",
+      "passed": true,
+      "details": "Addon has qty field: 1"
+    },
+    {
+      "name": "2.1c: Addon qty value correct (1)",
+      "passed": true,
+      "details": "Expected 1, got 1"
+    },
+    {
+      "name": "2.1d: Booking has pricing.total",
+      "passed": true,
+      "details": "Total: \u20b91895.73"
+    },
+    {
+      "name": "3.1a: Partner job brief has partner_amount field",
+      "passed": false,
+      "details": "partner_amount: None"
+    },
+    {
+      "name": "3.1b: Partner job brief has visiting_charge field",
+      "passed": false,
+      "details": "visiting_charge: None"
+    },
+    {
+      "name": "3.1c: Partner job brief has coupon_code field",
+      "passed": false,
+      "details": "coupon_code present: None"
+    },
+    {
+      "name": "3.1d: Partner job brief has coupon_discount field",
+      "passed": false,
+      "details": "coupon_discount present: None"
+    },
+    {
+      "name": "3.1e: Partner job brief has items array",
+      "passed": false,
+      "details": "items count: 0"
+    },
+    {
+      "name": "4.1a: Coupon validation successful",
+      "passed": true,
+      "details": "Coupon AZO50 is valid with discount \u20b9177.0"
+    },
+    {
+      "name": "4.1: Exception during test",
+      "passed": false,
+      "details": "'str' object has no attribute 'get'"
+    }
+  ]
+}

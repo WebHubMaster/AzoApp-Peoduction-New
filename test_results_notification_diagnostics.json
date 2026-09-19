@@ -1,0 +1,74 @@
+[
+  {
+    "test_id": "T1",
+    "description": "Notification health endpoint",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "ready_for_push: True; fcm_enabled: True; devices.total: 0; online_partners: 7; FCM is configured (ready_for_push=true)",
+    "timestamp": "2026-09-04T20:45:30.305033"
+  },
+  {
+    "test_id": "T2",
+    "description": "Delivery logs (empty)",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "Returned 20 logs (may be empty on fresh env)",
+    "timestamp": "2026-09-04T20:45:30.444113"
+  },
+  {
+    "test_id": "T3",
+    "description": "Test push (not configured)",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "Push skipped as expected: no_devices",
+    "timestamp": "2026-09-04T20:45:30.602677"
+  },
+  {
+    "test_id": "T4",
+    "description": "Test push validation (empty user_id)",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "Validation error: user_id is required",
+    "timestamp": "2026-09-04T20:45:30.903262"
+  },
+  {
+    "test_id": "T5",
+    "description": "Test push unknown user",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "404 error: User not found",
+    "timestamp": "2026-09-04T20:45:31.044321"
+  },
+  {
+    "test_id": "T6",
+    "description": "Dispatch trace bogus ID",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "404 as expected",
+    "timestamp": "2026-09-04T20:45:31.179571"
+  },
+  {
+    "test_id": "T7",
+    "description": "Dispatch trace real booking",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "Booking: AZOTQLRED; Summary: 11 partners, 0 eligible, 0 would get notified; First partner: Raj Kumar - eligible=False, would_notify=False",
+    "timestamp": "2026-09-04T20:45:31.500134"
+  },
+  {
+    "test_id": "T8",
+    "description": "Redispatch non-searching booking",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "400 error for status 'cancelled': Booking is in status 'cancelled' \u2014 only searching bookings can be re-dispatched.",
+    "timestamp": "2026-09-04T20:45:31.821758"
+  },
+  {
+    "test_id": "T9",
+    "description": "Regressions",
+    "status": "\u2705 PASS",
+    "passed": true,
+    "details": "\u2713 GET /api/site/config: 200; \u2713 GET /api/auth/me (admin): 200; \u2713 PUT /api/auth/partner/online-status: 200; \u2713 PUT /api/admin/partner-reg/fcm-config (invalid): 400",
+    "timestamp": "2026-09-04T20:45:32.474894"
+  }
+]

@@ -1,0 +1,157 @@
+{
+  "total": 30,
+  "passed": 30,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "1.1 Customer POST /reschedule/request returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "1.2 reschedule_request.status == 'pending'",
+      "passed": true,
+      "details": "Got pending"
+    },
+    {
+      "name": "1.3 reschedule_request.requested_by_role == 'customer'",
+      "passed": true,
+      "details": "Got customer"
+    },
+    {
+      "name": "1.4 old_date/old_time/new_date/new_time populated",
+      "passed": true,
+      "details": "old_date=14 Sep 2026, old_time=07:52 PM, new_date=16 Sep 2026, new_time=04:52 PM"
+    },
+    {
+      "name": "1.5 booking.scheduled_at UNCHANGED (still original)",
+      "passed": true,
+      "details": "Expected 2026-09-14T19:52, got 2026-09-14T19:52"
+    },
+    {
+      "name": "2.1 Second request returns 409",
+      "passed": true,
+      "details": "Got 409"
+    },
+    {
+      "name": "3.1 Requester POST /reschedule/respond returns 403",
+      "passed": true,
+      "details": "Got 403"
+    },
+    {
+      "name": "4.1 Partner POST /reschedule/respond {action:'accept'} returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "4.2 scheduled_at == new value",
+      "passed": true,
+      "details": "Expected 2026-09-16T16:52, got 2026-09-16T16:52"
+    },
+    {
+      "name": "4.3 reschedule_request == null",
+      "passed": true,
+      "details": "Got None"
+    },
+    {
+      "name": "4.4 reschedule_history has accepted entry",
+      "passed": true,
+      "details": "History length: 1, statuses: ['accepted']"
+    },
+    {
+      "name": "4.5 timeline contains 'reschedule_accepted'",
+      "passed": true,
+      "details": "Timeline statuses: ['pending_payment', 'assigned', 'reschedule_requested', 'reschedule_accepted']"
+    },
+    {
+      "name": "4.6 schedule.scheduled_date reflects new date",
+      "passed": true,
+      "details": "Got 16 Sep 2026"
+    },
+    {
+      "name": "5.1 Second accept returns 404 (no pending request)",
+      "passed": true,
+      "details": "Got 404"
+    },
+    {
+      "name": "6.1 Partner POST /reschedule/request returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "6.2 requested_by_role == 'partner'",
+      "passed": true,
+      "details": "Got partner"
+    },
+    {
+      "name": "6.3 Customer POST /reschedule/respond {action:'reject'} returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "6.4 scheduled_at UNCHANGED (still from step 4)",
+      "passed": true,
+      "details": "Expected 2026-09-16T16:52, got 2026-09-16T16:52"
+    },
+    {
+      "name": "6.5 reschedule_request == null",
+      "passed": true,
+      "details": "Got None"
+    },
+    {
+      "name": "6.6 reschedule_history has rejected entry",
+      "passed": true,
+      "details": "History statuses: ['accepted', 'rejected']"
+    },
+    {
+      "name": "7.1 Customer POST /reschedule/request returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "7.2 Customer POST /reschedule/cancel returns 200",
+      "passed": true,
+      "details": "Got 200"
+    },
+    {
+      "name": "7.3 reschedule_request == null",
+      "passed": true,
+      "details": "Got None"
+    },
+    {
+      "name": "7.4 reschedule_history has cancelled entry",
+      "passed": true,
+      "details": "History statuses: ['accepted', 'rejected', 'cancelled']"
+    },
+    {
+      "name": "7.5 Partner POST /reschedule/cancel when no pending returns 404",
+      "passed": true,
+      "details": "Got 404"
+    },
+    {
+      "name": "8.1 Third party POST /reschedule/request returns 403 or 404",
+      "passed": true,
+      "details": "Got 403"
+    },
+    {
+      "name": "8.2 Third party POST /reschedule/respond returns 403 or 404",
+      "passed": true,
+      "details": "Got 403"
+    },
+    {
+      "name": "8.3 Third party POST /reschedule/cancel returns 403 or 404",
+      "passed": true,
+      "details": "Got 403"
+    },
+    {
+      "name": "9.1 Request on emergency booking returns 400",
+      "passed": true,
+      "details": "Got 400"
+    },
+    {
+      "name": "9.2 Request when no partner assigned returns 400",
+      "passed": true,
+      "details": "Got 400"
+    }
+  ]
+}

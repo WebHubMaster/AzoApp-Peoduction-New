@@ -1,0 +1,227 @@
+{
+  "total_tests": 44,
+  "passed": 44,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Customer breakdown has 'service_items'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'services_subtotal'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'additional_charges'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'subtotal'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'discount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'taxable'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'gst_pct'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'tax'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'total'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'paid'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown has 'payment_status'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Service item has 'name'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Service item has 'qty'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Service item has 'rate'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Service item has 'amount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Add-on has 'name'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Add-on has 'qty'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Add-on has 'rate'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Add-on has 'amount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Additional charge 'Emergency Fee' has amount > 0",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Additional charge 'Surge Charge' has amount > 0",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "No zero-amount charges in additional_charges",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Customer breakdown reconciles correctly",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner breakdown has 'partner_eligible_subtotal'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner breakdown has 'customer_only_charges'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner breakdown has 'customer_paid_total'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner breakdown has 'earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'base'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'partner_share_pct'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'partner_earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'platform_share_pct'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'platform_earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Earning has 'net_earning'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner additional_charges excludes platform/convenience fee",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "customer_paid_total matches customer's total",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner breakdown reconciles correctly",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Cancelled booking has refund",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Refund has 'original_amount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Refund has 'refund_pct'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Refund has 'refund_amount'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Refund has 'retained'",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "retained = original_amount - refund_amount",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner invoices endpoint returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner jobs endpoint returns 200",
+      "passed": true,
+      "details": ""
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "test_name": "PERFORMANCE BUG FIX VERIFICATION \u2014 Job Completion Latency",
+  "timestamp": "2026-09-15T13:10:30.130531",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "name": "Completion latency < 2 seconds",
+      "passed": true,
+      "details": "Elapsed time: 0.193s (PASS CRITERION: < 2s, ideally < 1s)"
+    },
+    {
+      "name": "Completion latency < 1 second (ideal)",
+      "passed": true,
+      "details": "Elapsed time: 0.193s (IDEAL: < 1s)"
+    },
+    {
+      "name": "Booking status is 'completed'",
+      "passed": true,
+      "details": "Status: completed"
+    },
+    {
+      "name": "Payment status is 'paid'",
+      "passed": true,
+      "details": "Payment status: paid"
+    },
+    {
+      "name": "Commission object present",
+      "passed": true,
+      "details": "Commission: {'id': '609dabfa-837f-4af9-90e2-3d8204b2b9f9', 'booking_id': 'b23215c7-52fa-4a50-a88b-5e24adcab36f', 'booking_code': 'AZOO83HWJ', 'partner_id': '5719040a-c01f-4b65-9360-c215012bf4f7', 'customer_id': '52f63ba3-9000-452f-a9d8-5bc57bd4b83c', 'partner_earning': 447.08, 'visiting_charge': 0.0, 'partner_total': 447.08, 'platform_gross': 111.77, 'platform_earning': 83.83, 'merchant_referral': 27.94, 'referral_merchant_id': '96e3d664-6aba-4788-85bc-ca435bc6a201', 'merchant_customer': 0.0, 'customer_merchant_id': None, 'merchant_booking': 0.0, 'merchant_id': None, 'base': 558.85, 'gross': 659.44, 'tax': 100.59, 'platform_fees': 0.0, 'platform_total': 83.83, 'rates': {'partner_pct': 80.0, 'platform_pct': 12.0, 'merchant_partner_referral_pct': 5.0, 'merchant_customer_pct': 3.0}, 'kind': 'completion', 'created_at': '2026-09-15T13:10:33.353373+00:00'}"
+    },
+    {
+      "name": "Partner earning > 0",
+      "passed": true,
+      "details": "Partner earning: 447.08"
+    },
+    {
+      "name": "OTPs cleared in response",
+      "passed": true,
+      "details": "OTPs: {}"
+    },
+    {
+      "name": "Invoice exists",
+      "passed": true,
+      "details": "Invoice: INV-2026-000074"
+    },
+    {
+      "name": "Invoice has customer_snapshot",
+      "passed": true,
+      "details": "Customer snapshot: {'name': 'Priya Verma', 'email': '', 'phone': '+919000000004', 'address': '12 MG Road, Patna, Bihar, 800001'}"
+    },
+    {
+      "name": "Invoice has partner_snapshot",
+      "passed": true,
+      "details": "Partner snapshot: {'name': 'Raj Kumar', 'email': '', 'phone': '+919000000003'}"
+    },
+    {
+      "name": "Customer snapshot has name",
+      "passed": true,
+      "details": "Customer name: Priya Verma"
+    },
+    {
+      "name": "Partner snapshot has name",
+      "passed": true,
+      "details": "Partner name: Raj Kumar"
+    },
+    {
+      "name": "Partner snapshot has phone",
+      "passed": true,
+      "details": "Partner phone: +919000000003"
+    },
+    {
+      "name": "Response body is valid booking object",
+      "passed": true,
+      "details": "Booking ID matches: b23215c7-52fa-4a50-a88b-5e24adcab36f"
+    },
+    {
+      "name": "No error fields in response",
+      "passed": true,
+      "details": "Response is clean booking object, no error fields"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0
+  },
+  "completion_latency_seconds": 0.193
+}

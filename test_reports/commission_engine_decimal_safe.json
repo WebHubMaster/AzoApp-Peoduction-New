@@ -1,0 +1,117 @@
+{
+  "total": 22,
+  "passed": 22,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Customer login successful",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Partner login successful",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Admin login successful",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Selected service: Door Repair (ID: 0476fbbb-9811-458e-90f3-32949b39d882)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Created booking: AZODN3WF3 (ID: 49e63ab7-bced-4f2b-82b8-f336e3bc9ee9)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Created payment order (mock=True)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Mock payment successful",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Booking payment_status=paid, status=searching",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Assigned booking to partner 06e41203-46a5-4fa1-845d-9cb63cf85c25",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Booking status=assigned",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Uploaded before photo: /api/media/s3/azoapp/evidence/b1cb36236eb64162abf377452601fd85.webp",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Started job with OTP",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Uploaded after photo: /api/media/s3/azoapp/evidence/bb1c35ee8c5e49afa6fdd9059160cdd5.webp",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Completed job with OTP",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Booking final status=completed",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "GET /api/partner/earnings-summary \u2192 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Found 1 recent earnings entries",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Found commission ledger entry for booking AZODN3WF3",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "\u2705 Math consistent: gross - tax - platform_commission == net_earning",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "\u2705 Math consistent: net_earning == partner_earning + visiting_charge",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "No 500 errors encountered",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "All 1 recent earnings entries have consistent math",
+      "passed": true,
+      "details": ""
+    }
+  ]
+}

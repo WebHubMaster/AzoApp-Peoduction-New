@@ -1,0 +1,28 @@
+{
+  "test_a_availability_sync": {
+    "status": "failed",
+    "details": [
+      "Error: Page.wait_for_selector: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator(\"[data-testid=\\\"availability-calendar\\\"]\") to be visible\n"
+    ]
+  },
+  "test_b_service_breakdown": {
+    "status": "skipped",
+    "details": [
+      "No active jobs available to test"
+    ]
+  },
+  "test_c_email_required": {
+    "status": "failed",
+    "details": [
+      "\u2717 Registration form not found"
+    ]
+  },
+  "test_d_reschedule_ring": {
+    "status": "partial",
+    "details": [
+      "\u2713 Both dashboards load without console errors",
+      "\u2713 Dashboards render without errors",
+      "\u26a0 Cannot test reschedule alert popup (requires cross-user orchestration)"
+    ]
+  }
+}

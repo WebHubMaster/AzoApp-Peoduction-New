@@ -1,0 +1,21 @@
+{
+  "summary": "Retested the single CRITICAL from iteration_31: partner confirm-return 403 for Starter Kit (#4). Fix verified end-to-end. Backend: partner can create a real Cashfree KIT- order and POST /api/payments/confirm-return returns 200 {ok:true, paid:false, kind:'starter_kit'} (previously 403). Partner is NOT auto-marked Pro on unpaid return. Customer confirm-return still works (no regression, no 403). Re-ran iteration_31 phase-1 suite: 9 passed, 1 skipped (invoice display_amount partner skip — pre-existing, unchanged from iter31). Frontend: /payment/return?gw=cashfree&order_id=KIT-... rendered as partner shows PaymentReturn with pending state and 'Back to dashboard' button that navigates to /partner (partner dashboard loaded successfully).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter31_phase1.py",
+    "/app/backend/tests/test_iter32_partner_return_fix.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PaymentReturn treats any error from /payments/confirm-return as 'error' state; if the token is missing the user sees an error rather than a helpful prompt to log back in. Minor UX polish, non-blocking."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter32_partner_return_fix.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Partner +919000000003 / OTP 123456; Customer +919000000004 / OTP 123456 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Created two real Cashfree sandbox KIT- orders for partner c5a769b9 during test runs (KIT-c5a769b9-5111ad17, KIT-c5a769b9-4468d307). Unpaid, no side effects on partner Pro state.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter31 CRITICAL fixed and verified in iter32. New regression test at /app/backend/tests/test_iter32_partner_return_fix.py locks in: partner can create real Cashfree kit order; partner confirm-return for KIT- returns 200/paid:false/kind:starter_kit; partner NOT marked Pro on unpaid return; customer confirm-return not 403. Frontend PaymentReturn correctly routes partners to /partner via 'Back to dashboard' button. Run tests with REACT_APP_BACKEND_URL env exported (public URL sometimes has cold-start latency — increase timeouts if flaky).",
+  "rca of the issue": "iter31 issue: POST /api/payments/confirm-return used require_role('customer'), blocking partners returning from Cashfree hosted checkout for the Starter Kit. Fix (verified): PAYER dependency now allows customer/partner/merchant. Confirmed by direct API calls and end-to-end browser flow."
+}

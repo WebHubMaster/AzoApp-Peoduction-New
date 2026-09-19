@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 6 e2e testing of the 4 new features: (1) admin Booking Dispatch Timeline Map API+UI, (2) partner 'Send me a test job ring' card, (3) Token Auto-Heal push_reregister SSE, (4) admin per-partner 'Ring' button in Live Dispatch Feed. Backend: 14/14 pytest assertions passed (new /app/backend/tests/test_timeline_testring.py + test_push_autoheal.py) including SSE delivery of the test ring (job_request with is_test=true and matching test_id) and auto-heal SSE emit. Frontend: partner test-ring accept & reject flows, admin booking-detail timeline (lanes + chronology rail + empty state), Live Dispatch Feed Ring buttons (16 rows, toast 'Test ring sent to King · push skipped — no registered device'), and Notifications > Diagnostics regression all verified with zero console errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/admin/notifications/health", "issue": "Environment state changed vs review note: web_api_key.ok is now TRUE (Installations 200, FCM Registration 400 'invalid argument' treated as ok). Not a bug, but any doc/expectation of ok=false is stale. Diagnostics UI therefore shows 'Push notifications are 100% configured' with 0 registered devices."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_timeline_testring.py",
+    "/app/backend/tests/test_push_autoheal.py",
+    "/app/test_reports/pytest/iter6_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SSE clients keep uvicorn's graceful shutdown pending ('Waiting for connections to close') — during hot-reload the backend stops answering new requests for ~30s+ while an /api/realtime/stream connection is open. Harmless in prod behind a real restart policy, but it caused intermittent 30s API read-timeouts in dev while files were saved. Consider a server-side max stream lifetime (e.g. close after 5-10 min) so reloads/deploys drain fast.",
+    "notification_admin_controller auto-heal loops over db.users.distinct('id', role in partner/admin/merchant) and emits per user — fine at this scale, but will be an O(N) fan-out on every health check that flips the flag; keep the push_key_blocked guard (currently correct/idempotent).",
+    "booking_dispatch_timeline is O(1) queries and excludes _id correctly; response has no pagination cap beyond to_list(500) — acceptable, but a booking with >500 dispatch rows would silently truncate lanes/summary."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_timeline_testring.py",
+    "/app/backend/tests/test_push_autoheal.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "seed_data_creation": "No seed changes. Test rings created a few harmless push_test_rings records (partner Raj Kumar x3, partner King x1). settings.push_key_blocked was temporarily flipped to true by the auto-heal test and was reset to false by the health check itself (verified).",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Login shortcut: /login has one-click demo buttons ('Login as Admin', 'Login as Partner') — the OTP screen uses a single pre-filled input, NOT 6 maxlength=1 boxes. Admin booking detail is NOT a route: /admin -> sidebar 'Bookings' -> tab 'Searching' -> click the row's eye button. Booking AZO282BJH (60d8ab2e-f4b0-43ec-8106-a9e67d345e9f) has 3 dispatch lanes (all timed out) and is good for timeline tests; the Pending booking AZO152A6D shows the 'Nobody has been rung yet' empty state. NoPartnerAlerts renders null when /admin/dispatch-attention returns 0 rows (that is why it is absent from the feed, expected). Run backend tests with `-n 0` and do NOT save files under /app/backend while a test is running (watchfiles reload + open SSE stream => 30s timeouts). PushRegistrar's focus/permission auto-heal could not be exercised in headless Chromium (Notification permission = denied); only the SSE push_reregister emit was verified.",
+  "rca_of_the_issue": "Two initial test failures were defects in my own test file (a substring check matching 'dispatch_id' when scanning for '_id', and assuming a dict body from /api/admin/bookings which returns a list); both fixed. The intermittent 30s API read timeouts were caused by uvicorn --reload waiting for the open SSE connection to close after I wrote test files, not by application code.",
+  "test_credentials": "Admin +919000000000 / Partner Raj +919000000003 / OTP 123456 (from /app/memory/test_credentials.md)"
+}

@@ -1,0 +1,39 @@
+{
+  "summary": "Iter41 money-rules verification: all NEW rules (tax on gross-post-discount, coupon MONSOON20 20% capped 200, admin commission validation, cancellation split, no-partner 100% refund, completion split with no separate visiting-charge credit) verified end-to-end against the live preview URL. Created /app/backend/tests/test_iter41_money_rules.py with 10 pytest test cases covering: quote+coupon+cart-quote invariants, PUT /api/admin/settings (bad-sum 98 rejected, good-sum 100 accepted, cancel-split 70/20 rejected, 80/20 accepted with restore fixture), E2E cancel-with-partner (customer +919000000004, force-assigned partner +919000000003), E2E no-partner cancel (100% refund), and E2E completion (evidence-before → start-otp → evidence-after → complete). ALL 10 PASSED (serial). Existing suites tests/test_engine_direct.py + test_iter40_dynamic_commission.py + test_decimal_money_migration.py = 34 passed + 2 skipped. Frontend: verified admin Booking Detail page for a WITH-partner cancelled booking (AZOIOS6KY) — data-testid=commission-flow visible; all 8 required testids (flow-charges, flow-discounts, flow-tax, flow-cancel, flow-partner, flow-merchants, flow-check, pay-taxable) present with numbers matching API exactly: Gross ₹616.35, Coupon −₹123.27, Taxable ₹493.08, GST ₹88.75, Total ₹581.83, Refund ₹465.46 (394.46+71.00), Retained tax ₹17.75, Cancel-charge ₹98.62, Partner ₹78.90, Merchant referral ₹4.93, Platform ₹14.79, Check ₹98.62. No console errors. Also verified no-partner cancel view AZORBG30Q renders flow-cancel with '100% refund' variant and correctly omits flow-partner/flow-merchants steps. Customer checkout Summary step (checkout-taxable/checkout-gst rows in Checkout.jsx lines 855-856 & 971-972) NOT visually verified this run — the /book wizard's 'Your Info' step needs geolocation lat/lng which is denied in the headless environment (same blocker documented in iter41). Code review confirms the testids are wired to totals.taxable / totals.gst (post-discount values from /api/bookings/cart-quote), and the API-side numbers already pass the iter41 pytest invariants, so the UI will render the same figures.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Customer Checkout → Summary/Confirm (checkout-taxable, checkout-gst rows)",
+        "issue": "Cannot reach the Summary step in headless Playwright because the /book 'Your Info' step requires geolocation (needsGps) for lat/lng and no saved address exists for the demo customer. Same blocker was reported in iter41. Code path is correct (Checkout.jsx line 855-856 & 971-972 wire testids to totals.taxable and totals.gst) and matching numbers are already validated by pytest test_cart_quote_with_coupon.",
+        "affected_selectors": ["[data-testid='checkout-taxable']", "[data-testid='checkout-gst']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter41_money_rules.py",
+    "/app/test_reports/pytest/iter41_results.xml"
+  ],
+  "action_items": [
+    "None from backend/API — all money rules verified. For fully E2E visual verification of customer Checkout Summary rows (checkout-taxable / checkout-gst) in future runs, either seed the demo customer with a saved address (skips GPS step) or allow manual pincode/city entry as fallback in Checkout.jsx (needsGps gate)."
+  ],
+  "critical_code_review_comments": [
+    "CommissionFlow.jsx renders all 6 steps with correct testids and math consistent with commission_engine output. Good.",
+    "adminSections.jsx BookingDetailPage Payment Summary card includes pay-taxable + Tax (18%) rows and reads p.taxable ?? p.commissionable_base — safe fallback for legacy bookings that only have commissionable_base.",
+    "PricingEngine invariant total == taxable+gst holds for both quote and cart-quote across coupon and non-coupon paths (verified in pytest).",
+    "Cancellation retained-share is split using commission.partner_pct (same as completion split) — the review-request wording 'the SAME rule as (3)' matches implementation. Test initially mistakenly used partner_cancellation_pct — corrected in pytest to partner_pct.",
+    "Partner wallet credit on completion equals partner_earning EXACTLY (no separate visiting-charge line) — confirmed via wallet delta 493.08 == round(base * partner_pct%, 2) for a ₹616.35 base."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter41_money_rules.py"
+  ],
+  "success_rate": {"backend": "100% (10/10 iter41 + 34/34 legacy)", "frontend": "admin panel 100% (commission-flow visual verified); customer panel not visually reachable due to GPS blocker (code path validated)"},
+  "test_credentials": "Per /app/memory/test_credentials.md — Admin +919000000000, Partner +919000000003, Customer +919000000004, Merchant +919000000002; OTP 123456; payments via /api/payments/mock.",
+  "seed_data_creation": "Multiple test bookings created by pytest E2E flows (cancelled + completed, coupon+no-coupon). All isolated per-test-run; visible in admin Bookings list.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "test_iter41_money_rules.py must be run serially with `-o addopts=` because pytest-xdist parallelism causes cross-test races on shared admin commission settings (TestAdminSettings.test_commission_sums_good temporarily flips partner_pct 80→60 which breaks a concurrent TestCancelWithPartner assertion). Serial run: `cd /app/backend && python -m pytest tests/test_iter41_money_rules.py -v -o 'addopts='`. All 10 pass in ~11s. Customer Checkout UI (checkout-taxable / checkout-gst) visual verification remains blocked by the /book wizard's needsGps requirement.",
+  "rca of the issue": "N/A — no defects found. One test-authoring correction: initial assertion used commission.partner_cancellation_pct (20%) for the retained-share split; corrected to commission.partner_pct (80%) which matches both the spec text and API behavior."
+}

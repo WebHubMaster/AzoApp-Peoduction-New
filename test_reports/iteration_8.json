@@ -1,0 +1,23 @@
+{
+  "summary": "Iteration 8: tested (1) new admin 'Ring again' endpoint POST /api/admin/bookings/{bid}/ring-partner/{pid} incl. SSE delivery + regressions, and (2) customer booking 'Progress' timeline mobile collapsible / desktop horizontal. Backend: 9/9 pytest passed (new file test_admin_ring_again.py). Frontend: admin Live Dispatch Feed 'Ring again' happy + error paths verified, customer timeline verified at 390x844 and 1920x800. No functional defects found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_admin_ring_again.py",
+    "/app/test_reports/pytest/iteration8_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SSE stream (routes/realtime_routes.py) emits real events WITHOUT an `event:` name line (only the initial 'ready' has one); the event type lives inside the JSON payload ({type,data,ts}). Works with the frontend onmessage handler, but any consumer using addEventListener('job_request') would silently miss events — worth documenting/normalising.",
+    "admin_ring_partner() pulls partner_id out of rejected_partner_ids, so a partner who already rejected can be re-rung silently — intended per spec, but no audit note is written on the booking; consider logging admin id on the dispatch row for traceability.",
+    "Repeated 'Ring again' clicks mark the previous admin_ring row as 'Timed out' within seconds, so the feed shows several Timed out admin_ring rows; correct but can confuse ops — consider a distinct 'superseded' response label."
+  ],
+  "updated_files": ["/app/backend/tests/test_admin_ring_again.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100%"},
+  "seed_data_creation": "No new entities. Ring-partner created extra booking_dispatches rows (source=admin_ring) for booking AZO282BJH / partner King, plus one test-ring row. No bookings were accepted.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend tests live in /app/backend/tests/test_admin_ring_again.py (run with `cd /app/backend && python -m pytest tests/test_admin_ring_again.py`; pytest.ini forces -n 2 --dist loadscope, so keep ring tests inside ONE class or they race on the same booking/partner and the pending-row assertion flakes). NOTE: uvicorn --reload watches /app/backend/tests, so editing a test file restarts the backend; SSE connections keep it 'waiting for connections to close' for ~30s and API calls time out — sleep ~10s after editing tests before running. Verified: ring-partner 200 payload (ok/booking/partner/push=no_devices), new admin_ring pending feed row, older pending row -> timeout, eligible/offered arrays updated, partner ring-pending shows real service_name and no is_test, SSE job_request with matching code, 400 for completed booking, 404 unknown partner/booking, 401/403 for customer+anon, test-ring + dispatch-timeline(admin_ring lane) regressions. Frontend verified: ring-again-<bid>-<pid> buttons (25 rows, label 'Ring again', zero plain 'Ring' buttons), success toast 'King ko Wiring & Fitting ka ring gaya / Real job AZO282BJH · screen ring live · push skipped — no registered device', top feed row becomes 'Admin rang again', error toast 'Booking is already completed — nothing to ring'; customer /account mobile: 16 collapsed timelines, 'All 4' -> expands 4 li items latest-on-top bold with labels+times, 'Hide' collapses; desktop 1920: mobile block hidden, horizontal dot timeline visible. No console errors (only the expected 400 from the negative ring test).",
+  "test_credentials": "Admin +919000000000, Customer +919000000004, partners King/Kundan/Chandan — OTP 123456 (send-otp returns dev_otp)",
+  "rca_of_the_issue": "N/A — no product issues. Two initial test failures were environmental/test-side: (a) SSE parser assumed `event:` name lines (fixed in test), (b) xdist ran two ring tests on the same booking concurrently, timing out each other's pending row (fixed by co-locating them in one class)."
+}

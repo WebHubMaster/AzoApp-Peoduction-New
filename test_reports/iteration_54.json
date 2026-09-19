@@ -1,0 +1,48 @@
+{
+  "summary": "Iteration 54 — Milestone-2 Partner+Merchant unified Expo app (all new feature-parity screens). Backend: 28/28 pytest tests pass covering every endpoint used by the new screens — partner earnings-summary/wallet, finance-kyc GET + PAN submit + add/set-primary/delete bank, availability calendar GET/set + online-status PUT, invoices list, rewards (challenges/leaderboard/my-bonuses), analytics, verification; shared support create→list→detail→reply→close and notifications; merchant panel commission summary+list, network stats+list, analytics, finance-kyc + banks, my-code (QR), reminders; plus cross-role auth guards. One initial support test failure was self-fixed: the message endpoint expects field `text` (not `message`) — the frontend already uses the correct field. Frontend Playwright run (mobile viewport 390x844): Auto-login + role routing still works (Partner Demo → partner tabs, Merchant Demo → merchant tabs). Floating tab bar 'More' bottom sheet opens, all `more-*` items render, tapping more-earnings pushed /partner/earnings and more-commission pushed /merchant/commission (both arrived=true) — validating that the More→onPress→router.push wiring is functional for both role layouts. All 9 partner Milestone-2 screens (earnings, invoices, bankkyc, availability, rewards, analytics, verification, notifications, support) and all 7 merchant screens (commission, network, analytics, bankkyc, scanqr, reminders, profilekyc) rendered without red-screen errors and displayed expected content (Earnings Ledger with ₹449.25 wallet, 9 invoices listed, Profile & KYC with 'Sharma Electricals · Verified Merchant', etc.). Logout from More sheet → returned to /login, and Merchant Demo login worked. React Native deprecation warnings remain from iter53: `props.pointerEvents` warning still fires from AppTabBar. Only functional gap: Merchant 'My Network' screen renders skeleton loaders indefinitely (no empty-state UX) when the network is empty — API returns 200 with empty list, but UI never shows an empty state.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "/merchant/network.tsx (My Network screen)", "issue": "Screen shows skeleton placeholders indefinitely when the merchant has no network members. GET /api/merchant/panel/network returns 200 with an empty list, but the UI never renders an 'empty' state — only the skeleton card stays visible. Add empty-state text (e.g., 'No network members yet') when the list is empty. Reference: /app/frontend/app/merchant/network.tsx", "testID": "n/a", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/partner/invoices", "issues": ["All 9 seeded invoices display '₹0' amounts — verify whether backend actually stores non-zero totals for these invoices or if the screen is reading the wrong field (e.g., using `amount` instead of `total`/`grand_total`). Cosmetic, not blocking."]}
+    ],
+    "react_native_issues": [
+      {"component": "src/components/AppTabBar.tsx", "issue": "`props.pointerEvents is deprecated. Use style.pointerEvents` — still fires on tab bar mount. Reference: /app/frontend/src/components/AppTabBar.tsx:55-56 (both root and inner containers use pointerEvents=\"box-none\" prop). Migrate to style={{ pointerEvents: 'box-none' }}."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter54_milestone2_screens.py",
+    "/app/test_reports/pytest/iter54_milestone2.xml"
+  ],
+  "action_items": [
+    "Merchant 'My Network' — add an empty-state (icon + copy) when the paged list is empty; currently loops on skeleton.",
+    "Verify Partner Invoices amounts field: seeded invoices show ₹0 across all rows; either seed data lacks totals or the row reads a wrong key.",
+    "Migrate <View pointerEvents=\"box-none\"> → style={{ pointerEvents: 'box-none' }} in /app/frontend/src/components/AppTabBar.tsx (still logs the RN deprecation warning noted in iter53).",
+    "Support MessageCreate model still uses field `text` (not `message`). Front-end already sends `text` — this is a note for future backend/frontend refactors to keep them aligned."
+  ],
+  "critical_code_review_comments": [
+    "Both (partner)/_layout.tsx and (merchant)/_layout.tsx correctly define full MoreItem[] lists with role-appropriate keys/labels/icons and delegate to router.push — matches the milestone-2 spec.",
+    "AppTabBar's More sheet delays each onPress by 120ms after closing the modal — good UX to avoid animation-jank, and Playwright can still trigger it reliably (validated with more-earnings and more-commission).",
+    "All new screens push to root stack routes under /partner/*, /merchant/*, /support/*, /notifications and are reachable via direct URL (needed for web-preview testing).",
+    "Backend endpoints for every advertised action exist and return 200 with expected shape — see the 28-test pytest run.",
+    "Support reply endpoint expects `text` (per MessageCreate model), which matches the frontend send-message call in /app/frontend/app/support/[id].tsx line 27. No mismatch.",
+    "Cross-role guards work: partner cannot read /merchant/panel/commission and merchant cannot read /partner/earnings-summary (both 401/403/404)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter54_milestone2_screens.py (new)",
+    "/app/test_reports/pytest/iter54_milestone2.xml (new)",
+    "/app/test_reports/iteration_54.json (this file)"
+  ],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "94% — 16/17 milestone-2 screens rendered with expected content; My Network shows only skeleton (no empty state)"},
+  "seed_data_creation": "None — used the existing demo accounts (partner +919000000003, merchant +919000000002) with fixed OTP 123456. Created one TEST support ticket (auto-closed by test) and one TEST bank row (409 on duplicate is tolerated).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Set REACT_APP_BACKEND_URL to the EXPO_PUBLIC_BACKEND_URL value from /app/frontend/.env before running pytest (conftest.py requires it). Fresh browser context still shows /onboarding/notifications first — click [data-testid=skip-notifications-button] to reach Login. Auto-login persists via secureStorage/localStorage, so after Partner Demo / Merchant Demo you can directly `page.goto(BASE + '/partner/earnings')` etc. Do NOT rely on `page.go_back()` between More-sheet navigations (Playwright history goes to about:blank in Expo web); instead re-open the More sheet on the home tab each time. The More sheet's items use testIDs `more-<key>` where keys are: partner → earnings, invoices, bankkyc, availability, incentives (rewards), analytics, verification, notifications, support; merchant → commission, scanqr, network, bankkyc, analytics, reminders, profilekyc, notifications, support.",
+  "rca_of_issue": "Merchant 'My Network' UI never leaves skeleton state because the render function likely returns skeleton while `data == null`, but with an empty list `data` is [] (truthy) — check the rendering condition. Fix: render an EmptyState (icon + 'No network members yet' + optional CTA) when the response array/list is empty."
+}

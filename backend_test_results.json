@@ -1,0 +1,70 @@
+{
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "pass_rate": "100.0%"
+  },
+  "results": [
+    {
+      "test": "TEST 1 - Dispatch Eligibility",
+      "status": "PASS",
+      "details": "Booking AZODY7IYW: 3 eligible partners, category+pincode gates working, offline/other-category partners excluded",
+      "timestamp": "2026-09-04 13:10:52"
+    },
+    {
+      "test": "TEST 2A - Partner Reject",
+      "status": "PASS",
+      "details": "Booking AZOJ7R057 remains 'searching' after reject (correct)",
+      "timestamp": "2026-09-04 13:10:56"
+    },
+    {
+      "test": "TEST 2B - Partner Accept",
+      "status": "PASS",
+      "details": "Booking AZOJ7R057 assigned to partner (status='assigned')",
+      "timestamp": "2026-09-04 13:10:56"
+    },
+    {
+      "test": "TEST 2C - Atomic Lock",
+      "status": "PASS",
+      "details": "Second accept correctly rejected with 403: 'You are not eligible for this job'",
+      "timestamp": "2026-09-04 13:10:56"
+    },
+    {
+      "test": "TEST 3A - In-app Notification",
+      "status": "PASS",
+      "details": "In-app notification created: 'Test Admin Notification'",
+      "timestamp": "2026-09-04 13:10:58"
+    },
+    {
+      "test": "TEST 3B - Notification Log",
+      "status": "PASS",
+      "details": "Campaign logged: recipients=1, push_delivered=0, created_at=2026-09-04T13:10:57.622532+00:00",
+      "timestamp": "2026-09-04 13:10:58"
+    },
+    {
+      "test": "TEST 3C - FCM Graceful Handling",
+      "status": "PASS",
+      "details": "No 500 error thrown when FCM unconfigured (got 200 responses)",
+      "timestamp": "2026-09-04 13:10:58"
+    },
+    {
+      "test": "TEST 4A - Evidence Upload",
+      "status": "PASS",
+      "details": "Evidence uploaded: stage=before, url=/api/media/file/evidence/000f51f7cc7d4c3e97f2e84cc64dbc3c.webp",
+      "timestamp": "2026-09-04 13:10:59"
+    },
+    {
+      "test": "TEST 4B - Evidence Persistence",
+      "status": "PASS",
+      "details": "Evidence URL found in booking.evidence.before: /api/media/file/evidence/000f51f7cc7d4c3e97f2e84cc64dbc3c.webp",
+      "timestamp": "2026-09-04 13:11:00"
+    },
+    {
+      "test": "TEST 4C - Stage Validation",
+      "status": "PASS",
+      "details": "Invalid stage correctly rejected with 400",
+      "timestamp": "2026-09-04 13:11:00"
+    }
+  ]
+}

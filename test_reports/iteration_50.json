@@ -1,0 +1,23 @@
+{
+  "summary": "Iteration 50 — Verified 'Customer & Partner Price Breakdown / Invoice Standardization'. Backend pytest suite (7 tests) all PASS. Frontend UI verified for customer (orders detail, invoice view, cancellation invoice) and partner (active jobs ServiceBreakdown, invoices modal). No forbidden strings ('Convenience Fee', 'Platform Fee', 'GST %', '18%') found in partner/merchant/customer surfaces; 'Est. Govt. Taxes' label appears exactly where required.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_price_breakdown_iter50.py",
+    "/app/test_reports/pytest/iter50_price_breakdown.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Customer service list card (data-testid=service-tax-note) is only rendered when svc.tax_pct > 0 — verified in ServiceDetail.jsx:106. Ensure services with tax_pct=0 legitimately intend to omit the note; otherwise consider always showing 'Incl. Est. Govt. Taxes' for clarity.",
+    "Checkout tax row uses `totals.gst > 0` gate (Checkout.jsx:908,1024) — with taxable items but tax=0, the row is silently omitted. Same idea as above.",
+    "Frontend route for checkout is `/book`, not `/checkout` — problem statement referenced /checkout; test scripts should target /book.",
+    "Partner earning invoice HTML/PDF does not include a tax row at all (only 'Customer Total Paid' and 'Total Partner Earning'). This is intentional and compliant, but worth documenting so future regressions don't misinterpret it as missing data."
+  ],
+  "updated_files": ["/app/backend/tests/test_price_breakdown_iter50.py"],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "100% verified"},
+  "test_credentials": "Customer +919000000004, Partner +919000000003, Merchant +919000000002, OTP 123456 (also demo login buttons on /login).",
+  "seed_data_creation": "None; used existing seeded bookings/invoices.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend: `pytest backend/tests/test_price_breakdown_iter50.py` with REACT_APP_BACKEND_URL exported. Tests cover: (1) customer /api/bookings + /api/bookings/{id} contain reconciling breakdown (services_subtotal + charges - discount = taxable; taxable + tax = total, ±0.01) — PASS. (2) partner /api/bookings, /api/bookings/partner/jobs, /api/bookings/partner/active, /api/bookings/{id} contain no convenience_fee/platform_fee keys anywhere — PASS. (3) merchant /api/bookings — no fee keys — PASS. (4) customer /api/invoices/{id}/view HTML strips base64 font blob then asserts 'Est. Govt. Taxes' present + no GST% + no 'GST / Tax' + PDF via pypdf extracts same — PASS. (5) cancellation-type invoice HTML — no GST% — PASS. (6) partner booking invoice HTML+PDF — no GST%, no 'Convenience', no 'Platform Fee' (tax row not rendered on partner earning invoice which is compliant) — PASS. Frontend: verified via demo login buttons on /login. Customer /account?tab=orders → click details-<code> → PAYMENT SUMMARY shows Service Amount / Taxable Amount / 'Est. Govt. Taxes' / Total Booking Amount with no %/GST/18%. Customer /account?tab=invoices → invoice-view-INV-... modal shows 'Est. Govt. Taxes' row. Partner /partner?tab=active → data-testid=details-collapse-<code> expand → ServiceBreakdown (data-testid=service-breakdown, total-service-amount) shows 'Excl. taxes' / 'Services total (excl. taxes)' / 'Total Service Amount (excl. taxes)' with no Convenience/Platform Fee, no GST%. Partner /partner?tab=invoices → invoice-view-INV-... modal shows 'Est. Govt. Taxes' row, no fee names. Merchant home page free of Convenience/Platform/GST%. NOTE: Checkout route is /book not /checkout; ServiceDetail service-tax-note only renders when svc.tax_pct > 0; checkout-gst row only renders when totals.gst > 0 — for the seeded service tested, tax_pct=0 so note absent (compliant since nothing to hide). If retesting, use a service whose rate card has tax_pct > 0 to see the note text ('+ Est. Govt. Taxes' or 'Incl. Est. Govt. Taxes')."
+}

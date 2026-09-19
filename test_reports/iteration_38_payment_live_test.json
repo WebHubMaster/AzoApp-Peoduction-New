@@ -1,0 +1,185 @@
+{
+  "iteration": 38,
+  "test_sequence": 38,
+  "timestamp": "2026-09-09T02:45:31.303500",
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "results": {
+    "scenario_a": {
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "GET /api/admin/payments/status returns 200",
+          "passed": true,
+          "details": "Response keys: ['payin', 'payout', 'gateways']"
+        },
+        {
+          "name": "payin has all required keys",
+          "passed": true,
+          "details": "gateway=razorpay, mode=test, env=sandbox, configured=False"
+        },
+        {
+          "name": "payout has all required keys",
+          "passed": true,
+          "details": "gateway=razorpay, mode=test, env=sandbox, configured=False"
+        },
+        {
+          "name": "gateways.payin[] has correct structure",
+          "passed": true,
+          "details": "Sample: gateway=razorpay, enabled=False, active_mode=test, test_configured=False, live_configured=False"
+        },
+        {
+          "name": "gateways.payout[] has correct structure",
+          "passed": true,
+          "details": "Sample: gateway=razorpay, enabled=False, active_mode=test, test_configured=False, live_configured=False"
+        },
+        {
+          "name": "Default payin state correct (razorpay, not configured)",
+          "passed": true,
+          "details": "gateway=razorpay, configured=False"
+        },
+        {
+          "name": "Non-admin (customer) \u2192 403",
+          "passed": true,
+          "details": "Customer correctly denied access"
+        }
+      ]
+    },
+    "scenario_b": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Activation guard blocks incomplete live mode",
+          "passed": true,
+          "details": "Got 400 with correct error: {\"detail\":\"Cannot activate Cashfree LIVE MODE \u2014 live pay-in credentials are incomplete.\"}"
+        },
+        {
+          "name": "PUT with live creds succeeds",
+          "passed": true,
+          "details": "Settings updated successfully"
+        },
+        {
+          "name": "Status shows cashfree live configured",
+          "passed": true,
+          "details": "gateway=cashfree, mode=live, configured=True"
+        }
+      ]
+    },
+    "scenario_c": {
+      "passed": 4,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "No-mixing: live mode with test creds \u2192 400",
+          "passed": true,
+          "details": "Got 400 (no fallback): {\"detail\":\"Cannot activate Cashfree LIVE MODE \u2014 live pay-in credentials are incomplete.\"}"
+        },
+        {
+          "name": "PUT cashfree_mode='test' succeeds",
+          "passed": true,
+          "details": "Settings updated successfully"
+        },
+        {
+          "name": "Status shows cashfree test configured",
+          "passed": true,
+          "details": "active_mode=test, test_configured=True"
+        },
+        {
+          "name": "Active payin shows configured in test mode",
+          "passed": true,
+          "details": "payin.configured=True, payin.mode=test"
+        }
+      ]
+    },
+    "scenario_d": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Deep-merge: sibling keys preserved",
+          "passed": true,
+          "details": "Found sibling keys: razorpay_enabled, razorpay_mode, sms_provider"
+        }
+      ]
+    },
+    "scenario_e": {
+      "passed": 5,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "RESET to unconfigured razorpay",
+          "passed": true,
+          "details": "Settings reset successfully"
+        },
+        {
+          "name": "Create booking",
+          "passed": true,
+          "details": "Booking created: AZONU7FA4, id=validation-updates"
+        },
+        {
+          "name": "POST /api/payments/order \u2192 {mock:true}",
+          "passed": true,
+          "details": "Mock payment order created: {'mock': True, 'amount': 505.74, 'purpose': 'booking'}"
+        },
+        {
+          "name": "POST /api/payments/mock succeeds",
+          "passed": true,
+          "details": "Mock payment confirmed: {'ok': True, 'booking_id': '05c7c0c3-15bd-4509-8120-fb72eaabd576'}"
+        },
+        {
+          "name": "Booking has snapshot fields (pay_gateway, pay_mode, pay_env, pay_mock=true)",
+          "passed": true,
+          "details": "pay_gateway=razorpay, pay_mode=test, pay_env=sandbox, pay_mock=True"
+        }
+      ]
+    },
+    "scenario_f": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Create and pay booking",
+          "passed": true,
+          "details": "Booking AZOYGGR43 paid"
+        },
+        {
+          "name": "Cancel booking",
+          "passed": true,
+          "details": "Booking cancelled successfully"
+        },
+        {
+          "name": "Refund has snapshot fields (pay_gateway, pay_mode, pay_env)",
+          "passed": true,
+          "details": "pay_gateway=razorpay, pay_mode=test, pay_env=sandbox"
+        }
+      ]
+    },
+    "scenario_g": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "PUT active_payout_gateway='cashfree' succeeds",
+          "passed": true,
+          "details": "Settings updated successfully"
+        },
+        {
+          "name": "Status shows payout.gateway='cashfree'",
+          "passed": true,
+          "details": "payout.gateway=cashfree"
+        },
+        {
+          "name": "PUT back active_payout_gateway='razorpay' succeeds",
+          "passed": true,
+          "details": "Settings restored successfully"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_passed": 26,
+    "total_failed": 0,
+    "all_passed": true
+  }
+}

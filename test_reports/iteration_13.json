@@ -1,0 +1,36 @@
+{
+  "summary": "Frontend-only regression of the 4 redesigned merchant modules (Wallet & Withdraw, Commission, Bank & KYC, Profile & KYC) on desktop 1920x1080, dark mode, and mobile 390x844. Login via '/login' -> 'Login as Merchant' (Sharma Electricals, +919000000002, OTP 123456) works and lands on /merchant. All four modules render, all listed data-testid hooks are present, KYC gating on the Withdraw button works as designed, dark mode is readable across all 4 modules, and the mobile bottom-nav + Transactions cards render as expected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Commission -> Chart (recharts)", "issues": ["Console still prints repeated warning 'The width(-1) and height(-1) of chart should be greater than 0'. Same warning already existed in iteration_12; ResponsiveContainer parents in FinanceKit / CommissionModule need an explicit height/aspect or minWidth/minHeight to remove the warning. Cosmetic (console-only)."]},
+      {"screen": "React hydration warning (My Network page-size <option>)", "issues": ["Repeat from iteration_12: '<span> cannot be a child of <option>' warning from /app/frontend/src/pages/merchant/NetworkParts.jsx <option> for page-size 10. Pre-existing, unrelated to redesign."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low, pre-existing) Fix Recharts ResponsiveContainer parent sizing to remove width(-1)/height(-1) console warnings on load and on chart-range toggles.",
+    "(Low, pre-existing) Clean the <option><span> hydration warning in NetworkParts.jsx."
+  ],
+  "critical_code_review_comments": [
+    "WALLET MODULE PASS: data-testid='wallet-module' present. Hero shows Available ₹25,272.82 with Withdrawable/Pending/Withdrawn and Withdraw Money CTA. KYC blocker banner (data-testid='wallet-kyc-blocker') is rendered ('Complete Bank & KYC to withdraw · Pending: PAN card not verified, No verified bank account'). Clicking 'Withdraw Money' does NOT open the multi-step withdraw dialog (verified: no modal / withdraw-step-1 / dialog appears) — KYC gate works as designed. kpi-total-earned, kpi-commission, kpi-processing render.",
+    "WALLET TABS PASS: tab-overview / tab-transactions / tab-withdrawals all present. Transactions tab renders wallet-tx-table with pagination-info + page-next on desktop; clicking a row opens wallet-tx-drawer. Withdrawals tab renders the empty-state ('No withdrawals yet').",
+    "COMMISSION MODULE PASS: commission-module present. All 4 KPI cards render real values (Total ₹13,832.03 · This Month ₹235.21 · Pending ₹5,751.88 · Paid ₹1,071.01). commission-chart renders and range toggles comm-range-7d/30d/3m/6m/1y all present + clickable (30d toggle verified working). commission-breakdown shows Service ₹5,872.91 (42.5%) / Network ₹5,134.40 (37.1%) / Referral ₹2,824.72 (20.4%). commission-table + comm-search + comm-type + comm-status + comm-sort + comm-export all present. Row click opens comm-drawer (verified).",
+    "BANK & KYC MODULE PASS: page renders with 'Complete KYC to withdraw · Pending: PAN card not verified, No verified bank account · 0/2 verified' hero, mfk-pan-card with mfk-pan-number + mfk-pan-upload + mfk-submit-pan, mfk-banks-card empty-state with mfk-add-bank-btn -> mfk-bank-form containing mfk-bank-holder/name/acc/acc2/ifsc/type and security note at bottom. Note: sub-testid probes on the very first navigation attempt returned false transiently (likely a timing artefact — DOM screenshot confirms all elements are present); no functional issue.",
+    "PROFILE & KYC MODULE PASS: reg-embedded + reg-approved banner render, reg-stepper renders 4 steps mstep-basic/mstep-shop/mstep-address/mstep-review, reg-view-nav + reg-view-next + reg-view-back present, and Next paging through Owner -> Shop -> Address -> Review renders view-only cards with real merchant data (Sharma Electricals, +919000000002, GST 10ABCDE1234F1Z5, Shop 12 Boring Road Patna, etc.) with no runtime errors. Note: inner data-testid='merchant-registration' is only mounted when the component is used stand-alone; in embedded mode (from MerchantDashboard) it renders reg-embedded wrapper instead — this is by design.",
+    "DARK MODE PASS: theme-toggle flips <html> class to 'dark'; Wallet + Commission modules re-rendered in dark are readable (no white-on-white); tables, KPI cards, drawers, and chart legend all styled for dark.",
+    "MOBILE (390x844) PASS: bottom nav (Home/Customers/Scan QR/Wallet/More) is used instead of the desktop sidebar. Wallet -> Transactions renders a stacked list of transaction cards (not a squeezed table); wallet-tx-table is hidden on mobile. Bank & KYC and Profile & KYC stack cleanly. (Note: mobile Commission requires opening the 'More' sheet -> tap 'Commission'; comm-filter-open trigger exists per code and is used to open the mobile filter sheet.)",
+    "REGRESSION PASS: Home dashboard, My Customers, Service Reminders, My Network, Analytics, My Invoices all still open without runtime errors. No 'Top Customers' sidebar entry, no 'Network Tree' toggle — cleanup from iteration_12 remains intact.",
+    "Nav id nit (carry-over from iteration_12): the Commission sidebar item uses data-testid='nav-earnings' (label 'Commission'); this problem-statement spec explicitly acknowledges it. Consider standardising to 'nav-commission' in a future pass."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% for the 4 redesigned modules on desktop, dark mode, and mobile"},
+  "test_credentials": "Merchant demo: /login -> click 'Login as Merchant' (phone 9000000002, OTP 123456)",
+  "seed_data_creation": "None — used existing seeded Sharma Electricals merchant.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All four premium fintech modules (Wallet & Withdraw, Commission, Bank & KYC, Profile & KYC) are functionally verified end-to-end on desktop + mobile + dark mode with real backend data and no runtime errors. KYC gating on the Withdraw button is correct: for this approved-but-KYC-incomplete demo merchant, clicking Withdraw does not open the withdraw modal (it surfaces the blocker card + a 'Complete Bank & KYC' CTA). To exercise the full multi-step withdraw flow, a merchant with verified PAN + verified bank is required (not in seed data for +919000000002). Console still has two pre-existing cosmetic warnings (Recharts container size and NetworkParts <option><span>) — non-blocking.",
+  "rca of the issue": "N/A — no functional issues found."
+}

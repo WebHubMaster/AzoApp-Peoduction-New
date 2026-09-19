@@ -1,0 +1,60 @@
+{
+  "summary": "Iteration 2 full re-verification: all 5 CRITICAL security issues from iteration 1 are FIXED (role-from-phone auth, booking ownership, OTP whitelist, atomic accept, pay/review guards). Backend: 148 pytest tests pass (100%), including a new suite (test_erp_admin.py, 41 tests) for the new ERP modules: payouts, refunds, tickets, notifications, CMS (banners/blogs/faqs/plans) CRUD + public content, catalog admin CRUD, system-users, dashboard extras, review rating bounds. Frontend: login (single phone+OTP, no role picker) + all 4 one-tap demo logins route to correct panels; all 20 admin nav sections load with zero console/compile errors; booking-detail modal with timeline/pricing/commission/refund works; CMS create+delete, notification send, demo-mode switch render correctly. Full money flow verified end-to-end THROUGH the UI: customer books with AZO50 coupon (₹624.2 -> ₹474.2) -> partner sees + accepts -> start OTP -> evidence -> complete (partner wallet credited ₹374.25, merchant lifetime referral credited) -> customer pays (Paid) -> review. 3 NEW backend validation defects found in the new admin refund/payout endpoints (money-affecting).",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/admin/refunds", "issue": "No validation at all: (1) refund allowed on a booking that was never paid (status=searching) — verified 200; (2) amount can exceed booking total (refunded 5x total = ₹12,148 and credited to customer wallet); (3) negative amount accepted (-100) which DEBITS the customer wallet and writes a 'credit' transaction; (4) unlimited repeat refunds for same booking. Needs: payment_status=='paid' check, amount>0 (Pydantic gt=0), amount <= booking total minus already-refunded, and idempotency/duplicate guard.", "priority": "CRITICAL"},
+      {"endpoint": "POST /api/admin/payouts/{id}?status=", "issue": "`status` is a raw query string with no enum validation — `?status=bogus_status` returns 200 and persists that value, leaving the payout in an invalid state (no wallet deduction, disappears from pending count, cannot be reprocessed because status != 'pending'). Restrict to approved|rejected via Literal/Enum.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/catalog/categories", "issue": "CategoryCreate model has no `required_skill` field, so the admin UI 'Required skill' input is silently dropped. ServicesManager then falls back to `cat?.required_skill` (always undefined) => services created from admin UI get required_skill='' and become eligible for EVERY partner in the matching engine."},
+      {"endpoint": "/api/catalog/categories", "issue": "No PUT/DELETE for categories — admin can create but never edit/remove; orphan categories immediately show as chips on the public /services page (2 leftover TEST_Category chips were visible; I cleaned them from Mongo)."},
+      {"endpoint": "POST /api/catalog/services", "issue": "Unknown category_id is accepted (category_name set to empty string) instead of 404."},
+      {"endpoint": "PUT /api/admin/{banners|blogs|faqs|plans}/{id} and PUT /api/catalog/services/{id}", "issue": "Body typed as raw `dict` — no Pydantic validation; arbitrary keys (even `id`) can be injected into the document."},
+      {"endpoint": "GET /api/admin/system-users", "issue": "Returns full user documents including internal fields; consider a projection (no security break — role filter admin/staff verified correct)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "CustomerDashboard rate flow", "issue": "The 'Rate' button posts a HARDCODED rating:5 with comment 'Great service!' — the customer cannot choose a rating or write a comment, and it silently inflates partner ratings. Needs a star-picker dialog.", "selector": "[data-testid^=\"review-\"]", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard", "issues": ["'Platform Revenue (recent)' chart renders a single day as one solid full-width blue block ~120px tall — looks like a broken div rather than a bar chart; add min-bar-width/x-axis padding or an empty/single-point state.", "Top Providers list showed duplicate 'TEST_ Onboarded Partner' rows created by automated suites — recommend prefix-based test-data cleanup or excluding 0-job partners from the top-5."]},
+      {"screen": "Partner active jobs", "issues": ["OTP input is w-44 with placeholder 'Enter Customer Start OTP' clipped mid-word; widen the field or shorten the placeholder."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_erp_admin.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/test_singlelogin_demo.py",
+    "/app/backend/tests/cleanup_test_data.py",
+    "/app/backend/tests/cleanup_refund_probe.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Harden POST /api/admin/refunds: require booking payment_status=='paid', amount>0 (Pydantic Field(gt=0)), amount + already_refunded <= booking total, and block duplicate refunds.",
+    "Validate payout status with an Enum/Literal('approved','rejected') in POST /api/admin/payouts/{id}.",
+    "Add required_skill (and image/status) to CategoryCreate so the admin category form isn't silently dropped; add PUT/DELETE /api/catalog/categories/{id}.",
+    "Replace hardcoded rating:5 in CustomerDashboard.review() with a star + comment dialog.",
+    "Return 404 from POST /api/catalog/services when category_id doesn't exist; type CMS/service PUT bodies with Pydantic models.",
+    "Polish the admin revenue chart for the single-data-point case."
+  ],
+  "critical_code_review_comments": [
+    "content_controller.create_refund() mutates user wallet with a completely unvalidated amount — this is a direct money-loss/money-print path for any admin token or CSRF-style mistake.",
+    "content_routes.process_payout() passes the query param straight into the DB; unvalidated free-text status values silently corrupt the payout state machine.",
+    "Security fixes verified good: _authorize() + _visible_otps() whitelist (partner gets {}), atomic accept via update_one({status:'searching'}), _partner_owns() on shop/start/evidence/complete, pay only for owner+completed+idempotent, review once with ge=1/le=5 (0 and 6 -> 422) and correctly recomputed (non-doubled) partner average.",
+    "verify_otp never trusts a client role — extra 'role' in payload is ignored and unknown phones can only become customers; demo accounts are 403-blocked when demo_mode=false and restored afterwards (verified, demo_mode left ON)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_erp_admin.py (new)",
+    "/app/backend/tests/cleanup_test_data.py (new, cleanup utility)",
+    "/app/backend/tests/cleanup_refund_probe.py (new, cleanup utility)"
+  ],
+  "success_rate": {"backend": "100% (148/148 pytest); 3 validation defects found via targeted probes outside the suite", "frontend": "95% (all flows work; 1 functional gap = hardcoded review rating, plus 3 design nits)"},
+  "seed_data_creation": "Used only seeded demo accounts. Created and then removed TEST_ CMS docs, TEST_Category/TEST_Service, TEST_ notifications/tickets. Created bookings AZO40528 (completed+paid+reviewed via UI) and payout/refund rows; refund-probe wallet impact (₹12,098 + ₹25) was fully reverted and demo_mode confirmed back ON.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Demo OTP 123456 — admin +919000000000, merchant +919000000002, partner +919000000003/+919000000005, customer +919000000004 (/app/memory/test_credentials.md). NOTE: the credentials file still documents the OLD flow with a `role` field in send-otp/verify-otp — update it to the single-login flow.",
+  "context_for_next_testing_agent": "Backend suites: backend_test.py (core+security), test_singlelogin_demo.py (role-from-phone, demo mode, security regression v2), test_erp_admin.py (iteration-2 ERP modules). conftest.login() never sends a role. Run `pytest tests/` from /app/backend (pytest.ini forces -n 2 --dist loadscope). After runs, execute tests/cleanup_test_data.py to purge TEST_ artefacts. Not yet retested: refund/payout validation fixes (see action items) and the admin Tickets reply UI (backend-only tested; the section had no rows after cleanup). Merchant panel UI (onboard partner / book for customer) was validated via API only.",
+  "rca_of_the_issue": "The new admin finance endpoints were wired as thin pass-throughs: create_refund(booking_id, amount, reason) takes float query params directly and calls db.users.update_one($inc wallet_balance) without any state or bound check, so any amount (including negative or multiples of the booking total, on unpaid bookings) mutates the customer wallet. Similarly approve_payout only checks status=='pending' but never validates the incoming status value. Reproduce: admin token -> POST /api/admin/refunds?booking_id=<searching booking>&amount=-100 (returns 200, wallet debited) and POST /api/admin/payouts/<id>?status=bogus_status (returns 200, persisted). Mitigation: Pydantic request models with Field(gt=0)/Literal status, plus booking payment_status and cumulative-refund checks."
+}

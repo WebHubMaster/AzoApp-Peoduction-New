@@ -1,0 +1,259 @@
+{
+  "total_tests": 42,
+  "passed": 38,
+  "failed": 4,
+  "tests": [
+    {
+      "name": "BOTH OFF - Set fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "apply_convenience=False, pct=0, apply_platform=False, amt=0"
+    },
+    {
+      "name": "BOTH OFF - Settings persisted",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "convenience: False/0, platform: False/0"
+    },
+    {
+      "name": "BOTH OFF - Create booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Booking ID: cbb0f694-673a-49ae-844c-6ed31831bd2f"
+    },
+    {
+      "name": "BOTH OFF - Customer pricing shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 0.0 (expected 0.0), plat_fee: 0.0 (expected 0.0), taxable: 443.85 (expected 443.85), total: 523.74 (expected 523.74)"
+    },
+    {
+      "name": "BOTH OFF - Pay booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "BOTH OFF - Assign partner",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "BOTH OFF - Partner breakdown hides fees",
+      "status": "\u274c FAIL",
+      "passed": false,
+      "details": "Failed to get booking: 403 {\"detail\":\"Not your booking\"}"
+    },
+    {
+      "name": "BOTH OFF - Partner invoice hides fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "BOTH OFF - Admin sees all fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 0.0, plat_fee: 0.0, breakdown keys: ['surge', 'visiting_charge']"
+    },
+    {
+      "name": "BOTH OFF - Customer invoice shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "CONVENIENCE ON - Set fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "apply_convenience=True, pct=5, apply_platform=False, amt=0"
+    },
+    {
+      "name": "CONVENIENCE ON - Settings persisted",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "convenience: True/5, platform: False/0"
+    },
+    {
+      "name": "CONVENIENCE ON - Create booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Booking ID: 8b98fa44-74a9-4d1d-8435-f43a9eeb8893"
+    },
+    {
+      "name": "CONVENIENCE ON - Customer pricing shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 22.19 (expected 22.19), plat_fee: 0.0 (expected 0.0), taxable: 466.04 (expected 466.04), total: 549.93 (expected 549.9300000000001)"
+    },
+    {
+      "name": "CONVENIENCE ON - Pay booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "CONVENIENCE ON - Assign partner",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "CONVENIENCE ON - Partner breakdown hides fees",
+      "status": "\u274c FAIL",
+      "passed": false,
+      "details": "Failed to get booking: 403 {\"detail\":\"Not your booking\"}"
+    },
+    {
+      "name": "CONVENIENCE ON - Partner invoice hides fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "CONVENIENCE ON - Admin sees all fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 22.19, plat_fee: 0.0, breakdown keys: ['surge', 'visiting_charge', 'convenience_fee']"
+    },
+    {
+      "name": "CONVENIENCE ON - Customer invoice shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "PLATFORM ON - Set fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "apply_convenience=False, pct=0, apply_platform=True, amt=30"
+    },
+    {
+      "name": "PLATFORM ON - Settings persisted",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "convenience: False/0, platform: True/30"
+    },
+    {
+      "name": "PLATFORM ON - Create booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Booking ID: db37ad5e-3d96-47a2-bc8d-332915e392f8"
+    },
+    {
+      "name": "PLATFORM ON - Customer pricing shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 0.0 (expected 0.0), plat_fee: 30.0 (expected 30.0), taxable: 473.85 (expected 473.85), total: 559.14 (expected 559.14)"
+    },
+    {
+      "name": "PLATFORM ON - Pay booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "PLATFORM ON - Assign partner",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "PLATFORM ON - Partner breakdown hides fees",
+      "status": "\u274c FAIL",
+      "passed": false,
+      "details": "Failed to get booking: 403 {\"detail\":\"Not your booking\"}"
+    },
+    {
+      "name": "PLATFORM ON - Partner invoice hides fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "PLATFORM ON - Admin sees all fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 0.0, plat_fee: 30.0, breakdown keys: ['surge', 'visiting_charge', 'platform_fee']"
+    },
+    {
+      "name": "PLATFORM ON - Customer invoice shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "BOTH ON - Set fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "apply_convenience=True, pct=5, apply_platform=True, amt=30"
+    },
+    {
+      "name": "BOTH ON - Settings persisted",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "convenience: True/5, platform: True/30"
+    },
+    {
+      "name": "BOTH ON - Create booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Booking ID: f990b7e7-f91e-45a3-9e6e-ec5f7e565ecb"
+    },
+    {
+      "name": "BOTH ON - Customer pricing shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 22.19 (expected 22.19), plat_fee: 30.0 (expected 30.0), taxable: 496.04 (expected 496.04), total: 585.33 (expected 585.33)"
+    },
+    {
+      "name": "BOTH ON - Pay booking",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "BOTH ON - Assign partner",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "BOTH ON - Partner breakdown hides fees",
+      "status": "\u274c FAIL",
+      "passed": false,
+      "details": "Failed to get booking: 403 {\"detail\":\"Not your booking\"}"
+    },
+    {
+      "name": "BOTH ON - Partner invoice hides fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "BOTH ON - Admin sees all fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 22.19, plat_fee: 30.0, breakdown keys: ['surge', 'visiting_charge', 'convenience_fee', 'platform_fee']"
+    },
+    {
+      "name": "BOTH ON - Customer invoice shows fees",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "Invoice not yet generated (booking not completed)"
+    },
+    {
+      "name": "Historical - Change settings to OFF/OFF",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "Historical - Old booking amounts unchanged",
+      "status": "\u2705 PASS",
+      "passed": true,
+      "details": "conv_fee: 22.19 (was 22.19), plat_fee: 30.0 (was 30.0)"
+    }
+  ]
+}

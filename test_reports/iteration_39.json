@@ -1,0 +1,34 @@
+{
+  "summary": "Decimal-safe money migration regression check. Wrote /app/backend/tests/test_decimal_money_migration.py covering: single-service quote (emergency+GST reconciliation), multi-service cart-quote (qty>1 + 2 services, per-order fees applied once, total reconciles), partner /wallet + /earnings-summary 2dp + math consistency (gross-tax-net==platform_commission), partner withdrawal UPI reject 400, merchant /wallet (nested summary) 2dp + total_earned==referral+customer, merchant withdrawal UPI reject 400, guest cart-quote no-500 safety. All 8 pytest cases PASSED. No 500s, no Decimal-vs-float TypeErrors observed. Previous CommissionEngine full-lifecycle test (commission_engine_decimal_safe.json, 22/22) still valid — earnings-summary math re-verified against live ledger.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/bookings/quote vs POST /api/bookings/cart-quote", "issue": "Cross-endpoint inconsistency in GST base: engines.PricingEngine.compute EXCLUDES visiting_charge from `taxable` (spec: VC is a reimbursement, not a taxable supply), but controllers.booking_controller.cart_quote sets taxable = subtotal + conv + plat where subtotal INCLUDES visiting_charge → GST is charged on VC in cart-quote. Pre-existing (not caused by Decimal migration) but the migration is a good time to align. Both totals still self-reconcile within their own endpoint."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_decimal_money_migration.py",
+    "/app/test_reports/pytest/decimal_money_migration.xml"
+  ],
+  "action_items": [
+    "OPTIONAL/PRE-EXISTING: Align GST tax base between single-service quote (VC excluded) and cart-quote (VC currently included) — decide the intended semantic and update the other side. Not a Decimal-migration blocker."
+  ],
+  "critical_code_review_comments": [
+    "money.py helpers are clean and self-consistent (ROUND_HALF_UP, Decimal via str). Good.",
+    "engines.PricingEngine.compute: taxable EXCLUDES visiting_charge (matches spec comment on line 168-170).",
+    "booking_controller.cart_quote (line 324): taxable = subtotal + conv + plat, and subtotal already includes visiting_charge → VC ends up in the tax base. Divergence from PricingEngine.compute. Recommend either (a) taxable = subtotal - visiting_charge + conv + plat, or (b) update spec/single-quote to include VC. Total math still balances within cart_quote itself.",
+    "partner_service.request_withdrawal: correctly rejects non-bank methods with 400 (UPI removed). Good.",
+    "merchant_wallet_service.request_withdrawal: same UPI rejection path via `method not in ('bank','cheque')`. Good.",
+    "partner_service.wallet_summary + earnings_summary: all outputs quantized via money.money/money.add — verified 2dp in live response."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_decimal_money_migration.py (new)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "n/a — backend-only per request"},
+  "test_credentials": "Demo OTP 123456 for +919000000000 (admin), +919000000002 (merchant), +919000000003 (partner), +919000000004 (customer) — as documented in /app/memory/test_credentials.md.",
+  "seed_data_creation": "None. Tests are read-only on money math except for the UPI-rejection POSTs which fail-fast at validation with no side-effects.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "For a fuller end-to-end regression run the previous test file test_engine_direct/test_visiting_charge_tax and the earlier commission_engine_decimal_safe run (22/22 passed) alongside test_decimal_money_migration.py. The pre-existing VC-in-cart-quote-tax vs VC-not-in-single-quote-tax inconsistency is documented under backend_issues.minor and is NOT a Decimal-migration regression."
+}

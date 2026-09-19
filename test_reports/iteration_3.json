@@ -1,0 +1,67 @@
+{
+  "summary": "Phase-3 (Fast2SMS OTP fallback, admin integrations config, Razorpay dev-mock payments, Google login gating, Profile editor) tested end-to-end. Backend: added /app/backend/tests/test_integrations_phase3.py (26 tests) and fixed 2 stale tests in test_erp_admin.py; full suite 174/174 pass against the public preview URL. Frontend: verified login page (email form, WhatsApp/Google fallback + hint toast, demo logins), non-demo dev-OTP login end-to-end, Profile Editor (all fields + admin gating + save + base64 photo upload/persistence), Wallet dev-mock top-up (balance 6050 -> 6350 + txn), booking Pay via /payments/order+/payments/mock (booking flipped Completed -> Paid). One CRITICAL admin UI bug found: Integrations/API text inputs lose focus after every keystroke, so the owner cannot type API keys - this defeats the whole purpose of this phase.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "POST /api/wallet/topup", "issue": "Any authenticated user can credit their own wallet with an arbitrary amount (<=100000) with NO payment/gateway/admin check. Free-money hole that completely bypasses the new Razorpay/dev-mock payment flow (/api/payments/*). Should be admin-only or routed through payments.", "priority": "CRITICAL"},
+      {"endpoint": "POST /api/payments/mock", "issue": "Gateway-configured detection is done by actually calling razorpay create_order(1,'probe'). Once live keys are pasted this creates real junk Rs.1 orders in the owner's Razorpay account on every mock attempt. Detect configuration from settings instead of creating an order.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/payments/mock (purpose=booking)", "issue": "Marks the booking paid and inserts a wallet DEBIT transaction of the booking total but never decrements users.wallet_balance -> wallet balance and transaction ledger do not reconcile (UI shows -Rs.624.2 'Payment' rows while balance is unchanged). Gateway payments should not create wallet debit txns (or must also debit)."},
+      {"endpoint": "POST /api/payments/order|mock (already-paid booking)", "issue": "Returns 400 'Payment allowed only after service completion' instead of 'Already paid' because status flips to 'paid' and the completed-check runs before the paid-check in _booking_for_pay. Misleading message."},
+      {"endpoint": "POST /api/bookings/{id}/pay", "issue": "Legacy payment endpoint still marks a booking paid without any gateway/mock interaction, duplicating /api/payments/*. Should be removed or delegated to payment_controller to keep one payment path."},
+      {"endpoint": "PUT /api/admin/settings", "issue": "admin_controller.update_settings writes the whole payload into audit_logs.detail as plain text, so Fast2SMS API keys / Razorpay secrets / Google client secret are stored in cleartext in audit logs. Mask secret keys before logging."},
+      {"endpoint": "PUT /api/auth/profile", "issue": "No server-side size limit on the base64 'photo' field (frontend-only 2MB guard); a direct API call can push a multi-MB document into Mongo."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "adminSections.jsx IntegrationsSettings", "issue": "CRITICAL: every text field loses focus after the first character. Typing 'ABCDEFGH' into the Fast2SMS API key left only 'A' (verified, value persisted as 'A' after save+reload). Root cause: `Txt` and `Tog` are components DECLARED INSIDE the render body (lines 432-433), so a new component type is created on each state change and React unmounts/remounts the input on every keystroke. Owner literally cannot type Fast2SMS/Razorpay/Google credentials. Fix: hoist Txt/Tog outside the component (memoized, receiving value+onChange), or inline the JSX/map like CommissionSettings does.", "selector": "[data-testid=\"int-fast2sms_api_key\"]", "priority": "CRITICAL"},
+      {"component": "adminSections.jsx IntegrationsSettings", "issue": "Secret fields (Fast2SMS API key, Razorpay test/live key secrets, Google client secret) render as plain text inputs (type attribute absent). Use type=\"password\" / masked reveal toggle.", "selector": "[data-testid=\"int-razorpay_test_key_secret\"]", "priority": "MEDIUM"},
+      {"component": "components/OtpLogin.jsx", "issue": "send() unconditionally toasts `OTP sent \u00b7 Dev OTP: ${data.dev_otp}` and autofills the OTP box. When Fast2SMS is enabled with a valid key the backend returns no dev_otp, so users will see 'Dev OTP: undefined'. Branch on data.dev_otp and fall back to data.message.", "selector": "[data-testid=\"send-otp-button\"]", "priority": "MEDIUM"},
+      {"component": "CustomerDashboard ProfileEditor avatar", "issue": "<img src={f.photo}> has no onError fallback; an invalid/truncated data URL renders the browser broken-image icon instead of the UserIcon placeholder (reproduced).", "selector": "[data-testid=\"profile-editor\"] img", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Booking payment (dev mock)", "issue": "Works (order->mock->status Paid), but the customer's wallet balance card is unchanged while a -Rs.624.2 'Payment' transaction appears in the wallet ledger, so balance vs. transactions are inconsistent to the user.", "affected_selectors": ["[data-testid^=\"pay-AZO\"]", "[data-testid=\"txn-list\"]"]}
+    ],
+    "design_issues": [
+      {"screen": "Customer > My Profile", "issues": ["Date of Birth uses the native browser date picker (<input type=\"date\">) instead of the shadcn Calendar/Popover used elsewhere", "Gender / Language / Communication Preference use raw native <select> elements instead of the shadcn Select component - inconsistent height, font and caret vs. the rest of the app"]},
+      {"screen": "Admin > Integrations / API", "issues": ["No 'Test connection' action for Fast2SMS / Razorpay / Google, so the owner has no way to validate pasted keys", "Secrets displayed in clear text"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_integrations_phase3.py",
+    "/app/backend/tests/test_erp_admin.py",
+    "/app/test_reports/pytest/all.xml",
+    "/app/test_reports/pytest/phase3.xml"
+  ],
+  "action_items": [
+    "CRITICAL: hoist Txt/Tog out of IntegrationsSettings render so admin API-key inputs stop losing focus after 1 character",
+    "CRITICAL: lock down POST /api/wallet/topup (admin-only or route through /api/payments) - currently free wallet credit for any logged-in user",
+    "HIGH: stop probing Razorpay with a real create_order(1,'probe') in payments/mock; read config from settings",
+    "Reorder _booking_for_pay checks so an already-paid booking returns 'Already paid'",
+    "Decide one payment path: remove/delegate legacy POST /api/bookings/{id}/pay",
+    "Do not persist integration secrets in audit_logs.detail; mask *key*/*secret* values",
+    "Fix booking-payment wallet ledger: either debit wallet_balance or don't insert a wallet debit txn for gateway payments",
+    "OtpLogin: only show the 'Dev OTP' hint when the response actually contains dev_otp",
+    "Mask secret inputs (type=password) and add onError fallback for the profile avatar image",
+    "Replace native date input / native selects in ProfileEditor with shadcn Calendar + Select"
+  ],
+  "critical_code_review_comments": [
+    "adminSections.jsx:432-433 - components defined inside render (`const Txt = ...`, `const Tog = ...`) is the root cause of the input focus loss; the same anti-pattern exists in AuthProfileSettings (`const Toggle`) - harmless for switches today but should be hoisted too",
+    "payment_controller.mock_pay uses a side-effecting Razorpay order as a feature-flag probe - replace with a pure `is_configured()` helper in payment_service",
+    "payment_service reads admin keys then silently falls back to env RAZORPAY_KEY_ID/SECRET even in 'live' mode, which can mix live mode with platform test keys - validate mode/key prefix",
+    "finance_controller.topup is an unauthenticated-by-design mock credit exposed on a public route (/api/wallet/topup) - must be gated now that real payments exist",
+    "auth_controller.get_config correctly whitelists non-secret keys (verified: no fast2sms/razorpay/google secrets or demo_otp leak)"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_integrations_phase3.py",
+    "/app/backend/tests/test_erp_admin.py"
+  ],
+  "success_rate": {"backend": "100% (174/174 pytest; 2 design/logic defects reported separately)", "frontend": "85% (all flows work; 1 critical admin input-focus bug)"},
+  "seed_data_creation": "Temporary customers +919876500123 and +919876500777 plus their bookings/transactions were created for fallback-OTP and ownership tests and have been deleted. Demo customer +919000000004 profile fields/photo reset. Admin settings (sms_enabled, fast2sms_api_key, social_login, google_client_id, profile_fields.gst) toggled during tests and restored to pre-test values.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "/app/memory/test_credentials.md is present and accurate: admin +919000000000, customer +919000000004, merchant +919000000002, partner +919000000003/+919000000005, all OTP 123456",
+  "context_for_next_testing_agent": "Phase-3 backend coverage now lives in /app/backend/tests/test_integrations_phase3.py (OTP dev fallback, admin integrations save + secret-leak checks, Google gating, payments authorization, booking payment lifecycle, profile editor). Tests self-restore admin settings; run with `cd /app/backend && python -m pytest tests/ -q` (pytest.ini already sets -n 2 --dist loadscope). After the main agent fixes IntegrationsSettings, retest by typing a multi-character key into [data-testid=\"int-fast2sms_api_key\"] and asserting input_value() equals the full string, then verify /api/auth/config still hides it. Also retest /api/wallet/topup authorization after it is gated.",
+  "rca_of_the_issue": "Admin Integrations focus loss: IntegrationsSettings re-declares the `Txt` (and `Tog`) function components on every render; React compares element types by identity, so each parent state update (triggered by onChange) produces a brand-new component type and React unmounts the old <input> and mounts a new one, destroying DOM focus. Result: only the first typed character survives per click. Reproduction: login as admin (+919000000000 / 123456) -> Integrations/API -> click Fast2SMS API Key -> type 'ABCDEFGH' -> field contains 'A'. Mitigation: define Txt/Tog at module scope (or use useCallback-free plain JSX) and pass value/onChange as props."
+}

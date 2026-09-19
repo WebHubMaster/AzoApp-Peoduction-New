@@ -1,0 +1,25 @@
+{
+  "summary": "Regression test for the reported bug: bulk-delete of demo partners returning '0 deleted, N skipped'. Fix verified — demo (non-protected) accounts are now soft-deletable, appear in the recycle bin, are blocked from login, and can be restored. Core demo login accounts (+919000000000/2/3/4) remain untouched and functional. 8/8 backend tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_people_bulk_delete_demo.py",
+    "/app/test_reports/pytest/bulk_delete_demo.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "people_admin_service.py is 1393 lines — recommend splitting into modules (list/facets, delete/restore, review, message, sections) for maintainability.",
+    "bulk_delete/bulk_restore skip individual failures silently (bulk_restore drops errors entirely). Consider surfacing skipped items with reasons consistently.",
+    "PROTECTED_DEMO_PHONES constant is defined but no longer referenced anywhere in delete_person/hard_delete_person (guard was intentionally removed). Consider removing the dead constant or wiring it to a stricter check for core login accounts to prevent accidental purge of the 4 test-critical demo accounts."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_people_bulk_delete_demo.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "skipped (backend-only per request)"},
+  "test_credentials": "Admin +919000000000, Partner +919000000003 — OTP 123456 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "None. Used existing seeded demo partners with phones ending 011-018. All deleted partners were restored at the end of the run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Bulk-delete/restore for demo partners works. Core login accounts +919000000000/2/3/4 verified intact (not deleted) after the run. Test file test_people_bulk_delete_demo.py is idempotent — always restores what it deletes at the end. To run: `pytest backend/tests/test_people_bulk_delete_demo.py -o addopts=`. NOTE: PROTECTED_DEMO_PHONES is an unused constant in people_admin_service.py — the delete guards now rely only on self-check + admin/staff role check.",
+  "rca of the issue": "Original bug: delete_person() rejected any user whose phone was in PROTECTED_DEMO_PHONES (all seeded demo phones), so bulk-delete of a page full of demo partners returned deleted=[], skipped=[all]. Fix: PROTECTED_DEMO_PHONES check removed from delete_person/hard_delete_person; only self-account and admin/staff-role guards remain. Verified: (a) selected demo partners now soft-delete successfully (count == selected), (b) show up in the ?deleted=1 recycle-bin list, (c) can't login (403/401), (d) bulk-restore returns them, (e) 4 core login demo accounts remain untargetable/intact."
+}

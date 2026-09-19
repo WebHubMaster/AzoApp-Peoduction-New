@@ -1,0 +1,102 @@
+{
+  "total_tests": 19,
+  "passed": 19,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "Customer login successful",
+      "passed": true,
+      "details": "Token obtained for +919000000004"
+    },
+    {
+      "name": "GET /api/bookings returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Response is a list",
+      "passed": true,
+      "details": "Type: <class 'list'>"
+    },
+    {
+      "name": "Customer has bookings",
+      "passed": true,
+      "details": "Found 6 bookings"
+    },
+    {
+      "name": "ALL bookings have non-null 'breakdown' object",
+      "passed": true,
+      "details": "6/6 have breakdown. Missing: []"
+    },
+    {
+      "name": "All bookings pass reconciliation checks",
+      "passed": true,
+      "details": "All reconciliations passed"
+    },
+    {
+      "name": "CRITICAL: services_subtotal is PURE (no fees double-counted)",
+      "passed": true,
+      "details": "All bookings have correct services_subtotal"
+    },
+    {
+      "name": "Add-on quantities are independent",
+      "passed": true,
+      "details": "All add-ons have independent quantities"
+    },
+    {
+      "name": "GET /api/bookings/792dae07-ee8a-4885-a0b1-1a9a225939ae returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Detail endpoint returns breakdown",
+      "passed": true,
+      "details": "breakdown present"
+    },
+    {
+      "name": "List and detail breakdowns match",
+      "passed": true,
+      "details": "services_subtotal: 599.0 vs 599.0, total: 706.82 vs 706.82"
+    },
+    {
+      "name": "Admin GET /api/bookings - no 5xx",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Admin bookings have breakdown",
+      "passed": true,
+      "details": "First booking has breakdown: True"
+    },
+    {
+      "name": "Partner GET /api/bookings - no 5xx",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Partner bookings have breakdown",
+      "passed": true,
+      "details": "First booking has breakdown: True"
+    },
+    {
+      "name": "Merchant GET /api/bookings - no 5xx",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Merchant bookings have breakdown",
+      "passed": true,
+      "details": "First booking has breakdown: True"
+    },
+    {
+      "name": "Customer GET /api/bookings - no 5xx",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "Customer bookings have breakdown",
+      "passed": true,
+      "details": "First booking has breakdown: True"
+    }
+  ]
+}

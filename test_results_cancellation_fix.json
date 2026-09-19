@@ -1,0 +1,172 @@
+{
+  "total": 33,
+  "passed": 33,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "A1: Cancellation invoice exists",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "A1: display_amount == refund",
+      "passed": true,
+      "details": "display_amount=\u20b9288.71, refund=\u20b9288.71"
+    },
+    {
+      "name": "A1: display_amount != total_amount (original booking)",
+      "passed": true,
+      "details": "display_amount=\u20b9288.71, total_amount=\u20b9405.74"
+    },
+    {
+      "name": "A2: HTML contains 'Total Customer Refund'",
+      "passed": true,
+      "details": "Found"
+    },
+    {
+      "name": "A2: HTML does NOT contain 'Cancellation Charge'",
+      "passed": true,
+      "details": "Not found (GOOD)"
+    },
+    {
+      "name": "A2: HTML contains refund amount",
+      "passed": true,
+      "details": "Looking for \u20b9288.71"
+    },
+    {
+      "name": "A3: PDF returns 200",
+      "passed": true,
+      "details": "Status: 200"
+    },
+    {
+      "name": "A3: PDF content non-empty",
+      "passed": true,
+      "details": "Size: 47321 bytes"
+    },
+    {
+      "name": "A3: PDF content-type correct",
+      "passed": true,
+      "details": "Content-Type: application/pdf"
+    },
+    {
+      "name": "A3: PDF magic bytes correct",
+      "passed": true,
+      "details": "Starts with %PDF"
+    },
+    {
+      "name": "B1: Partner earnings accessible",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "B1: Cancellation ledger row exists",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "B1a: gross == cancel_charge",
+      "passed": true,
+      "details": "gross=\u20b959.8, cancel_charge=\u20b959.8"
+    },
+    {
+      "name": "B1b: gross << customer booking total",
+      "passed": true,
+      "details": "gross=\u20b959.8, booking_total=\u20b9405.74"
+    },
+    {
+      "name": "B1c: net_earning == partner_cut",
+      "passed": true,
+      "details": "net_earning=\u20b947.84, partner_cut=\u20b947.84"
+    },
+    {
+      "name": "B1d: net_earning > 0 (partner compensated)",
+      "passed": true,
+      "details": "net_earning=\u20b947.84"
+    },
+    {
+      "name": "B1e: commission == gross - net_earning",
+      "passed": true,
+      "details": "commission=\u20b911.96, expected=\u20b911.96"
+    },
+    {
+      "name": "B3: total_earned == sum of ledger rows",
+      "passed": true,
+      "details": "total_earned=\u20b91174.46, calculated=\u20b91174.46"
+    },
+    {
+      "name": "C1: gross == 20% of base",
+      "passed": true,
+      "details": "gross=\u20b959.8, expected=\u20b959.8"
+    },
+    {
+      "name": "C1: net_earning == 80% of gross",
+      "passed": true,
+      "details": "net_earning=\u20b947.84, expected=\u20b947.84"
+    },
+    {
+      "name": "C1: commission == gross - net_earning",
+      "passed": true,
+      "details": "commission=\u20b911.96, expected=\u20b911.96"
+    },
+    {
+      "name": "C2: customer_commission == 3% of cancel_charge",
+      "passed": true,
+      "details": "customer_commission=\u20b91.79, expected=\u20b91.79"
+    },
+    {
+      "name": "C2: item total == sum of commissions",
+      "passed": true,
+      "details": "item_total=\u20b91.79, expected=\u20b91.79"
+    },
+    {
+      "name": "C3: refund == 80% of (base + GST)",
+      "passed": true,
+      "details": "refund=\u20b9288.71, expected=\u20b9288.71"
+    },
+    {
+      "name": "C3: Exactly ONE cancellation invoice",
+      "passed": true,
+      "details": "Found 1 cancellation invoices"
+    },
+    {
+      "name": "C3: Exactly ONE refund receipt",
+      "passed": true,
+      "details": "Found 1 refund receipts"
+    },
+    {
+      "name": "C3: Cancellation invoice display_amount == refund",
+      "passed": true,
+      "details": "display=\u20b9288.71, refund=\u20b9288.71"
+    },
+    {
+      "name": "D1: Invoice count stable across 8 requests",
+      "passed": true,
+      "details": "Count: 1"
+    },
+    {
+      "name": "D2: Second cancel returns 400",
+      "passed": true,
+      "details": "Correctly rejected"
+    },
+    {
+      "name": "D3: Partner total_earned stable",
+      "passed": true,
+      "details": "total1=\u20b91174.46, total2=\u20b91174.46"
+    },
+    {
+      "name": "D3: Partner ledger row count stable",
+      "passed": true,
+      "details": "Count: 25"
+    },
+    {
+      "name": "D4: Merchant total_earning stable",
+      "passed": true,
+      "details": "total1=\u20b930.47, total2=\u20b930.47"
+    },
+    {
+      "name": "D5: No 500 errors encountered",
+      "passed": true,
+      "details": "All API calls completed successfully"
+    }
+  ]
+}

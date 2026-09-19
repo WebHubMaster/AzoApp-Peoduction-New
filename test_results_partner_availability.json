@@ -1,0 +1,243 @@
+{
+  "summary": {
+    "total_passed": 34,
+    "total_failed": 0,
+    "total_tests": 34
+  },
+  "results": {
+    "test_1_get_calendar": {
+      "passed": 8,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "GET calendar returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "Response has 'online_today' key",
+          "passed": true,
+          "details": "Keys: ['online_today', 'online_date', 'last_online_at', 'today', 'dates']"
+        },
+        {
+          "name": "Response has 'online_date' key",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "Response has 'today' key",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "Response has 'dates' key",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "'today' == IST today (2026-09-14)",
+          "passed": true,
+          "details": "Got: 2026-09-14"
+        },
+        {
+          "name": "'online_today' is boolean",
+          "passed": true,
+          "details": "Type: <class 'bool'>"
+        },
+        {
+          "name": "'dates' is array",
+          "passed": true,
+          "details": "Type: <class 'list'>"
+        }
+      ]
+    },
+    "test_2_add_dates": {
+      "passed": 11,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "POST add dates returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "Response includes 2026-09-16",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        },
+        {
+          "name": "Response includes 2026-09-17",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        },
+        {
+          "name": "Dates are sorted ascending",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        },
+        {
+          "name": "POST only past date returns 400 (all-invalid)",
+          "passed": true,
+          "details": "Status: 400"
+        },
+        {
+          "name": "POST mix valid+past returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "Valid date 2026-09-16 in dates",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        },
+        {
+          "name": "Past date 2026-09-09 NOT in dates (filtered)",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        },
+        {
+          "name": "POST empty dates returns 400",
+          "passed": true,
+          "details": "Status: 400"
+        },
+        {
+          "name": "POST re-add date returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "2026-09-16 appears exactly once (idempotent)",
+          "passed": true,
+          "details": "Count: 1, Dates: ['2026-09-14', '2026-09-16', '2026-09-17']"
+        }
+      ]
+    },
+    "test_3_remove_dates": {
+      "passed": 3,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "DELETE date returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "2026-09-16 no longer in dates",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-17']"
+        },
+        {
+          "name": "2026-09-17 still in dates",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-17']"
+        }
+      ]
+    },
+    "test_4_daily_online": {
+      "passed": 7,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "PUT online returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "partner_status == 'online'",
+          "passed": true,
+          "details": "Got: online"
+        },
+        {
+          "name": "online_date == today (2026-09-14)",
+          "passed": true,
+          "details": "Got: 2026-09-14"
+        },
+        {
+          "name": "GET calendar: online_today == true",
+          "passed": true,
+          "details": "Got: True"
+        },
+        {
+          "name": "GET calendar: online_date == today (2026-09-14)",
+          "passed": true,
+          "details": "Got: 2026-09-14"
+        },
+        {
+          "name": "PUT offline returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "GET calendar: online_today == false",
+          "passed": true,
+          "details": "Got: False"
+        }
+      ]
+    },
+    "test_5_auto_online_data": {
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "POST today's date returns 200",
+          "passed": true,
+          "details": ""
+        },
+        {
+          "name": "TODAY (2026-09-14) in dates",
+          "passed": true,
+          "details": "Dates: ['2026-09-14', '2026-09-17']"
+        }
+      ]
+    },
+    "test_6_auth_guard": {
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "Customer GET calendar returns 403",
+          "passed": true,
+          "details": "Status: 403"
+        },
+        {
+          "name": "Customer POST calendar returns 403",
+          "passed": true,
+          "details": "Status: 403"
+        }
+      ]
+    },
+    "test_7_no_500_errors": {
+      "passed": 1,
+      "failed": 0,
+      "tests": [
+        {
+          "name": "No 500 errors in any request",
+          "passed": true,
+          "details": "Status codes: [200, 200, 400, 200, 400, 200, 200, 200, 200, 200, 200, 200, 403, 403]"
+        }
+      ]
+    }
+  },
+  "all_status_codes": [
+    200,
+    200,
+    400,
+    200,
+    400,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    200,
+    403,
+    403
+  ],
+  "test_dates": {
+    "TODAY": "2026-09-14",
+    "TODAY_PLUS_2": "2026-09-16",
+    "TODAY_PLUS_3": "2026-09-17",
+    "PAST_DATE": "2026-09-09"
+  }
+}

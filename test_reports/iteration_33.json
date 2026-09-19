@@ -1,0 +1,38 @@
+{
+  "summary": "Tested the 4 quick fixes (#5 Call tel:, #3 latest device only, #15 refund_amount, #2 notif popup center). 3/4 verified end-to-end. Backend tests: 3 passed, 1 failed, 1 skipped. Frontend: notif-panel mobile-center classes verified in DOM (all four max-sm classes present); Refunds view renders Refund Amount from r.refund_amount (shows ₹0 for the two seeded 'Zero refund amount' refunds — correct); tel: anchor for BookingChat and window.location.href=tel: in CustomerDashboard.callPartner both verified via code review. CRITICAL BUG FOUND for #5: The customer list serializer (GET /api/bookings) returns RAW booking documents (list_bookings at controllers/booking_controller.py:1323-1336 does not go through _job_brief), so the newly added 'partner_phone' key at line 48 of _job_brief is NEVER emitted to the customer app. When a partner is assigned, b.partner_phone is undefined AND b.partner is undefined on the list rows, so CustomerDashboard.callPartner falls through to toast.info('Partner contact will be shared…') instead of dialing — i.e., the reported bug is NOT actually fixed on the customer bookings list.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "GET /api/bookings (customer)", "issue": "Does NOT include partner_phone (or a partner.phone object) in list response. _job_brief serializer has partner_phone but list_bookings returns raw docs. Frontend Call button therefore silently no-ops with the old toast for assigned bookings.", "priority": "HIGH"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Customer booking list -> Call button", "issue": "b.partner_phone missing from list API -> callPartner() never dials tel:, still shows fallback toast. Root cause is backend (see backend_issues.critical).", "affected_selectors": ["button:has-text('Call')"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter33_quick_fixes.py",
+    "/app/test_reports/pytest/iter33.xml"
+  ],
+  "action_items": [
+    "In backend/controllers/booking_controller.py list_bookings (line ~1323), enrich each row with partner_phone: either (a) route rows through _job_brief for customer role, or (b) simply attach b['partner_phone'] via a users.find on partner_id when present (or store partner_phone on the booking doc at accept-time, line ~1600 $set).",
+    "Optional: also set partner_phone on the booking doc in the atomic $set at booking_controller.py:1598-1605 so any future consumer sees it consistently."
+  ],
+  "critical_code_review_comments": [
+    "_job_brief has partner_phone but list_bookings does not use _job_brief — customer never receives partner_phone (root cause of #5 regression).",
+    "fcm_service.list_devices returns rows with 'token' field projected out {'token': 0}; my-devices response therefore cannot expose which token remains. Test relies on user_agent for verification — consider surfacing a token hint (last 6 chars) for support/diagnostics.",
+    "booking_controller.py is 2595 lines — well past 700-line guideline; split into submodules (dispatch, lifecycle, tracking, admin, refunds).",
+    "CustomerDashboard callPartner does not fall back to fetching booking detail (which returns partner.phone under /bookings/{id} track/live) — a defensive fetch would make the Call button work even if list response lacks partner_phone."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter33_quick_fixes.py"],
+  "success_rate": {"backend": "75%", "frontend": "100%"},
+  "test_credentials": "Customer +919000000004 / OTP 123456; Partner +919000000003 / OTP 123456 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Registered/cleaned throwaway FCM tokens TESTTOKEN_ITER33_A and TESTTOKEN_ITER33_B for the customer (net result: only one device remains, as expected).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Only #5 (partner_phone on customer bookings list) needs a re-verify after E1 fixes list_bookings serializer. Re-run: pytest /app/backend/tests/test_iter33_quick_fixes.py -v. #2/#3/#15 are already green. There are currently NO assigned bookings for customer +919000000004; if you need to prove partner_phone appears with a real value, create/assign one via admin or partner accept flow before retest.",
+  "rca of the issue": "E1 correctly added `'partner_phone': b.get('partner_phone')` to _job_brief (line 48) and callPartner in CustomerDashboard uses b.partner_phone||b.partner?.phone. However list_bookings (customer's GET /api/bookings) bypasses _job_brief and returns raw Mongo docs, and the accept flow (line 1598 $set) never writes partner_phone onto the booking doc. Net result: partner_phone key is absent from the customer list payload, so the frontend Call button still falls back to the 'Partner contact will be shared…' toast rather than dialing tel:."
+}

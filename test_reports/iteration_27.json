@@ -1,0 +1,19 @@
+{
+  "summary": "Verified P0 payment gateway fixes end-to-end via frontend UI. Customer online checkout now invokes the REAL Razorpay gateway (mock:false, rzp_live_ order) and NEVER calls /api/payments/mock. Admin Integration Center correctly (a) blocks activation of unconfigured payment gateways (Cashfree) with proper Hinglish toast and auto-opens Configure modal, keeping the toggle OFF, and (b) shows only Razorpay in Active Pay-in / Pay-out dropdowns (only enabled+configured gateway).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Checkout.jsx is 928+ lines and internally combines 7 sub-step components — consider splitting into smaller files per step for maintainability.",
+    "runPayment() in lib/payments.js catches Cashfree checkout errors silently (empty catch) — consider logging or surfacing to Sentry."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "Customer +919000000004 / Admin +919000000000 (OTP 123456). Used the one-click 'Login as Customer' / 'Login as Admin' demo buttons for reliability.",
+  "seed_data_creation": "Added 'Door Repair' service to cart during test — cart is cleared on successful order.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer checkout route is /book (not /checkout — /checkout redirects to /). Location dialog appears on services page — click 'Not now' to dismiss. Admin Integration Center reachable via System menu; opens at /admin?tab=integration_center. Real Razorpay LIVE order was created with key rzp_live_SoGi8OSNKhHe28; response {mock:false, gateway:'razorpay', order_id:'order_TZa5qHUm6xkcxN'}; Razorpay modal opened; 0 calls to /api/payments/mock during online checkout. Cashfree toggle test: state stayed 'false' after click, toast 'Pehle API keys configure karein — uske baad hi activate hoga' shown, Configure Cashfree Payments modal auto-opened. Active pay-in/payout dropdown options: [Razorpay] only.",
+  "rca of the issue": "Previously Checkout.jsx bypassed the real gateway by directly POSTing /payments/mock (with silent catch). Fixed by routing all online payments through runPayment() which POSTs /payments/order first and only falls back to /payments/mock when order.mock===true (i.e. no gateway configured). Verified via network capture: online Place Order triggered POST /api/payments/order → 200 mock:false → checkout.razorpay.com loaded → Razorpay modal opened with real live order_id. No /payments/mock call was made."
+}

@@ -1,0 +1,27 @@
+{
+  "base_url": "https://azo-app-live.preview.emergentagent.com/api",
+  "tests": [
+    {
+      "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",
+      "passed": false
+    },
+    {
+      "name": "Test 2: Cancellation INV-2026-000001 (Priya)",
+      "passed": false
+    },
+    {
+      "name": "Test 3: Partner Cancellation Statement (Raj)",
+      "passed": true
+    },
+    {
+      "name": "Test 4: Booking Invoice Line Items",
+      "passed": true
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "passed": 2,
+    "failed": 2,
+    "success_rate": "50.0%"
+  }
+}

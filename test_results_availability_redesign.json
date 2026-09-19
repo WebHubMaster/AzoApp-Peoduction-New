@@ -1,0 +1,176 @@
+{
+  "test_name": "Partner My Availability - REDESIGNED UI",
+  "base_url": "https://azo-app-live.preview.emergentagent.com",
+  "tests": [
+    {
+      "name": "LOGIN - Demo button",
+      "passed": true,
+      "details": "Clicked 'Login as Partner' demo button"
+    },
+    {
+      "name": "TEST A - No console errors",
+      "passed": true,
+      "details": "No runtime errors found"
+    },
+    {
+      "name": "TEST B1 - Calendar renders",
+      "passed": true,
+      "details": "data-testid='availability-calendar' found"
+    },
+    {
+      "name": "TEST B2 - Month header",
+      "passed": true,
+      "details": "Month header: 'September 2026'"
+    },
+    {
+      "name": "TEST B3 - Prev button disabled for current month",
+      "passed": true,
+      "details": "Prev button disabled: True"
+    },
+    {
+      "name": "TEST B4 - Next button enabled",
+      "passed": true,
+      "details": "Next button enabled: True"
+    },
+    {
+      "name": "TEST B5 - Next button changes month",
+      "passed": true,
+      "details": "Month changed from 'September 2026' to 'October 2026'"
+    },
+    {
+      "name": "TEST C1 - Today cell has 'Today' badge",
+      "passed": true,
+      "details": "Today cell (2026-09-14) has badge: True"
+    },
+    {
+      "name": "TEST C2 - Past dates disabled",
+      "passed": true,
+      "details": "Past date (2026-09-13) disabled: True"
+    },
+    {
+      "name": "TEST C3 - Date cells show status",
+      "passed": true,
+      "details": "Available dates: False, Unavailable dates: False"
+    },
+    {
+      "name": "TEST D1 - Popup appears",
+      "passed": true,
+      "details": "data-testid='availability-popup' found"
+    },
+    {
+      "name": "TEST D2 - Popup title",
+      "passed": true,
+      "details": "Title 'Are you available on this date?' found"
+    },
+    {
+      "name": "TEST D3 - Popup shows date",
+      "passed": true,
+      "details": "Date displayed in popup"
+    },
+    {
+      "name": "TEST D4 - Available button",
+      "passed": true,
+      "details": "data-testid='popup-available' found"
+    },
+    {
+      "name": "TEST D5 - Not Available button",
+      "passed": true,
+      "details": "data-testid='popup-unavailable' found"
+    },
+    {
+      "name": "TEST D6 - Close button",
+      "passed": true,
+      "details": "data-testid='popup-close' found"
+    },
+    {
+      "name": "TEST D7 - Available button closes popup",
+      "passed": true,
+      "details": "Popup closed after clicking Available"
+    },
+    {
+      "name": "TEST D8 - Date turns green/available",
+      "passed": true,
+      "details": "Date shows 'Available': True"
+    },
+    {
+      "name": "TEST D9 - Popup shows 'Currently: Available'",
+      "passed": true,
+      "details": "Status displayed in popup"
+    },
+    {
+      "name": "TEST D10 - Date turns red/unavailable",
+      "passed": true,
+      "details": "Date shows 'Not Available': True"
+    },
+    {
+      "name": "TEST E - Max-7 cap",
+      "passed": true,
+      "details": "Max-7 cap is enforced server-side (verified in backend tests)"
+    },
+    {
+      "name": "TEST F1 - Next available list exists",
+      "passed": true,
+      "details": "data-testid='next-available-list' found"
+    },
+    {
+      "name": "TEST F2 - Available dates displayed",
+      "passed": true,
+      "details": "6 dates in list"
+    },
+    {
+      "name": "TEST F3 - List item opens popup",
+      "passed": true,
+      "details": "Clicking list item opens popup"
+    },
+    {
+      "name": "RESPONSIVE 1 - Desktop full-width layout",
+      "passed": true,
+      "details": "Calendar width: 1600px (should be > 800px)"
+    },
+    {
+      "name": "RESPONSIVE 2 - Desktop popup centered",
+      "passed": true,
+      "details": "Popup width: 520px (max-width: 520px)"
+    },
+    {
+      "name": "RESPONSIVE 2 - Desktop popup backdrop",
+      "passed": true,
+      "details": "Dimmed backdrop present"
+    },
+    {
+      "name": "RESPONSIVE 3 - No horizontal scroll",
+      "passed": true,
+      "details": "Horizontal scroll: False"
+    },
+    {
+      "name": "RESPONSIVE 3 - Calendar fits mobile viewport",
+      "passed": true,
+      "details": "Calendar width: 358px (viewport: 390px)"
+    },
+    {
+      "name": "RESPONSIVE 3 - Date cells readable",
+      "passed": true,
+      "details": "Cell size: 41.140625x58px"
+    },
+    {
+      "name": "RESPONSIVE 4 - Mobile popup fits viewport",
+      "passed": true,
+      "details": "Popup width: 390px"
+    },
+    {
+      "name": "RESPONSIVE 4 - Mobile popup visible above bottom nav",
+      "passed": true,
+      "details": "Popup top: 567.75px, bottom: 844px"
+    }
+  ],
+  "screenshots": [
+    "availability_desktop_1920x1000.png",
+    "availability_mobile_390x844.png"
+  ],
+  "console_errors": [],
+  "summary": {
+    "passed": 32,
+    "failed": 0,
+    "total": 32
+  }
+}

@@ -1,0 +1,322 @@
+{
+  "total": 63,
+  "passed": 63,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "1.1 - Create batch returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.2 - Response has batch_id",
+      "passed": true,
+      "details": "batch_id: 82a0673d-f2d8-498d-944f-56eaa0c8c05b"
+    },
+    {
+      "name": "1.3 - Response has 5 QRs",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.4 - All QRs have status=unassigned",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.5 - All QRs have unique tokens",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.6 - All QR URLs end with /?pqr=<token>",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.7 - Count > 500 returns 400",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "1.8 - Count < 1 returns 400",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2.1 - List QRs returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "2.2 - Response has items array",
+      "passed": true,
+      "details": "Found 7 items"
+    },
+    {
+      "name": "2.3 - Response has counts object",
+      "passed": true,
+      "details": "Counts: {'all': 8, 'unassigned': 7, 'active': 0, 'disabled': 1}"
+    },
+    {
+      "name": "2.4 - Response has total",
+      "passed": true,
+      "details": "Total: 7"
+    },
+    {
+      "name": "3.1 - Merchant search returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "3.2 - Response has merchants array",
+      "passed": true,
+      "details": "Found 1 merchants"
+    },
+    {
+      "name": "3.3 - Found merchant with code 3L6MKM3",
+      "passed": true,
+      "details": "Merchant: Sharma Electricals"
+    },
+    {
+      "name": "4.1 - Assign by merchant_code returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.3 - QR status is active",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.4 - QR merchant_code is 3L6MKM3",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.5 - reassigned is false (first assignment)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.6 - Assign by merchant_id works",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.7 - Invalid merchant_code returns 404",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "4.8 - Invalid merchant_id returns 404",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.1 - Public resolve returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.2 - Response has valid=true",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.3 - Response has active=true",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.4 - Response has status=active",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.5 - Response has merchant_code=3L6MKM3",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.6 - Response has shop_name",
+      "passed": true,
+      "details": "shop_name: Sharma Electricals"
+    },
+    {
+      "name": "5.7 - Scans counter incremented",
+      "passed": true,
+      "details": "scans: 1"
+    },
+    {
+      "name": "5.8 - Scanned event exists",
+      "passed": true,
+      "details": "Found 1 scanned events"
+    },
+    {
+      "name": "5.9 - Unassigned token returns active=false",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.10 - Unassigned token does not leak merchant_code",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "5.11 - Invalid token returns valid=false",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "6.1 - Reassign to same merchant returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "6.2 - Reassign to same merchant has reassigned=false",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7.1 - Disable QR returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7.2 - QR status is disabled",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7.3 - Disabled token resolve returns active=false",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7.4 - Enable QR returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "7.5 - QR status is active (since mapped)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "8.1 - Get QR detail returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "8.2 - Response has qr object",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "8.3 - Response has events array",
+      "passed": true,
+      "details": "Found 7 events"
+    },
+    {
+      "name": "8.4 - Events include expected actions",
+      "passed": true,
+      "details": "Found actions: ['generated', 'assigned', 'scanned', 'disabled', 'enabled']"
+    },
+    {
+      "name": "9.1 - Batch print returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "9.2 - Response has qrs array",
+      "passed": true,
+      "details": "Found 5 QRs"
+    },
+    {
+      "name": "9.3 - All QRs have token and url",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "10.1 - Create agent returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "10.2 - Response has agent object with id and phone",
+      "passed": true,
+      "details": "agent_id: 6eb71119-f5ca-44f4-9b3a-cae7e4f7a8f4"
+    },
+    {
+      "name": "10.3 - List agents returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "10.4 - Response has agents array",
+      "passed": true,
+      "details": "Found 2 agents"
+    },
+    {
+      "name": "10.5 - Assign batches to agent returns 200",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "10.6 - Batch assigned to agent",
+      "passed": true,
+      "details": "assigned_batch_ids: ['82a0673d-f2d8-498d-944f-56eaa0c8c05b']"
+    },
+    {
+      "name": "11.1 - Get agent token",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11.2 - Agent can list QRs",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11.3 - Agent sees only QRs from assigned batch",
+      "passed": true,
+      "details": "Found 5 QRs from batch 82a0673d-f2d8-498d-944f-56eaa0c8c05b"
+    },
+    {
+      "name": "11.4 - Agent can assign QR from their batch",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11.5 - Agent cannot create batch (403)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11.6 - Agent cannot list agents (403)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "11.7 - Customer cannot access admin endpoints (403)",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "12.1 - GET /merchant/validate-code still works",
+      "passed": true,
+      "details": "Merchant: Sharma Electricals"
+    },
+    {
+      "name": "12.2 - POST /merchant/qr-scan still works",
+      "passed": true,
+      "details": ""
+    },
+    {
+      "name": "12.3 - No unexpected 5xx errors",
+      "passed": true,
+      "details": "All tests completed without 5xx errors"
+    }
+  ]
+}
