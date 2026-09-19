@@ -188,7 +188,7 @@ export default function PartnerRegistration() {
     const sel = work.categories.find((x: any) => x.category_id === c.id);
     return (
       <Pressable key={c.id} testID={`reg-cat-${c.id}`} onPress={() => toggleCat(c)}
-        style={{ width: "48.5%", borderRadius: 12, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8, borderColor: sel ? P[600] : TW.slate200, backgroundColor: sel ? P[50] : "#fff" }}>
+        style={{ width: "48%", borderRadius: 12, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8, borderColor: sel ? P[600] : TW.slate200, backgroundColor: sel ? P[50] : "#fff" }}>
         <View style={{ height: 16, width: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: sel ? P[600] : "transparent", borderWidth: sel ? 0 : 2, borderColor: TW.slate300 }}>
           {sel ? <View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: "#fff" }} /> : null}
         </View>
@@ -259,7 +259,7 @@ export default function PartnerRegistration() {
       {step === 1 ? (
         <View style={{ gap: 20 }} testID="step-work">
           <Field label="Service Category" hint="Choose your main service — only one can be selected" required>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, justifyContent: "space-between" }}>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 10, justifyContent: "space-between" }}>
               {(meta.categories || []).map(catCard)}
             </View>
           </Field>

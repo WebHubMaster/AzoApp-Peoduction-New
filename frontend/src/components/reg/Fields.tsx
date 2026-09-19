@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, TextInputProps } from "react-native";
+import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, TextInputProps, KeyboardAvoidingView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Search, X, Check, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, ShieldCheck, Clock, LucideIcon } from "lucide-react-native";
 import { TW, T, usePal } from "./tokens";
@@ -41,8 +41,8 @@ export function WTextarea({ rows = 3, pad = 14, style, ...props }: TextInputProp
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: "flex-end" }}>
+    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
+      <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={0}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }} onPress={onClose} />
         <View style={{ maxHeight: "70%", backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, borderTopWidth: 1, borderColor: TW.slate200, paddingBottom: insets.bottom, boxShadow: "0px -10px 40px rgba(0,0,0,0.2)" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
@@ -51,7 +51,7 @@ function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () 
           </View>
           {children}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

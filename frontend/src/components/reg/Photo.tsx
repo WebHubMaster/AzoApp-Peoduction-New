@@ -192,17 +192,16 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
   const P = usePal();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
-  const [choose, setChoose] = useState(false);
   const [error, setError] = useState("");
   const GPS_ERR = "This photo does not contain valid GPS location data. Please allow location access and capture again using the GPS Camera.";
-  const run = async (s: "camera" | "gallery") => {
+  const run = async () => {
     setError("");
     setBusy(true);
     try {
       let lp = await Location.getForegroundPermissionsAsync();
       if (!lp.granted) lp = await Location.requestForegroundPermissionsAsync();
       if (!lp.granted) { setError(GPS_ERR); setBusy(false); return; }
-      const asset = await pickImage(s, "back");
+      const asset = await pickImage("camera", "back");
       if (!asset) { setBusy(false); return; }
       let coords: Location.LocationObjectCoords;
       try { coords = (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High })).coords; }
@@ -230,7 +229,7 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
             {gpsOk && lat != null ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><MapPin size={12} color={TW.amber600} /><Text style={{ ...T.px11, color: TW.slate600 }}>{Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}</Text></View> : null}
             {distance != null ? <Text style={{ ...T.px11, fontWeight: "500", color: verified ? TW.emerald600 : TW.red500 }}>{verified ? `Location matches shop (${Math.round(distance)}m away)` : `Photo location is ${Math.round(distance)}m from your shop address`}</Text> : null}
             {editable ? (
-              <Pressable testID="gps-photo-retake" onPress={() => setChoose(true)} style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Pressable testID="gps-photo-retake" onPress={run} style={{ marginTop: 4, flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <RefreshCw size={16} color={P[700]} /><Text style={{ ...T.sm, fontWeight: "600", color: P[700] }}>Retake photo</Text>
               </Pressable>
             ) : null}
@@ -243,13 +242,12 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
         </View>
       ) : null}
       {!value && !busy ? (
-        <Pressable testID="gps-photo-start" disabled={!editable} onPress={() => setChoose(true)}
+        <Pressable testID="gps-photo-start" disabled={!editable} onPress={run}
           style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 12, backgroundColor: pressed ? TW.amber700 : TW.amber600, opacity: editable ? 1 : 0.6 })}>
           <Camera size={20} color="#fff" /><Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>Open GPS Camera</Text>
         </Pressable>
       ) : null}
-      {error ? <ErrorBox text={error} Icon={AlertTriangle} onRetry={() => setChoose(true)} /> : null}
-      <SourceSheet open={choose} onClose={() => setChoose(false)} onPick={run} title="Shop Verification Photo" />
+      {error ? <ErrorBox text={error} Icon={AlertTriangle} onRetry={run} /> : null}
     </View>
   );
 }
