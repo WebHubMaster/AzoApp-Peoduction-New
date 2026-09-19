@@ -7,14 +7,8 @@ import { fmtC } from "@/src/lib/format";
 /* Unique, SVG-safe gradient id per mounted chart instance. Prevents duplicate
    `url(#id)` references from colliding when several charts are on screen (a real
    native react-native-svg gotcha). */
-let _uidCounter = 0;
 function useUid(prefix: string) {
-  const ref = React.useRef<string | null>(null);
-  if (!ref.current) {
-    _uidCounter += 1;
-    ref.current = `${prefix}${_uidCounter}`;
-  }
-  return ref.current;
+  return `${prefix}${React.useId().replace(/[^a-zA-Z0-9]/g, "")}`;
 }
 
 type Pt = { x: number; y: number };

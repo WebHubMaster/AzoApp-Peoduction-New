@@ -1,302 +1,274 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { Image } from "expo-image";
+import React, { useCallback, useEffect, useState } from "react";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme, spacing, radius, fontSize } from "@/src/theme";
-import { api, mediaUrl } from "@/src/api/client";
-import { AppHeader } from "@/src/components/Screen";
-import { Card, Button, CardSkeleton } from "@/src/components/ui";
-import { Icon, MdiName } from "@/src/components/Icon";
+import * as Location from "expo-location";
+import { User, Store, MapPin, ClipboardCheck, Navigation } from "lucide-react-native";
+import { api } from "@/src/api/client";
 import { useToast } from "@/src/components/Toast";
 import { useAuth } from "@/src/context/AuthContext";
+import { TW, T, usePal } from "@/src/components/reg/tokens";
+import { RegShell } from "@/src/components/reg/Shell";
 import {
-  ScoreBanner, Stepper, StatusBanner, UnderReviewCard, Field, PickRow, Rev,
-  PickerSheet, PickerCfg, PhotoField, useServiceability, PincodeBadge, detectLocation,
-} from "@/src/components/RegKit";
+  Field, WInput, WTextarea, Combo, WSelect, StepTitle, MerchantProgress, PincodeBadge, OutOfArea, InfoBox,
+  RejectedBanner, ApprovedBanner, UnderReview, ReviewCard, RegNav, useServiceability, StepDef,
+} from "@/src/components/reg/Fields";
+import { WDatePicker } from "@/src/components/reg/DatePicker";
+import { LivePhotoCapture, GpsPhotoCapture, Uploader } from "@/src/components/reg/Photo";
+import { MapPreview } from "@/src/components/reg/MapPreview";
 
-const RB = "/merchant/registration";
-const STEPS: { key: string; label: string; icon: MdiName }[] = [
-  { key: "basic", label: "Owner", icon: "account" },
-  { key: "shop", label: "Shop", icon: "storefront" },
-  { key: "address", label: "Address", icon: "map-marker" },
-  { key: "review", label: "Review", icon: "clipboard-check" },
+const REG = "/merchant/registration";
+const STEPS: StepDef[] = [
+  { key: "basic", label: "Owner", icon: User },
+  { key: "shop", label: "Shop", icon: Store },
+  { key: "address", label: "Address", icon: MapPin },
+  { key: "review", label: "Review", icon: ClipboardCheck },
 ];
 const TITLES = ["Owner Details", "Shop Details", "Shop Address", "Review & Submit"];
 
-export default function MerchantRegister() {
-  const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
+export default function MerchantRegistration() {
+  const P = usePal();
   const router = useRouter();
   const toast = useToast();
-  const { user, refresh } = useAuth();
+  const { logout, refresh } = useAuth();
 
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [step, setStep] = useState(0);
-  const [busy, setBusy] = useState(false);
-  const [locBusy, setLocBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState("incomplete");
   const [rejection, setRejection] = useState("");
-  const [score, setScore] = useState(0);
-  const [missing, setMissing] = useState<string[]>([]);
+  const [score, setScore] = useState<any>({ score: 0, sections: {}, missing: [] });
   const [meta, setMeta] = useState<any>({ categories: [], shop_types: [] });
 
-  const [basic, setBasic] = useState<any>({ full_name: "", dob: "", gender: "", email: "", mobile: user?.phone || "", owner_photo: "" });
-  const [shop, setShop] = useState<any>({ shop_name: "", shop_type_id: "", shop_type_name: "", categories: [], gst_number: "", gst_url: "", shop_verification_photo: "", shop_photo_lat: null, shop_photo_lng: null, shop_photo_verified: false });
+  const [basic, setBasic] = useState<any>({ full_name: "", dob: "", gender: "", email: "", mobile: "", owner_photo: "" });
+  const [shop, setShop] = useState<any>({ shop_name: "", shop_type_id: "", shop_type_name: "", categories: [], gst_number: "", gst_url: "", shop_verification_photo: "", shop_photo_lat: null, shop_photo_lng: null, shop_photo_distance_m: null, shop_photo_verified: false, shop_photo_gps_ok: false });
   const [addr, setAddr] = useState<any>({ manual_address: "", city: "", district: "", state: "", pincode: "", lat: null, lng: null, location_address: "" });
-  const [picker, setPicker] = useState<PickerCfg | null>(null);
-
-  const [states, setStates] = useState<{ id: string; name: string }[]>([]);
-  const [districts, setDistricts] = useState<{ id: string; name: string }[]>([]);
-  const [cities, setCities] = useState<{ id: string; name: string }[]>([]);
-  useEffect(() => { api.get<{ id: string; name: string }[]>(`/geo/states`).then(setStates).catch(() => {}); }, []);
-  useEffect(() => { if (addr.state) api.get<{ id: string; name: string }[]>(`/geo/districts?state=${encodeURIComponent(addr.state)}`).then(setDistricts).catch(() => {}); }, [addr.state]);
-  useEffect(() => { if (addr.state && addr.district) api.get<{ id: string; name: string }[]>(`/geo/cities?state=${encodeURIComponent(addr.state)}&district=${encodeURIComponent(addr.district)}`).then(setCities).catch(() => {}); }, [addr.state, addr.district]);
-
-  const { checking: pinChecking, cov: pinCov } = useServiceability(addr.pincode);
+  const [locating, setLocating] = useState(false);
+  const { checking: pinChecking, cov: pinCov } = useServiceability(addr.pincode, (u) => api.get(u));
   const blocked = !!(pinCov && pinCov.serviceable === false);
 
-  const applyScore = (r: any) => { if (r?.score) { setScore(r.score.score ?? 0); setMissing(r.score.missing || []); } };
+  const load = useCallback(async () => {
+    const data = await api.get<any>(`${REG}/profile`);
+    const p = data.profile;
+    setBasic((b: any) => ({ ...b, ...p.basic }));
+    setShop((s: any) => ({ ...s, ...p.shop }));
+    setAddr((a: any) => ({ ...a, ...p.address }));
+    setScore(data.score);
+    setStatus(data.kyc_status || p.status);
+    setRejection(data.rejection_reason || "");
+    setLoaded(true);
+  }, []);
 
-  const load = async () => {
-    try {
-      const [p, m] = await Promise.all([api.get<any>(`${RB}/profile`), api.get<any>(`${RB}/meta`)]);
-      setMeta(m || {});
-      setStatus(p?.kyc_status || p?.profile?.status || "incomplete");
-      setRejection(p?.rejection_reason || "");
-      applyScore(p);
-      const pr = p?.profile || {};
-      if (pr.basic) setBasic((b: any) => ({ ...b, ...pr.basic, mobile: user?.phone || pr.basic.mobile }));
-      if (pr.shop) setShop((s: any) => ({ ...s, ...pr.shop }));
-      if (pr.address) setAddr((a: any) => ({ ...a, ...pr.address }));
-    } catch { /* noop */ }
-    setLoading(false);
-  };
+  useEffect(() => {
+    load().catch(() => { toast.error("Failed to load profile"); setLoaded(true); });
+    api.get<any>(`${REG}/meta`).then(setMeta).catch(() => {});
+  }, [load]);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (loaded && status === "approved") { refresh?.(); router.replace("/(merchant)"); } }, [loaded, status]);
+
+  const editable = status !== "approved" && status !== "under_review";
 
   const saveSection = async (section: string, payload: any) => {
-    try { const r = await api.put<any>(`${RB}/${section}`, payload); applyScore(r); return true; }
-    catch (e: any) { toast.error(e?.detail || "Could not save"); return false; }
-  };
-
-  const validate = (): string | null => {
-    if (step === 0) {
-      if (!basic.full_name?.trim()) return "Enter owner full name";
-      if (!basic.dob?.trim()) return "Enter date of birth";
-      if (!basic.gender) return "Select gender";
-      const em = String(basic.email || "").trim();
-      if (!em) return "Email is required";
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return "Enter a valid email address";
-      if (!basic.owner_photo) return "Please capture the owner live photo";
-    }
-    if (step === 1) {
-      if (!shop.shop_name?.trim()) return "Enter shop name";
-      if (!shop.shop_type_id) return "Select shop type";
-      if (!shop.categories.length) return "Select a category served";
-      if (!shop.shop_verification_photo) return "Capture the shop verification photo";
-      if (shop.gst_number && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][0-9A-Z]{3}$/.test(shop.gst_number)) return "Enter a valid GST number or leave it blank";
-    }
-    if (step === 2) {
-      if (!addr.manual_address?.trim()) return "Enter full shop address";
-      if (!addr.city?.trim() || !addr.district?.trim() || !addr.state?.trim() || !addr.pincode?.trim()) return "Fill city, district, state & pincode";
-      if (addr.lat == null || addr.lng == null) return "Tap 'Use current location' to capture shop GPS";
-      if (blocked) return "We don't serve this pincode yet — your application can't be submitted for this area.";
-    }
-    return null;
+    const data = await api.put<any>(`${REG}/${section}`, payload);
+    setScore(data.score);
+    return data;
   };
 
   const next = async () => {
-    const err = validate();
-    if (err) { toast.error(err); return; }
-    setBusy(true);
-    let ok = true;
-    if (step === 0) ok = await saveSection("basic", basic);
-    else if (step === 1) ok = await saveSection("shop", shop);
-    else if (step === 2) ok = await saveSection("address", addr);
-    setBusy(false);
-    if (ok && step < 3) setStep(step + 1);
+    setSaving(true);
+    try {
+      if (step === 0) {
+        const em = String(basic.email || "").trim();
+        if (!em) { toast.error("Email is required"); setSaving(false); return; }
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { toast.error("Enter a valid email address"); setSaving(false); return; }
+        await saveSection("basic", basic);
+      } else if (step === 1) await saveSection("shop", shop);
+      else if (step === 2) {
+        if (blocked) { toast.error("We don't serve this pincode yet — your application can't be submitted for this area."); setSaving(false); return; }
+        await saveSection("address", addr);
+      }
+      if (step < STEPS.length - 1) setStep(step + 1);
+    } catch (e: any) { toast.error(e?.detail || "Could not save"); }
+    finally { setSaving(false); }
   };
 
   const submit = async () => {
-    setBusy(true);
+    setSaving(true);
     try {
-      await api.put(`${RB}/basic`, basic); await api.put(`${RB}/shop`, shop); await api.put(`${RB}/address`, addr);
-      await api.post(`${RB}/submit`);
-      toast.success("Application submitted for review 🎉");
-      setStatus("under_review");
-      refresh?.();
+      await api.post(`${REG}/submit`);
+      toast.success("Application submitted for review");
+      await load();
+      setStep(STEPS.length - 1);
+      await refresh?.();
     } catch (e: any) { toast.error(e?.detail || "Please complete all required fields"); }
-    setBusy(false);
+    finally { setSaving(false); }
   };
 
-  const onRefreshStatus = async () => {
+  const refreshStatus = async () => {
     setRefreshing(true);
-    try {
-      const p = await api.get<any>(`${RB}/profile`);
-      const st = p?.kyc_status || p?.profile?.status;
-      setStatus(st);
-      if (st === "approved") { await refresh?.(); router.replace("/(merchant)"); return; }
-    } catch { /* noop */ }
+    try { await load(); } catch { /* noop */ }
+    const u = await refresh?.();
     setRefreshing(false);
+    if (u?.kyc_status === "approved") router.replace("/(merchant)");
   };
 
-  const useLocation = async () => {
-    setLocBusy(true);
+  const savePhoto = async ({ url, lat, lng, captured_at }: { url: string; lat: number; lng: number; captured_at: string }) => {
     try {
-      const r = await detectLocation();
-      if (!r) { toast.error("Location permission needed. Enable it in Settings."); setLocBusy(false); return; }
-      const g = r.geo || {};
-      setAddr((a: any) => ({ ...a, lat: r.lat, lng: r.lng, location_address: g.display || "", manual_address: a.manual_address || g.line || g.display || "", city: g.city || a.city, state: g.state || a.state, district: a.district || g.city || "", pincode: g.pincode || a.pincode }));
-      toast.success("Location detected & address filled");
-    } catch { toast.error("Could not fetch location"); }
-    setLocBusy(false);
-  };
-
-  const onShopPhoto = async (data: any) => {
-    if (data._lat == null || data._lng == null) {
-      toast.error("Enable location so the shop photo captures GPS, then retry.");
-      return;
-    }
-    try {
-      const r = await api.put<any>(`${RB}/shop-photo`, { shop_verification_photo: data.url, lat: data._lat, lng: data._lng });
-      setShop((s: any) => ({ ...s, ...(r.photo || {}) }));
-      applyScore(r);
+      const data = await api.put<any>(`${REG}/shop-photo`, { shop_verification_photo: url, lat, lng, captured_at });
+      setShop((s: any) => ({ ...s, ...data.photo }));
+      setScore(data.score);
     } catch (e: any) { toast.error(e?.detail || "Could not save photo"); }
   };
 
-  if (loading) return <View style={{ flex: 1, backgroundColor: colors.background }}><AppHeader title="Merchant Registration" variant="gradient" /><View style={{ padding: spacing.lg }}><CardSkeleton /></View></View>;
+  const useCurrent = async () => {
+    setLocating(true);
+    try {
+      let lp = await Location.getForegroundPermissionsAsync();
+      if (!lp.granted) lp = await Location.requestForegroundPermissionsAsync();
+      if (!lp.granted) { toast.error("Location permission denied. Please allow location and retry."); setLocating(false); return; }
+      const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      const lat = coords.latitude, lng = coords.longitude;
+      try {
+        const data = await api.get<any>(`/geo/reverse?lat=${lat}&lng=${lng}`);
+        setAddr((a: any) => ({ ...a, lat, lng, manual_address: a.manual_address || data.line || data.display || "", location_address: data.display || "", city: data.city || a.city, state: data.state || a.state, district: a.district || data.city || "", pincode: data.pincode || a.pincode }));
+        toast.success("Location detected & address filled");
+      } catch {
+        setAddr((a: any) => ({ ...a, lat, lng }));
+        toast.info("Location captured (autofill unavailable)");
+      }
+    } catch { toast.error("Location permission denied. Please allow location and retry."); }
+    setLocating(false);
+  };
 
-  if (status === "under_review" || status === "approved") {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <AppHeader title="Merchant Registration" variant="gradient" testID="merchant-register-header" />
-        <UnderReviewCard onRefresh={onRefreshStatus} refreshing={refreshing} />
-      </View>
-    );
+  const doLogout = async () => { await logout(); router.replace("/(auth)/login"); };
+
+  if (!loaded) return <View style={{ flex: 1, backgroundColor: TW.slate100, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={P[400]} /></View>;
+
+  if (status === "under_review") {
+    return <RegShell kind="merchant" onLogout={doLogout} testID="merchant-registration"><UnderReview onRefresh={refreshStatus} refreshing={refreshing} /></RegShell>;
   }
 
+  const hasGps = addr.lat != null && addr.lng != null;
+  const pinBadge = String(addr.pincode || "").length === 6 ? <View style={{ marginTop: 4 }}><PincodeBadge pincode={addr.pincode} checking={pinChecking} cov={pinCov} /></View> : null;
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Merchant Registration" subtitle={`Step ${step + 1} of 4 · ${STEPS[step].label}`} variant="gradient" testID="merchant-register-header" />
-      <Stepper steps={STEPS} step={step} onStep={setStep} />
+    <RegShell kind="merchant" score={score?.score} scoreTitle="Complete your shop profile" onLogout={doLogout} testID="merchant-registration"
+      nav={editable
+        ? <RegNav step={step} total={STEPS.length} onBack={() => setStep((s) => Math.max(0, s - 1))} saving={saving} onNext={next} nextDisabled={step === 2 && blocked}
+          onSubmit={submit} submitLabel={status === "rejected" ? "Re-submit" : "Submit Application"} submitDisabled={(score?.score || 0) < 100} />
+        : <RegNav step={step} total={STEPS.length} onBack={() => setStep((s) => Math.max(0, s - 1))} viewOnly onViewNext={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} />}>
+      {status === "approved" ? <ApprovedBanner who="Merchant" /> : null}
+      {status === "rejected" ? <RejectedBanner reason={rejection} /> : null}
+      <MerchantProgress steps={STEPS} step={step} />
+      <StepTitle Icon={STEPS[step].icon} title={TITLES[step]} />
 
-      <KeyboardAwareScrollView bottomOffset={24} contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 100, gap: spacing.md }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <ScoreBanner score={score} title="Complete your shop profile" subtitle="A complete profile builds trust and speeds up approval." />
-        {status === "rejected" ? <StatusBanner status="rejected" reason={rejection} /> : null}
-
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Icon name={STEPS[step].icon} size={18} color={colors.primary} />
-          <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>{TITLES[step]}</Text>
+      {step === 0 ? (
+        <View style={{ gap: 16 }} testID="step-owner">
+          <LivePhotoCapture value={basic.owner_photo} editable={editable} base={REG} onCaptured={(url) => setBasic((b: any) => ({ ...b, owner_photo: url }))} />
+          <Field label="Owner Full Name" required>
+            <WInput testID="reg-name" value={basic.full_name} disabled={!editable} onChangeText={(v) => setBasic({ ...basic, full_name: v })} placeholder="Enter full name" />
+          </Field>
+          <Field label="Mobile Number" hint="Locked to your login number">
+            <WInput value={basic.mobile} disabled />
+          </Field>
+          <Field label="Date of Birth" required>
+            <WDatePicker testID="reg-dob" value={basic.dob || ""} disabled={!editable} onChange={(v) => setBasic({ ...basic, dob: v })} placeholder="Date of Birth" />
+          </Field>
+          <Field label="Gender" required>
+            <WSelect testID="reg-gender" value={basic.gender || ""} disabled={!editable} onChange={(v) => setBasic({ ...basic, gender: v })} placeholder="Select gender"
+              options={[{ value: "", label: "Select gender" }, { value: "male", label: "Male" }, { value: "female", label: "Female" }, { value: "other", label: "Other" }]} />
+          </Field>
+          <Field label="Email" required>
+            <WInput keyboardType="email-address" autoCapitalize="none" value={basic.email || ""} disabled={!editable} onChangeText={(v) => setBasic({ ...basic, email: v })} placeholder="you@email.com" testID="reg-email" />
+          </Field>
         </View>
+      ) : null}
 
-        {step === 0 ? (
-          <Card>
-            <PhotoField base={RB} docType="owner_photo" label="Owner live photo" mode="both" cameraType="front" dashed hint="Take a clear selfie (or pick from gallery)" value={basic.owner_photo} onUploaded={(d) => setBasic((b: any) => ({ ...b, owner_photo: d.url }))} />
-            <View style={{ height: spacing.sm }} />
-            <Field label="Owner full name" value={basic.full_name} onChange={(v: string) => setBasic({ ...basic, full_name: v })} />
-            <Field label="Mobile number" value={basic.mobile} disabled hint="Locked to your login number" />
-            <Field label="Date of birth (YYYY-MM-DD)" value={basic.dob} onChange={(v: string) => setBasic({ ...basic, dob: v })} keyboard="numbers-and-punctuation" placeholder="1990-05-14" />
-            <PickRow label="Gender" value={basic.gender ? basic.gender[0].toUpperCase() + basic.gender.slice(1) : ""} onPress={() => setPicker({ title: "Gender", options: [{ id: "male", name: "Male" }, { id: "female", name: "Female" }, { id: "other", name: "Other" }], onSel: (o) => setBasic({ ...basic, gender: o.id }) })} />
-            <Field label="Email" value={basic.email} onChange={(v: string) => setBasic({ ...basic, email: v })} keyboard="email-address" autoCap="none" placeholder="you@email.com" last />
-          </Card>
-        ) : step === 1 ? (
-          <Card>
-            <Field label="Shop name" value={shop.shop_name} onChange={(v: string) => setShop({ ...shop, shop_name: v })} placeholder="e.g. Sharma Electricals" />
-            <PickRow label="Shop type" value={shop.shop_type_name} onPress={() => setPicker({ title: "Shop type", search: true, options: (meta.shop_types || []).map((c: any) => ({ id: c.id, name: c.name })), onSel: (o) => setShop({ ...shop, shop_type_id: o.id, shop_type_name: o.name }) })} />
-            <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm, marginTop: 12, marginBottom: 8 }}>Category served <Text style={{ color: colors.textMuted, fontWeight: "500" }}>(select one)</Text></Text>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      {step === 1 ? (
+        <View style={{ gap: 16 }} testID="step-shop">
+          <Field label="Shop Name" required>
+            <WInput testID="reg-shop-name" value={shop.shop_name} disabled={!editable} onChangeText={(v) => setShop({ ...shop, shop_name: v })} placeholder="e.g. Sharma Electricals" />
+          </Field>
+          <Field label="Shop Type" required>
+            <Combo testID="reg-shop-type" disabled={!editable} value={shop.shop_type_id} display={shop.shop_type_name} options={meta.shop_types || []} placeholder="Select shop type"
+              onSelect={(o) => setShop({ ...shop, shop_type_id: o.id, shop_type_name: o.name })} />
+          </Field>
+          <Field label="Category Served" required hint="Select one category">
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }} testID="reg-categories">
               {(meta.categories || []).map((c: any) => {
-                const on = shop.categories.some((x: any) => (x.category_id || x) === c.id);
+                const on = (shop.categories || []).some((x: any) => (x.category_id || x) === c.id);
                 return (
-                  <Pressable key={c.id} testID={`mcat-${c.id}`} onPress={() => setShop({ ...shop, categories: on ? [] : [{ category_id: c.id, category_name: c.name }] })}
-                    style={{ paddingHorizontal: 14, height: 36, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.primary : colors.surfaceSubtle, borderWidth: 1, borderColor: on ? colors.primary : colors.border }}>
-                    <Text style={{ color: on ? "#fff" : colors.textSecondary, fontWeight: "700", fontSize: fontSize.xs }}>{c.name}</Text>
+                  <Pressable key={c.id} testID={`reg-mcat-${c.id}`} disabled={!editable} onPress={() => setShop({ ...shop, categories: on ? [] : [{ category_id: c.id, category_name: c.name }] })}
+                    style={{ borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1, backgroundColor: on ? P[700] : "#fff", borderColor: on ? P[700] : TW.slate200 }}>
+                    <Text style={{ ...T.sm, fontWeight: "500", color: on ? "#fff" : TW.slate600 }}>{c.name}</Text>
                   </Pressable>
                 );
               })}
             </View>
-            <View style={{ height: spacing.md }} />
-            <Field label="GST number (optional)" value={shop.gst_number} onChange={(v: string) => setShop({ ...shop, gst_number: v.toUpperCase() })} autoCap="characters" placeholder="22ABCDE1234F1Z5" />
-            <PhotoField base={RB} docType="gst" label="GST certificate (optional)" value={shop.gst_url} onUploaded={(d) => setShop((s: any) => ({ ...s, gst_url: d.url }))} />
-            <View style={{ height: spacing.sm }} />
-            <PhotoField base={RB} docType="shop_verification" label="Shop verification photo (GPS)" mode="camera" cameraType="back" gps dashed hint="Take a photo of your shop front — GPS is captured with the shot" value={shop.shop_verification_photo} onUploaded={onShopPhoto} />
-            {shop.shop_verification_photo ? (
-              <Text style={{ color: shop.shop_photo_verified ? colors.success : colors.textMuted, fontSize: fontSize.xs, marginTop: 6, fontWeight: "700" }}>
-                {shop.shop_photo_verified ? "✓ GPS verified — matches shop location" : "Captured with GPS (verified against address after you set location)"}
-              </Text>
-            ) : null}
-          </Card>
-        ) : step === 2 ? (
-          <Card>
-            <Button title="Use current location" variant="outline" icon="crosshairs-gps" onPress={useLocation} loading={locBusy} testID="use-current-location" />
-            <View style={{ height: spacing.sm }} />
-            <Field label="Full shop address" value={addr.manual_address} onChange={(v: string) => setAddr({ ...addr, manual_address: v })} placeholder="Shop no, street, area…" />
-            <PickRow label="State" value={addr.state} onPress={() => setPicker({ title: "State", search: true, options: states, optionsKey: "states", onSel: (o) => setAddr({ ...addr, state: o.name, district: "", city: "" }) } as any)} />
-            <PickRow label="District" value={addr.district} onPress={() => addr.state ? setPicker({ title: "District", search: true, options: districts, optionsKey: "districts", onSel: (o) => setAddr({ ...addr, district: o.name, city: "" }) } as any) : toast.info("Select state first")} />
-            <PickRow label="City / Sub-district" value={addr.city} onPress={() => addr.district ? setPicker({ title: "City", search: true, options: cities, optionsKey: "cities", onSel: (o) => setAddr({ ...addr, city: o.name }) } as any) : toast.info("Select district first")} />
-            <Field label="Pincode" value={addr.pincode} onChange={(v: string) => setAddr({ ...addr, pincode: v.replace(/[^0-9]/g, "").slice(0, 6) })} keyboard="number-pad" maxLength={6} last />
-            <View style={{ marginTop: 10 }}><PincodeBadge pincode={addr.pincode} checking={pinChecking} cov={pinCov} /></View>
-            {addr.lat ? (
-              <View testID="reg-location-captured" style={{ marginTop: 10, backgroundColor: colors.successSubtle, borderWidth: 1, borderColor: colors.success, borderRadius: radius.md, padding: 12 }}>
-                <Text style={{ color: colors.success, fontWeight: "700", fontSize: fontSize.sm }}>📍 Location captured</Text>
-                <Text style={{ color: colors.success, fontSize: fontSize.xs, marginTop: 3 }}>Lat {Number(addr.lat).toFixed(5)}, Lng {Number(addr.lng).toFixed(5)}</Text>
-              </View>
-            ) : null}
-            {blocked ? (
-              <View testID="reg-out-of-area" style={{ marginTop: 10, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: radius.md, padding: 12 }}>
-                <Text style={{ color: colors.warning, fontWeight: "800", fontSize: fontSize.sm }}>We&apos;re not in this area yet</Text>
-                <Text style={{ color: colors.warning, fontSize: fontSize.xs, marginTop: 3 }}>Pincode {addr.pincode} is outside our current service areas.</Text>
-              </View>
-            ) : null}
-          </Card>
-        ) : (
-          <Card>
-            {basic.owner_photo ? (
-              <View style={{ alignItems: "center", marginBottom: spacing.md }}>
-                <View style={{ width: 84, height: 84, borderRadius: 20, overflow: "hidden", borderWidth: 2, borderColor: colors.success }}>
-                  <Image source={{ uri: mediaUrl(basic.owner_photo) }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
-                </View>
-                <Text style={{ color: colors.success, fontWeight: "700", fontSize: fontSize.sm, marginTop: 6 }}>Owner photo captured ✓</Text>
-              </View>
-            ) : null}
-            <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.lg, marginBottom: 8 }}>Review & submit</Text>
-            <Rev k="Owner" v={basic.full_name} />
-            <Rev k="Mobile" v={basic.mobile} />
-            <Rev k="DOB" v={basic.dob} />
-            <Rev k="Gender" v={basic.gender} />
-            <Rev k="Email" v={basic.email} />
-            <Rev k="Shop name" v={shop.shop_name} />
-            <Rev k="Shop type" v={shop.shop_type_name} />
-            <Rev k="Category" v={shop.categories.map((c: any) => c.category_name).join(", ")} />
-            <Rev k="GST" v={shop.gst_number || "—"} />
-            <Rev k="Shop photo" v={shop.shop_verification_photo ? (shop.shop_photo_verified ? "Verified ✓ (GPS)" : "Captured (GPS)") : "Missing"} />
-            <Rev k="Address" v={addr.manual_address} />
-            <Rev k="Location" v={[addr.city, addr.district, addr.state, addr.pincode].filter(Boolean).join(", ")} last />
-            {missing.length ? (
-              <View style={{ marginTop: 12, backgroundColor: colors.dangerSubtle, borderRadius: radius.md, padding: 12 }}>
-                <Text style={{ color: colors.danger, fontWeight: "800", fontSize: fontSize.xs, marginBottom: 4 }}>Still required:</Text>
-                <Text style={{ color: colors.danger, fontSize: fontSize.xs }}>{missing.join(", ")}</Text>
-              </View>
-            ) : null}
-            <View style={{ marginTop: 12, backgroundColor: colors.primarySubtle, borderRadius: radius.md, padding: 12, flexDirection: "row", gap: 8 }}>
-              <Icon name="shield-check" size={16} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontSize: fontSize.xs, flex: 1 }}>After submission your profile will be sent to admin for verification. You&apos;ll get an update within 24–48 hours. Bank &amp; KYC details are collected later, only at your first withdrawal.</Text>
-            </View>
-          </Card>
-        )}
-      </KeyboardAwareScrollView>
-
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: spacing.md, padding: spacing.lg, paddingBottom: insets.bottom + spacing.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }}>
-        {step > 0 ? <View style={{ flex: 1 }}><Button title="Back" variant="outline" onPress={() => setStep(step - 1)} testID="reg-back" /></View> : null}
-        <View style={{ flex: 1.4 }}>
-          {step < 3 ? <Button title="Save & Continue" onPress={next} loading={busy} disabled={step === 2 && blocked} testID="reg-next" /> : <Button title={status === "rejected" ? "Re-submit" : "Submit Application"} icon="check" onPress={submit} loading={busy} disabled={score < 100} testID="reg-submit" />}
+          </Field>
+          <Field label="GST Number (optional)">
+            <WInput testID="reg-gst" value={shop.gst_number || ""} disabled={!editable} uppercase onChangeText={(v) => setShop({ ...shop, gst_number: v.toUpperCase() })} placeholder="22ABCDE1234F1Z5" />
+          </Field>
+          <Uploader label="GST Certificate (optional)" docType="gst" base={REG} variant="merchant" value={shop.gst_url} onUploaded={(d) => setShop({ ...shop, gst_url: d.url })} />
+          <GpsPhotoCapture value={shop.shop_verification_photo} lat={shop.shop_photo_lat} lng={shop.shop_photo_lng} distance={shop.shop_photo_distance_m}
+            verified={shop.shop_photo_verified} gpsOk={shop.shop_photo_gps_ok} base={REG} editable={editable} onCaptured={savePhoto} />
         </View>
-      </View>
+      ) : null}
 
-      <PickerSheet cfg={picker ? { ...picker, options: (picker as any).optionsKey ? (({ states, districts, cities } as any)[(picker as any).optionsKey]) : picker.options } : null} onClose={() => setPicker(null)} />
-    </View>
+      {step === 2 ? (
+        <View style={{ gap: 16 }} testID="step-address">
+          <View style={{ gap: 12 }}>
+            <Pressable testID="use-current-location" disabled={!editable || locating} onPress={useCurrent}
+              style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, borderRadius: 12, backgroundColor: pressed ? P[800] : P[700], opacity: !editable || locating ? 0.6 : 1 })}>
+              {locating ? <ActivityIndicator size="small" color="#fff" /> : <Navigation size={20} color="#fff" />}
+              <Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>{locating ? "Detecting location…" : "📍 Use Current Location"}</Text>
+            </Pressable>
+            {hasGps ? <MapPreview lat={Number(addr.lat)} lng={Number(addr.lng)} /> : null}
+          </View>
+          <Field label="Full Shop Address" required>
+            <WTextarea testID="reg-addr" rows={2} pad={12} value={addr.manual_address} editable={editable} onChangeText={(v) => setAddr({ ...addr, manual_address: v })} placeholder="Shop no, street, area…" />
+          </Field>
+          <Field label="City" required><WInput testID="reg-city" value={addr.city} disabled={!editable} onChangeText={(v) => setAddr({ ...addr, city: v })} /></Field>
+          <Field label="District" required><WInput testID="reg-district" value={addr.district} disabled={!editable} onChangeText={(v) => setAddr({ ...addr, district: v })} /></Field>
+          <Field label="State" required><WInput testID="reg-state" value={addr.state} disabled={!editable} onChangeText={(v) => setAddr({ ...addr, state: v })} /></Field>
+          <Field label="Pincode" required><WInput testID="reg-pincode" value={addr.pincode} disabled={!editable} keyboardType="number-pad" maxLength={6} onChangeText={(v) => setAddr({ ...addr, pincode: v.replace(/\D/g, "").slice(0, 6) })} /></Field>
+          {pinBadge}
+          {blocked ? <OutOfArea pincode={addr.pincode} subject="your application" /> : null}
+        </View>
+      ) : null}
+
+      {step === 3 ? (
+        <View style={{ gap: 16 }} testID="step-review">
+          <ReviewCard title="Owner Details" editable={editable} onEdit={() => setStep(0)} rows={[
+            ["Name", basic.full_name], ["Mobile", basic.mobile], ["DOB", basic.dob],
+            ["Gender", basic.gender], ["Live Photo", basic.owner_photo ? "Captured ✓" : "Missing"],
+          ]} />
+          <ReviewCard title="Shop Details" editable={editable} onEdit={() => setStep(1)} rows={[
+            ["Shop Name", shop.shop_name], ["Type", shop.shop_type_name],
+            ["Categories", (shop.categories || []).map((c: any) => c.category_name).join(", ")],
+            ["GST", shop.gst_number || "—"],
+            ["Shop Photo", shop.shop_verification_photo ? (shop.shop_photo_verified ? "Verified ✓ (GPS matched)" : "Captured (GPS)") : "Missing"],
+          ]} />
+          <ReviewCard title="Shop Address" editable={editable} onEdit={() => setStep(2)} rows={[
+            ["Address", addr.manual_address], ["City", addr.city], ["District", addr.district],
+            ["State", addr.state], ["Pincode", addr.pincode],
+            ["GPS", addr.lat != null ? `${Number(addr.lat).toFixed(4)}, ${Number(addr.lng).toFixed(4)}` : "Not set"],
+          ]} />
+          {score?.missing?.length > 0 ? (
+            <View style={{ borderRadius: 12, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red100, padding: 12 }}>
+              <Text style={{ ...T.sm, fontWeight: "600", color: TW.red600, marginBottom: 4 }}>Still required:</Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                {score.missing.map((m: string) => (
+                  <View key={m} style={{ backgroundColor: "#fff", borderWidth: 1, borderColor: TW.red100, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text style={{ ...T.px11, color: TW.red600 }}>{m}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ) : null}
+          <InfoBox text="After submission your profile will be sent to admin for verification. You’ll get an update within 24–48 hours. Bank & KYC details are collected later, only at your first withdrawal." />
+        </View>
+      ) : null}
+    </RegShell>
   );
 }

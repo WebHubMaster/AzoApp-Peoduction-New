@@ -3,9 +3,10 @@ const { defineConfig } = require("eslint/config");
 const expoConfig = require("eslint-config-expo/flat");
 
 module.exports = defineConfig([
+  { ignores: ["scripts/cmd-guard/vendor/*"] },
   expoConfig,
   {
-    ignores: ["dist/*", "node_modules/*", ".expo/*"],
+    ignores: ["dist/*", "node_modules/*", ".expo/*", "scripts/cmd-guard/vendor/*"],
     rules: {
       // React-Compiler lint rules → warnings (legacy screens predate them)
       "react-hooks/static-components": "warn",
