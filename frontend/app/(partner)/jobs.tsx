@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle } from "react-native-svg";
-import { useTheme, spacing } from "@/src/theme";
+import { useTheme, spacing, palette } from "@/src/theme";
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRealtime } from "@/src/context/RealtimeContext";
@@ -52,18 +52,19 @@ function CountdownRing({ createdAt, expiryMin, now, size = 46 }: { createdAt?: s
   );
 }
 
-const Meta = ({ icon, label, value, colors }: { icon: MdiName; label: string; value: string; colors: any }) => (
+const Meta = ({ icon, label, value, colors, cap }: { icon: MdiName; label: string; value: string; colors: any; cap?: boolean }) => (
   <View style={{ width: "48.5%", borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 12, paddingVertical: 8 }}>
     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
       <Icon name={icon} size={12} color="#94A3B8" />
       <Text style={{ color: "#94A3B8", fontSize: 10, letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</Text>
     </View>
-    <Text style={{ color: colors.text, fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: "capitalize" }} numberOfLines={1}>{value}</Text>
+    <Text style={{ color: colors.text, fontSize: 13, fontWeight: "600", marginTop: 2, textTransform: cap ? "capitalize" : "none" }} numberOfLines={1}>{value}</Text>
   </View>
 );
 
 function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b: any; partnerId?: string; now: number; expiryMin: number; onAccept: (id: string) => Promise<void>; onDecline: (id: string) => Promise<void> }) {
   const { colors } = useTheme();
+  const P = palette(colors.primary);
   const [busy, setBusy] = useState("");
   const det = (b.eligible_detail || {})[partnerId || ""] || {};
   const a = b.address || {};
@@ -75,9 +76,9 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
   const frac = earnFracOf(b);
 
   return (
-    <Surface testID={`request-${b.code}`} style={{ overflow: "hidden", borderColor: fresh ? "#BFDBFE" : colors.border }}>
+    <Surface testID={`request-${b.code}`} style={{ overflow: "hidden", borderColor: fresh ? P[200] : colors.border }}>
       {b.schedule_type === "emergency" ? <View style={{ height: 4, backgroundColor: "#F43F5E" }} /> : (
-        <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 4 }} />
+        <LinearGradient colors={[P[600], P[400]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 4 }} />
       )}
       <View style={{ padding: 20 }}>
         <View style={{ gap: 8 }}>
@@ -109,7 +110,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12, justifyContent: "space-between" }}>
           <Meta icon="navigation-variant-outline" label="Distance" value={det.distance_km != null ? `${det.distance_km} km` : "—"} colors={colors} />
           <Meta icon="clock-outline" label="Travel" value={det.eta_min != null ? `${det.eta_min} min` : "—"} colors={colors} />
-          <Meta icon="wallet-outline" label="Payment" value={String(b.payment_mode || b.payment_method || "Online").replace(/_/g, " ")} colors={colors} />
+          <Meta icon="wallet-outline" label="Payment" value={String(b.payment_mode || b.payment_method || "Online").replace(/_/g, " ")} colors={colors} cap />
           <Meta icon="clock-outline" label="Requested" value={ago(b.created_at, now)} colors={colors} />
         </View>
 
@@ -148,7 +149,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
         ) : null}
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16 }}>
-          <Pressable testID={`accept-${b.code}`} onPress={doAccept} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
+          <Pressable testID={`accept-${b.code}`} onPress={doAccept} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: P[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
             {busy === "accept" ? <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accepting…</Text> : (<><Icon name="check-circle-outline" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accept Job</Text></>)}
           </Pressable>
           <Pressable testID={`decline-${b.code}`} onPress={doDecline} disabled={!!busy} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>
@@ -175,8 +176,13 @@ export default function PartnerJobRequest() {
     api.get<any>("/auth/config").then((r) => { const v = r?.business?.job_auto_expiry_minutes; if (v) setExpiryMin(Number(v)); }).catch(() => {});
   }, []);
 
-  const { connected } = useRealtime();
+  const { connected, subscribe } = useRealtime();
   const q = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 10000 });
+  // Live dispatch (web PartnerDashboard): taken → drop instantly; new/accepted/update → reload.
+  useEffect(() => subscribe((ev) => {
+    if (ev.type === "job_taken") { const id = ev.data?.id; qc.setQueryData<any[]>(["partner-jobs"], (prev) => (prev || []).filter((j) => j.id !== id)); }
+    else if (["job_request", "job_accepted", "booking_update", "__resync__"].includes(ev.type)) qc.invalidateQueries({ queryKey: ["partner-jobs"] });
+  }), [subscribe]); // eslint-disable-line react-hooks/exhaustive-deps
   const jobs = q.data || [];
   const online = user?.partner_status === "online";
   const lastUpdated = new Date(q.dataUpdatedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -187,7 +193,7 @@ export default function PartnerJobRequest() {
     catch (e: any) { toast.error(e?.detail || "Could not accept"); }
   };
   const decline = async (id: string) => {
-    try { await api.post(`/bookings/${id}/reject`, { reason: "" }); toast.success("Job declined"); reload(); }
+    try { await api.post(`/bookings/${id}/reject`, { reason: "" }); toast.success("Job declined"); qc.setQueryData<any[]>(["partner-jobs"], (prev) => (prev || []).filter((j) => j.id !== id)); reload(); }
     catch (e: any) { toast.error(e?.detail || "Could not decline"); }
   };
 

@@ -3,8 +3,9 @@ import { AppState, Platform } from "react-native";
 import EventSource from "react-native-sse";
 import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
-import { API_BASE, getToken } from "@/src/api/client";
+import { API_BASE, getToken, mediaUrl } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
+import { getRingPrefs } from "@/src/lib/ringPrefs";
 
 /**
  * Live dispatch over Server-Sent Events — mirrors web RealtimeContext.jsx.
@@ -36,6 +37,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const retryRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const player = useAudioPlayer(RING);
+  const srcRef = useRef<string>("__default__");
 
   useEffect(() => {
     setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
@@ -86,8 +88,16 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   const subscribe = useCallback((cb: Listener) => { listeners.current.add(cb); return () => { listeners.current.delete(cb); }; }, []);
 
+  // Admin ring config (web ringPrefs): custom uploaded tone + volume, looped until stopped.
   const playRing = useCallback(() => {
-    try { player.loop = true; player.seekTo(0); player.play(); } catch { /* ignore */ }
+    try {
+      const prefs = getRingPrefs();
+      const src = prefs.customSoundUrl ? { uri: mediaUrl(prefs.customSoundUrl) || prefs.customSoundUrl } : RING;
+      const key = typeof src === "object" && src && "uri" in src ? src.uri : "__default__";
+      if (srcRef.current !== key) { player.replace(src); srcRef.current = key; }
+      player.volume = Math.max(0.05, Math.min(1, prefs.volume != null ? prefs.volume : 0.7));
+      player.loop = true; player.seekTo(0); player.play();
+    } catch { /* ignore */ }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
   }, [player]);
   const stopRing = useCallback(() => { try { player.pause(); player.seekTo(0); } catch { /* ignore */ } }, [player]);

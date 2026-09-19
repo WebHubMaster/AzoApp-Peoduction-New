@@ -1,135 +1,336 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, Animated, Easing, Vibration, Platform } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, Modal, Animated, Easing, Vibration, Platform, ScrollView, ActivityIndicator, AppState } from "react-native";
+import { Image } from "expo-image";
+import Svg, { Circle } from "react-native-svg";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme } from "@/src/theme";
-import { api } from "@/src/api/client";
+import { useTheme, palette } from "@/src/theme";
+import { api, mediaUrl } from "@/src/api/client";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useToast } from "@/src/components/Toast";
 import { Icon } from "@/src/components/Icon";
 import { scheduleJobRing } from "@/src/lib/notifications";
-import { fmt } from "@/src/lib/format";
-import { addMissed, emitRing, isDndActive, isSnoozed, loadLocal, onRing, syncPrefsFromServer } from "@/src/lib/ringPrefs";
+import { emitRing, getRingPrefs, isDndActive, isSnoozed, loadLocal, onRing, syncPrefsFromServer } from "@/src/lib/ringPrefs";
+import { TW } from "@/src/components/partner/home/tw";
 
-const RING_SECONDS = 45;
+/* 1:1 port of web components/partner/IncomingJobRing.jsx.
+   Requests NEVER auto-decline — the ring stays until Accept / Reject or another partner grabs it. */
+type RingJob = any;
+const inr = (v: any) => Number(v || 0).toLocaleString("en-IN");
 
-/**
- * Full-screen incoming "Job Ring" (web: playSound + toast + browserNotify on `job_request`).
- * Rings (looped sound + vibration) until Accept / Decline / timeout.
- */
+function Glass({ children, style, testID }: { children: React.ReactNode; style?: any; testID?: string }) {
+  return <View testID={testID} style={[{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.10)", paddingHorizontal: 16, paddingVertical: 12 }, style]}>{children}</View>;
+}
+
+function useLoop(toValue: number, duration: number, easing = Easing.linear) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const anim = Animated.loop(Animated.timing(v, { toValue, duration, easing, useNativeDriver: Platform.OS !== "web" }));
+    anim.start();
+    return () => anim.stop();
+  }, [v, toValue, duration, easing]);
+  return v;
+}
+
+/* service image with ping + spinning waiting arc + elapsed pill (web: animate-ping / animate-spin 3s) */
+function RingAvatar({ image, elapsed }: { image?: string; elapsed: number }) {
+  const spin = useLoop(1, 3000);
+  const ping = useLoop(1, 1400, Easing.out(Easing.ease));
+  const R = 74, C = 2 * Math.PI * R;
+  const uri = mediaUrl(image);
+  return (
+    <View style={{ width: 160, height: 160, alignItems: "center", justifyContent: "center", marginVertical: 16 }}>
+      <Animated.View style={{ position: "absolute", width: 128, height: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.10)", transform: [{ scale: ping.interpolate({ inputRange: [0, 1], outputRange: [1, 1.6] }) }], opacity: ping.interpolate({ inputRange: [0, 1], outputRange: [0.9, 0] }) }} />
+      <Animated.View testID="ring-countdown" style={{ position: "absolute", width: 160, height: 160, transform: [{ rotate: spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] }) }] }}>
+        <Svg width={160} height={160} viewBox="0 0 160 160">
+          <Circle cx={80} cy={80} r={R} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={5} />
+          <Circle cx={80} cy={80} r={R} fill="none" stroke="#fff" strokeWidth={5} strokeLinecap="round" strokeDasharray={`${C * 0.28} ${C}`} transform="rotate(-90 80 80)" />
+        </Svg>
+      </Animated.View>
+      {uri ? (
+        <Image source={{ uri }} style={{ width: 112, height: 112, borderRadius: 56, borderWidth: 4, borderColor: "rgba(255,255,255,0.3)" }} contentFit="cover" />
+      ) : (
+        <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 4, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="briefcase-outline" size={44} color="#fff" />
+        </View>
+      )}
+      <View style={{ position: "absolute", bottom: -4, borderRadius: 999, backgroundColor: "rgba(15,23,42,0.7)", paddingHorizontal: 10, paddingVertical: 2 }}>
+        <Text testID="ring-seconds" style={{ color: "#fff", fontSize: 12, fontWeight: "700", fontVariant: ["tabular-nums"] }}>{`${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`}</Text>
+      </View>
+    </View>
+  );
+}
+
+function Pill({ children, bg, color = "#fff", testID }: { children: React.ReactNode; bg: string; color?: string; testID?: string }) {
+  return <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: bg, paddingHorizontal: 12, paddingVertical: 4 }}><Text style={{ color, fontSize: 11, fontWeight: "700" }}>{children}</Text></View>;
+}
+
 export function JobRingOverlay() {
   const { colors } = useTheme();
+  const P = palette(colors.primary);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const qc = useQueryClient();
   const toast = useToast();
   const { subscribe, playRing, stopRing } = useRealtime();
-  const [job, setJob] = useState<any>(null);
-  const [left, setLeft] = useState(RING_SECONDS);
-  const [busy, setBusy] = useState("");
-  const [pulse] = useState(() => new Animated.Value(1));
+  const [queue, setQueue] = useState<RingJob[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [myPos, setMyPos] = useState<{ lat: number; lng: number } | null>(null);
+  const handledRef = useRef(new Set<string>());
+  const ringingRef = useRef(false);
+  const bounce = useLoop(1, 1000, Easing.inOut(Easing.ease));
 
-  const refetch = () => { qc.invalidateQueries({ queryKey: ["partner-jobs"] }); qc.invalidateQueries({ queryKey: ["partner-active"] }); qc.invalidateQueries({ queryKey: ["partner-dashboard"] }); qc.invalidateQueries({ queryKey: ["partner-missed"] }); };
+  const current: RingJob | null = queue[0] || null;
+  const silent = current ? isDndActive() && current.schedule_type !== "emergency" : false;
 
-  const open = (d: any, force = false) => {
-    if (!d || !d.id) return;
-    const emergency = d.schedule_type === "emergency";
-    // Smart Snooze: non-emergency requests are ignored entirely (never counted as missed).
-    if (!force && isSnoozed() && !emergency) return;
-    const isTest = !!d.is_test || String(d.id).startsWith("test-");
-    setJob({ ...d, is_test: isTest }); setLeft(RING_SECONDS);
-    if (!(isDndActive() && !emergency)) {
-      playRing();
-      if (Platform.OS !== "web") Vibration.vibrate([0, 500, 300, 500, 300, 500], true);
-    }
-    scheduleJobRing("🔔 New Job Request", `${d.service_name || "New service request"}${d.city ? " · " + d.city : ""}`).catch(() => {});
-    if (!isTest) api.post(`/bookings/${d.id}/seen`, {}).catch(() => {});
-  };
+  const refetch = () => ["partner-jobs", "partner-active", "partner-dashboard", "partner-missed"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
-  useEffect(() => { loadLocal(); syncPrefsFromServer(); }, []);
-  useEffect(() => onRing("open-ring", (d) => open(d, true)), []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => subscribe((ev) => {
-    if (ev.type === "job_request" && ev.data) {
-      open(ev.data);
-      refetch();
-    } else if (ev.type === "job_taken") {
-      setJob((j: any) => (j && j.id === ev.data?.id ? null : j));
-      refetch();
-    } else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) {
-      refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] });
-    } else if (ev.type === "reschedule_request") {
-      toast.info("Customer requested a reschedule — open Active Job to respond"); refetch();
-    }
-  }), [subscribe]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const dismiss = () => { stopRing(); Vibration.cancel(); setJob(null); };
-  const timeout = () => { if (job && !job.is_test) addMissed(job); dismiss(); };
-
+  // Best-effort partner location (web: navigator.geolocation once) for distance / ETA.
   useEffect(() => {
-    if (!job) return;
-    const id = setInterval(() => setLeft((s) => { if (s <= 1) { timeout(); return 0; } return s - 1; }), 1000);
-    const anim = Animated.loop(Animated.sequence([
-      Animated.timing(pulse, { toValue: 1.15, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: Platform.OS !== "web" }),
-      Animated.timing(pulse, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.ease), useNativeDriver: Platform.OS !== "web" }),
-    ]));
-    anim.start();
-    return () => { clearInterval(id); anim.stop(); };
-  }, [job?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!current || myPos) return;
+    (async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const p = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        setMyPos({ lat: p.coords.latitude, lng: p.coords.longitude });
+      } catch { /* unavailable */ }
+    })();
+  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => () => { stopRing(); Vibration.cancel(); }, [stopRing]);
+  const distanceKm = (() => {
+    if (!current || !myPos || current.lat == null || current.lng == null) return null;
+    const R = 6371, toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(current.lat - myPos.lat), dLng = toRad(current.lng - myPos.lng);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(myPos.lat)) * Math.cos(toRad(current.lat)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  })();
+  const etaMin = distanceKm != null ? Math.max(3, Math.round((distanceKm / 25) * 60)) : null;
 
-  if (!job) return null;
-  const accept = async () => {
-    if (job.is_test) { dismiss(); emitRing("test-ring-done", { id: job.id, verb: "accepted" }); toast.success("Test job ring works ✓ — sound, vibration & alert are set up"); return; }
-    setBusy("accept");
-    try { await api.post(`/bookings/${job.id}/accept`, {}); dismiss(); toast.success("Job accepted!"); refetch(); router.push("/(partner)/active"); }
-    catch (e: any) { toast.error(e?.detail || "Could not accept"); dismiss(); }
-    finally { setBusy(""); }
+  /* ------------------------- ringtone ------------------------- */
+  const startRing = useCallback((job: RingJob) => {
+    if (ringingRef.current) return;
+    const prefs = getRingPrefs();
+    if (isDndActive(prefs) && job.schedule_type !== "emergency") return;
+    ringingRef.current = true;
+    playRing();
+    if (Platform.OS !== "web") Vibration.vibrate([0, 400, 180, 400, 720], true);
+  }, [playRing]);
+  const stopAll = useCallback(() => {
+    ringingRef.current = false;
+    stopRing();
+    if (Platform.OS !== "web") Vibration.cancel();
+  }, [stopRing]);
+
+  useEffect(() => { loadLocal(); syncPrefsFromServer().catch(() => {}); }, []);
+  useEffect(() => {
+    if (current) startRing(current); else stopAll();
+    return stopAll;
+  }, [current?.id, startRing, stopAll]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ------------------------- queue ------------------------- */
+  const removeFromQueue = useCallback((id: string) => setQueue((q) => q.filter((j) => j.id !== id)), []);
+  const enqueue = useCallback((job: RingJob, force = false) => {
+    if (!job || !job.id) return;
+    if (handledRef.current.has(job.id)) return;
+    // Smart Snooze: non-emergency requests are ignored entirely (never counted as missed).
+    if (!force && isSnoozed() && job.schedule_type !== "emergency") return;
+    const isTest = !!job.is_test || String(job.id).startsWith("test-");
+    setQueue((q) => (q.find((x) => x.id === job.id) ? q : [...q, { ...job, is_test: isTest, _manual: isTest || job._manual, _at: Date.now() }]));
+    if (isTest) return;
+    scheduleJobRing("🔔 New Job Request", `${job.service_name || "New service request"}${job.city ? " · " + job.city : ""}`).catch(() => {});
+    api.post(`/bookings/${job.id}/seen`, {}).catch(() => {});
+  }, []);
+
+  // Elapsed timer (informational only — never cancels).
+  useEffect(() => {
+    if (!current) { setElapsed(0); return; }
+    setElapsed(0);
+    const startedAt = Date.now();
+    const iv = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(iv);
+  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // SSE: new requests + jobs taken by someone else (+ list refreshes, as web PartnerDashboard).
+  useEffect(() => subscribe((ev) => {
+    if (ev.type === "job_request") { enqueue(ev.data || {}); refetch(); }
+    else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); } refetch(); }
+    else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
+    else if (ev.type === "reschedule_request") { toast.info("Customer requested a reschedule — open Active Job to respond"); refetch(); }
+  }), [subscribe, enqueue, removeFromQueue]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // RELIABILITY FALLBACK: poll offers that should be ringing right now (every 6s + on foreground).
+  useEffect(() => {
+    let stopped = false;
+    const check = async () => {
+      if (stopped || AppState.currentState !== "active") return;
+      try {
+        const data = await api.get<any[]>("/bookings/partner/ring-pending");
+        const list = Array.isArray(data) ? data : [];
+        list.forEach((j) => enqueue(j));
+        const live = new Set(list.map((j) => j.id));
+        setQueue((q) => q.filter((j) => live.has(j.id) || j._manual || Date.now() - (j._at || 0) < 15000));
+      } catch { /* retry next tick */ }
+    };
+    check();
+    const iv = setInterval(check, 6000);
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") check(); });
+    return () => { stopped = true; clearInterval(iv); sub.remove(); };
+  }, [enqueue]);
+
+  // Re-grab a missed job / test ring from the dashboard (opens the ring again).
+  useEffect(() => onRing("open-ring", (job) => { if (job?.id) { handledRef.current.delete(job.id); enqueue({ ...job, _manual: true }, true); } }), [enqueue]);
+
+  /* ------------------------- actions ------------------------- */
+  const finishTest = (job: RingJob, verb: string) => {
+    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id);
+    toast.success(`Test ring ${verb} — alerts are working on this device`);
+    emitRing("test-ring-done", { id: job.id, verb });
   };
-  const decline = async () => {
-    if (job.is_test) { dismiss(); emitRing("test-ring-done", { id: job.id, verb: "rejected" }); return; }
-    setBusy("decline");
-    try { await api.post(`/bookings/${job.id}/reject`, { reason: "" }); toast.success("Job declined"); refetch(); } catch { /* ignore */ }
-    finally { setBusy(""); dismiss(); }
+  const doAccept = async (job: RingJob) => {
+    if (!job || busy) return;
+    if (job.is_test) { finishTest(job, "accepted"); return; }
+    setBusy(true);
+    try {
+      await api.post(`/bookings/${job.id}/accept`, {});
+      handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id);
+      toast.success(`Job accepted · ${job.service_name || ""}`);
+      refetch();
+      router.push("/(partner)/active");
+    } catch (e: any) {
+      toast.error(e?.detail || "Could not accept — it may have been taken.");
+      handledRef.current.add(job.id); removeFromQueue(job.id);
+    } finally { setBusy(false); }
   };
-  const view = () => { dismiss(); router.push("/(partner)/jobs"); };
-  const pay = String(job.payment_mode || job.payment_method || "Online").replace(/_/g, " ");
+  const doReject = async (job: RingJob) => {
+    if (!job || busy) return;
+    if (job.is_test) { finishTest(job, "dismissed"); return; }
+    setBusy(true);
+    try { await api.post(`/bookings/${job.id}/reject`, { reason: "" }); toast.info(`Request declined · ${job.service_name || ""}`); } catch { /* ignore */ }
+    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); refetch();
+    setBusy(false);
+  };
+
+  if (!current) return null;
+
+  const area = current.address_line || current.city || "Customer location";
+  const total = current.partner_amount != null && current.partner_amount !== "" ? current.partner_amount
+    : current.services_total != null && current.services_total !== "" ? current.services_total
+    : current.total != null ? current.total : "";
+  const visitingCharge = Number(current.visiting_charge || 0);
+  const couponCode = current.coupon_code || null;
+  const items: any[] = Array.isArray(current.items) ? current.items : [];
+  const singleServiceQty = (() => {
+    if (current.items_count > 1) return 0;
+    const q = Number(items.filter((x) => !x.is_addon)[0]?.qty || 1);
+    return q > 1 ? q : 0;
+  })();
 
   return (
-    <Modal visible transparent={false} animationType="slide" statusBarTranslucent onRequestClose={dismiss}>
-      <LinearGradient colors={[colors.primaryDark, colors.primary, "#0F172A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24, paddingHorizontal: 24, alignItems: "center" }} testID="job-ring-overlay">
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 999, paddingHorizontal: 14, paddingVertical: 6 }}>
-          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#34D399" }} /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700", letterSpacing: 1.5 }}>{job.is_test ? "TEST JOB RING" : "INCOMING JOB REQUEST"}</Text>
-        </View>
-        <Text style={{ color: "#BFDBFE", fontSize: 13, marginTop: 8 }}>Auto-dismiss in {left}s</Text>
+    <Modal visible transparent={false} animationType="slide" statusBarTranslucent onRequestClose={() => {}}>
+      <LinearGradient colors={[P[500], P[700], P[900]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} testID="incoming-job-ring">
+        {/* soft glows */}
+        <View pointerEvents="none" style={{ position: "absolute", top: -96, left: -96, width: 288, height: 288, borderRadius: 144, backgroundColor: "rgba(255,255,255,0.10)" }} />
+        <View pointerEvents="none" style={{ position: "absolute", bottom: 40, right: -80, width: 288, height: 288, borderRadius: 144, backgroundColor: "rgba(52,211,153,0.10)" }} />
 
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-          <Animated.View style={{ transform: [{ scale: pulse }], width: 140, height: 140, borderRadius: 70, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
-            <View style={{ width: 104, height: 104, borderRadius: 52, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={48} color={colors.primary} /></View>
-          </Animated.View>
-          <Text style={{ color: "#fff", fontSize: 28, fontWeight: "900", marginTop: 28, textAlign: "center" }} numberOfLines={2}>{job.service_name || "New service request"}</Text>
-          <Text style={{ color: "#BFDBFE", fontSize: 14, marginTop: 6, fontFamily: "monospace" }}>#{job.code}</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14 }}><Icon name="map-marker-outline" size={18} color="#BFDBFE" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "600", textAlign: "center" }} numberOfLines={2}>{job.address_line || job.city || "Nearby"}{job.address_line && job.city ? `, ${job.city}` : ""}</Text></View>
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
-            {[["Job value", job.total != null ? fmt(job.total) : "—"], ["Payment", pay], ["Type", job.schedule_type === "emergency" ? "Emergency" : "Standard"]].map(([k, v]) => (
-              <View key={String(k)} style={{ borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", paddingHorizontal: 14, paddingVertical: 10, minWidth: 96, alignItems: "center" }}>
-                <Text style={{ color: "#BFDBFE", fontSize: 10, textTransform: "uppercase", letterSpacing: 0.8 }}>{k}</Text><Text style={{ color: "#fff", fontSize: 15, fontWeight: "800", marginTop: 2, textTransform: "capitalize" }}>{String(v)}</Text>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, paddingTop: insets.top + 24, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+          <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, letterSpacing: 3.6, textTransform: "uppercase", marginBottom: 8 }}>{current.is_test ? "Test job ring" : "Incoming job request"}</Text>
+          {current.is_test ? <View style={{ marginBottom: 12 }}><Pill testID="ring-test-badge" bg={TW.amber400} color="#451A03">TEST · not a real job</Pill></View> : null}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+            {current.schedule_type === "emergency" ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: "rgba(239,68,68,0.9)", paddingHorizontal: 12, paddingVertical: 4 }}><Icon name="flash" size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Emergency</Text></View> : null}
+            {silent ? <View testID="ring-dnd-badge" style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 12, paddingVertical: 4 }}><Icon name="bell-off-outline" size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 11, fontWeight: "600" }}>Silent · Do Not Disturb</Text></View> : null}
+            {queue.length > 1 ? <Pill bg="rgba(255,255,255,0.15)">+{queue.length - 1} more waiting</Pill> : null}
+          </View>
+
+          {current.is_scheduled && current.scheduled_date ? (
+            <View testID="ring-scheduled" style={{ marginBottom: 12, width: "100%", maxWidth: 384, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.25)", paddingHorizontal: 16, paddingVertical: 12, alignItems: "center" }}>
+              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 10.5, letterSpacing: 2, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Scheduled Work</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="calendar-month-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{current.scheduled_date}</Text></View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="clock-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{current.scheduled_time}</Text></View>
               </View>
-            ))}
-          </View>
-        </View>
+              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11.5, marginTop: 4 }}>Scheduled for {current.scheduled_date} at {current.scheduled_time}</Text>
+            </View>
+          ) : null}
 
-        <View style={{ width: "100%", gap: 12 }}>
-          <Pressable testID="ring-accept" onPress={accept} disabled={!!busy} style={{ height: 60, borderRadius: 20, backgroundColor: "#10B981", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: busy ? 0.6 : 1, boxShadow: "0px 10px 30px rgba(16,185,129,0.45)" }}>
-            <Icon name="check-circle-outline" size={24} color="#fff" /><Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{busy === "accept" ? "Accepting…" : "Accept Job"}</Text>
-          </Pressable>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <Pressable testID="ring-view" onPress={view} style={{ flex: 1, height: 52, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}><Icon name="eye-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>View details</Text></Pressable>
-            <Pressable testID="ring-decline" onPress={decline} disabled={!!busy} style={{ flex: 1, height: 52, borderRadius: 16, backgroundColor: "rgba(244,63,94,0.9)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}><Icon name="close" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>{busy === "decline" ? "…" : "Decline"}</Text></Pressable>
+          <RingAvatar image={current.service_image} elapsed={elapsed} />
+
+          <Text testID="ring-title" style={{ color: "#fff", fontSize: 36, lineHeight: 42, fontWeight: "900", textAlign: "center" }}>
+            {current.items_count > 1 ? `${current.items_count} services` : current.service_name || "New Service Request"}
+          </Text>
+          {current.category_name ? <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 18, fontWeight: "600", marginTop: 4, textAlign: "center" }}>{current.category_name}</Text> : null}
+          {singleServiceQty > 0 ? <View style={{ marginTop: 8 }}><View testID="ring-qty" style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 4 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Quantity: {singleServiceQty}</Text></View></View> : null}
+
+          {total !== "" ? (
+            <View testID="ring-amount" style={{ marginTop: 16, alignItems: "center", borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 24, paddingVertical: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
+                <Text style={{ color: TW.emerald300, fontSize: 24, fontWeight: "700" }}>₹</Text>
+                <Text style={{ color: "#fff", fontSize: 48, lineHeight: 54, fontWeight: "900", fontVariant: ["tabular-nums"] }}>{inr(total)}</Text>
+              </View>
+              <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{visitingCharge > 0 ? "Total incl. visiting charge · excl. taxes" : "Service amount · excl. taxes"}</Text>
+              {visitingCharge > 0 ? <Text testID="ring-visiting" style={{ color: "rgba(167,243,208,0.9)", fontSize: 11, marginTop: 2 }}>includes ₹{inr(visitingCharge)} visiting charge</Text> : null}
+            </View>
+          ) : null}
+
+          <View style={{ marginTop: 24, width: "100%", maxWidth: 384, gap: 10 }}>
+            {items.length > 1 ? (
+              <Glass testID="ring-services" style={{ gap: 6 }}>
+                <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Services & add-ons (excl. tax)</Text>
+                {items.map((it, i) => (
+                  <View key={i} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingLeft: it.is_addon ? 12 : 0 }}>
+                    <Text style={{ color: it.is_addon ? "rgba(255,255,255,0.8)" : "#fff", fontSize: 14, fontWeight: it.is_addon ? "400" : "500", flex: 1 }} numberOfLines={1}>{it.is_addon ? "+ " : ""}{it.name}{it.qty > 1 ? ` ×${it.qty}` : ""}</Text>
+                    {it.price ? <Text style={{ color: it.is_addon ? "rgba(255,255,255,0.8)" : "#fff", fontSize: 14, fontWeight: it.is_addon ? "400" : "700", fontVariant: ["tabular-nums"] }}>₹{inr(it.price)}</Text> : null}
+                  </View>
+                ))}
+                {visitingCharge > 0 ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.15)", paddingTop: 6, marginTop: 4 }}>
+                    <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>Visiting charge</Text><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, fontVariant: ["tabular-nums"] }}>₹{inr(visitingCharge)}</Text>
+                  </View>
+                ) : null}
+              </Glass>
+            ) : null}
+            {couponCode ? (
+              <View testID="ring-coupon" style={{ borderRadius: 16, backgroundColor: "rgba(52,211,153,0.15)", borderWidth: 1, borderColor: "rgba(110,231,183,0.3)", paddingHorizontal: 16, paddingVertical: 12 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <Text style={{ color: TW.emerald200, fontSize: 14, fontWeight: "600" }}>Coupon {couponCode}</Text>
+                  {Number(current.coupon_discount || 0) > 0 ? <Text style={{ color: TW.emerald200, fontSize: 14, fontVariant: ["tabular-nums"] }}>₹{inr(current.coupon_discount)} off</Text> : null}
+                </View>
+                <Text style={{ color: "rgba(209,250,229,0.8)", fontSize: 11, marginTop: 4 }}>Funded by AzoApp — your earning is not affected.</Text>
+              </View>
+            ) : null}
+            <Glass style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Icon name="map-marker-outline" size={20} color="rgba(255,255,255,0.8)" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500", flex: 1 }} numberOfLines={1}>{area}</Text>
+            </Glass>
+            {distanceKm != null ? (
+              <Glass testID="ring-distance" style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                <Icon name="navigation-variant-outline" size={20} color="#7DD3FC" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>{distanceKm < 1 ? `${Math.round(distanceKm * 1000)} m` : `${distanceKm.toFixed(1)} km`} away · ~{etaMin} min travel</Text>
+              </Glass>
+            ) : null}
+            <Glass style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Icon name="clock-outline" size={20} color={TW.amber300} /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>{current.code ? `#${current.code}` : "Respond quickly to grab this job"}</Text>
+            </Glass>
           </View>
+        </ScrollView>
+
+        {/* action bar — sticky at the bottom */}
+        <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", alignSelf: "center", width: "100%", maxWidth: 384 }}>
+            <Pressable testID="ring-reject" onPress={() => doReject(current)} disabled={busy} style={({ pressed }) => ({ alignItems: "center", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+              <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: TW.red500, alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 25px rgba(127,29,29,0.4)" }}><Icon name="phone-hangup" size={28} color="#fff" /></View>
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Reject</Text>
+            </Pressable>
+            <Pressable testID="ring-accept" onPress={() => doAccept(current)} disabled={busy} style={({ pressed }) => ({ alignItems: "center", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+              <Animated.View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: TW.emerald500, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "rgba(110,231,183,0.4)", boxShadow: "0px 10px 25px rgba(6,78,59,0.5)", transform: [{ translateY: bounce.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0, -10, 0] }) }] }}>
+                {busy ? <ActivityIndicator color="#fff" /> : <Icon name="phone" size={32} color="#fff" />}
+              </Animated.View>
+              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Accept</Text>
+            </Pressable>
+          </View>
+          <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, textAlign: "center", marginTop: 16 }}>{silent ? "Silent alert (Do Not Disturb)" : "Ringing…"} · waiting for your response</Text>
         </View>
       </LinearGradient>
     </Modal>
