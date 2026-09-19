@@ -10,37 +10,29 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-apk:
+  build-android-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: mobile
+        working-directory: frontend
 
     steps:
-
-      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
 
-      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # 4. Install EAS CLI
       - name: Install EAS CLI
         run: npm install -g eas-cli@latest
 
-      # 5. Verify Expo project
       - name: Verify Expo project
         run: |
           echo "Current directory:"
@@ -49,12 +41,11 @@ jobs:
           echo "Project files:"
           ls -la
 
-          echo "EAS project:"
+          echo "Checking Expo project:"
           eas project:info
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      # 6. Build Android APK
       - name: Build Android APK
         run: |
           eas build \
