@@ -40,7 +40,7 @@ async def auth_config():
 
 @router.post("/email")
 async def email_login(req: EmailAuthRequest):
-    return await c.email_login(req.email, req.password, req.name)
+    return await c.email_login(req.email, req.password, req.name, req.create_if_new)
 
 
 @router.get("/me")

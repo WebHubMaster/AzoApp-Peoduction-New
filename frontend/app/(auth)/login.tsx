@@ -1,387 +1,181 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
+import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
-import { useTheme, spacing, radius, fontSize } from "@/src/theme";
+import { useTheme, palette } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
-import { Button } from "@/src/components/ui";
 import { api } from "@/src/api/client";
 import { useAuth, AppUser } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
+import { OtpLogin, Role, AuthResult } from "@/src/components/auth/OtpLogin";
+import { ForgotPasswordSheet } from "@/src/components/auth/ForgotPasswordSheet";
+import { AuthInput, AuthButton, AuthCard, TextLink } from "@/src/components/auth/AuthKit";
+import { isEmail } from "@/src/lib/validation";
+import { TW } from "@/src/components/partner/home/tw";
 
-type Role = "partner" | "merchant";
-const OTP_LEN = 6;
+/* 1:1 port of web pages/auth/Login.jsx (mobile view) — Partner & Merchant ONLY.
+   Customer / admin / agent accounts are rejected on this app (token never stored). */
+const APP_ROLES: Role[] = ["partner", "merchant"];
+const ROLE_STYLE: Record<Role, { label: string; portal: string; icon: any; badgeBg: string; badgeFg: string; border: string }> = {
+  partner: { label: "Partner", portal: "Partner app", icon: "wrench-outline", badgeBg: TW.emerald100, badgeFg: TW.emerald700, border: TW.emerald200 },
+  merchant: { label: "Merchant", portal: "Merchant panel", icon: "storefront-outline", badgeBg: TW.fuchsia100, badgeFg: TW.fuchsia700, border: "#F5D0FE" },
+};
 
-function normalizePhone(p: string) {
-  let x = p.trim().replace(/\s/g, "");
-  if (!x.startsWith("+")) x = "+91" + x.replace(/^0+/, "");
-  return x;
-}
-
-export default function Login() {
-  const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  const router = useRouter();
-  const { login } = useAuth();
+function BrandLogo() {
+  const { colors, mode } = useTheme();
   const brand = useBrand();
-  const toast = useToast();
-
-  const [registerRole, setRegisterRole] = useState<Role | null>(null);
-  const [mode, setMode] = useState<"otp" | "email">("otp");
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [phone, setPhone] = useState("");
-  const [name, setName] = useState("");
-  const [otp, setOtp] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const otpRefs = useRef<(TextInput | null)[]>([]);
-
-  const { data: cfg } = useQuery({
-    queryKey: ["auth-config"],
-    queryFn: () => api.get<any>("/auth/config", { auth: false }),
-  });
-  const { data: demo } = useQuery({
-    queryKey: ["demo-status"],
-    queryFn: () => api.get<any>("/auth/demo-status", { auth: false }),
-  });
-
-  const emailEnabled = cfg?.auth_config?.email_login;
-  const otpEnabled = cfg?.auth_config?.mobile_otp !== false;
-
-  useEffect(() => {
-    if (step === 2) setTimeout(() => otpRefs.current[0]?.focus(), 120);
-  }, [step]);
-
-  const routeUser = (u: AppUser) => {
-    if (u.role === "partner") router.replace("/(partner)");
-    else if (u.role === "merchant") router.replace("/(merchant)");
-    else {
-      toast.error("This app is for Partners & Merchants only.");
-    }
-  };
-
-  const onSuccess = async (token: string, u: AppUser) => {
-    await login(token, u);
-    toast.success(`Welcome, ${u.name || "back"}!`);
-    routeUser(u);
-  };
-
-  const sendOtp = async () => {
-    if (phone.replace(/\D/g, "").length < 10) return toast.error("Enter a valid 10-digit mobile number");
-    setBusy(true);
-    try {
-      const data = await api.post<any>("/auth/send-otp", { phone: normalizePhone(phone) }, { auth: false });
-      if (data.sent === false) {
-        toast.error(data.message || "Could not send OTP. Try again.");
-        setBusy(false);
-        return;
-      }
-      if (data.dev_otp) {
-        setDevOtp(String(data.dev_otp));
-        setOtp(String(data.dev_otp));
-      } else {
-        setDevOtp(null);
-        setOtp("");
-      }
-      setStep(2);
-      toast.success(data.dev_otp ? `Dev OTP: ${data.dev_otp}` : "OTP sent to your mobile");
-    } catch (e: any) {
-      toast.error(e?.detail || "Failed to send OTP");
-    }
-    setBusy(false);
-  };
-
-  const verify = async () => {
-    if (otp.length < 4) return toast.error("Enter the OTP");
-    setBusy(true);
-    try {
-      const data = await api.post<any>(
-        "/auth/verify-otp",
-        { phone: normalizePhone(phone), otp, create_if_new: false, role: registerRole || undefined },
-        { auth: false },
-      );
-      if (data.new_user) {
-        setStep(3);
-        setBusy(false);
-        return;
-      }
-      await onSuccess(data.token, data.user);
-    } catch (e: any) {
-      toast.error(e?.detail || "Invalid OTP");
-    }
-    setBusy(false);
-  };
-
-  const completeSignup = async () => {
-    if (!name.trim()) return toast.error("Please enter your name");
-    setBusy(true);
-    try {
-      const data = await api.post<any>(
-        "/auth/verify-otp",
-        { phone: normalizePhone(phone), otp, name: name.trim(), create_if_new: true, role: registerRole || undefined },
-        { auth: false },
-      );
-      if (registerRole === "partner") {
-        await login(data.token, data.user);
-        router.replace("/partner/register");
-      } else if (registerRole === "merchant") {
-        await login(data.token, data.user);
-        router.replace("/merchant/register");
-      } else {
-        await onSuccess(data.token, data.user);
-      }
-    } catch (e: any) {
-      toast.error(e?.detail || "Could not complete signup");
-    }
-    setBusy(false);
-  };
-
-  const emailLogin = async () => {
-    if (!email.trim() || password.length < 4) return toast.error("Enter email and password (min 4 chars)");
-    setBusy(true);
-    try {
-      const data = await api.post<any>("/auth/email", { email: email.trim(), password, name: name.trim() || undefined }, { auth: false });
-      await onSuccess(data.token, data.user);
-    } catch (e: any) {
-      toast.error(e?.detail || "Login failed");
-    }
-    setBusy(false);
-  };
-
-  const demoLogin = async (dphone: string, dotp: string) => {
-    setBusy(true);
-    try {
-      await api.post("/auth/send-otp", { phone: dphone }, { auth: false });
-      const data = await api.post<any>("/auth/verify-otp", { phone: dphone, otp: dotp }, { auth: false });
-      await onSuccess(data.token, data.user);
-    } catch (e: any) {
-      toast.error(e?.detail || "Demo login failed");
-    }
-    setBusy(false);
-  };
-
-  const setOtpDigit = (idx: number, val: string) => {
-    const d = val.replace(/\D/g, "").slice(-1);
-    const arr = otp.padEnd(OTP_LEN, " ").split("");
-    arr[idx] = d || " ";
-    setOtp(arr.join("").replace(/\s/g, ""));
-    if (d && idx < OTP_LEN - 1) otpRefs.current[idx + 1]?.focus();
-  };
-
-  const resetToPhone = () => {
-    setStep(1);
-    setOtp("");
-    setDevOtp(null);
-  };
-
-  const demoPartner = demo?.accounts?.find((a: any) => a.role === "partner");
-  const demoMerchant = demo?.accounts?.find((a: any) => a.role === "merchant");
-
+  const P = palette(colors.primary);
+  const logo = mode === "dark" ? brand.branding.logo_dark || brand.branding.logo : brand.branding.logo || brand.branding.logo_light;
+  if (logo) return <Image testID="app-brand-logo" source={{ uri: logo }} style={{ height: 40, width: 170 }} contentFit="contain" contentPosition="left" />;
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar style="light" />
-      <KeyboardAwareScrollView bottomOffset={24} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}>
-          {/* Brand header */}
-          <LinearGradient
-            colors={[colors.primary, colors.primaryHover]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ paddingTop: insets.top + 36, paddingBottom: 44, paddingHorizontal: spacing.lg, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 }}
-          >
-            <View style={{ width: 60, height: 60, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ color: "#fff", fontSize: 32, fontWeight: "900" }}>{(brand.branding.site_name || "A")[0]}</Text>
-            </View>
-            <Text style={{ color: "#fff", fontSize: fontSize.xxl, fontWeight: "900", marginTop: spacing.lg }}>
-              {registerRole ? `Register as ${registerRole === "partner" ? "Partner" : "Merchant"}` : `Welcome to ${brand.branding.site_name}`}
-            </Text>
-            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: fontSize.sm, marginTop: 6 }}>
-              {registerRole ? "Verify your mobile to create your account" : "One login — we open the right panel for you"}
-            </Text>
-          </LinearGradient>
-
-          <View style={{ padding: spacing.lg, gap: spacing.lg, marginTop: -12 }}>
-            {/* OTP / Email toggle */}
-            {emailEnabled ? (
-              <View style={{ flexDirection: "row", backgroundColor: colors.surfaceSubtle, borderRadius: radius.md, padding: 4 }}>
-                {(["otp", "email"] as const).map((m) => (
-                  <Pressable
-                    key={m}
-                    testID={`auth-mode-${m}`}
-                    onPress={() => { setMode(m); resetToPhone(); }}
-                    style={{ flex: 1, paddingVertical: 10, borderRadius: radius.sm, backgroundColor: mode === m ? colors.surface : "transparent", alignItems: "center" }}
-                  >
-                    <Text style={{ color: mode === m ? colors.primary : colors.textMuted, fontWeight: "800", fontSize: fontSize.sm }}>
-                      {m === "otp" ? "Mobile OTP" : "Email"}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : null}
-
-            {/* OTP FLOW */}
-            {mode === "otp" && otpEnabled ? (
-              <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: spacing.md }}>
-                {step === 1 ? (
-                  <>
-                    <Label colors={colors} text="Mobile number" />
-                    <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 52 }}>
-                      <Text style={{ color: colors.textSecondary, fontWeight: "700", fontSize: fontSize.md }}>+91</Text>
-                      <View style={{ width: 1, height: 24, backgroundColor: colors.border, marginHorizontal: 10 }} />
-                      <TextInput
-                        testID="login-phone-input"
-                        value={phone}
-                        onChangeText={(t) => setPhone(t.replace(/\D/g, "").slice(0, 10))}
-                        placeholder="10-digit mobile number"
-                        placeholderTextColor={colors.textMuted}
-                        keyboardType="number-pad"
-                        maxLength={10}
-                        style={{ flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: "600" }}
-                      />
-                    </View>
-                    <Button title="Send OTP" icon="arrow-right" onPress={sendOtp} loading={busy} testID="send-otp-button" />
-                    <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textAlign: "center" }}>
-                      We will take you to the right panel based on your number.
-                    </Text>
-                  </>
-                ) : step === 2 ? (
-                  <>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                      <Icon name="shield-check" size={16} color={colors.success} />
-                      <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs }}>
-                        Enter the 6-digit code sent to <Text style={{ fontWeight: "800", color: colors.text }}>{normalizePhone(phone)}</Text>
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, marginTop: 4 }}>
-                      {Array.from({ length: OTP_LEN }).map((_, i) => (
-                        <TextInput
-                          key={i}
-                          testID={`otp-box-${i}`}
-                          ref={(r) => { otpRefs.current[i] = r; }}
-                          value={otp[i] || ""}
-                          onChangeText={(v) => setOtpDigit(i, v)}
-                          onKeyPress={({ nativeEvent }) => {
-                            if (nativeEvent.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
-                          }}
-                          keyboardType="number-pad"
-                          maxLength={1}
-                          style={{
-                            flex: 1,
-                            height: 56,
-                            borderWidth: 1.5,
-                            borderColor: otp[i] ? colors.primary : colors.border,
-                            borderRadius: radius.md,
-                            textAlign: "center",
-                            fontSize: fontSize.xl,
-                            fontWeight: "800",
-                            color: colors.text,
-                            backgroundColor: colors.surfaceSubtle,
-                          }}
-                        />
-                      ))}
-                    </View>
-                    {devOtp ? (
-                      <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textAlign: "center" }}>Dev OTP auto-filled: {devOtp}</Text>
-                    ) : null}
-                    <Button title="Verify & Continue" onPress={verify} loading={busy} testID="verify-otp-button" />
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                      <Pressable onPress={resetToPhone} hitSlop={8}><Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontWeight: "700" }}>← Change number</Text></Pressable>
-                      <Pressable onPress={sendOtp} hitSlop={8}><Text style={{ color: colors.primary, fontSize: fontSize.sm, fontWeight: "700" }}>Resend OTP</Text></Pressable>
-                    </View>
-                  </>
-                ) : (
-                  <>
-                    <Label colors={colors} text="Your full name" />
-                    <TextInput
-                      testID="signup-name-input"
-                      value={name}
-                      onChangeText={setName}
-                      placeholder="Enter your name"
-                      placeholderTextColor={colors.textMuted}
-                      autoFocus
-                      style={{ height: 52, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, color: colors.text, fontSize: fontSize.md, fontWeight: "600" }}
-                    />
-                    <Button title="Create account" onPress={completeSignup} loading={busy} testID="complete-signup-button" />
-                    <Pressable onPress={resetToPhone} hitSlop={8} style={{ alignItems: "center" }}><Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontWeight: "700" }}>← Start over</Text></Pressable>
-                  </>
-                )}
-              </View>
-            ) : null}
-
-            {mode === "otp" && !otpEnabled ? (
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, textAlign: "center" }}>Mobile OTP login is currently disabled.</Text>
-            ) : null}
-
-            {/* EMAIL FLOW */}
-            {mode === "email" && emailEnabled ? (
-              <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.lg, gap: spacing.md }}>
-                <TextInput testID="email-input" value={email} onChangeText={setEmail} placeholder="Email" placeholderTextColor={colors.textMuted} autoCapitalize="none" keyboardType="email-address" style={inputStyle(colors)} />
-                <TextInput testID="email-name-input" value={name} onChangeText={setName} placeholder="Name (new users)" placeholderTextColor={colors.textMuted} style={inputStyle(colors)} />
-                <TextInput testID="email-password-input" value={password} onChangeText={setPassword} placeholder="Password" placeholderTextColor={colors.textMuted} secureTextEntry style={inputStyle(colors)} />
-                <Button title="Continue with Email" onPress={emailLogin} loading={busy} testID="email-login-button" />
-              </View>
-            ) : null}
-
-            {/* Register toggles */}
-            {step === 1 && mode === "otp" ? (
-              <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                {(["partner", "merchant"] as Role[]).map((r) => {
-                  const active = registerRole === r;
-                  return (
-                    <Pressable
-                      key={r}
-                      testID={`register-${r}-toggle`}
-                      onPress={() => setRegisterRole(active ? null : r)}
-                      style={{ flex: 1, paddingVertical: 12, borderRadius: radius.md, borderWidth: 1.5, borderColor: active ? colors.primary : colors.border, backgroundColor: active ? colors.primarySubtle : colors.surface, alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 6 }}
-                    >
-                      <Icon name={r === "partner" ? "tools" : "storefront"} size={16} color={active ? colors.primary : colors.textSecondary} />
-                      <Text style={{ color: active ? colors.primary : colors.textSecondary, fontWeight: "800", fontSize: fontSize.sm }}>
-                        {active ? "Cancel" : `Register as ${r === "partner" ? "Partner" : "Merchant"}`}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ) : null}
-
-            {/* Demo quick login */}
-            {demo?.demo_mode && (demoPartner || demoMerchant) ? (
-              <View style={{ gap: spacing.sm }}>
-                <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Demo login · OTP 123456</Text>
-                <View style={{ flexDirection: "row", gap: spacing.sm }}>
-                  {demoPartner ? (
-                    <Pressable testID="demo-partner-login" disabled={busy} onPress={() => demoLogin(demoPartner.phone, demoPartner.otp)} style={demoBtn(colors)}>
-                      <Icon name="tools" size={20} color={colors.primary} />
-                      <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>Partner Demo</Text>
-                    </Pressable>
-                  ) : null}
-                  {demoMerchant ? (
-                    <Pressable testID="demo-merchant-login" disabled={busy} onPress={() => demoLogin(demoMerchant.phone, demoMerchant.otp)} style={demoBtn(colors)}>
-                      <Icon name="storefront" size={20} color={colors.primary} />
-                      <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>Merchant Demo</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              </View>
-            ) : null}
-          </View>
-        </KeyboardAwareScrollView>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: P[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{(brand.branding.site_name || "A")[0]}</Text></View>
+      <View><Text style={{ color: colors.text, fontWeight: "800", fontSize: 16 }}>{brand.branding.site_name}</Text><Text style={{ color: TW.slate400, fontSize: 10 }}>{brand.branding.tagline}</Text></View>
     </View>
   );
 }
 
-function Label({ colors, text }: { colors: any; text: string }) {
-  return <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>{text}</Text>;
-}
-function inputStyle(colors: any) {
-  return { height: 52, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, color: colors.text, fontSize: fontSize.md, fontWeight: "600" as const };
-}
-function demoBtn(colors: any) {
-  return { flex: 1, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 8, paddingVertical: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface };
+export default function Login() {
+  const insets = useSafeAreaInsets();
+  const { colors, mode } = useTheme();
+  const P = palette(colors.primary);
+  const router = useRouter();
+  const { user, login, loading, booting } = useAuth();
+  const toast = useToast();
+  const [registerRole, setRegisterRole] = useState<Role | null>(null);
+  const [busy, setBusy] = useState("");
+  const [em, setEm] = useState({ email: "", password: "" });
+  const [forgot, setForgot] = useState(false);
+  const [routing, setRouting] = useState(false);
+
+  const { data: cfg } = useQuery({ queryKey: ["auth-config"], queryFn: () => api.get<any>("/auth/config", { auth: false }) });
+  const { data: demo } = useQuery({ queryKey: ["demo-status"], queryFn: () => api.get<any>("/auth/demo-status", { auth: false }) });
+  const ac = cfg?.auth_config || {};
+
+  const home = (u: AppUser) => {
+    if (u.role === "partner") return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_partner ? "/(partner)" : "/partner/register";
+    return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
+  };
+  // Already signed in (auto-login) → straight to the right panel, like web HOME[role].
+  useEffect(() => { if (user && APP_ROLES.includes(user.role as Role)) { setRouting(true); router.replace(home(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Role gate + session persist. Web routes HOME[role]; this app only admits partner/merchant. */
+  const finish = async ({ token, user: u }: AuthResult, greeting?: string) => {
+    if (!APP_ROLES.includes(u?.role)) {
+      toast.error(`This app is for Partners & Merchants only. Your ${u?.role || ""} account can sign in on the web panel.`);
+      return;
+    }
+    setRouting(true);
+    await login(token, u);
+    toast.success(greeting || `Welcome, ${u.name || "back"}!`);
+    router.replace(home(u) as any);
+  };
+
+  const emailLogin = async () => {
+    if (!isEmail(em.email)) return toast.error("Enter a valid email address");
+    if (em.password.length < 4) return toast.error("Password too short (min 4 characters)");
+    setBusy("email");
+    try { await finish(await api.post<any>("/auth/email", { email: em.email.trim(), password: em.password, create_if_new: false }, { auth: false })); }
+    catch (e: any) { toast.error(e?.detail || "Login failed"); }
+    setBusy("");
+  };
+
+  const quickLogin = async (acc: any) => {
+    setBusy(acc.phone);
+    try {
+      await api.post("/auth/send-otp", { phone: acc.phone }, { auth: false });
+      const data = await api.post<any>("/auth/verify-otp", { phone: acc.phone, otp: acc.otp }, { auth: false });
+      await finish(data, `Demo login: ${data.user?.name}`);
+    } catch (e: any) { toast.error(e?.detail || "Demo login failed"); }
+    setBusy("");
+  };
+
+  const demoAccounts: any[] = APP_ROLES.map((r) => (demo?.accounts || []).find((a: any) => a.role === r)).filter(Boolean);
+  const showLoader = booting || loading || routing || (user && APP_ROLES.includes(user.role as Role));
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      <StatusBar style={mode === "dark" ? "light" : "dark"} />
+      <KeyboardAwareScrollView bottomOffset={24} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingTop: insets.top + 32, paddingBottom: insets.bottom + 40 }}>
+        <View style={{ marginBottom: 32 }}><BrandLogo /></View>
+        <Text testID="login-title" style={{ color: colors.text, fontSize: 30, lineHeight: 36, fontWeight: "800" }}>{registerRole ? `Register as ${registerRole}` : "Sign in to continue"}</Text>
+        <Text style={{ color: TW.slate500, fontSize: 15, marginTop: 4, marginBottom: 24 }}>{registerRole ? "Verify your mobile to create your account" : "Login with your mobile number"}</Text>
+
+        <AuthCard subtle>
+          {ac.mobile_otp === false
+            ? <Text testID="otp-disabled-note" style={{ color: TW.slate500, fontSize: 14, textAlign: "center", paddingVertical: 8 }}>Mobile OTP login is currently disabled. Please use another method below.</Text>
+            : <OtpLogin registerRole={registerRole} onPickRole={setRegisterRole} onSuccess={finish} />}
+        </AuthCard>
+
+        {/* register toggles — exact web behaviour */}
+        <View testID="register-toggles" style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
+          {APP_ROLES.map((r) => {
+            if (r === "merchant" && registerRole === "partner") return null;
+            const on = registerRole === r;
+            return (
+              <Pressable key={r} testID={`reg-${r}`} onPress={() => setRegisterRole(on ? null : r)} style={{ flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: on ? P[700] : colors.border, backgroundColor: on ? P[50] : "transparent", alignItems: "center" }}>
+                <Text style={{ color: on ? P[700] : colors.textSecondary, fontSize: 14, fontWeight: "500" }}>{on ? "← Back to login" : `Register as ${ROLE_STYLE[r].label}`}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {ac.email_login ? (
+          <AuthCard testID="email-login" style={{ marginTop: 16, gap: 8 }}>
+            <Text style={{ color: P[700], fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 2.4 }}>Email Login</Text>
+            <AuthInput testID="email-input" placeholder="Email" autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
+            <AuthInput testID="email-pass" placeholder="Password" secureTextEntry value={em.password} onChangeText={(v) => setEm({ ...em, password: v })} onSubmitEditing={emailLogin} />
+            <AuthButton testID="email-login-btn" title="Continue with Email" onPress={emailLogin} busy={busy === "email"} />
+            <TextLink testID="forgot-password-link" title="Forgot password?" onPress={() => setForgot(true)} primary align="center" />
+          </AuthCard>
+        ) : null}
+
+        {ac.social_login || ac.whatsapp_login ? (
+          <View testID="alt-auth" style={{ marginTop: 12, gap: 8 }}>
+            {ac.whatsapp_login ? <AuthButton testID="wa-login" variant="outline" title="Continue with WhatsApp OTP" icon="whatsapp" onPress={() => toast.info("WhatsApp OTP uses the same mobile flow above")} /> : null}
+            {ac.social_login ? <AuthButton testID="social-login-disabled" variant="outline" title="Continue with Google" icon="google" onPress={() => toast.info(cfg?.integrations?.google_client_id ? "Google sign-in is available on the web panel. Use your mobile number here." : "Admin: add Google Client ID in Integrations to enable Google sign-in")} /> : null}
+          </View>
+        ) : null}
+
+        {demo?.demo_mode && demoAccounts.length > 0 ? (
+          <View testID="demo-accounts" style={{ marginTop: 24 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <Icon name="auto-fix" size={16} color={colors.accent} />
+              <Text style={{ color: TW.slate500, fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 2.4 }}>One-click demo login · OTP 123456</Text>
+            </View>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              {demoAccounts.map((a) => {
+                const s = ROLE_STYLE[a.role as Role];
+                const on = busy === a.phone;
+                return (
+                  <Pressable key={a.role} testID={`demo-${a.role}`} onPress={() => quickLogin(a)} disabled={!!busy} style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: s.border, backgroundColor: colors.surface, opacity: busy && !on ? 0.5 : 1 }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: s.badgeBg, alignItems: "center", justifyContent: "center" }}>
+                      {on ? <ActivityIndicator size="small" color={s.badgeFg} /> : <Icon name={s.icon} size={20} color={s.badgeFg} />}
+                    </View>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }} numberOfLines={1}>Login as {s.label}</Text>
+                      <Text style={{ color: TW.slate400, fontSize: 11 }} numberOfLines={1}>Opens {s.portal}</Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={{ color: TW.slate400, fontSize: 11, textAlign: "center", marginTop: 8 }}>Each button signs you straight into that portal with pre-loaded demo data.</Text>
+          </View>
+        ) : null}
+      </KeyboardAwareScrollView>
+
+      <ForgotPasswordSheet open={forgot} onClose={() => setForgot(false)} />
+      {showLoader ? (
+        <View testID="login-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+          <ActivityIndicator size="large" color={P[700]} />
+        </View>
+      ) : null}
+    </View>
+  );
 }

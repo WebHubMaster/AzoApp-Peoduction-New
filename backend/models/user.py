@@ -32,6 +32,9 @@ class EmailAuthRequest(BaseModel):
     email: str
     password: str
     name: Optional[str] = None
+    # Mobile app (partner/merchant only) passes False so an unknown email is
+    # rejected instead of silently creating a customer account.
+    create_if_new: Optional[bool] = True
 
 
 class AddressModel(BaseModel):

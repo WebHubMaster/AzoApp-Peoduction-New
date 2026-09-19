@@ -85,10 +85,12 @@ async function request<T = any>(path: string, opts: RequestOpts = {}): Promise<T
     data = text;
   }
   if (!res.ok) {
-    const detail =
-      (data && (data.detail || data.message)) ||
-      (res.status >= 500 ? "Something went wrong. Please try again shortly." : "Request failed");
-    throw new ApiError(res.status, typeof detail === "string" ? detail : "Request failed");
+    const raw = data && (data.detail ?? data.message);
+    // FastAPI 422 returns an array of {msg} objects — flatten to a readable string.
+    const detail = typeof raw === "string" ? raw
+      : Array.isArray(raw) ? raw.map((e: any) => (e && typeof e.msg === "string" ? e.msg : "")).filter(Boolean).join(" ")
+      : raw && typeof raw.msg === "string" ? raw.msg : "";
+    throw new ApiError(res.status, detail || (res.status >= 500 ? "Something went wrong. Please try again shortly." : "Request failed"));
   }
   return data as T;
 }

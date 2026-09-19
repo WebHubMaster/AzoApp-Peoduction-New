@@ -8,7 +8,7 @@ export const TW = {
   amber500: "#F59E0B", amber600: "#D97706", amber700: "#B45309", amber800: "#92400E",
   orange500: "#F97316", red100: "#FEE2E2", red500: "#EF4444", red600: "#DC2626", red700: "#B91C1C",
   rose500: "#F43F5E", rose200: "#FECDD3", rose50: "#FFF1F2", sky500: "#0EA5E9",
-  violet100: "#EDE9FE", violet500: "#8B5CF6", violet600: "#7C3AED", fuchsia500: "#D946EF", pink500: "#EC4899",
+  violet100: "#EDE9FE", violet500: "#8B5CF6", violet600: "#7C3AED", fuchsia500: "#D946EF", fuchsia100: "#FAE8FF", fuchsia700: "#A21CAF", pink500: "#EC4899",
   blue700: "#1D4ED8",
 };
 

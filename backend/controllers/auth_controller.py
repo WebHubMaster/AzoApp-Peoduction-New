@@ -44,7 +44,7 @@ def _verify_pw(pw, stored):
         return False
 
 
-async def email_login(email, password, name):
+async def email_login(email, password, name, create_if_new=True):
     s = await get_settings()
     if not s.get("auth_config", {}).get("email_login"):
         raise HTTPException(status_code=403, detail="Email login is disabled by admin")
@@ -56,6 +56,8 @@ async def email_login(email, password, name):
     if u:
         if not _verify_pw(password, u.get("password_hash", "")):
             raise HTTPException(status_code=400, detail="Invalid email or password")
+    elif create_if_new is False:
+        raise HTTPException(status_code=404, detail="No account found with this email. Please register with your mobile number first.")
     else:
         u = build_user("email:" + email, "customer", name or email.split("@")[0], email=email)
         u["password_hash"] = _hash_pw(password)
