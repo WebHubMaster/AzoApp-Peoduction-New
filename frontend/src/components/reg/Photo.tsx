@@ -112,12 +112,11 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
   const P = usePal();
   const toast = useToast();
   const [uploading, setUploading] = useState(false);
-  const [choose, setChoose] = useState(false);
   const [error, setError] = useState("");
-  const run = async (s: "camera" | "gallery") => {
+  const run = async () => {
     setError("");
     try {
-      const asset = await pickImage(s, "front");
+      const asset = await pickImage("camera", "front");
       if (!asset) return;
       setUploading(true);
       const d = await uploadAsset(base, "live_photo", asset);
@@ -132,7 +131,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
         <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: P[100], alignItems: "center", justifyContent: "center" }}><Camera size={16} color={P[700]} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate800 }}>Live Photo <Text style={{ color: TW.red500 }}>*</Text></Text>
-          <Text style={{ ...T.px11, color: TW.slate500 }}>Capture a real-time selfie from your camera or pick a clear photo from gallery.</Text>
+          <Text style={{ ...T.px11, color: TW.slate500 }}>Capture a real-time selfie from your camera. Gallery upload is not allowed.</Text>
         </View>
       </View>
       {value && !uploading ? (
@@ -141,7 +140,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700 }}>Photo captured</Text></View>
             {editable ? (
-              <Pressable testID="live-photo-retake" onPress={() => setChoose(true)} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Pressable testID="live-photo-retake" onPress={run} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <RefreshCw size={16} color={P[700]} /><Text style={{ ...T.sm, fontWeight: "600", color: P[700] }}>Retake photo</Text>
               </Pressable>
             ) : null}
@@ -154,13 +153,12 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
         </View>
       ) : null}
       {!value && !uploading ? (
-        <Pressable testID="live-photo-start" disabled={!editable} onPress={() => setChoose(true)}
+        <Pressable testID="live-photo-start" disabled={!editable} onPress={run}
           style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 12, backgroundColor: pressed ? P[700] : P[600], opacity: editable ? 1 : 0.6 })}>
           <Camera size={20} color="#fff" /><Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>Open camera</Text>
         </Pressable>
       ) : null}
       {error ? <ErrorBox text={error} /> : null}
-      <SourceSheet open={choose} onClose={() => setChoose(false)} onPick={run} title="Live Photo" />
     </View>
   );
 }

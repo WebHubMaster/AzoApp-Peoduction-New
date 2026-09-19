@@ -24,7 +24,7 @@ Source of truth = the web panel flows; mobile is a functional 1:1 port against t
 
 ### Registration UI — pixel-parity rebuild (Jun 2026)
 - Both wizards rebuilt to match the web panel's mobile view 1:1 (design, copy, icons, validation, API calls).
-- New kit `src/components/reg/`: `tokens.ts` (Tailwind hexes, primary palette), `Shell.tsx` (gradient brand bar + Logout, score ring banner, white card, footer), `Fields.tsx` (Field/WInput/WTextarea/Combo/WSelect/WButton/steppers/pills/banners/ReviewCard/RegNav/useServiceability), `DatePicker.tsx` (PremiumDatePicker port, bottom-sheet calendar), `Photo.tsx` (Uploader, LivePhotoCapture, GpsPhotoCapture — camera + gallery per user choice), `MapPreview.tsx` (OSM WebView embed).
+- New kit `src/components/reg/`: `tokens.ts` (Tailwind hexes, primary palette), `Shell.tsx` (gradient brand bar + Logout, score ring banner, white card, footer), `Fields.tsx` (Field/WInput/WTextarea/Combo/WSelect/WButton/steppers/pills/banners/ReviewCard/RegNav/useServiceability), `DatePicker.tsx` (PremiumDatePicker port, bottom-sheet calendar), `Photo.tsx` (Uploader & GpsPhotoCapture: camera + gallery; LivePhotoCapture: CAMERA ONLY — gallery removed on user request, same as web), `MapPreview.tsx` (OSM WebView embed).
 - Icons now `lucide-react-native` (same set as web). Old `RegKit.tsx` removed.
 - Partner: 5-step stepper (round icons), validation identical to web, submit = POST /submit only. Merchant: compact "Step x of 4" progress bar, plain text City/District/State/Pincode inputs, "📍 Use Current Location" + map, submit disabled until score 100, approved → view-only nav.
 - Verified via Expo web (localhost:8081) side-by-side with web panel at 412px: all steps of both wizards render & save correctly.
