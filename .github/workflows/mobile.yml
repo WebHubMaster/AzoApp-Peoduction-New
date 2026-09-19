@@ -1,4 +1,4 @@
-name: Deploy Android Production
+name: Build Android APK
 
 on:
   push:
@@ -10,8 +10,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-submit:
-    name: Build & Submit Android
+  build-apk:
+    name: Build Android APK
     runs-on: ubuntu-latest
 
     defaults:
@@ -19,9 +19,12 @@ jobs:
         working-directory: mobile
 
     steps:
+
+      # 1. Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -29,36 +32,35 @@ jobs:
           cache: npm
           cache-dependency-path: mobile/package-lock.json
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm ci
 
+      # 4. Install EAS CLI
       - name: Install EAS CLI
         run: npm install -g eas-cli@latest
 
+      # 5. Verify Expo project
       - name: Verify Expo project
         run: |
+          echo "Current directory:"
           pwd
+
+          echo "Project files:"
           ls -la
+
+          echo "EAS project:"
           eas project:info
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android Production
+      # 6. Build Android APK
+      - name: Build Android APK
         run: |
           eas build \
             --platform android \
-            --profile production \
+            --profile production-apk \
             --non-interactive \
             --no-wait
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Submit Android to Google Play
-        run: |
-          eas submit \
-            --platform android \
-            --profile production \
-            --latest \
-            --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
