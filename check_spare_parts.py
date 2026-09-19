@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
+BASE_URL = "https://registration-cleanup-1.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 # Configuration
-BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
+BASE_URL = "https://registration-cleanup-1.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"
 MERCHANT_PHONE = "+919000000002"

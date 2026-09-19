@@ -40,7 +40,7 @@ Source of truth = the web panel flows; mobile is a functional 1:1 port against t
 Admin +919000000000 · Merchant +919000000002 · Partner +919000000003 · Customer +919000000004
 
 ## Deliverables
-- Web panel: https://7e3e2caf-95d8-4562-bfac-b594af4eebfa.preview.emergentagent.com
+- Web panel: https://registration-cleanup-1.preview.emergentagent.com
 - Expo Go tunnel (changes on restart): exp://up1acxk-anonymous-8081.exp.direct
 
 ## Backlog / Next

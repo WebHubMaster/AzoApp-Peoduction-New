@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
+BASE_URL = "https://registration-cleanup-1.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

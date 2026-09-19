@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Modal, ActivityIndicator, Linking } from "react-native";
+import { View, Text, Pressable, Modal, ActivityIndicator, Linking, Platform } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import { File as FsFile, UploadType } from "expo-file-system";
 import { Camera, RefreshCw, CheckCircle2, CameraOff, AlertTriangle, FileText, MapPin, Image as ImageIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_BASE, getToken, mediaUrl } from "@/src/api/client";
@@ -51,7 +52,7 @@ export async function uploadAsset(base: string, docType: string, asset: ImagePic
   }
 
   const res = await new FsFile(asset.uri).upload(url, {
-    method: "POST", uploadType: UploadType.MULTIPART, fieldName: "file", mimeType: mime, parameters: params,
+    httpMethod: "POST", uploadType: UploadType.MULTIPART, fieldName: "file", mimeType: mime, parameters: params,
     headers: { Authorization: `Bearer ${token}` },
   });
   if (res.status < 200 || res.status >= 300) throw parseUploadError(res.status, res.body);
