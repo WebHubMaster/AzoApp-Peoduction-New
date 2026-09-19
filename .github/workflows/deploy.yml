@@ -1,0 +1,236 @@
+name: Deploy azoapp to EC2
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+
+  workflow_dispatch:
+
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # ==========================================
+      # 1. Checkout Code
+      # ==========================================
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+
+      # ==========================================
+      # 2. Setup Docker Buildx
+      # ==========================================
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+
+      # ==========================================
+      # 3. Login to Docker Hub
+      # ==========================================
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+
+      # ==========================================
+      # 4. Build Docker Image
+      # ==========================================
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/azoapp:latest \
+            -t ${{ secrets.DOCKER_USERNAME }}/azoapp:${{ github.sha }} \
+            ./backend
+
+
+      # ==========================================
+      # 5. Push Docker Image
+      # ==========================================
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/azoapp:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/azoapp:${{ github.sha }}
+
+
+      # ==========================================
+      # 6. Deploy to EC2
+      # ==========================================
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.2.2
+
+        with:
+
+          host: ${{ secrets.EC2_HOST }}
+
+          username: ${{ secrets.EC2_USERNAME }}
+
+          key: ${{ secrets.EC2_SECRET }}
+
+          script: |
+
+            set -e
+
+            echo "=========================================="
+            echo "Starting azoapp Deployment"
+            echo "=========================================="
+
+
+            # ==========================================
+            # Application Directory
+            # ==========================================
+
+            sudo mkdir -p /opt/azoapp
+
+            sudo chown -R $USER:$USER /opt/azoapp
+
+            cd /opt/azoapp
+
+
+            # ==========================================
+            # Login to Docker Hub
+            # ==========================================
+
+            echo "${{ secrets.DOCKER_PASSWORD }}" | \
+            docker login \
+              -u "${{ secrets.DOCKER_USERNAME }}" \
+              --password-stdin
+
+
+            # ==========================================
+            # Create Production .env
+            # ==========================================
+
+            echo "Creating production environment..."
+
+            cat > .env <<EOF
+
+            NODE_ENV=production
+
+            PORT=8080
+
+            MONGO_URL=mongodb://admin:${{ secrets.MONGO_PASSWORD }}@host.docker.internal:27017/admin?authSource=admin
+
+            DB_NAME=azoapp
+
+            JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}
+
+            JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}
+
+            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+
+            PUBLIC_APP_URL=${{ secrets.PUBLIC_APP_URL }}
+
+            EOF
+
+
+            # ==========================================
+            # Secure .env
+            # ==========================================
+
+            chmod 600 .env
+
+
+            # ==========================================
+            # Pull Latest Image
+            # ==========================================
+
+            echo "Pulling latest Docker image..."
+
+            docker pull ${{ secrets.DOCKER_USERNAME }}/azoapp:latest
+
+
+            # ==========================================
+            # Stop Old Application
+            # ==========================================
+
+            echo "Stopping old application..."
+
+            docker stop azoapp-app || true
+
+            docker rm azoapp-app || true
+
+
+            # ==========================================
+            # Start New Application
+            # ==========================================
+
+            echo "Starting new application..."
+
+            docker run -d \
+              --name azoapp-app \
+              --restart unless-stopped \
+              --add-host=host.docker.internal:host-gateway \
+              --env-file /opt/azoapp/.env \
+              -p 8080:8080 \
+              ${{ secrets.DOCKER_USERNAME }}/azoapp:latest
+
+
+            # ==========================================
+            # Wait for Application
+            # ==========================================
+
+            echo "Waiting for application to start..."
+
+            sleep 10
+
+
+            # ==========================================
+            # Check Container
+            # ==========================================
+
+            if [ "$(docker inspect -f '{{.State.Running}}' azoapp-app)" != "true" ]; then
+
+              echo "❌ Application failed to start!"
+
+              echo "========== APPLICATION LOGS =========="
+
+              docker logs azoapp-app
+
+              exit 1
+
+            fi
+
+
+            # ==========================================
+            # Show Application Logs
+            # ==========================================
+
+            echo "========== APPLICATION LOGS =========="
+
+            docker logs --tail 50 azoapp-app
+
+
+            # ==========================================
+            # Show Container Status
+            # ==========================================
+
+            echo "========== CONTAINER STATUS =========="
+
+            docker ps
+
+
+            # ==========================================
+            # Cleanup Old Images
+            # ==========================================
+
+            docker image prune -af
+
+
+            echo "=========================================="
+            echo "✅ azoapp deployment completed!"
+            echo "=========================================="

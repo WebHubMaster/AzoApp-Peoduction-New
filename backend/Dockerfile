@@ -1,13 +1,19 @@
-FROM node:22-alpine
+FROM python:3.13-slim
 
 WORKDIR /app
 
-COPY package*.json ./
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-RUN npm ci --omit=dev
+COPY requirements.txt ./
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir emergentintegrations \
+       --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 
 COPY . .
 
 EXPOSE 8080
 
-CMD ["node", "server.js"]
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8080"]
