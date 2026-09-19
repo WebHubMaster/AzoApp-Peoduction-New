@@ -26,16 +26,36 @@ export async function pickImage(source: "camera" | "gallery", facing: "front" | 
   return res.canceled ? null : res.assets?.[0] || null;
 }
 
+const parseUploadError = (status: number, text: string) => {
+  let d = `Upload failed (${status})`;
+  try { d = JSON.parse(text)?.detail || d; } catch { /* noop */ }
+  return new Error(typeof d === "string" ? d : JSON.stringify(d));
+};
+
+/* Multipart upload — native uses expo-file-system File.upload (expo/fetch does not support {uri} parts). */
 export async function uploadAsset(base: string, docType: string, asset: ImagePicker.ImagePickerAsset, extra?: Record<string, string>): Promise<any> {
-  const fd = new FormData();
-  // @ts-ignore RN FormData file shape
-  fd.append("file", { uri: asset.uri, name: asset.fileName || `${docType}_${Date.now()}.jpg`, type: asset.mimeType || "image/jpeg" });
-  fd.append("doc_type", docType);
-  if (extra) Object.entries(extra).forEach(([k, v]) => v && fd.append(k, v));
   const token = await getToken();
-  const r = await fetch(`${API_BASE}${base}/upload`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
-  if (!r.ok) { let d = "Upload failed"; try { d = (await r.json())?.detail || d; } catch { /* noop */ } throw new Error(d); }
-  return r.json();
+  const url = `${API_BASE}${base}/upload`;
+  const mime = asset.mimeType || "image/jpeg";
+  const params: Record<string, string> = { doc_type: docType };
+  if (extra) Object.entries(extra).forEach(([k, v]) => { if (v) params[k] = v; });
+
+  if (Platform.OS === "web") {
+    const fd = new FormData();
+    const blob = await (await fetch(asset.uri)).blob();
+    fd.append("file", blob, asset.fileName || `${docType}_${Date.now()}.jpg`);
+    Object.entries(params).forEach(([k, v]) => fd.append(k, v));
+    const r = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+    if (!r.ok) throw parseUploadError(r.status, await r.text());
+    return r.json();
+  }
+
+  const res = await new FsFile(asset.uri).upload(url, {
+    method: "POST", uploadType: UploadType.MULTIPART, fieldName: "file", mimeType: mime, parameters: params,
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status < 200 || res.status >= 300) throw parseUploadError(res.status, res.body);
+  return JSON.parse(res.body);
 }
 
 /* Camera / gallery choice sheet */
