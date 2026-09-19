@@ -1,0 +1,27 @@
+{
+  "summary": "Iter 70 - Fully validated mobile Partner+Merchant Auth port on Expo web (390x844). Backend: 8/8 pytest pass (test_iter70_mobile_auth.py) - POST /api/auth/email with create_if_new:false returns 404 'No account found' and does NOT auto-create; partner.demo@azoapp.test/Partner@123 -> role=partner token; verify-otp with create_if_new:false returns new_user:true and creates NO user; create_if_new:true+role:partner creates partner; re-registering same phone as merchant -> 400 'already registered as partner'; existing customer +919000000004 with role:'partner' -> 400 role_mismatch; forgot-password returns dev_otp; wrong OTP -> 400; correct OTP + Partner@123 -> ok; /auth/me with Bearer token returns user, garbage token -> 401 (partner password reset back to Partner@123 to keep tests idempotent). Frontend: onboarding -> skip-notifications-button -> Login screen with EXACT testIDs (login-title 'Sign in to continue', login-phone-input, send-otp-button, reg-partner, reg-merchant, email-input, email-pass, email-login-btn, forgot-password-link, demo-partner, demo-merchant) and NO customer/admin demo buttons. Validation: empty/5-digit/starts-with-1 all show 'valid 10-digit mobile number' toast and stay on step 1. Valid 9000000003 -> step 2 with +919000000003 caption, 6 boxes otp-box-0..5 auto-filled 123456, resend-countdown 0:28 running, change-number link works; Verify -> partner-home rendered with ph-hero, and page reload keeps user logged into partner dashboard (token persisted). Customer 9000000004 & Admin 9000000000 -> rejected: user stays on login-title, azo_token=null. Email login: invalid format -> 'valid email' toast; unknown valid email -> 'No account found'; partner.demo@azoapp.test/Partner@123 -> partner-home. Register-as-Partner: title 'Register as partner', '← Back to login', reg-merchant hidden; new phone (98765xxxxx) -> Verify -> otp-name-step with login-name-input that filters digits ('Ravi 123' -> 'Ravi ') -> continue-signup-button -> /partner/register wizard (Step 1 of 5 Basic). Register-as-Merchant: new phone -> lands on /merchant/register. No-account step: unknown number without register toggle -> otp-no-account-step 'No Partner or Merchant account found for +91…' with no-account-register-partner + no-account-register-merchant; tapping partner opens name step; completing -> /partner/register. Forgot password: forgot-password-dialog opens; empty identifier -> 'email or mobile' toast; partner.demo@azoapp.test -> dev OTP toast + forgot-otp prefilled + forgot-new-password + forgot-reset -> 'Password reset' toast + sheet closes. Demo: demo-partner -> partner-home; demo-merchant -> Merchant dashboard (Sharma Electricals, Commission, Wallet ₹25,477 all render). Regression: jobs-list rendered on Job Request tab.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Merchant dashboard", "issues": ["'merchant-home' data-testid not found on the merchant dashboard root wrapper (the merchant home clearly renders with Sharma Electricals + Commission + Wallet, so this is a testid-only gap, not a functional bug). Consider adding testID='merchant-home' on the outer ScrollView/View of app/(merchant)/index.tsx for parity with partner-home."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter70_mobile_auth.py", "/app/test_reports/pytest/iter70.xml"],
+  "action_items": ["(minor) Add testID='merchant-home' to merchant dashboard root to match partner-home naming convention. All core auth flows are working end-to-end."],
+  "critical_code_review_comments": [
+    "OtpLogin.tsx correctly implements all 4 steps (phone -> otp -> name -> no-account role picker) with proper 30s resend cooldown, dev OTP auto-fill from send-otp response, and change-number reset.",
+    "login.tsx finish() role gate correctly filters to partner|merchant only - customer/admin numbers get rejected with toast and NO token is persisted (verified via localStorage.getItem('azo_token') === null after rejection).",
+    "ForgotPasswordSheet.tsx: dev_otp response wired to prefill forgot-otp input for smoother testing.",
+    "validation.ts isPhone10 regex /^[6-9]\\d{9}$/ correctly rejects numbers starting with 1-5 as observed.",
+    "Backend /api/auth/email with create_if_new:false properly returns 404 without side-effects (verified by 2 consecutive calls both returning 404 - no user created between)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter70_mobile_auth.py", "/app/test_reports/iteration_70.json"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% on all requested testIDs and flows"},
+  "test_credentials": "Partner +919000000003 / partner.demo@azoapp.test / Partner@123; Merchant +919000000002; Customer +919000000004 (REJECTED); Admin +919000000000 (REJECTED). OTP = 123456.",
+  "seed_data_creation": "Created ~4 fresh partner/merchant users via random +91 9xxx numbers for register-flow testing; left in DB per instructions. Partner password reset flow ended with Partner@123 restored.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Auth port is stable. If further register-wizard testing is needed, use partner-registration-wizard testIDs already present at /partner/register (Basic step). Logout path: More tab -> Logout, or wipe localStorage.azo_token."
+}
