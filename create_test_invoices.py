@@ -7,7 +7,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://azo-app-live.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
 OTP = "123456"
 
 CUSTOMER_PHONE = "+919000000004"

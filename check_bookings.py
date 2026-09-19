@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://azo-app-live.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

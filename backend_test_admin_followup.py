@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any
 
 # Base URL from frontend/.env
-BASE_URL = "https://azo-app-live.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

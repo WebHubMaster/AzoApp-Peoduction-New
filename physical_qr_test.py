@@ -10,7 +10,7 @@ import requests
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://azo-app-live.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo accounts

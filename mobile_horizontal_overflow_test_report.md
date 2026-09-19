@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://azo-app-live.preview.emergentagent.com  
+**App URL:** https://azoapp-otp-preview.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary

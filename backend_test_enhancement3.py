@@ -22,7 +22,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 # Base URL from frontend/.env
-BASE_URL = "https://azo-app-live.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-preview.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
