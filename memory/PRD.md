@@ -1,29 +1,41 @@
-# AzoApp — Home Service Platform (Fork Setup)
+# AzoApp — Home Service Platform (Multi-app)
 
-## Original Problem
-Set up the forked AzoApp multi-app repo end-to-end, exactly like the prior setup.
-- /app/backend  → FastAPI (supervisor, port 8001). Auto-seeds demo data on startup.
-- /app/web_panel → React CRA/craco web app. Default preview on port 3000.
-- /app/frontend → Expo (React Native) app, run via Expo Go tunnel (QR + exp:// URL).
-- Auth: OTP-based (dev mode), OTP for all demo accounts = 123456.
+## Apps
+- /app/backend  — FastAPI on 8001, MongoDB `azoapp`, auto-seeds demo data. Emergent LLM key set.
+- /app/web_panel — React CRA/craco web app, default preview on port 3000 (supervisor `webpanel`).
+- /app/frontend — Expo (React Native) app for **Partner & Merchant only** (Expo Go tunnel, port 8081).
 
-## Architecture
-- Backend FastAPI on 8001, MongoDB (db `azoapp`), Emergent LLM key configured.
-- Web panel served via supervisor program `webpanel` (yarn start, CRA) on port 3000 → default preview.
-- Expo app served via `npx expo start --tunnel` (uses @expo/ngrok + watchman) on 8081, public exp.direct tunnel.
-- web_panel/.env keeps REACT_APP_BACKEND_URL EMPTY → api.js falls back to same-origin `/api` (no CORS).
+## Mobile app (Expo) — Partner & Merchant Auth + Registration
+Source of truth = the web panel flows; mobile is a functional 1:1 port against the SAME backend.
 
-## Setup completed (2026-06)
-- Created missing .env files: backend, frontend (Expo), web_panel.
-- Preview domain: https://7e3e2caf-95d8-4562-bfac-b594af4eebfa.preview.emergentagent.com
-- Backend restarted, /api/ returns 200, demo data seeded.
-- Stopped default `frontend` (Expo) supervisor program; added `/etc/supervisor/conf.d/webpanel.conf`; web panel on 3000 returns 200 and renders landing page.
-- Installed `watchman` + `@expo/ngrok` to fix Expo ENOSPC file-watcher limit; Expo tunnel live.
-- Verified all 4 one-click demo logins (Admin/Partner/Customer/Merchant) via testing agent — 100% pass, no CORS / "Demo login failed".
+### Login / Auth (DONE & verified)
+- `app/(auth)/login.tsx` + `src/components/auth/{OtpLogin,ForgotPasswordSheet,AuthKit}.tsx`.
+- Flows: OTP login (send/verify), new-user signup with role pick (Partner/Merchant), email login, forgot/reset password, one-click demo login (Partner/Merchant only).
+- Role gate: only partner & merchant admitted; admin/customer rejected (token never stored). Customer auth fully excluded.
+- Backend: `/auth/{config,demo-status,send-otp,verify-otp,email,forgot-password,reset-password,me}` — all verified (4 demo roles + fresh partner/merchant OTP signup work).
+
+### Registration (DONE & verified)
+- Partner wizard `app/partner/register.tsx` (5 steps: Basic, Work, Documents/KYC, Address, Review) → `/partner/registration/*`.
+- Merchant wizard `app/merchant/register.tsx` (4 steps: Owner, Shop, Address, Review) → `/merchant/registration/*`.
+- Shared kit `src/components/RegKit.tsx`: score ring, stepper, status banners, under-review card, dynamic pickers (searchable), photo capture (camera/gallery) with upload, shop GPS photo, pincode serviceability, current-location detect, review rows.
+- Dynamic data from backend: educations, experiences, categories, shop_types, geo cascade (states→districts→cities→villages), serviceability. Nothing hardcoded.
+- Verified against real backend: fresh signup → meta/profile load → PUT sections increment score (partner 4→26, merchant 8→22→52) → dynamic `missing` list → geo cascade + serviceability all working.
+- Bank/UPI/KYC collected later at first withdrawal (matches web) via FinanceKyc / payouts screens.
+
+### Fix applied this session
+- `app/index.tsx` cold-start auto-login now mirrors login `home()`: incomplete / under-review partners & merchants route to their registration wizard instead of the dashboard.
+
+### Verification notes
+- App bundles for Expo Go (Android bundle HTTP 200, ~12.6 MB). `tsc --noEmit` clean.
+- Flows verified at API-contract + bundle level via curl (Expo Go UI can't be browser-automated).
 
 ## Demo Accounts (OTP 123456)
 Admin +919000000000 · Merchant +919000000002 · Partner +919000000003 · Customer +919000000004
 
-## Notes / Backlog
-- Expo tunnel URL (exp.direct) changes on each `expo start` restart — regenerate QR if restarted.
-- Minor non-blocking: recharts width/height warnings + 2x 403 (notifications permission) on admin dashboard.
+## Deliverables
+- Web panel: https://7e3e2caf-95d8-4562-bfac-b594af4eebfa.preview.emergentagent.com
+- Expo Go tunnel (changes on restart): exp://up1acxk-anonymous-8081.exp.direct
+
+## Backlog / Next
+- Optional: onboarding-status guard inside (partner)/(merchant) tab layouts (defense-in-depth).
+- Optional: Expo web build for automated UI regression.

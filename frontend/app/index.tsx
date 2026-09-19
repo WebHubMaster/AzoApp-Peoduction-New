@@ -37,8 +37,11 @@ export default function SplashGate() {
     if (booting || !minElapsed) return;
     (async () => {
       if (user) {
-        if (user.role === "partner") router.replace("/(partner)");
-        else if (user.role === "merchant") router.replace("/(merchant)");
+        // Mirror login's home(): send partners/merchants who haven't finished
+        // (or are still under review) back to their registration wizard, not the dashboard.
+        const onboarded = !!(user.onboarding_submitted || user.kyc_status === "approved" || (user.role === "partner" ? user.verified_partner : user.verified_merchant));
+        if (user.role === "partner") router.replace(onboarded ? "/(partner)" : "/partner/register");
+        else if (user.role === "merchant") router.replace(onboarded ? "/(merchant)" : "/merchant/register");
         else setUnsupported(true);
         return;
       }
