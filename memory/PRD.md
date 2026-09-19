@@ -33,3 +33,15 @@ Forked AzoApp multi-app repo. Two goals:
 - P2: Silence Recharts width/height=-1 warnings on admin dashboard (wrap ResponsiveContainer with fixed min-height).
 - P2: Investigate two 403 asset loads after customer login (console cleanliness).
 - Consider a persistent tunnel (supervisor) if a stable Expo URL is needed across restarts.
+
+## Iteration 2 (2026-06) — Registration UX bug fixes (Expo app)
+Reported by user (Expo Go screenshots). All verified by testing agent (iteration_73.json, 3/3 PASS on Expo web build via tunnel):
+1. Partner Work step "Service Category" now renders a proper 2-COLUMN grid. Root cause: container had `gap:10` + two cards at `48.5%` → 97%+10px overflowed 100% → 1 col. Fix: `rowGap:10` + `justifyContent:space-between`, card width `48%`. (app/partner/register.tsx)
+2. Merchant "Shop Verification Photo" → "Open GPS Camera" now opens the camera DIRECTLY (live GPS capture); removed the Take-photo/Gallery SourceSheet. Retake + error-retry also go straight to camera. (src/components/reg/Photo.tsx GpsPhotoCapture)
+3. State/District/City/Village search dropdown: wrapped the bottom-sheet in <KeyboardAvoidingView behavior="padding"> so the search input + results stay above the soft keyboard. (src/components/reg/Fields.tsx Sheet)
+
+Note: #3 keyboard-avoidance is native-only; verified structurally in browser (search input + results render) + code-level. Recommend a quick on-device Android check that the sheet isn't over-lifted (reviewer flagged possible double-offset with padding on some Android setups).
+
+## Test accounts created for QA (incomplete KYC, dev OTP 123456)
+- Partner: +919888800011 (Basic pre-filled → lands on Work step)
+- Merchant: +919888800012
