@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, ScrollView, RefreshControl, Platform } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import { useTheme, spacing } from "@/src/theme";
@@ -53,7 +53,7 @@ export default function PartnerHome() {
   const setOnline = (v: boolean) => setOptimistic({ status: user?.partner_status, value: v });
 
   const qs = useMemo(() => (filter.key === "custom" && filter.from && filter.to ? `date_from=${filter.from}&date_to=${filter.to}` : `range=${filter.key}`), [filter]);
-  const dash = useQuery({ queryKey: ["partner-dashboard", qs], queryFn: () => api.get<any>(`/bookings/partner/dashboard?${qs}`) });
+  const dash = useQuery({ queryKey: ["partner-dashboard", qs], queryFn: () => api.get<any>(`/bookings/partner/dashboard?${qs}`), placeholderData: keepPreviousData });
   const stats = useQuery({ queryKey: ["partner-stats"], queryFn: () => api.get<any>("/partner/stats") });
   const kitQ = useQuery({ queryKey: ["starter-kit"], queryFn: () => api.get<any>("/starter-kit/me") });
   const kit = kitQ.data;
@@ -134,7 +134,7 @@ export default function PartnerHome() {
           <>
             <HeaderCard user={user} kit={kit} online={online} connected={connected} onToggle={(v) => toggleOnline.mutate(v)} />
             <PriorityAction k={k} kycApproved={kycApproved} kit={kit} nav={nav} />
-            <EarningsHero k={k} chart={chart} filter={filter} setFilter={setFilter} />
+            <EarningsHero k={k} chart={chart} filter={filter} setFilter={setFilter} updating={dash.isPlaceholderData} />
             <WalletCard wallet={wallet} nav={nav} />
             <KpiGrid k={k} nav={nav} />
             <TrendCard k={k} chart={chart} filterKey={filter.key} />

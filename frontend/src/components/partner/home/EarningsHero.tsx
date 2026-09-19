@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView } from "react-native";
+import { View, Text, Pressable, Modal, ScrollView, ActivityIndicator } from "react-native";
 import Svg, { Defs, RadialGradient, Stop, Rect, Pattern, Path } from "react-native-svg";
 import dayjs from "dayjs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,24 +16,27 @@ const PRESETS = [
 ];
 
 /* web: bg-slate-900 + radial emerald (top-right) + radial blue (bottom-left) + 26px grid @5% */
-function HeroBackdrop() {
+/* Sized in real pixels (measured by the parent) — percentage Svg sizing on native
+   resolves against the padding box and leaves the edges uncovered. */
+function HeroBackdrop({ w, h }: { w: number; h: number }) {
+  if (!w || !h) return null;
   return (
-    <Svg style={{ position: "absolute", inset: 0 }} width="100%" height="100%" preserveAspectRatio="none">
+    <Svg style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }} width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
       <Defs>
-        <RadialGradient id="g1" cx="100%" cy="0%" rx="110%" ry="80%">
+        <RadialGradient id="heroG1" cx={w} cy={0} rx={w * 1.1} ry={h * 0.8} gradientUnits="userSpaceOnUse">
           <Stop offset="0" stopColor={TW.emerald500} stopOpacity="0.45" /><Stop offset="0.55" stopColor={TW.emerald500} stopOpacity="0" />
         </RadialGradient>
-        <RadialGradient id="g2" cx="0%" cy="100%" rx="85%" ry="70%">
+        <RadialGradient id="heroG2" cx={0} cy={h} rx={w * 0.85} ry={h * 0.7} gradientUnits="userSpaceOnUse">
           <Stop offset="0" stopColor={TW.blue700} stopOpacity="0.5" /><Stop offset="0.6" stopColor={TW.blue700} stopOpacity="0" />
         </RadialGradient>
-        <Pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
+        <Pattern id="heroGrid" width="26" height="26" patternUnits="userSpaceOnUse">
           <Path d="M 26 0 L 0 0 0 26" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="1" />
         </Pattern>
       </Defs>
-      <Rect width="100%" height="100%" fill={TW.slate900} />
-      <Rect width="100%" height="100%" fill="url(#g1)" />
-      <Rect width="100%" height="100%" fill="url(#g2)" />
-      <Rect width="100%" height="100%" fill="url(#grid)" opacity="0.05" />
+      <Rect x={0} y={0} width={w} height={h} fill={TW.slate900} />
+      <Rect x={0} y={0} width={w} height={h} fill="url(#heroG1)" />
+      <Rect x={0} y={0} width={w} height={h} fill="url(#heroG2)" />
+      <Rect x={0} y={0} width={w} height={h} fill="url(#heroGrid)" opacity={0.05} />
     </Svg>
   );
 }
@@ -127,17 +130,19 @@ function RangeSheet({ open, onClose, onApply }: { open: boolean; onClose: () => 
   );
 }
 
-export function EarningsHero({ k, chart, filter, setFilter }: { k: any; chart: any[]; filter: RangeFilter; setFilter: (f: RangeFilter) => void }) {
+export function EarningsHero({ k, chart, filter, setFilter, updating }: { k: any; chart: any[]; filter: RangeFilter; setFilter: (f: RangeFilter) => void; updating?: boolean }) {
+  const [box, setBox] = useState({ w: 0, h: 0 });
   return (
-    <View testID="ph-hero" style={{ borderRadius: 24, overflow: "hidden", padding: 20, boxShadow: "0px 24px 50px -24px rgba(15,23,42,0.8)" }}>
-      <HeroBackdrop />
+    <View testID="ph-hero" onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={{ borderRadius: 24, overflow: "hidden", padding: 20, backgroundColor: TW.slate900, boxShadow: "0px 24px 50px -24px rgba(15,23,42,0.8)" }}>
+      <HeroBackdrop w={box.w} h={box.h} />
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Icon name="currency-inr" size={14} color="rgba(255,255,255,0.6)" />
             <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, letterSpacing: 2, textTransform: "uppercase", flexShrink: 1 }} numberOfLines={1}>Earnings · {RANGE_LABEL[filter.key] || "Custom"}</Text>
+            {updating ? <ActivityIndicator testID="ph-updating" size="small" color={TW.emerald400} style={{ transform: [{ scale: 0.7 }] }} /> : null}
           </View>
-          <Text testID="ph-earnings" style={{ color: "#fff", fontSize: 34, fontWeight: "900", letterSpacing: -0.5, marginTop: 8 }} numberOfLines={1} adjustsFontSizeToFit>{fmtC(k.earnings)}</Text>
+          <Text testID="ph-earnings" style={{ color: "#fff", fontSize: 34, fontWeight: "900", letterSpacing: -0.5, marginTop: 8, opacity: updating ? 0.6 : 1 }} numberOfLines={1} adjustsFontSizeToFit>{fmtC(k.earnings)}</Text>
         </View>
         {k.rating ? (
           <View style={{ flexShrink: 0, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", paddingHorizontal: 10, paddingVertical: 4 }}>

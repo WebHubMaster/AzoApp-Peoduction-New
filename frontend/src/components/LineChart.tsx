@@ -167,22 +167,23 @@ export function Sparkline({
   const vals = data.map((d) => d.earning || 0);
   const maxV = Math.max(...vals, 0);
   const max = maxV > 0 ? maxV * 1.12 : 1;
+  const padX = 6;
   const innerH = H - padT - padB;
-  const innerW = Math.max(1, w);
+  const innerW = Math.max(1, w - padX * 2);
   const baseY = padT + innerH;
   const single = data.length === 1;
   const n = Math.max(1, data.length - 1);
   const pts: Pt[] = data.map((d, i) => ({
-    x: single ? innerW / 2 : (i / n) * innerW,
+    x: padX + (single ? innerW / 2 : (i / n) * innerW),
     y: padT + innerH - ((d.earning || 0) / max) * innerH,
   }));
   // Single point → flat baseline so it still reads as a chart.
   const linePath = single && pts.length
-    ? `M0,${pts[0].y} L${innerW},${pts[0].y}`
+    ? `M${padX},${pts[0].y} L${padX + innerW},${pts[0].y}`
     : monotoneLine(pts);
   const areaPath = pts.length
     ? (single
-        ? `M0,${pts[0].y} L${innerW},${pts[0].y} L${innerW},${baseY} L0,${baseY} Z`
+        ? `M${padX},${pts[0].y} L${padX + innerW},${pts[0].y} L${padX + innerW},${baseY} L${padX},${baseY} Z`
         : `${linePath} L${pts[pts.length - 1].x},${baseY} L${pts[0].x},${baseY} Z`)
     : "";
   const last = pts[pts.length - 1];
@@ -199,7 +200,7 @@ export function Sparkline({
           </Defs>
           <Path d={areaPath} fill={`url(#${uid})`} />
           <Path d={linePath} fill="none" stroke={stroke} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-          {last ? <Circle cx={single ? innerW : last.x} cy={last.y} r="3" fill={stroke} /> : null}
+          {last ? <Circle cx={single ? padX + innerW : last.x} cy={last.y} r="3" fill={stroke} /> : null}
         </Svg>
       ) : null}
     </View>

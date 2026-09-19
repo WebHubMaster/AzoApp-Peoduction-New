@@ -150,3 +150,9 @@ See /app/memory/test_credentials.md (Partner 9000000003, Merchant 9000000002, OT
 - Finding: application source (backend/frontend/web_panel) was ALREADY identical between the two repos. Only env/URL-config files differed, where production's values were preserved (not overwritten).
 - Action: copied 298 files that were MISSING in production (root-level test/QA scripts, seed_rate_cards.py, memory docs, screenshots, test_reports). Additive only — nothing removed or overwritten (rsync --ignore-existing). Skipped .git/.emergent/.gitconfig to protect platform config.
 - Restored empty backend/.env (MONGO_URL, DB_NAME) and frontend/.env (EXPO_PUBLIC_BACKEND_URL) so the app boots. Backend /api/ → 200; seeds ran; Expo Metro live on :3000.
+
+## Session (2026-06) — Partner Earnings hero fix (native/Expo Go)
+- Root cause: HeroBackdrop Svg used `width="100%"`/`inset:0` → on native it resolved against the padding box, leaving the right/bottom edge of the hero without dark background (white text/cards became invisible = "clipped").
+- Fix: EarningsHero measures itself (onLayout) and draws backdrop in real pixels + solid slate900 fallback bg. Sparkline got 6px side padding so the end dot isn't clipped.
+- Range change no longer shows skeleton: `placeholderData: keepPreviousData` on partner-dashboard query + small spinner in hero while updating.
+- Expo Go URL: exps://live-app-staging.preview.emergentagent.com (QR at /app/memory/expo_qr.png).
