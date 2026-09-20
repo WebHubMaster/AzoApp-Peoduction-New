@@ -59,7 +59,7 @@
           "image": "./assets/splash.png",
           "backgroundColor": "#0D47A1",
           "resizeMode": "contain",
-          "imageWidth": 200
+          "imageWidth": 240
         }
       ],
       "@react-native-vector-icons/material-design-icons",

@@ -72,12 +72,17 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
-        "exclude": ["@notifee/react-native", "@react-native-vector-icons/material-design-icons"],
+        "exclude": [
+          "@notifee/react-native",
+          "@react-native-vector-icons/material-design-icons"
+        ],
         "listUnknownPackages": false
       }
     },
     "install": {
-      "exclude": ["react-native-screens"]
+      "exclude": [
+        "react-native-screens"
+      ]
     }
   },
   "private": true
