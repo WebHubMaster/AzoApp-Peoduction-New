@@ -48,3 +48,15 @@ Brought to parity with web:
 Unchanged parity already present: state banner + elapsed timer, header, location, JobStepper, reschedule pending/request/respond/cancel, Navigate, Call/Chat, before/after PhotoBlock + Start/Complete OTP, timeline, CompletedJob.
 Verified: tsc --noEmit passes; Metro bundles router entry (HTTP 200, expo-location resolved, 0 unresolved); /bookings/partner/active returns breakdown.service_items+earning+customer_only_charges+schedule+category_id; rate-card + /additional + pending-gate tested via curl as demo partner (+919000000003, OTP 123456).
 Note: native Expo Go app can't be driven by the browser (Playwright) testing agent; verification was tsc + Metro bundle + backend endpoint checks + line-by-line web parity.
+
+## Mobile Chat + unseen badge + notifications (2026-09-20)
+Problem: Partner mobile "Chat" button opened the booking-detail screen (NO chat). Needed web-parity chat + WhatsApp-style unseen count on the Chat button + notification on new message.
+Implemented (Expo app):
+- New chat screen /app/frontend/app/(partner)/chat/[id].tsx — parity with web BookingChat: counterpart header + Call, message bubbles (mine/theirs), quick replies, input+send, enabled/locked/empty states. Uses SAME APIs GET/POST /api/bookings/{id}/messages. Realtime 'booking_message' refresh + 5s poll while open.
+- Chat button in active.tsx now routes to /(partner)/chat/{id} and shows a red unseen-count badge (9+ cap).
+- /app/frontend/src/lib/chatSeen.ts — last-seen persistence (storage) + useUnseenCount external store; markChatSeen on chat open. Unseen = customer messages newer than last-seen.
+- /app/frontend/src/components/ChatNotifier.tsx (mounted in (partner)/_layout.tsx) — on realtime 'booking_message' (not mine) fires a foreground local notification (scheduleJobRing); registered chat/[id] route href:null.
+Backend (already existed, verified 100% by testing agent iteration_77): send_message creates a 'chat_message' notification for the recipient + emits realtime 'booking_message'; chat gated on payment_status=paid + active status + not comm_locked; 403 for non-parties.
+Test data: booking AZOF95E4B (147ad06b-...) set payment_status=paid so chat is demoable (partner +919000000003 ↔ customer +919000000004, OTP 123456).
+LIMITATION (Expo Go): true closed-app remote push is unsupported by Expo Go (SDK 53+). Foreground notifications work now. Closed-app WhatsApp-style push needs a dev/production build + FCM device-token registration to POST /api/notifications/devices (backend notify() already sends FCM) — follow-up, not done.
+Verified: tsc passes (only pre-existing baseUrl deprecation); Metro bundles router entry HTTP 200 with PartnerChat+ChatNotifier, 0 unresolved; backend chat flow 9/9 via testing agent.
