@@ -13,6 +13,7 @@ import { Icon, MdiName } from "@/src/components/Icon";
 import { AppShellHeader } from "@/src/components/AppShell";
 import { Skeleton } from "@/src/components/ui";
 import { MissedRingRecovery } from "@/src/components/partner/home/MissedRingRecovery";
+import { PermissionBanner } from "@/src/components/PermissionBanner";
 import { ProPerks, OnboardingBanner } from "@/src/components/partner/home/HomeBanners";
 import { EarningsHero, RangeFilter } from "@/src/components/partner/home/EarningsHero";
 import { HeaderCard, PriorityAction, WalletCard, KpiGrid, TrendCard, PerformanceCard, GrowthCard, RecentJobs, QuickActions, NavKey } from "@/src/components/partner/home/HomeSections";
@@ -119,6 +120,7 @@ export default function PartnerHome() {
         refreshControl={<RefreshControl refreshing={dash.isFetching && !loading} onRefresh={() => { invalidateAll(); refresh?.(); }} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         <MissedRingRecovery />
+        <PermissionBanner />
         {isPro ? <ProPerks label={user?.partner_badge || kit?.badge_label || "AzoApp Pro"} /> : null}
         {showOnboarding ? <OnboardingBanner onPress={() => nav("onboarding")} /> : null}
 

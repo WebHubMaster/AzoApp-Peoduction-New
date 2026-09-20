@@ -1,5 +1,5 @@
 {
-  "base_url": "https://job-ring-system.preview.emergentagent.com/api",
+  "base_url": "https://job-ring-notify.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",

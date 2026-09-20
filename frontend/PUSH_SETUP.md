@@ -1,33 +1,47 @@
 # Push notifications (real build) — setup
 
-Chat push (background / closed app) needs a real build + Firebase. Expo Go cannot receive remote push.
+Remote push + the call-style Job Ring on a **background / closed / locked** phone
+needs a **real build** (dev-client or APK) + Firebase. Expo Go cannot receive
+remote FCM push — in Expo Go the in-app SSE ring works only while the app is open.
 
-> ⚠️ **`frontend/google-services.json` is currently a PLACEHOLDER** (so the APK
-> builds out of the box). The Job Ring works in the foreground/background over
-> SSE, but remote push to a **closed / killed** app needs the REAL file below.
-> Replace the placeholder with your real `google-services.json` and upload the
-> service-account JSON in Admin → Integrations → Firebase (FCM).
+## Package name (IMPORTANT)
+- Android `applicationId` / iOS bundle id: **`app.azoapp.homeservice`**
+- `frontend/google-services.json` MUST contain a client for this exact package.
+  The bundled file has clients for `app.azoapp.homeservice` (and `app.azoapp.partner`).
+- If these two ever disagree the Android build fails at `processGoogleServices`
+  ("No matching client found for package name …") and FCM never initialises →
+  push works in the foreground (SSE) but NOT in background/closed. This was the
+  original bug — now fixed.
 
 ## 1. Firebase
-1. Firebase console → project → **Project settings → Service accounts → Generate new private key** (JSON).
-   Upload this JSON in **Admin panel → Integrations → Firebase (FCM)** and enable FCM. (Backend sends via firebase-admin.)
-2. **Add Android app** with package `com.azoapp.partner` → download `google-services.json` → **replace** the placeholder at `frontend/google-services.json`.
-3. In `app.json` add under `expo.android`:
-   ```json
-   "googleServicesFile": "./google-services.json"
-   ```
-4. iOS (optional): upload your APNs key in Firebase → Cloud Messaging, add iOS app with bundle id `com.azoapp.partner`.
+1. Firebase console → project → **Project settings → Service accounts → Generate
+   new private key** (JSON). Upload this JSON in **Admin panel → Integration Center
+   → Firebase Settings** and enable FCM. (Backend sends via firebase-admin.)
+2. `google-services.json` (Android app config) is already bundled at
+   `frontend/google-services.json`. You can also upload it in **Admin → Integration
+   Center → Firebase Settings → google-services.json** — the web-push config
+   (apiKey/projectId/appId/senderId…) is then auto-filled from it.
+3. iOS (optional): upload your APNs key in Firebase → Cloud Messaging, add an iOS
+   app with bundle id `app.azoapp.homeservice`.
 
 ## 2. Build
 ```bash
 cd frontend
 npx expo prebuild --clean
-eas build -p android --profile preview   # or: npx expo run:android
+eas build -p android --profile production-apk   # or: npx expo run:android
 ```
 
 ## 3. How it works
-- On login the app calls `getDevicePushTokenAsync()` (native FCM token) → `POST /api/notifications/devices` (`src/lib/notifications.ts → registerPushToken`).
-- Backend `send_message` → `notify()` → FCM push **only when the recipient is not currently viewing that chat** (presence heartbeat via `POST /bookings/{id}/messages/seen`).
-- Payload: title = sender name, body = `message\nService • Booking #CODE`, Android channel `chat`, collapse key `chat-<booking_id>`, data `{type: chat_message, booking_id, code, service_name, sender_role}`.
-- Tap (foreground / background / cold start) → `ChatNotifier.onNotificationTap` → `/chat/[id]?role=…&service=…`.
-- Foreground: SSE `booking_message` → local notification (same format) unless that chat screen is open.
+- On login the app registers its native FCM token → `POST /api/notifications/devices`
+  (`src/lib/notifications.ts → registerPushToken`). Multi-device + token-refresh safe.
+- New job (ONLINE partner): backend `_push_job_request` sends a **data-only,
+  high-priority** FCM message `{type: job_request}` → `pushBackground.ts`
+  `setBackgroundMessageHandler` → `displayJobRing` (Notifee full-screen call alert,
+  looping sound, foreground service) rings even when closed / locked.
+- Accept/Reject from the lock screen → Notifee background event → hits the API →
+  ring stops. Accept/Reject/expire/cancel → backend broadcasts `{type: job_taken}`
+  data push → other devices stop ringing (no duplicate/infinite ring).
+- Tap a job/chat/booking notification (foreground, background or cold start) →
+  `ChatNotifier.onNotificationTap` → opens the exact job ring / chat / screen.
+- All other pushes (bookings, chat, account) go through `send_to_user` with a
+  `notification` block so Android shows them in every state.

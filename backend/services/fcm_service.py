@@ -210,6 +210,96 @@ async def check_web_api_key(web_config: dict) -> dict:
     return {"ok": all(c["ok"] for c in checks), "checks": checks}
 
 
+# ---------------------------------------------------------------------------
+#  google-services.json (Android client config) — uploaded from Admin so the
+#  admin can keep the mobile Firebase client config on record AND auto-fill the
+#  browser web-push config (apiKey/projectId/appId/senderId/etc.) from it.
+# ---------------------------------------------------------------------------
+_FCM_FIELD_MAP = {
+    "apiKey": "fcm_api_key", "authDomain": "fcm_auth_domain",
+    "projectId": "fcm_project_id", "storageBucket": "fcm_storage_bucket",
+    "messagingSenderId": "fcm_messaging_sender_id", "appId": "fcm_app_id",
+}
+
+
+def _derive_web_config(gs: dict, package_name: str = None) -> dict:
+    """Build the Firebase JS web-config from a google-services.json. Picks the
+    client matching `package_name` (falls back to the first Android client)."""
+    pinfo = gs.get("project_info", {}) or {}
+    clients = gs.get("client", []) or []
+    chosen = None
+    if package_name:
+        for c in clients:
+            if (c.get("client_info", {}).get("android_client_info", {}) or {}).get("package_name") == package_name:
+                chosen = c
+                break
+    if not chosen and clients:
+        chosen = clients[0]
+    api_key, app_id = "", ""
+    if chosen:
+        keys = chosen.get("api_key", []) or []
+        api_key = (keys[0].get("current_key") if keys else "") or ""
+        app_id = (chosen.get("client_info", {}) or {}).get("mobilesdk_app_id", "") or ""
+    project_id = pinfo.get("project_id", "") or ""
+    return {
+        "apiKey": api_key,
+        "authDomain": f"{project_id}.firebaseapp.com" if project_id else "",
+        "projectId": project_id,
+        "storageBucket": pinfo.get("storage_bucket", "") or "",
+        "messagingSenderId": pinfo.get("project_number", "") or "",
+        "appId": app_id,
+    }
+
+
+async def save_google_services(raw: str, package_name: str = None) -> dict:
+    """Validate + store google-services.json and auto-configure the web-push
+    config (integrations.fcm_web_config + individual fcm_* fields) from it."""
+    txt = (raw or "").strip().lstrip("\ufeff")
+    if not txt:
+        raise HTTPException(400, "Empty google-services.json")
+    try:
+        gs = json.loads(txt)
+    except json.JSONDecodeError as e:
+        raise HTTPException(400, f"Invalid google-services.json: not valid JSON ({e.msg} at line {e.lineno})")
+    if not isinstance(gs, dict) or "project_info" not in gs or "client" not in gs:
+        raise HTTPException(400, 'Not a valid google-services.json ("project_info"/"client" missing)')
+    packages = [(c.get("client_info", {}).get("android_client_info", {}) or {}).get("package_name", "")
+                for c in gs.get("client", [])]
+    packages = [p for p in packages if p]
+    web_config = _derive_web_config(gs, package_name)
+    ts = now_iso()
+    await db.fcm_config.update_one(
+        {"_id": "google_services"},
+        {"$set": {"_id": "google_services", "raw": txt, "project_id": web_config["projectId"],
+                  "packages": packages, "web_config": web_config, "updated_at": ts}},
+        upsert=True)
+    # Persist into settings so browser web-push auto-configures out of the box.
+    try:
+        upd = {"integrations.fcm_web_config": web_config, "integrations.fcm_enabled": True}
+        for js_key, val in web_config.items():
+            flat = _FCM_FIELD_MAP.get(js_key)
+            if flat:
+                upd[f"integrations.{flat}"] = val
+        await db.settings.update_one({"id": "global"}, {"$set": upd}, upsert=True)
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True, "project_id": web_config["projectId"], "packages": packages, "web_config": web_config}
+
+
+async def google_services_status() -> dict:
+    row = await db.fcm_config.find_one({"_id": "google_services"})
+    if not row:
+        return {"configured": False}
+    return {"configured": True, "project_id": row.get("project_id"),
+            "packages": row.get("packages", []), "updated_at": row.get("updated_at"),
+            "web_config": row.get("web_config", {})}
+
+
+async def get_google_services_json() -> str:
+    row = await db.fcm_config.find_one({"_id": "google_services"})
+    return row.get("raw") if row else None
+
+
 async def register_device(user_id: str, token: str, user_agent: str = "",
                           device_id: str = "", platform: str = "", browser: str = "",
                           permission_status: str = "granted"):

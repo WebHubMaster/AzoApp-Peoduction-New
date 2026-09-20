@@ -1442,11 +1442,59 @@ function FirebaseModal({ integ, onClose, onSaved }) {
   const [saName, setSaName] = useState("");
   const [saStatus, setSaStatus] = useState(null);
   const [downloading, setDownloading] = useState(false);
+  const [gsJson, setGsJson] = useState("");
+  const [gsName, setGsName] = useState("");
+  const [gsStatus, setGsStatus] = useState(null);
+  const [gsDownloading, setGsDownloading] = useState(false);
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
   useEffect(() => {
     api.get("/admin/partner-reg/fcm-config").then((r) => setSaStatus(r.data)).catch(() => {});
+    api.get("/admin/partner-reg/fcm-config/google-services").then((r) => setGsStatus(r.data)).catch(() => {});
   }, []);
+  // Parse an uploaded google-services.json → auto-fill the web-push config fields.
+  const onGsFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setGsName(file.name);
+    const r = new FileReader();
+    r.onload = () => {
+      const txt = String(r.result || "");
+      setGsJson(txt);
+      try {
+        const gs = JSON.parse(txt);
+        const pinfo = gs.project_info || {};
+        const clients = gs.client || [];
+        const chosen = clients.find((c) => c?.client_info?.android_client_info?.package_name === "app.azoapp.homeservice") || clients[0] || {};
+        const apiKey = chosen?.api_key?.[0]?.current_key || "";
+        const appId = chosen?.client_info?.mobilesdk_app_id || "";
+        const pid = pinfo.project_id || "";
+        setF((o) => ({
+          ...o,
+          fcm_api_key: apiKey || o.fcm_api_key,
+          fcm_project_id: pid || o.fcm_project_id,
+          fcm_auth_domain: pid ? `${pid}.firebaseapp.com` : o.fcm_auth_domain,
+          fcm_storage_bucket: pinfo.storage_bucket || o.fcm_storage_bucket,
+          fcm_messaging_sender_id: pinfo.project_number || o.fcm_messaging_sender_id,
+          fcm_app_id: appId || o.fcm_app_id,
+        }));
+        toast.success("google-services.json parsed — web config auto-filled");
+      } catch { toast.error("That file is not a valid google-services.json"); }
+    };
+    r.readAsText(file);
+  };
+  const downloadGs = async () => {
+    setGsDownloading(true);
+    try {
+      const res = await api.get("/admin/partner-reg/fcm-config/google-services/download", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "google-services.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch { toast.error("Could not download google-services.json"); }
+    finally { setGsDownloading(false); }
+  };
   const onFile = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1496,6 +1544,17 @@ function FirebaseModal({ integ, onClose, onSaved }) {
           return; // don't show the generic "Firebase settings saved" success below
         }
       }
+      if (gsJson.trim()) {
+        try {
+          const { data } = await api.put("/admin/partner-reg/fcm-config/google-services", { google_services_json: gsJson, package_name: "app.azoapp.homeservice" });
+          toast.success(`google-services.json saved: ${data.project_id || "ok"}`);
+          setGsStatus({ configured: true, project_id: data.project_id, packages: data.packages, updated_at: new Date().toISOString() });
+        } catch (err) {
+          const msg = err?.response?.data?.detail || err?.message || "google-services.json invalid";
+          toast.error(msg, { duration: 6000 });
+          return;
+        }
+      }
       toast.success("Firebase settings saved"); onSaved();
     } catch { toast.error("Save failed"); } finally { setBusy(false); }
   };
@@ -1532,6 +1591,28 @@ function FirebaseModal({ integ, onClose, onSaved }) {
             <p className="text-[11px] text-slate-400 mt-1">{saStatus && saStatus.configured ? "Choose a new file only if you want to replace the current one." : "No file uploaded yet."}</p>
           </L>
           {saJson && <p className="text-[11px] text-emerald-600 mt-1">New service account file loaded: {saName} ({saJson.length} chars).</p>}
+        </div>
+        <div className="mt-3">
+          <L label="google-services.json (Android app config — auto-fills the web config above)">
+            {gsStatus && gsStatus.configured && !gsJson && (
+              <div data-testid="fb-gs-existing" className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="h-5 w-5 text-blue-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-blue-800 truncate">google-services.json uploaded</p>
+                    <p className="text-[11px] text-blue-700/80 truncate">Project: {gsStatus.project_id || "—"} · {(gsStatus.packages || []).join(", ") || "—"}</p>
+                  </div>
+                </div>
+                <Button type="button" size="sm" variant="outline" data-testid="fb-gs-download" onClick={downloadGs} disabled={gsDownloading} className="shrink-0 border-blue-300 text-blue-700 hover:bg-blue-100">
+                  {gsDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Download className="h-4 w-4 mr-1" /> Download</>}
+                </Button>
+              </div>
+            )}
+            <input type="file" accept="application/json,.json" data-testid="fb-gs-file" onChange={onGsFile}
+              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium" />
+            <p className="text-[11px] text-slate-400 mt-1">This is the Firebase Android config (not the service account). The mobile app bundles it at build time; uploading here keeps it on record and auto-fills the web-push fields.</p>
+          </L>
+          {gsJson && <p className="text-[11px] text-blue-600 mt-1">New google-services.json loaded: {gsName} ({gsJson.length} chars).</p>}
         </div>
         <div className="flex justify-end gap-2 pt-3">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
