@@ -18,7 +18,12 @@ export const TOKEN_KEY = "azo_token";
  */
 export function mediaUrl(u?: string | null): string | undefined {
   if (!u) return undefined;
-  if (/^https?:\/\//i.test(u)) return u;
+  if (/^https?:\/\//i.test(u)) {
+    // Android 15+ blocks cleartext http (network security policy) → every http
+    // image silently fails to load. Our backend serves https, so upgrade any
+    // absolute http URL for a real (non-local) host to https.
+    return u.replace(/^http:\/\/(?!localhost|127\.0\.0\.1|10\.|192\.168\.|0\.0\.0\.0)/i, "https://");
+  }
   if (u.startsWith("/")) return `${MEDIA_ORIGIN}${u}`;
   return `${MEDIA_ORIGIN}/${u}`;
 }

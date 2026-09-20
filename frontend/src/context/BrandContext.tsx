@@ -8,7 +8,9 @@ const BACKEND = (process.env.EXPO_PUBLIC_BACKEND_URL || "").replace(/\/+$/, "");
 const absUrl = (u?: string) => {
   if (!u) return u || "";
   const s = String(u);
-  if (/^(https?:|data:)/i.test(s)) return s;
+  if (/^data:/i.test(s)) return s;
+  // Upgrade cleartext http → https (Android 15+ blocks http image loads).
+  if (/^https?:\/\//i.test(s)) return s.replace(/^http:\/\/(?!localhost|127\.0\.0\.1|10\.|192\.168\.|0\.0\.0\.0)/i, "https://");
   return `${BACKEND}${s.startsWith("/") ? "" : "/"}${s}`;
 };
 

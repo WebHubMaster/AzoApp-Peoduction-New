@@ -218,3 +218,33 @@ KNOWN SECONDARY (web push): web_config.appId is derived from the homeservice AND
 client (…11f5) not partner (…f447), and FCM web push needs a real Firebase WEB app
 appId (…:web:…) which google-services.json does not contain → browser AbortError.
 Web panel should use the VAPID webpush_service path instead. Not fixed (out of scope).
+
+## 2026-06 — WEB PUSH fixed end-to-end + CLEARTEXT image bug fixed
+DEVICE LOG (Samsung SM-E146B, Android 15) on "Fix" tap revealed:
+  java.net.UnknownServiceException: CLEARTEXT communication to api.webhubmaster.shop
+  not permitted by network security policy  → ALL logo/media images broken on APK.
+Cause: backend built media URLs from x-forwarded-proto=http. FIX:
+  - backend/routes/media_routes.py _abs_base(): force https for any non-local host.
+  - frontend/src/api/client.ts mediaUrl() + BrandContext.tsx absUrl(): upgrade any
+    absolute http:// (non-local) → https:// so already-stored http URLs also load.
+  Verified: upload with x-forwarded-proto:http now returns https URL.
+
+WEB PUSH gap found + fixed: notification_service.notify() fired BOTH channels, but
+the JOB-RING dispatch + every test-push endpoint called fcm_service.send_to_user
+ONLY → web-push (VAPID) subscribers never got job rings or the admin "Send test push".
+FIX: new backend/services/push_dispatch.py push_to_user() sends via BOTH
+webpush_service + fcm_service (merged {success,failure,skipped,error,channels};
+drop-in compatible). Routed through it:
+  - booking_controller.py new-job dispatch (~1119) + job_taken cancel (~2497)
+  - admin_controller.send_test_ring (~2812)
+  - notification_admin_controller: send_campaign + test_push (aliased import)
+  - notification_routes /test-self (also removed FCM-only hard gate; web push works
+    without Firebase). 
+Verified locally (partner +919000000003): SW /firebase-messaging-sw.js 200; VAPID
+public-key enabled(87 chars); POST /webpush/subscribe stores → my-devices count=1,
+webpush_count=1; /partner/test-ring now dispatches to webpush channel.
+NOTE: real browser push DELIVERY can't be tested headless (Chromium disables push);
+must be confirmed on the admin's real Chrome (desktop/Android): login → allow →
+PushRegistrar auto-subscribes → job/test push arrives via the service worker.
+APK push still needs a fresh EAS build (dual-path token + always-report from prior
+change). Deploy backend for web-push + cleartext fixes to take effect on prod.

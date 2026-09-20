@@ -92,7 +92,7 @@ async def send_campaign(admin, data: dict):
     push_ok = 0
     no_device = 0
     try:
-        from services.fcm_service import send_to_user
+        from services.push_dispatch import push_to_user as send_to_user
 
         async def _one(uid):
             nonlocal push_ok, no_device
@@ -250,7 +250,7 @@ async def test_push(admin, data: dict):
     """Send a synthetic push to a specific user so the admin can verify the whole
     chain: SA → web-config → registered device → FCM → device. Also stores an
     in-app notification for foreground/SSE parity."""
-    from services.fcm_service import send_to_user
+    from services.push_dispatch import push_to_user as send_to_user
 
     user_id = (data or {}).get("user_id", "").strip()
     title = ((data or {}).get("title") or "AzoApp test notification").strip()
