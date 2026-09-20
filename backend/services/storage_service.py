@@ -82,14 +82,14 @@ def _s3_key(conf: dict, name: str) -> str:
     return f"{folder}/{name}" if folder else name
 
 
-def _public_url(conf: dict, key: str) -> str:
+def _public_url(conf: dict, key: str, base_hint: str = "") -> str:
     """Return the URL used to display an object.
     - If a Public Base URL (CDN/CloudFront) is set → use it directly.
     - Otherwise → route through our authenticated backend proxy so images display
       on the site even when the bucket is private (blocks public access)."""
     if conf.get("public_base"):
         return f"{conf['public_base']}/{key}"
-    backend = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    backend = (os.environ.get("REACT_APP_BACKEND_URL", "") or base_hint or "").rstrip("/")
     return f"{backend}/api/media/s3/{key}"
 
 
@@ -124,7 +124,7 @@ def _safe_compress(raw: bytes, content_type: str, max_side: int, quality: int = 
         raise ValueError("Corrupt or unsupported image. Please upload a valid JPG, PNG, GIF, WebP or SVG.") from e
 
 
-async def _put(name: str, data: bytes, mime: str) -> str:
+async def _put(name: str, data: bytes, mime: str, base_hint: str = "") -> str:
     conf = await _s3_conf()
     if conf:
         import boto3
@@ -137,18 +137,19 @@ async def _put(name: str, data: bytes, mime: str) -> str:
             client.put_object(Bucket=conf["bucket"], Key=key, Body=data, ContentType=mime)
         except (ClientError, BotoCoreError) as e:
             raise ValueError(f"AWS S3 upload failed: {_s3_error_msg(e)}. Open Integration Center → AWS S3 → Test Connection to diagnose.")
-        return _public_url(conf, key)
+        return _public_url(conf, key, base_hint)
     # local fallback
     dest = UPLOAD_DIR / name
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_bytes(data)
-    backend_url = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    backend_url = (os.environ.get("REACT_APP_BACKEND_URL", "") or base_hint or "").rstrip("/")
     base = f"{backend_url}/api/media/file" if backend_url else "/api/media/file"
     return f"{base}/{name}"
 
 
 async def save_image(raw: bytes, content_type: str, folder: str = "media",
-                     max_side: int = 1600, thumb: bool = True, filename: str = "") -> dict:
+                     max_side: int = 1600, thumb: bool = True, filename: str = "",
+                     base_hint: str = "") -> dict:
     content_type = _resolve_ct(content_type, filename, raw)
     if content_type not in ALLOWED:
         raise ValueError("Unsupported file type. Use JPG, PNG, GIF, WebP or SVG.")
@@ -158,18 +159,18 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
     if content_type == "image/svg+xml":
         uid = uuid.uuid4().hex
         name = f"{folder}/{uid}.svg"
-        url = await _put(name, raw, "image/svg+xml")
+        url = await _put(name, raw, "image/svg+xml", base_hint)
         return {"url": url, "size": len(raw), "name": name, "thumb_url": url}
     data, ext, mime = _safe_compress(raw, content_type, max_side)
     uid = uuid.uuid4().hex
     name = f"{folder}/{uid}.{ext}"
-    url = await _put(name, data, mime)
+    url = await _put(name, data, mime, base_hint)
     result = {"url": url, "size": len(data), "name": name}
     if thumb and content_type != "image/gif":
         try:
             tdata, text, tmime = _compress(raw, content_type, 400, quality=70)
             tname = f"{folder}/thumb_{uid}.{text}"
-            result["thumb_url"] = await _put(tname, tdata, tmime)
+            result["thumb_url"] = await _put(tname, tdata, tmime, base_hint)
             result["thumb_name"] = tname
         except Exception:  # noqa: BLE001 — thumbnail is best-effort
             result["thumb_url"] = url

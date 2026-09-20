@@ -165,3 +165,28 @@ Mobile UI:
 - Verified: Android bundle 4233 modules clean; backend endpoints (test-self, my-devices,
   media) respond correctly. On-device FCM push/ring is verified by the user via the
   new Test buttons (cannot be tested inside the pod).
+
+## 2026-06 — SVG upload + broken media preview (live server) FIXED
+Root causes found by probing the LIVE hosts:
+- Panel is at webhubmaster.shop but backend is at api.webhubmaster.shop. Backend
+  stored media URLs were RELATIVE ("/api/media/s3/..."), so <img> resolved them
+  against the panel origin (404) → broken preview for ALL formats (incl. sidebar logo).
+- SVG upload "Connection issue/Upload failed" = live WAF/Cloudflare XSS rule blocks
+  raw SVG markup in the request body (a trivial SVG reached the backend as 401, but
+  real logo SVGs get blocked).
+Fixes:
+- web_panel: new mediaSrc() (api.js) prefixes relative media URLs with the backend
+  origin; applied to branding preview (adminSectionsPro) + sidebar logo (PanelLayout)
+  → fixes existing + new previews instantly.
+- backend: storage_service now emits ABSOLUTE URLs for new uploads — _put/_public_url/
+  save_image take a base_hint; media upload route derives it from X-Forwarded-Host/Proto
+  (used only when REACT_APP_BACKEND_URL env is empty, as on their live backend).
+- web_panel imageUpload.js: SVG is now RASTERISED to PNG client-side (canvas, up to
+  1024px) before upload → bypasses the WAF, uploads as a normal image, preview works,
+  and it's Gmail/invoice-safe. Falls back to raw SVG only if rasterisation fails.
+- mobile BrandContext: logo URLs absolutised with EXPO_PUBLIC_BACKEND_URL so relative
+  URLs still render on the phone.
+Action for user after deploy: re-upload the logo once (existing relative URLs are
+fixed in admin by mediaSrc, but re-uploading stores absolute URLs for mobile/website/
+emails too). Verified: web panel compiles + serves; mobile bundle clean (4233 modules);
+local media upload returns an absolute URL; SVG upload works end-to-end.

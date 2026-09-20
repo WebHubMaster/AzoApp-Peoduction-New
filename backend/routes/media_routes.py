@@ -1,6 +1,6 @@
 """Media upload + management (admin) and local file serving (public)."""
 from pathlib import Path
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import FileResponse, Response
 
 from middleware.auth import require_role
@@ -12,12 +12,21 @@ ADMIN = require_role("admin")
 UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
 
 
+def _abs_base(request: Request) -> str:
+    """Absolute backend origin from proxy headers so stored media URLs are absolute
+    (fixes broken <img> when the panel host != backend host, e.g. webhubmaster.shop
+    vs api.webhubmaster.shop). Falls back to relative when unknown."""
+    proto = (request.headers.get("x-forwarded-proto", "") or request.url.scheme or "https").split(",")[0].strip()
+    host = (request.headers.get("x-forwarded-host", "") or request.headers.get("host", "")).split(",")[0].strip()
+    return f"{proto}://{host}" if host else ""
+
+
 @router.post("/upload")
-async def upload(file: UploadFile = File(...), folder: str = Form("media"),
+async def upload(request: Request, file: UploadFile = File(...), folder: str = Form("media"),
                  max_side: int = Form(1600), admin=Depends(ADMIN)):
     raw = await file.read()
     try:
-        res = await storage_service.save_image(raw, file.content_type or "", folder=folder, max_side=int(max_side), filename=file.filename or "")
+        res = await storage_service.save_image(raw, file.content_type or "", folder=folder, max_side=int(max_side), filename=file.filename or "", base_hint=_abs_base(request))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     await storage_service.record_media({
