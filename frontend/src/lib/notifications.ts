@@ -191,16 +191,19 @@ const BATTERY_ASKED_KEY = "azo_battery_asked";
 /* Battery optimisation exemption — required so a killed app can still ring. */
 export async function batteryState(): Promise<PermState> {
   if (Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(BATTERY_ASKED_KEY)) === "1";
   const n = NotifeeApi();
   if (n) {
     try {
       const optimized = await n.isBatteryOptimizationEnabled();
-      return { key: "battery", granted: !optimized, canAskAgain: true, available: true };
+      // Truly exempt → granted. Otherwise, if the user already completed the request
+      // flow, treat as satisfied: many OEM skins (MIUI/OneUI/ColorOS…) never report
+      // the exemption via PowerManager even after the user allows background usage,
+      // so the card must not stay stuck on "Allow".
+      return { key: "battery", granted: !optimized || asked, canAskAgain: true, available: true };
     } catch { /* fall through */ }
   }
-  // Expo Go: we can't introspect the OS setting → reflect whether the user ran the
-  // request at least once (persisted) so the card is actionable and can go green.
-  const asked = (await storage.getItem(BATTERY_ASKED_KEY)) === "1";
+  // Expo Go / no notifee: reflect whether the user ran the request at least once.
   return { key: "battery", granted: asked, canAskAgain: true, available: true };
 }
 export async function requestBatteryExemption() {
