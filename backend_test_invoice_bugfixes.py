@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "https://registration-cleanup-1.preview.emergentagent.com/api"
+BASE_URL = "https://multi-app-preview-2.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

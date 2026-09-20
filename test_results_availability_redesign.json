@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://registration-cleanup-1.preview.emergentagent.com",
+  "base_url": "https://multi-app-preview-2.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

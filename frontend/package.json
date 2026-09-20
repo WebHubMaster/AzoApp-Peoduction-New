@@ -3,7 +3,7 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "EXPO_PACKAGER_PROXY_URL=https://registration-cleanup-1.preview.emergentagent.com expo start --port 3000",
+    "start": "EXPO_PACKAGER_PROXY_URL=https://multi-app-preview-2.preview.emergentagent.com expo start --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"

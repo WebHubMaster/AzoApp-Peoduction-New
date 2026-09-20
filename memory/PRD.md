@@ -11,7 +11,7 @@ Forked AzoApp multi-app repo. Two goals:
 - **/app/frontend** — Expo (React Native, SDK 57). Runs via nohup Metro on 8081 + ngrok v3 tunnel. Reads `EXPO_PUBLIC_BACKEND_URL`.
 
 ## Preview / URLs
-- Preview domain: https://ce6ee84e-4364-4302-a059-c1bb9f1f8795.preview.emergentagent.com
+- Preview domain: https://multi-app-preview-2.preview.emergentagent.com
 - Web panel: same URL (port 3000)
 - Expo Go: `exp://squander-prodigy-affiliate.ngrok-free.dev` (ngrok-free URL; changes on tunnel restart)
 

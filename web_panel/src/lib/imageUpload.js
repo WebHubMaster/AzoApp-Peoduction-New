@@ -202,9 +202,13 @@ export async function uploadImage(api, file, {
   url = "/media/upload", folder = "media", fields = {}, onProgress, compress = true, maxBytes = MAX_UPLOAD_BYTES,
 } = {}) {
   const isImage = file && file.type && file.type.startsWith("image/");
-  let finalFile = compress && isImage ? await compressImage(file) : file;
+  // SVG is a vector/text format: it can't be raster-compressed and is served
+  // as-is by the backend (12 MB cap). Skip client compression + the 2 MB image
+  // cap so valid SVG logos always upload.
+  const isSvg = !!file && (file.type === "image/svg+xml" || /\.svg$/i.test(file.name || ""));
+  let finalFile = compress && isImage && !isSvg ? await compressImage(file) : file;
   // Hard enforce 2 MB. Images: keep shrinking until they fit. Non-images: reject.
-  if (finalFile.size > maxBytes) {
+  if (!isSvg && finalFile.size > maxBytes) {
     if (isImage) {
       let side = 1400;
       let quality = 0.8;

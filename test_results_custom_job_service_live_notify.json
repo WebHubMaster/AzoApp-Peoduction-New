@@ -1,7 +1,7 @@
 {
   "test_name": "Custom Job Service Live Notification",
   "timestamp": "2026-09-10T11:56:06.241462",
-  "base_url": "https://registration-cleanup-1.preview.emergentagent.com/api",
+  "base_url": "https://multi-app-preview-2.preview.emergentagent.com/api",
   "steps": [
     {
       "step": 1,
