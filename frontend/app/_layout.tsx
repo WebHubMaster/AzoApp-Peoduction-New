@@ -13,6 +13,7 @@ import { AuthProvider } from "@/src/context/AuthContext";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { ChatProvider } from "@/src/context/ChatContext";
 import { ChatNotifier } from "@/src/components/ChatNotifier";
+import { OfflineGate } from "@/src/components/OfflineGate";
 import { ToastProvider } from "@/src/components/Toast";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
@@ -88,6 +89,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="(merchant)" />
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
+            <OfflineGate />
           </ToastProvider>
           </ChatProvider>
           </RealtimeProvider>

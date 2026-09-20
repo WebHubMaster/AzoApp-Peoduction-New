@@ -248,3 +248,25 @@ must be confirmed on the admin's real Chrome (desktop/Android): login → allow 
 PushRegistrar auto-subscribes → job/test push arrives via the service worker.
 APK push still needs a fresh EAS build (dual-path token + always-report from prior
 change). Deploy backend for web-push + cleartext fixes to take effect on prod.
+
+## 2026-06 — Offline gate (No Internet screen) added
+User: jab internet na ho to full-screen "No Internet Connection" screen dikhe
+(reference design), app aage kuch na kare, aur "Go Offline (Limited Access)" button
+NA ho. (No existing offline component in codebase — reference was a mockup.)
+Built:
+  - frontend/src/lib/connectivity.ts — useConnectivity(): active reachability ping to
+    ${API_BASE}/notifications/push-config (any HTTP status = online) + optional
+    @react-native-community/netinfo (12.0.1, installed) for instant change events +
+    AppState re-check. Self-scheduling poll: 4s offline / 20s online. Works in native
+    build, Expo Go and web (netinfo optional/guarded).
+  - frontend/src/components/OfflineGate.tsx — full-screen overlay (zIndex/elevation
+    99999) matching the reference: red wifi-off icon in pink circle, "No Internet
+    Connection" title + subtitle, 3 tip cards (Check Mobile Data / Connect to Wi-Fi /
+    Turn Off Airplane Mode), blue "Try Again" (shows Checking… spinner). NO Go-Offline
+    button. Blocks ALL interaction until back online; auto-recovers or via Try Again.
+    testIDs: offline-gate, offline-try-again.
+  - Mounted globally in app/_layout.tsx (after <Stack/>, inside ToastProvider) so it
+    covers every screen.
+Verified: babel compile OK for all 3 files; all MDI icon names valid; netinfo installed.
+Needs the SAME fresh APK rebuild to appear on device (native dep). Also renders in web/
+Expo Go via fetch-ping fallback.
