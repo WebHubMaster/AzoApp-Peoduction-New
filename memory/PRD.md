@@ -34,3 +34,17 @@ See /app/memory/test_credentials.md (OTP 123456 for all).
 - P2: GET /api/partner/alert-prefs returns 403 for demo partner (non-blocking).
 - P3: Recharts ResponsiveContainer size warnings on admin analytics (cosmetic).
 - Note: Expo tunnel exp:// URL regenerates on restart; re-run `npx expo start --tunnel --port 8081` and read from ngrok 4040.
+
+## Mobile Active Job Panel parity (2026-09-20)
+Goal: Mobile (Expo) `/(partner)/active` = Web `PartnerDashboard.jsx` ActiveJob (mobile view), same UI/UX + APIs.
+File: /app/frontend/app/(partner)/active.tsx (rewritten, reuses theme + AppShell + ui + Icon).
+Brought to parity with web:
+- Additional work now uses the web rate-card flow: GET /ratecards/by-category/{category_id} + POST /bookings/{id}/additional + DELETE /additional/{item_id}; itemised parts/labour/GST/total, Paid/Payment-pending badge; complete blocked while additional payment pending (addlPending). (Replaced old spare_parts/SpareModal.)
+- New RateCardSheet (RN mirror of web RateCardModal): grouped rows, search, warranty badge, service_charge + labour, Add.
+- Full ServiceBreakdown (breakdown.service_items: qty, rate×qty, nested add-ons, services subtotal, additional charges, Total Service Amount excl. taxes).
+- Full PartnerEarningSummary (Payment Summary, Customer-only charges, Your earning shares, Net Earning, cancelled/refund block) from breakdown.
+- ScheduledCard with live countdown + lock chips (schedule.seconds_to_start/comm_locked/phase).
+- Share Location button (expo-location) -> POST /bookings/{id}/location, for assigned/arrived_customer/started.
+Unchanged parity already present: state banner + elapsed timer, header, location, JobStepper, reschedule pending/request/respond/cancel, Navigate, Call/Chat, before/after PhotoBlock + Start/Complete OTP, timeline, CompletedJob.
+Verified: tsc --noEmit passes; Metro bundles router entry (HTTP 200, expo-location resolved, 0 unresolved); /bookings/partner/active returns breakdown.service_items+earning+customer_only_charges+schedule+category_id; rate-card + /additional + pending-gate tested via curl as demo partner (+919000000003, OTP 123456).
+Note: native Expo Go app can't be driven by the browser (Playwright) testing agent; verification was tsc + Metro bundle + backend endpoint checks + line-by-line web parity.
