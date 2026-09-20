@@ -977,8 +977,8 @@ async def seed_demo_activity():
         _mk("paid", _svc(0), 599, with_partner=True, payment="paid",
             review={"rating": 5, "comment": "Excellent, on-time service!"}),
         _mk("completed", _svc(1), 899, with_partner=True, payment="pending"),
-        _mk("assigned", _svc(2), 499, with_partner=True),
-        _mk("started", _svc(3), 1299, with_partner=True),
+        _mk("assigned", _svc(2), 499, with_partner=True, payment="paid"),
+        _mk("started", _svc(3), 1299, with_partner=True, payment="paid"),
         _mk("searching", _svc(4), 799, with_partner=False),
         _mk("cancelled", _svc(0), 599, with_partner=False),
     ]
