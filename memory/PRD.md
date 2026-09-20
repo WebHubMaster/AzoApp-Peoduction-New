@@ -270,3 +270,26 @@ Built:
 Verified: babel compile OK for all 3 files; all MDI icon names valid; netinfo installed.
 Needs the SAME fresh APK rebuild to appear on device (native dep). Also renders in web/
 Expo Go via fetch-ping fallback.
+
+## 2026-06 — JOB RING in background/closed/locked FIXED (Android 14 FGS type)
+User: push works now, but job-ring alert only fires when app is OPEN — not when
+closed or phone locked.
+ROOT CAUSE (high confidence): job ring is data-only → runs RNFB
+setBackgroundMessageHandler → displayJobRing() → Notifee foreground service. The
+Notifee FGS was declared android:foregroundServiceType="phoneCall|mediaPlayback".
+On Android 14+, starting a `phoneCall` FGS from a background FCM message is REJECTED
+(app is not a Telecom calling app) → SecurityException → ring silently fails when
+closed/locked. In FOREGROUND the FGS start is allowed (app visible) → ring works.
+That exactly matches "only rings when app open". Regular pushes still worked in bg
+because they carry a `notification` block (system-rendered, no FGS).
+FIX:
+  - plugins/withJobRingAndroid.js: FGS type "phoneCall|mediaPlayback" → "mediaPlayback"
+    (allowed to start from a high-priority FCM bg message); removed
+    FOREGROUND_SERVICE_PHONE_CALL permission.
+  - src/lib/notifications.ts displayJobRing(): try FGS ring; on ANY failure retry
+    WITHOUT foreground service (loopSound/ongoing off) so the full-screen ring still
+    appears (rings once) — alert never swallowed.
+Backend payload already correct (data_only=True, priority=high, no notification block).
+FSI grant flow already exists (openFullScreenIntentSettings in onboarding/permissions).
+NEEDS the fresh APK rebuild (native plugin + prebuild) to take effect; verify on a
+locked/closed phone. Not device-verified from here.
