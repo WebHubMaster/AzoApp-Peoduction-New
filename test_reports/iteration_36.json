@@ -1,7 +1,7 @@
 {
   "iteration": 36,
   "timestamp": "2026-09-09T00:53:00.795881",
-  "base_url": "https://multi-app-preview-2.preview.emergentagent.com/api",
+  "base_url": "https://azoapp-otp-demo.preview.emergentagent.com/api",
   "results": {
     "task_12": {
       "passed": 14,

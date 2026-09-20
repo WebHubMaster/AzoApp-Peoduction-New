@@ -5,7 +5,7 @@ Supplementary test for withdrawal flow with balance
 import requests
 import sys
 
-BASE_URL = "https://multi-app-preview-2.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"

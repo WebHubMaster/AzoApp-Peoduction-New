@@ -16,7 +16,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://multi-app-preview-2.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

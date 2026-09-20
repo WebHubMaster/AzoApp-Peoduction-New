@@ -1,5 +1,5 @@
 {
-  "base_url": "https://multi-app-preview-2.preview.emergentagent.com/api",
+  "base_url": "https://azoapp-otp-demo.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",
