@@ -1,0 +1,32 @@
+{
+  "summary": "Verified all 4 one-click demo login buttons on the web panel /login page. Admin, Partner, Customer, and Merchant demo logins all succeed via OTP-based flow (dev OTP 123456) and land on their respective dashboards. No 'Demo login failed', CORS, or network errors observed on the UI. Backend URL resolution (REACT_APP_BACKEND_URL empty -> window.location.origin + /api) works correctly through the external preview URL.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/partner/alert-prefs", "issue": "Returns 403 when hit under a Customer-role session on /account. Appears a partner-scoped polling/prefetch call is firing for non-partner roles. Non-blocking but noisy in console."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Customer demo login post-navigation", "issue": "After landing on /account as Customer, 2x GET /api/partner/alert-prefs return 403 (visible in console as 'Failed to load resource: 403'). Customer session should not be issuing partner-scoped calls.", "affected_selectors": []}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low priority) Guard the partner alert-prefs prefetch so it only runs when the authenticated role is 'partner'. Currently fires under Customer session and returns 403."
+  ],
+  "critical_code_review_comments": [
+    "Demo login flow works end-to-end for all 4 roles via the external preview URL — REACT_APP_BACKEND_URL empty + window.location.origin + /api fallback is functioning correctly through Kubernetes ingress.",
+    "Partner alert-prefs hook appears to run globally instead of being role-gated (see 403s on Customer session)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (4/4 demo login buttons succeed)"},
+  "test_credentials": "Demo OTP 123456. Admin +919000000000, Merchant +919000000002, Partner +919000000003, Customer +919000000004. One-click buttons on /login used.",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Landing (/) page does NOT contain the demo login buttons; they are on /login. Note that get_by_text('Partner') on the home page will match the 'Become a Partner' nav link — use exact button name 'Login as {Role}' or a data-testid. After Admin login, do not use wait_until='networkidle' because the admin dashboard has continuous polling — use 'domcontentloaded' and clear cookies/localStorage between role tests.",
+  "rca of the issue": "N/A — no demo login failures. Only observation: 403 on /api/partner/alert-prefs under Customer role indicates missing role-guard on the client-side hook triggering that call."
+}
