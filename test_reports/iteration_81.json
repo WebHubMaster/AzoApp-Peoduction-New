@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only test of web_panel one-click DEMO LOGIN buttons on https://job-ring-notify.preview.emergentagent.com/login. All 4 demo login buttons (Admin, Partner, Customer, Merchant) work correctly. Each button logs the user in and lands on the correct role dashboard (/admin, /partner, /account, /merchant respectively). NO 'Demo login failed' toast, NO CORS errors, NO 'Failed to fetch' console errors observed on any of the four flows. Same-origin API base (window.location.origin) fallback is working as designed since REACT_APP_BACKEND_URL is intentionally empty.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Non-blocking: A few auxiliary endpoints return 4xx or fail: /api/auth/config, /api/auth/demo-status, /api/growth/config, /api/site/config. They do not affect the demo login flow but generate console noise. Consider handling 403/404 gracefully or removing these calls for unauthenticated/public panels.",
+    "Non-blocking: Some Pexels image URLs (photos/6195274, 6471913, 17063686, 1094767) return failed requests on the merchant dashboard — hotlink-blocked or replaced. Consider self-hosting or fallback images.",
+    "Non-blocking: /api/realtime/stream SSE aborts on navigation (expected browser behavior, but noisy in console)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (4/4 demo logins successful)"},
+  "test_credentials": "Preview URL: https://job-ring-notify.preview.emergentagent.com/login — Demo one-click buttons (OTP 123456 available for all). Admin +919000000000, Merchant +919000000002, Partner +919000000003, Customer +919000000004.",
+  "seed_data_creation": "None (used existing demo accounts)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The login page is at /login (root / is the landing page). Demo login buttons are labeled 'Login as Admin/Partner/Customer/Merchant' under 'ONE-CLICK DEMO LOGIN - OTP 123456' section. Same-origin API base works fine; no CORS issues. When re-testing multiple roles in one session, use domcontentloaded (not networkidle) and clear localStorage/sessionStorage between roles to avoid auto-redirect to previous role dashboard.",
+  "rca of the issue": "N/A - No blocking issue. The reported potential CORS/same-origin failure was NOT reproduced. api.js fallback to window.location.origin works correctly, and all demo login POSTs (send-otp + verify-otp) succeed 200 through the same-origin /api proxy."
+}

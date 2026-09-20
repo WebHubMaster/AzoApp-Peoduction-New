@@ -112,3 +112,28 @@ User's remaining steps:
 2. Build the APK: `cd frontend && npx expo prebuild --clean && eas build -p android
    --profile production-apk`. Install on a real device and test the ring in all states.
 
+
+## 2026-06 — Fork setup + Onboarding/Login/Logo revamp
+Setup (fork): recreated backend/.env (DB=azoapp), frontend/.env, web_panel/.env
+(REACT_APP_BACKEND_URL empty → same-origin). web_panel now runs on port 3000 via
+new supervisor program `webpanel` (default preview). Expo runs via `--tunnel` on 8081
+(CI=1 to avoid inotify limit). Backend self-seeds demo data.
+- Web preview: https://job-ring-notify.preview.emergentagent.com
+- Expo Go: exp://nvmeila-anonymous-8081.exp.direct
+- Verified: web_panel one-click demo logins 4/4 (Admin/Partner/Customer/Merchant), no CORS.
+
+Mobile UI:
+- App icon / splash / adaptive-icon regenerated from the uploaded AzoApp logo
+  (assets/*.png) + bundled assets/brand-logo.png as in-app fallback. Native splash
+  imageWidth 240 on brand blue (fixes the small "box" look).
+- Splash-gate (app/index.tsx): shows dynamic branding logo (logo_dark||logo_light||logo),
+  falls back to bundled AzoApp logo (removed the "A" letter box).
+- NEW first-run onboarding: app/onboarding/intro.tsx — 3 creative swipe slides with
+  dots + Skip + Next/Next/Get Started; sets `azo_onboarding_done`; then → permission
+  gate → login. Routed from index.tsx; registered in app/_layout.tsx.
+- Login redesigned (app/(auth)/login.tsx) to match the uploaded screenshot: hero header
+  (dynamic logo + tagline + trust pill + generated worker hero image with 3 floating
+  badges), "Login to Get Started", mobile +91 OTP card (Send OTP → Verify), Register as
+  Partner/Merchant cards, One-Click Demo Login (Partner/Merchant) with "Demo OTP: 123456",
+  4 feature icons, footer. Logo is dynamic from Admin → Branding & Theme (not hardcoded).
+- Android bundle compiles clean (4233 modules). On-device visual check = user via Expo Go.
