@@ -7,8 +7,13 @@ import { Image } from "expo-image";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { shouldShowPermissionGate } from "@/src/lib/notifications";
+import { storage } from "@/src/utils/storage";
 import { Icon } from "@/src/components/Icon";
 import { fontSize } from "@/src/theme";
+
+const ONBOARD_DONE_KEY = "azo_onboarding_done";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const FALLBACK_LOGO = require("../assets/brand-logo.png");
 
 export default function SplashGate() {
   const router = useRouter();
@@ -45,36 +50,23 @@ export default function SplashGate() {
         else setUnsupported(true);
         return;
       }
+      const done = await storage.getItem(ONBOARD_DONE_KEY);
+      if (done !== "1") { router.replace("/onboarding/intro"); return; }
       const showGate = await shouldShowPermissionGate();
       router.replace(showGate ? "/onboarding/notifications" : "/(auth)/login");
     })();
   }, [booting, minElapsed, user]);
 
-  const logo = brand.branding.logo_light || brand.branding.logo;
+  const logo = brand.branding.logo_dark || brand.branding.logo_light || brand.branding.logo;
 
   return (
     <LinearGradient colors={["#1565C0", "#08306E"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       <StatusBar style="light" />
       <Animated.View style={{ opacity: logoOpacity, transform: [{ scale: logoScale }], alignItems: "center" }}>
         {logo ? (
-          <Image source={{ uri: logo }} style={{ width: 96, height: 96, borderRadius: 22 }} contentFit="contain" />
+          <Image source={{ uri: logo }} style={{ width: 120, height: 120, borderRadius: 26 }} contentFit="contain" />
         ) : (
-          <View
-            style={{
-              width: 104,
-              height: 104,
-              borderRadius: 28,
-              backgroundColor: "rgba(255,255,255,0.12)",
-              borderWidth: 2,
-              borderColor: "rgba(255,255,255,0.35)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Text style={{ color: "#fff", fontSize: 52, fontWeight: "900" }}>
-              {(brand.branding.site_name || "A")[0]}
-            </Text>
-          </View>
+          <Image source={FALLBACK_LOGO} style={{ width: 120, height: 120, borderRadius: 26 }} contentFit="contain" />
         )}
       </Animated.View>
       <Animated.View style={{ opacity: textOpacity, alignItems: "center", marginTop: 22 }}>
