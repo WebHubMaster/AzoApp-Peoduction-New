@@ -1,26 +1,87 @@
 {
   "project_info": {
-    "project_number": "000000000000",
-    "project_id": "azoapp-partner",
-    "storage_bucket": "azoapp-partner.appspot.com"
+    "project_number": "960503871336",
+    "project_id": "azo-project-9f857",
+    "storage_bucket": "azo-project-9f857.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "mobilesdk_app_id": "1:960503871336:android:11f53dcf063793a3b148dd",
         "android_client_info": {
-          "package_name": "com.azoapp.partner"
+          "package_name": "app.azoapp.homeservice"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "960503871336-49kuadg03h2u3q0omgjp5557fvhqlhf9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.azoapp.homeservice",
+            "certificate_hash": "9ffffa1a19b5ec8c0e33c91237e7fa393ff5c217"
+          }
+        },
+        {
+          "client_id": "960503871336-8hub5sskt14clo7ac0ll0m1ij409fh80.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDUMMYPLACEHOLDERKEYREPLACEME0000000000"
+          "current_key": "AIzaSyC6dvc3S9c7qwY5A74OUBC2DjnidckcKSI"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "960503871336-8hub5sskt14clo7ac0ll0m1ij409fh80.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "960503871336-47cp4n49b97mm5b8ndiq8ci9a7jgv325.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "wrteam.edemand.provider"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:960503871336:android:f447c0dd996723f2b148dd",
+        "android_client_info": {
+          "package_name": "app.azoapp.partner"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "960503871336-8hub5sskt14clo7ac0ll0m1ij409fh80.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC6dvc3S9c7qwY5A74OUBC2DjnidckcKSI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "960503871336-8hub5sskt14clo7ac0ll0m1ij409fh80.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "960503871336-47cp4n49b97mm5b8ndiq8ci9a7jgv325.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "wrteam.edemand.provider"
+              }
+            }
+          ]
         }
       }
     }
