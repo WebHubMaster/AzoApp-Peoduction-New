@@ -48,6 +48,37 @@ async def my_devices(user=Depends(get_current_user)):
             "webpush": subs, "webpush_count": len(subs)}
 
 
+@router.post("/test-self")
+async def test_self(body: dict, user=Depends(get_current_user)):
+    """Send a REAL push to the caller's own devices so a partner can verify on the
+    phone that (a) FCM is configured on the backend, (b) this device's token is
+    registered, and (c) the ring / notification actually fires in the current app
+    state. kind='ring' triggers the call-style Job Ring; anything else a normal push."""
+    import time as _t
+    kind = (body or {}).get("kind", "ring")
+    status = await fcm_service.config_status()
+    if not status.get("configured"):
+        return {"ok": False, "reason": "fcm_not_configured",
+                "message": "Firebase is not configured on the server (Admin → Integration Center → Firebase Settings → upload the service account & enable FCM)."}
+    if kind == "ring":
+        res = await fcm_service.send_to_user(
+            user["id"], "New Job Request", "Test job ring — tap to open",
+            link="/(partner)",
+            data={"type": "job_request", "booking_id": f"test-{int(_t.time())}",
+                  "service_name": "Test Service", "city": "Your City",
+                  "address_line": "Test address", "total": "499", "partner_amount": "399",
+                  "android_channel": "job-ring", "tag": "test-ring"},
+            data_only=True)
+    else:
+        res = await fcm_service.send_to_user(
+            user["id"], "AzoApp test notification", "Push notifications are working correctly.",
+            link="/notifications", data={"type": "test"})
+    ok = bool(res.get("success"))
+    return {"ok": ok, "result": res,
+            "message": ("Sent — check your phone." if ok else
+                        f"No device received it ({res.get('skipped') or 'failed'}). Make sure you opened the app on this phone after logging in and allowed notifications.")}
+
+
 # ---------- Standard VAPID Web Push (works without Firebase/Google Cloud) ----------
 @router.get("/webpush/public-key")
 async def webpush_public_key():

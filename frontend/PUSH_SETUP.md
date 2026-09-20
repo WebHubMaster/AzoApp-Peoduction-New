@@ -5,9 +5,9 @@ needs a **real build** (dev-client or APK) + Firebase. Expo Go cannot receive
 remote FCM push — in Expo Go the in-app SSE ring works only while the app is open.
 
 ## Package name (IMPORTANT)
-- Android `applicationId` / iOS bundle id: **`app.azoapp.homeservice`**
+- Android `applicationId` / iOS bundle id: **`app.azoapp.partner`**
 - `frontend/google-services.json` MUST contain a client for this exact package.
-  The bundled file has clients for `app.azoapp.homeservice` (and `app.azoapp.partner`).
+  The bundled file has clients for `app.azoapp.partner` (and `app.azoapp.partner`).
 - If these two ever disagree the Android build fails at `processGoogleServices`
   ("No matching client found for package name …") and FCM never initialises →
   push works in the foreground (SSE) but NOT in background/closed. This was the
@@ -22,7 +22,7 @@ remote FCM push — in Expo Go the in-app SSE ring works only while the app is o
    Center → Firebase Settings → google-services.json** — the web-push config
    (apiKey/projectId/appId/senderId…) is then auto-filled from it.
 3. iOS (optional): upload your APNs key in Firebase → Cloud Messaging, add an iOS
-   app with bundle id `app.azoapp.homeservice`.
+   app with bundle id `app.azoapp.partner`.
 
 ## 2. Build
 ```bash

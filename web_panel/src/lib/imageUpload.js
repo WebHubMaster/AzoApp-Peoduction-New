@@ -227,6 +227,11 @@ export async function uploadImage(api, file, {
   Object.entries(fields).forEach(([k, v]) => fd.append(k, v));
   const { data } = await api.post(url, fd, {
     headers: { "Content-Type": "multipart/form-data" },
+    timeout: 120000,
+    // Uploads (esp. SVG/large logos going to S3 on the live server) can be slow —
+    // use a generous timeout so a slow round-trip is NOT surfaced as a false
+    // "Connection issue / Upload failed" (which is what the default ~20s caused).
+    timeout: 120000,
     onUploadProgress: (e) => {
       if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100));
     },

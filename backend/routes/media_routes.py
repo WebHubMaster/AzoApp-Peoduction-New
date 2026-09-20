@@ -85,5 +85,17 @@ async def serve_s3(key: str):
     if got is None:
         raise HTTPException(status_code=404, detail="File not found")
     body, content_type = got
+    # Force the correct MIME by extension when S3 returns a generic type — otherwise
+    # SVG/PNG logos can come back as application/octet-stream and won't render in <img>.
+    kl = key.lower()
+    if kl.endswith(".svg"):
+        content_type = "image/svg+xml"
+    elif not content_type or content_type == "application/octet-stream":
+        ext_map = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                   ".webp": "image/webp", ".gif": "image/gif"}
+        for ext, ct in ext_map.items():
+            if kl.endswith(ext):
+                content_type = ct
+                break
     return Response(content=body, media_type=content_type,
                     headers={"Cache-Control": "public, max-age=2592000, immutable"})

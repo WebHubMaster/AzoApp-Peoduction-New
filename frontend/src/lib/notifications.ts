@@ -158,7 +158,7 @@ export async function ensureRingReliability() {
 /** Android 14+: full-screen intent permission screen for this app. */
 export async function openFullScreenIntentSettings() {
   if (Platform.OS !== "android") return;
-  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.partner";
   try {
     await Linking.sendIntent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", [{ key: "android.provider.extra.APP_PACKAGE", value: pkg }]);
   } catch { /* ignore */ }
@@ -212,7 +212,7 @@ export async function requestBatteryExemption() {
   try {
     if (n && !(await n.isBatteryOptimizationEnabled())) return; // already exempt
   } catch { /* ignore */ }
-  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.partner";
   // Preferred: the DIRECT system dialog ("Allow app to run in background? Yes"),
   // one tap — via REQUEST_IGNORE_BATTERY_OPTIMIZATIONS with a package: data URI.
   try {

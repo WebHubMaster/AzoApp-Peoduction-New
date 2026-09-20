@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, AppState, Platform, Linking } from "react-native";
+import { View, Text, Pressable, ScrollView, AppState, Platform, Linking, ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
@@ -9,6 +9,7 @@ import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
 } from "@/src/lib/notifications";
+import { api } from "@/src/api/client";
 
 type Card = {
   key: PermKey;
@@ -34,14 +35,36 @@ export default function PermissionCenter() {
   const toast = useToast();
   const [states, setStates] = useState<Record<PermKey, PermState> | null>(null);
   const [busy, setBusy] = useState<PermKey | null>(null);
+  const [diag, setDiag] = useState<{ registered: number; enabled: boolean } | null>(null);
+  const [testing, setTesting] = useState<"ring" | "push" | null>(null);
 
   const load = useCallback(async () => { setStates(await allPermissionStates()); }, []);
+  const loadDiag = useCallback(async () => {
+    try {
+      const [dev, cfg] = await Promise.all([
+        api.get<any>("/notifications/my-devices").catch(() => ({ count: 0 })),
+        api.get<any>("/notifications/push-config").catch(() => ({ enabled: false })),
+      ]);
+      setDiag({ registered: dev?.count || 0, enabled: !!cfg?.enabled });
+    } catch { setDiag({ registered: 0, enabled: false }); }
+  }, []);
+  useEffect(() => { load(); loadDiag(); }, [load, loadDiag]);
+  const sendTest = useCallback(async (kind: "ring" | "push") => {
+    setTesting(kind);
+    try {
+      const r = await api.post<any>("/notifications/test-self", { kind });
+      if (r?.ok) toast.success(r.message || "Sent — check your phone");
+      else toast.error(r?.message || "Could not send test", { duration: 6000 });
+    } catch (e: any) { toast.error(e?.detail || "Could not send test"); }
+    setTesting(null);
+    loadDiag();
+  }, [toast, loadDiag]);
   useEffect(() => { load(); }, [load]);
   // Re-check the moment we come back from a system settings screen.
   useEffect(() => {
-    const sub = AppState.addEventListener("change", (s) => { if (s === "active") load(); });
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") { load(); loadDiag(); } });
     return () => sub.remove();
-  }, [load]);
+  }, [load, loadDiag]);
 
   const handle = useCallback(async (c: Card) => {
     const st = states?.[c.key];
@@ -144,6 +167,31 @@ export default function PermissionCenter() {
             </View>
           );
         })}
+
+        {/* ---------------- Push diagnostics (verify on THIS phone) ---------------- */}
+        <View testID="push-diagnostics" style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md, gap: 12, marginTop: 4 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name="access-point-network" size={20} color={colors.primary} />
+            <Text style={{ color: colors.text, fontWeight: "900", fontSize: fontSize.md }}>Push & Ring Diagnostics</Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name={diag?.enabled ? "check-circle" : "alert-circle"} size={16} color={diag?.enabled ? "#16A34A" : "#D97706"} />
+            <Text style={{ flex: 1, color: colors.textMuted, fontSize: fontSize.xs }}>Server push service: <Text style={{ fontWeight: "800", color: diag?.enabled ? "#16A34A" : "#D97706" }}>{diag?.enabled ? "Configured" : "Not configured (contact admin)"}</Text></Text>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name={diag && diag.registered > 0 ? "check-circle" : "alert-circle"} size={16} color={diag && diag.registered > 0 ? "#16A34A" : "#D97706"} />
+            <Text style={{ flex: 1, color: colors.textMuted, fontSize: fontSize.xs }}>This phone registered: <Text style={{ fontWeight: "800", color: diag && diag.registered > 0 ? "#16A34A" : "#D97706" }}>{diag && diag.registered > 0 ? `Yes (${diag.registered})` : "No — open the app after login & allow notifications"}</Text></Text>
+          </View>
+          <Text style={{ color: colors.textMuted, fontSize: 11.5, lineHeight: 17 }}>Send a real test to this phone. For the ring test, lock your screen or minimise the app first, then tap — it should ring like a call.</Text>
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable testID="test-ring-btn" onPress={() => sendTest("ring")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              {testing === "ring" ? <ActivityIndicator size="small" color="#fff" /> : <><Icon name="phone-ring" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: fontSize.xs }}>Test Job Ring</Text></>}
+            </Pressable>
+            <Pressable testID="test-push-btn" onPress={() => sendTest("push")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              {testing === "push" ? <ActivityIndicator size="small" color={colors.primary} /> : <><Icon name="bell-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "800", fontSize: fontSize.xs }}>Test Notification</Text></>}
+            </Pressable>
+          </View>
+        </View>
 
         {Platform.OS === "android" ? (
           <Pressable testID="open-app-settings" onPress={() => Linking.openSettings().catch(() => toast.info("Open your phone Settings → Apps → AzoApp Partner"))} style={{ marginTop: 4, alignItems: "center", paddingVertical: 12, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>

@@ -54,7 +54,7 @@ export default function Login() {
   const otpRef = useRef<TextInput>(null);
 
   const { data: demo } = useQuery({ queryKey: ["demo-status"], queryFn: () => api.get<any>("/auth/demo-status", { auth: false }) });
-  const logo = mode === "dark" ? brand.branding.logo_dark || brand.branding.logo : brand.branding.logo_light || brand.branding.logo;
+  const logo = brand.branding.logo_light || brand.branding.logo_dark || brand.branding.logo;
 
   const home = (u: AppUser) => {
     if (u.role === "partner") return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_partner ? "/(partner)" : "/partner/register";
@@ -188,22 +188,22 @@ export default function Login() {
 
             {step === "phone" ? (
               <>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 54, paddingHorizontal: 12, borderRadius: 14, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#F8FAFC" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 5, height: 54, paddingHorizontal: 10, borderRadius: 14, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#F8FAFC" }}>
                     <View style={{ width: 20, height: 14, borderRadius: 2, overflow: "hidden" }}>
                       <View style={{ flex: 1, backgroundColor: "#FF9933" }} /><View style={{ flex: 1, backgroundColor: "#fff" }} /><View style={{ flex: 1, backgroundColor: "#138808" }} />
                     </View>
-                    <Text style={{ color: "#0F172A", fontSize: 16, fontWeight: "800" }}>+91</Text>
-                    <Icon name="chevron-down" size={16} color={TW.slate400} />
+                    <Text style={{ color: "#0F172A", fontSize: 15, fontWeight: "800" }}>+91</Text>
                   </View>
                   <TextInput
                     testID="login-phone-input"
                     value={phone}
                     onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, "").slice(0, 10))}
-                    placeholder="Enter 10-digit mobile number"
+                    placeholder="Mobile number"
                     placeholderTextColor="#94A3B8"
                     keyboardType="number-pad"
-                    style={{ flex: 1, height: 54, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#F8FAFC", fontSize: 16, color: "#0F172A", fontWeight: "600" }}
+                    numberOfLines={1}
+                    style={{ flex: 1, minWidth: 0, height: 54, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#F8FAFC", fontSize: 16, letterSpacing: 1, color: "#0F172A", fontWeight: "700" }}
                     onSubmitEditing={sendOtp}
                   />
                 </View>
@@ -213,18 +213,32 @@ export default function Login() {
               </>
             ) : (
               <>
-                <Text style={{ color: "#475569", fontSize: 13, marginBottom: 8 }}>Enter the OTP sent to <Text style={{ fontWeight: "800", color: "#0F172A" }}>+91 {phone}</Text></Text>
-                <TextInput
-                  ref={otpRef}
-                  testID="login-otp-input"
-                  value={otp}
-                  onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, "").slice(0, 6))}
-                  placeholder="Enter OTP"
-                  placeholderTextColor="#94A3B8"
-                  keyboardType="number-pad"
-                  style={{ height: 54, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: "#E2E8F0", backgroundColor: "#F8FAFC", fontSize: 20, letterSpacing: 6, color: "#0F172A", fontWeight: "800", textAlign: "center" }}
-                  onSubmitEditing={verifyOtp}
-                />
+                <Text style={{ color: "#475569", fontSize: 13, marginBottom: 10 }}>Enter the OTP sent to <Text style={{ fontWeight: "800", color: "#0F172A" }}>+91 {phone}</Text></Text>
+                <Pressable onPress={() => otpRef.current?.focus()}>
+                  <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+                    {Array.from({ length: 6 }).map((_, i) => {
+                      const active = i === Math.min(otp.length, 5);
+                      const filled = i < otp.length;
+                      return (
+                        <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, height: 56, borderRadius: 14, borderWidth: 1.5, borderColor: active ? P[600] : filled ? "#CBD5E1" : "#E2E8F0", backgroundColor: active ? "#EEF4FF" : "#F8FAFC", alignItems: "center", justifyContent: "center" }}>
+                          <Text style={{ fontSize: 22, fontWeight: "900", color: "#0F172A" }}>{otp[i] || ""}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                  <TextInput
+                    ref={otpRef}
+                    testID="login-otp-input"
+                    value={otp}
+                    onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, "").slice(0, 6))}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    autoFocus
+                    caretHidden
+                    onSubmitEditing={verifyOtp}
+                    style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }}
+                  />
+                </Pressable>
                 <Pressable testID="verify-otp-btn" onPress={verifyOtp} disabled={busy === "verify"} style={({ pressed }) => ({ marginTop: 14, height: 56, borderRadius: 16, backgroundColor: P[600], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy === "verify" ? 0.7 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
                   {busy === "verify" ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: 17, fontWeight: "900" }}>Verify & Continue</Text><Icon name="check" size={20} color="#fff" /></>}
                 </Pressable>
@@ -240,10 +254,27 @@ export default function Login() {
             </View>
           </View>
 
-          {/* ---------------- Register cards ---------------- */}
-          <View style={{ flexDirection: "row", gap: 12 }} testID="register-toggles">
-            <RoleCard role="partner" kind="register" />
-            <RoleCard role="merchant" kind="register" />
+          {/* ---------------- Register (single row, split) ---------------- */}
+          <View testID="register-toggles" style={{ flexDirection: "row", alignItems: "stretch", backgroundColor: colors.surface, borderRadius: 18, borderWidth: 1.5, borderColor: colors.border, overflow: "hidden" }}>
+            {APP_ROLES.map((role, idx) => {
+              const isPartner = role === "partner";
+              return (
+                <React.Fragment key={role}>
+                  {idx === 1 ? <View style={{ width: 1.5, backgroundColor: colors.border }} /> : null}
+                  <Pressable
+                    testID={`reg-${role}`}
+                    disabled={!!busy}
+                    onPress={() => { setRegisterRole(role); setStep("phone"); toast.info(`Registering as ${isPartner ? "Partner" : "Merchant"} — verify your mobile`); }}
+                    style={({ pressed }) => ({ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, paddingVertical: 15, backgroundColor: pressed ? (isPartner ? "#F0FDF4" : "#FDF4FF") : "transparent" })}
+                  >
+                    <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: isPartner ? "#DCFCE7" : "#FAE8FF", alignItems: "center", justifyContent: "center" }}>
+                      <Icon name={isPartner ? "wrench" : "storefront-outline"} size={18} color={isPartner ? "#16A34A" : "#C026D3"} />
+                    </View>
+                    <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "800" }} numberOfLines={1}>Register as {isPartner ? "Partner" : "Merchant"}</Text>
+                  </Pressable>
+                </React.Fragment>
+              );
+            })}
           </View>
 
           {/* ---------------- Demo login ---------------- */}
