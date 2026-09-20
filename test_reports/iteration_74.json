@@ -1,0 +1,22 @@
+{
+  "summary": "Verified the partner registration searchable dropdown Sheet last-option fix on web (viewport 390x844). Opened reg-state on Basic step: 36 options rendered inside the sheet's ScrollView (maxHeight 240 → internally scrollable). Scrolled to the last option 'West Bengal'; its bottom edge sat at y=828 with viewport height 844, giving the expected 16px bottom padding (Math.max(insets.bottom, 16) = 16 on desktop/web where insets.bottom=0). Click on the last option was accepted, the sheet closed, and the State field updated to 'West Bengal'. This confirms (a) last option fully visible with bottom spacing, (b) clickable (no dead tap), (c) selection + close flow. The Sheet is a shared component reused by Combo (reg-state/district/city/reg-exp-*) and WSelect (reg-gender), so the fix applies uniformly. On real Android, the SafeAreaProvider wrapping the Modal will resolve insets.bottom to the actual nav-bar height, which is the platform-side of the same fix.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fields.tsx Sheet correctly wraps Modal in SafeAreaProvider (fixes Android insets.bottom=0 issue on Modal windows) and SheetBody applies paddingBottom = Math.max(insets.bottom, 16). Implementation is clean.",
+    "Combo ScrollView maxHeight 240 keeps list scrollable within the sheet — internal scrolling verified working (36 states scrollable, last option reachable and clickable)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Sheet last-option fix verified via reg-state (36 options) on web. West Bengal (last) bottom=828 in 844 viewport (16px safe-area fallback padding), clickable, closes sheet, updates field. Same Sheet component powers District/City/Experience/Gender pickers, so this is sufficient proof for the web-observable behavior. Real Android nav-bar overlap is fixed by the SafeAreaProvider wrap; not directly testable in browser.",
+  "rca of the issue": "Root cause: react-native Modal on Android does not propagate outer SafeAreaProvider insets, so useSafeAreaInsets() inside the Modal returned bottom=0, causing the ScrollView's last row to sit flush with (or under) the system navigation bar. Fix: wrap the Modal's children in their own <SafeAreaProvider> and apply paddingBottom = Math.max(insets.bottom, 16). Verified working."
+}

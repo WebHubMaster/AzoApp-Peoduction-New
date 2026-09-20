@@ -45,3 +45,11 @@ Note: #3 keyboard-avoidance is native-only; verified structurally in browser (se
 ## Test accounts created for QA (incomplete KYC, dev OTP 123456)
 - Partner: +919888800011 (Basic pre-filled → lands on Work step)
 - Merchant: +919888800012
+
+## Iteration 3 (2026-06) — Dropdown safe-area fix (Expo app)
+Reported: last option in registration dropdowns (Experience/State/District/City/Gender) ran under the Android nav bar and was untappable. Verified by testing agent (iteration_74.json, 100% PASS on web build).
+- Root cause: RN <Modal> on Android does NOT inherit the app's outer SafeAreaProvider, so useSafeAreaInsets() returned bottom=0 → sheet had no bottom padding → last row under the system nav bar.
+- Fix (src/components/reg/Fields.tsx): wrap the Modal content in its own <SafeAreaProvider>; new SheetBody component reads insets and applies paddingBottom = Math.max(insets.bottom, 16). Shared Sheet powers Combo + WSelect, so all pickers are fixed.
+
+## Tunnel note
+- ngrok free static domain persists across pod restarts: exp://squander-prodigy-affiliate.ngrok-free.dev. If the pod restarts, re-run: `/root/ngrok3 http 8081` (authtoken saved in /root/.ngrok2) + `cd /app/frontend && EXPO_PACKAGER_PROXY_URL=https://squander-prodigy-affiliate.ngrok-free.dev npx expo start --port 8081 --host lan` (nohup). Metro/ngrok live in /tmp so are lost on restart.
