@@ -10,7 +10,7 @@ import { useToast } from "@/src/components/Toast";
 import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
-  ensureRingReliability, markPrompted, pushSupported,
+  fullScreenState, markPrompted, pushSupported,
 } from "@/src/lib/notifications";
 
 type Card = {
@@ -96,14 +96,20 @@ export default function PermissionsOnboarding() {
 
   const handleAll = useCallback(async () => {
     setBusy("all");
-    // Ask in-app permissions first (dialogs), then the system-settings ones.
+    // 1) Fast in-app permission DIALOGS first (one tap each) — reflect immediately.
     await runOne("notifications");
+    setStates(await allPermissionStates());
     await runOne("location");
+    setStates(await allPermissionStates());
+    // 2) Battery — direct one-tap "run in background" system dialog (Android).
     if (Platform.OS === "android") {
       await requestBatteryExemption();
-      await openFullScreenIntentSettings();
+      setStates(await allPermissionStates());
+      // 3) Full-screen intent — only Android 14+ needs the settings toggle; open
+      //    it just once and only when it isn't already satisfied.
+      const fs = await fullScreenState();
+      if (fs.available && !fs.granted) await openFullScreenIntentSettings();
     }
-    await ensureRingReliability().catch(() => {});
     const next = await allPermissionStates();
     setStates(next);
     setBusy(null);

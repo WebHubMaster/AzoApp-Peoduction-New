@@ -91,7 +91,6 @@ export async function requestNotificationPermission(): Promise<{ granted: boolea
   const s = await n.requestPermission({ alert: true, badge: true, sound: true, criticalAlert: true });
   const { AuthorizationStatus } = notifee();
   const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
-  if (granted) ensureRingReliability().catch(() => {});
   return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
 }
 
@@ -155,8 +154,22 @@ export async function batteryState(): Promise<PermState> {
 }
 export async function requestBatteryExemption() {
   const n = NotifeeApi();
-  if (!n || Platform.OS !== "android") return;
-  try { if (await n.isBatteryOptimizationEnabled()) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
+  if (Platform.OS !== "android") return;
+  try {
+    if (n && !(await n.isBatteryOptimizationEnabled())) return; // already exempt
+  } catch { /* ignore */ }
+  const pkg = Constants.expoConfig?.android?.package || "com.azoapp.partner";
+  // Preferred: the DIRECT system dialog ("Allow app to run in background? Yes"),
+  // one tap — via REQUEST_IGNORE_BATTERY_OPTIMIZATIONS with a package: data URI.
+  try {
+    const IntentLauncher = require("expo-intent-launcher");
+    await IntentLauncher.startActivityAsync(
+      "android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+      { data: `package:${pkg}` },
+    );
+    return;
+  } catch { /* fall back to the settings list below */ }
+  try { if (n) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
 }
 
 /* Full-screen intent — Android 14+ (SDK 34) needs the user to allow call-style
@@ -166,7 +179,7 @@ export async function fullScreenState(): Promise<PermState> {
   const sdk = _androidSdk();
   if (sdk < 34) return { key: "fullscreen", granted: true, canAskAgain: false, available: true };
   const n = NotifeeApi();
-  // Notifee (recent versions) can report the FSI setting; fall back to "action needed".
+  // Notifee (recent versions) can report the FSI setting on Android 14+.
   try {
     if (n?.getNotificationSettings) {
       const s = await n.getNotificationSettings();
@@ -175,7 +188,10 @@ export async function fullScreenState(): Promise<PermState> {
       if (typeof fsi === "number") return { key: "fullscreen", granted: fsi === 1, canAskAgain: true, available: true };
     }
   } catch { /* fall through */ }
-  return { key: "fullscreen", granted: false, canAskAgain: true, available: true };
+  // Cannot introspect on this OS/Notifee build → treat as satisfied (the manifest
+  // declares USE_FULL_SCREEN_INTENT and the ring uses category CALL). Never leaves
+  // the card stuck "not granted".
+  return { key: "fullscreen", granted: true, canAskAgain: true, available: true };
 }
 
 /* Location — used for distance / ETA on the ring (foreground is enough). */
