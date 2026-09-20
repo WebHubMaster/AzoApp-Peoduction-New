@@ -53,6 +53,17 @@ well-designed UI. Web + mobile both must ring. User builds the APK themselves.
   service-account JSON in Admin → Integrations → Firebase). Notifee/FCM no-op in Expo
   Go and on web. In Expo Go the SSE in-app ring works while the app is open.
 
+## CI/CD fix (2026-06)
+Root cause: project was yarn-based but `.github/workflows/mobile.yml` uses `npm ci`.
+- `package-lock.json` was stale → regenerated via full `npm install` (in sync now).
+- Made it a clean npm project: removed `yarn.lock` (single lock file).
+- `expo doctor` fixes: added `expo-asset` (expo-audio peer) + `expo-notifications` +
+  `expo-intent-launcher`; deduped `react-native-screens` → 4.28.0 via `resolutions`;
+  removed deprecated app.json fields (`newArchEnabled`, top-level `splash`,
+  `android.edgeToEdgeEnabled`); added `expo.doctor` exclusions + `expo.install.exclude`.
+- Verified: `npm ci --dry-run` exit 0 (no sync error); `npx expo-doctor` 21/21 pass;
+  Metro bundle compiles (17MB); testing_agent frontend regression 4/4 PASS.
+
 ## Backlog / Next
 - Replace placeholder google-services.json + upload FCM service account, then EAS build.
 - Optional: in-app "Fix alerts" banner on partner dashboard when a critical permission
