@@ -17,7 +17,7 @@ async def upload(file: UploadFile = File(...), folder: str = Form("media"),
                  max_side: int = Form(1600), admin=Depends(ADMIN)):
     raw = await file.read()
     try:
-        res = await storage_service.save_image(raw, file.content_type or "", folder=folder, max_side=int(max_side))
+        res = await storage_service.save_image(raw, file.content_type or "", folder=folder, max_side=int(max_side), filename=file.filename or "")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     await storage_service.record_media({

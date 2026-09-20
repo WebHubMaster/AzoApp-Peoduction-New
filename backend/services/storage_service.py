@@ -19,6 +19,41 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 ALLOWED = {"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 MAX_BYTES = 12 * 1024 * 1024  # 12MB raw upload cap
 
+_EXT_CT = {"svg": "image/svg+xml", "jpg": "image/jpeg", "jpeg": "image/jpeg",
+           "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
+
+
+def _sniff_ct(raw: bytes) -> Optional[str]:
+    """Detect image type from magic bytes / SVG markup when the client MIME is missing."""
+    if not raw:
+        return None
+    head = raw[:512].lstrip()
+    if head[:4] == b"\x89PNG":
+        return "image/png"
+    if head[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if head[:6] in (b"GIF87a", b"GIF89a"):
+        return "image/gif"
+    if head[:4] == b"RIFF" and raw[8:12] == b"WEBP":
+        return "image/webp"
+    low = raw[:1024].lower()
+    if b"<svg" in low:
+        return "image/svg+xml"
+    return None
+
+
+def _resolve_ct(content_type: str, filename: str, raw: bytes) -> str:
+    """Return a supported MIME for an upload, using the browser MIME first, then the
+    filename extension, then content sniffing. Fixes uploads (e.g. SVG on Windows)
+    that arrive as application/octet-stream or an empty type."""
+    ct = (content_type or "").lower().split(";")[0].strip()
+    if ct in ALLOWED:
+        return ct
+    ext = (filename or "").rsplit(".", 1)[-1].lower() if "." in (filename or "") else ""
+    if _EXT_CT.get(ext):
+        return _EXT_CT[ext]
+    return _sniff_ct(raw or b"") or ct
+
 
 def _conf_from_integ(integ: dict) -> Optional[dict]:
     if not (integ.get("aws_access_key_id") and integ.get("aws_secret_access_key") and integ.get("aws_bucket")):
@@ -105,7 +140,8 @@ async def _put(name: str, data: bytes, mime: str) -> str:
 
 
 async def save_image(raw: bytes, content_type: str, folder: str = "media",
-                     max_side: int = 1600, thumb: bool = True) -> dict:
+                     max_side: int = 1600, thumb: bool = True, filename: str = "") -> dict:
+    content_type = _resolve_ct(content_type, filename, raw)
     if content_type not in ALLOWED:
         raise ValueError("Unsupported file type. Use JPG, PNG, GIF, WebP or SVG.")
     if len(raw) > MAX_BYTES:
@@ -136,9 +172,9 @@ async def save_document(raw: bytes, content_type: str, filename: str = "",
     """Save a KYC document. Images are compressed to WebP; PDFs stored as-is."""
     if len(raw) > MAX_BYTES:
         raise ValueError("File too large (max 12MB).")
-    ct = (content_type or "").lower()
+    ct = _resolve_ct(content_type, filename, raw)
     if ct in ALLOWED:
-        return await save_image(raw, content_type, folder=folder, max_side=1800)
+        return await save_image(raw, ct, folder=folder, max_side=1800, filename=filename)
     if ct == "application/pdf" or (filename or "").lower().endswith(".pdf"):
         uid = uuid.uuid4().hex
         name = f"{folder}/{uid}.pdf"
