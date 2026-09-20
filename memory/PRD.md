@@ -190,3 +190,31 @@ Action for user after deploy: re-upload the logo once (existing relative URLs ar
 fixed in admin by mediaSrc, but re-uploading stores absolute URLs for mobile/website/
 emails too). Verified: web panel compiles + serves; mobile bundle clean (4233 modules);
 local media upload returns an absolute URL; SVG upload works end-to-end.
+
+## 2026-06 — PUSH ROOT CAUSE PROVEN (native token never obtained)
+Verified against LIVE prod (api.webhubmaster.shop, admin +919000000000 OTP 123456):
+- /api/admin/notifications/health → ready_for_push:true, service_account configured
+  (project azo-project-9f857), web_api_key NOT blocked (Firebase Installations 200),
+  vapid set, fcm_enabled true. SERVER IS 100% HEALTHY.
+- devices.total = 0 across ALL roles → NOT ONE FCM token ever stored.
+- partners_no_device have push_state = null → app never even REPORTED an outcome,
+  which is why admin shows the misleading "never tapped Allow in this browser".
+CONCLUSION: failure is 100% on-device — the native app never obtains an FCM token.
+Most likely: installed APK is an OLD build (from when google-services.json was
+empty/missing) OR RNFB messaging module fails to instantiate. google-services.json
+NOW correct (project azo-project-9f857, pkg app.azoapp.partner appid ...f447c0dd).
+FIX APPLIED (frontend/src/lib/notifications.ts):
+- messaging() no longer throws (wrapped) — used to silently kill registration.
+- registerPushToken() now: (1) dual token path — RNFB getToken() w/ retries THEN
+  expo-notifications getDevicePushTokenAsync() fallback; (2) ALWAYS reports the exact
+  reason to /notifications/push-status (expo_go / permission / no_fcm_module /
+  getToken_failed+error / exception / registered:<source>).
+- AlertsPanel "Fix" now calls registerPushToken() right after permission grant.
+REQUIRES A NEW APK BUILD (eas profile production-apk, EXPO_PUBLIC_BACKEND_URL baked =
+https://api.webhubmaster.shop). CANNOT be verified from server/preview — physical
+device only. After rebuild+install+login+allow, admin health.devices.total must be >0
+and push_state.reason must show registered:<rnfirebase|expo>. NOT YET DEVICE-VERIFIED.
+KNOWN SECONDARY (web push): web_config.appId is derived from the homeservice ANDROID
+client (…11f5) not partner (…f447), and FCM web push needs a real Firebase WEB app
+appId (…:web:…) which google-services.json does not contain → browser AbortError.
+Web panel should use the VAPID webpush_service path instead. Not fixed (out of scope).

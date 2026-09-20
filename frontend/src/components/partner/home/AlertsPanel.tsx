@@ -8,7 +8,7 @@ import { useTheme } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
-import { getPermissionStatus, requestNotificationPermission } from "@/src/lib/notifications";
+import { getPermissionStatus, requestNotificationPermission, registerPushToken } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
 import { TW } from "./tw";
 
@@ -35,6 +35,9 @@ export function TestRingCard() {
 
   const fix = async () => {
     const res = await requestNotificationPermission();
+    // Register THIS device's token right now (don't wait for a background/foreground
+    // cycle) so "device registered" flips on immediately after the user allows.
+    if (res.granted) { try { await registerPushToken(); } catch { /* reported to backend */ } }
     checkPerm(); devices.refetch();
     if (res.granted) toast.success(registered ? "Notifications enabled" : "Permission granted — background push activates on the installed app build");
     else if (!res.canAskAgain && Platform.OS !== "web") Linking.openSettings();

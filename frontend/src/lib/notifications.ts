@@ -76,7 +76,26 @@ export function messaging(): any | null {
   if (_messaging === null) {
     try { _messaging = require("@react-native-firebase/messaging").default; } catch { _messaging = false; }
   }
-  return _messaging ? _messaging() : null;
+  // _messaging() throws when the native module isn't linked / Firebase [DEFAULT]
+  // app failed to init. NEVER let that bubble up (it used to silently kill the
+  // whole registration before anything could be reported). Return null instead.
+  try { return _messaging ? _messaging() : null; } catch { return null; }
+}
+
+/**
+ * expo-notifications native DEVICE push token — on Android this is the RAW FCM
+ * token (firebase-admin can send to it directly). This is a SECOND, independent
+ * path to obtain a token that works even when @react-native-firebase/messaging
+ * fails to instantiate, as long as google-services.json is bundled. Returns "".
+ */
+async function expoDeviceToken(): Promise<string> {
+  const EN = expoNotif();
+  if (!EN || Platform.OS === "web") return "";
+  try {
+    const t = await EN.getDevicePushTokenAsync();
+    const val = typeof t === "string" ? t : t?.data;
+    return typeof val === "string" ? val : "";
+  } catch { return ""; }
 }
 
 export async function setupAndroidChannels() {
@@ -436,38 +455,64 @@ async function postToken(token: string) {
  * Real builds only — silently skipped in Expo Go. Returns an unsubscribe fn.
  */
 export async function registerPushToken(): Promise<{ ok: boolean; reason?: string; unsubscribe?: () => void }> {
-  const m = messaging();
-  if (!m) return { ok: false, reason: "unsupported" };
   // Report the NATIVE registration outcome to the backend so it shows in the app's
   // "Alert check" card and the admin Diagnostics (previously only the browser
   // reported → admin always showed a stale "never attempted in this browser").
+  // We now report on EVERY path — including "no module" — so the admin panel shows
+  // the real on-device reason instead of a misleading browser default.
   const report = (ok: boolean, reason = "", error = "") => {
     api.post("/notifications/push-status", {
-      ok, reason, error, permission: "granted", platform: Platform.OS,
+      ok, reason, error, permission: ok ? "granted" : reason === "permission" ? "denied" : "granted",
+      platform: Platform.OS,
       user_agent: `AzoApp/${Constants.expoConfig?.version || "1.0"} (${Platform.OS} ${Device.manufacturer || ""} ${Device.modelName || ""} ${Device.osVersion || ""})`.trim(),
     }).catch(() => {});
   };
   try {
+    if (Platform.OS === "web") return { ok: false, reason: "web" };
+    if (!pushSupported) { report(false, "expo_go"); return { ok: false, reason: "expo_go" }; }
     const perm = await getPermissionStatus();
     if (!perm.granted) { report(false, "permission"); return { ok: false, reason: "permission" }; }
-    await setupAndroidChannels();
-    if (Platform.OS === "ios") { try { await m.registerDeviceForRemoteMessages(); } catch { /* ignore */ } }
-    // getToken() often fails transiently on Android (Play Services / network not
-    // ready right after launch). Retry a few times with backoff before giving up.
+    await setupAndroidChannels().catch(() => {});
+
+    const m = messaging();
     let token = "";
     let lastErr: any = null;
-    for (let i = 0; i < 5 && !token; i += 1) {
-      try { token = await m.getToken(); }  // eslint-disable-line no-await-in-loop
-      catch (e) { lastErr = e; }
-      if (!token && i < 4) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
+    let source = "";
+
+    // Path 1 — React Native Firebase (preferred: also gives token-refresh events).
+    // getToken() often fails transiently on Android (Play Services / network not
+    // ready right after launch), so retry a few times with backoff.
+    if (m) {
+      if (Platform.OS === "ios") { try { await m.registerDeviceForRemoteMessages(); } catch { /* ignore */ } }
+      for (let i = 0; i < 4 && !token; i += 1) {
+        try { token = await m.getToken(); }  // eslint-disable-line no-await-in-loop
+        catch (e) { lastErr = e; }
+        if (!token && i < 3) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
+      }
+      if (token) source = "rnfirebase";
     }
+
+    // Path 2 — expo-notifications native device token. Independent of RNFB, so it
+    // rescues the (common) case where the Firebase messaging module fails to load.
     if (!token) {
-      report(false, "getToken_failed", String(lastErr?.message || lastErr || "no token"));
-      return { ok: false, reason: "getToken_failed" };
+      for (let i = 0; i < 3 && !token; i += 1) {
+        token = await expoDeviceToken();  // eslint-disable-line no-await-in-loop
+        if (!token && i < 2) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
+      }
+      if (token) source = "expo";
     }
+
+    if (!token) {
+      const reason = m ? "getToken_failed" : "no_fcm_module";
+      report(false, reason, String(lastErr?.message || lastErr || "no token from RNFirebase or expo-notifications"));
+      return { ok: false, reason };
+    }
+
     await postToken(token);
-    report(true, "registered");
-    const unsubscribe = m.onTokenRefresh((t: string) => { postToken(t).catch(() => {}); });
+    report(true, `registered:${source}`);
+
+    let unsubscribe: (() => void) | undefined;
+    if (m) { try { unsubscribe = m.onTokenRefresh((t: string) => { postToken(t).catch(() => {}); }); } catch { /* ignore */ } }
     return { ok: true, unsubscribe };
   } catch (e: any) {
     report(false, "exception", String(e?.message || e));
