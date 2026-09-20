@@ -25,6 +25,7 @@ import { LifeBuoy } from "lucide-react";
 import SupportCenter from "@/components/SupportCenter";
 import CameraCapture from "@/components/partner/CameraCapture";
 import BookingChat from "@/components/booking/BookingChat";
+import { useChatUnread, UnreadPill } from "@/context/ChatContext";
 import ScheduledCard from "@/components/booking/ScheduledCard";
 import ScheduleAlerts from "@/components/booking/ScheduleAlerts";
 import { Phone, MessageCircle, Camera, ChevronDown, Clock, User as UserIcon, Circle, Lock, X as XIcon } from "lucide-react";
@@ -308,6 +309,7 @@ const ActiveJob = ({ b, onUpdate }) => {
   const addl = b.additional || null;
   const addlPending = addl && (addl.total || 0) > 0 && addl.status !== "paid";
   const [chatOpen, setChatOpen] = useState(false);
+  const chatUnread = useChatUnread(b.id);
   const [showResched, setShowResched] = useState(false);
   const [reschedVal, setReschedVal] = useState("");
   const [reschedBusy, setReschedBusy] = useState(false);
@@ -556,7 +558,7 @@ const ActiveJob = ({ b, onUpdate }) => {
           ) : (
             <span className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 font-semibold text-sm flex items-center justify-center gap-1.5"><Phone className="h-4 w-4" /> Call</span>
           )}
-          <button type="button" onClick={openChat} disabled={commLocked} data-testid={`chat-cust-${b.code}`} className="h-11 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 azo-press disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Chat</button>
+          <button type="button" onClick={openChat} disabled={commLocked} data-testid={`chat-cust-${b.code}`} className="h-11 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 azo-press disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</button>
         </div>
 
         {/* Job & customer details (collapsible) */}

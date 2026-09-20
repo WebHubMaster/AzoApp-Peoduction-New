@@ -11,6 +11,8 @@ import { View, Text } from "react-native";
 import { ThemeProvider } from "@/src/theme";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
+import { ChatProvider } from "@/src/context/ChatContext";
+import { ChatNotifier } from "@/src/components/ChatNotifier";
 import { ToastProvider } from "@/src/components/Toast";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
@@ -74,6 +76,8 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
       <BrandProvider value={brandCfg}>
         <AuthProvider>
           <RealtimeProvider>
+          <ChatProvider>
+          <ChatNotifier />
           <ToastProvider>
             <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
@@ -84,6 +88,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
           </ToastProvider>
+          </ChatProvider>
           </RealtimeProvider>
         </AuthProvider>
       </BrandProvider>

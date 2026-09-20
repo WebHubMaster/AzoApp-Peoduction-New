@@ -65,6 +65,23 @@ self.addEventListener('push', (event) => {
     event.waitUntil(showJobRequest(d));
     return;
   }
+  if (d.type === 'chat_message') {
+    // WhatsApp-style: "Sender" / "text\nService • Booking #CODE", one stacked
+    // notification per chat thread (tag), tap opens that exact conversation.
+    const icon = d.icon || '/logo192.png';
+    const body = (d.body || n.body || '') + (d.body && d.service_name ? '\n' + d.service_name + ' \u2022 Booking #' + (d.code || '') : '');
+    event.waitUntil(self.registration.showNotification(d.sender_name || n.title || 'New message', {
+      body: body,
+      icon: icon,
+      badge: icon,
+      vibrate: [200, 100, 200],
+      tag: d.tag || ('chat-' + (d.booking_id || '')),
+      renotify: true,
+      timestamp: Date.now(),
+      data: { link: d.link || link || '/', type: 'chat_message', booking_id: d.booking_id || '' },
+    }));
+    return;
+  }
   const title = n.title || d.title || 'AzoApp';
   const icon = n.icon || d.icon || '/logo192.png';
   event.waitUntil(self.registration.showNotification(title, {
@@ -85,7 +102,8 @@ self.addEventListener('notificationclick', (event) => {
   const data = event.notification.data || {};
   const bid = data.booking_id || '';
   let link = data.link || '/';
-  if (event.action === 'accept' && bid) link = '/partner?job=' + bid + '&ring=accept';
+  if (data.type === 'chat_message') { /* deep link already points at the chat */ }
+  else if (event.action === 'accept' && bid) link = '/partner?job=' + bid + '&ring=accept';
   else if (event.action === 'reject' && bid) link = '/partner?job=' + bid + '&ring=reject';
   else if (bid) link = '/partner?job=' + bid + '&ring=open';
   const target = new URL(link, self.location.origin).href;

@@ -235,6 +235,12 @@ async def track(booking_id: str, user=Depends(get_current_user)):
     return await c.track_booking(user, booking_id)
 
 
+@router.get("/chats/summary")
+async def chats_summary(user=Depends(get_current_user)):
+    """Chat list: latest message + unread count per open thread (badges)."""
+    return await c.chats_summary(user)
+
+
 @router.get("/{booking_id}/messages")
 async def list_messages(booking_id: str, after: str = "", user=Depends(get_current_user)):
     """Chat thread for a booking (customer ↔ assigned partner). Enabled after payment."""
@@ -244,6 +250,17 @@ async def list_messages(booking_id: str, after: str = "", user=Depends(get_curre
 @router.post("/{booking_id}/messages")
 async def send_message(booking_id: str, payload: dict = Body(...), user=Depends(get_current_user)):
     return await c.send_message(user, booking_id, (payload or {}).get("text", ""))
+
+
+@router.post("/{booking_id}/messages/seen")
+async def mark_seen(booking_id: str, user=Depends(get_current_user)):
+    """Read receipt + presence heartbeat for the open chat screen."""
+    return await c.mark_messages_seen(user, booking_id)
+
+
+@router.post("/{booking_id}/typing")
+async def typing(booking_id: str, payload: dict = Body(default={}), user=Depends(get_current_user)):
+    return await c.set_typing(user, booking_id, (payload or {}).get("typing", True))
 
 
 

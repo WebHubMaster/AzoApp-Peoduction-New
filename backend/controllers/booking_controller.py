@@ -674,20 +674,126 @@ async def list_messages(user, booking_id, after=""):
     if after:
         q["created_at"] = {"$gt": after}
     msgs = await db.booking_messages.find(q, {"_id": 0}).sort("created_at", 1).to_list(500)
+    for m in msgs:
+        m["status"] = "seen" if m.get("seen_at") else "sent"
+    unread = sum(1 for m in msgs if m.get("sender_id") != user["id"] and not m.get("seen_at"))
     st = schedule_state(b)
-    enabled = (b.get("payment_status") == "paid" and bool(b.get("partner_id"))
-               and b.get("status") in ("assigned", "arrived_shop", "arrived_customer", "started")
-               and not st.get("comm_locked"))
+    enabled = _chat_enabled(b, st)
     partner = None
     if b.get("partner_id"):
         pu = await db.users.find_one({"id": b["partner_id"]}, {"_id": 0, "name": 1, "phone": 1, "photo": 1})
         partner = {"name": (pu or {}).get("name") or b.get("partner_name"),
                    "phone": (pu or {}).get("phone"), "photo": (pu or {}).get("photo")}
+    other = b.get("partner_id") if is_customer else b.get("customer_id")
     return {
         "enabled": enabled, "payment_status": b.get("payment_status"), "status": b.get("status"),
         "me": user["id"], "partner": partner, "customer": {"name": b.get("customer_name"), "phone": b.get("customer_phone")},
         "messages": msgs, "schedule": st, "comm_locked": st.get("comm_locked", False),
+        "unread": unread, "service_name": b.get("service_name"), "code": b.get("code"),
+        "counterpart_online": _is_present(other, booking_id),
     }
+
+
+CHAT_STATUSES = ("assigned", "arrived_shop", "arrived_customer", "started")
+
+
+def _chat_enabled(b, st=None):
+    st = st or schedule_state(b)
+    return (b.get("payment_status") == "paid" and bool(b.get("partner_id"))
+            and b.get("status") in CHAT_STATUSES and not st.get("comm_locked"))
+
+
+# Chat presence: (user_id, booking_id) -> last heartbeat epoch. A user "present"
+# in a thread gets only the live SSE frame (no push) — WhatsApp-style behaviour.
+_presence: dict = {}
+PRESENCE_TTL = 25
+
+
+def _touch_presence(uid, booking_id):
+    import time
+    _presence[(uid, booking_id)] = time.time()
+    if len(_presence) > 5000:
+        cutoff = time.time() - PRESENCE_TTL
+        for k in [k for k, v in _presence.items() if v < cutoff]:
+            _presence.pop(k, None)
+
+
+def _is_present(uid, booking_id):
+    import time
+    return bool(uid) and (time.time() - _presence.get((uid, booking_id), 0)) < PRESENCE_TTL
+
+
+def _chat_party(b, user):
+    is_customer = b.get("customer_id") == user["id"]
+    is_partner = b.get("partner_id") == user["id"]
+    if not (is_customer or is_partner):
+        raise HTTPException(status_code=403, detail="Not allowed")
+    other = b.get("partner_id") if is_customer else b.get("customer_id")
+    return is_customer, other
+
+
+async def mark_messages_seen(user, booking_id):
+    """Mark every message from the other party as seen (read receipt) and record
+    presence. Emits `booking_seen` to both parties so ticks/badges sync live on
+    every device (web + mobile)."""
+    b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    _, other = _chat_party(b, user)
+    _touch_presence(user["id"], booking_id)
+    ts = now_iso()
+    res = await db.booking_messages.update_many(
+        {"booking_id": booking_id, "sender_id": {"$ne": user["id"]}, "seen_at": None},
+        {"$set": {"seen_at": ts}})
+    if res.modified_count:
+        payload = {"booking_id": booking_id, "seen_by": user["id"], "seen_at": ts, "count": res.modified_count}
+        rt.emit_user(other, "booking_seen", payload)
+        rt.emit_user(user["id"], "booking_seen", payload)
+    return {"ok": True, "seen": res.modified_count, "seen_at": ts}
+
+
+async def set_typing(user, booking_id, typing):
+    """Ephemeral typing indicator — relayed over SSE only, never stored."""
+    b = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "customer_id": 1, "partner_id": 1})
+    if not b:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    _, other = _chat_party(b, user)
+    _touch_presence(user["id"], booking_id)
+    rt.emit_user(other, "booking_typing", {"booking_id": booking_id, "user_id": user["id"],
+                                           "name": user.get("name"), "typing": bool(typing)})
+    return {"ok": True}
+
+
+async def chats_summary(user):
+    """Chat list for the current user: one row per open thread with the latest
+    message + unread count. Drives unread badges on web and mobile."""
+    key = "partner_id" if user.get("role") == "partner" else "customer_id"
+    bookings = await db.bookings.find(
+        {key: user["id"], "status": {"$in": list(CHAT_STATUSES)}, "partner_id": {"$ne": None}},
+        {"_id": 0, "id": 1, "code": 1, "service_name": 1, "status": 1, "customer_name": 1,
+         "partner_name": 1, "customer_id": 1, "partner_id": 1, "payment_status": 1,
+         "schedule_type": 1, "scheduled_at": 1, "updated_at": 1}).to_list(200)
+    ids = [b["id"] for b in bookings]
+    msgs = await db.booking_messages.find({"booking_id": {"$in": ids}}, {"_id": 0}).sort("created_at", 1).to_list(5000)
+    by_b: dict = {}
+    for m in msgs:
+        row = by_b.setdefault(m["booking_id"], {"last": None, "unread": 0})
+        row["last"] = m
+        if m.get("sender_id") != user["id"] and not m.get("seen_at"):
+            row["unread"] += 1
+    chats = []
+    for b in bookings:
+        row = by_b.get(b["id"], {"last": None, "unread": 0})
+        last = row["last"]
+        if last:
+            last = {**last, "status": "seen" if last.get("seen_at") else "sent"}
+        other_name = b.get("customer_name") if key == "partner_id" else b.get("partner_name")
+        chats.append({"booking_id": b["id"], "code": b.get("code"), "service_name": b.get("service_name"),
+                      "status": b.get("status"), "counterpart_name": other_name,
+                      "enabled": _chat_enabled(b), "unread": row["unread"], "last_message": last,
+                      "updated_at": (last or {}).get("created_at") or b.get("updated_at")})
+    chats.sort(key=lambda c: c.get("updated_at") or "", reverse=True)
+    return {"chats": chats, "total_unread": sum(c["unread"] for c in chats)}
 
 
 async def send_message(user, booking_id, text):
@@ -709,22 +815,32 @@ async def send_message(user, booking_id, text):
         raise HTTPException(status_code=423, detail="Chat unlocks 30 minutes before your scheduled time.")
     msg = {"id": new_id(), "booking_id": booking_id, "sender_id": user["id"],
            "sender_role": "customer" if is_customer else "partner",
-           "sender_name": user.get("name"), "text": text[:1000], "created_at": now_iso()}
+           "sender_name": user.get("name"), "text": text[:1000], "created_at": now_iso(),
+           "seen_at": None}
     await db.booking_messages.insert_one(dict(msg))
     msg.pop("_id", None)
+    msg["status"] = "sent"
+    _touch_presence(user["id"], booking_id)
+    target = b.get("partner_id") if is_customer else b.get("customer_id")
+    sender = user.get("name") or ("Customer" if is_customer else "Partner")
+    service = b.get("service_name") or "Service"
+    code = b.get("code", "")
+    # Live frame to BOTH parties (sender's other devices stay in sync too).
+    rt.emit_user(target, "booking_message", {"service_name": service, "code": code, **msg})
+    rt.emit_user(user["id"], "booking_message", {"service_name": service, "code": code, **msg})
     try:
         from services.notification_service import notify
-        target = b.get("partner_id") if is_customer else b.get("customer_id")
-        _link = "/partner" if is_customer else "/account"
-        sender = user.get("name") or ("Customer" if is_customer else "Partner")
-        if target:
-            await notify(target, f"New message from {sender} · {b.get('code', '')}",
-                         text[:140], link=_link, event="chat_message",
-                         data={"type": "chat_message", "booking_id": booking_id,
-                               "code": b.get("code", "")})
-        # Live chat-thread update for whoever has the chat open right now.
-        if target:
-            rt.emit_user(target, "booking_message", {"booking_id": booking_id, **msg})
+        # WhatsApp-style: recipient viewing this thread right now → live frame only, no push.
+        if target and not _is_present(target, booking_id):
+            link = (f"/partner?tab=active&chat={booking_id}" if is_customer
+                    else f"/account?tab=orders&chat={booking_id}")
+            await notify(target, sender, f"{text[:140]}\n{service} • Booking #{code}",
+                         link=link, event="chat_message",
+                         data={"type": "chat_message", "booking_id": booking_id, "code": code,
+                               "service_name": service, "sender_name": sender,
+                               "sender_role": msg["sender_role"], "message_id": msg["id"],
+                               "tag": f"chat-{booking_id}", "android_channel": "chat",
+                               "title": sender, "body": text[:140]})
     except Exception:
         pass
     return msg

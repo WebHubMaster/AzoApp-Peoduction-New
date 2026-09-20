@@ -15,7 +15,7 @@ import { Button } from "@/src/components/ui";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
-import { useUnseenCount } from "@/src/lib/chatSeen";
+import { useChatUnread } from "@/src/context/ChatContext";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -535,15 +535,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   });
   const rcCard = rcQ.data && (rcQ.data.groups || []).length ? rcQ.data : null;
 
-  // Unseen chat badge (WhatsApp-style): poll the thread; count messages from the
-  // customer newer than the last time this device opened this booking's chat.
-  const chatQ = useQuery({
-    queryKey: ["chat-msgs", b.id],
-    queryFn: () => api.get<any>(`/bookings/${b.id}/messages`),
-    refetchInterval: 20000,
-  });
-  const chatMsgs: any[] = chatQ.data?.messages || [];
-  const unseen = useUnseenCount(b.id, chatMsgs, chatQ.data?.me || "");
+  // Unread chat badge — server-side read receipts (synced with web).
+  const unseen = useChatUnread(b.id);
 
   const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
   useEffect(() => { if (!inProgress) return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [inProgress]);

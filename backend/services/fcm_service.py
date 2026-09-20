@@ -341,10 +341,19 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
                         **{k: str(v) for k, v in (data or {}).items()}}
         web_link = _abs_link(link)
         web_opts = messaging.WebpushFCMOptions(link=web_link) if web_link else None
+        chan = (data or {}).get("android_channel")
+        tag = (data or {}).get("tag")
+        android = messaging.AndroidConfig(
+            priority="high",
+            collapse_key=str(tag) if tag else None,
+            notification=None if data_only else messaging.AndroidNotification(
+                channel_id=str(chan) if chan else None, tag=str(tag) if tag else None,
+                sound="default", click_action="OPEN_CHAT" if (data or {}).get("type") == "chat_message" else None))
         if data_only:
             msg = messaging.MulticastMessage(
                 tokens=tokens,
                 data=data_payload,
+                android=android,
                 webpush=messaging.WebpushConfig(
                     headers={"Urgency": "high", "TTL": "600"},
                     fcm_options=web_opts))
@@ -353,6 +362,9 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
                 tokens=tokens,
                 notification=messaging.Notification(title=title, body=body, image=image or None),
                 data=data_payload,
+                android=android,
+                apns=messaging.APNSConfig(payload=messaging.APNSPayload(
+                    aps=messaging.Aps(sound="default", thread_id=str(tag) if tag else None))),
                 webpush=messaging.WebpushConfig(
                     notification=messaging.WebpushNotification(
                         title=title, body=body,

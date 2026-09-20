@@ -27,6 +27,7 @@ import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
 import WorkProofSection from "@/components/WorkProof";
 import { AddressForm, emptyAddress } from "@/components/AddressForm";
 import BookingChat from "@/components/booking/BookingChat";
+import { useChatUnread, UnreadPill } from "@/context/ChatContext";
 import ScheduledCard from "@/components/booking/ScheduledCard";
 import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
 import ScheduleAlerts from "@/components/booking/ScheduleAlerts";
@@ -557,6 +558,7 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
   const [showDetails, setShowDetails] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const chatUnread = useChatUnread(b.id);
   const [showResched, setShowResched] = useState(false);
   const [reschedBusy, setReschedBusy] = useState(false);
   const sched = b.schedule || {};
@@ -711,7 +713,7 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
           </Button>
         )}
         {assigned && <Button size="sm" onClick={callPartner} disabled={commLocked} data-testid={`call-${b.code}`} className="rounded-full h-9 px-4 bg-primary-700 hover:bg-primary-800 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <Phone className="h-4 w-4 mr-1" />} Call</Button>}
-        {assigned && <Button size="sm" variant="outline" onClick={chatPartner} disabled={commLocked} data-testid={`chat-${b.code}`} className="rounded-full h-9 px-4 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />} Chat</Button>}
+        {assigned && <Button size="sm" variant="outline" onClick={chatPartner} disabled={commLocked} data-testid={`chat-${b.code}`} className="rounded-full h-9 px-4 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</Button>}
         <Button size="sm" variant="outline" onClick={() => setShowDetails(true)} data-testid={`details-${b.code}`} className="rounded-full h-9 px-4"><InfoIcon className="h-4 w-4 mr-1" /> View Details</Button>
         {canInvoice && <Button size="sm" variant="outline" onClick={() => setShowInvoice(true)} data-testid={`invoice-${b.code}`} className="rounded-full h-9 px-4"><FileText className="h-4 w-4 mr-1" /> Invoice</Button>}
         {canRepeat && <Button data-testid={`repeat-${b.code}`} size="sm" variant="outline" onClick={() => onRepeat(b)} className="rounded-full h-9 px-4"><RefreshCcw className="h-4 w-4 mr-1" /> Book Again</Button>}

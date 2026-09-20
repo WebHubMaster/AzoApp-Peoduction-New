@@ -9,6 +9,7 @@ import { SiteConfigProvider } from "@/context/SiteConfigContext";
 import { CartProvider } from "@/context/CartContext";
 import MaintenanceBanner from "@/components/MaintenanceBanner";
 import { RealtimeProvider } from "@/context/RealtimeContext";
+import { ChatProvider } from "@/context/ChatContext";
 import PushRegistrar, { PushNudge } from "@/components/PushRegistrar";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import MerchantRefCatcher from "@/components/MerchantRefCatcher";
@@ -56,6 +57,7 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
         <RealtimeProvider>
+        <ChatProvider>
         <SiteConfigProvider>
         <CartProvider>
         <BrowserRouter>
@@ -97,6 +99,7 @@ function App() {
         <PushNudge />
         <InstallPrompt />
         <Toaster position="top-center" richColors />
+        </ChatProvider>
         </RealtimeProvider>
         </ThemeProvider>
       </AuthProvider>
