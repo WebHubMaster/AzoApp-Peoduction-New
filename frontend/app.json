@@ -9,7 +9,7 @@
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.azoapp.homeservice",
+      "bundleIdentifier": "com.azoapp.partner",
       "infoPlist": {
         "NSCameraUsageDescription": "Capture KYC documents and job photos",
         "NSPhotoLibraryUsageDescription": "Upload documents and job proof photos",
@@ -22,7 +22,7 @@
       }
     },
     "android": {
-      "package": "app.azoapp.homeservice",
+      "package": "com.azoapp.partner",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D47A1"
