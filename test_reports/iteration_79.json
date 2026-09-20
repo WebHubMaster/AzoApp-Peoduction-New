@@ -1,0 +1,24 @@
+{
+  "summary": "Verified new AzoApp real-time chat features end-to-end: chats summary endpoint, seen receipts (sent/seen + seen_at), typing indicator, SSE frames (booking_typing / booking_message with service_name+code+status / booking_seen), chat notification payload shape, and push suppression while recipient is present. Backend: 8/8 new pytest tests pass. Web UI (dual browser contexts partner+customer): all data-testids present and behave correctly including deep-link auto-open with param removal, typing bubble, tick-sent → tick-seen live transition, unread pill add/remove. Mobile web build via Expo tunnel: onboarding, demo-partner login, /active card chat button + unseen badge, navigation to full-screen /chat/<id>, typing indicator, and auto-seen propagation to web customer all work.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_chat_seen_typing_summary.py",
+    "/app/test_reports/pytest/iter79_chat.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Notification push suppression window (25s) is time-based; if a partner marks seen then closes the sheet within 25s, subsequent unseen messages will NOT create notification records — this is intentional but worth documenting for QA.",
+    "chat_controller / BookingChat.jsx: 700+ line files bordering the code-review size threshold; consider splitting seen/typing/message list logic into hooks for maintainability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_chat_seen_typing_summary.py (new)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% (web + mobile web build)"},
+  "test_credentials": "Partner +919000000003 / Customer +919000000004, OTP 123456 (per /app/memory/test_credentials.md)",
+  "seed_data_creation": "None. Used existing seeded booking 78f7a5f4-9784-4680-a7fe-17d5f94e9496 (AZO4A0D87). Test messages prefixed with TEST_ were sent into that thread.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All new chat features (seen ticks, typing, chats summary, SSE realtime frames, notification payload, push suppression, deep link, mobile chat screen) are verified passing on iteration_79. Backend regression test file is /app/backend/tests/test_chat_seen_typing_summary.py (run with REACT_APP_BACKEND_URL exported). SSE tests are timing-sensitive; if they flake in future re-runs, increase the collect deadline in TestSSEFrames.",
+  "rca of the issue": "N/A — no failures encountered."
+}

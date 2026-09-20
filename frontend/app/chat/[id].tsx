@@ -89,8 +89,8 @@ export default function BookingChatScreen() {
   useEffect(() => {
     const iv = setInterval(load, 5000);
     const hb = setInterval(markSeen, 15000);
-    return () => { clearInterval(iv); clearInterval(hb); };
-  }, [load, markSeen]);
+    return () => { clearInterval(iv); clearInterval(hb); if (id) api.post(`/bookings/${id}/typing`, { typing: false, present: false }).catch(() => {}); };
+  }, [load, markSeen, id]);
   useEffect(() => { const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80); return () => clearTimeout(t); }, [chat, typing]);
 
   const enabled = !!chat?.enabled;

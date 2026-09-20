@@ -260,7 +260,7 @@ async def mark_seen(booking_id: str, user=Depends(get_current_user)):
 
 @router.post("/{booking_id}/typing")
 async def typing(booking_id: str, payload: dict = Body(default={}), user=Depends(get_current_user)):
-    return await c.set_typing(user, booking_id, (payload or {}).get("typing", True))
+    return await c.set_typing(user, booking_id, (payload or {}).get("typing", True), (payload or {}).get("present", True))
 
 
 

@@ -752,13 +752,18 @@ async def mark_messages_seen(user, booking_id):
     return {"ok": True, "seen": res.modified_count, "seen_at": ts}
 
 
-async def set_typing(user, booking_id, typing):
-    """Ephemeral typing indicator — relayed over SSE only, never stored."""
+async def set_typing(user, booking_id, typing, present=True):
+    """Ephemeral typing indicator — relayed over SSE only, never stored.
+    `present=False` = the user closed the chat → presence cleared so the next
+    message pushes immediately instead of waiting for the heartbeat TTL."""
     b = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "customer_id": 1, "partner_id": 1})
     if not b:
         raise HTTPException(status_code=404, detail="Booking not found")
     _, other = _chat_party(b, user)
-    _touch_presence(user["id"], booking_id)
+    if present:
+        _touch_presence(user["id"], booking_id)
+    else:
+        _presence.pop((user["id"], booking_id), None)
     rt.emit_user(other, "booking_typing", {"booking_id": booking_id, "user_id": user["id"],
                                            "name": user.get("name"), "typing": bool(typing)})
     return {"ok": True}

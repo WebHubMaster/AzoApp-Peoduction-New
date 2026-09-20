@@ -85,8 +85,8 @@ export default function BookingChat({ booking, role = "customer", open: controll
     load(); markSeen();
     const iv = setInterval(load, 5000);
     const hb = setInterval(markSeen, 15000);
-    return () => { clearInterval(iv); clearInterval(hb); };
-  }, [open, load, markSeen]);
+    return () => { clearInterval(iv); clearInterval(hb); api.post(`/bookings/${booking.id}/typing`, { typing: false, present: false }).catch(() => {}); };
+  }, [open, load, markSeen, booking?.id]);
   useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [chat, open, typing]);
 
   const sendTyping = (isTyping) => {
