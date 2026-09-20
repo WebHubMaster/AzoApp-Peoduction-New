@@ -15,6 +15,7 @@ import { Button } from "@/src/components/ui";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
+import { useUnseenCount } from "@/src/lib/chatSeen";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -534,6 +535,16 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   });
   const rcCard = rcQ.data && (rcQ.data.groups || []).length ? rcQ.data : null;
 
+  // Unseen chat badge (WhatsApp-style): poll the thread; count messages from the
+  // customer newer than the last time this device opened this booking's chat.
+  const chatQ = useQuery({
+    queryKey: ["chat-msgs", b.id],
+    queryFn: () => api.get<any>(`/bookings/${b.id}/messages`),
+    refetchInterval: 20000,
+  });
+  const chatMsgs: any[] = chatQ.data?.messages || [];
+  const unseen = useUnseenCount(b.id, chatMsgs, chatQ.data?.me || "");
+
   const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
   useEffect(() => { if (!inProgress) return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [inProgress]);
   const es = startedAt ? Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000)) : 0;
@@ -750,8 +761,13 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
           ) : (
             <Pressable testID={`call-cust-${b.code}`} onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={outlineBtn({ border: "#A7F3D0" })}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "600", fontSize: 14 }}>Call</Text></Pressable>
           )}
-          <Pressable testID={`chat-cust-${b.code}`} disabled={commLocked} onPress={() => (commLocked ? toast.info("Chat unlocks 30 minutes before the scheduled time") : router.push(`/(partner)/booking/${b.id}`))} style={[outlineBtn({ border: "#BFDBFE" }), { opacity: commLocked ? 0.5 : 1 }]}>
+          <Pressable testID={`chat-cust-${b.code}`} disabled={commLocked} onPress={() => (commLocked ? toast.info("Chat unlocks 30 minutes before the scheduled time") : router.push(`/(partner)/chat/${b.id}`))} style={[outlineBtn({ border: "#BFDBFE" }), { opacity: commLocked ? 0.5 : 1 }]}>
             <Icon name={commLocked ? "lock-outline" : "message-outline"} size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "600", fontSize: 14 }}>Chat</Text>
+            {!commLocked && unseen > 0 ? (
+              <View testID={`chat-unseen-${b.code}`} style={{ minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", marginLeft: 2 }}>
+                <Text style={{ color: "#fff", fontSize: 10.5, fontWeight: "800" }}>{unseen > 9 ? "9+" : unseen}</Text>
+              </View>
+            ) : null}
           </Pressable>
         </View>
 

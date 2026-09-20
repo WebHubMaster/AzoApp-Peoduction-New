@@ -5,6 +5,7 @@ import { AppTabBar, MoreItem } from "@/src/components/AppTabBar";
 import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/api/client";
 import { JobRingOverlay } from "@/src/components/JobRingOverlay";
+import { ChatNotifier } from "@/src/components/ChatNotifier";
 import { useRealtime } from "@/src/context/RealtimeContext";
 
 /** Mirrors web PartnerDashboard NAV (rest of the menu lives under "More"). */
@@ -34,6 +35,7 @@ export default function PartnerLayout() {
   return (
     <>
     <JobRingOverlay />
+    <ChatNotifier />
     <Tabs
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} badges={badges} hideTabs={["profile"]} onLogout={async () => { await logout(); router.replace("/(auth)/login"); }} />}
@@ -44,6 +46,7 @@ export default function PartnerLayout() {
       <Tabs.Screen name="wallet" options={{ title: "Wallet & Withdraw" }} />
       <Tabs.Screen name="profile" options={{ title: "Profile" }} />
       <Tabs.Screen name="booking/[id]" options={{ href: null }} />
+      <Tabs.Screen name="chat/[id]" options={{ href: null }} />
       {["analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "invoice/[id]", "support/index", "support/[id]"].map((n) => (
         <Tabs.Screen key={n} name={`partner/${n}`} options={{ href: null }} />
       ))}
