@@ -438,17 +438,39 @@ async function postToken(token: string) {
 export async function registerPushToken(): Promise<{ ok: boolean; reason?: string; unsubscribe?: () => void }> {
   const m = messaging();
   if (!m) return { ok: false, reason: "unsupported" };
+  // Report the NATIVE registration outcome to the backend so it shows in the app's
+  // "Alert check" card and the admin Diagnostics (previously only the browser
+  // reported → admin always showed a stale "never attempted in this browser").
+  const report = (ok: boolean, reason = "", error = "") => {
+    api.post("/notifications/push-status", {
+      ok, reason, error, permission: "granted", platform: Platform.OS,
+      user_agent: `AzoApp/${Constants.expoConfig?.version || "1.0"} (${Platform.OS} ${Device.manufacturer || ""} ${Device.modelName || ""} ${Device.osVersion || ""})`.trim(),
+    }).catch(() => {});
+  };
   try {
     const perm = await getPermissionStatus();
-    if (!perm.granted) return { ok: false, reason: "permission" };
+    if (!perm.granted) { report(false, "permission"); return { ok: false, reason: "permission" }; }
     await setupAndroidChannels();
     if (Platform.OS === "ios") { try { await m.registerDeviceForRemoteMessages(); } catch { /* ignore */ } }
-    const token: string = await m.getToken();
-    if (!token) return { ok: false, reason: "no_token" };
+    // getToken() often fails transiently on Android (Play Services / network not
+    // ready right after launch). Retry a few times with backoff before giving up.
+    let token = "";
+    let lastErr: any = null;
+    for (let i = 0; i < 5 && !token; i += 1) {
+      try { token = await m.getToken(); }  // eslint-disable-line no-await-in-loop
+      catch (e) { lastErr = e; }
+      if (!token && i < 4) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
+    }
+    if (!token) {
+      report(false, "getToken_failed", String(lastErr?.message || lastErr || "no token"));
+      return { ok: false, reason: "getToken_failed" };
+    }
     await postToken(token);
+    report(true, "registered");
     const unsubscribe = m.onTokenRefresh((t: string) => { postToken(t).catch(() => {}); });
     return { ok: true, unsubscribe };
   } catch (e: any) {
+    report(false, "exception", String(e?.message || e));
     return { ok: false, reason: String(e?.message || e) };
   }
 }

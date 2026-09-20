@@ -350,6 +350,7 @@ async def record_push_status(user_id: str, body: dict):
         "reason": str(body.get("reason") or "")[:60],
         "error": str(body.get("error") or "")[:300],
         "permission": str(body.get("permission") or "")[:20],
+        "platform": str(body.get("platform") or "")[:20],
         "user_agent": str(body.get("user_agent") or "")[:200],
         "at": now_iso(),
     }
