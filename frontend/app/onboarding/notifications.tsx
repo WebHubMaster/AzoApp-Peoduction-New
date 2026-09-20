@@ -10,7 +10,7 @@ import { useToast } from "@/src/components/Toast";
 import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
-  fullScreenState, markPrompted, pushSupported,
+  fullScreenState, markPrompted,
 } from "@/src/lib/notifications";
 
 type Card = {
@@ -77,8 +77,8 @@ export default function PermissionsOnboarding() {
     try {
       if (key === "notifications") {
         const r = await requestNotificationPermission();
-        if (!r.granted && !r.canAskAgain && pushSupported) { try { await Linking.openSettings(); } catch { /* ignore */ } }
-        return { key, granted: r.granted, canAskAgain: r.canAskAgain, available: pushSupported };
+        if (!r.granted && !r.canAskAgain) { try { await Linking.openSettings(); } catch { /* ignore */ } }
+        return { key, granted: r.granted, canAskAgain: r.canAskAgain, available: true };
       }
       if (key === "location") return await requestLocationPermission();
       if (key === "battery") { await requestBatteryExemption(); return null; }

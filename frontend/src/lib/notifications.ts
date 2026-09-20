@@ -47,6 +47,29 @@ export function notifee(): any | null {
 }
 export const NotifeeApi = () => notifee()?.default || null;
 
+/** Lazily require expo-notifications — this ONE works in Expo Go (and web), so it
+ * powers the permission request/status + Android channel when Notifee is absent. */
+let _expoNotif: any | null = null;
+export function expoNotif(): any | null {
+  if (_expoNotif === null) {
+    try { _expoNotif = require("expo-notifications"); } catch { _expoNotif = false; }
+  }
+  return _expoNotif || null;
+}
+
+async function setupExpoChannels() {
+  const EN = expoNotif();
+  if (!EN || Platform.OS !== "android") return;
+  try {
+    await EN.setNotificationChannelAsync(CHANNELS.jobRing, {
+      name: "Job Ring Alerts", importance: EN.AndroidImportance.MAX,
+      sound: "default", vibrationPattern: [400, 250, 400, 250],
+      lightColor: "#0D47A1", bypassDnd: true, lockscreenVisibility: 1,
+    });
+    await EN.setNotificationChannelAsync(CHANNELS.chat, { name: "Chat Messages", importance: EN.AndroidImportance.HIGH, sound: "default" });
+  } catch { /* ignore */ }
+}
+
 /** Lazily require @react-native-firebase/messaging ONLY when supported. */
 export function messaging(): any | null {
   if (!pushSupported) return null;
@@ -77,21 +100,42 @@ export async function setupAndroidChannels() {
 
 export async function getPermissionStatus(): Promise<{ granted: boolean; canAskAgain: boolean }> {
   const n = NotifeeApi();
-  if (!n) return { granted: false, canAskAgain: true };
-  const s = await n.getNotificationSettings();
-  const { AuthorizationStatus } = notifee();
-  const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
-  return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
+  if (n) {
+    const s = await n.getNotificationSettings();
+    const { AuthorizationStatus } = notifee();
+    const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
+    return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
+  }
+  // Expo Go / web → expo-notifications reports the real OS permission.
+  const EN = expoNotif();
+  if (EN) {
+    try {
+      const s = await EN.getPermissionsAsync();
+      return { granted: s.granted === true || s.status === "granted", canAskAgain: s.canAskAgain !== false };
+    } catch { /* ignore */ }
+  }
+  return { granted: false, canAskAgain: true };
 }
 
 export async function requestNotificationPermission(): Promise<{ granted: boolean; canAskAgain: boolean }> {
   const n = NotifeeApi();
-  if (!n) return { granted: false, canAskAgain: false };
-  await setupAndroidChannels();
-  const s = await n.requestPermission({ alert: true, badge: true, sound: true, criticalAlert: true });
-  const { AuthorizationStatus } = notifee();
-  const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
-  return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
+  if (n) {
+    await setupAndroidChannels();
+    const s = await n.requestPermission({ alert: true, badge: true, sound: true, criticalAlert: true });
+    const { AuthorizationStatus } = notifee();
+    const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
+    return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
+  }
+  // Expo Go / web → expo-notifications shows the real system permission dialog.
+  const EN = expoNotif();
+  if (EN) {
+    await setupExpoChannels();
+    try {
+      const s = await EN.requestPermissionsAsync({ ios: { allowAlert: true, allowBadge: true, allowSound: true, allowCriticalAlerts: true } });
+      return { granted: s.granted === true || s.status === "granted", canAskAgain: s.canAskAgain !== false };
+    } catch { /* ignore */ }
+  }
+  return { granted: false, canAskAgain: false };
 }
 
 /**
@@ -134,23 +178,30 @@ export type PermState = {
 
 const _androidSdk = (): number => Number(Platform.OS === "android" ? (Platform.Version as number) : 0);
 
-/* Notifications — POST_NOTIFICATIONS + our channels (Notifee). */
+/* Notifications — real OS permission via Notifee (build) or expo-notifications
+ * (Expo Go / web). Always actionable so it never shows a dead "Build only". */
 export async function notifState(): Promise<PermState> {
-  if (!pushSupported) return { key: "notifications", granted: false, canAskAgain: true, available: false };
   const s = await getPermissionStatus();
-  return { key: "notifications", granted: s.granted, canAskAgain: s.canAskAgain, available: true };
+  const available = !!(NotifeeApi() || expoNotif());
+  return { key: "notifications", granted: s.granted, canAskAgain: s.canAskAgain, available };
 }
+
+const BATTERY_ASKED_KEY = "azo_battery_asked";
 
 /* Battery optimisation exemption — required so a killed app can still ring. */
 export async function batteryState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
   const n = NotifeeApi();
-  if (!n || Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
-  try {
-    const optimized = await n.isBatteryOptimizationEnabled();
-    return { key: "battery", granted: !optimized, canAskAgain: true, available: true };
-  } catch {
-    return { key: "battery", granted: false, canAskAgain: true, available: true };
+  if (n) {
+    try {
+      const optimized = await n.isBatteryOptimizationEnabled();
+      return { key: "battery", granted: !optimized, canAskAgain: true, available: true };
+    } catch { /* fall through */ }
   }
+  // Expo Go: we can't introspect the OS setting → reflect whether the user ran the
+  // request at least once (persisted) so the card is actionable and can go green.
+  const asked = (await storage.getItem(BATTERY_ASKED_KEY)) === "1";
+  return { key: "battery", granted: asked, canAskAgain: true, available: true };
 }
 export async function requestBatteryExemption() {
   const n = NotifeeApi();
@@ -167,9 +218,12 @@ export async function requestBatteryExemption() {
       "android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
       { data: `package:${pkg}` },
     );
-    return;
-  } catch { /* fall back to the settings list below */ }
-  try { if (n) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
+  } catch {
+    // Fallback: open the battery-optimization list (Notifee build) or the general
+    // settings screen so the user can allow it manually.
+    try { if (n) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
+  }
+  try { await storage.setItem(BATTERY_ASKED_KEY, "1"); } catch { /* ignore */ }
 }
 
 /* Full-screen intent — Android 14+ (SDK 34) needs the user to allow call-style
@@ -224,11 +278,9 @@ export async function allPermissionStates(): Promise<Record<PermKey, PermState>>
 
 /** True when the app should show the full-screen permission gate on open. */
 export async function shouldShowPermissionGate(): Promise<boolean> {
-  // Expo Go / web: native perms no-op → gate once (until "prompted"), never loop.
-  if (!pushSupported) return !(await wasPrompted());
   const notif = await notifState();
-  if (!notif.granted) return true;             // notifications are mandatory for the ring
-  return !(await wasPrompted());               // otherwise show once, then remember
+  if (notif.available && !notif.granted) return true;  // notifications are mandatory
+  return !(await wasPrompted());                        // otherwise show once, then remember
 }
 
 /* ------------------------------------------------------------------ */
