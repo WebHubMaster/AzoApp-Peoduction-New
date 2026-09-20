@@ -26,7 +26,7 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Simple error boundary so a screen crash never white-screens the whole app. */
+/** Simple error boundary so a screen crash never white-screens the whole app */
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) {
