@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, TextInputProps, KeyboardAvoidingView } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets, SafeAreaProvider } from "react-native-safe-area-context";
 import { Search, X, Check, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, ShieldCheck, Clock, LucideIcon } from "lucide-react-native";
 import { TW, T, usePal } from "./tokens";
 
@@ -39,20 +39,29 @@ export function WTextarea({ rows = 3, pad = 14, style, ...props }: TextInputProp
 
 /* ---------------- Bottom sheet (PremiumSelect / Combo mobile menu) ---------------- */
 function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
-  const insets = useSafeAreaInsets();
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={0}>
-        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }} onPress={onClose} />
-        <View style={{ maxHeight: "70%", backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, borderTopWidth: 1, borderColor: TW.slate200, paddingBottom: insets.bottom, boxShadow: "0px -10px 40px rgba(0,0,0,0.2)" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
-            <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700 }}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={8} style={{ padding: 4 }}><X size={20} color={TW.slate400} /></Pressable>
-          </View>
-          {children}
-        </View>
-      </KeyboardAvoidingView>
+      <SafeAreaProvider>
+        <SheetBody onClose={onClose} title={title}>{children}</SheetBody>
+      </SafeAreaProvider>
     </Modal>
+  );
+}
+
+function SheetBody({ onClose, title, children }: { onClose: () => void; title: string; children: React.ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 16);
+  return (
+    <KeyboardAvoidingView style={{ flex: 1, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={0}>
+      <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }} onPress={onClose} />
+      <View style={{ maxHeight: "70%", backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, borderTopWidth: 1, borderColor: TW.slate200, paddingBottom: bottomPad, boxShadow: "0px -10px 40px rgba(0,0,0,0.2)" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
+          <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700 }}>{title}</Text>
+          <Pressable onPress={onClose} hitSlop={8} style={{ padding: 4 }}><X size={20} color={TW.slate400} /></Pressable>
+        </View>
+        {children}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
