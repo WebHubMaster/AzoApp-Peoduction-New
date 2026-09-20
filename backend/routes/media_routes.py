@@ -15,10 +15,20 @@ UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
 def _abs_base(request: Request) -> str:
     """Absolute backend origin from proxy headers so stored media URLs are absolute
     (fixes broken <img> when the panel host != backend host, e.g. webhubmaster.shop
-    vs api.webhubmaster.shop). Falls back to relative when unknown."""
-    proto = (request.headers.get("x-forwarded-proto", "") or request.url.scheme or "https").split(",")[0].strip()
+    vs api.webhubmaster.shop). Falls back to relative when unknown.
+
+    Scheme is FORCED to https for any real (non-localhost) host: the public domain
+    is served over https, and Android 15+ blocks cleartext (http) image loads
+    ("CLEARTEXT communication ... not permitted by network security policy"), which
+    silently broke every logo/photo in the mobile app."""
     host = (request.headers.get("x-forwarded-host", "") or request.headers.get("host", "")).split(",")[0].strip()
-    return f"{proto}://{host}" if host else ""
+    if not host:
+        return ""
+    is_local = host.startswith("localhost") or host.startswith("127.0.0.1") or host.startswith("0.0.0.0")
+    proto = "https"
+    if is_local:
+        proto = (request.headers.get("x-forwarded-proto", "") or request.url.scheme or "http").split(",")[0].strip()
+    return f"{proto}://{host}"
 
 
 @router.post("/upload")

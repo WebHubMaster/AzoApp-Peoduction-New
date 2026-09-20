@@ -55,13 +55,15 @@ async def test_self(body: dict, user=Depends(get_current_user)):
     registered, and (c) the ring / notification actually fires in the current app
     state. kind='ring' triggers the call-style Job Ring; anything else a normal push."""
     import time as _t
+    from services import push_dispatch, webpush_service
     kind = (body or {}).get("kind", "ring")
-    status = await fcm_service.config_status()
-    if not status.get("configured"):
-        return {"ok": False, "reason": "fcm_not_configured",
-                "message": "Firebase is not configured on the server (Admin → Integration Center → Firebase Settings → upload the service account & enable FCM)."}
+    fcm_ok = (await fcm_service.config_status()).get("configured")
+    wp_count = await webpush_service.count_subs(user["id"])
+    if not fcm_ok and wp_count == 0:
+        return {"ok": False, "reason": "not_configured",
+                "message": "Push is not set up yet — this browser has no web-push subscription and Firebase (native app) is not configured on the server."}
     if kind == "ring":
-        res = await fcm_service.send_to_user(
+        res = await push_dispatch.push_to_user(
             user["id"], "New Job Request", "Test job ring — tap to open",
             link="/(partner)",
             data={"type": "job_request", "booking_id": f"test-{int(_t.time())}",
@@ -70,7 +72,7 @@ async def test_self(body: dict, user=Depends(get_current_user)):
                   "android_channel": "job-ring", "tag": "test-ring"},
             data_only=True)
     else:
-        res = await fcm_service.send_to_user(
+        res = await push_dispatch.push_to_user(
             user["id"], "AzoApp test notification", "Push notifications are working correctly.",
             link="/notifications", data={"type": "test"})
     ok = bool(res.get("success"))

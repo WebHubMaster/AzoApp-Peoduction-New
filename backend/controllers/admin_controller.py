@@ -2809,7 +2809,8 @@ async def send_test_ring(partner_id: str, requested_by: str = "partner"):
         "scheduled_at": None, "total": 0, "partner_id": None, "partner_name": None,
     }
     rt.emit_user(partner_id, "job_request", brief)
-    push = await fcm_service.send_to_user(
+    from services import push_dispatch
+    push = await push_dispatch.push_to_user(
         partner_id, "Test job ring", "Agar ye dikh raha hai to alerts 100% kaam kar rahe hain.",
         link="/partner?job=" + tid + "&ring=open",
         data={"type": "job_request", "booking_id": tid, "code": "TEST-RING", "service_name": "Test job ring",

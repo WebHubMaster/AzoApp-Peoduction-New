@@ -1116,7 +1116,8 @@ async def _push_job_request(pid, booking, brief):
             f"{it['name']}" + (f" ×{it['qty']}" if (it.get('qty') or 1) > 1 else "") +
             (f" \u20b9{it['price']}" if it.get('price') else "")
             for it in items_lite) or brief.get("service_name", "Service")
-        return await fcm_service.send_to_user(
+        from services import push_dispatch
+        return await push_dispatch.push_to_user(
             pid, "New job request",
             f"{summary} · {brief.get('city') or 'nearby'}",
             link=f"/partner?job={booking['id']}",
@@ -2493,8 +2494,8 @@ async def accept_job(partner, booking_id):
             try:
                 # Silent data push → cancels the ringing full-screen alert on a
                 # backgrounded/killed device (mobile background handler).
-                from services import fcm_service
-                await fcm_service.send_to_user(
+                from services import push_dispatch
+                await push_dispatch.push_to_user(
                     pid, "Job taken", "", link="/partner",
                     data={"type": "job_taken", "booking_id": booking_id, "code": out.get("code", "")},
                     data_only=True)
