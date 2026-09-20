@@ -137,3 +137,31 @@ Mobile UI:
   Partner/Merchant cards, One-Click Demo Login (Partner/Merchant) with "Demo OTP: 123456",
   4 feature icons, footer. Logo is dynamic from Admin → Branding & Theme (not hardcoded).
 - Android bundle compiles clean (4233 modules). On-device visual check = user via Expo Go.
+
+## 2026-06 — Iteration: package fix + login polish + push diagnostics + SVG
+- Package/bundle set to **app.azoapp.partner** (matches a client in the uploaded
+  google-services.json which has both app.azoapp.partner & app.azoapp.homeservice).
+  A mismatched applicationId crashes @react-native-firebase at init → app dies on
+  launch → BOTH ring (SSE) and push die; this alignment is the core fix.
+- google-services.json re-synced from the newly uploaded file. notifications.ts
+  fallbacks + PUSH_SETUP.md updated to app.azoapp.partner.
+- Login (app/(auth)/login.tsx): logo now uses ANY available slot
+  (logo_light||logo_dark||logo) and shows the image ONLY (no text logo) when set;
+  mobile input fits one line (compact +91, placeholder "Mobile number"); OTP is now
+  6 segmented boxes (web-style); Register as Partner/Merchant is ONE split row.
+- Permission warning: PermissionBanner rewritten — clear English warning
+  ("...you will NOT be notified about new bookings once the app is closed or your
+  screen is locked"), one-tap "Turn On Alerts", easily dismissible (re-shows after 12h).
+- NEW on-device diagnostics in Alerts & Permissions screen: shows "Server push
+  service: Configured/Not configured" + "This phone registered: Yes/No", plus
+  "Test Job Ring" and "Test Notification" buttons that send a REAL push to the
+  partner's own device via new endpoint POST /api/notifications/test-self.
+  → This is how the partner verifies push/ring on the real device and sees the exact
+  failure reason if it still doesn't work.
+- SVG upload: web_panel upload timeout raised to 120s (fixes false "Connection issue/
+  Upload failed" on slow S3 on live); S3 proxy (GET /api/media/s3/{key}) now forces
+  image/svg+xml (and other types) by extension so logos always render. Verified
+  end-to-end locally (upload → GET 200, content-type image/svg+xml).
+- Verified: Android bundle 4233 modules clean; backend endpoints (test-self, my-devices,
+  media) respond correctly. On-device FCM push/ring is verified by the user via the
+  new Test buttons (cannot be tested inside the pod).
