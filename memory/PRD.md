@@ -1,55 +1,36 @@
-# AzoApp — PRD / Project Memory
+# AzoApp — PRD / Setup Notes
 
-## Original problem statement (2026-06)
-Forked AzoApp multi-app repo. Two goals:
-1. Make partner & merchant registration flow in the **mobile (Expo) app** fully bug-free, matching the working web panel flow. Screenshots showed errors: "Unsupported FormDataPart implementation" and "Property 'Platform' doesn't exist" during registration.
-2. Fully set up & run the forked project: backend (FastAPI, 8001, seeds demo data), web_panel (React/craco) on port 3000 as default preview, and frontend (Expo) via Expo Go tunnel. OTP-based dev auth, OTP=123456.
+## Problem statement (this session)
+1. Fix SVG upload ("Upload failed") and ensure ALL image uploads across the app route to the
+   Integration-Center-connected storage (AWS S3) when configured, else local disk.
+2. Fully set up the forked multi-app repo like the previous working setup:
+   - /app/backend  → FastAPI (supervisor, port 8001), auto-seeds demo data on startup.
+   - /app/web_panel → React (CRA/craco), served on default preview (port 3000).
+   - /app/frontend → Expo (React Native), run via Expo Go using tunnel exp:// URL.
+   Auth OTP-based (dev mode), OTP 123456 for all demo accounts.
 
 ## Architecture
-- **/app/backend** — FastAPI on 8001 (supervisor `backend`). Seeds demo data on startup. Mongo `azoapp`.
-- **/app/web_panel** — React + craco. Served on 3000 via supervisor `webpanel`. `.env` keeps `REACT_APP_BACKEND_URL` EMPTY → api.js falls back to same-origin `/api` (avoids CORS on demo login).
-- **/app/frontend** — Expo (React Native, SDK 57). Runs via nohup Metro on 8081 + ngrok v3 tunnel. Reads `EXPO_PUBLIC_BACKEND_URL`.
+- Backend FastAPI on :8001, MongoDB (DB_NAME=azoapp). Uploads go through services/storage_service.py.
+- storage_service: S3 if Integration Center has aws_s3_enabled + keys+bucket, else local /app/backend/uploads
+  served via GET /api/media/file/{...}. SVG stored as-is (no raster compression). Content sniffing handles
+  missing/octet-stream MIME (e.g. SVG from Windows). Private buckets served via /api/media/s3/{key} proxy.
+- All UploadFile endpoints (media, merchant, partner_reg, support, merchant_reg, booking evidence, crm) use storage_service.
+- web_panel/.env keeps REACT_APP_BACKEND_URL EMPTY → api.js falls back to same-origin /api (avoids CORS on demo login).
 
-## Preview / URLs
-- Preview domain: https://multi-app-preview-2.preview.emergentagent.com
-- Web panel: same URL (port 3000)
-- Expo Go: `exp://squander-prodigy-affiliate.ngrok-free.dev` (ngrok-free URL; changes on tunnel restart)
+## What's been implemented / done (2026-09-20)
+- Created missing .env files: backend, frontend (Expo), web_panel.
+- Restarted backend (200, demo data seeded). 
+- Set up /etc/supervisor/conf.d/webpanel.conf → web_panel on port 3000 (RUNNING, 200).
+- Expo tunnel started (@expo/ngrok) → exp://hxph7ra-anonymous-8081.exp.direct.
+- SVG upload fix: verified backend save_image handles SVG (image/svg+xml + octet-stream). Client imageUpload.js
+  now special-cases SVG (skip 2MB raster shrink cap; served as-is up to backend 12MB cap).
+- Verified via testing agent (frontend 100%): 4 one-click demo logins (Admin/Partner/Customer/Merchant) with no
+  CORS/'Demo login failed'; SVG + PNG upload in Admin Branding & Theme works end-to-end.
 
-## Done (2026-06)
-- Created missing .env files (backend, frontend, web_panel) + webpanel supervisor conf.
-- Backend restarted, demo seeded, `/api/` = 200.
-- Web panel live on 3000; testing agent verified **4/4 one-click demo logins** (admin/partner/customer/merchant) — no CORS / no "Demo login failed".
-- **Registration bug fixed** in `/app/frontend/src/components/reg/Photo.tsx`:
-  - `Platform`, `File as FsFile`, `UploadType` were used but never imported → caused "Property 'Platform' doesn't exist" & the FormDataPart error. Added imports.
-  - Fixed native multipart upload to use `expo-file-system` `File.upload({ httpMethod, uploadType: UploadType.MULTIPART, fieldName:'file', parameters })`.
-  - Validated: Android bundle builds cleanly (4163 modules, no errors) via tunnel.
-- Expo tunnel: bundled `@expo/ngrok` agent v2.3.41 is rejected by ngrok (ERR_NGROK_121, needs v3.20+). Downloaded ngrok v3.39 (`/root/ngrok3`), configured user's authtoken, run `ngrok3 http 8081` + Metro with `EXPO_PACKAGER_PROXY_URL` so exp:// points at the tunnel.
+## Credentials
+See /app/memory/test_credentials.md (OTP 123456 for all).
 
-## Notes / gotchas
-- ngrok anonymous tunnels are disabled; a user authtoken is required. Old `expo start --tunnel` fails because its bundled agent is too old — use external ngrok v3 + `EXPO_PACKAGER_PROXY_URL`.
-- Backend upload endpoints: `/api/partner/registration/upload` and `/api/merchant/registration/upload` (field `file`, form `doc_type`, optional `aadhaar_number`).
-
-## Backlog / next
-- P2: Silence Recharts width/height=-1 warnings on admin dashboard (wrap ResponsiveContainer with fixed min-height).
-- P2: Investigate two 403 asset loads after customer login (console cleanliness).
-- Consider a persistent tunnel (supervisor) if a stable Expo URL is needed across restarts.
-
-## Iteration 2 (2026-06) — Registration UX bug fixes (Expo app)
-Reported by user (Expo Go screenshots). All verified by testing agent (iteration_73.json, 3/3 PASS on Expo web build via tunnel):
-1. Partner Work step "Service Category" now renders a proper 2-COLUMN grid. Root cause: container had `gap:10` + two cards at `48.5%` → 97%+10px overflowed 100% → 1 col. Fix: `rowGap:10` + `justifyContent:space-between`, card width `48%`. (app/partner/register.tsx)
-2. Merchant "Shop Verification Photo" → "Open GPS Camera" now opens the camera DIRECTLY (live GPS capture); removed the Take-photo/Gallery SourceSheet. Retake + error-retry also go straight to camera. (src/components/reg/Photo.tsx GpsPhotoCapture)
-3. State/District/City/Village search dropdown: wrapped the bottom-sheet in <KeyboardAvoidingView behavior="padding"> so the search input + results stay above the soft keyboard. (src/components/reg/Fields.tsx Sheet)
-
-Note: #3 keyboard-avoidance is native-only; verified structurally in browser (search input + results render) + code-level. Recommend a quick on-device Android check that the sheet isn't over-lifted (reviewer flagged possible double-offset with padding on some Android setups).
-
-## Test accounts created for QA (incomplete KYC, dev OTP 123456)
-- Partner: +919888800011 (Basic pre-filled → lands on Work step)
-- Merchant: +919888800012
-
-## Iteration 3 (2026-06) — Dropdown safe-area fix (Expo app)
-Reported: last option in registration dropdowns (Experience/State/District/City/Gender) ran under the Android nav bar and was untappable. Verified by testing agent (iteration_74.json, 100% PASS on web build).
-- Root cause: RN <Modal> on Android does NOT inherit the app's outer SafeAreaProvider, so useSafeAreaInsets() returned bottom=0 → sheet had no bottom padding → last row under the system nav bar.
-- Fix (src/components/reg/Fields.tsx): wrap the Modal content in its own <SafeAreaProvider>; new SheetBody component reads insets and applies paddingBottom = Math.max(insets.bottom, 16). Shared Sheet powers Combo + WSelect, so all pickers are fixed.
-
-## Tunnel note
-- ngrok free static domain persists across pod restarts: exp://squander-prodigy-affiliate.ngrok-free.dev. If the pod restarts, re-run: `/root/ngrok3 http 8081` (authtoken saved in /root/.ngrok2) + `cd /app/frontend && EXPO_PACKAGER_PROXY_URL=https://squander-prodigy-affiliate.ngrok-free.dev npx expo start --port 8081 --host lan` (nohup). Metro/ngrok live in /tmp so are lost on restart.
+## Backlog / known minor (pre-existing, out of scope)
+- P2: GET /api/partner/alert-prefs returns 403 for demo partner (non-blocking).
+- P3: Recharts ResponsiveContainer size warnings on admin analytics (cosmetic).
+- Note: Expo tunnel exp:// URL regenerates on restart; re-run `npx expo start --tunnel --port 8081` and read from ngrok 4040.

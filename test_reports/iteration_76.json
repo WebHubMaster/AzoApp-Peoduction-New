@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only verification: All 4 one-click demo logins (Admin/Partner/Customer/Merchant) succeed with no CORS/'Demo login failed' errors and redirect to the correct portals. Admin Branding & Theme SVG upload works end-to-end (POST /api/media/upload returns 200 with a .svg url, preview renders, and 'Image uploaded' toast appears). PNG upload also works (server converts to .webp, preview shown, toast appears).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/partner/alert-prefs", "issue": "Returns 403 for the demo partner on partner portal load (repeated 4x). Not blocking login, but partner UI may miss alert preferences. Auth/role check likely rejecting the demo partner token for this route."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin Dashboard (Analytics)", "issues": ["Multiple Recharts console warnings: 'The width(-1) and height(-1) of chart should be greater than 0' - responsive container renders before parent has layout. Cosmetic but noisy in console."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_76.json"],
+  "action_items": [
+    "Investigate /api/partner/alert-prefs 403 for demo partner token (role permission or route dependency check).",
+    "Optional: add min-height/min-width to Recharts ResponsiveContainer parents on the admin analytics dashboard to remove chart size warnings."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/.env intentionally keeps REACT_APP_BACKEND_URL empty so api.js falls back to same-origin '/api' - this correctly avoids CORS in the preview environment.",
+    "ImageUpload component's data-testid='image-upload-btn' is on the <label>, not the underlying <input type=file>. Consider putting the testid on the input for cleaner test targeting (worked around in tests by using input[type=file])."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100%"},
+  "test_credentials": "OTP 123456; Admin +919000000000, Partner +919000000003, Customer +919000000004, Merchant +919000000002. One-click demo buttons used.",
+  "seed_data_creation": "None. Two brand images uploaded via UI: /api/media/file/brand/71e11a71...svg (LOGO LIGHT) and /api/media/file/brand/6c9ef35d...webp (EMAIL & INVOICE LOGO).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both original goals verified fixed. If E1 addresses the partner alert-prefs 403, re-verify by logging in as demo partner and checking the network tab (no /api/partner/alert-prefs 403s)."
+}
