@@ -332,7 +332,11 @@ export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   const isEmergency = d.schedule_type === "emergency";
   await setupAndroidChannels();
-  await n.displayNotification({
+  // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
+  // service from a background FCM message can be rejected on Android 14+; if that
+  // happens we retry WITHOUT the service so the full-screen ring still appears
+  // (sound plays once instead of looping) — the alert must never be swallowed.
+  const build = (asFgs: boolean) => ({
     id: `job-${d.booking_id}`,
     title: isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request",
     subtitle: d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined,
@@ -348,12 +352,12 @@ export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
       colorized: true,
       largeIcon: d.image || undefined,
       sound: JOB_RING_SOUND,
-      loopSound: true,
+      loopSound: asFgs,
       vibrationPattern: [400, 250, 400, 250],
       lightUpScreen: true,
-      ongoing: true,
+      ongoing: asFgs,
       autoCancel: false,
-      asForegroundService: true,
+      asForegroundService: asFgs,
       timeoutAfter: 120000,
       showTimestamp: true,
       style: { type: mod.AndroidStyle.BIGTEXT, text: jobRingBody(d) },
@@ -373,6 +377,12 @@ export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
       foregroundPresentationOptions: { banner: true, sound: true, list: true, badge: true },
     },
   });
+  try {
+    await n.displayNotification(build(true) as any);
+  } catch {
+    try { await n.displayNotification(build(false) as any); }
+    catch { return false; }
+  }
   return true;
 }
 

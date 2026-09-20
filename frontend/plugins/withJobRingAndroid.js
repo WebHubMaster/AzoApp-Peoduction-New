@@ -14,7 +14,6 @@ const PERMS = [
   "android.permission.POST_NOTIFICATIONS",
   "android.permission.USE_FULL_SCREEN_INTENT",
   "android.permission.FOREGROUND_SERVICE",
-  "android.permission.FOREGROUND_SERVICE_PHONE_CALL",
   "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
   "android.permission.WAKE_LOCK",
   "android.permission.VIBRATE",
@@ -37,7 +36,7 @@ function withManifest(config) {
     if (!app.service.some((s) => s.$["android:name"] === "app.notifee.core.ForegroundService")) {
       app.service.push({ $: {
         "android:name": "app.notifee.core.ForegroundService",
-        "android:foregroundServiceType": "phoneCall|mediaPlayback",
+        "android:foregroundServiceType": "mediaPlayback",
         "android:exported": "false",
       } });
     }
