@@ -12,7 +12,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-notify.preview.emergentagent.com/api"
 
 # Test accounts from review_request
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals, merchant_code = "3L6MKM3"

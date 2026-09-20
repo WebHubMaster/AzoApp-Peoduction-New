@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "expo-router";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useAuth } from "@/src/context/AuthContext";
-import { scheduleChatNotification, registerPushToken, onNotificationTap } from "@/src/lib/notifications";
+import { scheduleChatNotification, registerPushToken, onNotificationTap, onFcmNotificationOpen } from "@/src/lib/notifications";
 import { respondToJob } from "@/src/lib/pushBackground";
 import { emitRing } from "@/src/lib/ringPrefs";
 import { useQueryClient } from "@tanstack/react-query";
@@ -42,19 +42,33 @@ export function ChatNotifier() {
 
   useEffect(() => {
     if (!user?.id) return undefined;
-    return onNotificationTap((d, action) => {
-      if (d?.type === "chat_message") {
-        const route = chatRouteFromData(d, user.role);
-        if (route) setTimeout(() => router.push(route), 50);
-      } else if (d?.type === "job_request") {
-        const bid = String(d.booking_id || "");
+    // Shared router for a notification tap coming from EITHER Notifee (job/chat
+    // full-screen + local alerts) OR a remote FCM tray notification (reschedule,
+    // reminder, booking update…). Always opens the exact related screen.
+    const route = (d: Record<string, any>, action: string) => {
+      if (!d) return;
+      const bid = String(d.booking_id || "");
+      if (d.type === "chat_message") {
+        const r = chatRouteFromData(d, user.role);
+        if (r) setTimeout(() => router.push(r), 50);
+        return;
+      }
+      if (d.type === "job_request") {
         if (action === "accept" || action === "reject") {
           respondToJob(bid, action).then(() => { qc.invalidateQueries({ queryKey: ["partner-jobs"] }); qc.invalidateQueries({ queryKey: ["partner-active"] }); if (action === "accept") router.push("/(partner)/active"); });
         } else if (bid) {
           emitRing("open-ring", { id: bid, service_name: d.service_name, city: d.city, address_line: d.address_line, total: d.total, services_total: d.services_total, partner_amount: d.partner_amount, service_image: d.image, schedule_type: d.schedule_type, scheduled_date: d.scheduled_date, scheduled_time: d.scheduled_time, is_scheduled: !!d.scheduled_date, code: d.code });
         }
+        return;
       }
-    });
+      // Generic notifications (booking update / reschedule / reminder / account):
+      // open the specific booking when we know it, else the notifications inbox.
+      if (bid) setTimeout(() => router.push({ pathname: "/(partner)/booking/[id]", params: { id: bid } }), 50);
+      else setTimeout(() => router.push("/notifications"), 50);
+    };
+    const offNotifee = onNotificationTap(route);
+    const offFcm = onFcmNotificationOpen((d) => route(d, "default"));
+    return () => { offNotifee(); offFcm(); };
   }, [user?.id, user?.role, router, qc]);
 
   useEffect(() => subscribe((ev) => {

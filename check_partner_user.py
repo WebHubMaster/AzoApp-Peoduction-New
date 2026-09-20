@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-notify.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"

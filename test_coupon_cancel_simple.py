@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://job-ring-system.preview.emergentagent.com/api"
+BASE = "https://job-ring-notify.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

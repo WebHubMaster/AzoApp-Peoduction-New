@@ -8,7 +8,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-notify.preview.emergentagent.com/api"
 OTP = "123456"
 
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals

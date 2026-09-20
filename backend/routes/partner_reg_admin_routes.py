@@ -98,6 +98,28 @@ async def fcm_download(admin=Depends(ADMIN)):
                     headers={"Content-Disposition": f'attachment; filename="{fname}"'})
 
 
+# ---------------- google-services.json (Android client config) ----------------
+@router.get("/fcm-config/google-services")
+async def gs_status(admin=Depends(ADMIN)):
+    return await fcm_service.google_services_status()
+
+
+@router.put("/fcm-config/google-services")
+async def gs_save(body: dict, admin=Depends(ADMIN)):
+    return await fcm_service.save_google_services(
+        body.get("google_services_json", ""), body.get("package_name"))
+
+
+@router.get("/fcm-config/google-services/download")
+async def gs_download(admin=Depends(ADMIN)):
+    from fastapi import Response, HTTPException
+    js = await fcm_service.get_google_services_json()
+    if not js:
+        raise HTTPException(404, "No google-services.json uploaded")
+    return Response(content=js, media_type="application/json",
+                    headers={"Content-Disposition": 'attachment; filename="google-services.json"'})
+
+
 # ---------------- Template Manager (SMS / Email / Push) ----------------
 from services import template_service as tpl  # noqa: E402
 

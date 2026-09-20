@@ -65,6 +65,50 @@ Root cause: project was yarn-based but `.github/workflows/mobile.yml` uses `npm 
   Metro bundle compiles (17MB); testing_agent frontend regression 4/4 PASS.
 
 ## Backlog / Next
-- Replace placeholder google-services.json + upload FCM service account, then EAS build.
-- Optional: in-app "Fix alerts" banner on partner dashboard when a critical permission
-  is revoked later.
+- Optional: iOS APNs key upload in Firebase for iOS push (Android is primary).
+
+## 2026-06 — CRITICAL push/ring fix (background/closed/locked was dead)
+Root cause: `frontend/google-services.json` had been DELETED (empty) and `app.json`
+declared package `com.azoapp.partner`, which does NOT exist in the user's Firebase
+project. So `@react-native-firebase` never initialised → no FCM token → backend had
+no device to push to. Result: foreground ring worked (SSE), but background / closed /
+locked did NOT (that path is 100% FCM). All other pushes were dead in the background
+too, for the same reason.
+
+Fixes shipped:
+- Added the REAL `frontend/google-services.json` (project azo-project-9f857; clients
+  for `app.azoapp.homeservice` + `app.azoapp.partner`).
+- Aligned `app.json` android.package + iOS bundleIdentifier → `app.azoapp.homeservice`
+  (matches a google-services client). Updated default-package fallbacks in
+  `src/lib/notifications.ts`.
+- All-notification click-through: added `onFcmNotificationOpen` (FCM tray taps for
+  reschedule / reminder / booking updates) + unified router in `ChatNotifier.tsx`
+  → opens exact job ring / chat / booking; Notifee taps still handled for job/chat.
+- Permission Dashboard (spec #5): new `app/(partner)/partner/permissions.tsx`
+  (real-time status ✓ Allowed / ⚠ Not allowed, per-permission Why + Allow +
+  Open Settings when permanently denied) + `PermissionBanner` on the dashboard when a
+  critical alert permission is off + "Alerts & Permissions" item in the More menu.
+- Admin: new "Upload google-services.json" in Integration Center → Firebase Settings.
+  Backend `services/fcm_service.py` (`save_google_services`/`google_services_status`/
+  `get_google_services_json`) + routes in `routes/partner_reg_admin_routes.py`
+  (`GET/PUT/GET download /admin/partner-reg/fcm-config/google-services`). On upload it
+  parses the file, auto-fills the web-push config (apiKey/projectId/appId/senderId/…)
+  into `settings.integrations.fcm_web_config`, and stores the raw file for download.
+- Docs: `frontend/PUSH_SETUP.md` rewritten (package rule + full pipeline + build cmd).
+
+Verified locally:
+- Backend up (200); new 3 endpoints pass over HTTP with admin auth (save→derive,
+  status, download 200, invalid-JSON rejected). `save_google_services` writes the
+  correct web_config into settings.
+- Expo web bundle compiles (3673 modules, HTTP 200) with all new mobile screens.
+
+NOT testable in-pod (needs the user's real APK + Firebase, as designed):
+- Remote FCM push / call-style ring to a CLOSED/KILLED/LOCKED device. This is the
+  user's on-device validation step after `eas build -p android --profile production-apk`.
+
+User's remaining steps:
+1. In Admin → Integration Center → Firebase Settings: keep the Service Account JSON
+   uploaded (already done); optionally upload google-services.json there too.
+2. Build the APK: `cd frontend && npx expo prebuild --clean && eas build -p android
+   --profile production-apk`. Install on a real device and test the ring in all states.
+

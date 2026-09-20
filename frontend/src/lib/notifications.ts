@@ -158,7 +158,7 @@ export async function ensureRingReliability() {
 /** Android 14+: full-screen intent permission screen for this app. */
 export async function openFullScreenIntentSettings() {
   if (Platform.OS !== "android") return;
-  const pkg = Constants.expoConfig?.android?.package || "com.azoapp.partner";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
   try {
     await Linking.sendIntent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", [{ key: "android.provider.extra.APP_PACKAGE", value: pkg }]);
   } catch { /* ignore */ }
@@ -212,7 +212,7 @@ export async function requestBatteryExemption() {
   try {
     if (n && !(await n.isBatteryOptimizationEnabled())) return; // already exempt
   } catch { /* ignore */ }
-  const pkg = Constants.expoConfig?.android?.package || "com.azoapp.partner";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
   // Preferred: the DIRECT system dialog ("Allow app to run in background? Yes"),
   // one tap — via REQUEST_IGNORE_BATTERY_OPTIMIZATIONS with a package: data URI.
   try {
@@ -476,6 +476,21 @@ export function onNotificationTap(cb: (data: Record<string, any>, action: string
   n.getInitialNotification?.().then((init: any) => {
     if (init?.notification?.data) cb(init.notification.data, init.pressAction?.id || "default");
   }).catch(() => {});
+  return unsub;
+}
+
+/**
+ * Tap on a REMOTE FCM *notification* (title/body messages the OS shows in the
+ * tray for background/closed apps — e.g. reschedule, reminder, booking updates).
+ * These are NOT rendered by Notifee, so their taps arrive via Firebase Messaging.
+ * Fires for background taps (onNotificationOpenedApp) and cold-start taps
+ * (getInitialNotification). Returns an unsubscribe fn.
+ */
+export function onFcmNotificationOpen(cb: (data: Record<string, any>) => void): () => void {
+  const m = messaging();
+  if (!m) return () => {};
+  const unsub = m.onNotificationOpenedApp((rm: any) => { if (rm?.data) cb(rm.data); });
+  m.getInitialNotification().then((rm: any) => { if (rm?.data) cb(rm.data); }).catch(() => {});
   return unsub;
 }
 
