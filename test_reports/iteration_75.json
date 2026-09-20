@@ -1,0 +1,18 @@
+{
+  "summary": "Verified the Admin → System → Branding & Theme upload fix on the web_panel. SVG upload to 'Logo (Light Mode)' succeeds with success toast 'Image uploaded' and preview renders (stored as .svg locally via /api/media/file/brand/...). PNG uploads to 'Email & Invoice Logo' and 'Favicon' slots also succeed (converted to .webp) with 'Image uploaded' toast and preview renders. All four ImageUpload instances on the Branding page were exercised via set_input_files on the hidden <input type=file>. S3 is not configured, so local /api/media/file/... URLs are returned — this is the expected behaviour per the request.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "storage_service.save_image should still guard against PIL OSError (unrecognized data stream) by returning a friendly 400 instead of a 500. During testing an intentionally malformed PNG triggered a 500 'Something went wrong on our end.' toast; the fix path only handles MIME sniffing, not corrupt payloads. Consider try/except around _compress and return HTTP 400 'Corrupt or unsupported image'."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "One-click 'Login as Admin' (data-testid=demo-admin) at /login.",
+  "seed_data_creation": "Generated a valid 64x64 PNG with PIL at /tmp/test_logo.png and a small SVG at /tmp/test_logo.svg for upload tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Branding upload flow (SVG + PNG) via Admin → System → Branding & Theme is fully working on the web_panel. The hidden file input approach with set_input_files works cleanly against all four ImageUpload cards. Note: /api/media/file/* URLs require an authenticated session cookie — a raw urllib fetch returns 403; the browser renders them fine. If reproducing 'Upload failed' locally, ensure the test image is a real image (PIL-generated), not a stub, otherwise PIL will raise 'unrecognized data stream contents' → 500.",
+  "rca of the issue": "Original bug: /api/media/upload rejected .svg because browsers on Windows send an empty or application/octet-stream Content-Type for SVG. Fix in storage_service._resolve_ct now derives the real MIME from Content-Type → filename extension (_EXT_CT) → magic-byte/SVG sniff (_sniff_ct); media_routes.upload now forwards file.filename. Verified end-to-end via the actual Branding UI: SVG stored as .svg, PNG normalised to .webp, previews render, and success toast fires."
+}

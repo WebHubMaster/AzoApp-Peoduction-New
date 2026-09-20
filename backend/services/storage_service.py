@@ -116,6 +116,14 @@ def _compress(raw: bytes, content_type: str, max_side: int, quality: int = 82):
     return out.getvalue(), fmt_ext, "image/webp"
 
 
+def _safe_compress(raw: bytes, content_type: str, max_side: int, quality: int = 82):
+    """_compress but converts PIL/decoder errors into a friendly ValueError (→ HTTP 400)."""
+    try:
+        return _compress(raw, content_type, max_side, quality=quality)
+    except (OSError, ValueError, Image.DecompressionBombError, Exception) as e:  # noqa: BLE001
+        raise ValueError("Corrupt or unsupported image. Please upload a valid JPG, PNG, GIF, WebP or SVG.") from e
+
+
 async def _put(name: str, data: bytes, mime: str) -> str:
     conf = await _s3_conf()
     if conf:
@@ -152,16 +160,19 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
         name = f"{folder}/{uid}.svg"
         url = await _put(name, raw, "image/svg+xml")
         return {"url": url, "size": len(raw), "name": name, "thumb_url": url}
-    data, ext, mime = _compress(raw, content_type, max_side)
+    data, ext, mime = _safe_compress(raw, content_type, max_side)
     uid = uuid.uuid4().hex
     name = f"{folder}/{uid}.{ext}"
     url = await _put(name, data, mime)
     result = {"url": url, "size": len(data), "name": name}
     if thumb and content_type != "image/gif":
-        tdata, text, tmime = _compress(raw, content_type, 400, quality=70)
-        tname = f"{folder}/thumb_{uid}.{text}"
-        result["thumb_url"] = await _put(tname, tdata, tmime)
-        result["thumb_name"] = tname
+        try:
+            tdata, text, tmime = _compress(raw, content_type, 400, quality=70)
+            tname = f"{folder}/thumb_{uid}.{text}"
+            result["thumb_url"] = await _put(tname, tdata, tmime)
+            result["thumb_name"] = tname
+        except Exception:  # noqa: BLE001 — thumbnail is best-effort
+            result["thumb_url"] = url
     else:
         result["thumb_url"] = url
     return result
