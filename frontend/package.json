@@ -1,6 +1,6 @@
 {
   "name": "partnerapp",
-  "main": "expo-router/entry",
+  "main": "index.js",
   "version": "1.0.0",
   "scripts": {
     "start": "EXPO_PACKAGER_PROXY_URL=https://azoapp-otp-demo.preview.emergentagent.com expo start --port 3000",
@@ -11,13 +11,17 @@
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
     "@gorhom/bottom-sheet": "^5.2.14",
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-firebase/app": "^26.4.0",
+    "@react-native-firebase/messaging": "^26.4.0",
     "@react-native-vector-icons/material-design-icons": "^13.1.4",
     "@tanstack/react-query": "5.102.8",
     "dayjs": "1.11.13",
     "expo": "~57.0.23",
     "expo-audio": "~57.0.5",
     "expo-blur": "~57.0.3",
+    "expo-build-properties": "^57.0.21",
     "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.18",
     "expo-device": "~57.0.2",
@@ -30,7 +34,6 @@
     "expo-linking": "~57.0.10",
     "expo-location": "~57.0.18",
     "expo-navigation-bar": "~57.0.2",
-    "expo-notifications": "~57.0.19",
     "expo-router": "~57.0.21",
     "expo-secure-store": "~57.0.4",
     "expo-splash-screen": "~57.0.9",

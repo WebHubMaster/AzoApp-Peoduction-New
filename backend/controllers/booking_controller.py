@@ -1125,6 +1125,11 @@ async def _push_job_request(pid, booking, brief):
                   "city": brief.get("city", ""), "address_line": brief.get("address_line", ""),
                   "total": str(svc_total), "services_total": str(svc_total),
                   "items_json": _json.dumps(items_lite, ensure_ascii=False),
+                  "partner_amount": str(brief.get("partner_amount") or ""),
+                  "schedule_type": str(brief.get("schedule_type") or ""),
+                  "scheduled_date": str(brief.get("scheduled_date") or ""),
+                  "scheduled_time": str(brief.get("scheduled_time") or ""),
+                  "android_channel": "job-ring", "tag": f"job-{booking['id']}",
                   "image": brief.get("service_image", "")},
             image=brief.get("service_image") or None, data_only=True)
     except Exception as e:  # noqa: BLE001
@@ -2485,6 +2490,16 @@ async def accept_job(partner, booking_id):
     for pid in others:
         if pid != partner["id"]:
             rt.emit_user(pid, "job_taken", {"id": booking_id, "code": out.get("code")})
+            try:
+                # Silent data push → cancels the ringing full-screen alert on a
+                # backgrounded/killed device (mobile background handler).
+                from services import fcm_service
+                await fcm_service.send_to_user(
+                    pid, "Job taken", "", link="/partner",
+                    data={"type": "job_taken", "booking_id": booking_id, "code": out.get("code", "")},
+                    data_only=True)
+            except Exception:  # noqa: BLE001
+                pass
     rt.emit_user(partner["id"], "job_accepted", brief)
     rt.emit_admin("job_update", brief)
     out["otps"] = {}

@@ -12,7 +12,7 @@ import { api, mediaUrl } from "@/src/api/client";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useToast } from "@/src/components/Toast";
 import { Icon } from "@/src/components/Icon";
-import { scheduleJobRing } from "@/src/lib/notifications";
+import { cancelJobRing, onForegroundPush } from "@/src/lib/notifications";
 import { emitRing, getRingPrefs, isDndActive, isSnoozed, loadLocal, onRing, syncPrefsFromServer } from "@/src/lib/ringPrefs";
 import { TW } from "@/src/components/partner/home/tw";
 
@@ -128,7 +128,8 @@ export function JobRingOverlay() {
 
   useEffect(() => { loadLocal(); syncPrefsFromServer().catch(() => {}); }, []);
   useEffect(() => {
-    if (current) startRing(current); else stopAll();
+    // In-app ring takes over from the lock-screen (Notifee) ring for this job.
+    if (current) { startRing(current); if (!current.is_test) cancelJobRing(current.id).catch(() => {}); } else stopAll();
     return stopAll;
   }, [current?.id, startRing, stopAll]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -142,7 +143,6 @@ export function JobRingOverlay() {
     const isTest = !!job.is_test || String(job.id).startsWith("test-");
     setQueue((q) => (q.find((x) => x.id === job.id) ? q : [...q, { ...job, is_test: isTest, _manual: isTest || job._manual, _at: Date.now() }]));
     if (isTest) return;
-    scheduleJobRing("🔔 New Job Request", `${job.service_name || "New service request"}${job.city ? " · " + job.city : ""}`).catch(() => {});
     api.post(`/bookings/${job.id}/seen`, {}).catch(() => {});
   }, []);
 
@@ -158,7 +158,7 @@ export function JobRingOverlay() {
   // SSE: new requests + jobs taken by someone else (+ list refreshes, as web PartnerDashboard).
   useEffect(() => subscribe((ev) => {
     if (ev.type === "job_request") { enqueue(ev.data || {}); refetch(); }
-    else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); } refetch(); }
+    else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); cancelJobRing(id).catch(() => {}); } refetch(); }
     else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
     else if (ev.type === "reschedule_request") { toast.info("Customer requested a reschedule — open Active Job to respond"); refetch(); }
   }), [subscribe, enqueue, removeFromQueue]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -179,8 +179,13 @@ export function JobRingOverlay() {
     check();
     const iv = setInterval(check, 6000);
     const sub = AppState.addEventListener("change", (s) => { if (s === "active") check(); });
-    return () => { stopped = true; clearInterval(iv); sub.remove(); };
-  }, [enqueue]);
+    // FCM data message while foregrounded (SSE may be reconnecting): refresh offers now.
+    const offPush = onForegroundPush((d) => {
+      if (d?.type === "job_request") check();
+      else if ((d?.type === "job_taken" || d?.type === "job_cancelled") && d.booking_id) { handledRef.current.add(String(d.booking_id)); removeFromQueue(String(d.booking_id)); cancelJobRing(String(d.booking_id)).catch(() => {}); }
+    });
+    return () => { stopped = true; clearInterval(iv); sub.remove(); offPush(); };
+  }, [enqueue, removeFromQueue]);
 
   // Re-grab a missed job / test ring from the dashboard (opens the ring again).
   useEffect(() => onRing("open-ring", (job) => { if (job?.id) { handledRef.current.delete(job.id); enqueue({ ...job, _manual: true }, true); } }), [enqueue]);
@@ -197,7 +202,7 @@ export function JobRingOverlay() {
     setBusy(true);
     try {
       await api.post(`/bookings/${job.id}/accept`, {});
-      handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id);
+      handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {});
       toast.success(`Job accepted · ${job.service_name || ""}`);
       refetch();
       router.push("/(partner)/active");
@@ -211,7 +216,7 @@ export function JobRingOverlay() {
     if (job.is_test) { finishTest(job, "dismissed"); return; }
     setBusy(true);
     try { await api.post(`/bookings/${job.id}/reject`, { reason: "" }); toast.info(`Request declined · ${job.service_name || ""}`); } catch { /* ignore */ }
-    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); refetch();
+    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
     setBusy(false);
   };
 

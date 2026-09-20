@@ -20,7 +20,11 @@
         "NSCameraUsageDescription": "Capture KYC documents and job photos",
         "NSPhotoLibraryUsageDescription": "Upload documents and job proof photos",
         "NSLocationWhenInUseUsageDescription": "Detect your shop and service address",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "remote-notification",
+          "audio"
+        ]
       }
     },
     "android": {
@@ -45,8 +49,12 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-      ]
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "USE_FULL_SCREEN_INTENT",
+        "FOREGROUND_SERVICE_PHONE_CALL",
+        "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "plugins": [
       "expo-router",
@@ -71,12 +79,20 @@
       "expo-font",
       "expo-image",
       "expo-audio",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "./plugins/withJobRingAndroid.js",
       [
-        "expo-notifications",
+        "expo-build-properties",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#0D47A1",
-          "defaultChannel": "chat"
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "useFrameworks": "static"
+          }
         }
       ]
     ],

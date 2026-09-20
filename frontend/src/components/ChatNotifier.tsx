@@ -3,6 +3,9 @@ import { usePathname, useRouter } from "expo-router";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { scheduleChatNotification, registerPushToken, onNotificationTap } from "@/src/lib/notifications";
+import { respondToJob } from "@/src/lib/pushBackground";
+import { emitRing } from "@/src/lib/ringPrefs";
+import { useQueryClient } from "@tanstack/react-query";
 
 /** Route params for a chat deep link built from push/SSE payload data. */
 export function chatRouteFromData(d: Record<string, any>, myRole?: string) {
@@ -29,16 +32,30 @@ export function ChatNotifier() {
   const pathRef = useRef(pathname);
   pathRef.current = pathname;
 
-  useEffect(() => { if (user?.id) registerPushToken().catch(() => {}); }, [user?.id]);
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    let unsub: (() => void) | undefined;
+    registerPushToken().then((r) => { unsub = r.unsubscribe; }).catch(() => {});
+    return () => { unsub?.(); };
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user?.id) return undefined;
-    return onNotificationTap((d) => {
-      if (d?.type !== "chat_message") return;
-      const route = chatRouteFromData(d, user.role);
-      if (route) setTimeout(() => router.push(route), 50);
+    return onNotificationTap((d, action) => {
+      if (d?.type === "chat_message") {
+        const route = chatRouteFromData(d, user.role);
+        if (route) setTimeout(() => router.push(route), 50);
+      } else if (d?.type === "job_request") {
+        const bid = String(d.booking_id || "");
+        if (action === "accept" || action === "reject") {
+          respondToJob(bid, action).then(() => { qc.invalidateQueries({ queryKey: ["partner-jobs"] }); qc.invalidateQueries({ queryKey: ["partner-active"] }); if (action === "accept") router.push("/(partner)/active"); });
+        } else if (bid) {
+          emitRing("open-ring", { id: bid, service_name: d.service_name, city: d.city, address_line: d.address_line, total: d.total, services_total: d.services_total, partner_amount: d.partner_amount, service_image: d.image, schedule_type: d.schedule_type, scheduled_date: d.scheduled_date, scheduled_time: d.scheduled_time, is_scheduled: !!d.scheduled_date, code: d.code });
+        }
+      }
     });
-  }, [user?.id, user?.role, router]);
+  }, [user?.id, user?.role, router, qc]);
 
   useEffect(() => subscribe((ev) => {
     if (ev?.type !== "booking_message") return;

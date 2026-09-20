@@ -1,14 +1,15 @@
 /**
- * Notification permission + Android channels for AzoApp Partner/Merchant.
+ * Notifications for AzoApp Partner/Merchant — Notifee (display / channels /
+ * permission / full-screen "incoming job" ring) + React Native Firebase
+ * Messaging (FCM token + remote messages).
  *
- * IMPORTANT: `expo-notifications` remote/push functionality was removed from
- * **Expo Go** (SDK 53+). Importing/using it inside Expo Go throws a red-box
- * "Uncaught Error". To keep the app fully usable in Expo Go we NEVER import
- * expo-notifications there — every native call is guarded and becomes a safe
- * no-op. On a real dev/production build the module loads normally and push +
- * the loud "Job Ring" channel work as intended.
+ * IMPORTANT: neither library runs in **Expo Go** or on web. Every native call
+ * is lazily required behind `pushSupported` so the app stays usable there
+ * (no-ops). On a real dev/production build everything works: FCM token
+ * registration, WhatsApp-style chat pushes and the call-like job ring that
+ * fires even when the app is closed or the phone is locked.
  */
-import { Platform } from "react-native";
+import { Platform, Linking } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
 import { storage } from "@/src/utils/storage";
@@ -25,116 +26,227 @@ export const CHANNELS = {
   default: "default",
 } as const;
 
-// Expo Go (StoreClient) and web don't support the native push module — no-op there.
+/** Raw Android sound resource copied by plugins/withJobRingAndroid.js */
+export const JOB_RING_SOUND = "job_ring";
+
+// Expo Go (StoreClient) and web don't support the native modules — no-op there.
 export const pushSupported =
   Platform.OS !== "web" &&
   Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
 
-let _N: any | null = null;
-/** Lazily require expo-notifications ONLY when supported (never in Expo Go). */
-function N(): any | null {
+let _notifee: any | null = null;
+let _messaging: any | null = null;
+
+/** Lazily require @notifee/react-native ONLY when supported (never in Expo Go). */
+export function notifee(): any | null {
   if (!pushSupported) return null;
-  if (_N === null) {
-    try {
-      _N = require("expo-notifications");
-      _N.setNotificationHandler({
-        handleNotification: async () => ({
-          shouldShowBanner: true,
-          shouldShowList: true,
-          shouldPlaySound: true,
-          shouldSetBadge: true,
-        }),
-      });
-    } catch {
-      _N = false; // mark as unavailable so we don't retry
-    }
+  if (_notifee === null) {
+    try { _notifee = require("@notifee/react-native"); } catch { _notifee = false; }
   }
-  return _N || null;
+  return _notifee || null;
+}
+export const NotifeeApi = () => notifee()?.default || null;
+
+/** Lazily require @react-native-firebase/messaging ONLY when supported. */
+export function messaging(): any | null {
+  if (!pushSupported) return null;
+  if (_messaging === null) {
+    try { _messaging = require("@react-native-firebase/messaging").default; } catch { _messaging = false; }
+  }
+  return _messaging ? _messaging() : null;
 }
 
 export async function setupAndroidChannels() {
-  const n = N();
+  const n = NotifeeApi();
+  const mod = notifee();
   if (!n || Platform.OS !== "android") return;
-  await n.setNotificationChannelAsync(CHANNELS.jobRing, {
-    name: "Job Ring Alerts",
-    importance: n.AndroidImportance.MAX,
-    sound: "default",
-    vibrationPattern: [0, 400, 250, 400, 250, 400],
-    lightColor: "#0D47A1",
-    bypassDnd: true,
-    lockscreenVisibility: n.AndroidNotificationVisibility.PUBLIC,
-    enableVibrate: true,
+  const { AndroidImportance, AndroidVisibility } = mod;
+  await n.createChannel({
+    id: CHANNELS.jobRing, name: "Job Ring Alerts",
+    description: "Incoming job requests ring like a call",
+    importance: AndroidImportance.HIGH, sound: JOB_RING_SOUND,
+    vibration: true, vibrationPattern: [400, 250, 400, 250],
+    lights: true, lightColor: "#0D47A1", bypassDnd: true,
+    visibility: AndroidVisibility.PUBLIC,
   });
-  await n.setNotificationChannelAsync(CHANNELS.bookings, {
-    name: "Booking Updates",
-    importance: n.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: "#0D47A1",
-  });
-  await n.setNotificationChannelAsync(CHANNELS.chat, {
-    name: "Chat Messages",
-    importance: n.AndroidImportance.HIGH,
-    sound: "default",
-    vibrationPattern: [0, 200, 100, 200],
-    lightColor: "#0D47A1",
-    lockscreenVisibility: n.AndroidNotificationVisibility.PUBLIC,
-    enableVibrate: true,
-  });
-  await n.setNotificationChannelAsync(CHANNELS.account, {
-    name: "Account Alerts",
-    importance: n.AndroidImportance.DEFAULT,
-  });
-  await n.setNotificationChannelAsync(CHANNELS.default, {
-    name: "General",
-    importance: n.AndroidImportance.DEFAULT,
-  });
+  await n.createChannel({ id: CHANNELS.chat, name: "Chat Messages", importance: AndroidImportance.HIGH, sound: "default", vibration: true, vibrationPattern: [200, 100, 200, 100], visibility: AndroidVisibility.PUBLIC });
+  await n.createChannel({ id: CHANNELS.bookings, name: "Booking Updates", importance: AndroidImportance.HIGH, vibration: true, vibrationPattern: [250, 250, 250, 250] });
+  await n.createChannel({ id: CHANNELS.account, name: "Account Alerts", importance: AndroidImportance.DEFAULT });
+  await n.createChannel({ id: CHANNELS.default, name: "General", importance: AndroidImportance.DEFAULT });
 }
 
 export async function getPermissionStatus(): Promise<{ granted: boolean; canAskAgain: boolean }> {
-  const n = N();
+  const n = NotifeeApi();
   if (!n) return { granted: false, canAskAgain: true };
-  const s = await n.getPermissionsAsync();
-  return { granted: s.granted, canAskAgain: s.canAskAgain };
+  const s = await n.getNotificationSettings();
+  const { AuthorizationStatus } = notifee();
+  const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
+  return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
 }
 
-export async function requestNotificationPermission(): Promise<{
-  granted: boolean;
-  canAskAgain: boolean;
-}> {
-  const n = N();
+export async function requestNotificationPermission(): Promise<{ granted: boolean; canAskAgain: boolean }> {
+  const n = NotifeeApi();
   if (!n) return { granted: false, canAskAgain: false };
   await setupAndroidChannels();
-  const current = await n.getPermissionsAsync();
-  if (current.granted) return { granted: true, canAskAgain: current.canAskAgain };
-  const req = await n.requestPermissionsAsync({
-    ios: { allowAlert: true, allowBadge: true, allowSound: true },
-  });
-  return { granted: req.granted, canAskAgain: req.canAskAgain };
+  const s = await n.requestPermission({ alert: true, badge: true, sound: true, criticalAlert: true });
+  const { AuthorizationStatus } = notifee();
+  const granted = s.authorizationStatus === AuthorizationStatus.AUTHORIZED || s.authorizationStatus === AuthorizationStatus.PROVISIONAL;
+  if (granted) ensureRingReliability().catch(() => {});
+  return { granted, canAskAgain: s.authorizationStatus !== AuthorizationStatus.DENIED };
 }
 
-/** Fire a loud "Job Ring" style local notification. Returns false if unsupported. */
+/**
+ * Android reliability for a call-like ring when the app is closed / phone locked:
+ * ask to exclude the app from battery optimisation and (OEMs) allow auto-start.
+ * Best-effort — opens the system screens only when needed.
+ */
+export async function ensureRingReliability() {
+  const n = NotifeeApi();
+  if (!n || Platform.OS !== "android") return;
+  try {
+    if (await n.isBatteryOptimizationEnabled()) await n.openBatteryOptimizationSettings();
+  } catch { /* ignore */ }
+  try {
+    const pm = await n.getPowerManagerInfo();
+    if (pm?.activity) await n.openPowerManagerSettings();
+  } catch { /* ignore */ }
+}
+
+/** Android 14+: full-screen intent permission screen for this app. */
+export async function openFullScreenIntentSettings() {
+  if (Platform.OS !== "android") return;
+  const pkg = Constants.expoConfig?.android?.package || "com.azoapp.partner";
+  try {
+    await Linking.sendIntent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", [{ key: "android.provider.extra.APP_PACKAGE", value: pkg }]);
+  } catch { /* ignore */ }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Incoming JOB RING — call-style full-screen, looping sound           */
+/* ------------------------------------------------------------------ */
+const inr = (v: any) => { const x = Number(v); return isNaN(x) || !x ? "" : "\u20b9" + x.toLocaleString("en-IN"); };
+
+export function jobRingBody(d: Record<string, any>): string {
+  let items: any[] = [];
+  try { items = d.items_json ? JSON.parse(d.items_json) : []; } catch { items = []; }
+  const lines = items.filter((it) => it?.name).map((it) => `\u2022 ${it.name}${it.qty > 1 ? ` \u00d7${it.qty}` : ""}${it.price ? ` \u2014 ${inr(it.price)}` : ""}`);
+  if (!lines.length) lines.push([d.service_name, d.services_total ? inr(d.services_total) : ""].filter(Boolean).join(" \u00b7 ") || "Tap to view the request");
+  if (d.scheduled_date) lines.push(`\u23F0 ${d.scheduled_date} ${d.scheduled_time || ""}`.trim());
+  if (d.city || d.address_line) lines.push(`\u{1F4CD} ${d.address_line || d.city}`);
+  return lines.join("\n");
+}
+
+/**
+ * Show the full-screen, looping "incoming job" alert. Works from the FCM
+ * background handler (app closed / locked) and from the foreground.
+ * `asForegroundService` keeps the process alive so the ring keeps playing.
+ */
+export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
+  const n = NotifeeApi();
+  const mod = notifee();
+  if (!n || !d?.booking_id) return false;
+  const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
+  const isEmergency = d.schedule_type === "emergency";
+  await setupAndroidChannels();
+  await n.displayNotification({
+    id: `job-${d.booking_id}`,
+    title: isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request",
+    subtitle: d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined,
+    body: jobRingBody(d),
+    data: { ...d, type: "job_request" },
+    android: {
+      channelId: CHANNELS.jobRing,
+      category: AndroidCategory.CALL,
+      importance: AndroidImportance.HIGH,
+      visibility: AndroidVisibility.PUBLIC,
+      smallIcon: "ic_notification",
+      color: "#0D47A1",
+      colorized: true,
+      largeIcon: d.image || undefined,
+      sound: JOB_RING_SOUND,
+      loopSound: true,
+      vibrationPattern: [400, 250, 400, 250],
+      lightUpScreen: true,
+      ongoing: true,
+      autoCancel: false,
+      asForegroundService: true,
+      timeoutAfter: 120000,
+      showTimestamp: true,
+      style: { type: mod.AndroidStyle.BIGTEXT, text: jobRingBody(d) },
+      fullScreenAction: { id: "default", launchActivity: "default" },
+      pressAction: { id: "default", launchActivity: "default" },
+      actions: [
+        { title: "\u2705 Accept", pressAction: { id: "accept", launchActivity: "default" } },
+        { title: "\u274C Reject", pressAction: { id: "reject" } },
+      ],
+    },
+    ios: {
+      categoryId: "job_request",
+      sound: `${JOB_RING_SOUND}.wav`,
+      critical: true,
+      criticalVolume: 1.0,
+      interruptionLevel: "timeSensitive",
+      foregroundPresentationOptions: { banner: true, sound: true, list: true, badge: true },
+    },
+  });
+  return true;
+}
+
+export async function cancelJobRing(bookingId?: string) {
+  const n = NotifeeApi();
+  if (!n) return;
+  try {
+    if (bookingId) await n.cancelNotification(`job-${bookingId}`);
+    else {
+      const list: any[] = await n.getDisplayedNotifications();
+      await Promise.all(list.filter((x) => String(x?.id || "").startsWith("job-")).map((x) => n.cancelNotification(x.id)));
+    }
+  } catch { /* ignore */ }
+  try { await n.stopForegroundService(); } catch { /* ignore */ }
+}
+
+/** Compat: simple local job alert (used when the full data payload isn't available). */
 export async function scheduleJobRing(title: string, body: string): Promise<boolean> {
-  const n = N();
+  const n = NotifeeApi();
   if (!n) return false;
-  await n.scheduleNotificationAsync({
-    content: { title, body, sound: "default" },
-    trigger: { seconds: 1, channelId: CHANNELS.jobRing } as any,
-  });
+  await setupAndroidChannels();
+  await n.displayNotification({ title, body, android: { channelId: CHANNELS.jobRing, smallIcon: "ic_notification", color: "#0D47A1", sound: JOB_RING_SOUND, pressAction: { id: "default", launchActivity: "default" } } });
   return true;
 }
 
-/** WhatsApp-style chat notification (foreground path). `data` is handed back on tap. */
+/* ------------------------------------------------------------------ */
+/*  CHAT — WhatsApp-style message notification                         */
+/* ------------------------------------------------------------------ */
 export async function scheduleChatNotification(title: string, body: string, data: Record<string, any>): Promise<boolean> {
-  const n = N();
+  const n = NotifeeApi();
+  const mod = notifee();
   if (!n) return false;
-  await n.scheduleNotificationAsync({
-    identifier: `chat-${data.booking_id || "x"}`,
-    content: { title, body, sound: "default", data, ...(Platform.OS === "android" ? { channelId: CHANNELS.chat } : {}) },
-    trigger: null,
+  await setupAndroidChannels();
+  await n.displayNotification({
+    id: `chat-${data.booking_id || "x"}`,
+    title, body,
+    data: { ...data, type: "chat_message" },
+    android: {
+      channelId: CHANNELS.chat, smallIcon: "ic_notification", color: "#0D47A1",
+      category: mod.AndroidCategory.MESSAGE, importance: mod.AndroidImportance.HIGH,
+      groupId: `chat-${data.booking_id || "x"}`, sound: "default",
+      style: { type: mod.AndroidStyle.BIGTEXT, text: body },
+      pressAction: { id: "default", launchActivity: "default" },
+    },
+    ios: { sound: "default", threadId: `chat-${data.booking_id || "x"}` },
   });
   return true;
 }
 
+export async function dismissChatNotification(bookingId: string) {
+  const n = NotifeeApi();
+  if (!n) return;
+  try { await n.cancelNotification(`chat-${bookingId}`); } catch { /* ignore */ }
+}
+
+/* ------------------------------------------------------------------ */
+/*  FCM token registration                                              */
+/* ------------------------------------------------------------------ */
 async function deviceId(): Promise<string> {
   let id = await storage.getItem(DEVICE_ID_KEY);
   if (!id) {
@@ -144,51 +256,62 @@ async function deviceId(): Promise<string> {
   return id;
 }
 
+async function postToken(token: string) {
+  await api.post("/notifications/devices", {
+    token, device_id: await deviceId(), platform: Platform.OS,
+    browser: `${Device.manufacturer || ""} ${Device.modelName || ""}`.trim(),
+    user_agent: `AzoApp/${Constants.expoConfig?.version || "1.0"} (${Platform.OS} ${Device.osVersion || ""})`,
+    permission: "granted",
+  });
+}
+
 /**
- * Register THIS device's native push token (FCM on Android / APNs on iOS) with
- * the backend so `notify()` → firebase-admin can reach the app when it is in the
- * background or fully closed. Real builds only — silently skipped in Expo Go.
+ * Register THIS device's FCM token so backend `notify()` / job dispatch reaches
+ * the app when backgrounded or closed. Also keeps it fresh on token rotation.
+ * Real builds only — silently skipped in Expo Go. Returns an unsubscribe fn.
  */
-export async function registerPushToken(): Promise<{ ok: boolean; reason?: string }> {
-  const n = N();
-  if (!n) return { ok: false, reason: "unsupported" };
+export async function registerPushToken(): Promise<{ ok: boolean; reason?: string; unsubscribe?: () => void }> {
+  const m = messaging();
+  if (!m) return { ok: false, reason: "unsupported" };
   try {
-    const perm = await n.getPermissionsAsync();
+    const perm = await getPermissionStatus();
     if (!perm.granted) return { ok: false, reason: "permission" };
     await setupAndroidChannels();
-    const tok = await n.getDevicePushTokenAsync();
-    const token = String(tok?.data || "");
+    if (Platform.OS === "ios") { try { await m.registerDeviceForRemoteMessages(); } catch { /* ignore */ } }
+    const token: string = await m.getToken();
     if (!token) return { ok: false, reason: "no_token" };
-    await api.post("/notifications/devices", {
-      token, device_id: await deviceId(), platform: Platform.OS,
-      browser: `${Device.manufacturer || ""} ${Device.modelName || ""}`.trim(),
-      user_agent: `AzoApp/${Constants.expoConfig?.version || "1.0"} (${Platform.OS} ${Device.osVersion || ""})`,
-      permission: "granted",
-    });
-    return { ok: true };
+    await postToken(token);
+    const unsubscribe = m.onTokenRefresh((t: string) => { postToken(t).catch(() => {}); });
+    return { ok: true, unsubscribe };
   } catch (e: any) {
     return { ok: false, reason: String(e?.message || e) };
   }
 }
 
-/** Subscribe to notification taps (foreground/background) + cold-start tap. */
-export function onNotificationTap(cb: (data: Record<string, any>) => void): () => void {
-  const n = N();
-  if (!n) return () => {};
-  const sub = n.addNotificationResponseReceivedListener((r: any) => {
-    cb(r?.notification?.request?.content?.data || {});
-  });
-  n.getLastNotificationResponseAsync?.().then((r: any) => {
-    const d = r?.notification?.request?.content?.data;
-    if (d) cb(d);
-  }).catch(() => {});
-  return () => sub.remove();
+/* ------------------------------------------------------------------ */
+/*  Foreground events: remote messages + notification taps              */
+/* ------------------------------------------------------------------ */
+/** Remote FCM data messages while the app is in the foreground. */
+export function onForegroundPush(cb: (data: Record<string, any>) => void): () => void {
+  const m = messaging();
+  if (!m) return () => {};
+  return m.onMessage(async (rm: any) => { cb(rm?.data || {}); });
 }
 
-export async function dismissChatNotification(bookingId: string) {
-  const n = N();
-  if (!n) return;
-  try { await n.dismissNotificationAsync(`chat-${bookingId}`); } catch { /* ignore */ }
+/** Notification tap / action press while app is foregrounded + cold-start tap. */
+export function onNotificationTap(cb: (data: Record<string, any>, action: string) => void): () => void {
+  const n = NotifeeApi();
+  const mod = notifee();
+  if (!n) return () => {};
+  const { EventType } = mod;
+  const unsub = n.onForegroundEvent(({ type, detail }: any) => {
+    if (type === EventType.PRESS) cb(detail?.notification?.data || {}, "default");
+    else if (type === EventType.ACTION_PRESS) cb(detail?.notification?.data || {}, detail?.pressAction?.id || "default");
+  });
+  n.getInitialNotification?.().then((init: any) => {
+    if (init?.notification?.data) cb(init.notification.data, init.pressAction?.id || "default");
+  }).catch(() => {});
+  return unsub;
 }
 
 export async function markPrompted() {
