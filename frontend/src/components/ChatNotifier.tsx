@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { AppState } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useAuth } from "@/src/context/AuthContext";
@@ -36,8 +37,15 @@ export function ChatNotifier() {
   useEffect(() => {
     if (!user?.id) return undefined;
     let unsub: (() => void) | undefined;
-    registerPushToken().then((r) => { unsub = r.unsubscribe; }).catch(() => {});
-    return () => { unsub?.(); };
+    // Register (or refresh) this device's FCM token. Runs on login AND every time
+    // the app returns to the foreground — so a partner who grants Notifications
+    // AFTER logging in (e.g. from the permission screen) gets registered on the
+    // very next return to the app, without needing an app restart. This closes the
+    // #1 gap where "This phone registered" stayed No after a late permission grant.
+    const ensure = () => { registerPushToken().then((r) => { if (r.unsubscribe) unsub = r.unsubscribe; }).catch(() => {}); };
+    ensure();
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") ensure(); });
+    return () => { unsub?.(); sub.remove(); };
   }, [user?.id]);
 
   useEffect(() => {
