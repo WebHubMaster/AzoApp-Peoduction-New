@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { useTheme } from "@/context/ThemeContext";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -336,7 +336,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
   const { branding } = useSiteConfig();
   const { isDark } = useTheme();
   // Show the dark-mode logo when the panel is in dark mode, else the light one (with graceful fallback)
-  const brandLogo = (isDark ? (branding?.logo_dark || branding?.logo_light) : (branding?.logo_light || branding?.logo_dark)) || "";
+  const brandLogo = mediaSrc((isDark ? (branding?.logo_dark || branding?.logo_light) : (branding?.logo_light || branding?.logo_dark)) || "");
   const brandName = branding?.site_name || "AzoApp";
   const navigate = useNavigate();
   const panelId = (title || "panel").toLowerCase().replace(/\s+/g, "_");

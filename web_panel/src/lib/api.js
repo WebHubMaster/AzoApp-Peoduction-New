@@ -14,6 +14,20 @@ const BACKEND_ORIGIN = String(
 ).replace(/\/+$/, "");
 export const API = `${BACKEND_ORIGIN}/api`;
 
+/**
+ * Resolve a media URL for <img>. Backend-stored media URLs are often RELATIVE
+ * ("/api/media/..."), which a browser resolves against the PANEL origin — wrong
+ * when the panel and backend are on different hosts (panel: webhubmaster.shop,
+ * backend: api.webhubmaster.shop) → broken preview. Prefix relative URLs with the
+ * backend origin so images always load. Absolute/data/blob URLs pass through.
+ */
+export const mediaSrc = (u) => {
+  if (!u) return u;
+  const s = String(u);
+  if (/^(https?:|data:|blob:)/i.test(s)) return s;
+  return `${BACKEND_ORIGIN}${s.startsWith("/") ? "" : "/"}${s}`;
+};
+
 // ---- Resilient axios instance -------------------------------------------------
 // Generous timeout so slow networks don't fail prematurely; combined with retry
 // below this keeps data loading even on flaky/slow connections.

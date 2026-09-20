@@ -1,6 +1,6 @@
 import HomeStatsControl from "@/pages/admin/HomeStatsControl";
 import { useEffect, useRef, useState, useCallback } from "react";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 import { uploadImage } from "@/lib/imageUpload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,7 +43,7 @@ export const ImageUpload = ({ value, onChange, label, folder = "media", hint }) 
       <div className="mt-1 flex items-center gap-3">
         {value ? (
           <div className="relative group">
-            <img src={value} alt="" className="h-20 w-20 rounded-lg object-contain bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+            <img src={mediaSrc(value)} alt="" className="h-20 w-20 rounded-lg object-contain bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
             <button type="button" onClick={() => onChange("")} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"><X className="h-3.5 w-3.5" /></button>
           </div>
         ) : (

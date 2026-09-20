@@ -2,6 +2,16 @@ import React, { createContext, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/src/api/client";
 
+const BACKEND = (process.env.EXPO_PUBLIC_BACKEND_URL || "").replace(/\/+$/, "");
+/** Backend media URLs may be relative ("/api/media/..."); make them absolute so
+ * expo-image can load them on the device. */
+const absUrl = (u?: string) => {
+  if (!u) return u || "";
+  const s = String(u);
+  if (/^(https?:|data:)/i.test(s)) return s;
+  return `${BACKEND}${s.startsWith("/") ? "" : "/"}${s}`;
+};
+
 export interface SiteBranding {
   site_name: string;
   tagline: string;
@@ -37,9 +47,9 @@ export function useSiteConfigQuery() {
         branding: {
           site_name: b.site_name || b.name || "AzoApp",
           tagline: b.tagline || raw.business?.tagline || "Service at Your Door Steps",
-          logo: b.logo || b.logo_light || raw.seo?.logo || "",
-          logo_light: b.logo_light,
-          logo_dark: b.logo_dark,
+          logo: absUrl(b.logo || b.logo_light || raw.seo?.logo || ""),
+          logo_light: absUrl(b.logo_light),
+          logo_dark: absUrl(b.logo_dark),
           phone: b.phone || raw.business?.support_phone,
           email: b.email || raw.business?.support_email,
         },
