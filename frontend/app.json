@@ -6,13 +6,7 @@
     "orientation": "portrait",
     "scheme": "azoapppartner",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0D47A1"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.azoapp.partner",
@@ -29,7 +23,6 @@
     },
     "android": {
       "package": "com.azoapp.partner",
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D47A1"
@@ -94,7 +87,8 @@
             "useFrameworks": "static"
           }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
