@@ -3,7 +3,7 @@ AzoApp Backend Testing - NEW FEATURES
 PART A: Refer-a-friend FIRST-BOOKING DISCOUNT
 PART B: LIVE PARTNER CHAT (gated by full payment + assigned partner)
 
-Base URL: https://azoapp-otp-demo.preview.emergentagent.com/api
+Base URL: https://job-ring-system.preview.emergentagent.com/api
 Auth: Mobile OTP, demo OTP 123456
 """
 import requests
@@ -11,7 +11,7 @@ import random
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

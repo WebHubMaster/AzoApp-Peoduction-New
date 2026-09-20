@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test users

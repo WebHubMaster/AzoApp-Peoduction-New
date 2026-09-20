@@ -18,7 +18,7 @@ import random
 import string
 
 # Base URL from environment
-BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

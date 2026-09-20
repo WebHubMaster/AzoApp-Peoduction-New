@@ -1,7 +1,7 @@
 ## TESTING AGENT REPORT: Cancellation Coupon Funding + Accept-Streak on Completion
 
 ### Test Date: 2026-09-12
-### Base URL: https://azoapp-otp-demo.preview.emergentagent.com/api
+### Base URL: https://job-ring-system.preview.emergentagent.com/api
 ### Test Credentials: Customer +919000000004, Partner +919000000003, Admin +919000000000, OTP 123456
 
 ---

@@ -4,7 +4,7 @@ Comprehensive backend test for TWO critical changes:
 TASK 1: Cancellation discount funding for partner (coupon added back)
 TASK 2: Accept-streak bonus only on completion (not on accept)
 
-Base URL: https://azoapp-otp-demo.preview.emergentagent.com/api
+Base URL: https://job-ring-system.preview.emergentagent.com/api
 Demo OTP: 123456
 Customer: +919000000004 (Priya Verma)
 Partner: +919000000003 (Raj Kumar)
@@ -16,7 +16,7 @@ import json
 import time
 from typing import Dict, Any, Optional
 
-BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

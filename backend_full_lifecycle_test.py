@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://azoapp-otp-demo.preview.emergentagent.com/api"
+BASE_URL = "https://job-ring-system.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

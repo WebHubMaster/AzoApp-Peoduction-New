@@ -2,10 +2,16 @@
 
 Chat push (background / closed app) needs a real build + Firebase. Expo Go cannot receive remote push.
 
+> ⚠️ **`frontend/google-services.json` is currently a PLACEHOLDER** (so the APK
+> builds out of the box). The Job Ring works in the foreground/background over
+> SSE, but remote push to a **closed / killed** app needs the REAL file below.
+> Replace the placeholder with your real `google-services.json` and upload the
+> service-account JSON in Admin → Integrations → Firebase (FCM).
+
 ## 1. Firebase
 1. Firebase console → project → **Project settings → Service accounts → Generate new private key** (JSON).
    Upload this JSON in **Admin panel → Integrations → Firebase (FCM)** and enable FCM. (Backend sends via firebase-admin.)
-2. **Add Android app** with package `com.azoapp.partner` → download `google-services.json` → place it at `frontend/google-services.json`.
+2. **Add Android app** with package `com.azoapp.partner` → download `google-services.json` → **replace** the placeholder at `frontend/google-services.json`.
 3. In `app.json` add under `expo.android`:
    ```json
    "googleServicesFile": "./google-services.json"

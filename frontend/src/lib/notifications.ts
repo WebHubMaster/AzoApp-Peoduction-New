@@ -122,6 +122,100 @@ export async function openFullScreenIntentSettings() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Unified permission hub — everything the Job Ring needs, requested   */
+/*  the moment the app opens (see app/onboarding/permissions.tsx).      */
+/* ------------------------------------------------------------------ */
+export type PermKey = "notifications" | "location" | "battery" | "fullscreen";
+export type PermState = {
+  key: PermKey;
+  granted: boolean;      // true = fully satisfied
+  canAskAgain: boolean;  // false = must open system Settings
+  available: boolean;    // false = not applicable on this platform / Expo Go
+};
+
+const _androidSdk = (): number => Number(Platform.OS === "android" ? (Platform.Version as number) : 0);
+
+/* Notifications — POST_NOTIFICATIONS + our channels (Notifee). */
+export async function notifState(): Promise<PermState> {
+  if (!pushSupported) return { key: "notifications", granted: false, canAskAgain: true, available: false };
+  const s = await getPermissionStatus();
+  return { key: "notifications", granted: s.granted, canAskAgain: s.canAskAgain, available: true };
+}
+
+/* Battery optimisation exemption — required so a killed app can still ring. */
+export async function batteryState(): Promise<PermState> {
+  const n = NotifeeApi();
+  if (!n || Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  try {
+    const optimized = await n.isBatteryOptimizationEnabled();
+    return { key: "battery", granted: !optimized, canAskAgain: true, available: true };
+  } catch {
+    return { key: "battery", granted: false, canAskAgain: true, available: true };
+  }
+}
+export async function requestBatteryExemption() {
+  const n = NotifeeApi();
+  if (!n || Platform.OS !== "android") return;
+  try { if (await n.isBatteryOptimizationEnabled()) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
+}
+
+/* Full-screen intent — Android 14+ (SDK 34) needs the user to allow call-style
+ * screens. On older Android it is granted by the manifest permission. */
+export async function fullScreenState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "fullscreen", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const sdk = _androidSdk();
+  if (sdk < 34) return { key: "fullscreen", granted: true, canAskAgain: false, available: true };
+  const n = NotifeeApi();
+  // Notifee (recent versions) can report the FSI setting; fall back to "action needed".
+  try {
+    if (n?.getNotificationSettings) {
+      const s = await n.getNotificationSettings();
+      const fsi = s?.android?.fullScreenAction ?? s?.fullScreenAction;
+      if (typeof fsi === "boolean") return { key: "fullscreen", granted: fsi, canAskAgain: true, available: true };
+      if (typeof fsi === "number") return { key: "fullscreen", granted: fsi === 1, canAskAgain: true, available: true };
+    }
+  } catch { /* fall through */ }
+  return { key: "fullscreen", granted: false, canAskAgain: true, available: true };
+}
+
+/* Location — used for distance / ETA on the ring (foreground is enough). */
+export async function locationState(): Promise<PermState> {
+  try {
+    const Location = require("expo-location");
+    const s = await Location.getForegroundPermissionsAsync();
+    return { key: "location", granted: s.status === "granted", canAskAgain: s.canAskAgain !== false, available: true };
+  } catch {
+    return { key: "location", granted: false, canAskAgain: true, available: false };
+  }
+}
+export async function requestLocationPermission(): Promise<PermState> {
+  try {
+    const Location = require("expo-location");
+    const s = await Location.requestForegroundPermissionsAsync();
+    return { key: "location", granted: s.status === "granted", canAskAgain: s.canAskAgain !== false, available: true };
+  } catch {
+    return { key: "location", granted: false, canAskAgain: false, available: false };
+  }
+}
+
+/** Snapshot of every permission the Job Ring relies on. */
+export async function allPermissionStates(): Promise<Record<PermKey, PermState>> {
+  const [notif, battery, fullscreen, location] = await Promise.all([
+    notifState(), batteryState(), fullScreenState(), locationState(),
+  ]);
+  return { notifications: notif, battery, fullscreen, location };
+}
+
+/** True when the app should show the full-screen permission gate on open. */
+export async function shouldShowPermissionGate(): Promise<boolean> {
+  // Expo Go / web: native perms no-op → gate once (until "prompted"), never loop.
+  if (!pushSupported) return !(await wasPrompted());
+  const notif = await notifState();
+  if (!notif.granted) return true;             // notifications are mandatory for the ring
+  return !(await wasPrompted());               // otherwise show once, then remember
+}
+
+/* ------------------------------------------------------------------ */
 /*  Incoming JOB RING — call-style full-screen, looping sound           */
 /* ------------------------------------------------------------------ */
 const inr = (v: any) => { const x = Number(v); return isNaN(x) || !x ? "" : "\u20b9" + x.toLocaleString("en-IN"); };

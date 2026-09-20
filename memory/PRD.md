@@ -1,44 +1,59 @@
-# AzoApp — Multi-App Repo (Forked Setup)
+# AzoApp Partner — Job Ring System
 
-## Overview
-Multi-app repo restored & running on a fresh fork.
-- /app/backend   → FastAPI (supervisor, port 8001). Auto-seeds demo data on startup.
-- /app/web_panel → React (CRA/craco) web app. Served on default preview (port 3000) via supervisor `webpanel` program.
-- /app/frontend  → Expo (React Native) app. Runs over Expo tunnel for Expo Go.
+## Problem statement
+Make the Job Ring 100% reliable so an ONLINE partner receives a call-style ring for
+every new job — when the app is open, backgrounded, fully closed, or the phone is
+locked. Same UI/logic as the web panel. Take all permissions on app open with a
+well-designed UI. Web + mobile both must ring. User builds the APK themselves.
 
-## Auth
-OTP-based (dev mode). OTP = 123456 for all demo accounts.
-Admin +919000000000 | Merchant +919000000002 | Partner +919000000003 | Customer +919000000004
+## Architecture
+- Backend: FastAPI + MongoDB (shared by web panel + mobile). Prod: api.webhubmaster.shop
+- Web panel: React (web_panel/) — IncomingJobRing.jsx (already working)
+- Mobile: Expo React Native (frontend/) — EAS/dev-client build with native modules
 
-## Setup done (2026-09-20)
-- Created missing .env files: backend/.env, frontend/.env, web_panel/.env (REACT_APP_BACKEND_URL left EMPTY → same-origin /api fallback in api.js to avoid CORS).
-- Backend started via supervisor, GET /api/ = 200, demo seed complete.
-- web_panel: yarn install; frontend(Expo) stopped off 3000; /etc/supervisor/conf.d/webpanel.conf created; reread+update → serving on 3000 (200).
-- Expo tunnel: `npx expo start --tunnel --port 8081` (nohup, /tmp/expo.log). Tunnel URL exp://xhg4tdi-anonymous-8081.exp.direct.
-- Verified all 4 demo logins via external URL (curl) and via testing agent UI (4/4 one-click demo logins pass, no CORS/Demo login failed).
+## Job Ring pipeline (already implemented, verified wired)
+- Dispatch: booking_controller `_alert_partners` → SSE `job_request` + FCM data-only
+  high-priority push (`_push_job_request`, channel `job-ring`).
+- Ring stop: on accept/reject/expire → SSE `job_taken` + FCM data push `job_taken`
+  to all other partners; accept/reject/expire cancel the ring (no duplicate ringing).
+- Mobile:
+  - `src/lib/notifications.ts` — Notifee channels, full-screen call-style ring
+    (`displayJobRing`, category CALL, fullScreenAction, foreground service, looped
+    sound job_ring.wav), FCM token registration.
+  - `src/lib/pushBackground.ts` (loaded in index.js) — headless FCM background +
+    Notifee background handlers → ring on closed/locked; Accept/Reject from lock screen.
+  - `src/components/JobRingOverlay.tsx` — in-app full-screen ring (1:1 web port),
+    mounted in `app/(partner)/_layout.tsx`.
+  - `src/context/RealtimeContext.tsx` — SSE + playRing/stopRing + 6s ring-pending poll.
+  - `plugins/withJobRingAndroid.js` — permissions, foreground service, showWhenLocked,
+    copies ring sound + notification icon into res/.
 
-## Partner booking chat — mobile parity with web (2026-09-20)
-- New full-screen route `/app/frontend/app/chat/[id].tsx` (root Stack, slide_from_right) — outside tabs so bottom nav never overlaps composer. Old `(partner)/chat/[id]` removed.
-- UI mirrors web `BookingChat.jsx` mobile sheet: white header (back, avatar initial/photo, name, green dot "Your customer · service"), emerald round Call; slate-50 thread; mine=primary bubble/white=other; quick-reply pills; rounded input + primary send; locked/empty states.
-- Same APIs: GET/POST `/bookings/{id}/messages`, realtime `booking_message` + 5s poll, `markChatSeen` → unseen badge on Active Job card.
-- active.tsx pushes `{pathname:"/chat/[id]", params:{id, role:"partner", service}}`.
-- Seed: demo "assigned"/"started" bookings now `payment_status: paid` so chat is enabled out of the box (existing AZO970E07 / AZO4A0D87 patched in DB).
-- Verified via Metro web build through tunnel (login → Active Job → Chat → send typed + quick reply → back).
+## Implemented this session (2026-06)
+- NEW comprehensive permission gate on app open — `app/onboarding/notifications.tsx`
+  rewritten: premium gradient hero (call icon + pulsing rings), status cards for
+  Notifications / Full-Screen Call Alert / Run in Background (battery) / Location,
+  "Allow all permissions" one-tap flow, re-checks on return from Settings.
+- Permission helpers added to `src/lib/notifications.ts`: notifState, batteryState,
+  fullScreenState, locationState, allPermissionStates, requestLocationPermission,
+  requestBatteryExemption, shouldShowPermissionGate.
+- `app/index.tsx` splash gate now routes to the permission screen on every app open
+  until notifications are granted.
+- `frontend/google-services.json` PLACEHOLDER added so the APK builds out of the box
+  (must be replaced with the real Firebase file — see PUSH_SETUP.md).
+- Metro fix: `package.json` start script runs with `CI=1` (container inotify limit is
+  read-only; CI mode avoids the ENOSPC watcher crash). Preview live.
 
-## WhatsApp-style chat system — Web + Mobile (2026-09-20)
-Shared backend (booking_controller.py / booking_routes.py):
-- `booking_messages.seen_at`; message `status` sent|seen. `GET /bookings/{id}/messages` → + unread, counterpart_online, service_name, code.
-- `POST /bookings/{id}/messages/seen` (read receipt + presence heartbeat; emits `booking_seen` to both parties).
-- `POST /bookings/{id}/typing` {typing, present} → SSE `booking_typing`; present:false clears presence on chat close.
-- `GET /bookings/chats/summary` → per-thread last_message + unread, total_unread (badges).
-- send_message: SSE `booking_message` to both parties (incl. service_name/code); push+in-app via notify() ONLY if recipient not present (25s TTL). Payload: title=sender, body="text\nService • Booking #CODE", link `/partner?tab=active&chat=<id>` | `/account?tab=orders&chat=<id>`, data{type:chat_message, booking_id, code, service_name, sender_role, tag, android_channel:chat}. fcm_service: AndroidConfig(channel/tag/collapse) + APNs thread_id.
-Web: ChatContext.jsx (summary + SSE refresh, useChatUnread, UnreadPill); BookingChat.jsx typing… + bubble, ticks (✓/✓✓ blue), auto-seen on open/new msg, heartbeat, `?chat=` deep link; unread pills on partner ActiveJob + customer BookingCard; SW firebase-messaging-sw.js chat_message branch (tag per thread, click → link).
-Mobile: ChatContext.tsx; chat/[id].tsx typing/ticks/seen/presence; ChatNotifier at root (registerPushToken on login [real build], foreground local notif WhatsApp-style, tap → /chat/[id] incl. cold start); notifications.ts (chat channel, registerPushToken, onNotificationTap); active.tsx badge from server; chatSeen.ts removed. app.json expo-notifications plugin. Setup doc: frontend/PUSH_SETUP.md (google-services.json + FCM service account in Admin).
-Tested: iteration_79 — backend 8/8, web dual-session + mobile web build 100%. Remote FCM push untested here (needs real build + Firebase).
+## Verified
+- Full Metro bundle compiles (HTTP 200, 16.8MB) incl. new screen.
+- Permission screen renders correctly on the preview.
+- Backend ring dispatch + ring-stop code confirmed present & unchanged.
 
-## Preview URL
-https://efe0ed0e-e1d0-48f8-9dbe-d1a67b540ef3.preview.emergentagent.com
+## Not testable here (needs real APK + Firebase — user does this)
+- Remote push to a CLOSED/KILLED or LOCKED device (needs real google-services.json +
+  service-account JSON in Admin → Integrations → Firebase). Notifee/FCM no-op in Expo
+  Go and on web. In Expo Go the SSE in-app ring works while the app is open.
 
-## Backlog / Notes
-- Low-priority: /api/partner/alert-prefs returns 403 under Customer session (client hook not role-gated). Non-blocking console noise.
-- Expo tunnel URL changes on each `expo start`; regenerate QR if restarted.
+## Backlog / Next
+- Replace placeholder google-services.json + upload FCM service account, then EAS build.
+- Optional: in-app "Fix alerts" banner on partner dashboard when a critical permission
+  is revoked later.

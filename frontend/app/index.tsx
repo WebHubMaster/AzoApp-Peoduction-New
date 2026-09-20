@@ -6,7 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
-import { wasPrompted } from "@/src/lib/notifications";
+import { shouldShowPermissionGate } from "@/src/lib/notifications";
 import { Icon } from "@/src/components/Icon";
 import { fontSize } from "@/src/theme";
 
@@ -45,8 +45,8 @@ export default function SplashGate() {
         else setUnsupported(true);
         return;
       }
-      const prompted = await wasPrompted();
-      router.replace(prompted ? "/(auth)/login" : "/onboarding/notifications");
+      const showGate = await shouldShowPermissionGate();
+      router.replace(showGate ? "/onboarding/notifications" : "/(auth)/login");
     })();
   }, [booting, minElapsed, user]);
 

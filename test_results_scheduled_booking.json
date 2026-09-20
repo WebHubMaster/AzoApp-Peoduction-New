@@ -1,6 +1,6 @@
 {
   "test_suite": "SCHEDULED BOOKING flow",
-  "base_url": "https://azoapp-otp-demo.preview.emergentagent.com/api",
+  "base_url": "https://job-ring-system.preview.emergentagent.com/api",
   "timestamp": "2026-09-14T10:58:44.541131+00:00",
   "tests": [
     {
