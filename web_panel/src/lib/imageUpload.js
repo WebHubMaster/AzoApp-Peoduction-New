@@ -198,58 +198,22 @@ function loadImageSrc(src) {
  * images are compressed to fit; non-images over 2 MB throw a clear error.
  * @returns the response `data`.
  */
-/** Rasterise an SVG file into a crisp PNG File using a canvas (client-side). */
-async function rasterizeSvgToPng(file, maxSide = 1024) {
-  const text = await file.text();
-  const blobUrl = URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
-  try {
-    const img = await new Promise((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = () => reject(new Error("svg decode failed"));
-      i.src = blobUrl;
-    });
-    let w = img.naturalWidth || img.width || maxSide;
-    let h = img.naturalHeight || img.height || maxSide;
-    if (!w || !h) { w = maxSide; h = maxSide; }
-    const scale = Math.min(maxSide / Math.max(w, h), 4);
-    const cw = Math.max(1, Math.round(w * scale));
-    const ch = Math.max(1, Math.round(h * scale));
-    const canvas = document.createElement("canvas");
-    canvas.width = cw; canvas.height = ch;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0, cw, ch);
-    const blob = await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob failed"))), "image/png"));
-    const base = (file.name || "logo").replace(/\.svg$/i, "");
-    return new File([blob], `${base}.png`, { type: "image/png" });
-  } finally {
-    URL.revokeObjectURL(blobUrl);
-  }
-}
-
 export async function uploadImage(api, file, {
   url = "/media/upload", folder = "media", fields = {}, onProgress, compress = true, maxBytes = MAX_UPLOAD_BYTES,
 } = {}) {
-  const isSvgInput = !!file && (file.type === "image/svg+xml" || /\.svg$/i.test(file.name || ""));
-  // SVG logos: rasterise to a crisp PNG in the browser BEFORE upload. This fixes
-  // three real problems at once: (1) live WAF/Cloudflare XSS rules that block raw
-  // SVG markup in the request body ("Connection issue / Upload failed"), (2) the
-  // broken <img> preview, and (3) Gmail blocking SVG in emails/invoices.
-  let workFile = file;
-  let stillSvg = false;
-  if (isSvgInput) {
-    try { workFile = await rasterizeSvgToPng(file); }
-    catch { workFile = file; stillSvg = true; }
-  }
-  const workIsImage = !!workFile && workFile.type && workFile.type.startsWith("image/");
-  let finalFile = compress && workIsImage && !stillSvg ? await compressImage(workFile) : workFile;
-  // Hard enforce 2 MB. Images: keep shrinking until they fit. Non-images: reject.
-  if (!stillSvg && finalFile.size > maxBytes) {
-    if (workIsImage) {
+  const isImage = file && file.type && file.type.startsWith("image/");
+  // SVG is a vector/text format: upload it AS-IS (no raster conversion) so it keeps
+  // its exact format, full quality and transparent background (no black box). The
+  // backend stores SVG unchanged (12 MB cap). Only raster images are compressed.
+  const isSvg = !!file && (file.type === "image/svg+xml" || /\.svg$/i.test(file.name || ""));
+  let finalFile = compress && isImage && !isSvg ? await compressImage(file) : file;
+  // Hard enforce 2 MB. Images: keep shrinking until they fit. Non-images (SVG): pass through.
+  if (!isSvg && finalFile.size > maxBytes) {
+    if (isImage) {
       let side = 1400;
       let quality = 0.8;
       for (let i = 0; i < 6 && finalFile.size > maxBytes; i += 1) {
-        finalFile = await compressImage(workFile, { maxSide: side, quality }); // eslint-disable-line no-await-in-loop
+        finalFile = await compressImage(file, { maxSide: side, quality }); // eslint-disable-line no-await-in-loop
         if (quality > 0.5) quality -= 0.12; else side = Math.round(side * 0.82);
       }
     }
