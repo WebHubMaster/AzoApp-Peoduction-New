@@ -6,6 +6,19 @@ module.exports = [
   { ignores: ["build/**", "node_modules/**", "public/**"] },
   js.configs.recommended,
   {
+    files: ["**/*.config.js", "plugins/**/*.js", "src/setupProxy.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "commonjs",
+      globals: {
+        require: "readonly", module: "writable", process: "readonly", __dirname: "readonly",
+        __filename: "readonly", console: "readonly", exports: "writable", Buffer: "readonly",
+        setTimeout: "readonly", clearTimeout: "readonly", setInterval: "readonly", clearInterval: "readonly",
+      },
+    },
+    rules: { "no-undef": "off" },
+  },
+  {
     files: ["src/**/*.{js,jsx}"],
     plugins: { react, "react-hooks": reactHooks },
     languageOptions: {

@@ -713,3 +713,11 @@ backend 200. Native — needs EAS build to confirm on device (locked/closed).
   (15/30/45/60 minutes before), saved into business_config.reminder_lead_minutes.
 VALIDATION: unit test — set_lead_minutes(30/45/60) shifts the unlock window correctly; invalid→30
 fallback; backend syntax + restart OK; web_panel adminSections eslint 0 errors.
+
+## 2026-06 (8) — Login open full-width (no card) + keyboard-lift
+- app/(auth)/login.tsx: removed the white form card wrapper — phone/OTP/name/role-picker/demo now
+  sit open & full-width on the background (only per-item pills keep their soft tint). Trust strip
+  changed from a card to an open top-bordered row.
+- KeyboardAwareScrollView bottomOffset 24 → 110 so a focused input scrolls up well above the
+  keyboard when tapped.
+VALIDATION: tsc + eslint 0 errors. Native — needs EAS build to view on device.
