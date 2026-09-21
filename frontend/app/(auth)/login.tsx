@@ -18,6 +18,7 @@ type Mode = "login" | "register";
 type Step = "phone" | "otp" | "name";
 const APP_ROLES: Role[] = ["partner", "merchant"];
 const HERO = require("../../assets/hero-pro.png"); // eslint-disable-line @typescript-eslint/no-require-imports
+const HERO_MERCHANT = require("../../assets/hero-merchant.png"); // eslint-disable-line @typescript-eslint/no-require-imports
 const FALLBACK_LOGO = require("../../assets/brand-logo.png"); // eslint-disable-line @typescript-eslint/no-require-imports
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
 
@@ -51,6 +52,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState("");
   const [routing, setRouting] = useState(false);
+  const [resendIn, setResendIn] = useState(0);
   const otpRef = useRef<TextInput>(null);
 
   const { data: demo } = useQuery({ queryKey: ["demo-status"], queryFn: () => api.get<any>("/auth/demo-status", { auth: false }) });
@@ -64,6 +66,13 @@ export default function Login() {
     return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
   };
   useEffect(() => { if (user && APP_ROLES.includes(user.role as Role)) { setRouting(true); router.replace(home(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Resend countdown (re-schedules once per second, no drift).
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const t = setTimeout(() => setResendIn(resendIn - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendIn]);
 
   const finish = async ({ token, user: u }: any, greeting?: string) => {
     if (!APP_ROLES.includes(u?.role)) { toast.error(`This app is for Partners & Merchants only. Your ${u?.role || ""} account can sign in on the web panel.`); return; }
@@ -83,10 +92,13 @@ export default function Login() {
       if (data?.sent === false) { toast.error(data.message || "Could not send the OTP right now"); setBusy(""); return; }
       if (data?.dev_otp) { toast.success(`OTP sent · Dev OTP: ${data.dev_otp}`); setOtp(String(data.dev_otp)); } else toast.success("OTP sent to your mobile");
       setStep("otp");
+      setResendIn(30);
       setTimeout(() => otpRef.current?.focus(), 250);
     } catch (e: any) { toast.error(e?.detail || "Could not send OTP"); }
     setBusy("");
   };
+
+  const resendOtp = () => { if (resendIn > 0 || busy) return; sendOtp(); };
 
   // Verify — never auto-creates a customer; unknown numbers must register a role.
   const verifyOtp = async () => {
@@ -149,7 +161,7 @@ export default function Login() {
           {/* glow backdrop */}
           <View pointerEvents="none" style={{ position: "absolute", bottom: 6, width: 230, height: 230, borderRadius: 115, backgroundColor: ac.main, opacity: 0.12 }} />
           <View pointerEvents="none" style={{ position: "absolute", bottom: 26, width: 150, height: 150, borderRadius: 75, backgroundColor: ac.main, opacity: 0.1 }} />
-          <Image testID="login-hero" source={HERO} style={{ width: 240, height: 250 }} contentFit="contain" contentPosition="bottom" />
+          <Image testID="login-hero" source={mode === "register" && registerRole === "merchant" ? HERO_MERCHANT : HERO} style={{ width: 240, height: 250 }} contentFit="contain" contentPosition="bottom" />
         </View>
 
         <View style={{ paddingHorizontal: 20, marginTop: 6 }}>
@@ -246,14 +258,24 @@ export default function Login() {
                       );
                     })}
                   </View>
-                  <TextInput ref={otpRef} testID="login-otp-input" value={otp} onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, "").slice(0, 6))} keyboardType="number-pad" maxLength={6} autoFocus caretHidden onSubmitEditing={verifyOtp} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
+                  <TextInput ref={otpRef} testID="login-otp-input" value={otp} onChangeText={(v) => setOtp(v.replace(/[^0-9]/g, "").slice(0, 6))} keyboardType="number-pad" maxLength={6} autoFocus caretHidden autoComplete="sms-otp" importantForAutofill="yes" textContentType="oneTimeCode" onSubmitEditing={verifyOtp} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
                 </Pressable>
                 <Pressable testID="verify-otp-btn" onPress={verifyOtp} disabled={busy === "verify"} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}>
                   <LinearGradient colors={ac.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 56, borderRadius: 16, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy === "verify" ? 0.7 : 1 }}>
                     {busy === "verify" ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: 16.5, fontWeight: "900" }}>{mode === "login" ? "Verify & Log In" : "Verify & Continue"}</Text><Icon name="check" size={20} color="#fff" /></>}
                   </LinearGradient>
                 </Pressable>
-                <Pressable testID="otp-change-number" onPress={changeNumber} style={{ alignItems: "center" }}><Text style={{ color: ac.dark, fontSize: 13, fontWeight: "700" }}>← Change number</Text></Pressable>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14 }}>
+                  {resendIn > 0 ? (
+                    <Text testID="resend-timer" style={{ color: "#94A3B8", fontSize: 13, fontWeight: "600" }}>Resend OTP in 0:{String(resendIn).padStart(2, "0")}</Text>
+                  ) : (
+                    <Pressable testID="resend-otp" onPress={resendOtp} disabled={busy === "send"} hitSlop={8}>
+                      <Text style={{ color: ac.dark, fontSize: 13, fontWeight: "800" }}>{busy === "send" ? "Resending…" : "Resend OTP"}</Text>
+                    </Pressable>
+                  )}
+                  <Text style={{ color: "#CBD5E1" }}>•</Text>
+                  <Pressable testID="otp-change-number" onPress={changeNumber} hitSlop={8}><Text style={{ color: ac.dark, fontSize: 13, fontWeight: "700" }}>Change number</Text></Pressable>
+                </View>
               </View>
             ) : null}
 
