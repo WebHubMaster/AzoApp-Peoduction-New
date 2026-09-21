@@ -465,3 +465,36 @@ deliverable. To pursue true full-screen later: fix RNFB autolinking (needs devic
 logs) OR wire expo-notifications BACKGROUND_NOTIFICATION_TASK → Notifee displayJobRing.
 NEXT: deploy backend → test closed/locked on current APK → verify loud ring. Then check
 production people-overview for ring_state / delivery success.
+
+## 2026-06 — TRUE auto full-screen ring: removed RNFB messaging, went pure expo-notifications + Notifee
+User demanded auto-launch full-screen call ring (no tap) as the #1 feature. RNFB messaging
+module wasn't linking (messaging()==null) AND its native FirebaseMessagingService likely
+intercepts FCM in background (higher manifest priority) then drops it (no JS handler) — so
+the data-only ring never reached any JS handler.
+FIX (needs FRESH EAS build to take effect):
+- REMOVED @react-native-firebase/messaging (yarn remove + app.json plugin). KEPT
+  @react-native-firebase/app (applies google-services / Firebase init). google-services also
+  covered by android.googleServicesFile.
+- frontend/src/lib/notifications.ts: messaging() now a null stub (no RNFB require → no Metro
+  break). onForegroundPush + onFcmNotificationOpen rewritten on expo-notifications
+  (addNotificationReceivedListener / addNotificationResponseReceivedListener /
+  getLastNotificationResponseAsync). Token already had expo-notifications fallback.
+- frontend/src/lib/pushBackground.ts: added expo-notifications BACKGROUND task
+  (expo-task-manager defineTask "AZO_BG_NOTIF_TASK" + Notifications.registerTaskAsync). It
+  fires for DATA-ONLY FCM when backgrounded/locked/killed → _extractFcmData(data) (FCM data
+  at data.notification.data per expo RemoteMessageSerializer) → handleRemoteData → Notifee
+  displayJobRing (fullScreenAction + FGS) = TRUE auto full-screen ring, no RNFB.
+  RNFB setBackgroundMessageHandler block now no-ops (messaging()==null). Notifee FGS +
+  onBackgroundEvent (Accept/Reject) kept (Notifee is independent of RNFB).
+- installed expo-task-manager@57.0.19.
+- backend controllers/booking_controller.py _push_job_request: back to data_only=True
+  (data-only REQUIRED to trigger expo background task; notification msg backgrounded → tray
+  only, no task), channel azo-job-ring-v3, unique tag job-{id}. notification_routes test-ring
+  same (data_only=True, unique tag). "New job available" _notify stays as the loud tray
+  fallback if the task can't run (force-stopped app / OEM doze).
+VALIDATION: backend syntax+health 200; tsc clean for edited files; Metro bundled all 4018
+modules with NO resolution errors (hermesc step fails only in sandbox — env limit, not code).
+LIMITATION: still needs a real EAS build + device test to confirm the full-screen ring fires
+from killed/locked. If a device force-stops the app (MIUI), even this can't run until reopen —
+the loud tray fallback still shows. NEXT: EAS build → deploy backend → test closed/locked →
+verify via production people-overview ring_state (ok:true, ctx:bg).

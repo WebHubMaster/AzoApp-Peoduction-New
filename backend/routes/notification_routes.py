@@ -94,8 +94,8 @@ async def test_self(body: dict, user=Depends(get_current_user)):
             data={"type": "job_request", "booking_id": f"test-{int(_t.time())}",
                   "service_name": "Test Service", "city": "Your City",
                   "address_line": "Test address", "total": "499", "partner_amount": "399",
-                  "android_channel": "azo-job-ring-v3", "tag": "new-job"},
-            data_only=False)
+                  "android_channel": "azo-job-ring-v3", "tag": f"test-{int(_t.time())}"},
+            data_only=True)
     else:
         res = await push_dispatch.push_to_user(
             user["id"], "AzoApp test notification", "Push notifications are working correctly.",

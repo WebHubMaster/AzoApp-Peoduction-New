@@ -12,6 +12,42 @@
 import { api } from "@/src/api/client";
 import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification, setupAndroidChannels } from "@/src/lib/notifications";
 
+/** expo-notifications background task — this is the PRIMARY background path now
+ * (RNFB messaging is disabled). It fires for data-only FCM messages when the app
+ * is backgrounded, locked or killed, and renders the full-screen Notifee ring.
+ * The FCM data payload arrives at `data.notification.data` (see expo's
+ * RemoteMessageSerializer); we defensively check the common shapes. */
+const BG_NOTIF_TASK = "AZO_BG_NOTIF_TASK";
+function _extractFcmData(data: any): Record<string, any> {
+  if (!data) return {};
+  const candidates = [data?.notification?.data, data?.data, data?.notification, data];
+  for (const c of candidates) { if (c && typeof c === "object" && c.type) return c; }
+  // Fallback: recursively hunt for an object carrying our `type` field.
+  const seen = new Set<any>();
+  const walk = (o: any): Record<string, any> | null => {
+    if (!o || typeof o !== "object" || seen.has(o)) return null;
+    seen.add(o);
+    if (o.type && (o.booking_id || o.type === "job_taken" || o.type === "job_cancelled")) return o;
+    for (const v of Object.values(o)) { const r = walk(v); if (r) return r; }
+    return null;
+  };
+  return walk(data) || {};
+}
+if (pushSupported) {
+  try {
+    const TaskManager = require("expo-task-manager");
+    const Notifications = require("expo-notifications");
+    TaskManager.defineTask(BG_NOTIF_TASK, async ({ data, error }: any) => {
+      if (error) return;
+      try {
+        const fcm = _extractFcmData(data);
+        if (fcm.type) await handleRemoteData(fcm, true);
+      } catch { /* ignore */ }
+    });
+    Notifications.registerTaskAsync(BG_NOTIF_TASK).catch(() => {});
+  } catch { /* expo-task-manager / expo-notifications unavailable (web / Expo Go) */ }
+}
+
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
   if (d.type === "job_request") { await displayJobRing(d, "bg"); return; }

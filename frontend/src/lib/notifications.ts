@@ -42,7 +42,6 @@ export const pushSupported =
   Constants.executionEnvironment !== ExecutionEnvironment.StoreClient;
 
 let _notifee: any | null = null;
-let _messaging: any | null = null;
 
 /** Lazily require @notifee/react-native ONLY when supported (never in Expo Go). */
 export function notifee(): any | null {
@@ -77,17 +76,12 @@ async function setupExpoChannels() {
   } catch { /* ignore */ }
 }
 
-/** Lazily require @react-native-firebase/messaging ONLY when supported. */
-export function messaging(): any | null {
-  if (!pushSupported) return null;
-  if (_messaging === null) {
-    try { _messaging = require("@react-native-firebase/messaging").default; } catch { _messaging = false; }
-  }
-  // _messaging() throws when the native module isn't linked / Firebase [DEFAULT]
-  // app failed to init. NEVER let that bubble up (it used to silently kill the
-  // whole registration before anything could be reported). Return null instead.
-  try { return _messaging ? _messaging() : null; } catch { return null; }
-}
+/** RNFB messaging is intentionally DISABLED: its native FirebaseMessagingService
+ * intercepts FCM in the background but its JS module fails to link in this Expo
+ * build (messaging() was null → the background ring never fired). We now route
+ * ALL push through expo-notifications (token + background task) + Notifee
+ * (display). Kept as a null stub so existing callers no-op gracefully. */
+export function messaging(): any | null { return null; }
 
 /**
  * expo-notifications native DEVICE push token — on Android this is the RAW FCM
@@ -562,11 +556,14 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
 /* ------------------------------------------------------------------ */
 /*  Foreground events: remote messages + notification taps              */
 /* ------------------------------------------------------------------ */
-/** Remote FCM data messages while the app is in the foreground. */
+/** Remote FCM data messages while the app is in the FOREGROUND (expo-notifications). */
 export function onForegroundPush(cb: (data: Record<string, any>) => void): () => void {
-  const m = messaging();
-  if (!m) return () => {};
-  return m.onMessage(async (rm: any) => { cb(rm?.data || {}); });
+  const EN = expoNotif();
+  if (!EN) return () => {};
+  const sub = EN.addNotificationReceivedListener((n: any) => {
+    cb(n?.request?.content?.data || {});
+  });
+  return () => { try { sub.remove(); } catch { /* ignore */ } };
 }
 
 /** Notification tap / action press while app is foregrounded + cold-start tap. */
@@ -586,18 +583,23 @@ export function onNotificationTap(cb: (data: Record<string, any>, action: string
 }
 
 /**
- * Tap on a REMOTE FCM *notification* (title/body messages the OS shows in the
- * tray for background/closed apps — e.g. reschedule, reminder, booking updates).
- * These are NOT rendered by Notifee, so their taps arrive via Firebase Messaging.
- * Fires for background taps (onNotificationOpenedApp) and cold-start taps
- * (getInitialNotification). Returns an unsubscribe fn.
+ * Tap on a REMOTE FCM notification the OS shows in the tray (background/closed
+ * apps). Routed through expo-notifications now that RNFB messaging is disabled:
+ * response listener (background tap) + getLastNotificationResponseAsync
+ * (cold-start tap). Returns an unsubscribe fn.
  */
 export function onFcmNotificationOpen(cb: (data: Record<string, any>) => void): () => void {
-  const m = messaging();
-  if (!m) return () => {};
-  const unsub = m.onNotificationOpenedApp((rm: any) => { if (rm?.data) cb(rm.data); });
-  m.getInitialNotification().then((rm: any) => { if (rm?.data) cb(rm.data); }).catch(() => {});
-  return unsub;
+  const EN = expoNotif();
+  if (!EN) return () => {};
+  const sub = EN.addNotificationResponseReceivedListener((resp: any) => {
+    const d = resp?.notification?.request?.content?.data;
+    if (d && Object.keys(d).length) cb(d);
+  });
+  EN.getLastNotificationResponseAsync?.().then((resp: any) => {
+    const d = resp?.notification?.request?.content?.data;
+    if (d && Object.keys(d).length) cb(d);
+  }).catch(() => {});
+  return () => { try { sub.remove(); } catch { /* ignore */ } };
 }
 
 export async function markPrompted() {
