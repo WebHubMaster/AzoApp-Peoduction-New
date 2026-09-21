@@ -381,3 +381,21 @@ CONDITION COVERAGE (after user grants Notifications+Full-Screen+Run-in-Backgroun
   killed+OEM-throttled → LOUD tray heads-up (fallback) + tap opens ring |
   force-stopped / switched-off → not possible (Android limit; user excluded off).
 All files compile. NATIVE → needs fresh APK to verify; cannot test ring from server.
+
+## 2026-06 — FULL-SCREEN INTENT false-positive fixed (THE cause of heads-up-not-fullscreen)
+User screenshot: gets "New job available" heads-up; tapping opens ring; wants AUTO
+full-screen call screen (no tap). Root cause FOUND in fullScreenState() — when Notifee
+can't introspect the FSI setting (common on Android 14/15), it returned granted:TRUE.
+So the app thought USE_FULL_SCREEN_INTENT was allowed, NEVER prompted the user, and the
+fullScreenAction silently degraded to a heads-up notification (Android 14+ denies FSI by
+default for non-calling apps).
+FIX (src/lib/notifications.ts):
+  - fullScreenState(): on sdk>=34 when undetectable, granted = (FSI_ASKED_KEY set) —
+    i.e. NOT granted until the user has been sent to the FSI settings screen once. No
+    more false-positive → the dashboard "Full-Screen Call Alert" row + onboarding now
+    correctly show "Allow", and ring_state.fsi reports false until granted.
+  - openFullScreenIntentSettings(): sets FSI_ASKED_KEY + fallback to openSettings().
+After rebuild: dashboard "Alert check" → "Allow" on Full-Screen Call Alert → toggle ON
+in system settings → next job auto-opens the full-screen ring over the lock screen
+(MainActivity already has showWhenLocked/turnScreenOn via withJobRingAndroid).
+All compiles. Native → verify on fresh APK.
