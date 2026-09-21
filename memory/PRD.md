@@ -668,3 +668,19 @@ VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to se
 - RESEND TIMER: OTP step shows "Resend OTP in 0:NN" (30s countdown) then an active "Resend OTP"
   button; resend re-sends and restarts the timer. Change-number kept alongside.
 VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to see on device.
+
+## 2026-06 (5) — Branded OTP SMS (Fast2SMS custom route, autofill-ready)
+- User chose the Fast2SMS "custom message" (q) route (not native SMS Retriever module).
+- backend/services/sms_service.py: added CUSTOM_ROUTES ("q"/"quick"/"custom"/"otp_custom").
+  When fast2sms_route is one of these, OTP is sent as a branded custom message formatted for
+  Android SMS Retriever / autofill: leading "<#>" + "Your <brand> OTP is 123456 ..." + the
+  11-char app hash on the last line. Applied in both send_otp_sms and send_test.
+  Brand from integrations.sms_brand_name (default AzoApp); app hash from integrations.sms_app_hash
+  (or SMS_APP_HASH env fallback). Verified message format via unit check; backend 200.
+- Admin UI (web_panel adminTemplateIntegration.jsx SMS card): added fields sms_brand_name and
+  sms_app_hash, and clarified the Route field (dlt · otp · q for custom). No settings whitelist,
+  so these persist under integrations.
+- Zero-tap native module NOT added (user opted for autofill-suggestion). APK rebuild is the user's
+  own action via the Publish panel.
+- To activate: admin sets Route=q, Brand name, and the 11-char App Hash (from the built app) in the
+  SMS card; the login OTP input already has autoComplete="sms-otp" so it will autofill.

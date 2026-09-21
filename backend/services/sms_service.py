@@ -4,15 +4,38 @@ If SMS is disabled or no API key configured, send_* return False so callers fall
 back to dev mode (OTP returned in API response). No SMS provider secret is ever
 exposed to the frontend.
 """
+import os
 import httpx
 from config.database import get_settings
 
 BASE = "https://www.fast2sms.com/dev/bulkV2"
+CUSTOM_ROUTES = ("q", "quick", "custom", "otp_custom")
 
 
 async def _cfg():
     s = await get_settings()
     return s.get("integrations", {})
+
+
+def _custom_otp_message(g: dict, otp: str) -> str:
+    """Branded OTP body for the Fast2SMS custom-message ('q') route, formatted for
+    Android SMS Retriever / autofill: a leading `<#>` and the app's 11-char hash on
+    the last line make the OTP auto-fill on the device. Brand name & app hash come
+    from admin SMS settings (or the SMS_APP_HASH env fallback)."""
+    brand = g.get("sms_brand_name") or "AzoApp"
+    app_hash = (g.get("sms_app_hash") or os.environ.get("SMS_APP_HASH") or "").strip()
+    msg = f"<#> Your {brand} OTP is {otp}. Valid for 10 minutes. Do not share it with anyone."
+    if app_hash:
+        msg += f"\n{app_hash}"
+    return msg
+
+
+def _custom_params(key: str, g: dict, otp: str, number: str) -> dict:
+    params = {"authorization": key, "route": "q", "message": _custom_otp_message(g, otp),
+              "language": "english", "flash": 0, "numbers": number}
+    if g.get("fast2sms_sender_id"):
+        params["sender_id"] = g["fast2sms_sender_id"]
+    return params
 
 
 async def sms_configured() -> bool:
@@ -38,7 +61,9 @@ async def send_otp_sms(phone: str, otp: str) -> bool:
     route = (g.get("fast2sms_route") or "otp").lower()
     try:
         async with httpx.AsyncClient(timeout=12) as client:
-            if route == "dlt" and g.get("fast2sms_sender_id") and (g.get("fast2sms_otp_template_id") or g.get("fast2sms_message_id")):
+            if route in CUSTOM_ROUTES:
+                params = _custom_params(key, g, otp, number)
+            elif route == "dlt" and g.get("fast2sms_sender_id") and (g.get("fast2sms_otp_template_id") or g.get("fast2sms_message_id")):
                 params = {"authorization": key, "route": "dlt",
                           "sender_id": g["fast2sms_sender_id"], "message": (g.get("fast2sms_otp_template_id") or g.get("fast2sms_message_id")),
                           "variables_values": str(otp), "numbers": number}
@@ -64,10 +89,13 @@ async def send_test(phone: str, otp: str = "123456") -> dict:
         return {"ok": False, "error": "Enter a valid 10-digit mobile number."}
     key = g["fast2sms_api_key"]
     route = (g.get("fast2sms_route") or "otp").lower()
+    use_custom = route in CUSTOM_ROUTES
     use_dlt = route == "dlt" and g.get("fast2sms_sender_id") and (g.get("fast2sms_otp_template_id") or g.get("fast2sms_message_id"))
     try:
         async with httpx.AsyncClient(timeout=15) as client:
-            if use_dlt:
+            if use_custom:
+                params = _custom_params(key, g, otp, number)
+            elif use_dlt:
                 params = {"authorization": key, "route": "dlt", "sender_id": g["fast2sms_sender_id"],
                           "message": (g.get("fast2sms_otp_template_id") or g.get("fast2sms_message_id")), "variables_values": str(otp), "numbers": number}
             else:
@@ -81,7 +109,7 @@ async def send_test(phone: str, otp: str = "123456") -> dict:
             msg = ("Test OTP sent — check the phone." if ok
                    else (", ".join(data.get("message", [])) if isinstance(data.get("message"), list)
                          else str(data.get("message") or "Gateway rejected the request.")))
-            return {"ok": ok, "status_code": r.status_code, "route": "dlt" if use_dlt else "otp",
+            return {"ok": ok, "status_code": r.status_code, "route": "q" if use_custom else "dlt" if use_dlt else "otp",
                     "message": msg, "response": data, "to": number}
     except Exception as e:  # noqa: BLE001
         return {"ok": False, "error": f"Network/gateway error: {str(e)[:250]}"}
