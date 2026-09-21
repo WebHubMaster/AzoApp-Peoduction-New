@@ -21,7 +21,7 @@ export default function PartnerProfile() {
   const tools: { icon: MdiName; title: string; sub: string; onPress: () => void }[] = [
     { icon: "trending-up", title: "Earnings Ledger", sub: "Track every credit & payout", onPress: () => router.push("/partner/earnings") },
     { icon: "file-document", title: "My Invoices", sub: "Job invoices & receipts", onPress: () => router.push("/partner/invoices") },
-    { icon: "credit-card", title: "Bank & KYC", sub: kyc === "approved" ? "Verified" : "Complete verification", onPress: () => router.push("/partner/bankkyc") },
+    { icon: "credit-card", title: "Bank & KYC", sub: kyc === "approved" ? "Verified" : "Complete verification", onPress: () => router.push("/partner/payouts") },
     { icon: "calendar-clock", title: "Availability", sub: "Set your working days", onPress: () => router.push("/partner/availability") },
     { icon: "gift", title: "Rewards & Challenges", sub: "Bonuses & streaks", onPress: () => router.push("/partner/rewards") },
     { icon: "chart-line", title: "Analytics", sub: "Your performance insights", onPress: () => router.push("/partner/analytics") },
