@@ -170,10 +170,10 @@ export default function BankKyc() {
             {!data.eligible && (data.blockers || []).length > 0 && (
               <p className="text-sm text-white/85 mt-1">Pending: {data.blockers.join(", ")}</p>
             )}
-            <div className="flex gap-2 mt-4 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2 mt-3">
               {steps.map((s) => (
-                <span key={s.key} className={cx("inline-flex items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1", s.done ? "bg-white/25" : "bg-white/10 text-white/70")}>
-                  {s.done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertTriangle className="h-3.5 w-3.5" />} {s.label}
+                <span key={s.key} className={cx("inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 whitespace-nowrap", s.done ? "bg-white/25" : "bg-white/10 text-white/70")}>
+                  {s.done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> : <AlertTriangle className="h-3.5 w-3.5 shrink-0" />} {s.label}
                 </span>
               ))}
             </div>
