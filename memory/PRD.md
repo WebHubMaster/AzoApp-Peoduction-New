@@ -415,3 +415,23 @@ FIX:
     once every AVAILABLE permission is granted; "Maybe later" hides at that point.
     "X/4 ready" badge now accurate.
 All compiles. Native permission behavior → verify on fresh APK.
+
+## 2026-06 — ROOT CAUSE PROVEN via diagnostic: Firebase native not initializing (no_fcm_module)
+Admin Live Dispatch Feed showed EVERY dispatch = PUSH "skip: no_devices" for partner
+Kundan (+919693488222). Foreground ring worked ONLY via SSE (live conn), masking that
+FCM never worked. My ring/push diagnostic (deployed) captured the exact device reason:
+  push_state: reason="no_fcm_module", error="no token from RNFirebase or expo-notifications",
+  permission=granted, ua="AzoApp/1.0.0 (android vivo V2303 15)".
+Meaning: messaging() returned null on device → @react-native-firebase native module NOT
+linked/initialized in the APK → no FCM token → all background/closed/locked pushes skip
+(no_devices) → ring fails 100% when app closed/locked. NOT a full-screen/permission issue.
+Config verified correct: app.json googleServicesFile set, google-services.json tracked in
+git (EAS gets it), package app.azoapp.partner matches project azo-project-9f857, plugins
+present + ordered. Stack: Expo SDK 57.0.23, RN 0.86.3, RNFB 26.4.0.
+LIKELY CAUSE: New Architecture (default ON in SDK 57) + RNFB v26 native module not linking
+under bridgeless. FIX APPLIED: app.json "newArchEnabled": false (RNFB v26 works reliably on
+old arch). Needs FRESH APK (expo prebuild --clean + EAS build).
+If still no_fcm_module after this build: (a) run `npx expo install @react-native-firebase/app
+@react-native-firebase/messaging` to get SDK-57-matched versions; (b) `expo prebuild --clean`;
+(c) confirm EAS build logs show google-services.json applied + Firebase gradle plugin.
+Verify success: admin health devices.total includes the partner; ring_state ok:true ctx:bg.
