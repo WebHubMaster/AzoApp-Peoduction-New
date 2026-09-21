@@ -14,7 +14,7 @@ from models.user import new_id
 async def notify(user_id: str, title: str, body: str, *, link: str = "/",
                  sms_text=None, email_subject: str = None,
                  email_html: str = None, data: dict = None, image: str = None,
-                 event: str = None) -> dict:
+                 event: str = None, push: bool = True) -> dict:
     result = {"in_app": False, "sse": False, "sms": None, "push": None, "email": None}
     data = dict(data or {})
     if event:
@@ -51,19 +51,20 @@ async def notify(user_id: str, title: str, body: str, *, link: str = "/",
     except Exception as e:  # noqa: BLE001
         result["sms"] = {"error": str(e)[:120]}
 
-    # 4) Push — ALWAYS best-effort (universal device alert). We fire BOTH channels:
-    #    standard VAPID Web Push (works without Firebase/Google Cloud) and legacy FCM.
-    #    A given browser registers with only ONE channel, so there are no duplicates.
-    try:
-        from services.webpush_service import send_to_user as webpush_send
-        result["webpush"] = await webpush_send(user_id, title, body, link, data, image=image)
-    except Exception as e:  # noqa: BLE001
-        result["webpush"] = {"error": str(e)[:120]}
-    try:
-        from services.fcm_service import send_to_user
-        result["push"] = await send_to_user(user_id, title, body, link, data, image=image)
-    except Exception as e:  # noqa: BLE001
-        result["push"] = {"error": str(e)[:120]}
+    # 4) Push — best-effort universal device alert (VAPID Web Push + legacy FCM). A given
+    #    browser registers with only ONE channel, so there are no duplicates. Skipped when
+    #    push=False (e.g. a full-screen job/reschedule ring is the alert — no extra tray push).
+    if push:
+        try:
+            from services.webpush_service import send_to_user as webpush_send
+            result["webpush"] = await webpush_send(user_id, title, body, link, data, image=image)
+        except Exception as e:  # noqa: BLE001
+            result["webpush"] = {"error": str(e)[:120]}
+        try:
+            from services.fcm_service import send_to_user
+            result["push"] = await send_to_user(user_id, title, body, link, data, image=image)
+        except Exception as e:  # noqa: BLE001
+            result["push"] = {"error": str(e)[:120]}
 
     # 5) Email — dynamic: only when the caller supplied HTML (template-driven)
     try:

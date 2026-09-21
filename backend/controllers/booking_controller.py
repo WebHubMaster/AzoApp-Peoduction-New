@@ -138,6 +138,8 @@ async def slot_availability(date):
             counts[bucket] = counts.get(bucket, 0) + 1
     slots = generate_slots(settings)
     return {"date": date, "capacity": cap, "slots": slots,
+            "booked": counts,
+            "remaining": {s: max(0, cap - counts.get(s, 0)) for s in slots},
             "full_slots": [s for s, n in counts.items() if n >= cap]}
 
 
@@ -980,6 +982,7 @@ async def request_reschedule(user, booking_id, scheduled_at):
                 f"from {req['old_label']} to {req['new_label']}. Tap to accept or reject.",
                 link=("/partner" if other_role == "partner" else "/account"),
                 event="reschedule_request",
+                push=(other_role != "partner"),  # partner gets the full-screen RING instead of a tray push
                 data={"type": "reschedule_request", "booking_id": booking_id, "code": b.get("code"),
                       "request_id": req["id"]})
         except Exception:  # noqa: BLE001
