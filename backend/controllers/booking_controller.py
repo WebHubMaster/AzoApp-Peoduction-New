@@ -1264,7 +1264,9 @@ async def _offer_partners(booking, pids, source):
     for pid in fresh:
         await _notify(pid, "New job available",
                       f"{booking['service_name']} near {_area} · {booking['code']}. Open Jobs to accept.",
-                      event_type="new_job_available", ctx={"booking_id": booking["code"]})
+                      event_type="new_job_available",
+                      ctx={"booking_id": booking["code"],
+                           "_data": {"android_channel": "azo-job-ring-v3", "type": "job_available", "tag": "new-job"}})
         rt.emit_user(pid, "job_request", brief)
         push_res = await _push_job_request(pid, booking, brief)
         await _record_dispatch(booking, pid, source, push_res)
@@ -1695,7 +1697,9 @@ async def dispatch_pending_to_partner(partner):
         brief = _job_brief(b)
         await _notify(pid, "New job available",
                       f"{b['service_name']} near {_area} · {b['code']}. Open Jobs to accept.",
-                      event_type="new_job_available", ctx={"booking_id": b["code"]})
+                      event_type="new_job_available",
+                      ctx={"booking_id": b["code"],
+                           "_data": {"android_channel": "azo-job-ring-v3", "type": "job_available", "tag": "new-job"}})
         rt.emit_user(pid, "job_request", brief)
         push_res = await _push_job_request(pid, b, brief)
         await _record_dispatch(b, pid, "partner_online", push_res)

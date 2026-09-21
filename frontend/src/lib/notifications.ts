@@ -19,12 +19,19 @@ export const NOTIF_PROMPTED_KEY = "azo_notif_prompted";
 const DEVICE_ID_KEY = "azo_device_id";
 
 export const CHANNELS = {
-  jobRing: "job-ring",
+  // NOTE: Android notification channels are IMMUTABLE after first creation — you
+  // cannot upgrade importance/sound of an existing id. Any old build that created
+  // "job-ring"/"chat" with wrong settings would keep them (silent ring). Bump the
+  // id (…-v3) + delete the old ids in setupAndroidChannels to force fresh channels.
+  jobRing: "azo-job-ring-v3",
   bookings: "bookings",
-  chat: "chat",
+  chat: "azo-chat-v3",
   account: "account",
   default: "default",
 } as const;
+
+/** Old channel ids to delete so their stale (silent) settings can't linger. */
+const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat"];
 
 /** Raw Android sound resource copied by plugins/withJobRingAndroid.js */
 export const JOB_RING_SOUND = "job_ring";
@@ -103,6 +110,8 @@ export async function setupAndroidChannels() {
   const mod = notifee();
   if (!n || Platform.OS !== "android") return;
   const { AndroidImportance, AndroidVisibility } = mod;
+  // Delete stale channels first (their old importance/sound can't be upgraded).
+  for (const id of LEGACY_CHANNELS) { try { await n.deleteChannel(id); } catch { /* ignore */ } }
   await n.createChannel({
     id: CHANNELS.jobRing, name: "Job Ring Alerts",
     description: "Incoming job requests ring like a call",

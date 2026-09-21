@@ -10,7 +10,7 @@
  *    API directly (token from secure storage) and stop the ring.
  */
 import { api } from "@/src/api/client";
-import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification } from "@/src/lib/notifications";
+import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification, setupAndroidChannels } from "@/src/lib/notifications";
 
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
@@ -32,6 +32,9 @@ export async function respondToJob(bookingId: string, action: "accept" | "reject
 }
 
 if (pushSupported) {
+  // Create the (fresh, high-importance) channels at app entry so the loud ring
+  // channel exists before the very first background/killed message arrives.
+  setupAndroidChannels().catch(() => {});
   const m = messaging();
   const n = NotifeeApi();
   const mod = notifee();

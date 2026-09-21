@@ -357,3 +357,27 @@ check" card (AlertsPanel TestRingCard), Android-only block "ring-permissions":
   - Re-checks on AppState 'active' (after returning from system settings).
   testIDs: ring-permissions, alert-allow-fsi, alert-allow-battery.
 Native UI → appears only in a rebuilt APK; can't be tested from web/here. Compiles OK.
+
+## 2026-06 — Job ring FINAL hardening (all-conditions, glitch-free)
+Discovered: FOREGROUND ring = React JobRingOverlay (SSE/onMessage) — NOT Notifee.
+So the stale Notifee CHANNEL was never exercised in foreground → background ring was
+SILENT. Root fixes this pass:
+  1. Channel version bump: jobRing "job-ring"→"azo-job-ring-v3", chat→"azo-chat-v3";
+     setupAndroidChannels() deletes LEGACY_CHANNELS first (immutable-channel fix →
+     the "silent notification, koi ring nahi" glitch).
+  2. setupAndroidChannels() now also runs at app ENTRY (pushBackground module init),
+     so the loud channel exists before the first background/killed message.
+  3. Loud KILLED-app fallback: new-job _notify now passes ctx._data
+     {android_channel:"azo-job-ring-v3", type:"job_available", tag:"new-job"} → the
+     system-rendered tray push (works even when app can't wake) is now LOUD on the ring
+     channel. type "job_available" (NOT job_request) so foreground consumers
+     (ChatNotifier L64, JobRingOverlay L184 both guard type==="job_request") do NOT
+     double-ring.
+  (Earlier this session: FGS phoneCall→mediaPlayback, displayJobRing FGS fallback,
+   dual-path token, dashboard one-tap FSI+battery grants, ring_state diagnostics.)
+CONDITION COVERAGE (after user grants Notifications+Full-Screen+Run-in-Background):
+  open ✓ (overlay) | background ✓ | locked ✓ (fullScreenIntent+showWhenLocked) |
+  closed/killed+battery-exempt ✓ (high-priority data wakes handler→Notifee) |
+  killed+OEM-throttled → LOUD tray heads-up (fallback) + tap opens ring |
+  force-stopped / switched-off → not possible (Android limit; user excluded off).
+All files compile. NATIVE → needs fresh APK to verify; cannot test ring from server.
