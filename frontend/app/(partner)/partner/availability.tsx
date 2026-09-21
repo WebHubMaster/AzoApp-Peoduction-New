@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Modal } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing } from "@/src/theme";
@@ -18,6 +18,7 @@ export default function PartnerAvailability() {
   const qc = useQueryClient();
   const toast = useToast();
   const [cursor, setCursor] = useState(() => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); });
+  const [picked, setPicked] = useState<string | null>(null);
 
   const { data, isLoading, isFetching } = useQuery({ queryKey: ["partner-availability"], queryFn: () => api.get<any>("/partner/availability/calendar") });
   const statusMap = useMemo(() => { const m: Record<string, string> = {}; (data?.calendar || []).forEach((r: any) => { m[r.date] = r.status; }); return m; }, [data]);
@@ -31,16 +32,8 @@ export default function PartnerAvailability() {
     onError: (e: any) => toast.error(e?.detail || "Could not update"),
   });
 
-  const onTap = (d: string) => {
-    if (d < today) return;
-    const cur = statusMap[d];
-    // cycle: awaiting → available → unavailable → awaiting(remove = unavailable kept) ; web: click toggles available/unavailable
-    if (cur === "available") setDate.mutate({ date: d, status: "unavailable" });
-    else {
-      if (availCount >= maxAvail) return toast.error(`You can pick max ${maxAvail} available dates`);
-      setDate.mutate({ date: d, status: "available" });
-    }
-  };
+  const onTap = (d: string) => { if (d < today) return; setPicked(d); };
+  const choose = (status: string) => { if (!picked) return; setDate.mutate({ date: picked, status }); setPicked(null); };
 
   const year = cursor.getFullYear(), month = cursor.getMonth();
   const first = new Date(year, month, 1).getDay();
@@ -48,7 +41,7 @@ export default function PartnerAvailability() {
   const cells: (string | null)[] = [...Array(first).fill(null), ...Array.from({ length: daysIn }, (_, i) => iso(new Date(year, month, i + 1)))];
   while (cells.length % 7) cells.push(null);
   const monthLabel = cursor.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
-  const upcoming = (data?.dates || []).filter((d: string) => d >= today).sort();
+  const upcoming = (data?.calendar || []).filter((c: any) => c.status === "available").map((c: any) => c.date).sort();
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -61,11 +54,12 @@ export default function PartnerAvailability() {
             <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "#1976D2", alignItems: "center", justifyContent: "center" }}><Icon name="calendar-month-outline" size={24} color="#fff" /></View>
             <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>My Availability</Text>
           </View>
-          <Text style={{ color: "#475569", fontSize: 15, lineHeight: 22, marginTop: 12 }}>Pick the days you&apos;ll work (max {maxAvail}). On Available dates you&apos;re auto-considered online for that day&apos;s scheduled jobs — no need to press GO ONLINE.</Text>
-          <View style={{ alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 16, padding: 16, marginTop: 16, minWidth: 180, boxShadow: "0px 4px 12px rgba(2,32,71,0.06)" }}>
-            <Text style={{ color: SLATE400, fontSize: 12, fontWeight: "700", letterSpacing: 0.8 }}>AVAILABLE DATES</Text>
-            <Text style={{ marginTop: 4 }}><Text style={{ color: "#059669", fontSize: 30, fontWeight: "800" }}>{availCount}</Text><Text style={{ color: SLATE400, fontSize: 20, fontWeight: "600" }}> / {maxAvail}</Text></Text>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: "#E2E8F0", marginTop: 8, overflow: "hidden" }}><View style={{ width: `${Math.min(100, (availCount / maxAvail) * 100)}%`, height: 6, backgroundColor: GREEN }} /></View>
+          <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 16, marginTop: 16, width: "100%", boxShadow: "0px 4px 12px rgba(2,32,71,0.06)" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+              <Text style={{ color: SLATE400, fontSize: 12, fontWeight: "700", letterSpacing: 0.8 }}>AVAILABLE DATES</Text>
+              <Text><Text style={{ color: "#059669", fontSize: 26, fontWeight: "800" }}>{availCount}</Text><Text style={{ color: SLATE400, fontSize: 18, fontWeight: "600" }}> / {maxAvail}</Text></Text>
+            </View>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: "#E2E8F0", marginTop: 10, overflow: "hidden" }}><View style={{ width: `${Math.min(100, (availCount / maxAvail) * 100)}%`, height: 6, backgroundColor: GREEN }} /></View>
           </View>
         </View>
 
@@ -88,8 +82,8 @@ export default function PartnerAvailability() {
               const sub = past ? "" : st === "available" ? "Available" : st === "unavailable" ? "Not avail." : "Awaiting";
               return (
                 <View key={d} style={{ width: "14.28%", padding: 3 }}>
-                  <Pressable testID={`avail-${d}`} disabled={past} onPress={() => onTap(d)} style={{ aspectRatio: 0.85, borderRadius: 12, backgroundColor: bg, borderWidth: isToday ? 2 : 1, borderColor: isToday ? "#1976D2" : past ? "transparent" : colors.border, alignItems: "center", justifyContent: "center", boxShadow: past ? undefined : "0px 2px 6px rgba(2,32,71,0.05)" }}>
-                    <Text style={{ color: fg, fontSize: 17, fontWeight: "800" }}>{Number(d.slice(-2))}</Text>
+                  <Pressable testID={`avail-${d}`} disabled={past} onPress={() => onTap(d)} style={{ aspectRatio: 1, borderRadius: 12, backgroundColor: bg, borderWidth: isToday ? 2 : 1, borderColor: isToday ? "#1976D2" : past ? "transparent" : colors.border, alignItems: "center", justifyContent: "center", boxShadow: past ? undefined : "0px 2px 6px rgba(2,32,71,0.05)" }}>
+                    <Text style={{ color: fg, fontSize: 16, fontWeight: "800" }}>{Number(d.slice(-2))}</Text>
                     {sub ? <Text style={{ color: st ? fg : SLATE400, fontSize: 8, fontWeight: "600", marginTop: 1 }} numberOfLines={1}>{sub}</Text> : null}
                   </Pressable>
                 </View>
@@ -117,6 +111,29 @@ export default function PartnerAvailability() {
           ))}
         </View>
       </ScrollView>
+
+      {picked ? (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setPicked(null)}>
+          <Pressable onPress={() => setPicked(null)} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
+            <Pressable onPress={() => {}} testID="availability-popup" style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20 }}>
+              <View style={{ alignSelf: "center", height: 5, width: 44, borderRadius: 3, backgroundColor: colors.border, marginBottom: 16 }} />
+              <Text style={{ color: colors.primary, fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Availability</Text>
+              <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 }}>Are you available on this date?</Text>
+              <View style={{ marginTop: 14, borderRadius: 16, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 16, paddingVertical: 12 }}>
+                <Text style={{ color: SLATE400, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Date</Text>
+                <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800", marginTop: 2 }}>{new Date(picked + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</Text>
+              </View>
+              {statusMap[picked] ? (
+                <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 12 }}>Currently: <Text style={{ color: statusMap[picked] === "available" ? "#059669" : "#E11D48", fontWeight: "700" }}>{statusMap[picked] === "available" ? "Available" : "Not Available"}</Text> · tap either to change</Text>
+              ) : null}
+              <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
+                <Pressable testID="popup-available" disabled={setDate.isPending} onPress={() => choose("available")} style={{ flex: 1, height: 48, borderRadius: 16, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="check-circle-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{setDate.isPending ? "Saving…" : "Available"}</Text></Pressable>
+                <Pressable testID="popup-unavailable" disabled={setDate.isPending} onPress={() => choose("unavailable")} style={{ flex: 1, height: 48, borderRadius: 16, borderWidth: 2, borderColor: "#FECDD3", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="close-circle-outline" size={18} color="#E11D48" /><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 15 }}>Not Available</Text></Pressable>
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : null}
     </View>
   );
 }

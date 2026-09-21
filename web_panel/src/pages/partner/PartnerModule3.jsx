@@ -604,9 +604,6 @@ export function AvailabilitySection() {
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary-600 text-white"><CalendarDays className="h-5 w-5" /></span>
               My Availability
             </h3>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5 max-w-2xl">
-              Pick the days you&apos;ll work (max {maxAvail}). On Available dates you&apos;re auto-considered online for that day&apos;s scheduled jobs — no need to press GO ONLINE.
-            </p>
           </div>
           <div className="rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 px-4 py-3 min-w-[150px]">
             <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">Available dates</p>
@@ -637,7 +634,7 @@ export function AvailabilitySection() {
         {loading ? (
           <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
             {Array.from({ length: 35 }).map((_, i) => (
-              <div key={i} className="rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse min-h-[58px] sm:min-h-[80px]" />
+              <div key={i} className="rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse min-h-[46px] sm:min-h-[60px]" />
             ))}
           </div>
         ) : (
@@ -656,7 +653,7 @@ export function AvailabilitySection() {
                 <button key={ds} data-testid={`cal-day-${ds}`} disabled={isPast}
                   aria-label={`${fmtLong(ds)}${st ? ` — ${st}` : ""}`}
                   onClick={() => setPicked(ds)}
-                  className={`relative rounded-2xl border p-1 min-h-[58px] sm:min-h-[80px] flex flex-col items-center justify-center gap-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400 ${cls} ${isToday ? "ring-2 ring-primary-500" : ""}`}>
+                  className={`relative rounded-2xl border p-1 min-h-[46px] sm:min-h-[60px] flex flex-col items-center justify-center gap-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400 ${cls} ${isToday ? "ring-2 ring-primary-500" : ""}`}>
                   {isToday && <span className="absolute top-1 right-1 text-[7.5px] font-black uppercase tracking-wide bg-primary-600 text-white rounded-full px-1.5 py-0.5">Today</span>}
                   <span className="text-base sm:text-lg font-black leading-none">{dt.getDate()}</span>
                   {st === "available" && <span className="text-[8px] sm:text-[10px] font-bold leading-none">Available</span>}
