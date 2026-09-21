@@ -614,3 +614,32 @@ deploy for the sound/no-extra-push behaviour.
    12-hour. Sends local wall-clock YYYY-MM-DDTHH:MM (matches booking slot validation).
 NEEDS new EAS build (native: datetimepicker + prior overlay/permission changes) + backend
 deploy. VALIDATION: backend health 200; tsc clean for edited files.
+
+## 2026-06 (2) — Faster dispatch + reschedule full-screen ring + calendar picker + login redesign
+1) DISPATCH SPEED (Task 1): DISPATCH_WAVE_SIZE 3 → 50 in booking_controller.py so wave-1
+   rings ALL online+free eligible partners at once (no 30s-per-wave staggering). Still
+   admin-tunable via business_config.dispatch_wave_size. NOTE: cold-start SPLASH before the
+   ring is inherent to launching the RN app — only a native overlay window removes it (flagged).
+2) RESCHEDULE FULL-SCREEN RING (Task 2): JobRingOverlay now presents a full-screen amber ring
+   for reschedule_request (SSE + foreground FCM). Shows requester name, service, code, old→new
+   time; Accept → /reschedule/respond {accept}, Reject → {reject}. Reschedule items skip /seen,
+   bypass snooze (force), and are protected from the 15s ring-pending prune (_resched flag).
+   Backend already sends the data-only ring + SSE (prev turn). pushBackground handles it (locked).
+3) RESCHEDULE CALENDAR PICKER (Task 3): new src/components/CalendarSlotPicker.tsx — month grid
+   (past dates disabled, prev-month disabled at current month) + 30-min time-slot chips
+   (8:00 AM–7:30 PM, past slots disabled for today) + "Scheduled for …" summary, matching the
+   booking screenshot. Replaced the native DateTimePicker in active.tsx reschedule modal
+   (wrapped in a maxHeight ScrollView). datetimepicker dep left installed but unused.
+4) LOGIN REDESIGN + BUG FIX (Task 4, app/(auth)/login.tsx):
+   - FIX: entering an unknown mobile no longer auto-creates a CUSTOMER. verify-otp now uses
+     create_if_new:false; new_user + no role → "No Partner/Merchant account found" step with
+     full-width Register buttons; role chosen → name step → create as partner/merchant.
+     Verified via curl (new_user:true, no token, no account created).
+   - Register buttons are full-width, one per line (Register as Partner / Register as Merchant);
+     demo logins likewise full-width one per line.
+   - Mobile input moved OUT of the white card (open/free layout).
+   - Dynamic heading: "Login to Get Started" vs "Create your Partner/Merchant account"; subtitle
+     changes per step (phone/otp/name/noaccount).
+   - Hero (man) image enlarged (210×262) and anchored to the bottom of the hero card.
+VALIDATION: backend health 200; account-creation curl pass; tsc + eslint 0 errors on all edited
+files. All UI changes need a new EAS build to verify on device.
