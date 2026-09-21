@@ -2174,6 +2174,31 @@ async def partner_ring_pending(partner):
     return [_job_brief(b) for b in rows]
 
 
+async def partner_reschedule_pending(partner):
+    """Customer-initiated reschedule requests still PENDING on this partner's bookings —
+    polling / app-launch fallback so the full-screen reschedule RING shows even when the
+    SSE event or push was missed because the app was closed or the phone was locked.
+    Mirrors partner_ring_pending for the reschedule call-style alert."""
+    pid = partner["id"]
+    rows = await db.bookings.find(
+        {"partner_id": pid,
+         "reschedule_request.status": "pending",
+         "reschedule_request.requested_by_role": "customer"},
+        {"_id": 0}).sort("updated_at", -1).to_list(10)
+    out = []
+    for b in rows:
+        r = b.get("reschedule_request") or {}
+        out.append({
+            "type": "reschedule_request", "booking_id": b.get("id"), "code": b.get("code"),
+            "service_name": b.get("service_name"), "requester_role": r.get("requested_by_role"),
+            "requester_name": r.get("requester_name"),
+            "old_date": r.get("old_date"), "old_time": r.get("old_time"),
+            "new_date": r.get("new_date"), "new_time": r.get("new_time"),
+            "request_id": r.get("id"),
+        })
+    return out
+
+
 async def partner_active_jobs(partner):
     """Jobs this partner has accepted and are in progress (Active Job menu)."""
     rows = await db.bookings.find(
