@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, Linking, Platform, ScrollView } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, Linking, Platform, ScrollView, ActivityIndicator } from "react-native";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -14,25 +14,14 @@ import { AppShellHeader, Surface, KitEmpty, StatusBadge } from "@/src/components
 import { ProgressRing } from "@/src/components/ProgressRing";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
+import { uploadAsset } from "@/src/components/reg/Photo";
 
 const SLATE400 = "#94A3B8";
+const REG_BASE = "/partner/registration";
 
-/** Resolve a doc url — data: URIs pass through, everything else goes via mediaUrl. */
+/** Resolve a doc url for viewing — data: URIs pass through, everything else via mediaUrl. */
 const docUri = (u?: string | null) => (!u ? undefined : /^data:/.test(u) ? u : mediaUrl(u));
 const isPdf = (u?: string | null) => !!u && /\.pdf($|\?)|application\/pdf/i.test(u);
-
-async function pickImage(): Promise<string | null> {
-  let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
-  if (!perm.granted) {
-    if (perm.canAskAgain) perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted && !perm.canAskAgain) { Linking.openSettings(); return null; }
-    if (!perm.granted) return null;
-  }
-  const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true, mediaTypes: ["images"] });
-  if (res.canceled || !res.assets?.[0]?.base64) return null;
-  const asset = res.assets[0];
-  return `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`;
-}
 
 export default function PartnerPayouts() {
   const { colors } = useTheme();
@@ -126,7 +115,7 @@ export default function PartnerPayouts() {
             </View>
             {/* Circular KYC progress ring */}
             <View style={{ alignItems: "center", justifyContent: "flex-start" }} testID="kyc-ring">
-              <ProgressRing pct={kycPct} color="#fff" trackColor="rgba(255,255,255,0.22)" size={70} stroke={7} label="" centerBottom="KYC DONE" light />
+              <ProgressRing pct={kycPct} color="#fff" trackColor="rgba(255,255,255,0.22)" size={70} stroke={7} label="" centerBottom="KYC done" light />
             </View>
           </View>
         </LinearGradient>
@@ -177,7 +166,7 @@ export default function PartnerPayouts() {
             ) : (
               <>
                 <Field colors={colors} placeholder="PAN number (ABCDE1234F)" value={pan} onChange={(t: string) => setPan(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10))} autoCap testID="pan-input" />
-                <ImagePickField colors={colors} label="PAN card image" img={panImg} onPick={async () => setPanImg(await pickImage())} testID="pan-upload" />
+                <UploadTile colors={colors} label="PAN card image" value={panImg} docType="pan_url" onUploaded={setPanImg} testID="pan-upload" />
                 <Button title={panRejected ? "Resubmit PAN" : "Submit PAN"} onPress={() => submitPan.mutate()} loading={submitPan.isPending} disabled={pan.length < 10 || !panImg} testID="submit-pan" />
                 <Text style={{ color: SLATE400, fontSize: 12, lineHeight: 18 }}>You can upload only one PAN card. It locks once submitted, until reviewed.</Text>
               </>
@@ -203,12 +192,11 @@ export default function PartnerPayouts() {
                     <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
                       <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={colors.primary} /></View>
                       <View style={{ flex: 1 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }} numberOfLines={1}>{bk.bank_name || "Bank"}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                          <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{bk.bank_name || "Bank"}</Text>
                           {bk.is_primary ? <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: "#DBEAFE", borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}><Icon name="star" size={9} color={colors.primary} /><Text style={{ color: colors.primary, fontSize: 9, fontWeight: "800" }}>PRIMARY</Text></View> : null}
                         </View>
-                        <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 2 }} numberOfLines={1}>{bk.account_holder}</Text>
-                        <Text style={{ color: SLATE400, fontSize: 12, marginTop: 1 }} numberOfLines={1}>••••{String(bk.account_number || "").slice(-4)} · {bk.ifsc}{bk.upi_id ? ` · UPI ${bk.upi_id}` : ""}</Text>
+                        <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 3, lineHeight: 18 }}>{bk.account_holder} · A/C {bk.account_number} · {bk.ifsc}{bk.upi_id ? ` · UPI ${bk.upi_id}` : ""}</Text>
                         {bk.status === "rejected" && bk.reason ? <Text style={{ color: colors.danger, fontSize: 12, marginTop: 4 }}>Rejected: {bk.reason}</Text> : null}
                       </View>
                     </View>
@@ -240,39 +228,79 @@ function AddBankModal({ open, onClose, onDone }: { open: boolean; onClose: () =>
   const [passbook, setPassbook] = useState<string | null>(null);
   const set = (k: string) => (v: string) => setF((s) => ({ ...s, [k]: v }));
   const mismatch = !!f.confirm_number && f.account_number !== f.confirm_number;
+  const canSubmit = !!f.account_holder && !!f.account_number && !mismatch && !!f.ifsc && !!passbook;
   const submit = useMutation({
     mutationFn: () => {
       const { confirm_number, ...payload } = f;
       return api.post("/partner/finance-kyc/banks", { ...payload, ifsc: f.ifsc.toUpperCase(), passbook_url: passbook });
     },
-    onSuccess: () => { toast.success("Bank added — pending verification"); setF({ account_holder: "", bank_name: "", account_number: "", confirm_number: "", ifsc: "", upi_id: "" }); setPassbook(null); onClose(); onDone(); },
+    onSuccess: () => { toast.success("Bank submitted for verification"); setF({ account_holder: "", bank_name: "", account_number: "", confirm_number: "", ifsc: "", upi_id: "" }); setPassbook(null); onClose(); onDone(); },
     onError: (e: any) => toast.error(e?.detail || "Could not add bank"),
   });
   const go = () => {
-    if (!f.account_holder || !f.bank_name || !f.account_number || !f.ifsc) return toast.error("Fill holder, bank, account number & IFSC");
+    if (!f.account_holder || !f.account_number || !f.ifsc) return toast.error("Fill account holder, account number & IFSC");
     if (f.account_number !== f.confirm_number) return toast.error("Account numbers do not match");
-    if (!passbook) return toast.error("Upload passbook / cheque image");
+    if (!passbook) return toast.error("Upload passbook / cancelled cheque image");
     submit.mutate();
   };
   return (
     <Sheet open={open} onClose={onClose} title="Add Bank Account" insets={insets} colors={colors}>
-      <Field colors={colors} icon="account" placeholder="Account holder name" value={f.account_holder} onChange={set("account_holder")} />
-      <Field colors={colors} icon="bank" placeholder="Bank name" value={f.bank_name} onChange={set("bank_name")} />
-      <Field colors={colors} icon="numeric" placeholder="Account number" value={f.account_number} onChange={(t) => set("account_number")(t.replace(/[^0-9]/g, ""))} keyboard="number-pad" />
-      <View>
-        <Field colors={colors} icon="numeric" placeholder="Confirm account number" value={f.confirm_number} onChange={(t) => set("confirm_number")(t.replace(/[^0-9]/g, ""))} keyboard="number-pad" />
+      <FieldLabel colors={colors} label="Account holder name"><Field colors={colors} placeholder="Account holder name" value={f.account_holder} onChange={set("account_holder")} /></FieldLabel>
+      <FieldLabel colors={colors} label="Bank name"><Field colors={colors} placeholder="Bank name" value={f.bank_name} onChange={set("bank_name")} /></FieldLabel>
+      <FieldLabel colors={colors} label="Account number"><Field colors={colors} placeholder="Account number" value={f.account_number} onChange={(t) => set("account_number")(t.replace(/[^0-9]/g, ""))} keyboard="number-pad" /></FieldLabel>
+      <FieldLabel colors={colors} label="Confirm account number">
+        <Field colors={colors} placeholder="Confirm account number" value={f.confirm_number} onChange={(t) => set("confirm_number")(t.replace(/[^0-9]/g, ""))} keyboard="number-pad" />
         {mismatch ? <Text style={{ color: colors.danger, fontSize: 11, marginTop: 4, marginLeft: 4 }}>Account numbers do not match</Text> : null}
-      </View>
-      <Field colors={colors} icon="barcode" placeholder="IFSC code (SBIN0001234)" value={f.ifsc} onChange={(t) => set("ifsc")(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))} autoCap />
-      <Field colors={colors} icon="at" placeholder="UPI ID (optional)" value={f.upi_id} onChange={set("upi_id")} />
-      <ImagePickField colors={colors} label="Passbook / cancelled cheque (required)" img={passbook} onPick={async () => setPassbook(await pickImage())} testID="passbook-upload" />
-      <Button title="Submit for verification" onPress={go} loading={submit.isPending} testID="submit-bank" />
+      </FieldLabel>
+      <FieldLabel colors={colors} label="IFSC code"><Field colors={colors} placeholder="SBIN0001234" value={f.ifsc} onChange={(t) => set("ifsc")(t.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))} autoCap /></FieldLabel>
+      <FieldLabel colors={colors} label="UPI ID (optional)"><Field colors={colors} placeholder="yourname@upi" value={f.upi_id} onChange={set("upi_id")} /></FieldLabel>
+      <UploadTile colors={colors} label="Passbook / cancelled cheque" value={passbook} docType="passbook_url" onUploaded={setPassbook} testID="passbook-upload" />
+      <Button title={submit.isPending ? "Submitting…" : "Submit for verification"} onPress={go} loading={submit.isPending} disabled={!canSubmit} testID="submit-bank" />
     </Sheet>
   );
 }
 
+/* Upload tile — uploads via the shared /partner/registration/upload endpoint (same backend logic as web) and stores the returned URL. */
+function UploadTile({ colors, label, value, docType, onUploaded, testID }: { colors: any; label: string; value: string | null; docType: string; onUploaded: (url: string) => void; testID?: string }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const has = !!value;
+  const pick = async () => {
+    if (busy) return;
+    try {
+      let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        if (perm.canAskAgain) perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) { if (!perm.canAskAgain) Linking.openSettings(); return; }
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, mediaTypes: ["images"] });
+      if (res.canceled || !res.assets?.[0]) return;
+      setBusy(true);
+      const d = await uploadAsset(REG_BASE, docType, res.assets[0]);
+      onUploaded(d.url);
+      toast.success("Uploaded");
+    } catch (e: any) {
+      toast.error(e?.message || "Upload failed — please try again");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Pressable testID={testID} onPress={pick} disabled={busy}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
+      <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
+        {busy ? <ActivityIndicator size="small" color={colors.primary} /> : has ? <Icon name="check-circle" size={22} color={colors.success} /> : <Icon name="upload" size={22} color={colors.textMuted} />}
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }}>{label}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 1 }}>{busy ? "Uploading…" : has ? "Uploaded — tap to replace" : "Tap to upload (image)"}</Text>
+      </View>
+      {has && !busy ? <Image source={{ uri: docUri(value) }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : null}
+    </Pressable>
+  );
+}
+
 function DocViewer({ doc, onClose }: { doc: { url: string; label: string } | null; onClose: () => void }) {
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   if (!doc) return null;
   const uri = docUri(doc.url);
@@ -307,34 +335,32 @@ function Sheet({ open, onClose, title, children, insets, colors }: any) {
       <KeyboardProvider>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }}>
+        <ScrollView style={{ maxHeight: "88%", backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24 }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }} keyboardShouldPersistTaps="handled">
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>
           </View>
           {children}
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
       </KeyboardProvider>
     </Modal>
   );
 }
 
-function Field({ colors, icon, placeholder, value, onChange, keyboard, autoCap, testID }: any) {
+function FieldLabel({ colors, label, children }: any) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 50 }}>
-      {icon ? <Icon name={icon} size={18} color={colors.textMuted} /> : null}
-      <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={colors.textMuted} keyboardType={keyboard || "default"} autoCapitalize={autoCap ? "characters" : "none"} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: fontSize.md, fontWeight: "600" }} />
+    <View>
+      <Text style={{ color: SLATE400, fontSize: 11, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 6 }}>{label}</Text>
+      {children}
     </View>
   );
 }
 
-function ImagePickField({ colors, label, img, onPick, testID }: any) {
-  const remote = img ? docUri(img) : undefined;
+function Field({ colors, placeholder, value, onChange, keyboard, autoCap, testID }: any) {
   return (
-    <Pressable testID={testID} onPress={onPick} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1.5, borderStyle: "dashed", borderColor: img ? colors.success : colors.border, borderRadius: radius.md, padding: 10, backgroundColor: img ? colors.successSubtle : "transparent" }}>
-      {img ? <Image source={{ uri: remote }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="camera-plus" size={22} color={colors.primary} /></View>}
-      <Text style={{ color: img ? colors.success : colors.textSecondary, fontSize: fontSize.sm, fontWeight: "700", flex: 1 }}>{img ? "Image selected — tap to change" : label}</Text>
-    </Pressable>
+    <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 50 }}>
+      <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={colors.textMuted} keyboardType={keyboard || "default"} autoCapitalize={autoCap ? "characters" : "none"} autoCorrect={false} style={{ flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: "600" }} />
+    </View>
   );
 }

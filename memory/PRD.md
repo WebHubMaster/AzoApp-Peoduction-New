@@ -39,3 +39,11 @@ https://partner-panel-kyc.preview.emergentagent.com  → web_panel (LIVE)
   - Add-bank sheet: added "Confirm account number" (mismatch guard) + UPI.
   - Added DocViewer modal (image/pdf lightbox).
 - Web: hero step chips polished to one tidy non-wrapping-internally row.
+
+## Update (2026-06 #2): Partner Bank & KYC — completed remaining web-parity gaps
+- Fixed the main missed item: mobile now uploads PAN/passbook images via the SAME backend flow as web — POST /partner/registration/upload (multipart via uploadAsset) → stores returned {url}, instead of raw base64. New UploadTile shows uploading/upload-done states + preview.
+- Add-bank sheet now uses uppercase field labels + validation identical to web (holder/account/ifsc/passbook required, confirm-number must match; bank name optional).
+- Bank card subtitle now mirrors web exactly: "{holder} · A/C {account_number} · {ifsc} · UPI {upi}".
+- Ring label "KYC done" (matches web wording).
+- Routing fix: partner Profile → "Bank & KYC" now opens /partner/payouts (rich parity screen) instead of the old simple FinanceKyc screen. All partner entry points (dashboard/more/wallet/profile) now land on the same screen.
+- tsc: 0 errors.
