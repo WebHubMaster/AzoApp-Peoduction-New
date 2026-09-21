@@ -47,3 +47,8 @@ https://partner-panel-kyc.preview.emergentagent.com  → web_panel (LIVE)
 - Ring label "KYC done" (matches web wording).
 - Routing fix: partner Profile → "Bank & KYC" now opens /partner/payouts (rich parity screen) instead of the old simple FinanceKyc screen. All partner entry points (dashboard/more/wallet/profile) now land on the same screen.
 - tsc: 0 errors.
+
+## Update (2026-06 #3): Bank & KYC upload — camera + live % bar
+- UploadTile (payouts.tsx) now offers Camera OR Gallery via shared SourceSheet + pickImage (back camera, permission handling).
+- Real upload progress: switched to XMLHttpRequest (RN upload.onprogress) → shows "Uploading… N%" + a brand-colored progress bar, same as web. Web platform falls back to uploadAsset. Same /partner/registration/upload endpoint.
+- tsc: 0 errors.

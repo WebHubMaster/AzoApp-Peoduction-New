@@ -4,9 +4,8 @@ import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-co
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
-import { api, mediaUrl } from "@/src/api/client";
+import { api, mediaUrl, API_BASE, getToken } from "@/src/api/client";
 import { ScreenScroll } from "@/src/components/Screen";
 import { Button } from "@/src/components/ui";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,7 +13,7 @@ import { AppShellHeader, Surface, KitEmpty, StatusBadge } from "@/src/components
 import { ProgressRing } from "@/src/components/ProgressRing";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
-import { uploadAsset } from "@/src/components/reg/Photo";
+import { uploadAsset, SourceSheet, pickImage } from "@/src/components/reg/Photo";
 
 const SLATE400 = "#94A3B8";
 const REG_BASE = "/partner/registration";
@@ -260,43 +259,74 @@ function AddBankModal({ open, onClose, onDone }: { open: boolean; onClose: () =>
   );
 }
 
-/* Upload tile — uploads via the shared /partner/registration/upload endpoint (same backend logic as web) and stores the returned URL. */
+/* Multipart upload with live % progress (XHR — RN supports upload.onprogress). Same endpoint/backend logic as web. */
+async function uploadWithProgress(base: string, docType: string, asset: any, onProgress: (p: number) => void): Promise<any> {
+  if (Platform.OS === "web") { onProgress(30); const d = await uploadAsset(base, docType, asset); onProgress(100); return d; }
+  const token = await getToken();
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${API_BASE}${base}/upload`);
+    if (token) xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = (ev: any) => { if (ev.lengthComputable) onProgress(Math.round((ev.loaded * 100) / ev.total)); };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); } catch { reject(new Error("Upload failed")); }
+      } else {
+        let d = `Upload failed (${xhr.status})`;
+        try { d = JSON.parse(xhr.responseText)?.detail || d; } catch { /* noop */ }
+        reject(new Error(typeof d === "string" ? d : "Upload failed"));
+      }
+    };
+    xhr.onerror = () => reject(new Error("Upload failed — please check your connection"));
+    const fd = new FormData();
+    fd.append("file", { uri: asset.uri, name: asset.fileName || `${docType}_${Date.now()}.jpg`, type: asset.mimeType || "image/jpeg" } as any);
+    fd.append("doc_type", docType);
+    xhr.send(fd);
+  });
+}
+
+/* Upload tile — camera OR gallery, uploads via /partner/registration/upload with a live % bar (same as web). */
 function UploadTile({ colors, label, value, docType, onUploaded, testID }: { colors: any; label: string; value: string | null; docType: string; onUploaded: (url: string) => void; testID?: string }) {
   const toast = useToast();
-  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState<number | null>(null);
+  const [choose, setChoose] = useState(false);
   const has = !!value;
-  const pick = async () => {
-    if (busy) return;
+  const uploading = pct !== null && pct < 100;
+  const run = async (source: "camera" | "gallery") => {
     try {
-      let perm = await ImagePicker.getMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        if (perm.canAskAgain) perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (!perm.granted) { if (!perm.canAskAgain) Linking.openSettings(); return; }
-      }
-      const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.7, mediaTypes: ["images"] });
-      if (res.canceled || !res.assets?.[0]) return;
-      setBusy(true);
-      const d = await uploadAsset(REG_BASE, docType, res.assets[0]);
+      const asset = await pickImage(source, "back");
+      if (!asset) return;
+      setPct(0);
+      const d = await uploadWithProgress(REG_BASE, docType, asset, setPct);
+      setPct(100);
       onUploaded(d.url);
       toast.success("Uploaded");
+      setTimeout(() => setPct(null), 600);
     } catch (e: any) {
+      setPct(null);
       toast.error(e?.message || "Upload failed — please try again");
-    } finally {
-      setBusy(false);
     }
   };
   return (
-    <Pressable testID={testID} onPress={pick} disabled={busy}
-      style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
-      <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
-        {busy ? <ActivityIndicator size="small" color={colors.primary} /> : has ? <Icon name="check-circle" size={22} color={colors.success} /> : <Icon name="upload" size={22} color={colors.textMuted} />}
-      </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }}>{label}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 1 }}>{busy ? "Uploading…" : has ? "Uploaded — tap to replace" : "Tap to upload (image)"}</Text>
-      </View>
-      {has && !busy ? <Image source={{ uri: docUri(value) }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : null}
-    </Pressable>
+    <>
+      <Pressable testID={testID} onPress={() => !uploading && setChoose(true)} disabled={uploading}
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
+        <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
+          {uploading ? <ActivityIndicator size="small" color={colors.primary} /> : has ? <Icon name="check-circle" size={22} color={colors.success} /> : <Icon name="camera-plus-outline" size={22} color={colors.textMuted} />}
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }}>{label}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 1 }}>{uploading ? `Uploading… ${pct}%` : has ? "Uploaded — tap to replace" : "Tap to upload (camera or gallery)"}</Text>
+          {pct !== null ? (
+            <View style={{ marginTop: 8, height: 6, borderRadius: 3, backgroundColor: colors.surfaceSubtle, overflow: "hidden" }}>
+              <View style={{ height: "100%", width: `${pct}%`, borderRadius: 3, backgroundColor: colors.primary }} />
+            </View>
+          ) : null}
+        </View>
+        {has && !uploading ? <Image source={{ uri: docUri(value) }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : null}
+      </Pressable>
+      <SourceSheet open={choose} onClose={() => setChoose(false)} onPick={run} title={`Upload ${label}`} />
+    </>
   );
 }
 
