@@ -23,7 +23,7 @@ const TONES: Record<string, { bg: string; fg: string }> = {
 function KpiCard({ icon, tone, label, value, sub, trend, testID }: { icon: MdiName; tone: string; label: string; value: string; sub?: string; trend?: number | null; testID?: string }) {
   const { colors } = useTheme();
   return (
-    <Surface testID={testID} style={{ padding: 16, width: "48.5%" }}>
+    <Surface testID={testID} style={{ padding: 16, width: "48%" }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: TONES[tone].bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={TONES[tone].fg} /></View>
         {trend != null ? (
@@ -210,20 +210,20 @@ export default function PartnerWallet() {
 
             {/* KYC blocker */}
             {!eligible ? (
-              <Surface testID="wallet-kyc-blocker" style={{ padding: 16, borderColor: "#FDE68A", backgroundColor: "rgba(255,251,235,0.6)" }}>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: "#FEF3C7", alignItems: "center", justifyContent: "center" }}><Icon name="alert-outline" size={20} color="#D97706" /></View>
+              <Surface testID="wallet-kyc-blocker" style={{ padding: 16, borderColor: "#FCD34D", backgroundColor: "#FFFBEB" }}>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: "#FEF3C7", alignItems: "center", justifyContent: "center" }}><Icon name="alert-outline" size={20} color="#D97706" /></View>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Complete Bank & KYC to withdraw</Text>
-                    <Text style={{ color: "#B45309", fontSize: 14, marginTop: 2 }}>Pending: {fin.blockers.join(", ") || "verification"}</Text>
+                    <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", lineHeight: 20 }}>Complete Bank & KYC to withdraw</Text>
+                    <Text style={{ color: "#B45309", fontSize: 13, marginTop: 4, lineHeight: 18 }}>Pending: {fin.blockers.join(", ") || "verification"}</Text>
                   </View>
                 </View>
-                <Pressable testID="wallet-complete-kyc" onPress={gotoKyc} style={{ marginTop: 12, height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Complete Bank & KYC</Text></Pressable>
+                <Pressable testID="wallet-complete-kyc" onPress={gotoKyc} style={{ marginTop: 14, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Complete Bank & KYC</Text></Pressable>
               </Surface>
             ) : null}
 
-            {/* KPI grid */}
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, justifyContent: "space-between" }}>
+            {/* KPI grid — always 2 per row, responsive on all widths */}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 }}>
               <KpiCard icon="trending-up" tone="emerald" label="Total Earned" value={money(s.total_earned)} sub="Lifetime earnings" trend={trend} testID="kpi-total-earned" />
               <KpiCard icon="gift-outline" tone="primary" label="Incentives" value={money(s.total_incentive)} sub="Bonuses & rewards" testID="kpi-incentives" />
               <KpiCard icon="clock-outline" tone="amber" label="Processing" value={money(s.pending_balance)} sub="Locked in withdrawals" testID="kpi-processing" />
