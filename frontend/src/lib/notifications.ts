@@ -426,7 +426,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
     body: jobRingBody(d),
     data: cleanData,
     android: {
-      channelId: CHANNELS.jobRing,
+      channelId: CHANNELS.jobRingSilent,
       category: AndroidCategory.CALL,
       importance: AndroidImportance.HIGH,
       visibility: AndroidVisibility.PUBLIC,
@@ -434,8 +434,6 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       color: "#0D47A1",
       colorized: true,
       largeIcon: d.image || undefined,
-      sound: JOB_RING_SOUND,
-      loopSound: asFgs,
       vibrationPattern: [400, 250, 400, 250],
       lightUpScreen: true,
       ongoing: asFgs,
@@ -472,6 +470,9 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       return false;
     }
   }
+  // Play the admin's custom uploaded tone (looped). The notification channel is
+  // silent, so this is the ONLY sound — no default tone plays first.
+  await startRingSound(String(d.booking_id));
   return true;
 }
 
