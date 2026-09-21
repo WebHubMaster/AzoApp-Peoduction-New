@@ -594,3 +594,23 @@ LIMITATION: if the user doesn't grant "Display over other apps", unlocked stays 
 exemption) — needs device confirmation.
 Backend from prior round (silent ring channel + removed "New job available" push) still needs
 deploy for the sound/no-extra-push behaviour.
+
+## 2026-06 — Ring sound single-source + reschedule ring + Active Job UI + date/time picker
+1) SOUND: removed startRingSound() from displayJobRing. The app is always brought to the
+   foreground on a ring, so RealtimeContext.playRing (JobRingOverlay) is the SINGLE sound
+   source — no more "default plays first then admin" overlap/restart. notifications.ts.
+2) CUSTOMER RESCHEDULE → PARTNER FULL-SCREEN RING: backend request_reschedule now also sends
+   a data-only ring (push_dispatch, type "reschedule_request", silent channel, tag resched-<id>)
+   to the partner when the requester is the customer → expo bg task → Notifee full-screen ring +
+   brings app to front. pushBackground handleRemoteData handles "reschedule_request" like
+   job_request. displayJobRing shows reschedule title/subtitle/body ("Reschedule request",
+   "New: <date> · <time>") and preserves cleanData.type (was hard-coded job_request). On
+   foreground the Active Job screen's existing pending-reschedule card handles accept/reject.
+3) ACTIVE JOB UI (app/(partner)/active.tsx): removed "Share Location" button; Reject Job +
+   Request Reschedule now flex:1 (clean 2-up row). shareLocation/sharing left as dead code.
+4) RESCHEDULE PICKER: installed @react-native-community/datetimepicker@9.1.0 (config plugin
+   added). Replaced the manual "YYYY-MM-DD HH:MM" TextInput with a native date→time picker:
+   minimumDate=now (past disabled, future only), minuteInterval=30 (matches slot grid),
+   12-hour. Sends local wall-clock YYYY-MM-DDTHH:MM (matches booking slot validation).
+NEEDS new EAS build (native: datetimepicker + prior overlay/permission changes) + backend
+deploy. VALIDATION: backend health 200; tsc clean for edited files.

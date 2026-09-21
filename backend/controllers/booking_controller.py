@@ -984,6 +984,24 @@ async def request_reschedule(user, booking_id, scheduled_at):
                       "request_id": req["id"]})
         except Exception:  # noqa: BLE001
             pass
+        # Partner gets the same full-screen call-style RING as a new job (data-only
+        # message → background task → Notifee full-screen + brings app to front).
+        if other_role == "partner":
+            try:
+                from services import push_dispatch
+                await push_dispatch.push_to_user(
+                    target_id, "Reschedule request",
+                    f"{req['requester_name']} wants to move to {req.get('new_label') or ''}",
+                    link="/(partner)",
+                    data={"type": "reschedule_request", "booking_id": booking_id,
+                          "code": str(b.get("code") or ""), "service_name": str(b.get("service_name") or ""),
+                          "requester_name": str(req["requester_name"]),
+                          "new_date": str(req.get("new_date") or ""), "new_time": str(req.get("new_time") or ""),
+                          "old_date": str(req.get("old_date") or ""), "old_time": str(req.get("old_time") or ""),
+                          "android_channel": "azo-ring-silent-v1", "tag": f"resched-{booking_id}"},
+                    data_only=True)
+            except Exception:  # noqa: BLE001
+                pass
     return await get_booking(user, booking_id)
 
 
