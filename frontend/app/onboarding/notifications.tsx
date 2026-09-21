@@ -10,7 +10,7 @@ import { useToast } from "@/src/components/Toast";
 import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
-  fullScreenState, markPrompted,
+  fullScreenState, markPrompted, requestOverlayPermission, overlayState,
 } from "@/src/lib/notifications";
 
 type Card = {
@@ -25,6 +25,7 @@ type Card = {
 const CARDS: Card[] = [
   { key: "notifications", icon: "bell-ring", title: "Job Ring Alerts", sub: "Ring loudly for every new job — even when the app is closed", tint: "#F59E0B", critical: true },
   { key: "fullscreen", icon: "cellphone-message", title: "Full-Screen Call Alert", sub: "Show a call-style screen when your phone is locked", tint: "#22C55E" },
+  { key: "overlay", icon: "cellphone-arrow-down", title: "Display Over Other Apps", sub: "Show the full-screen ring even when your phone is unlocked & in use", tint: "#F472B6" },
   { key: "battery", icon: "battery-heart-variant", title: "Run in Background", sub: "Keep ringing reliably without being stopped to save battery", tint: "#38BDF8" },
   { key: "location", icon: "map-marker-radius", title: "Location", sub: "See each job's distance & travel time on the ring", tint: "#A78BFA" },
 ];
@@ -83,6 +84,7 @@ export default function PermissionsOnboarding() {
       if (key === "location") return await requestLocationPermission();
       if (key === "battery") { await requestBatteryExemption(); return null; }
       if (key === "fullscreen") { await openFullScreenIntentSettings(); return null; }
+      if (key === "overlay") { await requestOverlayPermission(); return null; }
     } catch { /* ignore */ }
     return null;
   }, []);
@@ -109,6 +111,10 @@ export default function PermissionsOnboarding() {
       //    it just once and only when it isn't already satisfied.
       const fs = await fullScreenState();
       if (fs.available && !fs.granted) await openFullScreenIntentSettings();
+      // 4) Display over other apps — enables the full-screen ring on an UNLOCKED
+      //    screen. Open it once if not already granted.
+      const ov = await overlayState();
+      if (ov.available && !ov.granted) await requestOverlayPermission();
     }
     const next = await allPermissionStates();
     setStates(next);

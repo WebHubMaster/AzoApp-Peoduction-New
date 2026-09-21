@@ -13,6 +13,7 @@ const path = require("path");
 const PERMS = [
   "android.permission.POST_NOTIFICATIONS",
   "android.permission.USE_FULL_SCREEN_INTENT",
+  "android.permission.SYSTEM_ALERT_WINDOW",
   "android.permission.FOREGROUND_SERVICE",
   "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
   "android.permission.WAKE_LOCK",

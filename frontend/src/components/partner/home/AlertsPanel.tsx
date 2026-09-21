@@ -8,7 +8,7 @@ import { useTheme } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
-import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption } from "@/src/lib/notifications";
+import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption, overlayState, requestOverlayPermission } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
 import { TW } from "./tw";
 
@@ -30,10 +30,10 @@ export function TestRingCard() {
   const checkPerm = useCallback(() => {
     getPermissionStatus().then((p) => setPerm(p.granted ? "granted" : p.canAskAgain ? "prompt" : "denied")).catch(() => setPerm("prompt"));
   }, []);
-  const [extra, setExtra] = useState<{ fsi?: any; battery?: any }>({});
+  const [extra, setExtra] = useState<{ fsi?: any; battery?: any; overlay?: any }>({});
   const loadExtra = useCallback(() => {
     if (Platform.OS !== "android") return;
-    Promise.all([fullScreenState(), batteryState()]).then(([fsi, battery]) => setExtra({ fsi, battery })).catch(() => {});
+    Promise.all([fullScreenState(), batteryState(), overlayState()]).then(([fsi, battery, overlay]) => setExtra({ fsi, battery, overlay })).catch(() => {});
   }, []);
   useEffect(() => { checkPerm(); loadExtra(); }, [checkPerm, loadExtra]);
   // Re-check when returning from a system settings screen.
@@ -103,6 +103,14 @@ export function TestRingCard() {
                 <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Allow</Text>
               </Pressable>
             ) : null}
+          </View>
+          {/* Display over other apps — full-screen ring even when the phone is UNLOCKED */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name={extra.overlay?.granted ? "check-circle" : "cellphone-arrow-down"} size={15} color={extra.overlay?.granted ? TW.emerald600 : TW.amber600} />
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Full-Screen on Unlocked{extra.overlay?.granted ? " · allowed" : ""}</Text>
+            <Pressable testID="alert-allow-overlay" onPress={() => requestOverlayPermission().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.overlay?.granted ? colors.surfaceSubtle : colors.primary }}>
+              <Text style={{ color: extra.overlay?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.overlay?.granted ? "Open" : "Allow"}</Text>
+            </Pressable>
           </View>
         </View>
       ) : null}
