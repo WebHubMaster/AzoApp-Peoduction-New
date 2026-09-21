@@ -1130,9 +1130,9 @@ async def _push_job_request(pid, booking, brief):
                   "schedule_type": str(brief.get("schedule_type") or ""),
                   "scheduled_date": str(brief.get("scheduled_date") or ""),
                   "scheduled_time": str(brief.get("scheduled_time") or ""),
-                  "android_channel": "job-ring", "tag": f"job-{booking['id']}",
+                  "android_channel": "azo-job-ring-v3", "tag": "new-job",
                   "image": brief.get("service_image", "")},
-            image=brief.get("service_image") or None, data_only=True)
+            image=brief.get("service_image") or None, data_only=False)
     except Exception as e:  # noqa: BLE001
         return {"success": 0, "failure": 0, "error": str(e)[:200]}
 
