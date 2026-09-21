@@ -118,7 +118,7 @@ Setup (fork): recreated backend/.env (DB=azoapp), frontend/.env, web_panel/.env
 (REACT_APP_BACKEND_URL empty → same-origin). web_panel now runs on port 3000 via
 new supervisor program `webpanel` (default preview). Expo runs via `--tunnel` on 8081
 (CI=1 to avoid inotify limit). Backend self-seeds demo data.
-- Web preview: https://job-ring-notify.preview.emergentagent.com
+- Web preview: https://azoapp-staging.preview.emergentagent.com
 - Expo Go: exp://nvmeila-anonymous-8081.exp.direct
 - Verified: web_panel one-click demo logins 4/4 (Admin/Partner/Customer/Merchant), no CORS.
 

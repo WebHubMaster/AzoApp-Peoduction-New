@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://job-ring-notify.preview.emergentagent.com"
+BASE_URL = "https://azoapp-staging.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
