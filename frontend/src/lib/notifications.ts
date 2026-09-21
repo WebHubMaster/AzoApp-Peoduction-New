@@ -205,7 +205,7 @@ export async function openFullScreenIntentSettings() {
 /*  Unified permission hub — everything the Job Ring needs, requested   */
 /*  the moment the app opens (see app/onboarding/permissions.tsx).      */
 /* ------------------------------------------------------------------ */
-export type PermKey = "notifications" | "location" | "battery" | "fullscreen";
+export type PermKey = "notifications" | "location" | "battery" | "fullscreen" | "overlay";
 export type PermState = {
   key: PermKey;
   granted: boolean;      // true = fully satisfied
@@ -225,6 +225,31 @@ export async function notifState(): Promise<PermState> {
 
 const BATTERY_ASKED_KEY = "azo_battery_asked";
 const FSI_ASKED_KEY = "azo_fsi_asked";
+const OVERLAY_ASKED_KEY = "azo_overlay_asked";
+
+/* Display over other apps (SYSTEM_ALERT_WINDOW) — lets the app launch the
+ * full-screen ring OVER other apps / on an UNLOCKED screen (Rapido/Truecaller
+ * style). Can't be introspected from JS, so we treat it as satisfied once the
+ * user has been sent to the setting. */
+export async function overlayState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "overlay", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(OVERLAY_ASKED_KEY)) === "1";
+  return { key: "overlay", granted: asked, canAskAgain: true, available: true };
+}
+export async function requestOverlayPermission() {
+  if (Platform.OS !== "android") return;
+  try { await storage.setItem(OVERLAY_ASKED_KEY, "1"); } catch { /* ignore */ }
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.partner";
+  try {
+    const IntentLauncher = require("expo-intent-launcher");
+    await IntentLauncher.startActivityAsync(
+      "android.settings.action.MANAGE_OVERLAY_PERMISSION",
+      { data: `package:${pkg}` },
+    );
+  } catch {
+    try { await Linking.openSettings(); } catch { /* ignore */ }
+  }
+}
 
 /* Battery optimisation exemption — required so a killed app can still ring. */
 export async function batteryState(): Promise<PermState> {
@@ -314,10 +339,10 @@ export async function requestLocationPermission(): Promise<PermState> {
 
 /** Snapshot of every permission the Job Ring relies on. */
 export async function allPermissionStates(): Promise<Record<PermKey, PermState>> {
-  const [notif, battery, fullscreen, location] = await Promise.all([
-    notifState(), batteryState(), fullScreenState(), locationState(),
+  const [notif, battery, fullscreen, location, overlay] = await Promise.all([
+    notifState(), batteryState(), fullScreenState(), locationState(), overlayState(),
   ]);
-  return { notifications: notif, battery, fullscreen, location };
+  return { notifications: notif, battery, fullscreen, location, overlay };
 }
 
 /** True when the app should show the full-screen permission gate on open. */

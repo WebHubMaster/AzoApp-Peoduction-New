@@ -571,3 +571,26 @@ shows a heads-up (by design, system-controlled). Guaranteed full-screen-over-app
 unlocked requires SYSTEM_ALERT_WINDOW ("Display over other apps") + a native overlay activity
 (Rapido/Truecaller style) — a separate native feature, not yet built. Offered to user.
 VALIDATION: backend health 200; tsc clean for edited files.
+
+## 2026-06 — Unlocked full-screen ring (Rapido/Truecaller style, NO custom native module)
+notifee fullScreenAction only auto-launches on LOCK screen; unlocked = heads-up (confirmed).
+Solution WITHOUT a native module: JobRingOverlay already polls /bookings/partner/ring-pending
+and shows the full-screen ring whenever the app becomes ACTIVE (AppState listener). So we just
+bring the app to the FOREGROUND when a ring arrives; the overlay does the rest.
+CHANGES (need new EAS build; user MUST grant "Display over other apps"):
+- plugins/withJobRingAndroid.js: added android.permission.SYSTEM_ALERT_WINDOW (allows the
+  background activity launch even when unlocked / in another app). MainActivity already has
+  showWhenLocked/turnScreenOn/showOnLockScreen + launchMode singleTask.
+- src/lib/pushBackground.ts handleRemoteData: on job_request in background, after displayJobRing,
+  if AppState!=="active" → Linking.openURL(Linking.createURL("/")) to foreground the app →
+  JobRingOverlay's AppState-active poll shows the full-screen ring (unlocked too).
+- src/lib/notifications.ts: added PermKey "overlay" + overlayState() + requestOverlayPermission()
+  (IntentLauncher ACTION_MANAGE_OVERLAY_PERMISSION, package: data). Added to allPermissionStates.
+- app/onboarding/notifications.tsx: added "Display Over Other Apps" card + runOne/handleAll wiring.
+- src/components/partner/home/AlertsPanel.tsx: added "Full-Screen on Unlocked" row (Allow/Open).
+Scheme = azoapppartner (app.json). VALIDATION: tsc clean for all edited files.
+LIMITATION: if the user doesn't grant "Display over other apps", unlocked stays as heads-up
+(locked still full-screen). Background-launch via Linking relies on that permission (BAL
+exemption) — needs device confirmation.
+Backend from prior round (silent ring channel + removed "New job available" push) still needs
+deploy for the sound/no-extra-push behaviour.

@@ -50,7 +50,21 @@ if (pushSupported) {
 
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
-  if (d.type === "job_request") { await displayJobRing(d, "bg"); return; }
+  if (d.type === "job_request") {
+    await displayJobRing(d, "bg");
+    // Bring the app to the FOREGROUND so the in-app full-screen JobRingOverlay shows
+    // even when the phone is UNLOCKED / in another app (notifee's fullScreenAction
+    // only auto-launches over the LOCK screen). Needs the "Display over other apps"
+    // permission so Android allows this background activity launch.
+    try {
+      const { AppState } = require("react-native");
+      if (isBackground && AppState.currentState !== "active") {
+        const Linking = require("expo-linking");
+        Linking.openURL(Linking.createURL("/")).catch(() => {});
+      }
+    } catch { /* ignore */ }
+    return;
+  }
   if (d.type === "job_taken" || d.type === "job_cancelled") { await cancelJobRing(String(d.booking_id || "")); return; }
   if (d.type === "chat_message" && isBackground) {
     const body = `${d.body || ""}${d.body && d.service_name ? `\n${d.service_name} • Booking #${d.code || ""}` : ""}`;
