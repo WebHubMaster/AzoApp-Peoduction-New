@@ -6,7 +6,7 @@
 - **frontend / PartnerApp** (`/app/frontend`): Expo (React Native) partner+merchant mobile app. Supervisor `frontend` program runs it on 3000 by default but is STOPPED so web_panel can use 3000.
 
 ## Preview URL
-https://d0146e54-da53-4c32-b352-8b3d6304dec2.preview.emergentagent.com  → web_panel (LIVE)
+https://partner-panel-kyc.preview.emergentagent.com  → web_panel (LIVE)
 
 ## Demo login (OTP always 123456, demo_mode ON)
 - Admin +919000000000 · Merchant +919000000002 (Sharma Electricals, code 3L6MKM3) · Partner +919000000003 · Customer +919000000004
