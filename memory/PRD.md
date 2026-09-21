@@ -346,3 +346,14 @@ RING (still pending user device test of the DIAGNOSTIC build):
     exact reason (fgs error / fsi off / not shown).
 ENV: restored web_panel on supervisor port 3000 (stopped Expo 'frontend' which had
 grabbed 3000). Admin panel now serves at preview /admin.
+
+## 2026-06 — One-tap Full-Screen + Run-in-Background grant on dashboard
+User wants easy granting of "Full-Screen Call Alert" + "Run in Background" (the
+missing grants for lock-screen ring on Android 14+). Added to the dashboard "Alert
+check" card (AlertsPanel TestRingCard), Android-only block "ring-permissions":
+  - Full-Screen Call Alert row → always shows Allow/Open (openFullScreenIntentSettings);
+    FSI detection is unreliable on OEMs so the button is always offered.
+  - Run in Background row → Allow (requestBatteryExemption) when not granted.
+  - Re-checks on AppState 'active' (after returning from system settings).
+  testIDs: ring-permissions, alert-allow-fsi, alert-allow-battery.
+Native UI → appears only in a rebuilt APK; can't be tested from web/here. Compiles OK.

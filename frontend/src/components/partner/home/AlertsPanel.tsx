@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator, Linking, Platform } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Linking, Platform, AppState } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useQuery } from "@tanstack/react-query";
@@ -8,7 +8,7 @@ import { useTheme } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
-import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings } from "@/src/lib/notifications";
+import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
 import { TW } from "./tw";
 
@@ -30,7 +30,17 @@ export function TestRingCard() {
   const checkPerm = useCallback(() => {
     getPermissionStatus().then((p) => setPerm(p.granted ? "granted" : p.canAskAgain ? "prompt" : "denied")).catch(() => setPerm("prompt"));
   }, []);
-  useEffect(() => { checkPerm(); }, [checkPerm]);
+  const [extra, setExtra] = useState<{ fsi?: any; battery?: any }>({});
+  const loadExtra = useCallback(() => {
+    if (Platform.OS !== "android") return;
+    Promise.all([fullScreenState(), batteryState()]).then(([fsi, battery]) => setExtra({ fsi, battery })).catch(() => {});
+  }, []);
+  useEffect(() => { checkPerm(); loadExtra(); }, [checkPerm, loadExtra]);
+  // Re-check when returning from a system settings screen.
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (s) => { if (s === "active") { checkPerm(); loadExtra(); devices.refetch(); } });
+    return () => sub.remove();
+  }, [checkPerm, loadExtra]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => onRing("test-ring-done", (d) => setLast((l) => (l ? { ...l, doneAt: Date.now(), verb: d?.verb } : l))), []);
 
   const fix = async () => {
@@ -73,6 +83,29 @@ export function TestRingCard() {
           </View>
         </View>
       </View>
+      {Platform.OS === "android" ? (
+        <View testID="ring-permissions" style={{ marginTop: 10, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 }}>
+          <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>For the call-style ring on a locked / closed phone</Text>
+          {/* Full-Screen intent — detection is unreliable on some OEMs, so ALWAYS offer the button */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name={extra.fsi?.granted ? "check-circle" : "cellphone-message"} size={15} color={extra.fsi?.granted ? TW.emerald600 : TW.amber600} />
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Full-Screen Call Alert{extra.fsi?.granted ? " · allowed" : ""}</Text>
+            <Pressable testID="alert-allow-fsi" onPress={() => openFullScreenIntentSettings().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.fsi?.granted ? colors.surfaceSubtle : colors.primary }}>
+              <Text style={{ color: extra.fsi?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.fsi?.granted ? "Open" : "Allow"}</Text>
+            </Pressable>
+          </View>
+          {/* Battery / background — reliably detectable via Notifee */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <Icon name={extra.battery?.granted ? "check-circle" : "battery-heart-variant"} size={15} color={extra.battery?.granted ? TW.emerald600 : TW.amber600} />
+            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Run in Background{extra.battery?.granted ? " · allowed" : ""}</Text>
+            {!extra.battery?.granted ? (
+              <Pressable testID="alert-allow-battery" onPress={() => requestBatteryExemption().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.primary }}>
+                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Allow</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      ) : null}
       <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ marginTop: 12, alignSelf: "flex-start", height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
         {busy ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="bell-ring-outline" size={16} color="#fff" />}
         <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Send me a test job ring</Text>
