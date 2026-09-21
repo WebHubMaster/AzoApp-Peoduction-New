@@ -1,0 +1,26 @@
+{
+  "summary": "Verified the Partner 'My Availability' feature on WEB panel + MOBILE (Expo web) + backend sanity of the 2 availability endpoints. All requested requirements are met: (a) descriptive paragraph 'Pick the days you'll work…/no need to press GO ONLINE' is REMOVED on both web and mobile; (b) AVAILABLE DATES box + progress bar preserved (count on right, bar below) and spans full inner width on mobile; (c) calendar is de-congested (mobile day cells square ratio=1.00, ~43x43; web ~60px tall); (d) tapping a future day opens the availability-popup bottom sheet on mobile with popup-available/popup-unavailable buttons plus 'Currently: …' line when day already has a status; (e) choosing Available/Not Available hits the API, updates the calendar cell, the AVAILABLE DATES count and the 'Next available dates' list. Web parity matches. Backend GET /api/partner/availability/calendar and POST /api/partner/availability/calendar/set both return the correct shape (calendar, dates, available_count, max_available, today) and 200 OK.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_84.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Mobile availability.tsx: onTap ignores past days but does not guard against tapping today when status already known — behaviour matches web (allowed). No issue.",
+    "The AVAILABLE DATES box uses width:'100%' inside a container with padding:20 giving effective full inner width (380 header → 340 box). This is correct per spec.",
+    "Web availableList (line ~593): availCount falls back to availableList.length if API omits available_count; safe fallback."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Partner: +919000000003 / OTP 123456 (demo).",
+  "seed_data_creation": "Created and cleaned up transient availability entries on 2026-09-24 and 2026-09-25 for the partner user during test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "WEB: use one-click 'Login as Partner' on /login then click 'My Availability' nav (URL becomes /partner?tab=availability). MOBILE (Expo web at ngrok URL) requires (1) ngrok skip: either set cookie abuse_interstitial=<host> or click 'Visit Site'; (2) initial JS bundle ~14MB, warm the domain for 15-20s before injecting auth; (3) storage key for token is 'azo_token' in localStorage (see /app/frontend/src/utils/storage/index.web.ts). Data-testids used: partner-availability-header, availability-popup, popup-available, popup-unavailable, avail-<YYYY-MM-DD>, next-<YYYY-MM-DD>, cal-prev/cal-next (web + mobile parallel). Today for this partner is 2026-09-21.",
+  "rca of the issue": "N/A — no regression found. Requirements verified in code and via UI + API. Both web (PartnerModule3.jsx AvailabilitySection) and mobile (frontend/app/(partner)/partner/availability.tsx) now share identical UX: bottom-sheet popup with Available/Not Available choices, no descriptive paragraph, compact square-cell calendar, and full-width AVAILABLE DATES summary."
+}
