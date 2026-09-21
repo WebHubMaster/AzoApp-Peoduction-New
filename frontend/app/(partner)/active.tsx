@@ -760,7 +760,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
             <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="calendar-clock-outline" label="Schedule" value={schedLabel} /><InfoItem icon="check-circle-outline" label="Job value" value={fmt(b.breakdown?.total || b.total || b.pricing?.total || 0)} /></View>
           </View>
           <ServiceBreakdown booking={b} />
-          <PartnerEarningSummary booking={b} />
           {maskedPhone ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}><Icon name="phone-outline" size={14} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 12 }}>{maskedPhone} <Text style={{ color: "#CBD5E1" }}>· number protected</Text></Text></View> : null}
         </Collapse>
 

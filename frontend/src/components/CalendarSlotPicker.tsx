@@ -30,18 +30,16 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
   const [view, setView] = useState(() => new Date(base.getFullYear(), base.getMonth(), 1));
   const [slots, setSlots] = useState<string[]>(FALLBACK_SLOTS);
   const [fullSlots, setFullSlots] = useState<string[]>([]);
-  const [remaining, setRemaining] = useState<Record<string, number>>({});
 
   // Fetch the admin-configured slot grid + fully-booked slots for the selected date.
   useEffect(() => {
-    if (!selDay) { setFullSlots([]); setRemaining({}); return; }
+    if (!selDay) { setFullSlots([]); return; }
     let alive = true;
     api.get<any>(`/bookings/slot-availability?date=${isoDay(selDay)}`).then((r) => {
       if (!alive) return;
       setFullSlots(Array.isArray(r?.full_slots) ? r.full_slots : []);
-      setRemaining(r?.remaining && typeof r.remaining === "object" ? r.remaining : {});
       if (Array.isArray(r?.slots) && r.slots.length) setSlots(r.slots);
-    }).catch(() => { if (alive) { setFullSlots([]); setRemaining({}); } });
+    }).catch(() => { if (alive) setFullSlots([]); });
     return () => { alive = false; };
   }, [selDay]);
 
@@ -112,10 +110,10 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
           const selected = selDay ? sameDay(d, selDay) : false;
           const isToday = sameDay(d, today);
           return (
-            <View key={i} style={{ width: `${100 / 7}%`, height: 40, alignItems: "center", justifyContent: "center" }}>
+            <View key={i} style={{ width: `${100 / 7}%`, height: 40, paddingHorizontal: 2, justifyContent: "center" }}>
               <Pressable testID={`cal-day-${d.getDate()}`} onPress={() => pickDay(d)} disabled={past}
-                style={{ width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: selected ? primary : "transparent" }}>
-                <Text style={{ fontSize: 14, fontWeight: selected ? "800" : "600", color: selected ? "#fff" : past ? "#CBD5E1" : text }}>{d.getDate()}</Text>
+                style={{ height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: selected ? primary : "transparent" }}>
+                <Text style={{ fontSize: 14, fontWeight: selected ? "700" : "500", color: selected ? "#fff" : past ? "#CBD5E1" : text }}>{d.getDate()}</Text>
                 {isToday && !selected ? <View style={{ position: "absolute", bottom: 3, width: 4, height: 4, borderRadius: 2, backgroundColor: primary }} /> : null}
               </Pressable>
             </View>
@@ -131,19 +129,12 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
           const past = isTodaySel && (() => { const [h, m] = t.split(":").map(Number); return (h * 60 + m) <= (now.getHours() * 60 + now.getMinutes()); })();
           const full = fullSlots.includes(t);
           const dis = !selDay || full || past;
-          const left = remaining[t];
-          const hasLeft = typeof left === "number";
-          const caption = full ? "Full" : past ? "Past" : hasLeft ? `${left} left` : null;
-          const capColor = active ? "rgba(255,255,255,0.9)" : full || past ? muted : left != null && left <= 1 ? "#D97706" : muted;
           return (
-            <View key={t} style={{ width: "25%", padding: 4 }}>
+            <View key={t} style={{ width: "33.3333%", padding: 4 }}>
               <Pressable testID={`slot-${t}`} onPress={() => pickSlot(t)} disabled={dis}
-                style={{ minHeight: 48, paddingVertical: 5, borderRadius: 12, borderWidth: 1, borderColor: active ? primary : border, backgroundColor: active ? primary : surface, alignItems: "center", justifyContent: "center", opacity: dis && !active ? 0.45 : 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                  {active ? <Icon name="check" size={12} color="#fff" /> : null}
-                  <Text style={{ fontSize: 12.5, fontWeight: "700", color: active ? "#fff" : text, textDecorationLine: full ? "line-through" : "none" }}>{to12(t)}</Text>
-                </View>
-                {caption ? <Text style={{ fontSize: 9.5, fontWeight: "700", marginTop: 1, color: capColor }}>{caption}</Text> : null}
+                style={{ paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: active ? primary : dis ? "#F1F5F9" : border, backgroundColor: active ? primary : surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                {active ? <Icon name="check" size={12} color="#fff" /> : null}
+                <Text style={{ fontSize: 12, fontWeight: "600", color: active ? "#fff" : dis ? "#CBD5E1" : text, textDecorationLine: dis ? "line-through" : "none" }}>{to12(t)}{full ? " ·Full" : ""}</Text>
               </Pressable>
             </View>
           );

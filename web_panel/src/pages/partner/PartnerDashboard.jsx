@@ -16,7 +16,6 @@ import RescheduleRing from "@/components/booking/RescheduleRing";
 import PartnerAlertsPanel from "@/components/partner/PartnerAlertsPanel";
 import MissedRingRecovery from "@/components/partner/MissedRingRecovery";
 import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
-import PartnerEarningSummary from "@/components/booking/PartnerEarningSummary";
 import { VerificationSection, SkillsSection, IncentivesSection, TrainingSection, AvailabilitySection } from "@/pages/partner/PartnerModule3";
 import { ChallengesRewards } from "@/pages/partner/ChallengesRewards";
 import { PartnerHome } from "@/pages/partner/PartnerHomeV2";
@@ -573,7 +572,6 @@ const ActiveJob = ({ b, onUpdate }) => {
               applicable Visiting/Emergency charges + Total Service Amount (excl. GST) */}
           <ServiceBreakdown booking={b} fmt={fmt} className="mt-3" showCharges hidePlatformFees
             title="Services to do" compact />
-          <PartnerEarningSummary booking={b} fmt={fmt} className="mt-3" />
           {maskedPhone && <p className="text-[12px] text-slate-400 mt-2 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {maskedPhone} <span className="text-slate-300 dark:text-slate-600">· number protected</span></p>}
         </Collapse>
 
