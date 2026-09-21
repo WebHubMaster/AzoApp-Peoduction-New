@@ -643,3 +643,16 @@ deploy. VALIDATION: backend health 200; tsc clean for edited files.
    - Hero (man) image enlarged (210×262) and anchored to the bottom of the hero card.
 VALIDATION: backend health 200; account-creation curl pass; tsc + eslint 0 errors on all edited
 files. All UI changes need a new EAS build to verify on device.
+
+## 2026-06 (3) — Login redesign + registration theming + transparent hero
+- LOGIN (app/(auth)/login.tsx) fully rebuilt to design_guidelines.json (design_agent blueprint):
+  segmented LOG IN / REGISTER toggle (clear mode) + mode-indicator badge; transparent PNG hero
+  (assets/hero-pro.png — generated on green screen then chroma-keyed to alpha, 520px) with soft
+  glow backdrop; REGISTER shows a role picker (Partner=green, Merchant=purple) then phone→OTP→name;
+  gradient CTAs, 6-box OTP, one-click demo logins, trust strip. Accent theme switches by mode/role
+  (login=blue, partner=green, merchant=purple). Keeps the no-customer-creation fix (create_if_new:false).
+- REGISTRATION theming (src/components/reg/Shell.tsx): header gradient + score banner + a new role
+  chip are now Partner=green / Merchant=purple (were identical blue) so the user instantly knows
+  which flow they're in. Removed unused GRAD_BAR/GRAD_SCORE/usePal from Shell.
+- Hero image bundled locally (transparent PNG) instead of a jpeg-with-bg.
+VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to see on device.
