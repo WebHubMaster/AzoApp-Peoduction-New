@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://job-ring-notify.preview.emergentagent.com",
+  "base_url": "https://azoapp-staging.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

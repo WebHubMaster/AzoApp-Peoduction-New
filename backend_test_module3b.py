@@ -10,7 +10,7 @@ from typing import Dict, Any
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://job-ring-notify.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-staging.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 PARTNER2_PHONE = "+919000000005"

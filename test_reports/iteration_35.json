@@ -2,7 +2,7 @@
   "iteration": 35,
   "test_date": "2026-09-08",
   "test_time": "19:51:18",
-  "base_url": "https://job-ring-notify.preview.emergentagent.com/api",
+  "base_url": "https://azoapp-staging.preview.emergentagent.com/api",
   "environment": {
     "container_restored": true,
     "env_files_recreated": true,
@@ -219,7 +219,7 @@
       "status": "FULLY FUNCTIONAL",
       "evidence": [
         "Partner uploaded 'before' evidence via POST /api/bookings/{id}/evidence/upload",
-        "Evidence URL returned: https://job-ring-notify.preview.emergentagent.com/api/media/file/evidence/7153708f72a84352b3fad1259922c787.webp",
+        "Evidence URL returned: https://azoapp-staging.preview.emergentagent.com/api/media/file/evidence/7153708f72a84352b3fad1259922c787.webp",
         "Partner GET /api/bookings/partner/active includes before evidence (1 photo)",
         "Customer GET /api/bookings/{id} includes before evidence (1 photo)",
         "Admin GET /api/admin/bookings/{id}/detail includes before evidence (1 photo)",

@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL
-API = "https://job-ring-notify.preview.emergentagent.com/api"
+API = "https://azoapp-staging.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
