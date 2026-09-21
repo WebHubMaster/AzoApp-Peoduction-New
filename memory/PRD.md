@@ -548,3 +548,26 @@ FIX (frontend, needs new build):
 startRingSound/stopRingSound left defined but unused (harmless). Confidence now HIGH: handler
 proven to fire; fixed the exact validation error. Needs new EAS build + backend deploy.
 VALIDATION: backend health 200; tsc clean for edited files.
+
+## 2026-06 — Ring polish: admin sound only (no default), no extra push; unlocked full-screen = Android limit
+User (after full-screen ring working on LOCK screen): (1) unlocked screen shows heads-up not
+full-screen; (2) default tone plays then admin tone — wants admin only; (3) no separate push
+alongside the ring.
+FIXES (need new EAS build + backend deploy):
+- notifications.ts displayJobRing: ring notification back on SILENT channel
+  (CHANNELS.jobRingSilent, no channel sound) + startRingSound() plays the ADMIN custom tone
+  (azo_ring_prefs.customSoundUrl via expo-audio, looped) — the ONLY sound, so no bundled
+  "default" plays first. cancelJobRing()→stopRingSound(). Kept the dataString sanitize fix.
+- backend booking_controller.py dispatch: REMOVED the per-partner `_notify("New job available")`
+  push — the full-screen ring IS the alert now (no extra heads-up/push). Kept rt.emit_user
+  (SSE foreground) + _push_job_request (data-only ring → expo task → Notifee full-screen).
+- Confirmed expo-notifications does NOT present data-only messages in background
+  (ExpoHandlingDelegate.shouldPresent()=false when title+body empty) → no expo default push.
+- Sound source = azo_ring_prefs.customSoundUrl (same as foreground RealtimeContext.playRing,
+  which user confirmed works). Read directly from AsyncStorage so it works in headless bg.
+ISSUE #1 (unlocked full-screen) — Android LIMITATION: fullScreenIntent auto-launches the
+full activity only when the device is LOCKED/screen-off; when unlocked & interactive Android
+shows a heads-up (by design, system-controlled). Guaranteed full-screen-over-apps when
+unlocked requires SYSTEM_ALERT_WINDOW ("Display over other apps") + a native overlay activity
+(Rapido/Truecaller style) — a separate native feature, not yet built. Offered to user.
+VALIDATION: backend health 200; tsc clean for edited files.

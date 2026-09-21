@@ -1262,11 +1262,9 @@ async def _offer_partners(booking, pids, source):
     already = set(booking.get("offered_partner_ids", []))
     fresh = [pid for pid in pids if pid and pid not in already]
     for pid in fresh:
-        await _notify(pid, "New job available",
-                      f"{booking['service_name']} near {_area} · {booking['code']}. Open Jobs to accept.",
-                      event_type="new_job_available",
-                      ctx={"booking_id": booking["code"],
-                           "_data": {"android_channel": "azo-job-ring-v3", "type": "job_available", "tag": "new-job"}})
+        # Only the full-screen ring — no extra "New job available" push (the ring IS
+        # the alert). Real-time SSE covers the foreground; _push_job_request sends the
+        # data-only ring that the background task renders as the full-screen ring.
         rt.emit_user(pid, "job_request", brief)
         push_res = await _push_job_request(pid, booking, brief)
         await _record_dispatch(booking, pid, source, push_res)
