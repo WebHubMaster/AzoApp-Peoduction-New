@@ -9,11 +9,11 @@
  * registration, WhatsApp-style chat pushes and the call-like job ring that
  * fires even when the app is closed or the phone is locked.
  */
-import { Platform, Linking } from "react-native";
+import { Platform, Linking, AppState } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
 import { storage } from "@/src/utils/storage";
-import { api } from "@/src/api/client";
+import { api, mediaUrl } from "@/src/api/client";
 
 export const NOTIF_PROMPTED_KEY = "azo_notif_prompted";
 const DEVICE_ID_KEY = "azo_device_id";
@@ -24,6 +24,7 @@ export const CHANNELS = {
   // "job-ring"/"chat" with wrong settings would keep them (silent ring). Bump the
   // id (…-v3) + delete the old ids in setupAndroidChannels to force fresh channels.
   jobRing: "azo-job-ring-v3",
+  jobRingSilent: "azo-ring-silent-v1",
   bookings: "bookings",
   chat: "azo-chat-v3",
   account: "account",
@@ -110,6 +111,17 @@ export async function setupAndroidChannels() {
     id: CHANNELS.jobRing, name: "Job Ring Alerts",
     description: "Incoming job requests ring like a call",
     importance: AndroidImportance.HIGH, sound: JOB_RING_SOUND,
+    vibration: true, vibrationPattern: [400, 250, 400, 250],
+    lights: true, lightColor: "#0D47A1", bypassDnd: true,
+    visibility: AndroidVisibility.PUBLIC,
+  });
+  // Silent, high-importance channel for the call-style ring: NO channel sound
+  // (omitting `sound` = play no sound) so the admin's CUSTOM uploaded tone plays
+  // via expo-audio (looped until action) instead of the bundled default.
+  await n.createChannel({
+    id: CHANNELS.jobRingSilent, name: "Incoming Job (custom ring)",
+    description: "Incoming job requests — plays your uploaded ring tone",
+    importance: AndroidImportance.HIGH,
     vibration: true, vibrationPattern: [400, 250, 400, 250],
     lights: true, lightColor: "#0D47A1", bypassDnd: true,
     visibility: AndroidVisibility.PUBLIC,
@@ -330,6 +342,48 @@ export function jobRingBody(d: Record<string, any>): string {
   return lines.join("\n");
 }
 
+/* ------------------------------------------------------------------ */
+/*  Custom ring SOUND (admin-uploaded) — looped until an action, works  */
+/*  in background/locked via expo-audio while the Notifee foreground     */
+/*  service keeps the process alive. Android notification channels can't  */
+/*  use a remote URL as their sound, so we play it ourselves.             */
+/* ------------------------------------------------------------------ */
+let _ringPlayer: any = null;
+async function _loadRingSource(): Promise<{ src: any; volume: number }> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const fallback = require("../../assets/sounds/job-ring.wav");
+  try {
+    const raw = await storage.getItem("azo_ring_prefs");
+    const p = raw ? JSON.parse(raw) : {};
+    const vol = Math.max(0.05, Math.min(1, typeof p?.volume === "number" ? p.volume : 0.7));
+    if (p?.customSoundUrl) {
+      const uri = mediaUrl(p.customSoundUrl) || p.customSoundUrl;
+      if (uri) return { src: { uri }, volume: vol };
+    }
+    return { src: fallback, volume: vol };
+  } catch { return { src: fallback, volume: 0.7 }; }
+}
+/** Start the looping ring tone (admin custom upload, else bundled fallback). */
+export async function startRingSound(_bookingId = "") {
+  if (Platform.OS === "web") return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const AA = require("expo-audio");
+    await AA.setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true }).catch(() => {});
+    const { src, volume } = await _loadRingSource();
+    if (!_ringPlayer) _ringPlayer = AA.createAudioPlayer(src);
+    else { try { _ringPlayer.replace(src); } catch { _ringPlayer = AA.createAudioPlayer(src); } }
+    _ringPlayer.loop = true;
+    _ringPlayer.volume = volume;
+    try { _ringPlayer.seekTo(0); } catch { /* ignore */ }
+    _ringPlayer.play();
+  } catch { /* ignore */ }
+}
+/** Stop the looping ring tone (on Accept / Reject / dismiss / job taken). */
+export function stopRingSound() {
+  try { _ringPlayer?.pause?.(); _ringPlayer?.seekTo?.(0); } catch { /* ignore */ }
+}
+
 /**
  * Show the full-screen, looping "incoming job" alert. Works from the FCM
  * background handler (app closed / locked) and from the foreground.
@@ -339,6 +393,9 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   const n = NotifeeApi();
   const mod = notifee();
   if (!n || !d?.booking_id) return false;
+  // When the app is OPEN, the in-app JobRingOverlay + RealtimeContext.playRing
+  // already show the ring and play the custom tone — don't double up here.
+  if (AppState.currentState === "active") return false;
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   const isEmergency = d.schedule_type === "emergency";
   await setupAndroidChannels();
@@ -360,7 +417,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
     body: jobRingBody(d),
     data: { ...d, type: "job_request" },
     android: {
-      channelId: CHANNELS.jobRing,
+      channelId: CHANNELS.jobRingSilent,
       category: AndroidCategory.CALL,
       importance: AndroidImportance.HIGH,
       visibility: AndroidVisibility.PUBLIC,
@@ -368,8 +425,6 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       color: "#0D47A1",
       colorized: true,
       largeIcon: d.image || undefined,
-      sound: JOB_RING_SOUND,
-      loopSound: asFgs,
       vibrationPattern: [400, 250, 400, 250],
       lightUpScreen: true,
       ongoing: asFgs,
@@ -406,10 +461,14 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       return false;
     }
   }
+  // Play the admin's custom uploaded tone (looped) — the notification channel is
+  // silent so this is the only sound. Continues until cancelJobRing().
+  await startRingSound(String(d.booking_id));
   return true;
 }
 
 export async function cancelJobRing(bookingId?: string) {
+  stopRingSound();
   const n = NotifeeApi();
   if (!n) return;
   try {
