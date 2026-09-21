@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://azoapp-staging.preview.emergentagent.com/api"
+BASE_URL = "https://partner-panel-kyc.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

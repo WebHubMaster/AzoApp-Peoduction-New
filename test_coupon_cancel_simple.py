@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://azoapp-staging.preview.emergentagent.com/api"
+BASE = "https://partner-panel-kyc.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):
