@@ -522,3 +522,29 @@ EDGE: if the phone force-stops the app, neither the task nor expo-audio runs →
 fallback notification shows without sound until app reopens (Android limitation).
 VALIDATION: backend health 200; tsc clean for edited files (only a pre-existing unrelated
 RealtimeContext "ready" SSE type warning). Needs device build to confirm background audio.
+
+## 2026-06 — BREAKTHROUGH: ring handler FIRES; fixed Notifee dataString bug + restored loud sound
+Device diagnostic ("Last job ring on this phone") finally captured: App closed/locked =
+"NOT shown ✗", error: notifee.displayNotification 'notification.data' value for key
+'dataString' is invalid, expected a string value.
+MEANING: the expo-notifications BACKGROUND TASK IS FIRING on the killed/locked device (the
+architecture works!) and reaches displayJobRing → Notifee, but Notifee rejected the payload
+because notification.data must be all-STRING and the FCM data (data.notification.data from
+expo's RemoteMessageSerializer) carries a `dataString` key + possibly non-string values.
+FIX (frontend, needs new build):
+- notifications.ts displayJobRing: build a sanitized `cleanData` (drop `dataString`, coerce
+  every value to String) and use it as notification.data. This resolves the exact error.
+- REVERTED the earlier silent-channel + expo-audio experiment (it broke sound on the current
+  build). Ring notification back on CHANNELS.jobRing (azo-job-ring-v3) with sound:JOB_RING_SOUND
+  + loopSound:asFgs → OS/Notifee loops the bundled ring reliably until action (Swiggy/Rapido
+  style), stops on accept/reject/timeout/cancelJobRing. No fragile expo-audio.
+- backend booking_controller.py: fallback "New job available" channel reverted
+  azo-ring-silent-v1 → azo-job-ring-v3 (both sites) so sound plays on the CURRENT build too
+  (backend deploy). This undoes the silent-channel regression.
+- Production alert_config is EMPTY (no admin custom sound uploaded) → default bundled
+  job-ring.wav plays. To use a custom tone reliably it must be BUNDLED as
+  assets/sounds/job-ring.wav (Android channel sound can't be a runtime URL); admin upload at
+  runtime is not reliable for background.
+startRingSound/stopRingSound left defined but unused (harmless). Confidence now HIGH: handler
+proven to fire; fixed the exact validation error. Needs new EAS build + backend deploy.
+VALIDATION: backend health 200; tsc clean for edited files.

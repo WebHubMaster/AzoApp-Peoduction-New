@@ -406,6 +406,15 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   const report = (ok: boolean, m2: string, error = "") => {
     api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi }).catch(() => {});
   };
+  // Notifee requires EVERY notification.data value to be a STRING. The FCM
+  // payload from expo (data.notification.data) carries a `dataString` key and may
+  // include non-string values → sanitize to strings and drop `dataString`.
+  const cleanData: Record<string, string> = {};
+  for (const [k, v] of Object.entries(d || {})) {
+    if (k === "dataString" || v == null) continue;
+    cleanData[k] = typeof v === "string" ? v : String(v);
+  }
+  cleanData.type = "job_request";
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears
@@ -415,9 +424,9 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
     title: isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request",
     subtitle: d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined,
     body: jobRingBody(d),
-    data: { ...d, type: "job_request" },
+    data: cleanData,
     android: {
-      channelId: CHANNELS.jobRingSilent,
+      channelId: CHANNELS.jobRing,
       category: AndroidCategory.CALL,
       importance: AndroidImportance.HIGH,
       visibility: AndroidVisibility.PUBLIC,
@@ -425,6 +434,8 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       color: "#0D47A1",
       colorized: true,
       largeIcon: d.image || undefined,
+      sound: JOB_RING_SOUND,
+      loopSound: asFgs,
       vibrationPattern: [400, 250, 400, 250],
       lightUpScreen: true,
       ongoing: asFgs,
@@ -461,9 +472,6 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       return false;
     }
   }
-  // Play the admin's custom uploaded tone (looped) — the notification channel is
-  // silent so this is the only sound. Continues until cancelJobRing().
-  await startRingSound(String(d.booking_id));
   return true;
 }
 
