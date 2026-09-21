@@ -424,6 +424,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   const isEmergency = d.schedule_type === "emergency";
   const isResched = d.type === "reschedule_request";
+  const isReminder = d.type === "scheduled_reminder";
   await setupAndroidChannels();
   // Report the ring outcome to the server so we can SEE (in admin/diagnostics)
   // whether the call-style ring actually rendered when closed/locked, and why not.
@@ -440,17 +441,19 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
     if (k === "dataString" || v == null) continue;
     cleanData[k] = typeof v === "string" ? v : String(v);
   }
-  cleanData.type = isResched ? "reschedule_request" : "job_request";
+  cleanData.type = isReminder ? "scheduled_reminder" : isResched ? "reschedule_request" : "job_request";
   const reschedBody = `${d.requester_name || "The customer"} wants to move ${d.service_name || "the job"} to ${d.new_date || ""} · ${d.new_time || ""}`.trim();
+  const reminderBody = `${d.service_name || "Your scheduled job"} starts at ${d.scheduled_time || "soon"}${d.scheduled_label ? ` (${d.scheduled_label})` : ""}. Get ready to start.`.trim();
+  const ringBody = isReminder ? reminderBody : isResched ? reschedBody : jobRingBody(d);
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears
   // (sound plays once instead of looping) — the alert must never be swallowed.
   const build = (asFgs: boolean) => ({
     id: `job-${d.booking_id}`,
-    title: isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request"),
-    subtitle: isResched ? (d.new_date ? `New: ${d.new_date} · ${d.new_time || ""}` : undefined) : (d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined),
-    body: isResched ? reschedBody : jobRingBody(d),
+    title: isReminder ? "\u{1F514} Work starting soon" : isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request"),
+    subtitle: isReminder ? (d.scheduled_time ? `Starts at ${d.scheduled_time}` : undefined) : isResched ? (d.new_date ? `New: ${d.new_date} · ${d.new_time || ""}` : undefined) : (d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined),
+    body: ringBody,
     data: cleanData,
     android: {
       channelId: CHANNELS.jobRingSilent,
@@ -468,10 +471,12 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       asForegroundService: asFgs,
       timeoutAfter: 120000,
       showTimestamp: true,
-      style: { type: mod.AndroidStyle.BIGTEXT, text: isResched ? reschedBody : jobRingBody(d) },
+      style: { type: mod.AndroidStyle.BIGTEXT, text: ringBody },
       fullScreenAction: { id: "default", launchActivity: "default" },
       pressAction: { id: "default", launchActivity: "default" },
-      actions: [
+      actions: isReminder ? [
+        { title: "\u{1F44D} Got it", pressAction: { id: "default", launchActivity: "default" } },
+      ] : [
         { title: "\u2705 Accept", pressAction: { id: "accept", launchActivity: "default" } },
         { title: "\u274C Reject", pressAction: { id: "reject" } },
       ],

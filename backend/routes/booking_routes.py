@@ -64,6 +64,13 @@ async def partner_reschedule_pending(user=Depends(require_role("partner"))):
     return await c.partner_reschedule_pending(user)
 
 
+@router.get("/partner/reminder-pending")
+async def partner_reminder_pending(user=Depends(require_role("partner"))):
+    """Scheduled jobs in their 30-min pre-start window that must show the full-screen
+    reminder RING now — polling/launch fallback (app closed / phone locked)."""
+    return await c.partner_reminder_pending(user)
+
+
 @router.get("/partner/missed")
 async def partner_missed(user=Depends(require_role("partner"))):
     """Still-open jobs this partner missed (offline / no answer) — one-tap re-grab via accept."""

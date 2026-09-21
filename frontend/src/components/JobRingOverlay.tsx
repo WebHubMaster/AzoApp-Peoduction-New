@@ -161,6 +161,7 @@ export function JobRingOverlay() {
     else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); cancelJobRing(id).catch(() => {}); } refetch(); }
     else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
     else if (ev.type === "reschedule_request") { const d = ev.data || {}; if (d.booking_id) enqueue({ ...d, id: String(d.booking_id), _resched: true }, true); refetch(); }
+    else if (ev.type === "scheduled_reminder") { const d = ev.data || {}; const id = d.booking_id || d.id; if (id) enqueue({ ...d, id: String(id), _reminder: true }, true); refetch(); }
   }), [subscribe, enqueue, removeFromQueue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // RELIABILITY FALLBACK: poll offers that should be ringing right now (every 6s + on foreground).
@@ -169,17 +170,21 @@ export function JobRingOverlay() {
     const check = async () => {
       if (stopped || AppState.currentState !== "active") return;
       try {
-        const [jobs, resched] = await Promise.all([
+        const [jobs, resched, remind] = await Promise.all([
           api.get<any[]>("/bookings/partner/ring-pending").catch(() => [] as any[]),
           api.get<any[]>("/bookings/partner/reschedule-pending").catch(() => [] as any[]),
+          api.get<any[]>("/bookings/partner/reminder-pending").catch(() => [] as any[]),
         ]);
         const jobList = Array.isArray(jobs) ? jobs : [];
         const reList = Array.isArray(resched) ? resched : [];
+        const rmList = Array.isArray(remind) ? remind : [];
         jobList.forEach((j) => enqueue(j));
         reList.forEach((r) => { if (r?.booking_id) enqueue({ ...r, id: String(r.booking_id), _resched: true }, true); });
+        rmList.forEach((r) => { if (r?.booking_id) enqueue({ ...r, id: String(r.booking_id), _reminder: true }, true); });
         const liveJobs = new Set(jobList.map((j) => j.id));
         const liveResched = new Set(reList.map((r) => String(r.booking_id)));
-        setQueue((q) => q.filter((j) => (j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
+        const liveRemind = new Set(rmList.map((r) => String(r.booking_id)));
+        setQueue((q) => q.filter((j) => (j._reminder ? liveRemind.has(j.id) : j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
       } catch { /* retry next tick */ }
     };
     check();
@@ -189,6 +194,7 @@ export function JobRingOverlay() {
     const offPush = onForegroundPush((d) => {
       if (d?.type === "job_request") check();
       else if (d?.type === "reschedule_request" && d.booking_id) enqueue({ ...d, id: String(d.booking_id), _resched: true }, true);
+      else if (d?.type === "scheduled_reminder" && d.booking_id) enqueue({ ...d, id: String(d.booking_id), _reminder: true }, true);
       else if ((d?.type === "job_taken" || d?.type === "job_cancelled") && d.booking_id) { handledRef.current.add(String(d.booking_id)); removeFromQueue(String(d.booking_id)); cancelJobRing(String(d.booking_id)).catch(() => {}); }
     });
     return () => { stopped = true; clearInterval(iv); sub.remove(); offPush(); };
@@ -239,7 +245,50 @@ export function JobRingOverlay() {
     setBusy(false);
   };
 
+  const dismissReminder = (job: RingJob) => {
+    if (!job) return;
+    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
+  };
+
   if (!current) return null;
+
+  /* ---------------- Scheduled-work reminder ring (starts in 30 min) ---------------- */
+  if (current._reminder) {
+    return (
+      <Modal visible transparent={false} animationType="slide" statusBarTranslucent onRequestClose={() => {}}>
+        <LinearGradient colors={["#4F46E5", "#4338CA", "#3730A3"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} testID="reminder-ring">
+          <View pointerEvents="none" style={{ position: "absolute", top: -96, left: -96, width: 288, height: 288, borderRadius: 144, backgroundColor: "rgba(255,255,255,0.10)" }} />
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, paddingTop: insets.top + 24, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, letterSpacing: 3.6, textTransform: "uppercase", marginBottom: 12, fontWeight: "700" }}>Work starting soon</Text>
+            <View style={{ width: 128, height: 128, alignItems: "center", justifyContent: "center", marginVertical: 8 }}>
+              <Animated.View style={{ position: "absolute", width: 128, height: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.12)", transform: [{ scale: bounce.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) }] }} />
+              <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 4, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center" }}>
+                <Icon name="clock-alert-outline" size={44} color="#fff" />
+              </View>
+            </View>
+            <Text testID="reminder-ring-title" style={{ color: "#fff", fontSize: 26, lineHeight: 32, fontWeight: "900", textAlign: "center", marginTop: 8 }}>
+              Your job starts in 30 minutes
+            </Text>
+            <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 18, fontWeight: "800", marginTop: 8, textAlign: "center" }}>{current.service_name || "Scheduled service"}</Text>
+            {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
+            <View testID="reminder-time" style={{ marginTop: 22, width: "100%", maxWidth: 384, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <Icon name="calendar-clock" size={26} color="#fff" />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800" }}>Scheduled start</Text>
+                <Text style={{ color: "#fff", fontSize: 19, fontWeight: "900", marginTop: 2 }}>{current.scheduled_label || `${current.scheduled_date || ""} · ${current.scheduled_time || ""}`}</Text>
+              </View>
+            </View>
+          </ScrollView>
+          <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
+            <Pressable testID="reminder-ring-ok" onPress={() => dismissReminder(current)} style={({ pressed }) => ({ height: 56, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, alignSelf: "center", width: "100%", maxWidth: 384, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              <Icon name="check" size={20} color="#4338CA" /><Text style={{ color: "#3730A3", fontSize: 16, fontWeight: "900" }}>Got it, I&apos;m ready</Text>
+            </Pressable>
+            <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, textAlign: "center", marginTop: 14 }}>Head to the location and start the job on time</Text>
+          </View>
+        </LinearGradient>
+      </Modal>
+    );
+  }
 
   /* ---------------- Reschedule ring (customer moved the booking) ---------------- */
   if (current._resched) {

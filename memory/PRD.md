@@ -684,3 +684,19 @@ VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to se
   own action via the Publish panel.
 - To activate: admin sets Route=q, Brand name, and the 11-char App Hash (from the built app) in the
   SMS card; the login OTP input already has autoComplete="sms-otp" so it will autofill.
+
+## 2026-06 (6) — 30-min scheduled-work reminder = full-screen ring (like booking/reschedule)
+- Backend _send_schedule_reminders: partner notify now push=False (no tray push) + a data-only
+  ring push (type "scheduled_reminder", service_name/scheduled_date/scheduled_time/scheduled_label,
+  tag remind-<id>) → background task → Notifee full-screen + brings app forward (locked/closed too).
+- New endpoint GET /bookings/partner/reminder-pending + controller partner_reminder_pending:
+  returns scheduled jobs currently inside the 30-min pre-start window (unlock_at ≤ now ≤ start+10m,
+  status assigned/arrived) as a reminder ring object — polling/launch fallback. E2E curl verified.
+- pushBackground handleRemoteData: "scheduled_reminder" routed to displayJobRing + foreground bring-up.
+- notifications.displayJobRing: reminder branch — title "Work starting soon", body = service + start
+  time, single "Got it" action (view-only, no accept/reject).
+- JobRingOverlay: SSE scheduled_reminder + foreground push + reminder-pending poll all enqueue a
+  _reminder item; indigo full-screen ring shows service name + scheduled time + "Got it, I'm ready"
+  dismiss. Prune keeps _reminder while live.
+VALIDATION: reminder-pending curl returns the ring object; tsc + eslint 0 errors project-wide;
+backend 200. Native — needs EAS build to confirm on device (locked/closed).
