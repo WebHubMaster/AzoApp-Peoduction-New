@@ -3,7 +3,6 @@
     "name": "AzoApp Partner",
     "slug": "azoapp-partner",
     "version": "1.0.0",
-    "newArchEnabled": false,
     "orientation": "portrait",
     "scheme": "azoapppartner",
     "userInterfaceStyle": "automatic",

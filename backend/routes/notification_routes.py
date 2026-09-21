@@ -89,13 +89,13 @@ async def test_self(body: dict, user=Depends(get_current_user)):
                 "message": "Push is not set up yet — this browser has no web-push subscription and Firebase (native app) is not configured on the server."}
     if kind == "ring":
         res = await push_dispatch.push_to_user(
-            user["id"], "New Job Request", "Test job ring — tap to open",
+            user["id"], "New job request", "Test job ring — tap to open",
             link="/(partner)",
             data={"type": "job_request", "booking_id": f"test-{int(_t.time())}",
                   "service_name": "Test Service", "city": "Your City",
                   "address_line": "Test address", "total": "499", "partner_amount": "399",
-                  "android_channel": "job-ring", "tag": "test-ring"},
-            data_only=True)
+                  "android_channel": "azo-job-ring-v3", "tag": "new-job"},
+            data_only=False)
     else:
         res = await push_dispatch.push_to_user(
             user["id"], "AzoApp test notification", "Push notifications are working correctly.",

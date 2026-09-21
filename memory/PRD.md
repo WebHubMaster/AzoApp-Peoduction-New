@@ -435,3 +435,33 @@ If still no_fcm_module after this build: (a) run `npx expo install @react-native
 @react-native-firebase/messaging` to get SDK-57-matched versions; (b) `expo prebuild --clean`;
 (c) confirm EAS build logs show google-services.json applied + Firebase gradle plugin.
 Verify success: admin health devices.total includes the partner; ring_state ok:true ctx:bg.
+
+## 2026-06 — REAL ring root cause + reliable fix (no RNFB needed)
+Production diagnostic (admin/notifications/health + people overview push_state) proved:
+- Token NOW registers (devices.total:1) and BOTH "New job available" + data-only
+  "New job request" deliver success:1 to the partner device.
+- BUT partner push_state = no_fcm_module on Xiaomi POCO M2 Pro (A12): messaging()
+  (@react-native-firebase/messaging) returns null → RNFB native module not linking
+  (New Arch on AND off both fail; RNFB v26 is TurboModule-first). Token comes from the
+  expo-notifications fallback, which is why plain notifications arrive.
+ROOT CAUSE of "no ring": pushBackground.ts does `const m = messaging(); if (m)
+m.setBackgroundMessageHandler(...)`. messaging()==null → background ring handler NEVER
+registers → the data-only ring message has NO JS handler → silently dropped → only the
+OS-rendered "New job available" notification shows. Notifee itself works (foreground ring
+via SSE works); only RNFB messaging is dead.
+FIX (backend, works with CURRENT APK — only needs backend deploy, no rebuild):
+- controllers/booking_controller.py _push_job_request: data_only=True→False,
+  android_channel "job-ring"(legacy/deleted)→"azo-job-ring-v3", tag→"new-job".
+- routes/notification_routes.py test-self ring: same (azo-job-ring-v3, data_only=False).
+Now Android ITSELF renders the ring as a LOUD heads-up notification on the Notifee-created
+azo-job-ring-v3 channel (HIGH importance + JOB_RING_SOUND + bypassDnd) — loud lock-screen
+ring with NO RNFB/JS. Tapping opens the full-screen ring UI.
+Reverted app.json newArchEnabled:false (user built it, RNFB still failed → no benefit;
+kept SDK-57 default).
+HONEST LIMIT: a TRUE auto-launching full-screen CALL activity on a locked/killed phone
+needs RNFB+Notifee+FGS+full-screen-intent all working; RNFB messaging isn't linking in this
+Expo build, so auto-takeover can't be guaranteed. The LOUD ring notification is the reliable
+deliverable. To pursue true full-screen later: fix RNFB autolinking (needs device/EAS build
+logs) OR wire expo-notifications BACKGROUND_NOTIFICATION_TASK → Notifee displayJobRing.
+NEXT: deploy backend → test closed/locked on current APK → verify loud ring. Then check
+production people-overview for ring_state / delivery success.
