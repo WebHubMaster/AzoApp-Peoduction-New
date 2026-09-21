@@ -424,6 +424,10 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
         await _log_delivery(user_id, title, "skipped", "No registered device/token for user")
         return {"success": 0, "failure": 0, "skipped": "no_devices"}
     tokens = [r["token"] for r in rows]
+    # FCM/webpush can only fetch a fully-qualified https image (Android 15+ also
+    # blocks cleartext). Upgrade any http image so the banner actually renders.
+    if image and image.startswith("http://"):
+        image = "https://" + image[len("http://"):]
     try:
         from firebase_admin import messaging
         app = _init_app(sa)
@@ -439,6 +443,7 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
             collapse_key=str(tag) if tag else None,
             notification=None if data_only else messaging.AndroidNotification(
                 channel_id=str(chan) if chan else None, tag=str(tag) if tag else None,
+                image=image or None,
                 sound="default", click_action="OPEN_CHAT" if (data or {}).get("type") == "chat_message" else None))
         if data_only:
             msg = messaging.MulticastMessage(

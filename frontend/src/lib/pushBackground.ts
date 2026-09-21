@@ -14,7 +14,7 @@ import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJo
 
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
-  if (d.type === "job_request") { await displayJobRing(d); return; }
+  if (d.type === "job_request") { await displayJobRing(d, "bg"); return; }
   if (d.type === "job_taken" || d.type === "job_cancelled") { await cancelJobRing(String(d.booking_id || "")); return; }
   if (d.type === "chat_message" && isBackground) {
     const body = `${d.body || ""}${d.body && d.service_name ? `\n${d.service_name} • Booking #${d.code || ""}` : ""}`;

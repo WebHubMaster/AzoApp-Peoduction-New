@@ -97,7 +97,7 @@ async def send_campaign(admin, data: dict):
         async def _one(uid):
             nonlocal push_ok, no_device
             try:
-                r = await send_to_user(uid, title, message, link, {**meta, "image": image})
+                r = await send_to_user(uid, title, message, link, dict(meta), image=(image or None))
                 if r and (r.get("sent") or r.get("success")):
                     push_ok += 1
                 elif r and r.get("skipped") == "no_devices":
@@ -256,6 +256,7 @@ async def test_push(admin, data: dict):
     title = ((data or {}).get("title") or "AzoApp test notification").strip()
     body = ((data or {}).get("body") or "This is a push-delivery test from Admin.").strip()
     link = ((data or {}).get("link") or "/").strip()
+    image = ((data or {}).get("image") or "").strip()
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
     u = await db.users.find_one({"id": user_id}, {"_id": 0, "id": 1, "role": 1, "name": 1, "push_state": 1})
@@ -266,18 +267,18 @@ async def test_push(admin, data: dict):
     # In-app record (shows in bell dropdown too)
     await db.notifications.insert_one({
         "id": new_id(), "user_id": user_id, "audience": "user",
-        "title": title, "body": body, "link": link,
+        "title": title, "body": body, "link": link, "image": image,
         "data": {"type": "admin_test"}, "read": False, "created_at": now_iso(),
     })
     # Realtime SSE ping (foreground toast)
     try:
         from services import realtime as rt
         rt.emit_user(user_id, "notification",
-                     {"title": title, "body": body, "link": link, "type": "admin_test"})
+                     {"title": title, "body": body, "link": link, "image": image, "type": "admin_test"})
     except Exception:  # noqa: BLE001
         pass
     # Actual push
-    result = await send_to_user(user_id, title, body, link, {"type": "admin_test"})
+    result = await send_to_user(user_id, title, body, link, {"type": "admin_test"}, image=(image or None))
     return {"ok": True, "user": u, "push": result, "push_state": push_state}
 
 

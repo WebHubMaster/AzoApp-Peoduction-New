@@ -325,13 +325,20 @@ export function jobRingBody(d: Record<string, any>): string {
  * background handler (app closed / locked) and from the foreground.
  * `asForegroundService` keeps the process alive so the ring keeps playing.
  */
-export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
+export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = "fg"): Promise<boolean> {
   const n = NotifeeApi();
   const mod = notifee();
   if (!n || !d?.booking_id) return false;
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   const isEmergency = d.schedule_type === "emergency";
   await setupAndroidChannels();
+  // Report the ring outcome to the server so we can SEE (in admin/diagnostics)
+  // whether the call-style ring actually rendered when closed/locked, and why not.
+  let fsi: boolean | undefined;
+  try { fsi = (await fullScreenState()).granted; } catch { /* ignore */ }
+  const report = (ok: boolean, m2: string, error = "") => {
+    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi }).catch(() => {});
+  };
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears
@@ -379,9 +386,15 @@ export async function displayJobRing(d: Record<string, any>): Promise<boolean> {
   });
   try {
     await n.displayNotification(build(true) as any);
-  } catch {
-    try { await n.displayNotification(build(false) as any); }
-    catch { return false; }
+    report(true, "fgs");
+  } catch (e1: any) {
+    try {
+      await n.displayNotification(build(false) as any);
+      report(true, "no_fgs", String(e1?.message || e1));
+    } catch (e2: any) {
+      report(false, "failed", String(e2?.message || e2));
+      return false;
+    }
   }
   return true;
 }

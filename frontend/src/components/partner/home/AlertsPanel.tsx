@@ -87,6 +87,20 @@ export function TestRingCard() {
           {last.doneAt ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="check-circle-outline" size={14} color={TW.emerald700} /><Text style={{ color: TW.emerald700, fontSize: 11, fontWeight: "600" }}>You {last.verb} it in {((last.doneAt - last.sentAt) / 1000).toFixed(1)}s</Text></View> : null}
         </View>
       ) : null}
+      {devices.data?.ring_state ? (() => {
+        const rs: any = devices.data.ring_state;
+        return (
+          <View testID="ring-diagnostic" style={{ marginTop: 8, borderRadius: 12, borderWidth: 1, borderColor: rs.ok ? TW.emerald200 : "#FECACA", backgroundColor: colors.surfaceSubtle, padding: 12, gap: 3 }}>
+            <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>Last job ring on this phone</Text>
+            <Text style={{ color: rs.ok ? TW.emerald600 : TW.red600, fontSize: 11, fontWeight: "600" }}>
+              {rs.ctx === "bg" ? "App closed / locked" : "App open"}: {rs.ok ? (rs.mode === "fgs" ? "full ring shown ✓" : "ring shown (single sound) ✓") : "NOT shown ✗"}
+            </Text>
+            {rs.fsi === false ? <Text style={{ color: TW.amber600, fontSize: 11 }}>⚠ Full-screen permission is OFF — allow "Full-Screen Call Alert" in Permissions so the call screen opens on a locked phone.</Text> : null}
+            {rs.error ? <Text style={{ color: TW.slate400, fontSize: 10 }} numberOfLines={2}>{String(rs.error)}</Text> : null}
+            {rs.at ? <Text style={{ color: TW.slate400, fontSize: 10 }}>{new Date(rs.at).toLocaleString()}</Text> : null}
+          </View>
+        );
+      })() : null}
     </Surface>
   );
 }
