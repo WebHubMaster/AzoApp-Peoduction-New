@@ -16,8 +16,27 @@ except Exception:  # pragma: no cover - fallback if tzdata missing
     APP_TZ = timezone(timedelta(hours=5, minutes=30))
 
 # Call / Chat / Navigation unlock, partner reminder and customer OTP visibility all
-# happen exactly this many minutes before the scheduled start.
+# happen exactly this many minutes before the scheduled start. This is the DEFAULT;
+# admins can override it (30 / 45 / 60) — the sweep refreshes the live value below.
 LEAD_MINUTES = 30
+_ALLOWED_LEADS = (15, 30, 45, 60)
+_LEAD_OVERRIDE = None  # set from admin settings via set_lead_minutes()
+
+
+def lead_minutes() -> int:
+    """Live lead time (admin override if set, else the 30-min default)."""
+    return _LEAD_OVERRIDE or LEAD_MINUTES
+
+
+def set_lead_minutes(value) -> int:
+    """Apply an admin-configured lead time. Ignores anything outside the allowed set."""
+    global _LEAD_OVERRIDE
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        n = 0
+    _LEAD_OVERRIDE = n if n in _ALLOWED_LEADS else None
+    return lead_minutes()
 
 # Statuses where the schedule lock no longer applies (work has begun / ended).
 _UNLOCKED_STATUSES = {"started", "completed", "paid", "cancelled"}
@@ -171,7 +190,9 @@ def schedule_state(booking):
         return state
 
     local = sched_utc.astimezone(APP_TZ)
-    unlock = sched_utc - timedelta(minutes=LEAD_MINUTES)
+    lm = lead_minutes()
+    state["lead_minutes"] = lm
+    unlock = sched_utc - timedelta(minutes=lm)
     now = _now_utc()
     state["scheduled_date"] = _fmt_date(local)
     state["scheduled_time"] = _fmt_time(local)

@@ -700,3 +700,16 @@ VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to se
   dismiss. Prune keeps _reminder while live.
 VALIDATION: reminder-pending curl returns the ring object; tsc + eslint 0 errors project-wide;
 backend 200. Native — needs EAS build to confirm on device (locked/closed).
+
+## 2026-06 (7) — Reminder lead-time admin-configurable (15/30/45/60 min)
+- schedule_service.py: LEAD_MINUTES stays the 30-min default; added lead_minutes() + set_lead_minutes()
+  (allowed 15/30/45/60, else fallback). schedule_state now derives unlock/reminder/OTP window from the
+  live lead_minutes() — so changing it shifts Call/Chat/Nav unlock, the customer OTP visibility AND the
+  full-screen reminder ring together.
+- booking_controller.scheduled_reminder_tick() (runs every 7s) refreshes set_lead_minutes from
+  business_config.reminder_lead_minutes (fallback settings.scheduling.reminder_lead_minutes) each pass,
+  so an admin change takes effect within ~7s across all schedule_state reads.
+- Admin UI: web_panel BusinessSettings (adminSections.jsx) — new "Partner Reminder Lead Time" Select
+  (15/30/45/60 minutes before), saved into business_config.reminder_lead_minutes.
+VALIDATION: unit test — set_lead_minutes(30/45/60) shifts the unlock window correctly; invalid→30
+fallback; backend syntax + restart OK; web_panel adminSections eslint 0 errors.
