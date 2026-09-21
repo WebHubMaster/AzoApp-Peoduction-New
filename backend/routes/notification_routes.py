@@ -38,14 +38,39 @@ async def push_status(body: dict, user=Depends(get_current_user)):
     return await fcm_service.record_push_status(user["id"], body or {})
 
 
+@router.post("/ring-status")
+async def ring_status(body: dict, user=Depends(get_current_user)):
+    """The APP reports whether the call-style Job Ring actually rendered on THIS
+    device (foreground vs background) and the exact failure reason if not — so we
+    can see on the SERVER why a locked/closed-phone ring did or didn't fire (FGS
+    rejected, full-screen-intent not granted, etc.) instead of guessing."""
+    from config.database import db
+    from datetime import datetime, timezone
+    b = body or {}
+    state = {
+        "ok": bool(b.get("ok")),
+        "ctx": str(b.get("ctx", ""))[:16],       # "bg" (closed/locked) | "fg" (open)
+        "mode": str(b.get("mode", ""))[:24],     # "fgs" | "no_fgs" | "failed"
+        "error": str(b.get("error", ""))[:300],
+        "fsi": b.get("fsi"),                      # full-screen-intent permission granted?
+        "booking_id": str(b.get("booking_id", ""))[:64],
+        "at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.users.update_one({"id": user["id"]}, {"$set": {"ring_state": state}})
+    return {"ok": True, "ring_state": state}
+
+
 @router.get("/my-devices")
 async def my_devices(user=Depends(get_current_user)):
+    from config.database import db
     rows = await fcm_service.list_devices(user["id"])
     subs = await webpush_service.list_subs(user["id"])
+    me = await db.users.find_one({"id": user["id"]}, {"ring_state": 1, "_id": 0})
     # Count BOTH channels so a browser registered via standard Web Push (VAPID)
     # is treated as a registered device (no false "device not registered" warning).
     return {"count": len(rows) + len(subs), "devices": rows,
-            "webpush": subs, "webpush_count": len(subs)}
+            "webpush": subs, "webpush_count": len(subs),
+            "ring_state": (me or {}).get("ring_state")}
 
 
 @router.post("/test-self")

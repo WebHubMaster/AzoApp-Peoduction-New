@@ -293,3 +293,27 @@ Backend payload already correct (data_only=True, priority=high, no notification 
 FSI grant flow already exists (openFullScreenIntentSettings in onboarding/permissions).
 NEEDS the fresh APK rebuild (native plugin + prebuild) to take effect; verify on a
 locked/closed phone. Not device-verified from here.
+
+## 2026-06 — Job-ring bg still failing: added GROUND-TRUTH ring diagnostics
+User still reports: closed/locked pe full-screen call alert nahi aata, sirf normal
+push aata hai. (Note: for every new job backend sends TWO msgs — _notify "New job
+available" notification-block [shows in tray] + _push_job_request data_only ring.
+So the tray push the user sees is the _notify one; the data-only ring is what must
+trigger the full-screen handler.)
+Foreground ring uses the SAME displayJobRing+channel and WORKS → channel + FSI-grant
++ display path are fine when app is open. So bg failure is either: FGS start rejected
+(phoneCall fix already applied, needs rebuild) OR USE_FULL_SCREEN_INTENT not granted
+(Android 14+) OR handler not running (Samsung battery kill) OR user testing an OLD APK.
+Cannot resolve/verify from server — full-screen ring is 100% client-side native.
+ADDED (definitive, no more guessing):
+  - backend POST /api/notifications/ring-status → stores users.ring_state
+    {ok, ctx(bg|fg), mode(fgs|no_fgs|failed), error, fsi, booking_id, at}; also
+    returned by GET /api/notifications/my-devices. Verified locally.
+  - displayJobRing(d, ctx="fg"|"bg") now REPORTS outcome + fsi(full-screen-intent
+    granted) to backend on every ring; background handler passes ctx="bg".
+  - AlertsPanel "Alert check" card shows "Last job ring on this phone" with the
+    exact result + an ⚠ hint when full-screen permission is OFF (testID ring-diagnostic).
+NEXT: user must DEPLOY backend + BUILD FRESH APK, then send a test ring with app
+closed/locked, reopen app → the card (and admin) will show EXACTLY why (fgs error /
+fsi off / not shown). Fix the specific reason it reports. Do NOT claim fixed until
+ring_state shows ok:true ctx:bg.

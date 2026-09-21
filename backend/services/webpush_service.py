@@ -148,6 +148,8 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/",
     from services.fcm_service import _abs_link, _notif_icon  # reuse helpers
     icon = await _notif_icon()
     web_link = _abs_link(link) or link
+    if image and image.startswith("http://"):
+        image = "https://" + image[len("http://"):]
     data_payload = {"link": link, "icon": icon, **({"image": image} if image else {}),
                     **{k: str(val) for k, val in (data or {}).items()}}
     if data_only:
