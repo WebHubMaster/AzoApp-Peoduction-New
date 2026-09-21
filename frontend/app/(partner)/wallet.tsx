@@ -179,6 +179,7 @@ export default function PartnerWallet() {
             {/* HERO */}
             <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden", boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }}>
               <View style={{ position: "absolute", right: -64, top: -64, width: 224, height: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.1)" }} />
+              <View style={{ position: "absolute", right: 40, bottom: 0, width: 128, height: 128, borderRadius: 64, backgroundColor: "rgba(125,211,252,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Icon name="wallet-outline" size={16} color="#BFDBFE" />
                 <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 2.2 }}>Available Balance</Text>
