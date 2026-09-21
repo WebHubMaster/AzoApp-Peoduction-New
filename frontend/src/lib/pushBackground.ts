@@ -50,7 +50,7 @@ if (pushSupported) {
 
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
-  if (d.type === "job_request") {
+  if (d.type === "job_request" || d.type === "reschedule_request") {
     await displayJobRing(d, "bg");
     // Bring the app to the FOREGROUND so the in-app full-screen JobRingOverlay shows
     // even when the phone is UNLOCKED / in another app (notifee's fullScreenAction

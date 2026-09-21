@@ -423,6 +423,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   if (AppState.currentState === "active") return false;
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   const isEmergency = d.schedule_type === "emergency";
+  const isResched = d.type === "reschedule_request";
   await setupAndroidChannels();
   // Report the ring outcome to the server so we can SEE (in admin/diagnostics)
   // whether the call-style ring actually rendered when closed/locked, and why not.
@@ -439,16 +440,17 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
     if (k === "dataString" || v == null) continue;
     cleanData[k] = typeof v === "string" ? v : String(v);
   }
-  cleanData.type = "job_request";
+  cleanData.type = isResched ? "reschedule_request" : "job_request";
+  const reschedBody = `${d.requester_name || "The customer"} wants to move ${d.service_name || "the job"} to ${d.new_date || ""} · ${d.new_time || ""}`.trim();
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears
   // (sound plays once instead of looping) — the alert must never be swallowed.
   const build = (asFgs: boolean) => ({
     id: `job-${d.booking_id}`,
-    title: isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request",
-    subtitle: d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined,
-    body: jobRingBody(d),
+    title: isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request"),
+    subtitle: isResched ? (d.new_date ? `New: ${d.new_date} · ${d.new_time || ""}` : undefined) : (d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined),
+    body: isResched ? reschedBody : jobRingBody(d),
     data: cleanData,
     android: {
       channelId: CHANNELS.jobRingSilent,
@@ -466,7 +468,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       asForegroundService: asFgs,
       timeoutAfter: 120000,
       showTimestamp: true,
-      style: { type: mod.AndroidStyle.BIGTEXT, text: jobRingBody(d) },
+      style: { type: mod.AndroidStyle.BIGTEXT, text: isResched ? reschedBody : jobRingBody(d) },
       fullScreenAction: { id: "default", launchActivity: "default" },
       pressAction: { id: "default", launchActivity: "default" },
       actions: [
@@ -495,9 +497,9 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       return false;
     }
   }
-  // Play the admin's custom uploaded tone (looped). The notification channel is
-  // silent, so this is the ONLY sound — no default tone plays first.
-  await startRingSound(String(d.booking_id));
+  // NOTE: sound is played by the in-app JobRingOverlay (RealtimeContext.playRing)
+  // once the app comes to the foreground — a SINGLE source, so it never overlaps
+  // or restarts. Do not start a second player here.
   return true;
 }
 
