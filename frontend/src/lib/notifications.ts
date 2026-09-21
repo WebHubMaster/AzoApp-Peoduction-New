@@ -188,8 +188,11 @@ export async function openFullScreenIntentSettings() {
   if (Platform.OS !== "android") return;
   const pkg = Constants.expoConfig?.android?.package || "app.azoapp.partner";
   try {
+    await storage.setItem(FSI_ASKED_KEY, "1");
     await Linking.sendIntent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", [{ key: "android.provider.extra.APP_PACKAGE", value: pkg }]);
-  } catch { /* ignore */ }
+  } catch {
+    try { await Linking.openSettings(); } catch { /* ignore */ }
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -215,6 +218,7 @@ export async function notifState(): Promise<PermState> {
 }
 
 const BATTERY_ASKED_KEY = "azo_battery_asked";
+const FSI_ASKED_KEY = "azo_fsi_asked";
 
 /* Battery optimisation exemption — required so a killed app can still ring. */
 export async function batteryState(): Promise<PermState> {
@@ -273,10 +277,12 @@ export async function fullScreenState(): Promise<PermState> {
       if (typeof fsi === "number") return { key: "fullscreen", granted: fsi === 1, canAskAgain: true, available: true };
     }
   } catch { /* fall through */ }
-  // Cannot introspect on this OS/Notifee build → treat as satisfied (the manifest
-  // declares USE_FULL_SCREEN_INTENT and the ring uses category CALL). Never leaves
-  // the card stuck "not granted".
-  return { key: "fullscreen", granted: true, canAskAgain: true, available: true };
+  // Cannot introspect → on Android 14+ FSI is DENIED BY DEFAULT for non-calling
+  // apps, so we must NOT assume it's granted (that false-positive is exactly why
+  // the app never prompted and the ring degraded to a tap-to-open heads-up).
+  // Treat as satisfied only AFTER the user has been sent to the FSI settings once.
+  const asked = (await storage.getItem(FSI_ASKED_KEY)) === "1";
+  return { key: "fullscreen", granted: asked, canAskAgain: true, available: true };
 }
 
 /* Location — used for distance / ETA on the ring (foreground is enough). */
