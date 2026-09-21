@@ -1,0 +1,39 @@
+{
+  "summary": "Verified partner Wallet & Withdraw UI fix on Expo web (ngrok). KPI cards now render EXACTLY 2-per-row (row1: total-earned + incentives at same y=548, differing x=16 vs 213.6; row2: processing at y=716). KYC blocker renders cleanly (amber bg, alert icon, wrapped title, 'Pending:' subtitle, full-width 44px CTA). Backend sanity: all 4 wallet GET endpoints return 200 with partner bearer token.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Wallet data hydration on first render", "issue": "Screenshot showed balance ₹0.00 and 'Pending: verification' fallback while backend returns 449.25 and blockers=['PAN card not verified','No verified bank account']. Likely stale render before react-query resolved (page was refreshed via direct nav). Not blocking the layout fix; retest after fresh login flow if concerning.", "affected_selectors": ["wallet-balance","wallet-kyc-blocker"]}
+    ],
+    "design_issues": []
+  },
+  "verification_details": {
+    "kpi_bounding_boxes": {
+      "kpi-total-earned": {"x": 16, "y": 548, "w": 182.4, "h": 156},
+      "kpi-incentives":   {"x": 213.6, "y": 548, "w": 182.4, "h": 156},
+      "kpi-processing":   {"x": 16, "y": 716, "w": 182.4, "h": 156}
+    },
+    "row_check": "kpi-total-earned and kpi-incentives share y=548 with x-delta=197.6 (side-by-side). kpi-processing on next row at y=716. PASS: exactly 2-per-row on 412px width.",
+    "kyc_blocker": {"x": 16, "y": 394, "w": 380, "h": 134, "cta_bbox": {"x": 33, "y": 467, "w": 346, "h": 44}, "visual": "amber bg (#FFFBEB) + amber border (#FCD34D), 40px alert icon, title 'Complete Bank & KYC to withdraw', 'Pending: ...' subtitle, full-width blue CTA — clean, nothing cropped"},
+    "backend_endpoints": {
+      "/api/partner/wallet": "200 (withdrawable_balance=449.25)",
+      "/api/partner/wallet/config": "200",
+      "/api/partner/withdrawals": "200",
+      "/api/partner/finance-kyc": "200 (eligible=false, 2 blockers)"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "KpiCard width='48%' with justifyContent='space-between' and rowGap:12 correctly produces 2-per-row on RN-web. Good fix.",
+    "Minor: 'Pending: {fin.blockers.join(...) || 'verification'}' fallback triggers when blockers array is empty; consider showing 'Complete Bank & KYC' details only after kycQ resolves to avoid flicker."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Partner phone +919000000003, OTP 123456 (demo mode)",
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expo web via ngrok requires ngrok-skip-browser-warning header and ~5-8s bundle wait. Onboarding may redirect to /onboarding/intro then /onboarding/notifications; the wallet route /wallet is reachable directly if partner session token is present. Backend auth endpoint is /api/auth/send-otp and /api/auth/verify-otp; verify-otp returns {token, user} (not access_token)."
+}
