@@ -57,6 +57,13 @@ async def partner_ring_pending(user=Depends(require_role("partner"))):
     return await c.partner_ring_pending(user)
 
 
+@router.get("/partner/reschedule-pending")
+async def partner_reschedule_pending(user=Depends(require_role("partner"))):
+    """Pending customer reschedule requests that must show the full-screen reschedule
+    RING now — polling/launch fallback so a missed SSE/push never hides the alert."""
+    return await c.partner_reschedule_pending(user)
+
+
 @router.get("/partner/missed")
 async def partner_missed(user=Depends(require_role("partner"))):
     """Still-open jobs this partner missed (offline / no answer) — one-tap re-grab via accept."""

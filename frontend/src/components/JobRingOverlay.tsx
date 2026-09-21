@@ -169,11 +169,17 @@ export function JobRingOverlay() {
     const check = async () => {
       if (stopped || AppState.currentState !== "active") return;
       try {
-        const data = await api.get<any[]>("/bookings/partner/ring-pending");
-        const list = Array.isArray(data) ? data : [];
-        list.forEach((j) => enqueue(j));
-        const live = new Set(list.map((j) => j.id));
-        setQueue((q) => q.filter((j) => live.has(j.id) || j._manual || j._resched || Date.now() - (j._at || 0) < 15000));
+        const [jobs, resched] = await Promise.all([
+          api.get<any[]>("/bookings/partner/ring-pending").catch(() => [] as any[]),
+          api.get<any[]>("/bookings/partner/reschedule-pending").catch(() => [] as any[]),
+        ]);
+        const jobList = Array.isArray(jobs) ? jobs : [];
+        const reList = Array.isArray(resched) ? resched : [];
+        jobList.forEach((j) => enqueue(j));
+        reList.forEach((r) => { if (r?.booking_id) enqueue({ ...r, id: String(r.booking_id), _resched: true }, true); });
+        const liveJobs = new Set(jobList.map((j) => j.id));
+        const liveResched = new Set(reList.map((r) => String(r.booking_id)));
+        setQueue((q) => q.filter((j) => (j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
       } catch { /* retry next tick */ }
     };
     check();
