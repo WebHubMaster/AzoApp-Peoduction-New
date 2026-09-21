@@ -1,179 +1,295 @@
 {
-  "project_name": "AzoApp Merchant - Premium Financial & KYC Module UI/UX Redesign",
-  "brand_identity": {
-    "brand_name": "AzoApp",
-    "panel": "MERCHANT",
-    "example_merchant": "Sharma Electricals",
-    "primary_brand_color": "#0D47A1",
-    "design_aesthetic": "Enterprise SaaS Fintech, Stripe-level precision, trustworthy, clean, minimal, data-driven, high-end",
-    "theme_modes": {
-      "light": {
-        "background": "#F8FAFC",
-        "surface": "#FFFFFF",
-        "surface_subtle": "#F1F5F9",
-        "border": "#E2E8F0",
-        "text_primary": "#0F172A",
-        "text_secondary": "#475569",
-        "text_muted": "#64748B",
-        "primary": "#0D47A1",
-        "primary_hover": "#0A387E",
-        "primary_subtle": "#EFF6FF",
-        "card_shadow": "0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 1px 2px -1px rgba(15, 23, 42, 0.03)"
+  "app_metadata": {
+    "app_name": "AzoApp Partner & Merchant",
+    "app_type": "react_native_expo_mobile_app",
+    "target_users": "Service Technicians/Partners & Shopkeepers/Merchants",
+    "core_purpose": "Industry-level mobile authentication, registration, OTP verification, and onboarding flow for AzoApp partners & merchants."
+  },
+  "emotional_archetype": {
+    "name": "TACTICAL PERFORMANCE & EARNING TRUST",
+    "vibe": "High-confidence, professional, crisp, tactical yet approachable. Delivers immediate clarity whether the user is logging in or registering, and distinct visual identity between Partner (Technician) and Merchant (Shopkeeper) roles.",
+    "brand_primary_blue": "#1E40AF"
+  },
+  "typography": {
+    "heading_font": "PublicSans-Bold",
+    "heading_display_font": "PublicSans-ExtraBold",
+    "body_font": "PublicSans-Regular",
+    "medium_font": "PublicSans-Medium",
+    "semibold_font": "PublicSans-SemiBold",
+    "scale": {
+      "display_hero": {
+        "fontSize": 28,
+        "lineHeight": 34,
+        "fontWeight": "800",
+        "letterSpacing": -0.5
       },
-      "dark": {
-        "background": "#0B1120",
-        "surface": "#1E293B",
-        "surface_subtle": "#111827",
-        "border": "#334155",
-        "text_primary": "#F8FAFC",
-        "text_secondary": "#CBD5E1",
-        "text_muted": "#94A3B8",
-        "primary": "#1D4ED8",
-        "primary_hover": "#2563EB",
-        "primary_subtle": "rgba(13, 71, 161, 0.25)",
-        "card_shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3)"
+      "h1": {
+        "fontSize": 24,
+        "lineHeight": 30,
+        "fontWeight": "700",
+        "letterSpacing": -0.3
+      },
+      "h2": {
+        "fontSize": 20,
+        "lineHeight": 26,
+        "fontWeight": "700"
+      },
+      "h3": {
+        "fontSize": 17,
+        "lineHeight": 22,
+        "fontWeight": "600"
+      },
+      "body_large": {
+        "fontSize": 16,
+        "lineHeight": 22,
+        "fontWeight": "400"
+      },
+      "body_default": {
+        "fontSize": 14,
+        "lineHeight": 20,
+        "fontWeight": "400"
+      },
+      "caption": {
+        "fontSize": 12,
+        "lineHeight": 16,
+        "fontWeight": "500",
+        "letterSpacing": 0.2
+      },
+      "badge_label": {
+        "fontSize": 11,
+        "lineHeight": 14,
+        "fontWeight": "700",
+        "textTransform": "uppercase",
+        "letterSpacing": 0.8
       }
     }
   },
-  "typography": {
-    "font_family_heading": "Plus Jakarta Sans, sans-serif",
-    "font_family_body": "Inter, sans-serif",
-    "font_family_mono": "JetBrains Mono, monospace",
-    "scale": {
-      "hero_h1": "text-3xl sm:text-4xl font-extrabold tracking-tight",
-      "section_h2": "text-xl sm:text-2xl font-bold tracking-tight",
-      "card_h3": "text-lg font-semibold tracking-tight",
-      "subtitle": "text-sm text-slate-500 dark:text-slate-400 font-medium",
-      "body": "text-sm font-normal text-slate-700 dark:text-slate-300",
-      "small_label": "text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400",
-      "financial_number": "font-mono font-bold tracking-tight"
+  "colors": {
+    "mode_indicator_states": {
+      "login_state": {
+        "badge_bg": "#EFF6FF",
+        "badge_text": "#1E40AF",
+        "badge_border": "#BFDBFE",
+        "label": "LOGIN MODE",
+        "sublabel": "Access existing account"
+      },
+      "register_state": {
+        "badge_bg": "#ECFDF5",
+        "badge_text": "#047857",
+        "badge_border": "#A7F3D0",
+        "label": "REGISTER MODE",
+        "sublabel": "Create new partner or merchant account"
+      }
+    },
+    "partner_theme": {
+      "primary": "#10B981",
+      "primary_dark": "#047857",
+      "primary_light": "#D1FAE5",
+      "gradient_start": "#059669",
+      "gradient_end": "#10B981",
+      "border": "#A7F3D0",
+      "badge_bg": "#ECFDF5",
+      "badge_text": "#065F46",
+      "role_label": "Partner (Technician / Pro)"
+    },
+    "merchant_theme": {
+      "primary": "#9333EA",
+      "primary_dark": "#6B21A8",
+      "primary_light": "#F3E8FF",
+      "gradient_start": "#7E22CE",
+      "gradient_end": "#A855F7",
+      "border": "#E9D5FF",
+      "badge_bg": "#FAF5FF",
+      "badge_text": "#581C87",
+      "role_label": "Merchant (Shopkeeper)"
+    },
+    "base_palette": {
+      "brand_blue_primary": "#1E40AF",
+      "brand_blue_dark": "#1E3A8A",
+      "brand_blue_accent": "#3B82F6",
+      "brand_blue_soft": "#EFF6FF",
+      "background_canvas": "#F8FAFC",
+      "surface_card": "#FFFFFF",
+      "surface_muted": "#F1F5F9",
+      "text_primary": "#0F172A",
+      "text_secondary": "#475569",
+      "text_tertiary": "#94A3B8",
+      "border_default": "#E2E8F0",
+      "border_active": "#3B82F6",
+      "success": "#16A34A",
+      "error": "#DC2626",
+      "warning": "#D97706",
+      "shadow": "rgba(15, 23, 42, 0.08)"
     }
   },
-  "status_badge_system": {
-    "verified": {
-      "bg": "bg-emerald-50 dark:bg-emerald-950/40",
-      "text": "text-emerald-700 dark:text-emerald-400",
-      "border": "border-emerald-200 dark:border-emerald-800",
-      "dot": "bg-emerald-500"
+  "layouts": {
+    "screen_container": {
+      "flex": 1,
+      "backgroundColor": "#F8FAFC",
+      "paddingHorizontal": 20,
+      "paddingTop": 16,
+      "paddingBottom": 24
     },
-    "approved": {
-      "bg": "bg-emerald-50 dark:bg-emerald-950/40",
-      "text": "text-emerald-700 dark:text-emerald-400",
-      "border": "border-emerald-200 dark:border-emerald-800",
-      "dot": "bg-emerald-500"
+    "hero_area": {
+      "height": 220,
+      "position": "relative",
+      "alignItems": "center",
+      "justifyContent": "flex-end",
+      "marginBottom": 16,
+      "overflow": "visible",
+      "description": "Top hero banner featuring transparent PNG uniformed professional, with subtle circular radial glowing backdrop and brand title chip."
     },
-    "pending": {
-      "bg": "bg-amber-50 dark:bg-amber-950/40",
-      "text": "text-amber-700 dark:text-amber-400",
-      "border": "border-amber-200 dark:border-amber-800",
-      "dot": "bg-amber-500"
+    "segmented_mode_toggle": {
+      "flexDirection": "row",
+      "backgroundColor": "#E2E8F0",
+      "borderRadius": 12,
+      "padding": 4,
+      "marginBottom": 16
     },
-    "under_review": {
-      "bg": "bg-blue-50 dark:bg-blue-950/40",
-      "text": "text-blue-700 dark:text-blue-400",
-      "border": "border-blue-200 dark:border-blue-800",
-      "dot": "bg-blue-500"
+    "form_card": {
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 20,
+      "padding": 20,
+      "borderWidth": 1,
+      "borderColor": "#E2E8F0",
+      "shadowColor": "#0F172A",
+      "shadowOffset": { "width": 0, "height": 4 },
+      "shadowOpacity": 0.06,
+      "shadowRadius": 12,
+      "elevation": 3,
+      "marginBottom": 16
     },
-    "rejected": {
-      "bg": "bg-rose-50 dark:bg-rose-950/40",
-      "text": "text-rose-700 dark:text-rose-400",
-      "border": "border-rose-200 dark:border-rose-800",
-      "dot": "bg-rose-500"
+    "otp_input_grid": {
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "alignItems": "center",
+      "marginVertical": 16,
+      "gap": 8
     },
-    "action_required": {
-      "bg": "bg-orange-50 dark:bg-orange-950/40",
-      "text": "text-orange-700 dark:text-orange-400",
-      "border": "border-orange-200 dark:border-orange-800",
-      "dot": "bg-orange-500"
+    "role_action_stack": {
+      "gap": 12,
+      "marginVertical": 12,
+      "description": "Full-width actions stacked vertically (one per line). Distinct green theme for Partner and purple theme for Merchant."
+    },
+    "demo_login_container": {
+      "marginTop": 16,
+      "paddingTop": 16,
+      "borderTopWidth": 1,
+      "borderTopColor": "#E2E8F0",
+      "gap": 10
     }
   },
-  "component_patterns": {
-    "hero_wallet_card": {
-      "description": "Gradient header background (#0D47A1 into deep navy) with available balance, action CTAs, withdrawable trend indicator and security badge",
-      "desktop_layout": "Flex/Grid split: Available balance on left, Withdraw & Deposit actions on right, supporting metric pills below",
-      "mobile_layout": "Stacked card with sticky quick CTA, high-contrast white text, clear touch targets"
-    },
-    "kpi_card": {
-      "description": "Clean 1px bordered card, 16px radius, soft shadow, icon container with subtle brand tint, trend percentage badge, subtext",
-      "padding": "p-5 sm:p-6"
-    },
-    "right_side_drawer": {
-      "description": "Shadcn Sheet / Drawer component sliding from right on desktop (min 480px width), full-screen overlay sheet on mobile",
-      "content": "Deep transaction metadata, timeline step tracker, status badge, receipt download, audit log"
-    },
-    "stepper": {
-      "description": "Profile & KYC 4-step guided verification header",
-      "desktop": "Horizontal progress track with numbered step badges, titles, and step connectors",
-      "mobile": "Compact header showing 'Step X of 4' with progress bar and current step title"
-    },
-    "responsive_tables": {
-      "desktop": "Shadcn Table with sortable column headers, fixed header option, hover rows, clear action triggers",
-      "mobile": "Card list view with key info upfront, status tag, expandable chevron for instant drawer view"
+  "grids": {
+    "mobile_grid": {
+      "columns": 1,
+      "gutter": 20,
+      "card_radius": 20,
+      "button_height": 52,
+      "input_height": 52,
+      "otp_box_size": 48
     }
   },
-  "module_blueprints": {
-    "module_1_wallet_withdraw": {
-      "file_target": "/app/frontend/src/pages/merchant/MerchantAdvanced.jsx",
-      "sections": [
-        "Hero Wallet Section (Available Balance, Withdrawable, Pending, Withdrawn, 'Withdraw Money' CTA)",
-        "KYC Blocker Warning (If incomplete: non-intrusive alert with 'Complete Bank & KYC' CTA)",
-        "Summary KPI Grid (Total Earned, Commission, Processing, Available, Pending, Withdrawn)",
-        "Segmented Tabs (Overview, Transactions, Withdrawals)",
-        "Overview Tab (Earnings Trend Chart, Recent Transactions Timeline, Recent Withdrawals)",
-        "Transactions Tab (Search, Date/Type/Status/Amount Filters, Desktop Table / Mobile Card List, Right Drawer)",
-        "Withdrawals Tab (History Table, Status Badges, Processing Times)",
-        "Multi-Step Withdraw Dialog Flow (Step 1 Amount -> Step 2 Select Bank -> Step 3 Review -> Step 4 OTP/Confirm -> Step 5 Success)"
-      ]
+  "visual_enhancers": {
+    "hero_png_treatment": {
+      "type": "transparent_png_cutout",
+      "rule": "MUST use background-removed transparent PNG image of uniformed pro. Render with expo-image component (contentFit='contain'). Anchored cleanly toward bottom of hero area.",
+      "background_glow": "Radial circular linear-gradient behind transparent PNG (from #DBEAFE to transparent) so PNG pops cleanly without dark background box."
     },
-    "module_2_bank_kyc": {
-      "file_target": "/app/frontend/src/pages/merchant/MerchantFinanceKyc.jsx",
-      "sections": [
-        "KYC Progress Bar Header (Completion stage e.g. 3/4 Verified)",
-        "PAN Card Verification Card (PAN input, Document Upload dropzone, Uploaded preview, Verification Status)",
-        "Bank Account Cards Grid (Bank logo/icon, Masked account number, IFSC, Primary badge, Set Primary/Edit/Remove/Verify actions)",
-        "Add Bank Account Form Dialog (Inline IFSC lookup validation, Savings/Current option)",
-        "Security & Compliance Footer (Shield icon, 256-bit encryption message, RBI compliance note)"
-      ]
+    "card_styling": {
+      "borderRadius": 20,
+      "borderWidth": 1,
+      "borderColor": "#E2E8F0",
+      "shadow": "0px 4px 20px rgba(15, 23, 42, 0.06)"
     },
-    "module_3_profile_kyc": {
-      "file_target": "/app/frontend/src/pages/merchant/MerchantRegistration.jsx",
-      "sections": [
-        "Approved & Locked Banner (Shown when verified: 'Profile approved & locked', Verified Merchant badge)",
-        "4-Step Stepper Navigation (1. Owner Info -> 2. Shop Info -> 3. Address & Location -> 4. Review & Submit)",
-        "Step 1 Owner: Live photo capture, full name, phone, email, DOB",
-        "Step 2 Shop: Business name, service category, description, shop photos multi-upload with previews",
-        "Step 3 Address: Street address, city, district, state, pincode, interactive location selector",
-        "Step 4 Review: Detailed section summaries with 'Edit' triggers and final verification submission CTA"
-      ]
+    "mode_indicator_badge": {
+      "flexDirection": "row",
+      "alignItems": "center",
+      "paddingHorizontal": 12,
+      "paddingVertical": 6,
+      "borderRadius": 20,
+      "gap": 6,
+      "alignSelf": "flex-start",
+      "marginBottom": 12
     },
-    "module_4_commission": {
-      "file_target": "/app/frontend/src/pages/merchant/MerchantAdvanced.jsx",
-      "sections": [
-        "KPI Cards Row (Total Commission, This Month, Pending, Paid, Growth %)",
-        "Interactive Daily Commission Chart (Recharts ResponsiveContainer, 7d/30d/3m/6m/1y toggles, custom tooltip, peak highlight)",
-        "Commission Source Breakdown (Referral, Booking, Network, Bonus, Adjustment distribution bar/donut)",
-        "Advanced Filter & Search Toolbar (Search ID, Source, Date range picker, Status filter, Mobile full-screen filter sheet)",
-        "Paginated Commission Transactions Table (Date, Txn ID, Source, Base Amount, Commission Rate, Earned, Status, Action Drawer)"
-      ]
+    "trust_strip": {
+      "flexDirection": "row",
+      "flexWrap": "wrap",
+      "justifyContent": "space-between",
+      "backgroundColor": "#FFFFFF",
+      "borderRadius": 16,
+      "padding": 14,
+      "borderWidth": 1,
+      "borderColor": "#E2E8F0",
+      "marginTop": 12
     }
   },
-  "motion_guidance": {
-    "framer_motion_presets": {
-      "page_fade_in": "initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, ease: 'easeOut' }}",
-      "drawer_slide_in": "initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 300 }}",
-      "card_stagger": "variants={{ animate: { transition: { staggerChildren: 0.05 } } }}"
+  "component_name": {
+    "hero_section": "AuthHeroSection",
+    "mode_segmented_control": "AuthModeSegmentedControl",
+    "mode_indicator_badge": "AuthModeIndicatorBadge",
+    "mobile_number_input": "IndianMobileInput",
+    "otp_box_group": "SixDigitOtpGroup",
+    "partner_register_btn": "PartnerRegisterActionButton",
+    "merchant_register_btn": "MerchantRegisterActionButton",
+    "empty_state_unregistered": "UnregisteredAccountEmptyState",
+    "demo_login_sheet": "DemoModeLoginButtons",
+    "trust_feature_strip": "TrustFeatureStrip"
+  },
+  "motion": {
+    "library": "react-native-reanimated",
+    "micro_interactions": {
+      "button_press": "Scale down to 0.97 on press, spring back with tension 300.",
+      "mode_switch": "Smooth layout animation (FadeIn / FadeOut / SlideInRight) when toggling LOGIN vs REGISTER mode.",
+      "otp_shake": "Horizontal 6px shake animation (200ms) on invalid OTP attempt.",
+      "empty_state_fade": "FadeInUp with 10px translate on empty state appearance."
     }
   },
-  "accessibility_and_testing": {
-    "data_testid_rules": "All buttons, inputs, tabs, table rows, drawer triggers, status badges, and modals MUST include descriptive kebab-case data-testid attributes (e.g. data-testid='withdraw-money-button', data-testid='bank-account-card-0')",
-    "touch_targets": "Minimum 44x44px target area on all interactive elements in mobile views",
-    "focus_management": "Visible ring-2 ring-[#0D47A1] offset-2 on focused interactive controls"
+  "accessibility": {
+    "min_touch_target": "48dp x 48dp for all buttons, inputs, and toggles.",
+    "color_contrast": "Text #0F172A on #FFFFFF (15:1 contrast ratio). Subtext #475569 on #FFFFFF (7:1 ratio). Meets WCAG AAA.",
+    "screen_reader": "All interactive buttons have accessibilityLabel and testID props set.",
+    "keyboard_handling": "KeyboardAvoidingView with behavior='padding' on iOS and scrollable container."
+  },
+  "media": {
+    "hero_partner_transparent_png": "https://images.unsplash.com/photo-1649769069590-268b0b994462?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA6MTJ8MHwxfHNlYXJjaHwxfHxzZXJ2aWNlJTIwdGVjaG5pY2lhbiUyMHJlcGFpciUyMHdvcmtlciUyMHBvcnRyYWl0JTIwdHJhbnNwYXJlbnR8ZW58MHx8fHwxNzg5OTk0NTE4fDA&ixlib=rb-4.1.0&q=85",
+    "hero_merchant_transparent_png": "https://images.unsplash.com/photo-1649768870222-17848797d6b4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA6MTJ8MHwxfHNlYXJjaHwzfHxzZXJ2aWNlJTIwdGVjaG5pY2lhbiUyMHJlcGFpciUyMHdvcmtlciUyMHBvcnRyYWl0JTIwdHJhbnNwYXJlbnR8ZW58MHx8fHwxNzg5OTk0NTE4fDA&ixlib=rb-4.1.0&q=85",
+    "brand_logo": "/assets/brand-logo.png"
+  },
+  "3d_libraries": {
+    "status": "Not required for native mobile auth screen",
+    "recommendation": "Use 2D vector gradients (expo-linear-gradient) and crisp expo-image transparent assets for maximum performance and instant load times on low-end mobile devices."
   },
   "image_urls": [
     {
-      "category": "office_team",
-      "url": "https://images.unsplash.com/photo-1675434301763-594b4d0c5819?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHwyfHxmaW50ZWNoJTIwbWVyY2hhbnQlMjBiYW5raW5nJTIwYXZhdGFyJTIwb2ZmaWNlfGVufDB8fHx8MTc4ODY2NjUwOXww&ixlib=rb-4.1.0&q=85",
-      "description": "Office team workspace"
+      "category": "hero_banner",
+      "description": "Friendly uniformed service pro with tools, high resolution transparent background PNG hero image",
+      "url": "https://images.unsplash.com/photo-1649769069590-268b0b994462?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA6MTJ8MHwxfHNlYXJjaHwxfHxzZXJ2aWNlJTIwdGVjaG5pY2lhbiUyMHJlcGFpciUyMHdvcmtlciUyMHBvcnRyYWl0JTIwdHJhbnNwYXJlbnR8ZW58MHx8fHwxNzg5OTk0NTE4fDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "partner_avatar",
+      "description": "Uniformed partner technician thumbnail avatar",
+      "url": "https://images.unsplash.com/photo-1659353591742-9fa64d94738e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA6MTJ8MHwxfHNlYXJjaHwyfHxzZXJ2aWNlJTIwdGVjaG5pY2lhbiUyMHJlcGFpciUyMHdvcmtlciUyMHBvcnRyYWl0JTIwdHJhbnNwYXJlbnR8ZW58MHx8fHwxNzg5OTk0NTE4fDA&ixlib=rb-4.1.0&q=85"
+    },
+    {
+      "category": "merchant_avatar",
+      "description": "Store owner merchant thumbnail avatar",
+      "url": "https://images.unsplash.com/photo-1522508042487-6e6684f78c5b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBzdG9yZSUyMG93bmVyJTIwc2hvcGtlZXBlciUyMHBvcnRyYWl0fGVufDB8fHx8MTc4OTk5NDUyN3ww&ixlib=rb-4.1.0&q=85"
     }
+  ],
+  "instructions_to_main_agent": [
+    "1. Replace flat dark box background behind hero image with a soft gradient radial blur glow, rendering hero image as a clean transparent PNG.",
+    "2. Add explicit Mode Indicator / Segmented Toggle at the top of the auth card so user instantly sees if they are in 'LOGIN' or 'REGISTER' mode.",
+    "3. Use distinct theme colors for role registrations: Partner buttons and badges use Green (#10B981 / #047857), Merchant buttons and badges use Purple (#9333EA / #6B21A8).",
+    "4. Maintain full support for 10-digit Indian (+91) mobile OTP verification flow with 6 individual OTP input boxes.",
+    "5. Stack 'Register as Partner' and 'Register as Merchant' as two full-width separate action buttons (one per line).",
+    "6. Include empty state ('No Partner or Merchant account found') when an unregistered number completes verification, with instant registration pathways.",
+    "7. Include optional demo one-click login buttons for Partner and Merchant when demo mode is active.",
+    "8. Ensure every button and input element has a data-testid or testID prop for automated test stability."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Avoid generic AI template looks by giving depth, clear mode contrast, and refined micro-interactions.",
+    "Never use dark background gradients on text containers.",
+    "Ensure touch targets are at least 48dp.",
+    "All interactive elements must include testID or data-testid attributes."
   ]
 }

@@ -6,7 +6,7 @@ import { StatusBar } from "expo-status-bar";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { LogOut } from "lucide-react-native";
-import { TW, GRAD_BAR, GRAD_SCORE, T, usePal } from "./tokens";
+import { TW, T } from "./tokens";
 
 /* ---------------- Completion score ring (web: size 76, stroke 6) ---------------- */
 export function ScoreRing({ score = 0, size = 76 }: { score?: number; size?: number }) {
@@ -30,15 +30,20 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
   children: React.ReactNode; nav?: React.ReactNode; testID?: string;
 }) {
   const insets = useSafeAreaInsets();
-  const P = usePal();
+  // Distinct identity per flow so it's instantly clear which registration you're in:
+  // Partner = green, Merchant = purple.
+  const BAR = kind === "partner" ? ["#059669", "#047857", "#065F46"] : ["#7E22CE", "#6B21A8", "#581C87"];
+  const SCORE = kind === "partner" ? ["#059669", "#10B981"] : ["#7E22CE", "#A855F7"];
+  const kindBorder = kind === "partner" ? "#A7F3D0" : "#E9D5FF";
   const brandName = kind === "partner" ? "AzoApp Partner" : "AzoApp Merchant";
   const tagline = kind === "partner" ? "Trusted professionals network" : "Grow your shop & network";
+  const roleChip = kind === "partner" ? "PARTNER REGISTRATION" : "MERCHANT REGISTRATION";
   return (
     <View style={{ flex: 1, backgroundColor: TW.slate100 }}>
       <StatusBar style="light" />
       <KeyboardAwareScrollView bottomOffset={24} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: (nav ? 88 : 24) + insets.bottom }}>
-        <LinearGradient colors={[...GRAD_BAR]} start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }}
+        <LinearGradient colors={BAR as any} start={{ x: 0, y: 0 }} end={{ x: 0.4, y: 1 }}
           style={{ paddingTop: insets.top + 16, paddingHorizontal: 16, paddingBottom: 80 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -47,20 +52,23 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
               </View>
               <View>
                 <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16, lineHeight: 18 }}>{brandName}</Text>
-                <Text style={{ color: "rgba(186,230,253,0.8)", ...T.px11, marginTop: 2 }}>{tagline}</Text>
+                <Text style={{ color: "rgba(255,255,255,0.85)", ...T.px11, marginTop: 2 }}>{tagline}</Text>
               </View>
             </View>
             <Pressable testID="reg-logout" onPress={onLogout} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <LogOut size={16} color={TW.sky100} />
-              <Text style={{ color: TW.sky100, ...T.sm }}>Logout</Text>
+              <LogOut size={16} color="#fff" />
+              <Text style={{ color: "#fff", ...T.sm }}>Logout</Text>
             </Pressable>
+          </View>
+          <View style={{ alignSelf: "flex-start", marginTop: 12, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+            <Text style={{ color: "#fff", ...T.px11, fontWeight: "800", letterSpacing: 1 }}>{roleChip}</Text>
           </View>
         </LinearGradient>
 
         <View style={{ marginTop: -64, paddingHorizontal: 12, paddingTop: 24 }}>
           {typeof score === "number" ? (
-            <LinearGradient colors={[...GRAD_SCORE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.4 }}
-              style={{ borderRadius: 24, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: P[100], boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
+            <LinearGradient colors={SCORE as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.4 }}
+              style={{ borderRadius: 24, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: kindBorder, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
               <ScoreRing score={score} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: "#fff", fontWeight: "700", ...T.lg }}>{scoreTitle}</Text>
