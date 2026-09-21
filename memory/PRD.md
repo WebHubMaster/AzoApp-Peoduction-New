@@ -317,3 +317,32 @@ NEXT: user must DEPLOY backend + BUILD FRESH APK, then send a test ring with app
 closed/locked, reopen app → the card (and admin) will show EXACTLY why (fgs error /
 fsi off / not shown). Fix the specific reason it reports. Do NOT claim fixed until
 ring_state shows ok:true ctx:bg.
+
+## 2026-06 — Push IMAGE bug FIXED+VERIFIED + ring FSI action + webpanel restored
+BUG (user): admin push with image attached → recipient sees only text, no image.
+ROOT CAUSE: notification_admin_controller passed image INSIDE the data dict, so
+fcm_service's image= param stayed None → notification.image never set.
+FIX (verified by testing_agent iteration_82, 4/4 backend pytest PASS):
+  - send_campaign: send_to_user(..., dict(meta), image=(image or None))
+  - test_push: reads body.image, stores it in the in-app notification + SSE, passes image=
+  - fcm_service.send_to_user: AndroidNotification(image=...) added + http→https upgrade
+  - webpush_service.send_to_user: http→https upgrade (already had notification.image)
+  - web SW firebase-messaging-sw.js already renders showNotification image
+  Verified: image persists in in-app notification + campaign record; dual-channel
+  dispatch; no-image regression OK. (Live FCM/browser render can't be tested here w/o
+  real config+device; API/DB/SW chain confirmed.) Deploys with backend.
+RING (still pending user device test of the DIAGNOSTIC build):
+  - User reported: closed/locked pe silent notification only, no ring; and the
+    "Full-Screen Call Alert" option "dikhta hi nahi" → because the dashboard "Fix"
+    only handles notifications; FSI lives on the Alerts&Permissions screen. On Android
+    14+ without USE_FULL_SCREEN_INTENT granted, NO full-screen ring — very likely THE
+    missing grant.
+  - Added: AlertsPanel ring-diagnostic now shows an "Allow full-screen" button
+    (openFullScreenIntentSettings) when ring_state.fsi===false. displayJobRing reports
+    ok/mode/error/fsi/ctx to /notifications/ring-status; my-devices returns ring_state.
+  - NEXT (user): rebuild APK + deploy backend → open Alerts&Permissions → grant
+    "Full-Screen Call Alert" + "Run in Background" → test job with app closed/locked →
+    read "Last job ring on this phone" line in the Alert check card. It will show the
+    exact reason (fgs error / fsi off / not shown).
+ENV: restored web_panel on supervisor port 3000 (stopped Expo 'frontend' which had
+grabbed 3000). Admin panel now serves at preview /admin.
