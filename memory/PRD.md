@@ -656,3 +656,15 @@ files. All UI changes need a new EAS build to verify on device.
   which flow they're in. Removed unused GRAD_BAR/GRAD_SCORE/usePal from Shell.
 - Hero image bundled locally (transparent PNG) instead of a jpeg-with-bg.
 VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to see on device.
+
+## 2026-06 (4) — Merchant hero + OTP autofill + resend timer (login)
+- MERCHANT HERO: generated a shopkeeper transparent PNG (green-screen → chroma-key → alpha),
+  bundled assets/hero-merchant.png (520px, 348K). Login hero now swaps to the shopkeeper when
+  mode=register & role=merchant; technician (hero-pro.png) otherwise.
+- OTP AUTOFILL: OTP TextInput now has autoComplete="sms-otp" + importantForAutofill="yes" +
+  textContentType="oneTimeCode" so Android shows the OTP autofill suggestion (tap-to-fill).
+  NOTE: this is autofill-suggestion level; fully automatic zero-tap SMS read needs a native
+  SMS Retriever module (not added).
+- RESEND TIMER: OTP step shows "Resend OTP in 0:NN" (30s countdown) then an active "Resend OTP"
+  button; resend re-sends and restarts the timer. Change-number kept alongside.
+VALIDATION: tsc + eslint 0 errors project-wide. Native — needs EAS build to see on device.
