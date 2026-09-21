@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Pressable, Linking, Modal, TextInput, ScrollView, Alert, Platform, RefreshControl } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import { CalendarSlotPicker } from "@/src/components/CalendarSlotPicker";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -552,7 +552,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const canRequestResched = sched.is_scheduled && !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(status);
   const [reschedOpen, setReschedOpen] = useState(false);
   const [reschedDate, setReschedDate] = useState<Date | null>(null);
-  const [pickMode, setPickMode] = useState<null | "date" | "time">(null);
   const watchRef = useRef<Location.LocationSubscription | null>(null);
 
   const capture = async (stage: "before" | "after") => {
@@ -610,22 +609,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
     try { await api.del(`/bookings/${b.id}/additional/${itemId}`); toast.success("Removed"); onUpdate(); }
     catch (e: any) { toast.error(e?.detail || "Failed"); }
   };
-  const onPickChange = (event: any, selected?: Date) => {
-    if (event?.type === "dismissed" || !selected) { setPickMode(null); return; }
-    const base = reschedDate || new Date(Date.now() + 60 * 60 * 1000);
-    if (pickMode === "date") {
-      const d = new Date(selected); d.setHours(base.getHours(), base.getMinutes(), 0, 0);
-      setReschedDate(d); setPickMode("time");
-    } else {
-      const d = new Date(base); d.setFullYear(base.getFullYear(), base.getMonth(), base.getDate());
-      d.setHours(selected.getHours(), selected.getMinutes(), 0, 0);
-      setReschedDate(d); setPickMode(null);
-    }
-  };
-  const reschedLabel = reschedDate
-    ? reschedDate.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) +
-      " · " + reschedDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })
-    : "";
   const requestResched = async () => {
     if (!reschedDate) return toast.error("Pick a new date & time");
     if (reschedDate.getTime() < Date.now()) return toast.error("Pick a future date & time");
@@ -906,23 +889,17 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
               <Pressable onPress={() => setReschedOpen(false)} hitSlop={8}><Icon name="close" size={18} color={SLATE400} /></Pressable>
             </View>
             <Text style={{ color: colors.textMuted, fontSize: 12.5 }}>Current: <Text style={{ fontWeight: "700" }}>{sched.scheduled_date} · {sched.scheduled_time}</Text>. The booking time changes only after the customer accepts.</Text>
-            <Text style={{ color: SLATE400, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Pick a new date & time slot</Text>
-            <Pressable testID="resched-picker" onPress={() => setPickMode("date")} style={{ flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: reschedDate ? colors.primary : colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 50 }}>
-              <Icon name="calendar-clock-outline" size={18} color={reschedDate ? colors.primary : colors.textMuted} />
-              <Text style={{ flex: 1, marginLeft: 8, color: reschedDate ? colors.text : colors.textMuted, fontSize: fontSize.md, fontWeight: "600" }}>{reschedDate ? reschedLabel : "Select date & time"}</Text>
-              <Icon name="chevron-right" size={18} color={colors.textMuted} />
-            </Pressable>
-            {pickMode ? (
-              <DateTimePicker
-                testID="resched-datetimepicker"
-                mode={pickMode}
-                value={reschedDate || new Date(Date.now() + 60 * 60 * 1000)}
-                minimumDate={pickMode === "date" ? new Date() : undefined}
-                minuteInterval={30}
-                is24Hour={false}
-                onChange={onPickChange}
+            <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <CalendarSlotPicker
+                value={reschedDate}
+                onChange={setReschedDate}
+                primary={colors.primary}
+                surface={colors.surface}
+                text={colors.text}
+                muted={colors.textMuted}
+                border={colors.border}
               />
-            ) : null}
+            </ScrollView>
             <Button title={busy === "resched" ? "Sending…" : "Send reschedule request"} onPress={requestResched} loading={busy === "resched"} disabled={!reschedDate} testID={`reschedule-confirm-${b.code}`} />
           </View>
         </KeyboardAvoidingView>

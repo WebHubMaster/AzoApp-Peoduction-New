@@ -1191,7 +1191,7 @@ async def _advance_accept_streak(partner_id):
 # the closest few first, then — if nobody accepts within OFFER_TTL_SEC or someone
 # rejects — we escalate to the next wave (a wider ring). This gives "nearest first,
 # then expand" smart escalation AND an automatic retry cycle. All server-side.
-DISPATCH_WAVE_SIZE = 3          # partners alerted per wave (closest/best first)
+DISPATCH_WAVE_SIZE = 50         # partners alerted per wave (effectively "everyone" free nearby at once)
 DISPATCH_OFFER_TTL_SEC = 30     # seconds a wave "rings" before auto-escalation
 DISPATCH_MAX_WAVES = 12         # safety cap so we never loop forever
 

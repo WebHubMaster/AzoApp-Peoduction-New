@@ -142,7 +142,7 @@ export function JobRingOverlay() {
     if (!force && isSnoozed() && job.schedule_type !== "emergency") return;
     const isTest = !!job.is_test || String(job.id).startsWith("test-");
     setQueue((q) => (q.find((x) => x.id === job.id) ? q : [...q, { ...job, is_test: isTest, _manual: isTest || job._manual, _at: Date.now() }]));
-    if (isTest) return;
+    if (isTest || job._resched) return;
     api.post(`/bookings/${job.id}/seen`, {}).catch(() => {});
   }, []);
 
@@ -160,7 +160,7 @@ export function JobRingOverlay() {
     if (ev.type === "job_request") { enqueue(ev.data || {}); refetch(); }
     else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); cancelJobRing(id).catch(() => {}); } refetch(); }
     else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
-    else if (ev.type === "reschedule_request") { toast.info("Customer requested a reschedule — open Active Job to respond"); refetch(); }
+    else if (ev.type === "reschedule_request") { const d = ev.data || {}; if (d.booking_id) enqueue({ ...d, id: String(d.booking_id), _resched: true }, true); refetch(); }
   }), [subscribe, enqueue, removeFromQueue]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // RELIABILITY FALLBACK: poll offers that should be ringing right now (every 6s + on foreground).
@@ -173,7 +173,7 @@ export function JobRingOverlay() {
         const list = Array.isArray(data) ? data : [];
         list.forEach((j) => enqueue(j));
         const live = new Set(list.map((j) => j.id));
-        setQueue((q) => q.filter((j) => live.has(j.id) || j._manual || Date.now() - (j._at || 0) < 15000));
+        setQueue((q) => q.filter((j) => live.has(j.id) || j._manual || j._resched || Date.now() - (j._at || 0) < 15000));
       } catch { /* retry next tick */ }
     };
     check();
@@ -182,6 +182,7 @@ export function JobRingOverlay() {
     // FCM data message while foregrounded (SSE may be reconnecting): refresh offers now.
     const offPush = onForegroundPush((d) => {
       if (d?.type === "job_request") check();
+      else if (d?.type === "reschedule_request" && d.booking_id) enqueue({ ...d, id: String(d.booking_id), _resched: true }, true);
       else if ((d?.type === "job_taken" || d?.type === "job_cancelled") && d.booking_id) { handledRef.current.add(String(d.booking_id)); removeFromQueue(String(d.booking_id)); cancelJobRing(String(d.booking_id)).catch(() => {}); }
     });
     return () => { stopped = true; clearInterval(iv); sub.remove(); offPush(); };
@@ -220,7 +221,75 @@ export function JobRingOverlay() {
     setBusy(false);
   };
 
+  const doReschedResponse = async (job: RingJob, action: "accept" | "reject") => {
+    if (!job || busy) return;
+    setBusy(true);
+    try {
+      await api.post(`/bookings/${job.id}/reschedule/respond`, { action });
+      if (action === "accept") toast.success("Reschedule accepted — booking time updated");
+      else toast.info("Reschedule declined — time stays the same");
+    } catch (e: any) { toast.error(e?.detail || "Could not respond to the reschedule"); }
+    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
+    setBusy(false);
+  };
+
   if (!current) return null;
+
+  /* ---------------- Reschedule ring (customer moved the booking) ---------------- */
+  if (current._resched) {
+    return (
+      <Modal visible transparent={false} animationType="slide" statusBarTranslucent onRequestClose={() => {}}>
+        <LinearGradient colors={["#F59E0B", "#EA580C", "#B45309"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }} testID="reschedule-ring">
+          <View pointerEvents="none" style={{ position: "absolute", top: -96, left: -96, width: 288, height: 288, borderRadius: 144, backgroundColor: "rgba(255,255,255,0.10)" }} />
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24, paddingTop: insets.top + 24, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+            <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, letterSpacing: 3.6, textTransform: "uppercase", marginBottom: 12, fontWeight: "700" }}>Reschedule request</Text>
+            <View style={{ width: 128, height: 128, alignItems: "center", justifyContent: "center", marginVertical: 8 }}>
+              <Animated.View style={{ position: "absolute", width: 128, height: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.12)", transform: [{ scale: bounce.interpolate({ inputRange: [0, 1], outputRange: [1, 1.12] }) }] }} />
+              <View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 4, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center" }}>
+                <Icon name="calendar-clock" size={44} color="#fff" />
+              </View>
+            </View>
+            <Text testID="resched-ring-who" style={{ color: "#fff", fontSize: 26, lineHeight: 32, fontWeight: "900", textAlign: "center", marginTop: 8 }}>
+              {current.requester_name || "Customer"} wants to reschedule
+            </Text>
+            <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 17, fontWeight: "700", marginTop: 6, textAlign: "center" }}>{current.service_name || "your service"}</Text>
+            {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
+
+            <View style={{ marginTop: 24, width: "100%", maxWidth: 384, gap: 12 }}>
+              <View testID="resched-old" style={{ borderRadius: 16, backgroundColor: "rgba(0,0,0,0.14)", paddingHorizontal: 16, paddingVertical: 14 }}>
+                <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Current time</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <Icon name="calendar-outline" size={18} color="rgba(255,255,255,0.85)" />
+                  <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 16, fontWeight: "700", textDecorationLine: "line-through" }}>{current.old_date} · {current.old_time}</Text>
+                </View>
+              </View>
+              <View style={{ alignItems: "center" }}><Icon name="arrow-down" size={22} color="#fff" /></View>
+              <View testID="resched-new" style={{ borderRadius: 16, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", paddingHorizontal: 16, paddingVertical: 14 }}>
+                <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800", marginBottom: 4 }}>New time</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                  <Icon name="calendar-check" size={20} color="#fff" />
+                  <Text style={{ color: "#fff", fontSize: 20, fontWeight: "900" }}>{current.new_date} · {current.new_time}</Text>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
+          <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
+            <View style={{ flexDirection: "row", gap: 12, alignSelf: "center", width: "100%", maxWidth: 384 }}>
+              <Pressable testID="resched-ring-reject" onPress={() => doReschedResponse(current, "reject")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+                <Icon name="close" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Keep time</Text>
+              </Pressable>
+              <Pressable testID="resched-ring-accept" onPress={() => doReschedResponse(current, "accept")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+                {busy ? <ActivityIndicator color="#EA580C" /> : <><Icon name="check" size={20} color="#EA580C" /><Text style={{ color: "#B45309", fontSize: 16, fontWeight: "900" }}>Accept</Text></>}
+              </Pressable>
+            </View>
+            <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, textAlign: "center", marginTop: 14 }}>Accept to move the booking · Reject to keep the current time</Text>
+          </View>
+        </LinearGradient>
+      </Modal>
+    );
+  }
+
 
   const area = current.address_line || current.city || "Customer location";
   const total = current.partner_amount != null && current.partner_amount !== "" ? current.partner_amount

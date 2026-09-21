@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable */
 /**
  * Expo config plugin — Android bits needed for the call-like Job Ring:
  *  • permissions (full-screen intent, foreground service, wake lock, vibrate, boot)
