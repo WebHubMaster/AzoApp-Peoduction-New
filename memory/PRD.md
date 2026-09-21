@@ -52,3 +52,14 @@ https://partner-panel-kyc.preview.emergentagent.com  → web_panel (LIVE)
 - UploadTile (payouts.tsx) now offers Camera OR Gallery via shared SourceSheet + pickImage (back camera, permission handling).
 - Real upload progress: switched to XMLHttpRequest (RN upload.onprogress) → shows "Uploading… N%" + a brand-colored progress bar, same as web. Web platform falls back to uploadAsset. Same /partner/registration/upload endpoint.
 - tsc: 0 errors.
+
+## Update (2026-06 #4): Partner Earnings Ledger — mobile↔web full parity
+- Web ref: web_panel/src/pages/partner/modules/EarningsLedger.jsx (+ kit.jsx, charts.jsx, lib/api fmt/fmtC).
+- Mobile: frontend/app/(partner)/partner/earnings.tsx rebuilt to match web mobile view 1:1:
+  - Hero gradient primary-800→700→600 (primaryDark/primaryHover/secondary); Total Earnings fmtC + jobs + wallet chip.
+  - KPIs use full fmt() numbers (was fmtC), removed underline.
+  - Earnings Trend: added 7/14/30-day range segmented + daily.slice(-range).
+  - Payout History now from sum.payouts (all statuses) with amount+method+date+StatusBadge; removed separate /partner/withdrawals query.
+  - Ledger net = net_earning ?? partner_earning; web-accurate Pagination (page-size menu 10/25/50/100 + page-number window).
+  - Earning Details sheet 1:1 (split bar + rows).
+- Endpoints: GET /wallet/partner/earnings, GET /partner/earnings-summary. tsc: 0 errors.
