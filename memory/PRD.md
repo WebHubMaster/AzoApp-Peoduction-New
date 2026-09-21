@@ -28,3 +28,14 @@ https://partner-panel-kyc.preview.emergentagent.com  → web_panel (LIVE)
 ## Backlog / Next
 - Provide a reliable Expo Go device preview (tunnel or temporary preview-URL flip).
 - Optional: remove now-dead `PartnerEarningSummary`/`EarnRow` inline definitions in mobile `active.tsx` and the unused `PartnerEarningSummary.jsx` (kept for now to minimize edits).
+
+## Update (2026-06): Partner Bank & KYC — mobile↔web parity
+- Mobile partner Bank & KYC screen = `frontend/app/(partner)/partner/payouts.tsx` (screen in user's screenshot).
+- Web reference = `web_panel/src/pages/partner/modules/BankKyc.jsx`.
+- Rebuilt mobile page to full parity with web (logic + UI + API + spacing):
+  - Hero: removed extra vertical gap; status chip now inline with title; "PAN Card" / "Bank Account" chips on ONE responsive wrapping row (was stacked/2-line); hero turns green when eligible.
+  - PAN: added approved (locked+View), pending (under review+View), rejected (reason banner + resubmit) states; Submit now requires PAN image (backend mandates pan_url).
+  - Banks: added View Passbook, UPI display, rejected reason; Set primary only when approved.
+  - Add-bank sheet: added "Confirm account number" (mismatch guard) + UPI.
+  - Added DocViewer modal (image/pdf lightbox).
+- Web: hero step chips polished to one tidy non-wrapping-internally row.
