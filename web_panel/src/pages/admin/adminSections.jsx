@@ -2377,6 +2377,7 @@ export const BusinessSettings = () => {
       min_service_amount_for_visiting: Number(b.min_service_amount_for_visiting) || 0,
       max_distance_km: Number(b.max_distance_km) || 0,
       distance_unit: b.distance_unit || "km",
+      reminder_lead_minutes: Number(b.reminder_lead_minutes) || 30,
     };
     const { data } = await api.put("/admin/settings", { business_config: payload });
     setS(data); toast.success("Business settings saved");
@@ -2413,6 +2414,19 @@ export const BusinessSettings = () => {
             </Select>
           </div>
           <p className="text-[11px] text-rose-500 mt-1">Note : This distance is used while searching nearby providers for a customer.</p>
+        </div>
+        <div>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Partner Reminder Lead Time</label>
+          <Select value={String(b.reminder_lead_minutes || 30)} onValueChange={(v) => set("reminder_lead_minutes", Number(v))}>
+            <SelectTrigger data-testid="biz-reminder-lead" className="mt-1 w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="15">15 minutes before</SelectItem>
+              <SelectItem value="30">30 minutes before</SelectItem>
+              <SelectItem value="45">45 minutes before</SelectItem>
+              <SelectItem value="60">60 minutes before</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-slate-400 mt-1">Full-screen reminder ring + Call/Chat/Navigation & OTP unlock fire this many minutes before a scheduled job starts.</p>
         </div>
         <Button data-testid="biz-save" onClick={save} className="bg-primary-700 hover:bg-primary-800">Save changes</Button>
       </div>

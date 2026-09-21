@@ -8,7 +8,7 @@ from services import money
 from services.engines import PricingEngine, CommissionEngine, MatchingEngine, ServiceAreaEngine
 from services import realtime as rt
 from services import refund_service
-from services.schedule_service import schedule_state, format_scheduled, parse_scheduled
+from services.schedule_service import schedule_state, format_scheduled, parse_scheduled, set_lead_minutes
 from datetime import datetime, timezone, timedelta
 
 
@@ -1544,6 +1544,15 @@ async def scheduled_reminder_tick():
     just entered its 30-minute window. Returns how many bookings were notified."""
     now = datetime.now(timezone.utc)
     sent = 0
+    # Keep the live lead time in sync with admin config (business_config, fallback scheduling).
+    try:
+        _s = await get_settings()
+        _lead = (_s.get("business_config") or {}).get("reminder_lead_minutes")
+        if _lead is None:
+            _lead = (_s.get("scheduling") or {}).get("reminder_lead_minutes")
+        set_lead_minutes(_lead)
+    except Exception:  # noqa: BLE001
+        pass
     try:
         rows = await db.bookings.find(
             {"schedule_type": "schedule",
