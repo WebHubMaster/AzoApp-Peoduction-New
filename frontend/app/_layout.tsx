@@ -47,14 +47,17 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 }
 
 function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
-  const { data, isLoading } = useSiteConfigQuery();
+  const { data } = useSiteConfigQuery();
   const cfg: SiteConfig | undefined = data;
 
   useEffect(() => {
-    if (fontsLoaded && !isLoading) {
+    // Hide the splash as soon as fonts are ready — the UI renders with a safe brand
+    // fallback while site-config loads in the background. Keeps the cold-start (and the
+    // ring launch) fast instead of holding the branded splash for a network round-trip.
+    if (fontsLoaded) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, isLoading]);
+  }, [fontsLoaded]);
 
   useEffect(() => {
     setupAndroidChannels().catch(() => {});

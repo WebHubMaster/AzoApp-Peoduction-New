@@ -30,16 +30,18 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
   const [view, setView] = useState(() => new Date(base.getFullYear(), base.getMonth(), 1));
   const [slots, setSlots] = useState<string[]>(FALLBACK_SLOTS);
   const [fullSlots, setFullSlots] = useState<string[]>([]);
+  const [remaining, setRemaining] = useState<Record<string, number>>({});
 
   // Fetch the admin-configured slot grid + fully-booked slots for the selected date.
   useEffect(() => {
-    if (!selDay) { setFullSlots([]); return; }
+    if (!selDay) { setFullSlots([]); setRemaining({}); return; }
     let alive = true;
     api.get<any>(`/bookings/slot-availability?date=${isoDay(selDay)}`).then((r) => {
       if (!alive) return;
       setFullSlots(Array.isArray(r?.full_slots) ? r.full_slots : []);
+      setRemaining(r?.remaining && typeof r.remaining === "object" ? r.remaining : {});
       if (Array.isArray(r?.slots) && r.slots.length) setSlots(r.slots);
-    }).catch(() => { if (alive) setFullSlots([]); });
+    }).catch(() => { if (alive) { setFullSlots([]); setRemaining({}); } });
     return () => { alive = false; };
   }, [selDay]);
 
@@ -126,14 +128,22 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
       <View style={{ flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 }}>
         {slots.map((t) => {
           const active = selSlotStr === t;
-          const dis = !selDay || slotDisabled(t);
+          const past = isTodaySel && (() => { const [h, m] = t.split(":").map(Number); return (h * 60 + m) <= (now.getHours() * 60 + now.getMinutes()); })();
           const full = fullSlots.includes(t);
+          const dis = !selDay || full || past;
+          const left = remaining[t];
+          const hasLeft = typeof left === "number";
+          const caption = full ? "Full" : past ? "Past" : hasLeft ? `${left} left` : null;
+          const capColor = active ? "rgba(255,255,255,0.9)" : full || past ? muted : left != null && left <= 1 ? "#D97706" : muted;
           return (
             <View key={t} style={{ width: "25%", padding: 4 }}>
               <Pressable testID={`slot-${t}`} onPress={() => pickSlot(t)} disabled={dis}
-                style={{ height: 40, borderRadius: 12, borderWidth: 1, borderColor: active ? primary : border, backgroundColor: active ? primary : surface, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 3, opacity: dis && !active ? 0.4 : 1 }}>
-                {active ? <Icon name="check" size={13} color="#fff" /> : null}
-                <Text style={{ fontSize: 11.5, fontWeight: "700", color: active ? "#fff" : text, textDecorationLine: full ? "line-through" : "none" }}>{to12(t)}{full ? " ·Full" : ""}</Text>
+                style={{ minHeight: 48, paddingVertical: 5, borderRadius: 12, borderWidth: 1, borderColor: active ? primary : border, backgroundColor: active ? primary : surface, alignItems: "center", justifyContent: "center", opacity: dis && !active ? 0.45 : 1 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                  {active ? <Icon name="check" size={12} color="#fff" /> : null}
+                  <Text style={{ fontSize: 12.5, fontWeight: "700", color: active ? "#fff" : text, textDecorationLine: full ? "line-through" : "none" }}>{to12(t)}</Text>
+                </View>
+                {caption ? <Text style={{ fontSize: 9.5, fontWeight: "700", marginTop: 1, color: capColor }}>{caption}</Text> : null}
               </Pressable>
             </View>
           );
