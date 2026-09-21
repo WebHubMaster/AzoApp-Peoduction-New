@@ -146,7 +146,7 @@ export default function Login() {
   return (
     <View style={{ flex: 1, backgroundColor: "#F8FAFC" }}>
       <StatusBar style="dark" />
-      <KeyboardAwareScrollView bottomOffset={24} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}>
+      <KeyboardAwareScrollView bottomOffset={110} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         {/* ---------------- Hero (transparent PNG + soft glow) ---------------- */}
         <View style={{ paddingTop: insets.top + 12, height: 300, alignItems: "center", justifyContent: "flex-end", overflow: "hidden" }}>
           <LinearGradient colors={[ac.soft, "#F8FAFC"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
@@ -189,8 +189,8 @@ export default function Login() {
             <Text style={{ color: "#64748B", fontSize: 12, flex: 1 }} numberOfLines={1}>{ac.chipSub}</Text>
           </View>
 
-          {/* ---------------- Form card ---------------- */}
-          <View style={{ backgroundColor: "#fff", borderRadius: 22, borderWidth: 1, borderColor: "#E7EDF5", padding: 18, boxShadow: "0px 10px 26px rgba(15,23,42,0.06)" }}>
+          {/* ---------------- Form (open, full-width — no card) ---------------- */}
+          <View style={{ marginTop: 2 }}>
             {/* Role picker (register, no role yet) */}
             {showRolePicker ? (
               <View testID="role-picker" style={{ gap: 12 }}>
@@ -319,8 +319,8 @@ export default function Login() {
             ) : null}
           </View>
 
-          {/* trust strip */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 16, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: "#E7EDF5", paddingVertical: 14, paddingHorizontal: 8 }}>
+          {/* trust strip (open, no card) */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 22, paddingTop: 18, borderTopWidth: 1, borderTopColor: "#E7EDF5", paddingHorizontal: 4 }}>
             {FEATURES.map((f, i) => (
               <View key={i} style={{ flex: 1, alignItems: "center", gap: 6 }}>
                 <View style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={20} color={f.fg} /></View>
