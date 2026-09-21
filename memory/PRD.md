@@ -23,6 +23,8 @@ https://d0146e54-da53-4c32-b352-8b3d6304dec2.preview.emergentagent.com  → web_
 ## Known environment limitation
 - Single public port (3000). web_panel occupies it (user's choice). A phone-scannable Expo Go QR needs a public tunnel; the bundled `@expo/ngrok@4.1.3` errors in this pod. Options: temporarily flip the preview URL to Expo to grab a QR, or run Expo LAN + external tunnel.
 
+- 2026-06: **Partner Wallet & Withdraw (mobile)** — confirmed `frontend/app/(partner)/wallet.tsx` is a faithful 1:1 port of web `PartnerWalletV2.jsx` (same APIs `/partner/wallet`, `/wallet/config`, `/withdrawals`, `/finance-kyc` + POST withdraw; same hero/KPI/SegTabs/tx+wd cards/detail sheets/5-step WithdrawFlow). Fixes: set `EXPO_PUBLIC_BACKEND_URL` in `frontend/.env` to the preview backend (was falling back to prod `api.webhubmaster.shop`, so the phone app wasn't hitting this backend/demo data); added the missing 2nd hero decorative blob for pixel-parity. Backend APIs verified 200 for partner +919000000003 (balance ₹449.25).
+
 ## Backlog / Next
 - Provide a reliable Expo Go device preview (tunnel or temporary preview-URL flip).
 - Optional: remove now-dead `PartnerEarningSummary`/`EarnRow` inline definitions in mobile `active.tsx` and the unused `PartnerEarningSummary.jsx` (kept for now to minimize edits).
