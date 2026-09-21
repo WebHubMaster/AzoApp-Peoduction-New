@@ -1500,8 +1500,26 @@ async def _send_schedule_reminders(b, st):
             await notify(pid, "\U0001F514 Scheduled Work Reminder",
                          f"{svc} · {code} starts in 30 minutes ({label}). Tap to view your scheduled work.",
                          link=f"/partner?job={b['id']}", event="scheduled_reminder",
+                         push=False,  # partner gets the full-screen RING (below) instead of a tray push
                          data={"type": "scheduled_reminder", "booking_id": b["id"], "code": code,
                                "reminder": True, "view_only": True})
+        except Exception:  # noqa: BLE001
+            pass
+        # Full-screen call-style RING (same as new-job / reschedule): data-only push →
+        # background task → Notifee full-screen + brings app forward, on locked/closed too.
+        try:
+            from services import push_dispatch
+            await push_dispatch.push_to_user(
+                pid, "Scheduled work reminder",
+                f"{svc} starts in 30 minutes ({label})",
+                link="/(partner)",
+                data={"type": "scheduled_reminder", "booking_id": b["id"],
+                      "code": str(code or ""), "service_name": str(svc or ""),
+                      "scheduled_date": str(st.get("scheduled_date") or ""),
+                      "scheduled_time": str(st.get("scheduled_time") or ""),
+                      "scheduled_label": str(label or ""),
+                      "android_channel": "azo-ring-silent-v1", "tag": f"remind-{b['id']}"},
+                data_only=True)
         except Exception:  # noqa: BLE001
             pass
     cid = b.get("customer_id")
@@ -2196,6 +2214,40 @@ async def partner_reschedule_pending(partner):
             "new_date": r.get("new_date"), "new_time": r.get("new_time"),
             "request_id": r.get("id"),
         })
+    return out
+
+
+async def partner_reminder_pending(partner):
+    """Scheduled jobs currently inside their 30-min pre-start window that should RING
+    the assigned partner — polling/launch fallback for the full-screen reminder so a
+    missed SSE/push (app closed or phone locked) never hides it."""
+    pid = partner["id"]
+    now = datetime.now(timezone.utc)
+    rows = await db.bookings.find(
+        {"partner_id": pid, "schedule_type": "schedule",
+         "status": {"$in": ["assigned", "arrived_shop", "arrived_customer"]}},
+        {"_id": 0}).sort("scheduled_at", 1).to_list(20)
+    out = []
+    for b in rows:
+        st = schedule_state(b)
+        if not st.get("is_scheduled"):
+            continue
+        unlock_at = st.get("unlock_at")
+        sched_at = st.get("scheduled_at_utc")
+        if not unlock_at or not sched_at:
+            continue
+        try:
+            u = datetime.fromisoformat(str(unlock_at))
+            s = datetime.fromisoformat(str(sched_at))
+        except Exception:  # noqa: BLE001
+            continue
+        if u <= now <= s + timedelta(minutes=10):
+            out.append({
+                "type": "scheduled_reminder", "booking_id": b.get("id"), "code": b.get("code"),
+                "service_name": b.get("service_name"),
+                "scheduled_date": st.get("scheduled_date"), "scheduled_time": st.get("scheduled_time"),
+                "scheduled_label": st.get("scheduled_label"),
+            })
     return out
 
 
