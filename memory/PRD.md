@@ -498,3 +498,27 @@ LIMITATION: still needs a real EAS build + device test to confirm the full-scree
 from killed/locked. If a device force-stops the app (MIUI), even this can't run until reopen —
 the loud tray fallback still shows. NEXT: EAS build → deploy backend → test closed/locked →
 verify via production people-overview ring_state (ok:true, ctx:bg).
+
+## 2026-06 — Ring SOUND = admin custom upload + looped until action (background/locked)
+User: the sound in background was the bundled default, not the admin-uploaded tone
+(Integration Center → Alert Sound & Ring, stored as alert_config.custom_sound_url, served
+via /api/partner/alert-prefs → ringPrefs customSoundUrl). Foreground already played the
+custom tone looped (RealtimeContext.playRing via expo-audio). Background used the Notifee
+channel's bundled `job_ring` sound (Android channel sound can't be a remote URL + played
+once). FIX (needs fresh EAS build + backend deploy):
+- notifications.ts: new SILENT Notifee channel `azo-ring-silent-v1` (HIGH importance, NO
+  `sound` prop = plays no channel sound; keeps vibration/lights/bypassDnd). displayJobRing now
+  uses this silent channel (removed sound/loopSound) and, after showing the full-screen
+  notification, calls new startRingSound() which plays the admin custom tone (from cached
+  azo_ring_prefs.customSoundUrl via mediaUrl, else bundled fallback) on LOOP via expo-audio
+  createAudioPlayer (+ setAudioModeAsync shouldPlayInBackground:true). cancelJobRing() calls
+  stopRingSound() → ring stops on Accept/Reject/dismiss/job_taken. displayJobRing now returns
+  early if AppState==="active" (foreground handled by JobRingOverlay+RealtimeContext → no
+  double sound).
+- backend booking_controller.py: fallback "New job available" _notify channel changed
+  azo-job-ring-v3 → azo-ring-silent-v1 (both call sites) so the bundled tone never competes
+  with the custom loop.
+EDGE: if the phone force-stops the app, neither the task nor expo-audio runs → the silent
+fallback notification shows without sound until app reopens (Android limitation).
+VALIDATION: backend health 200; tsc clean for edited files (only a pre-existing unrelated
+RealtimeContext "ready" SSE type warning). Needs device build to confirm background audio.
