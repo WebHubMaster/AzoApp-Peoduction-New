@@ -374,7 +374,7 @@ const CARDS = [
   { key: "email", icon: Mail, title: "SMTP Email", desc: "Transactional + template emails", flag: "email_enabled", provider: "smtp",
     fields: [["smtp_host", "SMTP Host"], ["smtp_port", "Port"], ["smtp_user", "Username"], ["smtp_password", "Password", "password"], ["smtp_from_email", "From Email"], ["smtp_from_name", "From Name"]] },
   { key: "sms", icon: MessageSquare, title: "Fast2SMS", desc: "DLT-compliant SMS gateway", flag: "sms_enabled",
-    fields: [["fast2sms_api_key", "API Key", "password"], ["fast2sms_sender_id", "Sender ID"], ["fast2sms_route", "Route"], ["fast2sms_otp_template_id", "OTP Message ID (Fast2SMS DLT)"]] },
+    fields: [["fast2sms_api_key", "API Key", "password"], ["fast2sms_sender_id", "Sender ID"], ["fast2sms_route", "Route (dlt · otp · q for custom)"], ["fast2sms_otp_template_id", "OTP Message ID (Fast2SMS DLT)"], ["sms_brand_name", "Brand name in OTP SMS (custom route)"], ["sms_app_hash", "Android App Hash (11-char, for OTP autofill)"]] },
   { key: "ocr", icon: ScanLine, title: "Aadhaar OCR", desc: "Extract & verify Aadhaar number", flag: "ocr_enabled",
     fields: [["ocr_provider", "AI Provider", "select", [["gemini", "Google Gemini"], ["openai", "OpenAI"], ["anthropic", "Anthropic (Claude)"]]], ["ocr_model", "Model (optional)"], ["ocr_api_key", "API Key for the selected provider", "password"]],
     guide: "Pick your vision AI provider and paste that provider's own API key (Gemini: aistudio.google.com · OpenAI: platform.openai.com · Anthropic: console.anthropic.com). Optionally override the default model. Aadhaar OCR starts working the moment a valid key is saved." },
