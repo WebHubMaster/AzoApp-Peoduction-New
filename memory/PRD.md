@@ -399,3 +399,19 @@ After rebuild: dashboard "Alert check" → "Allow" on Full-Screen Call Alert →
 in system settings → next job auto-opens the full-screen ring over the lock screen
 (MainActivity already has showWhenLocked/turnScreenOn via withJobRingAndroid).
 All compiles. Native → verify on fresh APK.
+
+## 2026-06 — Onboarding: ask ALL 4 permissions + "Continue" when done
+User: first open par Full-Screen + Run-in-Background pehle se green (bina maange)
+dikhte the; sirf location+notification maangta tha. Aur sab allow hone par button
+"Continue" banna chahiye.
+FIX:
+  - fullScreenState(): already fixed to granted=asked (not false-positive).
+  - batteryState(): now granted=asked (removed "!optimized" pre-tick that many OEMs
+    report by default). requestBatteryExemption() sets BATTERY_ASKED_KEY FIRST (before
+    the already-exempt early-return) so the card reliably turns green after one tap.
+  → On first open all of Notifications / Full-Screen / Run-in-Background / Location
+    show "Allow" and are actually requested.
+  - app/onboarding/notifications.tsx: main CTA now becomes green "Continue" (→ finish)
+    once every AVAILABLE permission is granted; "Maybe later" hides at that point.
+    "X/4 ready" badge now accurate.
+All compiles. Native permission behavior → verify on fresh APK.

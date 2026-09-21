@@ -227,12 +227,10 @@ export async function batteryState(): Promise<PermState> {
   const n = NotifeeApi();
   if (n) {
     try {
-      const optimized = await n.isBatteryOptimizationEnabled();
-      // Truly exempt → granted. Otherwise, if the user already completed the request
-      // flow, treat as satisfied: many OEM skins (MIUI/OneUI/ColorOS…) never report
-      // the exemption via PowerManager even after the user allows background usage,
-      // so the card must not stay stuck on "Allow".
-      return { key: "battery", granted: !optimized || asked, canAskAgain: true, available: true };
+      await n.isBatteryOptimizationEnabled();
+      // Require the user to explicitly run the "Run in Background" flow once (many
+      // OEMs report "not optimized" by default which wrongly pre-ticked the card).
+      return { key: "battery", granted: asked, canAskAgain: true, available: true };
     } catch { /* fall through */ }
   }
   // Expo Go / no notifee: reflect whether the user ran the request at least once.
@@ -241,6 +239,9 @@ export async function batteryState(): Promise<PermState> {
 export async function requestBatteryExemption() {
   const n = NotifeeApi();
   if (Platform.OS !== "android") return;
+  // Mark asked FIRST so the card turns green even when the device is already exempt
+  // (the early-return below used to skip this → button stayed stuck on "Allow").
+  try { await storage.setItem(BATTERY_ASKED_KEY, "1"); } catch { /* ignore */ }
   try {
     if (n && !(await n.isBatteryOptimizationEnabled())) return; // already exempt
   } catch { /* ignore */ }

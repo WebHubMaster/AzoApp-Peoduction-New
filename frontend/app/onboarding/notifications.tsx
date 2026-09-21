@@ -120,6 +120,8 @@ export default function PermissionsOnboarding() {
 
   const notifGranted = states?.notifications.granted ?? false;
   const readyCount = states ? CARDS.filter((c) => states[c.key]?.granted).length : 0;
+  const availableCards = states ? CARDS.filter((c) => states[c.key]?.available) : [];
+  const allGranted = states ? availableCards.length > 0 && availableCards.every((c) => states[c.key]?.granted) : false;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -182,24 +184,26 @@ export default function PermissionsOnboarding() {
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: insets.bottom + spacing.md, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border, gap: spacing.sm }}>
         <Pressable
           testID="enable-all-permissions-button"
-          onPress={handleAll}
+          onPress={allGranted ? finish : handleAll}
           disabled={busy === "all"}
           style={({ pressed }) => ({
-            backgroundColor: colors.primary, borderRadius: radius.lg, paddingVertical: 16,
+            backgroundColor: allGranted ? "#22C55E" : colors.primary, borderRadius: radius.lg, paddingVertical: 16,
             flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10,
             opacity: busy === "all" ? 0.7 : 1, transform: [{ scale: pressed ? 0.98 : 1 }],
           })}
         >
-          <Icon name="bell-ring" size={20} color="#fff" />
+          <Icon name={allGranted ? "check-bold" : "bell-ring"} size={20} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "900", fontSize: fontSize.md }}>
-            {busy === "all" ? "Setting up…" : "Allow all permissions"}
+            {busy === "all" ? "Setting up…" : allGranted ? "Continue" : "Allow all permissions"}
           </Text>
         </Pressable>
-        <Pressable onPress={finish} style={{ alignItems: "center", paddingVertical: 10 }} testID="skip-notifications-button">
-          <Text style={{ color: notifGranted ? colors.primary : colors.textMuted, fontWeight: "800", fontSize: fontSize.sm }}>
-            {notifGranted ? "Continue" : "Maybe later"}
-          </Text>
-        </Pressable>
+        {!allGranted ? (
+          <Pressable onPress={finish} style={{ alignItems: "center", paddingVertical: 10 }} testID="skip-notifications-button">
+            <Text style={{ color: notifGranted ? colors.primary : colors.textMuted, fontWeight: "800", fontSize: fontSize.sm }}>
+              {notifGranted ? "Continue" : "Maybe later"}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
