@@ -8,7 +8,7 @@ import { useTheme } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
-import { getPermissionStatus, requestNotificationPermission, registerPushToken } from "@/src/lib/notifications";
+import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
 import { TW } from "./tw";
 
@@ -95,7 +95,14 @@ export function TestRingCard() {
             <Text style={{ color: rs.ok ? TW.emerald600 : TW.red600, fontSize: 11, fontWeight: "600" }}>
               {rs.ctx === "bg" ? "App closed / locked" : "App open"}: {rs.ok ? (rs.mode === "fgs" ? "full ring shown ✓" : "ring shown (single sound) ✓") : "NOT shown ✗"}
             </Text>
-            {rs.fsi === false ? <Text style={{ color: TW.amber600, fontSize: 11 }}>⚠ Full-screen permission is OFF — allow "Full-Screen Call Alert" in Permissions so the call screen opens on a locked phone.</Text> : null}
+            {rs.fsi === false ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <Text style={{ color: TW.amber600, fontSize: 11, flex: 1, minWidth: 160 }}>⚠ Full-screen permission is OFF — the call screen can't open on a locked phone.</Text>
+                <Pressable testID="ring-fix-fsi" onPress={() => openFullScreenIntentSettings()} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.primary }}>
+                  <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Allow full-screen</Text>
+                </Pressable>
+              </View>
+            ) : null}
             {rs.error ? <Text style={{ color: TW.slate400, fontSize: 10 }} numberOfLines={2}>{String(rs.error)}</Text> : null}
             {rs.at ? <Text style={{ color: TW.slate400, fontSize: 10 }}>{new Date(rs.at).toLocaleString()}</Text> : null}
           </View>
