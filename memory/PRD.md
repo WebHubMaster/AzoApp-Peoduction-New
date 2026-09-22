@@ -66,3 +66,18 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
 - P1: Optional camera/barcode scan on Map QR screen (currently manual token entry — robust & dependency-free).
 - P2: Agent notifications when admin verifies bank / approves withdrawal.
 - P2: Admin-side agent detail already exists (physical_qr_routes) — surface agent performance in admin UI.
+
+## 2026-06 — Bring-up + Partner Invoice verification
+- Root cause of "not working": both env files were MISSING (fresh container) → backend
+  crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
+- Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
+  CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://invoice-sync-mobile-1.preview.emergentagent.com,
+  aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
+- Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
+  role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
+- All 8 mobile invoice files compile (babel-preset-expo OK).
+- Testing agent (iteration_87): mobile Partner "My Invoices" = working 1:1 parity — login, KPIs,
+  list, search, 12-option sort, filters (type/status/amount/customer/booking), detail panel
+  (partner Your-Earning breakdown matches backend), A4 viewer, share sheet, download/print. No
+  blocking issues. Section-heading uppercase + UUID-only deep-link are intentional (match web 1:1).
