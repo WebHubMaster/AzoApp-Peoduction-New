@@ -1,0 +1,31 @@
+{
+  "summary": "Verified partner Help & Support close-ticket fix (Platform-aware window.confirm on web) and quick no-regression on reply, details sheet, and bottom tab bar visibility. All checks passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "login_demo_partner": "PASS",
+    "create_fresh_ticket": "PASS (TKT-100004, subject TEST_close_flow_1790075454)",
+    "reply_on_open_ticket": "PASS (green own-bubble rendered)",
+    "ticket_details_btn_opens_sheet": "PASS",
+    "app_bottom_nav_absent_on_thread": "PASS",
+    "app_bottom_nav_present_on_support_list": "PASS",
+    "close_ticket_web_confirm_dialog": "PASS (window.confirm dialog captured and accepted)",
+    "close_api_response": "POST /api/support/tickets/{id}/close -> 200",
+    "composer_replaced_with_closed_message": "PASS ('This ticket is closed. Please raise a new ticket for further help.')",
+    "system_message_ticket_closed_by": "PASS ('Ticket closed by Raj Kumar.' centered system message)",
+    "close_and_attach_buttons_hidden_after_close": "PASS (close-ticket testid absent after close)"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "seed_data_creation": "Created ticket TKT-100004 (subject TEST_close_flow_1790075454) — now closed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Close-ticket flow uses window.confirm on web. Playwright must register page.on('dialog', d.accept()) before clicking [data-testid=close-ticket]. Close API is POST /api/support/tickets/{id}/close returning 200. After close: composer replaced by closed-note, system message 'Ticket closed by <name>' appears, and close/attach buttons are hidden."
+}

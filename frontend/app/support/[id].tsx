@@ -107,8 +107,6 @@ export default function SupportThread() {
     ]);
   };
 
-  let lastDay: string | null = null;
-
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader
@@ -140,8 +138,8 @@ export default function SupportThread() {
           <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }} showsVerticalScrollIndicator={false}>
             {messages.map((m, i) => {
               const rows: React.ReactNode[] = [];
-              const sep = dayKey(m.at) !== lastDay ? daySep(m.at) : null;
-              lastDay = dayKey(m.at);
+              const prevDay = i > 0 ? dayKey(messages[i - 1].at) : null;
+              const sep = dayKey(m.at) !== prevDay ? daySep(m.at) : null;
               if (sep) rows.push(
                 <View key={`sep-${m.id || i}`} style={{ alignItems: "center", marginVertical: 6 }}>
                   <Text style={{ fontSize: 10, fontWeight: "800", letterSpacing: 0.5, color: SLATE400, backgroundColor: colors.surfaceSubtle, borderRadius: radius.pill, paddingHorizontal: 12, paddingVertical: 4 }}>{sep}</Text>
