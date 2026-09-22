@@ -10,6 +10,10 @@ import { shortDate } from "@/src/lib/invoiceUtils";
 
 const A4_W = 794;
 const A4_H = 1123;
+/* Cache the fetched A4 HTML per invoice id so reopening the viewer is instant
+   (no refetch / skeleton flash). Persists for the app session. */
+const htmlCache = new Map<string, string>();
+export const clearInvoiceHtmlCache = (id?: string) => { id ? htmlCache.delete(id) : htmlCache.clear(); };
 /* The server HTML is a fixed 210mm A4 document — pin the WebView viewport to A4 width so
    the page is scaled to fit the phone (same as web's InvoiceA4Frame scale transform). */
 const fitA4 = (html: string) => html.replace(/<head([^>]*)>/i, `<head$1><meta name="viewport" content="width=${A4_W}, initial-scale=1, maximum-scale=4, user-scalable=yes" />`);
@@ -26,11 +30,18 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
   const scale = box.w > 0 ? Math.min(1, box.w / A4_W) : 1;
   useEffect(() => {
     let alive = true;
-    setHtml(""); setDocH(A4_H);
     const id = inv?.id;
-    if (!open || !id) return () => { alive = false; };
+    if (!open || !id) { setHtml(""); setDocH(A4_H); return () => { alive = false; }; }
+    const cached = htmlCache.get(id);
+    if (cached) { setHtml(cached); return () => { alive = false; }; }
+    setHtml(""); setDocH(A4_H);
     (async () => {
-      try { const r = await api.get<string>(`/invoices/${id}/view`); if (alive) setHtml(typeof r === "string" ? r : ""); }
+      try {
+        const r = await api.get<string>(`/invoices/${id}/view`);
+        const doc = typeof r === "string" ? r : "";
+        if (doc) htmlCache.set(id, doc);
+        if (alive) setHtml(doc);
+      }
       catch { if (alive) setHtml(""); }
     })();
     return () => { alive = false; };

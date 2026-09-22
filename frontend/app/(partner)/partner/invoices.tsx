@@ -12,13 +12,13 @@ import { useToast } from "@/src/components/Toast";
 import { AppShellHeader, Surface } from "@/src/components/AppShell";
 import {
   PageHeader, InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, AdvancedPaginator, TableSkeleton, InvEmpty, InvError,
-  IconSquare, ActiveChip, ActionSheet, RowMenuSheet, useDebounced, useInv,
+  IconSquare, ActiveChip, ActionSheet, RowMenuSheet, EmailSheet, useDebounced, useInv,
 } from "@/src/components/invoice";
 import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
 import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
 import InvoiceViewer from "@/src/components/invoices/Viewer";
 import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, invoiceLink, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
-import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText } from "@/src/lib/invoiceActions";
+import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice } from "@/src/lib/invoiceActions";
 
 const qs = (o: Record<string, any>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
@@ -56,6 +56,8 @@ export default function PartnerInvoices() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [printing, setPrinting] = useState(false);
   const [menuFor, setMenuFor] = useState<any>(null);
+  const [emailFor, setEmailFor] = useState<any>(null);
+  const [emailing, setEmailing] = useState(false);
 
   const params = useMemo(() => ({
     page, page_size: pageSize, range, sort,
@@ -140,6 +142,7 @@ export default function PartnerInvoices() {
   };
   const share = async (inv: any, channel: string) => {
     if (!inv) return;
+    if (channel === "email") { setEmailFor(inv); return; }
     if (channel === "whatsapp" || channel === "system") {
       toast.info("Preparing invoice…");
       try { const r = await shareInvoicePdf(inv, channel as any); if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp"); }
@@ -151,6 +154,18 @@ export default function PartnerInvoices() {
     if (channel === "text") { (await copyText(text)) ? toast.success("Invoice details copied") : toast.error("Could not copy"); return; }
   };
   const copyNumber = async (inv: any) => { (await copyText(inv.invoice_number)) ? toast.success(`Copied ${inv.invoice_number}`) : toast.error("Could not copy"); };
+
+  const sendEmail = async (email: string) => {
+    const inv = emailFor; if (!inv) return;
+    setEmailing(true);
+    try {
+      const r = await emailInvoice(inv, email || undefined);
+      setEmailFor(null);
+      toast.success(r?.sent_to ? `Invoice emailed to ${r.sent_to}` : "Invoice emailed");
+    } catch (e: any) {
+      toast.error((e as ApiError)?.detail || "Could not email the invoice");
+    } finally { setEmailing(false); }
+  };
 
   const applyCustom = () => { setApplied({ from: dateFrom, to: dateTo }); };
   const onRangeChange = (k: string) => { setRange(k); if (k !== "custom") setApplied({ from: "", to: "" }); };
@@ -236,6 +251,7 @@ export default function PartnerInvoices() {
         onDownload={download} onPreview={(inv) => { openViewer(inv); }} onPrint={print} onShare={share} onCopy={copyNumber} downloading={!!selected && busyId === selected.id} merchantName={shopName} role={role} />
       <InvoiceViewer inv={viewerInv} loading={viewerLoading} onClose={() => setViewerInv(null)} onDownload={download} onPrint={print} onShare={share}
         downloading={!!viewerInv && busyId === viewerInv.id} printing={printing} />
+      <EmailSheet inv={emailFor} onClose={() => setEmailFor(null)} onSend={sendEmail} sending={emailing} />
     </View>
   );
 }

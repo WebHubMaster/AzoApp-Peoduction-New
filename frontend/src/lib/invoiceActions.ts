@@ -4,7 +4,7 @@ import { File, Directory, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import * as Clipboard from "expo-clipboard";
-import { API_BASE, getToken } from "@/src/api/client";
+import { API_BASE, getToken, api } from "@/src/api/client";
 import { money, statusMeta } from "@/src/lib/invoiceUtils";
 
 const safeName = (s: any) => String(s || "invoice").replace(/[^\w.-]+/g, "_");
@@ -83,5 +83,12 @@ export async function shareInvoicePdf(inv: any, channel: "whatsapp" | "system" =
 export const copyText = async (text: string) => {
   try { await Clipboard.setStringAsync(text); return true; } catch { return false; }
 };
+
+/** Email the invoice PDF via the backend (POST /invoices/{id}/email). `to` optional —
+    backend falls back to the invoice's on-file email. Throws ApiError on failure so the
+    caller can surface the backend message (e.g. "email not configured"). */
+export async function emailInvoice(inv: any, to?: string) {
+  return api.post<any>(`/invoices/${inv.id}/email`, to ? { to } : {});
+}
 
 export const shareStatusLabel = (inv: any) => statusMeta(inv?.payment_status).label;

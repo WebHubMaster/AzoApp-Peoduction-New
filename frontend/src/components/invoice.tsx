@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, Search, X, Eye, Download, MoreHorizontal, Printer, Share2, Copy,
   ChevronLeft, ChevronRight, AlertTriangle, WifiOff, Inbox, MessageCircle, Link2, Store, CalendarDays, ArrowLeft, Loader2,
-  CircleDollarSign, XCircle, AlertOctagon, HelpCircle, ChevronDown,
+  CircleDollarSign, XCircle, AlertOctagon, HelpCircle, ChevronDown, Mail,
 } from "lucide-react-native";
 import { useTheme, palette } from "@/src/theme";
 import { WDatePicker } from "@/src/components/reg/DatePicker";
@@ -233,6 +233,7 @@ export function RowMenuSheet({ inv, onClose, ...a }: { inv: any | null; onClose:
           <Item icon={Printer} label="Print Invoice" onPress={() => a.onPrint(inv)} testID="invoice-menu-print" />
           <Sep />
           <Item icon={MessageCircle} label="Share on WhatsApp" onPress={() => a.onShare(inv, "whatsapp")} tone={t.emerald} testID="invoice-menu-whatsapp" />
+          <Item icon={Mail} label="Email Invoice" onPress={() => a.onShare(inv, "email")} testID="invoice-menu-email" />
           <Item icon={Link2} label="Copy Link" onPress={() => a.onShare(inv, "copy")} testID="invoice-menu-copy-link" />
           <Item icon={Share2} label="Share…" onPress={() => a.onShare(inv, "system")} testID="invoice-menu-share" />
           <Sep />
@@ -428,9 +429,34 @@ export function ShareSheet({ open, onClose, onPick }: { open: boolean; onClose: 
   return (
     <ActionSheet open={open} onClose={onClose} title="Share invoice" testID="invoice-share-sheet">
       <Item icon={MessageCircle} bg={inv.dark ? "rgba(2,44,34,0.4)" : "#ECFDF5"} fg={inv.emerald} title="WhatsApp" sub="Send invoice summary & link" ch="whatsapp" testID="share-whatsapp" />
+      <Item icon={Mail} bg={inv.primary50} fg={inv.primary700} title="Email Invoice" sub="Email the invoice PDF" ch="email" testID="share-email" />
       <Item icon={Link2} bg={inv.primary50} fg={inv.primary700} title="Copy Link" sub="Copy a link to this invoice" ch="copy" testID="share-copy" />
       <Item icon={Share2} bg={inv.subtle} fg={inv.t600} title="System Share" sub="Share via installed apps" ch="system" testID="share-system" />
       <Item icon={Copy} bg={inv.subtle} fg={inv.t600} title="Copy Details" sub="Invoice number, amount & status" ch="text" testID="share-text" />
+    </ActionSheet>
+  );
+}
+
+/** Email invoice sheet — optional recipient (prefilled with the on-file email). */
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+export function EmailSheet({ inv, onClose, onSend, sending }: { inv: any | null; onClose: () => void; onSend: (email: string) => void; sending?: boolean }) {
+  const t = useInv();
+  const onFile = (() => { const e = inv?.customer_snapshot?.email; return e && e !== "*****" ? String(e) : ""; })();
+  const [email, setEmail] = useState(onFile);
+  useEffect(() => { if (inv) setEmail(onFile); }, [inv?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const valid = !email.trim() || EMAIL_RE.test(email.trim());
+  return (
+    <ActionSheet open={!!inv} onClose={onClose} title="Email Invoice" testID="invoice-email-sheet">
+      <View style={{ paddingHorizontal: 4, gap: 12 }}>
+        <Text style={{ fontSize: 13, color: t.t500 }}>Send <Text style={{ fontWeight: "700", color: t.t800 }}>{inv?.invoice_number}</Text> as a PDF attachment. Leave blank to use the email on file.</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 12, borderWidth: 1, borderColor: valid ? t.border2 : t.rose, backgroundColor: t.surface, paddingHorizontal: 12, gap: 8 }}>
+          <Mail size={16} color={t.t400} />
+          <TextInput testID="invoice-email-input" value={email} onChangeText={setEmail} placeholder="recipient@email.com" placeholderTextColor={t.t400}
+            keyboardType="email-address" autoCapitalize="none" autoCorrect={false} style={{ flex: 1, color: t.t900, fontSize: 15, paddingVertical: 0 }} />
+        </View>
+        {!valid ? <Text style={{ fontSize: 11, color: t.rose }}>Enter a valid email address.</Text> : null}
+        <OutlineBtn testID="invoice-email-send" primary height={48} disabled={!valid} busy={sending} icon={<Mail size={16} color="#fff" />} label="Send Invoice" onPress={() => valid && onSend(email.trim())} />
+      </View>
     </ActionSheet>
   );
 }
