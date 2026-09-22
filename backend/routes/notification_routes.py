@@ -43,21 +43,9 @@ async def ring_status(body: dict, user=Depends(get_current_user)):
     """The APP reports whether the call-style Job Ring actually rendered on THIS
     device (foreground vs background) and the exact failure reason if not — so we
     can see on the SERVER why a locked/closed-phone ring did or didn't fire (FGS
-    rejected, full-screen-intent not granted, etc.) instead of guessing."""
-    from config.database import db
-    from datetime import datetime, timezone
-    b = body or {}
-    state = {
-        "ok": bool(b.get("ok")),
-        "ctx": str(b.get("ctx", ""))[:16],       # "bg" (closed/locked) | "fg" (open)
-        "mode": str(b.get("mode", ""))[:24],     # "fgs" | "no_fgs" | "failed"
-        "error": str(b.get("error", ""))[:300],
-        "fsi": b.get("fsi"),                      # full-screen-intent permission granted?
-        "booking_id": str(b.get("booking_id", ""))[:64],
-        "at": datetime.now(timezone.utc).isoformat(),
-    }
-    await db.users.update_one({"id": user["id"]}, {"$set": {"ring_state": state}})
-    return {"ok": True, "ring_state": state}
+    rejected, full-screen-intent not granted, etc.) instead of guessing. Also stamps
+    the reporting device with last_ring_at for the admin per-device ring log."""
+    return await fcm_service.record_ring_status(user["id"], body or {})
 
 
 @router.get("/my-devices")

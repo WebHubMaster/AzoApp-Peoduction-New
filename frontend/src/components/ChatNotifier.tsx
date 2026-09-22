@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 import { usePathname, useRouter } from "expo-router";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useAuth } from "@/src/context/AuthContext";
@@ -34,19 +35,39 @@ export function ChatNotifier() {
   pathRef.current = pathname;
 
   const qc = useQueryClient();
+  const lastRegRef = useRef(0);
   useEffect(() => {
     if (!user?.id) return undefined;
     let unsub: (() => void) | undefined;
-    // Register (or refresh) this device's FCM token. Runs on login AND every time
-    // the app returns to the foreground — so a partner who grants Notifications
-    // AFTER logging in (e.g. from the permission screen) gets registered on the
-    // very next return to the app, without needing an app restart. This closes the
-    // #1 gap where "This phone registered" stayed No after a late permission grant.
-    const ensure = () => { registerPushToken().then((r) => { if (r.unsubscribe) unsub = r.unsubscribe; }).catch(() => {}); };
-    ensure();
-    const sub = AppState.addEventListener("change", (s) => { if (s === "active") ensure(); });
-    return () => { unsub?.(); sub.remove(); };
+    // Register (or refresh) this device's FCM token, and KEEP it registered:
+    //  • on login / app launch,
+    //  • every time the app returns to the foreground (late permission grant),
+    //  • on network reconnect (a token that failed while offline now succeeds),
+    //  • when the server asks (push_reregister — e.g. API key just un-blocked).
+    // Throttled to at most one attempt / 20s (force=true bypasses for real events)
+    // so we never spam the backend, closing the #1 gap where a device silently
+    // stayed unregistered after a transient failure.
+    const ensure = (force = false) => {
+      const t = Date.now();
+      if (!force && t - lastRegRef.current < 20000) return;
+      lastRegRef.current = t;
+      registerPushToken().then((r) => { if (r.unsubscribe) unsub = r.unsubscribe; }).catch(() => {});
+    };
+    ensure(true);
+    const appSub = AppState.addEventListener("change", (s) => { if (s === "active") ensure(); });
+    let wasConnected = true;
+    const netUnsub = NetInfo.addEventListener((st) => {
+      const conn = !!(st?.isConnected && st?.isInternetReachable !== false);
+      if (conn && !wasConnected) ensure(true);   // just came back online → retry now
+      wasConnected = conn;
+    });
+    return () => { unsub?.(); appSub.remove(); try { netUnsub(); } catch { /* ignore */ } };
   }, [user?.id]);
+
+  // Server-triggered silent re-registration (RealtimeContext SSE).
+  useEffect(() => subscribe((ev) => {
+    if (ev?.type === "push_reregister") registerPushToken().catch(() => {});
+  }), [subscribe]);
 
   useEffect(() => {
     if (!user?.id) return undefined;

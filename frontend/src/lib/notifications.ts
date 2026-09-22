@@ -448,8 +448,10 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   // whether the call-style ring actually rendered when closed/locked, and why not.
   let fsi: boolean | undefined;
   try { fsi = (await fullScreenState()).granted; } catch { /* ignore */ }
+  let did = "";
+  try { did = await deviceId(); } catch { /* ignore */ }
   const report = (ok: boolean, m2: string, error = "") => {
-    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi }).catch(() => {});
+    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi, device_id: did }).catch(() => {});
   };
   // Notifee requires EVERY notification.data value to be a STRING. The FCM
   // payload from expo (data.notification.data) carries a `dataString` key and may
