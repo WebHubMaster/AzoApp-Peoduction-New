@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://partner-panel-kyc.preview.emergentagent.com",
+  "base_url": "https://azoapp-services.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

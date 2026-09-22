@@ -1,6 +1,6 @@
 {
   "timestamp": "2026-09-12T05:14:55.416365",
-  "base_url": "https://partner-panel-kyc.preview.emergentagent.com/api",
+  "base_url": "https://azoapp-services.preview.emergentagent.com/api",
   "total_tests": 22,
   "passed": 16,
   "failed": 6,
