@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend-only verification of the TWO new features on Partner mobile 'My Invoices' (Expo web at 420x900). Both features PASS. (1) Email Invoice: 'Email Invoice' item (invoice-menu-email) is now present in the row menu of every invoice card between 'Share on WhatsApp' and 'Copy Link'. Tapping it opens invoice-email-sheet with invoice-email-input; for INV-2026-000001 the customer email is masked (*****) so the input is correctly prefilled empty (per code: `e && e !== '*****' ? e : ''`). Entering 'abc' shows the inline invalid-email hint and invoice-email-send becomes aria-disabled=true (blocks send). Entering a valid email 'test@example.com' and tapping Send Invoice fires POST /invoices/{id}/email → backend returns HTTP 400 as expected in this env, and the app surfaces the EXACT backend detail as an error toast: 'Email abhi configured nahi hai — Admin → Integrations me SendGrid/SMTP add karein.' No crash. The email sheet also opens correctly from (a) the row menu, (b) the detail-panel header more menu (detail-more → detail-menu-email) rendered on top of the detail panel, and (c) the full-screen viewer's Share sheet (viewer-m-share → share-email) rendered on top of the viewer. (2) PDF Preview Cache: Opening INV-2026-000001 in the viewer fetches GET /invoices/{id}/view once and shows the A4 HTML in the iframe. After closing and reopening the SAME invoice's viewer, the iframe is present within ~600ms and network capture shows 0 additional /view calls — cached instantly per module-level htmlCache Map in Viewer.tsx (keyed by invoice id). Different-invoice cache-miss path is guaranteed by the same code (fetch runs when htmlCache.get(id) is undefined). Both new features work end-to-end.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Viewer htmlCache is module-level and unbounded — safe for typical use (invoice list is small) but consider a soft cap / LRU eviction if a partner scrolls through hundreds of invoices in a session, to avoid holding large HTML strings in memory indefinitely.",
+    "clearInvoiceHtmlCache is exported but not wired to any invoice mutation event (email/download/status change) — if server-side data updates while the app is open, the cached HTML could be stale. Consider calling clearInvoiceHtmlCache(id) after successful actions that could change the doc (e.g. status change) or on pull-to-refresh."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (frontend-only per request)", "frontend": "100% (all 5 acceptance items pass)"},
+  "test_credentials": "Partner one-click demo-partner (Raj Kumar, +919000000003 / OTP 123456)",
+  "seed_data_creation": "None — used existing seeded 9 partner invoices.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Login helper: goto '/', dismiss up to 3 Skip buttons + skip-notifications-button, click [data-testid=demo-partner], wait 5s, goto /partner/invoices. Email flow selectors: invoice-more-<num> → invoice-menu-email → invoice-email-sheet → invoice-email-input + invoice-email-send. Detail path: invoice-menu-view → detail-more → detail-menu-email. Viewer path: invoice-menu-preview-<num> → viewer-m-share → share-email. Backend POST /invoices/{id}/email returns 400 'Email abhi configured nahi hai …' in this env and the frontend correctly surfaces that message as a toast. Cache: htmlCache Map in /app/frontend/src/components/invoices/Viewer.tsx keyed by inv.id — reopening same id skips fetch.",
+  "rca of the issue": "N/A — no bugs found. Note: prefilled email will be empty for invoices whose customer email is masked as '*****' after completion; this is intentional (privacy) and the sheet copy says 'Leave blank to use the email on file.' so the backend fallback handles it."
+}
