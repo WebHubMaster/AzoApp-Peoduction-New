@@ -1,0 +1,22 @@
+{
+  "summary": "Backend-only verification of the FCM-independent job-ring SSE fix. All 6 pytest cases pass against the external REACT_APP_BACKEND_URL: partner OTP auth, SSE /realtime/stream 'ready' + keepalive frame model, immediate test-self ring emitting an SSE job_request with booking_id/service_name/city/total/partner_amount, delayed=3 ring firing ~3s later with scheduled:true response, /notifications/devices + /notifications/ring-status stamping the device and appearing in /admin/notifications/health recent_ring_events with user attached, and admin health returning recent_ring_events / recent_delivery_logs / devices without 500. FCM channel is 'not_configured' as expected in this env; SSE path works end-to-end.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "test_report_links": [
+    "/app/backend/tests/test_iter96_sse_ring.py",
+    "/app/test_reports/pytest/iter96_sse_ring.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "routes/notification_routes.py test-self: for kind=='ring' the endpoint returns ok:True unconditionally — fine as a UX choice (SSE is guaranteed) but note it hides push_dispatch failures; consider surfacing result.skipped in the message for observability.",
+    "SSE event envelope wraps the emitted payload under a nested 'data' field (payload is {type, data:{...}, ts}). Mobile SSE listener must read event.data.booking_id (not event.booking_id). Confirm the Android foreground-service parser matches this shape."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter96_sse_ring.py"],
+  "success_rate": { "backend": "100% (6/6)", "frontend": "n/a" },
+  "test_credentials": "Partner +919000000003 / OTP 123456; Admin +919000000000 / OTP 123456 (dev OTP always 123456).",
+  "seed_data_creation": "Registered ephemeral TEST- prefixed device tokens and posted ring-status rows during test_ring_status_stamps_device_and_admin_health; no cleanup performed (rows are harmless diagnostic logs, auto-deactivated after 45d idle).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reusable regression suite at /app/backend/tests/test_iter96_sse_ring.py. Run with: pytest backend/tests/test_iter96_sse_ring.py -v -p no:xdist -o addopts='' (root pytest.ini forces xdist which is fine for parallel scope but disabling is safe). SSE payload envelope: outer JSON is {type:'job_request', data:{booking_id,...}, ts}. delay is capped 0..20 in test-self.",
+  "rca of the issue": "N/A for this iteration — verified the fix (SSE fan-out from test-self and real booking emitters) is present and working; the native Android FGS overlay itself is device-only and out of scope for this env."
+}
