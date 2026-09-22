@@ -1,5 +1,5 @@
 {
-  "summary": "Frontend-only test of web_panel one-click DEMO LOGIN buttons on https://support-hub-mobile-1.preview.emergentagent.com/login. All 4 demo login buttons (Admin, Partner, Customer, Merchant) work correctly. Each button logs the user in and lands on the correct role dashboard (/admin, /partner, /account, /merchant respectively). NO 'Demo login failed' toast, NO CORS errors, NO 'Failed to fetch' console errors observed on any of the four flows. Same-origin API base (window.location.origin) fallback is working as designed since REACT_APP_BACKEND_URL is intentionally empty.",
+  "summary": "Frontend-only test of web_panel one-click DEMO LOGIN buttons on https://partner-ui-mirror.preview.emergentagent.com/login. All 4 demo login buttons (Admin, Partner, Customer, Merchant) work correctly. Each button logs the user in and lands on the correct role dashboard (/admin, /partner, /account, /merchant respectively). NO 'Demo login failed' toast, NO CORS errors, NO 'Failed to fetch' console errors observed on any of the four flows. Same-origin API base (window.location.origin) fallback is working as designed since REACT_APP_BACKEND_URL is intentionally empty.",
   "backend_issues": {"critical": [], "minor": []},
   "frontend_issues": {
     "ui_bugs": [],
@@ -15,7 +15,7 @@
   ],
   "updated_files": [],
   "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (4/4 demo logins successful)"},
-  "test_credentials": "Preview URL: https://support-hub-mobile-1.preview.emergentagent.com/login — Demo one-click buttons (OTP 123456 available for all). Admin +919000000000, Merchant +919000000002, Partner +919000000003, Customer +919000000004.",
+  "test_credentials": "Preview URL: https://partner-ui-mirror.preview.emergentagent.com/login — Demo one-click buttons (OTP 123456 available for all). Admin +919000000000, Merchant +919000000002, Partner +919000000003, Customer +919000000004.",
   "seed_data_creation": "None (used existing demo accounts)",
   "retest_needed": false,
   "main_agent_can_self_test": true,

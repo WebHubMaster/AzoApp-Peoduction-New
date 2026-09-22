@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://support-hub-mobile-1.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://partner-ui-mirror.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -108,3 +108,11 @@ Changed files (scope-limited):
 Backend: UNCHANGED (existing /api/support/* reused).
 
 Env restored this session (fresh container had none): /app/backend/.env (local Mongo, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS=*, EMERGENT_LLM_KEY) and /app/frontend/.env (EXPO_PUBLIC_BACKEND_URL=preview host) so the web build talks to the in-cluster backend (fixes CORS block).
+
+---
+## 2026-06 — Partner mobile bottom-nav & "More" menu → web-panel parity
+- Scope: mobile app (`/app/frontend`, Expo RN) partner panel only. Matched bottom nav + "More" sheet to the web panel reference (`/app/web_panel/src/components/PanelLayout.jsx`, appMode mobile bar).
+- File changed: `frontend/src/components/AppTabBar.tsx` (style-only). Bottom-nav active tile 44→36px rounded-square (radius 16, icon 18, +scale on focus); "More" sheet radius 32→24, title 24→18, tiles 56→44px rounded-16 icons (20px), labels 13→11px, logout button sized to web spec.
+- Untouched: routes/handlers in `frontend/app/(partner)/_layout.tsx`, all More-menu screens, and every API call. Primary tabs (Dashboard, Job Request, Active Job, Wallet + More) already mirror web `PARTNER_TABS`. Kept mobile-only "Alerts & Permissions" item per user.
+- Verified: eslint 0 errors, Expo web bundle boots & renders (onboarding), no crash.
+- Note: this pod has NO backend `.env` (MONGO_URL missing) so local backend crash-loops; mobile app targets the production backend by default — full interactive partner-panel screenshot verification was not performed.
