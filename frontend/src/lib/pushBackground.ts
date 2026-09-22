@@ -11,6 +11,7 @@
  */
 import { api } from "@/src/api/client";
 import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification, setupAndroidChannels } from "@/src/lib/notifications";
+import { backgroundRingServiceTask } from "@/src/lib/backgroundRing";
 
 /** expo-notifications background task — this is the PRIMARY background path now
  * (RNFB messaging is disabled). It fires for data-only FCM messages when the app
@@ -90,8 +91,8 @@ if (pushSupported) {
   const mod = notifee();
   if (m) m.setBackgroundMessageHandler(async (rm: any) => { await handleRemoteData(rm?.data, true); });
   if (n && mod) {
-    // Keeps the process alive while the ring notification is displayed.
-    n.registerForegroundService(() => new Promise<void>(() => { /* resolved by stopForegroundService() */ }));
+    // Keeps the process alive while the ring OR the background job listener runs.
+    n.registerForegroundService(() => backgroundRingServiceTask());
     n.onBackgroundEvent(async ({ type, detail }: any) => {
       const { EventType } = mod;
       const data = detail?.notification?.data || {};

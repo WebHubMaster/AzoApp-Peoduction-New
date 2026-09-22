@@ -18,6 +18,7 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
 import { storage } from "@/src/utils/storage";
 import { api, mediaUrl } from "@/src/api/client";
+import { isBgListenerActive } from "@/src/lib/ringState";
 
 export const NOTIF_PROMPTED_KEY = "azo_notif_prompted";
 const DEVICE_ID_KEY = "azo_device_id";
@@ -33,6 +34,7 @@ export const CHANNELS = {
   chat: "azo-chat-v3",
   account: "account",
   default: "default",
+  online: "azo-online-v1",
 } as const;
 
 /** Old channel ids to delete so their stale (silent) settings can't linger. */
@@ -148,6 +150,7 @@ export async function setupAndroidChannels() {
   await n.createChannel({ id: CHANNELS.bookings, name: "Booking Updates", importance: AndroidImportance.HIGH, vibration: true, vibrationPattern: [250, 250, 250, 250] });
   await n.createChannel({ id: CHANNELS.account, name: "Account Alerts", importance: AndroidImportance.DEFAULT });
   await n.createChannel({ id: CHANNELS.default, name: "General", importance: AndroidImportance.DEFAULT });
+  await n.createChannel({ id: CHANNELS.online, name: "Online — job listener", importance: AndroidImportance.LOW, visibility: AndroidVisibility.PUBLIC });
 }
 
 export async function getPermissionStatus(): Promise<{ granted: boolean; canAskAgain: boolean }> {
@@ -539,7 +542,10 @@ export async function cancelJobRing(bookingId?: string) {
       await Promise.all(list.filter((x) => String(x?.id || "").startsWith("job-")).map((x) => n.cancelNotification(x.id)));
     }
   } catch { /* ignore */ }
-  try { await n.stopForegroundService(); } catch { /* ignore */ }
+  // Don't tear down the shared foreground service if the background job listener
+  // owns it — that would kill the SSE stream and stop all future rings. When the
+  // listener isn't active this is a plain ring, so stopping the service is correct.
+  if (!isBgListenerActive()) { try { await n.stopForegroundService(); } catch { /* ignore */ } }
 }
 
 /** Compat: simple local job alert (used when the full data payload isn't available). */
