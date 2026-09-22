@@ -1,0 +1,53 @@
+{
+  "summary": "Static code verification (frontend-only, Expo RN web preview typically non-interactive in headless browser per task note) of three mobile UI fixes: (a) 'More' tab icon changed to 3x3 grid, (b) bottom nav frosted-glass made near-opaque, (c) Help & Support New Ticket modal + ticket chat composer wrapped in react-native-keyboard-controller's KeyboardAvoidingView so inputs rise above the on-screen keyboard. All three changes are present and correct in the referenced files.",
+  "verification_results": {
+    "1_more_tab_icon_dots_grid": {
+      "status": "PASS",
+      "file": "/app/frontend/src/components/AppTabBar.tsx",
+      "line": 100,
+      "evidence": "<TabButton icon=\"dots-grid\" label=\"More\" ... testID=\"tab-more\" />",
+      "notes": "Icon prop is 'dots-grid' (3x3 grid of dots), no longer 'dots-horizontal'. testID='tab-more' preserved."
+    },
+    "2_bottom_nav_opaque_blur": {
+      "status": "PASS",
+      "file": "/app/frontend/src/components/AppTabBar.tsx",
+      "lines": "79-92",
+      "evidence": "BlurView intensity={90}, experimentalBlurMethod=\"dimezisBlurView\", backgroundColor: mode==='dark' ? 'rgba(15,23,42,0.94)' : 'rgba(255,255,255,0.96)'",
+      "notes": "Container has testID='app-bottom-nav'. Alpha of 0.94–0.96 combined with blur intensity 90 makes bar effectively opaque, so scrolled content behind it will not be readable."
+    },
+    "3a_new_ticket_modal_keyboard_avoiding": {
+      "status": "PASS",
+      "file": "/app/frontend/app/support/index.tsx",
+      "lines": "3, 132-157",
+      "evidence": "import { KeyboardAvoidingView } from 'react-native-keyboard-controller'; <Modal ...><KeyboardAvoidingView style={{flex:1, ..., justifyContent:'flex-end'}} behavior=\"padding\" keyboardVerticalOffset={0}>...ticket-subject / ticket-message inputs...</KeyboardAvoidingView></Modal>",
+      "notes": "Correct package (react-native-keyboard-controller, not react-native core). Wraps entire bottom-sheet including both TextInputs (ticket-subject, ticket-message). behavior='padding' will lift the sheet above soft keyboard on native."
+    },
+    "3b_ticket_chat_composer_keyboard_avoiding": {
+      "status": "PASS",
+      "file": "/app/frontend/app/support/[id].tsx",
+      "lines": "3, 135, 234",
+      "evidence": "import { KeyboardAvoidingView } from 'react-native-keyboard-controller'; <KeyboardAvoidingView style={{flex:1}} behavior=\"padding\" keyboardVerticalOffset={0}> ...ScrollView of messages + composer with testID='ticket-reply'... </KeyboardAvoidingView>",
+      "notes": "Composer input ticket-reply is inside the avoiding view, so it will rise above the keyboard when focused on native."
+    }
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "runtime_interaction_test": "Skipped intentionally. Per review request note: 'This is a NATIVE Expo React Native app served on web via expo web ... If the web preview renders blank or is non-interactive (common for this native app in headless browser due to font/native-module gating), report that clearly and instead STATICALLY verify the three code changes.' No EXPO_PACKAGER_PROXY_URL / REACT_APP_BACKEND_URL for a browser preview is exposed in the container env, and native soft-keyboard avoidance cannot be exercised in a headless browser. Static verification against the referenced files is therefore the correct checkpoint for these three items.",
+  "critical_code_review_comments": [
+    "AppTabBar.tsx: 'dots-grid' assumes the MdiName type accepts this key. If TypeScript flags it, ensure the icon name is registered in the Icon component's whitelist — otherwise fallback rendering may occur on native.",
+    "support/index.tsx line 133: KeyboardAvoidingView is used as the root child of <Modal>. On some Android configurations the modal may already handle inset resize (windowSoftInputMode). If double-adjust behavior appears on Android, consider gating behavior per Platform (behavior={Platform.OS === 'ios' ? 'padding' : undefined}) — non-blocking observation only.",
+    "support/[id].tsx: keyboardVerticalOffset={0} is fine because there is no fixed top header offset issue here (AppHeader is inside the same View but above the KAV). Confirmed correct."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": {"frontend": "100% (3/3 static checks passed)"},
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All three UI fixes are present in code. Runtime verification on native (Expo Go / device build) is still recommended by main agent since keyboard avoidance behavior cannot be validated in the headless-browser expo-web preview. Test IDs to use on native runtime: tab-more (grid icon), app-bottom-nav (opaque bar), support-header, new-ticket, ticket-subject, ticket-message, ticket-reply."
+}
