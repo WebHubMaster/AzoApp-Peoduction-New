@@ -1,0 +1,30 @@
+{
+  "summary": "Retest of partner Help & Support parity after AppTabBar.hideBarRoutes fix. PRIMARY FIX VERIFIED: on /partner/support/{id} the app-bottom-nav is NO LONGER rendered (count=0), so thread controls are natively clickable (no pointer-event interception). Verified (a) reply: POST /api/support/tickets/{id}/messages -> 200, green own-bubble with time + tick appears; (b) details bottom sheet shows Ticket ID (TKT-100003), Department (Refund), Priority (urgent), Status (Open), Created, Updated, Attachments · 0, Your other tickets · 1; (c) attach-file paperclip is present and enabled; (d) close-ticket has a WEB-SPECIFIC BUG: React Native Alert.alert() does not fire a real confirm dialog on web (react-native-web polyfills to window.alert with no OK callback), so clicking close-ticket does nothing on web — no confirm shown, no /close request, no closed-state UI. Regression: list still shows app-bottom-nav and filters (search/status/sort/range) work; leaving the thread restores the tab bar. NOTE: A frontend supervisor restart was required after the source edits because Metro/web bundler was serving the stale bundle (first test run against the deploy still showed the tab bar); after `supervisorctl restart frontend` the fix rendered correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "app/support/[id].tsx confirmClose()", "issue": "Alert.alert('Close ticket?', ..., [Cancel, {text:'Close', onPress: close.mutate}]) does not work on React Native Web. RN Web polyfills Alert.alert as window.alert (single OK button, no callback), so the OK/Close button and its onPress are never rendered on web. Result: tapping [data-testid=close-ticket] produces no confirm and no POST /api/support/tickets/{id}/close is fired. The closed-state UI ('This ticket is closed' composer + centered 'Ticket closed by ...' system message) therefore cannot be reached on the web build.", "selector": "[data-testid=close-ticket]", "priority": "HIGH"}
+    ],
+    "integration_issues": [
+      {"flow": "Close ticket (web build only)", "issue": "close.mutate() never called because Alert.alert has no OK callback on RN Web. Use a custom Modal (or Platform.OS === 'web' ? window.confirm(...) : Alert.alert) so the close endpoint fires.", "affected_selectors": ["[data-testid=close-ticket]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [".screenshots/rr_thread.png", ".screenshots/rr_reply.png", ".screenshots/rr_details.png", ".screenshots/close_check.png"],
+  "action_items": [
+    "Replace Alert.alert in confirmClose (app/support/[id].tsx) with a Platform-aware confirm: on web use window.confirm(...) (or a custom in-app <Modal>) so the OK path executes close.mutate() and drives POST /api/support/tickets/{id}/close.",
+    "Optional: for future edits to AppTabBar/_layout, remember Metro web can serve a stale bundle — a `sudo supervisorctl restart frontend` may be required to pick up the change (documented for context, not required for main agent action)."
+  ],
+  "critical_code_review_comments": [
+    "React Native's Alert.alert is not a functional replacement for window.confirm on web — any confirm/destructive flow (close-ticket, delete account, cancel booking, etc.) that relies on the button onPress must be Platform-branched or replaced with an in-app Modal to work on the Expo web build.",
+    "hideBarRoutes match in AppTabBar depends on the exact route name registered in the parent Tabs group ('partner/support/[id]'). This is fragile — a rename in the file tree or in _layout.tsx will silently re-introduce the overlap. Consider matching by pathname prefix (usePathname().startsWith('/partner/support/')) as a safety net."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "85% - primary fix works and reply/details/attach verified; only close-ticket confirm broken on web due to Alert.alert polyfill"},
+  "test_credentials": "Partner [data-testid=demo-partner] one-click on /login (or OTP +919000000003 / 123456).",
+  "seed_data_creation": "Reused seeded ticket TKT-100003 (subject: TEST_ticket_regression_13269, category: refund, priority: urgent) from previous iteration. Added a message 'TEST_reply_retest_A' to that ticket via UI POST /api/support/tickets/{id}/messages.",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Primary fix (hideBarRoutes for 'partner/support/[id]' in AppTabBar) is confirmed working after frontend restart. Only remaining item is Alert.alert not showing confirm buttons on RN Web -> close-ticket no-ops. After main agent switches to Platform-aware confirm (window.confirm on web or custom Modal), re-verify: click [data-testid=close-ticket] -> confirm accepted -> POST /api/support/tickets/{id}/close 200 -> composer replaced by 'This ticket is closed' and centered 'Ticket closed by ...' system message appears. All other partner support flows already pass.",
+  "rca of the issue": "Iteration 90 blocker (bottom tab bar overlapping thread composer) is fixed by AppTabBar.hideBarRoutes=['partner/support/[id]'] returning null when active. Confirmed by Playwright: pointer events no longer intercepted, POST /messages fires, own-bubble renders. The residual close-ticket failure is unrelated to layout — it is a React Native Alert.alert incompatibility with react-native-web (polyfilled to single-button window.alert, dropping the second-button onPress), so close.mutate() is never invoked and no /close request is made."
+}
