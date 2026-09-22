@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://mobile-invoice-tools.preview.emergentagent.com/api"
+BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"  # Raj Kumar
 CUSTOMER_PHONE = "+919000000004"  # Priya Verma
 OTP = "123456"

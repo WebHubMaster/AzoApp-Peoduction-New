@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://mobile-invoice-tools.preview.emergentagent.com",
+  "base_url": "https://fullscreen-alert-fix.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",
