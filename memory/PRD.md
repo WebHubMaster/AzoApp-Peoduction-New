@@ -81,3 +81,15 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   list, search, 12-option sort, filters (type/status/amount/customer/booking), detail panel
   (partner Your-Earning breakdown matches backend), A4 viewer, share sheet, download/print. No
   blocking issues. Section-heading uppercase + UUID-only deep-link are intentional (match web 1:1).
+
+## 2026-06 — Partner Invoice: Email + Viewer PDF cache (2 features)
+- Invoice Email: new "Email Invoice" action in row menu (invoice-menu-email), detail more-menu
+  (detail-menu-email) and viewer share sheet (share-email) → opens EmailSheet (invoice-email-sheet)
+  with optional recipient (prefilled from on-file email, skipped when PII-masked) → POST
+  /invoices/{id}/email via emailInvoice(). Inline email validation; backend errors surfaced as toast
+  (in this env email isn't configured → 400 "Email abhi configured nahi hai…", shown gracefully).
+- PDF Preview Cache: Viewer.tsx keeps a module-level htmlCache Map keyed by invoice id — reopening the
+  same invoice's A4 viewer is instant (0 refetch, no skeleton). clearInvoiceHtmlCache() is called on
+  pull-to-refresh and the refresh button so a manual refresh always re-fetches fresh HTML.
+- Verified: testing agent iteration_88 = 100% (5/5) pass, no bugs. Files: invoices.tsx, invoice.tsx
+  (EmailSheet), DetailPanel.tsx, Viewer.tsx, invoiceActions.ts (emailInvoice).

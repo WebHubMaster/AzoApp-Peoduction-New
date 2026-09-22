@@ -17,6 +17,7 @@ import {
 import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
 import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
 import InvoiceViewer from "@/src/components/invoices/Viewer";
+import { clearInvoiceHtmlCache } from "@/src/components/invoices/Viewer";
 import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, invoiceLink, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
 import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice } from "@/src/lib/invoiceActions";
 
@@ -79,7 +80,7 @@ export default function PartnerInvoices() {
   const data = q.data;
   const loading = q.isFetching;
   const error: null | "offline" | "error" = q.isError ? ((q.error as ApiError)?.status === 0 ? "offline" : "error") : null;
-  const load = useCallback(() => q.refetch(), [q]);
+  const load = useCallback(() => { clearInvoiceHtmlCache(); return q.refetch(); }, [q]);
 
   // reset to page 1 whenever filters / search / sort / size change
   const resetKey = JSON.stringify({ range, applied, sort, search, filters, pageSize });
@@ -186,7 +187,7 @@ export default function PartnerInvoices() {
     <View style={{ flex: 1, backgroundColor: t.background }} testID="merchant-invoices">
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 20 }} keyboardShouldPersistTaps="handled"
-        refreshControl={<RefreshControl refreshing={pulling} onRefresh={async () => { setPulling(true); try { await q.refetch(); } finally { setPulling(false); } }} tintColor={t.primary} colors={[t.primary]} />}>
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={async () => { setPulling(true); clearInvoiceHtmlCache(); try { await q.refetch(); } finally { setPulling(false); } }} tintColor={t.primary} colors={[t.primary]} />}>
         {/* ── page header ── */}
         <PageHeader shopName={shopName} title="My Invoices" subtitle="Booking, earnings, settlement & withdrawal documents" />
 
