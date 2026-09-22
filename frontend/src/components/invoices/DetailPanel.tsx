@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { Image } from "expo-image";
-import { User, CalendarDays, Wallet, Percent, History, Download, Share2, FileText, MoreHorizontal, Printer, Copy, Phone, Mail, MapPin, MessageCircle } from "lucide-react-native";
-import { mediaUrl } from "@/src/api/client";
+import { User, CalendarDays, Wallet, Percent, History, Download, Share2, FileText, MoreHorizontal, Printer, Copy, Phone, Mail, MapPin, MessageCircle } from "lucide-react-native";import { mediaUrl } from "@/src/api/client";
 import { FullSheet, ActionSheet, InvStatusBadge, TypeChip, DetailSkeleton, Timeline, OutlineBtn, useInv } from "@/src/components/invoice";
 import { money, shortDate, longDate, buildTimeline, referenceOf } from "@/src/lib/invoiceUtils";
 
@@ -308,6 +307,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
             <MenuItem icon={Printer} label="Print Invoice" onPress={() => onPrint(d)} testID="detail-menu-print" />
             <View style={{ height: 1, backgroundColor: t.border, marginVertical: 4 }} />
             <MenuItem icon={MessageCircle} label="Share on WhatsApp" onPress={() => onShare(d, "whatsapp")} tone={t.emerald} testID="detail-menu-whatsapp" />
+            <MenuItem icon={Mail} label="Email Invoice" onPress={() => onShare(d, "email")} testID="detail-menu-email" />
             <MenuItem icon={Copy} label="Copy Invoice Number" onPress={() => onCopy(d)} testID="detail-menu-copy" />
           </View>
         ) : null}
