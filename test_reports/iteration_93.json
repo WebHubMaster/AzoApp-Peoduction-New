@@ -1,0 +1,35 @@
+{
+  "summary": "Backend regression + ring-dispatch pipeline verification for the call-style incoming-job alert fix (RN Firebase re-enabled on client). 10/10 pytest cases pass. Push-config public endpoint OK, partner OTP login OK, device/push-status/ring-status endpoints all 2xx, ring-pending and reminder-pending fallbacks return sane JSON, actual test-ring dispatch pipeline runs end-to-end and returns HTTP 200 with fcm.skipped='not_configured' (expected — FCM unconfigured locally), invoice PDF returns 200 application/pdf with %PDF- header, and invoice email POST returns a controlled non-500 response. No native full-screen ring testing was attempted (no device available, per request).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/auth/email-login", "issue": "Route returns 404 (Not Found). Admin email-login is not wired even though it's documented in test_credentials.md. Not blocking (admin phone-OTP works), but worth wiring or updating docs."},
+      {"endpoint": "POST /api/notifications/test-ring", "issue": "Returns 405 Method Not Allowed. The working partner test-ring lives at POST /api/partner/test-ring; consider aliasing under /api/notifications/ for discoverability."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_ring_pipeline_iter93.py",
+    "/app/test_reports/pytest/iter93_results.xml"
+  ],
+  "action_items": [
+    "None blocking for this fix. The RN Firebase re-enable can be considered dispatched-side safe: server-side pipeline is 500-free and emits data_only payloads via services/push_dispatch.py -> fcm_service.send_to_user regardless of FCM config; when a real FCM server key is configured, sends will actually go out.",
+    "Optional: wire /api/auth/email-login for the seeded admin OR remove the reference from /app/memory/test_credentials.md.",
+    "Optional: expose an alias POST /api/notifications/test-ring so the request-spec endpoint works."
+  ],
+  "critical_code_review_comments": [
+    "controllers/booking_controller.py: _push_job_request, reschedule_request and scheduled_reminder correctly pass data_only=True — required so Android FCM does not deliver a notification payload that would suppress the app's own high-priority ring UI. Verified via test-ring dispatch response shape (channels.fcm reached, skipped only due to no server key).",
+    "services/push_dispatch.py::push_to_user + services/fcm_service.py::send_to_user handle FCM-not-configured gracefully (skipped:'not_configured'), no 500 leaks — good.",
+    "routes/notification_routes.py: push-config is public (no auth) and returns a stable JSON shape used by mobile clients — good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_ring_pipeline_iter93.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "Partner +919000000003 / OTP 123456 (role partner). Admin phone-OTP +919000000000 / OTP 123456 works; email-login for nodewaptechnology@gmail.com returns 404.",
+  "seed_data_creation": "None. Used auto-seeded partner Raj Kumar and seeded invoices.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Use BASE_URL=http://localhost:8001 (no external REACT_APP_BACKEND_URL is set in this env; conftest.py requires it, so pass REACT_APP_BACKEND_URL=http://localhost:8001 env var when invoking pytest). Working ring test endpoint is POST /api/partner/test-ring (returns fcm.skipped='not_configured' when FCM unset — this is a PASS). Invoice regression endpoints: GET /api/invoices/{id}/pdf returns application/pdf; POST /api/invoices/{id}/email returns 400 controlled when no email is set.",
+  "rca of the issue": "N/A — this iteration only verifies the backend dispatch pipeline is intact after the client-side re-enable of @react-native-firebase/messaging setBackgroundMessageHandler. The native locked-screen full-screen intent path can only be validated on a real Android device with FCM server key configured; server-side is confirmed regression-free."
+}
