@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
+BASE_URL = "https://support-hub-mobile-1.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

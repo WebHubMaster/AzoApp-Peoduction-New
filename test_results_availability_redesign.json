@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://invoice-sync-mobile-1.preview.emergentagent.com",
+  "base_url": "https://support-hub-mobile-1.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",
