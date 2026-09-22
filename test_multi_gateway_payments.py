@@ -10,7 +10,7 @@ import time
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://mobile-invoice-build.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

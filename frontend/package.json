@@ -3,7 +3,7 @@
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
-    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://mobile-invoice-build.preview.emergentagent.com expo start --port 3000",
+    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://invoice-sync-mobile-1.preview.emergentagent.com expo start --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
