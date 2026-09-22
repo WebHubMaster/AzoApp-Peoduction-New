@@ -48,6 +48,14 @@ export default function SupportList() {
   const [range, setRange] = useState("all");
   const [sort, setSort] = useState("newest");
   const [openDD, setOpenDD] = useState<string | null>(null);
+  const triggerRefs = React.useRef<Record<string, any>>({});
+  const [ddAnchor, setDdAnchor] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const openDropdown = (id: string) => {
+    const node = triggerRefs.current[id];
+    if (node?.measureInWindow) {
+      node.measureInWindow((x: number, y: number, w: number, h: number) => { setDdAnchor({ x, y, w, h }); setOpenDD(id); });
+    } else { setOpenDD(id); }
+  };
   const GREEN = "#059669", SLATE400 = "#94A3B8";
   const now = Date.now();
   const list = tickets
@@ -56,15 +64,20 @@ export default function SupportList() {
     .filter((t) => range === "all" || now - new Date(t.created_at).getTime() < (range === "7d" ? 7 : 30) * 86400000)
     .sort((x, y) => (sort === "newest" ? 1 : -1) * (new Date(y.updated_at || y.created_at).getTime() - new Date(x.updated_at || x.created_at).getTime()));
   const DD = ({ id, value, options, onChange, flex }: { id: string; value: string; options: [string, string][]; onChange: (v: string) => void; flex?: number }) => (
-    <View style={{ flex: flex ?? 1, zIndex: openDD === id ? 10 : 1 }}>
-      <Pressable testID={`support-${id}`} onPress={() => setOpenDD(openDD === id ? null : id)} style={{ height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+    <View style={{ flex: flex ?? 1 }}>
+      <Pressable ref={(n) => { triggerRefs.current[id] = n; }} testID={`support-${id}`} onPress={() => (openDD === id ? setOpenDD(null) : openDropdown(id))} style={{ height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ color: colors.textSecondary, fontSize: 15 }} numberOfLines={1}>{options.find((o) => o[0] === value)?.[1]}</Text><Icon name="chevron-down" size={18} color={SLATE400} />
       </Pressable>
-      {openDD === id ? (
-        <View style={{ position: "absolute", top: 52, left: 0, right: 0, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 4, boxShadow: "0px 8px 24px rgba(15,23,42,0.12)", elevation: 6 }}>
-          {options.map(([v, l]) => <Pressable key={v} testID={`support-${id}-${v || "all"}`} onPress={() => { onChange(v); setOpenDD(null); }} style={{ paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, backgroundColor: v === value ? colors.primarySubtle : "transparent" }}><Text style={{ color: v === value ? colors.primary : colors.textSecondary, fontSize: 14, fontWeight: "500" }}>{l}</Text></Pressable>)}
-        </View>
-      ) : null}
+      {/* Menu rendered in a foreground Modal (anchored to the trigger) so it floats ABOVE the ticket list cards instead of being painted behind them */}
+      <Modal visible={openDD === id} transparent animationType="fade" onRequestClose={() => setOpenDD(null)} statusBarTranslucent>
+        <Pressable testID={`support-${id}-backdrop`} style={{ flex: 1 }} onPress={() => setOpenDD(null)}>
+          {ddAnchor ? (
+            <View style={{ position: "absolute", top: ddAnchor.y + ddAnchor.h + 4, left: ddAnchor.x, width: ddAnchor.w, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 4, boxShadow: "0px 10px 28px rgba(15,23,42,0.22)", elevation: 24 }}>
+              {options.map(([v, l]) => <Pressable key={v} testID={`support-${id}-${v || "all"}`} onPress={() => { onChange(v); setOpenDD(null); }} style={{ paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, backgroundColor: v === value ? colors.primarySubtle : "transparent" }}><Text style={{ color: v === value ? colors.primary : colors.textSecondary, fontSize: 14, fontWeight: "500" }}>{l}</Text></Pressable>)}
+            </View>
+          ) : null}
+        </Pressable>
+      </Modal>
     </View>
   );
   const NewBtn = ({ testID }: { testID: string }) => (
