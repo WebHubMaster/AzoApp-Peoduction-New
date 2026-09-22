@@ -158,40 +158,42 @@ export default function BankKyc() {
       <div className={cx("relative overflow-hidden rounded-3xl p-6 text-white shadow-lg",
         data.eligible ? "bg-gradient-to-br from-emerald-600 to-emerald-500" : "bg-gradient-to-br from-primary-800 to-primary-600")}>
         <div className="absolute inset-0 opacity-[0.08] bg-[linear-gradient(rgba(255,255,255,.8)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.8)_1px,transparent_1px)] bg-[size:26px_26px]" />
-        <div className="relative flex items-start gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
-            {data.eligible ? <BadgeCheck className="h-6 w-6" /> : <ShieldCheck className="h-6 w-6" />}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-heading font-bold text-lg">{data.eligible ? "Verified — withdrawal enabled" : "Complete KYC to withdraw"}</h3>
-              <StatusBadge status={data.eligible ? "verified" : "pending"} className="bg-white/20 text-white" dot={false} />
+        <div className="relative">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+              {data.eligible ? <BadgeCheck className="h-5 w-5 sm:h-6 sm:w-6" /> : <ShieldCheck className="h-5 w-5 sm:h-6 sm:w-6" />}
             </div>
-            {!data.eligible && (data.blockers || []).length > 0 && (
-              <p className="text-sm text-white/85 mt-1">Pending: {data.blockers.join(", ")}</p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              {steps.map((s) => (
-                <span key={s.key} className={cx("inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 whitespace-nowrap", s.done ? "bg-white/25" : "bg-white/10 text-white/70")}>
-                  {s.done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> : <AlertTriangle className="h-3.5 w-3.5 shrink-0" />} {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-          {/* Circular KYC progress ring */}
-          <div className="relative shrink-0 grid place-items-center" data-testid="kyc-ring">
-            <svg width="92" height="92" viewBox="0 0 92 92" className="-rotate-90">
-              <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="8" />
-              <circle cx="46" cy="46" r="40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round"
-                strokeDasharray={2 * Math.PI * 40} strokeDashoffset={2 * Math.PI * 40 * (1 - pct / 100)}
-                style={{ transition: "stroke-dashoffset 700ms ease" }} />
-            </svg>
-            <div className="absolute inset-0 grid place-items-center text-center">
-              <div>
-                <p className="text-xl font-extrabold leading-none">{pct}%</p>
-                <p className="text-[9px] uppercase tracking-wider text-white/75 mt-0.5">KYC done</p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-heading font-bold text-base sm:text-lg leading-snug">{data.eligible ? "Verified — withdrawal enabled" : "Complete KYC to withdraw"}</h3>
+                <StatusBadge status={data.eligible ? "verified" : "pending"} className="bg-white/20 text-white" dot={false} />
               </div>
             </div>
+            {/* Circular KYC progress ring */}
+            <div className="relative shrink-0 grid place-items-center h-[64px] w-[64px] sm:h-[92px] sm:w-[92px]" data-testid="kyc-ring">
+              <svg viewBox="0 0 92 92" className="h-full w-full -rotate-90">
+                <circle cx="46" cy="46" r="40" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="8" />
+                <circle cx="46" cy="46" r="40" fill="none" stroke="white" strokeWidth="8" strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 40} strokeDashoffset={2 * Math.PI * 40 * (1 - pct / 100)}
+                  style={{ transition: "stroke-dashoffset 700ms ease" }} />
+              </svg>
+              <div className="absolute inset-0 grid place-items-center text-center">
+                <div>
+                  <p className="text-base sm:text-xl font-extrabold leading-none">{pct}%</p>
+                  <p className="text-[8px] sm:text-[9px] uppercase tracking-wider text-white/75 mt-0.5">KYC done</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {!data.eligible && (data.blockers || []).length > 0 && (
+            <p className="text-[13px] sm:text-sm text-white/85 mt-3">Pending: {data.blockers.join(", ")}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-2 mt-3">
+            {steps.map((s) => (
+              <span key={s.key} className={cx("inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold rounded-full px-3 py-1 whitespace-nowrap", s.done ? "bg-white/25" : "bg-white/10 text-white/70")}>
+                {s.done ? <CheckCircle2 className="h-3.5 w-3.5 shrink-0" /> : <AlertTriangle className="h-3.5 w-3.5 shrink-0" />} {s.label}
+              </span>
+            ))}
           </div>
         </div>
       </div>
