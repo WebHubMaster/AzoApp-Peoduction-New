@@ -137,6 +137,16 @@ async def my_notifications(user=Depends(get_current_user)):
     return await c.user_notifications(user)
 
 
+@router.delete("/notifications/{nid}")
+async def delete_my_notification(nid: str, user=Depends(get_current_user)):
+    return await c.hide_notification(user, nid)
+
+
+@router.delete("/notifications")
+async def clear_my_notifications(user=Depends(get_current_user)):
+    return await c.clear_notifications(user)
+
+
 # ---------- support tickets ----------
 @router.post("/tickets")
 async def create_ticket(data: TicketCreate, user=Depends(get_current_user)):

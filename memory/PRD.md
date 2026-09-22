@@ -116,3 +116,14 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Untouched: routes/handlers in `frontend/app/(partner)/_layout.tsx`, all More-menu screens, and every API call. Primary tabs (Dashboard, Job Request, Active Job, Wallet + More) already mirror web `PARTNER_TABS`. Kept mobile-only "Alerts & Permissions" item per user.
 - Verified: eslint 0 errors, Expo web bundle boots & renders (onboarding), no crash.
 - Note: this pod has NO backend `.env` (MONGO_URL missing) so local backend crash-loops; mobile app targets the production backend by default — full interactive partner-panel screenshot verification was not performed.
+
+---
+## 2026-06 — Partner Edit-Profile dialog + Notifications delete/clear
+### Task 1 — Edit Profile as a dialog (was a full-page redirect)
+- `frontend/src/components/AppShell.tsx`: added `ProfileEditModal` (mirrors web `PanelLayout.jsx` ProfileEditModal 1:1) — photo picker (expo-image-picker, square crop, base64 data-URL like web), name/email/phone fields, approved partner/merchant LOCK (photo-only) + amber banner, `PUT /auth/profile` then `setUser`. Header "Edit Profile" now opens this modal instead of navigating.
+- Removed the old partner profile page: deleted `app/(partner)/profile.tsx` + its `<Tabs.Screen name="profile">` registration. `profileRoute` prop kept (still used by the bell to choose notifications route).
+### Task 2 — Notifications: font + delete/clear
+- `frontend/app/notifications.tsx`: title weight 800→700 (consistent Public Sans app font), added "Clear all" (confirm dialog) + per-item remove (X). Optimistic update + rollback; invalidates `notifications` and `partner-notifs` (bell badge).
+- Backend `controllers/content_controller.py` + `routes/content_routes.py`: added `DELETE /notifications/{nid}` (hide one) and `DELETE /notifications` (clear all) using a per-user `deleted_by` set; `user_notifications` now excludes `deleted_by` so cleared items never reappear (broadcast notifs stay intact for other users).
+- Verified: py_compile OK, eslint 0 errors, tsc 0 errors in changed files, Expo web bundle boots. Existing APIs/logic untouched.
+- NOTE: pod has no backend `.env` (MONGO_URL) so local backend can't run; app targets production backend — live login verification not performed. Pre-check "linter engine error" is pre-existing (`web_panel` has no node_modules), unrelated to these changes.

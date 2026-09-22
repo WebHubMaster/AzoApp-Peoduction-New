@@ -43,7 +43,6 @@ export default function PartnerLayout() {
       <Tabs.Screen name="jobs" options={{ title: "Job Request" }} />
       <Tabs.Screen name="active" options={{ title: "Active Job" }} />
       <Tabs.Screen name="wallet" options={{ title: "Wallet & Withdraw" }} />
-      <Tabs.Screen name="profile" options={{ title: "Profile" }} />
       <Tabs.Screen name="booking/[id]" options={{ href: null }} />
       {["analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]"].map((n) => (
         <Tabs.Screen key={n} name={`partner/${n}`} options={{ href: null }} />
