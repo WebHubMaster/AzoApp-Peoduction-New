@@ -66,28 +66,52 @@ async def test_self(body: dict, user=Depends(get_current_user)):
     """Send a REAL push to the caller's own devices so a partner can verify on the
     phone that (a) FCM is configured on the backend, (b) this device's token is
     registered, and (c) the ring / notification actually fires in the current app
-    state. kind='ring' triggers the call-style Job Ring; anything else a normal push."""
+    state. kind='ring' triggers the call-style Job Ring; anything else a normal push.
+    Optional `delay` (seconds, 0-20): schedules the push after a short delay so the
+    partner can LOCK the phone / switch apps and self-verify the true lock-screen ring."""
     import time as _t
+    import asyncio
     from services import push_dispatch, webpush_service
-    kind = (body or {}).get("kind", "ring")
+    b = body or {}
+    kind = b.get("kind", "ring")
+    try:
+        delay = int(b.get("delay") or 0)
+    except (TypeError, ValueError):
+        delay = 0
+    delay = max(0, min(delay, 20))
     fcm_ok = (await fcm_service.config_status()).get("configured")
     wp_count = await webpush_service.count_subs(user["id"])
     if not fcm_ok and wp_count == 0:
         return {"ok": False, "reason": "not_configured",
                 "message": "Push is not set up yet — this browser has no web-push subscription and Firebase (native app) is not configured on the server."}
-    if kind == "ring":
-        res = await push_dispatch.push_to_user(
-            user["id"], "New job request", "Test job ring — tap to open",
-            link="/(partner)",
-            data={"type": "job_request", "booking_id": f"test-{int(_t.time())}",
-                  "service_name": "Test Service", "city": "Your City",
-                  "address_line": "Test address", "total": "499", "partner_amount": "399",
-                  "android_channel": "azo-job-ring-v3", "tag": f"test-{int(_t.time())}"},
-            data_only=True)
-    else:
-        res = await push_dispatch.push_to_user(
+
+    async def _send():
+        stamp = int(_t.time())
+        if kind == "ring":
+            return await push_dispatch.push_to_user(
+                user["id"], "New job request", "Test job ring — tap to open",
+                link="/(partner)",
+                data={"type": "job_request", "booking_id": f"test-{stamp}",
+                      "service_name": "Test Service", "city": "Your City",
+                      "address_line": "Test address", "total": "499", "partner_amount": "399",
+                      "android_channel": "azo-job-ring-v3", "tag": f"test-{stamp}"},
+                data_only=True)
+        return await push_dispatch.push_to_user(
             user["id"], "AzoApp test notification", "Push notifications are working correctly.",
             link="/notifications", data={"type": "test"})
+
+    if delay > 0:
+        async def _delayed():
+            try:
+                await asyncio.sleep(delay)
+                await _send()
+            except Exception:  # noqa: BLE001
+                pass
+        asyncio.create_task(_delayed())
+        return {"ok": True, "scheduled": True, "delay": delay,
+                "message": f"Lock your phone or switch apps now — the test ring will fire in {delay}s."}
+
+    res = await _send()
     ok = bool(res.get("success"))
     return {"ok": ok, "result": res,
             "message": ("Sent — check your phone." if ok else

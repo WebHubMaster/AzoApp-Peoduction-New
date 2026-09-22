@@ -66,6 +66,27 @@ export function TestRingCard() {
     finally { setBusy(false); }
   };
 
+  // Lock-screen self-test: fire a REAL push after a short delay so the partner can
+  // LOCK the phone / switch apps and see the true call-style full-screen ring (the
+  // normal test can't show it because the app is in the foreground).
+  const [lockCountdown, setLockCountdown] = useState<number | null>(null);
+  const lockTest = async () => {
+    if (!pushOk) { toast.error(perm === "denied" ? "Notifications are blocked — allow them first" : "Register this device first — tap Fix above"); return; }
+    try {
+      const r = await api.post<any>("/notifications/test-self", { kind: "ring", delay: 6 });
+      if (r?.scheduled) {
+        toast.success("Lock your phone or switch apps NOW — ring fires in 6s");
+        let n = 6; setLockCountdown(n);
+        const iv = setInterval(() => {
+          n -= 1; setLockCountdown(n);
+          if (n <= 0) { clearInterval(iv); setTimeout(() => setLockCountdown(null), 2500); }
+        }, 1000);
+      } else {
+        toast.info(r?.message || "Could not schedule the lock-screen ring");
+      }
+    } catch (e: any) { toast.error(e?.detail || "Could not send lock-screen test"); }
+  };
+
   const pushOk = perm === "granted" && registered;
   return (
     <Surface testID="test-ring-card">
@@ -114,10 +135,26 @@ export function TestRingCard() {
           </View>
         </View>
       ) : null}
-      <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ marginTop: 12, alignSelf: "flex-start", height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
-        {busy ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="bell-ring-outline" size={16} color="#fff" />}
-        <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Send me a test job ring</Text>
-      </Pressable>
+      <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
+          {busy ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="bell-ring-outline" size={16} color="#fff" />}
+          <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Send me a test job ring</Text>
+        </Pressable>
+        {Platform.OS !== "web" ? (
+          <Pressable testID="test-lockscreen-ring" onPress={lockTest} disabled={lockCountdown !== null} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: lockCountdown !== null ? 0.6 : 1 }}>
+            <Icon name="cellphone-lock" size={16} color={colors.primaryHover} />
+            <Text style={{ color: colors.primaryHover, fontSize: 14, fontWeight: "600" }}>{lockCountdown !== null ? `Lock now… ${Math.max(0, lockCountdown)}s` : "Test lock-screen ring"}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {lockCountdown !== null ? (
+        <View testID="lockscreen-ring-hint" style={{ marginTop: 8, borderRadius: 12, backgroundColor: colors.primarySubtle, padding: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Icon name="cellphone-lock" size={18} color={colors.primaryHover} />
+          <Text style={{ color: colors.textSecondary, fontSize: 12, flex: 1 }}>
+            {lockCountdown > 0 ? `Lock your phone or switch to another app now — the full-screen job ring will fire in ${lockCountdown}s.` : "Ring sent! You should see the full-screen call now. Not showing? Allow the permissions above and try again."}
+          </Text>
+        </View>
+      ) : null}
       {last ? (
         <View testID="test-ring-result" style={{ marginTop: 12, borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12, gap: 4 }}>
           <Text style={{ color: colors.textSecondary, fontSize: 11 }}>Sent {new Date(last.sentAt).toLocaleTimeString()}</Text>
