@@ -1,0 +1,22 @@
+{
+  "summary": "Verified responsiveness fix on Partner Bank & KYC hero card (payouts.tsx). Logged in via one-click 'Login as Partner' and navigated to /partner/payouts. Measured bounding boxes at 390x844 and 1280x800. All acceptance criteria met: (a) 'PAN Card' and 'Bank Account' chips share the same row at both viewports (y=251 vs 251 at 390px; y=217 vs 217 at 1280px). (b) Blockers text 'Pending: PAN card not verified, No verified bank account' spans full card width (width=318 within 358 hero at 390px; width=1208 within 1248 hero at 1280px) with no overflow. (c) Title 'Complete KYC to withdraw' (right=278) does NOT overlap the KYC ring (x=290) at 390px; no overflow at either viewport. Layout looks clean and matches the intended restructure.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/.screenshots/hero_390.png", "/app/.screenshots/hero_1280.png"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "The Expo web build depends on process.env.EXPO_PUBLIC_BACKEND_URL and defaults to a broken external host 'https://api.webhubmaster.shop' in /app/frontend/src/api/client.ts and /app/frontend/eas.json. For the preview environment this variable was missing from /app/frontend/.env which caused 'No Internet Connection' overlay to block the app. Testing agent added EXPO_PUBLIC_BACKEND_URL=<preview_url> to /app/frontend/.env and restarted the frontend to allow testing. Main agent should decide the correct long-term fix (e.g. read REACT_APP_BACKEND_URL as fallback or ensure EXPO_PUBLIC_BACKEND_URL is provisioned in preview builds)."
+  ],
+  "updated_files": ["/app/frontend/.env (added EXPO_PUBLIC_BACKEND_URL to unblock testing only)"],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "One-click 'Login as Partner' button on /login (demo mode). Phone +919000000003 with OTP 123456 also works.",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview URL requires EXPO_PUBLIC_BACKEND_URL to be set in /app/frontend/.env pointing at the preview host; otherwise the app shows a 'No Internet Connection' modal because client.ts defaults to https://api.webhubmaster.shop (blocked by CORS). Login flow: /login → click 'Login as Partner' quick button → then goto /partner/payouts.",
+  "rca of the issue": "Not applicable - the reported layout bug is confirmed fixed."
+}
