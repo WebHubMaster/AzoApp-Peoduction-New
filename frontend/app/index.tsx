@@ -47,6 +47,7 @@ export default function SplashGate() {
         const onboarded = !!(user.onboarding_submitted || user.kyc_status === "approved" || (user.role === "partner" ? user.verified_partner : user.verified_merchant));
         if (user.role === "partner") router.replace(onboarded ? "/(partner)" : "/partner/register");
         else if (user.role === "merchant") router.replace(onboarded ? "/(merchant)" : "/merchant/register");
+        else if (user.role === "agent") router.replace("/(agent)");
         else setUnsupported(true);
         return;
       }

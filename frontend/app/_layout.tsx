@@ -90,6 +90,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="(auth)/login" />
               <Stack.Screen name="(partner)" />
               <Stack.Screen name="(merchant)" />
+              <Stack.Screen name="(agent)" />
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
             <OfflineGate />

@@ -18,6 +18,7 @@ export interface MoreItem {
 
 const TAB_META: Record<string, { label: string; icon: MdiName }> = {
   index: { label: "Dashboard", icon: "view-dashboard-outline" },
+  map: { label: "Map QR", icon: "qrcode-scan" },
   jobs: { label: "Job Request", icon: "briefcase-outline" },
   active: { label: "Active Job", icon: "navigation-variant-outline" },
   wallet: { label: "Wallet & Withdraw", icon: "wallet-outline" },

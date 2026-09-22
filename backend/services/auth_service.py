@@ -172,8 +172,8 @@ async def demo_status() -> dict:
     settings = await get_settings()
     if not settings.get("demo_mode", True):
         return {"demo_mode": False, "accounts": []}
-    demos = await db.users.find({"is_demo": True}, {"_id": 0, "role": 1, "phone": 1, "name": 1}).to_list(20)
-    order = {"customer": 0, "partner": 1, "merchant": 2, "admin": 3}
+    demos = await db.users.find({"is_demo": True}, {"_id": 0, "role": 1, "phone": 1, "name": 1}).to_list(80)
+    order = {"customer": 0, "partner": 1, "merchant": 2, "agent": 3, "admin": 4}
     demos.sort(key=lambda d: order.get(d["role"], 9))
     for d in demos:
         d["otp"] = settings.get("demo_otp", "123456")

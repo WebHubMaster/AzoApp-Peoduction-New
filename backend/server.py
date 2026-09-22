@@ -117,6 +117,13 @@ async def startup():
         logger.info("physical qr demo batches: %s", res)
     except Exception as e:  # noqa: BLE001
         logger.warning("physical qr demo batches skipped: %s", e)
+    # Demo QR field agent (idempotent; needs the batches above to exist first)
+    try:
+        from services.physical_qr_service import seed_demo_agent
+        res = await seed_demo_agent()
+        logger.info("physical qr demo agent: %s", res)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("physical qr demo agent skipped: %s", e)
     # India location cascade import (idempotent; skips if already loaded)
     try:
         from services.geo_data_service import import_geo
