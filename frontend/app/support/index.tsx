@@ -12,8 +12,9 @@ import { Icon } from "@/src/components/Icon";
 import { timeAgo } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
 
-const CATS = ["payment", "booking", "account", "technical", "other"];
-const PRIOS = ["low", "medium", "high"];
+const FALLBACK_CATS = ["booking", "payment", "refund", "account", "technical", "other"];
+const FALLBACK_PRIOS = ["low", "medium", "high", "urgent"];
+const prioTone = (p?: string): any => ({ low: "neutral", medium: "info", high: "warning", urgent: "danger" }[(p || "").toLowerCase()] || "warning");
 const inputStyle = (colors: any) => ({ height: 48, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, color: colors.text, fontSize: fontSize.md });
 
 export default function SupportList() {
@@ -30,6 +31,9 @@ export default function SupportList() {
   const [priority, setPriority] = useState("medium");
 
   const { data, isLoading, isFetching } = useQuery({ queryKey: ["support-tickets"], queryFn: () => api.get<any[]>("/support/tickets") });
+  const metaQ = useQuery({ queryKey: ["support-meta"], queryFn: () => api.get<any>("/support/meta") });
+  const CATS: string[] = metaQ.data?.categories?.length ? metaQ.data.categories : FALLBACK_CATS;
+  const PRIOS: string[] = metaQ.data?.priorities?.length ? metaQ.data.priorities : FALLBACK_PRIOS;
   const tickets = Array.isArray(data) ? data : [];
 
   const create = useMutation({
@@ -115,7 +119,7 @@ export default function SupportList() {
               <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.md }} numberOfLines={1}>{item.subject}</Text>
               <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 4 }} numberOfLines={1}>{item.last_preview || item.category}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
-                <Badge label={item.priority} tone={item.priority === "high" ? "danger" : item.priority === "low" ? "neutral" : "warning"} />
+                <Badge label={item.priority} tone={prioTone(item.priority)} />
                 {item.unread_user > 0 ? <Badge label={`${item.unread_user} new`} tone="primary" /> : null}
                 <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginLeft: "auto" }}>{timeAgo(item.updated_at || item.created_at)}</Text>
               </View>
@@ -146,6 +150,7 @@ export default function SupportList() {
             </View>
             <TextInput testID="ticket-message" value={message} onChangeText={setMessage} placeholder="Describe your issue" placeholderTextColor={colors.textMuted} multiline style={[inputStyle(colors), { height: 90, paddingTop: 12, textAlignVertical: "top" }]} />
             <Button title="Submit ticket" onPress={() => subject.trim() ? create.mutate() : toast.error("Enter a subject")} loading={create.isPending} testID="submit-ticket" />
+            <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: "center", marginTop: 2 }}>You can attach screenshots inside the ticket chat after creating it.</Text>
           </View>
         </View>
       </Modal>
