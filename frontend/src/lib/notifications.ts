@@ -77,12 +77,29 @@ async function setupExpoChannels() {
   } catch { /* ignore */ }
 }
 
-/** RNFB messaging is intentionally DISABLED: its native FirebaseMessagingService
- * intercepts FCM in the background but its JS module fails to link in this Expo
- * build (messaging() was null → the background ring never fired). We now route
- * ALL push through expo-notifications (token + background task) + Notifee
- * (display). Kept as a null stub so existing callers no-op gracefully. */
-export function messaging(): any | null { return null; }
+/** React Native Firebase Messaging — RE-ENABLED as the PRIMARY background/killed
+ * push path. RNFB's native FirebaseMessagingService + Headless JS
+ * (`setBackgroundMessageHandler`) is the ONLY reliable way to fire the call-style
+ * full-screen job ring when the app is swiped away OR the phone is locked. The
+ * previous expo-notifications-only background task did NOT fire in the killed
+ * state, which is why the ring silently stopped working. Lazily required so
+ * Expo Go / web (native module absent) keep no-oping gracefully. */
+let _messaging: any | null = null;
+export function messaging(): any | null {
+  if (!pushSupported) return null;
+  if (_messaging === null) {
+    try {
+      const M = require("@react-native-firebase/messaging");
+      // v26+ is modular-first (getMessaging()); older majors expose a callable
+      // default (messaging()). Both return an instance with getToken /
+      // onMessage / setBackgroundMessageHandler / onNotificationOpenedApp / etc.
+      _messaging = typeof M.getMessaging === "function" ? M.getMessaging()
+        : typeof M.default === "function" ? M.default()
+        : false;
+    } catch { _messaging = false; }
+  }
+  return _messaging || null;
+}
 
 /**
  * expo-notifications native DEVICE push token — on Android this is the RAW FCM
@@ -656,14 +673,23 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
 /* ------------------------------------------------------------------ */
 /*  Foreground events: remote messages + notification taps              */
 /* ------------------------------------------------------------------ */
-/** Remote FCM data messages while the app is in the FOREGROUND (expo-notifications). */
+/** Remote FCM data messages while the app is in the FOREGROUND. RNFB now owns FCM
+ * delivery (its native service), so foreground data messages arrive via
+ * `messaging().onMessage`; we ALSO keep the expo-notifications listener so any
+ * expo-delivered local/remote notification still routes through. */
 export function onForegroundPush(cb: (data: Record<string, any>) => void): () => void {
+  const subs: (() => void)[] = [];
   const EN = expoNotif();
-  if (!EN) return () => {};
-  const sub = EN.addNotificationReceivedListener((n: any) => {
-    cb(n?.request?.content?.data || {});
-  });
-  return () => { try { sub.remove(); } catch { /* ignore */ } };
+  if (EN) {
+    const sub = EN.addNotificationReceivedListener((n: any) => { cb(n?.request?.content?.data || {}); });
+    subs.push(() => { try { sub.remove(); } catch { /* ignore */ } });
+  }
+  const m = messaging();
+  if (m?.onMessage) {
+    try { const un = m.onMessage((rm: any) => { cb(rm?.data || {}); }); subs.push(() => { try { un(); } catch { /* ignore */ } }); }
+    catch { /* ignore */ }
+  }
+  return () => { subs.forEach((f) => f()); };
 }
 
 /** Notification tap / action press while app is foregrounded + cold-start tap. */
@@ -684,22 +710,34 @@ export function onNotificationTap(cb: (data: Record<string, any>, action: string
 
 /**
  * Tap on a REMOTE FCM notification the OS shows in the tray (background/closed
- * apps). Routed through expo-notifications now that RNFB messaging is disabled:
- * response listener (background tap) + getLastNotificationResponseAsync
- * (cold-start tap). Returns an unsubscribe fn.
+ * apps). Handled by BOTH RNFB (now the primary FCM receiver: onNotificationOpenedApp
+ * for a background tap + getInitialNotification for a cold-start tap) and
+ * expo-notifications (fallback for expo-delivered notifications). Returns an
+ * unsubscribe fn.
  */
 export function onFcmNotificationOpen(cb: (data: Record<string, any>) => void): () => void {
+  const subs: (() => void)[] = [];
   const EN = expoNotif();
-  if (!EN) return () => {};
-  const sub = EN.addNotificationResponseReceivedListener((resp: any) => {
-    const d = resp?.notification?.request?.content?.data;
-    if (d && Object.keys(d).length) cb(d);
-  });
-  EN.getLastNotificationResponseAsync?.().then((resp: any) => {
-    const d = resp?.notification?.request?.content?.data;
-    if (d && Object.keys(d).length) cb(d);
-  }).catch(() => {});
-  return () => { try { sub.remove(); } catch { /* ignore */ } };
+  if (EN) {
+    const sub = EN.addNotificationResponseReceivedListener((resp: any) => {
+      const d = resp?.notification?.request?.content?.data;
+      if (d && Object.keys(d).length) cb(d);
+    });
+    EN.getLastNotificationResponseAsync?.().then((resp: any) => {
+      const d = resp?.notification?.request?.content?.data;
+      if (d && Object.keys(d).length) cb(d);
+    }).catch(() => {});
+    subs.push(() => { try { sub.remove(); } catch { /* ignore */ } });
+  }
+  const m = messaging();
+  if (m) {
+    try {
+      const un = m.onNotificationOpenedApp?.((rm: any) => { const d = rm?.data; if (d && Object.keys(d).length) cb(d); });
+      if (typeof un === "function") subs.push(() => { try { un(); } catch { /* ignore */ } });
+    } catch { /* ignore */ }
+    try { m.getInitialNotification?.().then((rm: any) => { const d = rm?.data; if (d && Object.keys(d).length) cb(d); }).catch(() => {}); } catch { /* ignore */ }
+  }
+  return () => { subs.forEach((f) => f()); };
 }
 
 export async function markPrompted() {
