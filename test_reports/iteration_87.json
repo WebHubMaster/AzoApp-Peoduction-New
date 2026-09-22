@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend retest of Partner Mobile 'My Invoices' (Expo web at 420x860). Login via one-click demo-partner succeeded; /partner/invoices shows all 9 invoices for Raj Kumar with correct KPIs (Invoices 9, Total ₹14,367.64, Paid ₹11,427.64/7 invoices, Pending ₹0, Refunded ₹0), 5 date chips, search box, sort button, filter button and refresh. Sort sheet exposes 12 options; amount_high sort correctly promoted INV-2026-000006 (₹3,000) to top. Filter drawer exposes filter-range-*, filter-type-*, filter-status-*, invoice-min-amount, invoice-max-amount, invoice-customer-filter, invoice-booking-filter, invoice-filter-apply, invoice-filter-reset (task description used slightly different generic testids, actual implementation matches spec). Detail panel for INV-2026-000001 renders correctly: header total ₹2,000, PII masked (*****), Booking details (AZ0887072), Payment Summary, and 'Your Earning' section with detail-commissionable=₹2,000.00, detail-commission-rate=60%, detail-net=₹1,200.00 — matches backend role_earning exactly as required. Row menu (invoice-more-INV-2026-000001) opens with 'View Invoice' option (invoice-menu-preview-INV-2026-000001) which opens invoice-viewer full-screen with the server-rendered A4 HTML inside an iframe/WebView showing complete partner-earning breakdown (Service Amount ₹2,000, Commissionable ₹2,000, Commission Rate 60%, Partner Commission ₹1,200, Total Partner Earning ₹1,200). Sticky viewer actions viewer-m-download, viewer-m-share, viewer-m-print and viewer-close all present. Share sheet (invoice-share-sheet) opens with WhatsApp / Copy Link / System Share / Copy Details options. Backend was reachable (200 on /api/), demo OTP endpoint returned 123456. Overall: mobile Partner 'My Invoices' is a working 1:1 parity of the web panel with all listed features functional.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Deep-link ?invoice=<value> auto-open Viewer", "issue": "Deep-link handler passes the URL param directly as invoice id and calls GET /invoices/{id}. If the caller supplies the invoice_number (e.g. INV-2026-000001) the viewer silently does not open (backend detail endpoint accepts UUID only). Task acceptance says '?invoice=<id> (or /partner/invoice/<id>) auto-opens the Viewer' — works only for UUID id. Consider accepting invoice_number too for robustness (already flagged in iteration 86).", "affected_selectors": ["invoice-viewer"]}
+    ],
+    "design_issues": [
+      {"screen": "Invoice detail sections", "issues": ["Section headings still render in UPPERCASE (CUSTOMER DETAILS, BOOKING DETAILS, PAYMENT SUMMARY, YOUR EARNING, TIMELINE) whereas the web-panel reference uses Title Case. Minor parity gap carried over from iteration 86."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_partner_invoices.py"],
+  "action_items": [
+    "(Optional) Extend deep-link handler / backend detail endpoint to also accept invoice_number so /partner/invoices?invoice=INV-XXXX works alongside UUID id.",
+    "(Optional / carried over) Align mobile Detail panel section headings to Title Case to fully match web parity."
+  ],
+  "critical_code_review_comments": [
+    "Backend /api/invoices/{key} only accepts UUID. Accepting invoice_number as fallback would harden deep-linking and share links.",
+    "Consider suppressing live push (Job Request / Active Job) auto-navigation while the user is on /partner/invoices or has the viewer/detail open — iteration 86 hit this repeatedly."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested this iteration (frontend-only)", "frontend": "~95% (all list/KPI/search/sort/filter/detail/row-menu/viewer/share verified; deep-link works only for UUID id)"},
+  "test_credentials": "Partner one-click demo-partner (Raj Kumar, +919000000003 / OTP 123456)",
+  "seed_data_creation": "None — used existing seeded 9 partner invoices.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expo-web login: goto /, dismiss up to 3 'Skip' onboarding buttons, click [data-testid=skip-notifications-button] if present, then [data-testid=demo-partner]. Wait ~4-5s then goto /partner/invoices. Filter testIDs are invoice-filter-apply / invoice-filter-reset / invoice-min-amount / invoice-max-amount / invoice-customer-filter / invoice-booking-filter (NOT the generic filter-* names in the task description). Row menu is invoice-more-<num> and 'View Invoice' item is invoice-menu-preview-<num>. Viewer sticky actions are viewer-m-download / viewer-m-share / viewer-m-print. Deep-link expects UUID id, not invoice_number.",
+  "rca of the issue": "N/A — no blocking issues in this iteration. Deep-link mismatch is because deep-link param is forwarded as id to /invoices/{id}, and backend detail endpoint only resolves UUIDs; fix is either accept invoice_number in backend or resolve number→id in the deep-link route."
+}
