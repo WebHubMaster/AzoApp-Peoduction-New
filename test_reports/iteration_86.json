@@ -1,0 +1,29 @@
+{
+  "summary": "Tested Partner Mobile 'My Invoices' (Expo web, 420x860). Backend: 16/16 pytest tests pass covering /api/invoices list (pagination, range, sort, search, filter type/status/amount), detail (booking + withdrawal), HTML view, and PDF endpoints; unauthorized correctly returns 401. Frontend: page loads with correct data (9 invoices, ₹16,523.64 total, ₹11,917.64 paid for Raj Kumar), all KPIs, date chips, search + empty state + clear-all, sort sheet (all 10 options; amount_high correctly puts INV-2026-000009 ₹4,116 first), filter drawer (all filter-type-*, filter-status-*, filter-range-*, amount/customer/booking inputs, apply/reset), and detail panel for INV-2026-000001 (header, total, commissionable, net, share, more, download, back — plus Subtotal, Commission Rate, Partner Earning sections and PII masking). Row menu / Viewer / Share sheet / Deep link tests were repeatedly hijacked by the app's live 'Job Request' push after login (documented in the task) but backend equivalents of those flows are green.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Detail/Viewer/Row-menu on invoices below the fold", "issue": "After opening & closing detail for the first card, subsequent clicks on invoice-card-view-INV-2026-000002 (and invoice-more-INV-2026-000002) frequently trigger the app's live Job-Request push and swap the visible screen to /partner/job-request or /partner/active-job, so the drawer never opens. Recommendation: while a partner has ongoing pushes, either suppress the auto-navigation while a modal/route is on invoices, or persist scroll+state and reopen the drawer after route restore.", "affected_selectors": ["invoice-card-view-INV-2026-000002","invoice-more-INV-2026-000002"]}
+    ],
+    "design_issues": [
+      {"screen": "Invoice detail sections", "issues": ["Section headings render in uppercase ('PAYMENT SUMMARY','CUSTOMER DETAILS','BOOKING DETAILS','YOUR EARNING','TIMELINE'). Web-panel reference uses Title-Case ('Payment Summary'). Consider aligning casing to keep 1:1 parity as required by the task."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_partner_invoices.py","/app/test_reports/pytest/partner_invoices.xml"],
+  "action_items": [
+    "Prevent the live Job-Request/Active-Job auto-route from overriding the invoices route while the invoice detail/viewer is open (or after user has interacted). This blocks the mobile 1:1 parity for detail/viewer/row-menu on any card below the initial viewport.",
+    "Align section-header casing on the mobile Detail panel to match web panel (title-case)."
+  ],
+  "critical_code_review_comments": [
+    "Backend /api/invoices/{invoice_number} 404s — detail endpoint accepts UUID id only. Consider also accepting invoice_number for developer ergonomics & deep-linking robustness.",
+    "Live push (job ring) navigation should be suppressed when the user is actively viewing an invoice screen/modal to avoid stealing focus (repro'd twice)."
+  ],
+  "updated_files": ["/app/backend/tests/test_partner_invoices.py"],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "~85% (all list/search/sort/filter/detail-open flows verified; viewer/row-menu/deep-link blocked intermittently by job push)"},
+  "test_credentials": "Partner +919000000003 / OTP 123456 (Raj Kumar).",
+  "seed_data_creation": "None. Used existing seeded 9 partner invoices.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The Expo-web login sequence: onboard-skip -> skip-notifications-button -> fill [data-testid=login-phone-input] 9000000003 -> click 'Log In with OTP' -> single OTP input (not 6 boxes) -> fill 123456 -> click 'Verify & Log In'. Role picker may not appear. After landing, navigate directly to /partner/invoices. IMPORTANT: after ~10s a live job push routes the app to /partner/active-job or /partner/job-request; re-navigate to /partner/invoices to return. To open detail for cards below the fold, scroll the card into view first; even then the job push may pre-empt the click — retry navigating to invoices immediately and try again. Backend detail endpoint expects the invoice `id` (UUID), not invoice_number."
+}

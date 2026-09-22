@@ -1,6 +1,6 @@
 /* 1:1 port of web InvoiceViewer.jsx (mobile: full-screen viewer + sticky Download / Share / Print) */
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, Platform } from "react-native";
+import { View, Text, Pressable, Modal, Platform, ScrollView } from "react-native";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ArrowLeft, Download, Printer, Share2 } from "lucide-react-native";
@@ -9,6 +9,7 @@ import { DocumentSkeleton, OutlineBtn, ShareSheet, useInv } from "@/src/componen
 import { shortDate } from "@/src/lib/invoiceUtils";
 
 const A4_W = 794;
+const A4_H = 1123;
 /* The server HTML is a fixed 210mm A4 document — pin the WebView viewport to A4 width so
    the page is scaled to fit the phone (same as web's InvoiceA4Frame scale transform). */
 const fitA4 = (html: string) => html.replace(/<head([^>]*)>/i, `<head$1><meta name="viewport" content="width=${A4_W}, initial-scale=1, maximum-scale=4, user-scalable=yes" />`);
@@ -20,9 +21,12 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
   const open = !!inv;
   const [shareOpen, setShareOpen] = useState(false);
   const [html, setHtml] = useState("");
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [docH, setDocH] = useState(A4_H);
+  const scale = box.w > 0 ? Math.min(1, box.w / A4_W) : 1;
   useEffect(() => {
     let alive = true;
-    setHtml("");
+    setHtml(""); setDocH(A4_H);
     const id = inv?.id;
     if (!open || !id) return () => { alive = false; };
     (async () => {
@@ -50,18 +54,25 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
         </View>
 
         {/* document */}
-        <View style={{ flex: 1, paddingHorizontal: 12, paddingTop: 16 }}>
-          {!ready || !html ? <DocumentSkeleton /> : (
-            <View style={{ flex: 1, borderRadius: 2, overflow: "hidden", backgroundColor: "#fff", boxShadow: "0px 10px 40px rgba(2,6,23,0.14)" }}>
-              {Platform.OS === "web" ? (
-                // @ts-ignore iframe is valid on web
-                <iframe title="invoice-preview" srcDoc={html} style={{ flex: 1, border: "none", width: "100%", height: "100%" }} />
-              ) : (
+        <View style={{ flex: 1 }}>
+          {!ready || !html ? <View style={{ paddingHorizontal: 12, paddingTop: 16 }}><DocumentSkeleton /></View> : Platform.OS === "web" ? (
+            /* web InvoiceA4Frame: natural A4 width iframe, visually scaled to the container, page scrolls */
+            <ScrollView contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 16, paddingBottom: 16 }}>
+              <View onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={{ width: "100%", height: Math.round(docH * scale), borderRadius: 2, overflow: "hidden", backgroundColor: "#fff", boxShadow: "0px 10px 40px rgba(2,6,23,0.14)" }}>
+                {/* @ts-ignore iframe is valid on web */}
+                <iframe title="invoice-preview" srcDoc={html} scrolling="no" onLoad={(e: any) => { try { const doc = e.currentTarget.contentDocument; if (doc?.body) setDocH(Math.max(doc.body.scrollHeight, doc.documentElement.scrollHeight, A4_H)); } catch { /* ignore */ } }}
+                  style={{ border: "none", width: A4_W, height: docH, minHeight: docH, flexShrink: 0, transform: `scale(${scale})`, transformOrigin: "top left", display: "block", background: "#fff" }} />
+              </View>
+              <Text style={{ textAlign: "center", fontSize: 11, color: t.t400, marginTop: 16 }}>This is a computer-generated invoice · Reference {inv.invoice_number}</Text>
+            </ScrollView>
+          ) : (
+            <View style={{ flex: 1, paddingHorizontal: 12, paddingTop: 16 }}>
+              <View onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={{ flex: 1, borderRadius: 2, overflow: "hidden", backgroundColor: "#fff", boxShadow: "0px 10px 40px rgba(2,6,23,0.14)" }}>
                 <WebView originWhitelist={["*"]} source={{ html: fitA4(html) }} style={{ flex: 1, backgroundColor: "#fff" }} scalesPageToFit setBuiltInZoomControls={false} showsHorizontalScrollIndicator={false} startInLoadingState testID="invoice-webview" />
-              )}
+              </View>
+              <Text style={{ textAlign: "center", fontSize: 11, color: t.t400, marginVertical: 10 }}>This is a computer-generated invoice · Reference {inv.invoice_number}</Text>
             </View>
           )}
-          {ready ? <Text style={{ textAlign: "center", fontSize: 11, color: t.t400, marginVertical: 10 }}>This is a computer-generated invoice · Reference {inv.invoice_number}</Text> : <View style={{ height: 10 }} />}
         </View>
 
         {/* mobile sticky actions */}
