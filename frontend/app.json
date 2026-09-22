@@ -73,6 +73,7 @@
       "expo-image",
       "expo-audio",
       "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       "./plugins/withJobRingAndroid.js",
       [
         "expo-build-properties",
