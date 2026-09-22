@@ -428,7 +428,7 @@ export function ShareSheet({ open, onClose, onPick }: { open: boolean; onClose: 
   );
   return (
     <ActionSheet open={open} onClose={onClose} title="Share invoice" testID="invoice-share-sheet">
-      <Item icon={MessageCircle} bg={inv.dark ? "rgba(2,44,34,0.4)" : "#ECFDF5"} fg={inv.emerald} title="WhatsApp" sub="Send invoice summary & link" ch="whatsapp" testID="share-whatsapp" />
+      <Item icon={MessageCircle} bg={inv.dark ? "rgba(2,44,34,0.4)" : "#ECFDF5"} fg={inv.emerald} title="WhatsApp" sub="Send the invoice PDF" ch="whatsapp" testID="share-whatsapp" />
       <Item icon={Mail} bg={inv.primary50} fg={inv.primary700} title="Email Invoice" sub="Email the invoice PDF" ch="email" testID="share-email" />
       <Item icon={Link2} bg={inv.primary50} fg={inv.primary700} title="Copy Link" sub="Copy a link to this invoice" ch="copy" testID="share-copy" />
       <Item icon={Share2} bg={inv.subtle} fg={inv.t600} title="System Share" sub="Share via installed apps" ch="system" testID="share-system" />

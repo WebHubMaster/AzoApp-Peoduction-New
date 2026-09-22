@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://partner-ui-mirror.preview.emergentagent.com/api"
+BASE_URL = "https://mobile-invoice-tools.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

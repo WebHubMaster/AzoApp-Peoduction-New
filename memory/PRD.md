@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://partner-ui-mirror.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://mobile-invoice-tools.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -148,3 +148,9 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
   - `check()` now confirms with a second short ping before ever declaring offline, so a single cold-start ping miss (DNS/TLS warm-up) can't flash the gate. Recovery stays instant on first success.
 - Root cause: `OfflineGate` (src/components/OfflineGate.tsx) renders when `useConnectivity().online === false`; the listener was flipping it false transiently on launch.
 - Verified: eslint 0 errors, bundle boots. (Android-specific flash can't be reproduced on web; fix is a targeted logic change with a confirmed root cause.)
+
+## Update (2026-06) — Offline-flash fix + invoice actions hardening
+- Fixed "No Internet Connection" gate flashing on every cold start (src/lib/connectivity.ts): NetInfo `isConnected:false` replayed at launch was flipping the gate on before the backend ping confirmed. Gate now only shows after 2 consecutive confirmed-offline pings; recovery stays instant.
+- Hardened invoice PDF fetch (src/lib/invoiceActions.ts fetchInvoicePdfFile): validates a non-empty PDF actually downloaded before sharing/printing, so WhatsApp/Share/Print never emit a blank/failed file (older builds fell back to text-only). Backend /api/invoices/{id}/pdf verified (reportlab, valid %PDF-).
+- Improved share result messaging in invoices.tsx + ShareSheet copy.
+- NOTE: These are mobile-client (Expo) changes — a fresh EAS build/republish is required for the installed app to reflect them. App backend = api.webhubmaster.shop.
