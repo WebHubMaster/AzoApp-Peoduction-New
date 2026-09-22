@@ -362,6 +362,61 @@ async def record_push_status(user_id: str, body: dict):
     return {"ok": True}
 
 
+async def record_ring_status(user_id: str, body: dict):
+    """Persist whether the call-style Job Ring actually rendered on a device.
+    Updates the user's ring_state (in-app 'Alert check' card), stamps the matching
+    device row with last_ring_at (admin per-device visibility) and appends a compact
+    log the admin Diagnostics 'Recent Job-Ring deliveries' table reads."""
+    b = body or {}
+    did = str(b.get("device_id") or "")[:80]
+    state = {
+        "ok": bool(b.get("ok")),
+        "ctx": str(b.get("ctx", ""))[:16],       # "bg" (closed/locked) | "fg" (open)
+        "mode": str(b.get("mode", ""))[:24],     # "fgs" | "no_fgs" | "failed"
+        "error": str(b.get("error", ""))[:300],
+        "fsi": b.get("fsi"),                      # full-screen-intent permission granted?
+        "booking_id": str(b.get("booking_id", ""))[:64],
+        "device_id": did,
+        "at": now_iso(),
+    }
+    await db.users.update_one({"id": user_id}, {"$set": {"ring_state": state}})
+    if did:
+        await db.fcm_devices.update_one(
+            {"user_id": user_id, "device_id": did},
+            {"$set": {"last_ring_at": state["at"], "last_ring_ok": state["ok"],
+                      "last_ring_ctx": state["ctx"], "last_ring_mode": state["mode"]}})
+    try:
+        await db.ring_status_logs.insert_one({"id": new_id(), "user_id": user_id, **state})
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True, "ring_state": state}
+
+
+async def recent_ring_events(limit: int = 30):
+    """Recent Job-Ring delivery reports with the reporting user attached (admin diag)."""
+    rows = await db.ring_status_logs.find({}, {"_id": 0}).sort("at", -1).limit(limit).to_list(limit)
+    ids = list({r.get("user_id") for r in rows if r.get("user_id")})
+    umap = {}
+    if ids:
+        async for u in db.users.find({"id": {"$in": ids}}, {"_id": 0, "id": 1, "name": 1, "role": 1, "phone": 1}):
+            umap[u["id"]] = u
+    for r in rows:
+        r["user"] = umap.get(r.get("user_id"))
+    return rows
+
+
+async def deactivate_stale_devices(days: int = 45) -> int:
+    """Auto-cleanup: mark devices not seen in `days` days as inactive so 'registered
+    devices' counts + online-device lists stay accurate (an uninstalled/logged-out
+    phone stops being counted). Never hard-deletes — history is kept."""
+    from datetime import timedelta
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    res = await db.fcm_devices.update_many(
+        {"is_active": {"$ne": False}, "last_seen_at": {"$lt": cutoff}},
+        {"$set": {"is_active": False, "permission_status": "stale", "updated_at": now_iso()}})
+    return res.modified_count
+
+
 async def _log_delivery(user_id, title, status, detail="", tokens=0, success=0, failure=0):
     """Persist a compact per-recipient push delivery record so admins can see who
     got a notification, how many devices, and the exact failure reason. (spec 15)"""

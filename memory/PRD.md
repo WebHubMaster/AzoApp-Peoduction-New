@@ -184,3 +184,13 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
   - Full-screen ring unchanged: Notifee call-style FSI + expo-notifications background task (pushBackground.ts, top-level in index.js) render the ring for data-only killed/locked messages. Backend already sends data_only=True for job_request/reschedule_request/scheduled_reminder (booking_controller.py 1156/1005/1522).
   - Added strong comment in messaging() warning NOT to re-add RNFB messaging (prevents recurrence).
 - VERIFIED here: tsc clean, eslint 0 errors, Metro/expo web bundle compiles without the removed module. ⚠️ On-device FCM token acquisition + locked-screen ring can ONLY be validated on a real Android device from a fresh EAS build (cannot run in this container).
+
+## Update (2026-06) — Push reliability follow-ups (auto re-register + ring log + stale cleanup)
+- Restored missing /app/backend/.env + /app/frontend/.env (fresh container had none → backend KeyError 'MONGO_URL'). MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp, generated JWT/FCM/CACHE keys, EMERGENT_LLM_KEY, preview URL. Backend now boots ("AzoApp seed complete", /api/ 200).
+- Auto Re-register (frontend/src/components/ChatNotifier.tsx): registerPushToken() now runs on login, on foreground, on NETWORK RECONNECT (NetInfo), and on server "push_reregister" SSE — throttled to 1/20s (real events force). Keeps a device from staying silently unregistered after a transient failure.
+- Admin Ring Log (per-device "last ring delivered"):
+  - client displayJobRing report() now sends device_id.
+  - backend fcm_service.record_ring_status(): stores user ring_state, stamps fcm_devices with last_ring_at/ok/ctx/mode, and appends to new ring_status_logs collection. notification_routes /ring-status delegates to it.
+  - diagnostics (notification_admin_controller) returns recent_ring_events (last 30, with user); web_panel adminSectionsPro.jsx renders a "Recent Job-Ring deliveries" table (when/user/where bg|fg/mode/FSI/result). Endpoint: GET /api/admin/notifications/health.
+- Stale Device Cleanup: fcm_service.deactivate_stale_devices(days=45) marks not-seen-in-45d devices is_active=False (never hard-deletes). Runs on the 6h retention sweep (server.py) AND at the top of admin diagnostics so counts/lists stay accurate.
+- VERIFIED live via curl: ring-status → device stamped + ring log shown in diagnostics with user attached; 61-day stale device auto-deactivated on diagnostics load. tsc/eslint 0 errors (frontend + web_panel); expo web bundle compiles (HTTP 200, 14MB). Native on-device ring still needs a fresh EAS build to confirm end-to-end.

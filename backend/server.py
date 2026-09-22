@@ -342,6 +342,7 @@ async def startup():
     # tokens that expired more than 7 days ago. Runs on boot, then every 6 hours.
     async def _retention_sweep():
         from services import retention_service as _rs
+        from services import fcm_service as _fcm
         while True:
             try:
                 removed = await _rs.cleanup()
@@ -349,6 +350,12 @@ async def startup():
                     logger.info("retention cleanup (7d): %s", removed)
             except Exception as e:  # noqa: BLE001
                 logger.warning("retention sweep error: %s", e)
+            try:
+                stale = await _fcm.deactivate_stale_devices()
+                if stale:
+                    logger.info("stale device cleanup: %s token(s) deactivated", stale)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("stale device sweep error: %s", e)
             await asyncio.sleep(6 * 3600)  # every 6 hours
 
     try:

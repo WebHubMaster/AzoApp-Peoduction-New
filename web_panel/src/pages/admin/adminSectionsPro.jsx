@@ -1909,6 +1909,36 @@ function NotificationDiagnostics() {
         </div>
       </div>
 
+      <div className="rounded-2xl border border-slate-100 p-5 bg-white" data-testid="diag-ring-deliveries">
+        <div className="flex items-center gap-2 mb-1">
+          <Bell className="h-4 w-4 text-primary-700" />
+          <h3 className="font-bold text-slate-900">Recent Job-Ring deliveries</h3>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">Whether the call-style full-screen ring actually fired on each device — <b>bg</b> = app closed/locked, <b>fg</b> = app open. "fgs" = ran as a foreground service (looping ring); "no_fgs" = shown without the service; "failed" = could not render.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="text-slate-400 uppercase tracking-wider border-b border-slate-100">
+              <th className="text-left font-semibold py-2 pr-3">Last ring delivered</th><th className="text-left font-semibold py-2 pr-3">User</th><th className="text-left font-semibold py-2 pr-3">Where</th><th className="text-left font-semibold py-2 pr-3">Mode</th><th className="text-left font-semibold py-2 pr-3">FSI</th><th className="text-left font-semibold py-2">Result / Error</th>
+            </tr></thead>
+            <tbody>
+              {(health.recent_ring_events || []).length === 0 && (
+                <tr><td colSpan={6} className="py-6 text-center text-slate-400">No ring deliveries reported yet — send a test ring or dispatch a job to a device.</td></tr>
+              )}
+              {(health.recent_ring_events || []).map((r) => (
+                <tr key={r.id} className="border-b border-slate-50" data-testid={`diag-ring-${r.id}`}>
+                  <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{r.at ? new Date(r.at).toLocaleString() : "—"}</td>
+                  <td className="py-2 pr-3"><span className="font-medium text-slate-800">{r.user?.name || r.user_id?.slice(0, 8)}</span>{r.user?.role && <span className="text-slate-400 ml-1">({r.user.role})</span>}</td>
+                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
+                  <td className="py-2 pr-3 text-slate-600">{r.mode || "—"}</td>
+                  <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
+                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? "delivered" : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div className="rounded-2xl border border-slate-100 p-5 bg-white" data-testid="diag-registration-attempts">
         <div className="flex items-center gap-2 mb-3">
           <Bell className="h-4 w-4 text-primary-700" />

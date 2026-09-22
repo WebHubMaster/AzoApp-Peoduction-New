@@ -146,6 +146,11 @@ async def notification_health():
                          "messagingSenderId", "appId"]
     missing = [f for f in web_config_fields if not wc.get(f)]
 
+    # Auto-cleanup stale tokens FIRST so the counts + lists below stay accurate.
+    try:
+        await fcm_service.deactivate_stale_devices()
+    except Exception:  # noqa: BLE001
+        pass
     devices_total = await db.fcm_devices.count_documents({})
     # per-role device breakdown
     breakdown = {}
@@ -162,6 +167,12 @@ async def notification_health():
 
     recent_logs = await db.notification_delivery_logs.find(
         {}, {"_id": 0}).sort("created_at", -1).limit(20).to_list(20)
+
+    # Per-device Job-Ring delivery reports (did the call-style ring actually fire?)
+    try:
+        ring_events = await fcm_service.recent_ring_events(30)
+    except Exception:  # noqa: BLE001
+        ring_events = []
 
     # Browser-side registration attempts (why a device did/didn't register)
     reg_rows = await db.push_registration_logs.find(
@@ -241,6 +252,7 @@ async def notification_health():
         "devices": {"total": devices_total, "by_role": breakdown},
         "online_partners": online_partners,
         "recent_delivery_logs": recent_logs,
+        "recent_ring_events": ring_events,
         "registration_attempts": reg_rows,
         "partners_without_device": partners_no_device,
     }
