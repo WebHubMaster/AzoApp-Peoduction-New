@@ -94,14 +94,14 @@ export function AppTabBar({
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setMoreOpen(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 20, maxHeight: "88%" }}>
-            <View style={{ alignSelf: "center", height: 6, width: 48, borderRadius: 3, backgroundColor: colors.border, marginBottom: 24 }} />
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>All Menu</Text>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 20, maxHeight: "88%" }}>
+            <View style={{ alignSelf: "center", height: 6, width: 48, borderRadius: 3, backgroundColor: colors.border, marginBottom: 16 }} />
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>All Menu</Text>
               <Pressable testID="more-close" onPress={() => setMoreOpen(false)} hitSlop={10}><Icon name="close" size={22} color={colors.textMuted} /></Pressable>
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 14 }}>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 }}>
                 {moreItems.map((it) => (
                   <Pressable
                     key={it.key}
@@ -110,33 +110,33 @@ export function AppTabBar({
                     style={{
                       width: "31%",
                       alignItems: "center",
-                      paddingTop: 18,
-                      paddingBottom: 16,
+                      paddingTop: 12,
+                      paddingBottom: 12,
                       paddingHorizontal: 6,
-                      borderRadius: 20,
+                      borderRadius: 16,
                       borderWidth: 1,
                       borderColor: it.active ? "#BFDBFE" : colors.border,
                       backgroundColor: it.active ? colors.primarySubtle : colors.surface,
                       boxShadow: "0px 2px 8px rgba(2,32,71,0.04)",
                     }}
                   >
-                    <View style={{ height: 56, width: 56, borderRadius: 28, alignItems: "center", justifyContent: "center", backgroundColor: it.active ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
+                    <View style={{ height: 44, width: 44, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: it.active ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
                       {it.active ? (
-                        <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 56, width: 56, alignItems: "center", justifyContent: "center" }}>
-                          <Icon name={it.icon} size={24} color="#fff" />
+                        <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center" }}>
+                          <Icon name={it.icon} size={20} color="#fff" />
                         </LinearGradient>
                       ) : (
-                        <Icon name={it.icon} size={24} color={colors.textSecondary} />
+                        <Icon name={it.icon} size={20} color={colors.textMuted} />
                       )}
                     </View>
-                    <Text numberOfLines={2} style={{ color: it.active ? colors.secondary : colors.textSecondary, fontSize: 13, fontWeight: "600", textAlign: "center", lineHeight: 18, marginTop: 14 }}>{it.label}</Text>
+                    <Text numberOfLines={2} style={{ color: it.active ? colors.primaryHover : colors.textSecondary, fontSize: 11, fontWeight: "600", textAlign: "center", lineHeight: 15, marginTop: 8 }}>{it.label}</Text>
                   </Pressable>
                 ))}
               </View>
               {onLogout ? (
-                <Pressable testID="more-logout" onPress={() => { setMoreOpen(false); setTimeout(onLogout, 120); }} style={{ marginTop: 20, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, height: 56, borderRadius: 16, backgroundColor: "#FFF1F2" }}>
-                  <Icon name="logout" size={20} color="#DC2626" />
-                  <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 17 }}>Logout</Text>
+                <Pressable testID="more-logout" onPress={() => { setMoreOpen(false); setTimeout(onLogout, 120); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 16, backgroundColor: "#FEF2F2" }}>
+                  <Icon name="logout" size={16} color="#DC2626" />
+                  <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 14 }}>Logout</Text>
                 </Pressable>
               ) : null}
             </ScrollView>
@@ -151,13 +151,13 @@ function TabButton({ icon, label, focused, onPress, testID, badge }: { icon: Mdi
   const { colors } = useTheme();
   return (
     <Pressable testID={testID || `tab-${label.toLowerCase().split(" ")[0]}`} onPress={onPress} style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6 }}>
-      <View style={{ height: 44, width: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", overflow: "visible" }}>
+      <View style={{ height: 40, width: 40, borderRadius: 16, alignItems: "center", justifyContent: "center", overflow: "visible", transform: [{ scale: focused ? 1.05 : 1 }] }}>
         {focused ? (
-          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 44, width: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
-            <Icon name={icon} size={21} color="#fff" />
+          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 16, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
+            <Icon name={icon} size={18} color="#fff" />
           </LinearGradient>
         ) : (
-          <Icon name={icon} size={21} color={colors.tabInactive} />
+          <Icon name={icon} size={18} color={colors.tabInactive} />
         )}
         {badge && badge > 0 ? (
           <View style={{ position: "absolute", top: 0, right: 0, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>

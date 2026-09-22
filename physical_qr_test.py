@@ -10,7 +10,7 @@ import requests
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://support-hub-mobile-1.preview.emergentagent.com/api"
+BASE_URL = "https://partner-ui-mirror.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo accounts

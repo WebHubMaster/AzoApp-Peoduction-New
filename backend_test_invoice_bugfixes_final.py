@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://support-hub-mobile-1.preview.emergentagent.com/api"
+BASE_URL = "https://partner-ui-mirror.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"

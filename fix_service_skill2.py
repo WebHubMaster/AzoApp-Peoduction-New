@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://support-hub-mobile-1.preview.emergentagent.com/api"
+BASE_URL = "https://partner-ui-mirror.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 
