@@ -19,7 +19,7 @@ import re
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://partner-panel-kyc.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-services.preview.emergentagent.com/api"
 OTP = "123456"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"

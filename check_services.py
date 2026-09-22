@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://partner-panel-kyc.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-services.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()
