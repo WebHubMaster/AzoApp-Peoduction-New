@@ -182,7 +182,8 @@ async def upload_poster_logo(file: UploadFile = File(...), user=Depends(M)):
     raw = await file.read()
     try:
         res = await storage_service.save_document(raw, file.content_type or "",
-                                                  file.filename or "", folder="merchant")
+                                                  file.filename or "",
+                                                  folder=storage_service.entity_folder("merchants", user, "branding"))
     except ValueError as e:
         raise HTTPException(400, str(e))
     except Exception:  # noqa: BLE001

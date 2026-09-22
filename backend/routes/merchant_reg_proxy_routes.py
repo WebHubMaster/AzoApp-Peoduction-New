@@ -70,11 +70,12 @@ async def submit(uid: str, actor=Depends(ADMIN)):
 @router.post("/merchants/{uid}/reg/upload")
 async def upload(uid: str, file: UploadFile = File(...), doc_type: str = Form("document"),
                  actor=Depends(ADMIN)):
-    await _target(uid)
+    m = await _target(uid)
     raw = await file.read()
     try:
         res = await storage_service.save_document(
-            raw, file.content_type or "", file.filename or "", folder="merchant")
+            raw, file.content_type or "", file.filename or "",
+            folder=storage_service.entity_folder("merchants", m, "kyc"))
     except ValueError as e:
         raise HTTPException(400, str(e))
     return {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}

@@ -127,3 +127,16 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Backend `controllers/content_controller.py` + `routes/content_routes.py`: added `DELETE /notifications/{nid}` (hide one) and `DELETE /notifications` (clear all) using a per-user `deleted_by` set; `user_notifications` now excludes `deleted_by` so cleared items never reappear (broadcast notifs stay intact for other users).
 - Verified: py_compile OK, eslint 0 errors, tsc 0 errors in changed files, Expo web bundle boots. Existing APIs/logic untouched.
 - NOTE: pod has no backend `.env` (MONGO_URL) so local backend can't run; app targets production backend — live login verification not performed. Pre-check "linter engine error" is pre-existing (`web_panel` has no node_modules), unrelated to these changes.
+
+---
+## 2026-06 — Structured media folders (S3/local) + nested preview fix
+- `services/storage_service.py`: added `slugify()`, `entity_folder(kind, ent, *subs)`, `job_folder(booking, partner, *subs)`; `save_document` now forwards `base_hint`.
+- Structured upload folders wired into every upload endpoint:
+  - Partner reg / KYC (partner + admin/merchant proxy) → `partners/<id>-<name>/kyc`
+  - Merchant reg → `merchants/<id>-<shop>/kyc`; merchant poster/logo → `merchants/<id>-<shop>/branding`
+  - Job/booking evidence → `jobs/<partnerId>-<name>/<serviceName>-<jobCode>/<before|after>`
+  - Support uploads → `support/<userId>-<name>`
+- `routes/media_routes.py`: local file serving changed from `/file/{folder}/{name}` → `/file/{path:path}` with traversal guard, so NESTED structured folders preview correctly (S3 proxy `/s3/{key:path}` already supported nesting). Backward compatible with old single-level URLs.
+- Same folder string is used as the S3 object key when AWS S3 is enabled in Integration Center → structure applies to S3 too; preview via public base or authenticated `/api/media/s3/<key>` proxy.
+- Restored `/app/backend/.env` (was missing) so the local backend runs.
+- Verified (local, S3 off): partner OTP login → upload → URL `partners/<id>-<name>/kyc/<uuid>.webp` → preview GET 200 (image/webp); nested/legacy/missing/traversal serving all correct.

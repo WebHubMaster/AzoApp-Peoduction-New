@@ -5,6 +5,7 @@ stored under /app/backend/uploads and served via GET /api/media/file/{name}.
 """
 import io
 import os
+import re
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -21,6 +22,41 @@ MAX_BYTES = 12 * 1024 * 1024  # 12MB raw upload cap
 
 _EXT_CT = {"svg": "image/svg+xml", "jpg": "image/jpeg", "jpeg": "image/jpeg",
            "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
+
+
+# ── Structured upload folders ────────────────────────────────────────────────
+# Every upload lands in a human-readable, structured path so files are easy to
+# locate on S3 (or on local disk). Examples:
+#   partners/<partnerId>-<name>/kyc/<uuid>.webp
+#   merchants/<merchantId>-<shop>/branding/<uuid>.webp
+#   jobs/<partnerId>-<name>/<serviceName>-<jobCode>/before/<uuid>.webp
+def slugify(s, maxlen: int = 40) -> str:
+    """URL/S3-safe lowercase slug. Empty → 'x'."""
+    s = re.sub(r"[^A-Za-z0-9]+", "-", str(s or "")).strip("-").lower()
+    return (s[:maxlen].strip("-")) or "x"
+
+
+def entity_folder(kind: str, ent: dict, *subs: str) -> str:
+    """Folder for a person/shop, e.g. entity_folder('partners', user, 'kyc').
+    → 'partners/<id>-<name-slug>/kyc'"""
+    ent = ent or {}
+    eid = str(ent.get("id") or "unknown")
+    name = slugify(ent.get("name") or ent.get("shop_name") or "")
+    parts = [slugify(kind), f"{eid}-{name}"] + [slugify(s) for s in subs if s]
+    return "/".join(parts)
+
+
+def job_folder(booking: dict, partner: dict = None, *subs: str) -> str:
+    """Folder for a job/booking's files.
+    → 'jobs/<partnerId>-<name>/<serviceName>-<jobCode>/<sub>'"""
+    b = booking or {}
+    partner = partner or {}
+    pid = str(partner.get("id") or b.get("partner_id") or "unassigned")
+    pname = slugify(partner.get("name") or b.get("partner_name") or "")
+    jname = slugify(b.get("service_name") or "job")
+    code = slugify(b.get("code") or b.get("id") or "")
+    parts = ["jobs", f"{pid}-{pname}", f"{jname}-{code}"] + [slugify(s) for s in subs if s]
+    return "/".join(parts)
 
 
 def _sniff_ct(raw: bytes) -> Optional[str]:
@@ -180,17 +216,17 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
 
 
 async def save_document(raw: bytes, content_type: str, filename: str = "",
-                        folder: str = "kyc") -> dict:
+                        folder: str = "kyc", base_hint: str = "") -> dict:
     """Save a KYC document. Images are compressed to WebP; PDFs stored as-is."""
     if len(raw) > MAX_BYTES:
         raise ValueError("File too large (max 12MB).")
     ct = _resolve_ct(content_type, filename, raw)
     if ct in ALLOWED:
-        return await save_image(raw, ct, folder=folder, max_side=1800, filename=filename)
+        return await save_image(raw, ct, folder=folder, max_side=1800, filename=filename, base_hint=base_hint)
     if ct == "application/pdf" or (filename or "").lower().endswith(".pdf"):
         uid = uuid.uuid4().hex
         name = f"{folder}/{uid}.pdf"
-        url = await _put(name, raw, "application/pdf")
+        url = await _put(name, raw, "application/pdf", base_hint)
         return {"url": url, "name": name, "size": len(raw), "thumb_url": url,
                 "kind": "pdf"}
     raise ValueError("Unsupported file. Use JPG, PNG, WebP or PDF.")

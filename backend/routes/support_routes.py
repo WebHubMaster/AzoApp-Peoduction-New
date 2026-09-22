@@ -26,7 +26,7 @@ async def support_upload(file: UploadFile = File(...), user=Depends(get_current_
     if len(raw) > svc.MAX_FILE_BYTES:
         raise HTTPException(status_code=400, detail=f"File too large (max {svc.MAX_FILE_BYTES // (1024*1024)}MB)")
     try:
-        res = await storage_service.save_document(raw, ct, filename=file.filename or "", folder="support")
+        res = await storage_service.save_document(raw, ct, filename=file.filename or "", folder=storage_service.entity_folder("support", user))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     kind = "pdf" if (ct == "application/pdf" or res.get("kind") == "pdf") else "image"
