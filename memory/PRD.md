@@ -37,6 +37,25 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   app's WDatePicker calendar (mobile equiv of web PremiumDatePicker) + close button, replacing fragile
   raw text inputs that re-queried on every keystroke.
 
+- 2026-09-22: **Partner "My Invoices" 1:1 parity (mobile app)** — rebuilt app/(partner)/partner/invoices.tsx as an exact port
+  of web MerchantInvoices.jsx (role=partner) mobile view + all sub-components:
+  - src/lib/invoiceUtils.ts (money/dates/status+type meta/presets/sorts/referenceOf/buildTimeline/pageList — port of invoiceUtils.js)
+  - src/lib/invoiceActions.ts (download PDF via expo-file-system + expo-sharing, print via expo-print (server PDF), WhatsApp/system
+    share of the real PDF, copy via expo-clipboard; web fallbacks = web panel behaviour)
+  - src/components/invoice.tsx (InvStatusBadge/TypeChip, KPI tiles, DateChips + custom range (WDatePicker), SearchBox, card list,
+    RowMenuSheet, AdvancedPaginator, skeletons, empty/error, PageHeader, Timeline, FullSheet/ActionSheet/ShareSheet, useDebounced)
+  - src/components/invoices/FilterSheet.tsx (InvoiceFilterDrawer: date/type/status/amount/customer/booking, draft+apply/reset)
+  - src/components/invoices/DetailPanel.tsx (InvoiceDetailPanel: header card, customer (PII mask), booking, payment summary incl.
+    cancellation layout, Your Earning (partner normal + cancellation + merchant branches), commission fallback, timeline, more-menu)
+  - src/components/invoices/Viewer.tsx (InvoiceViewer: server HTML /invoices/{id}/view in A4 frame — WebView (viewport=794) on
+    native, scaled iframe on web — sticky Download/Share/Print + share sheet)
+  - app/(partner)/partner/invoice/[id].tsx → redirects to /partner/invoices?invoice=<id> (web deep-link parity, auto-opens viewer)
+  - Same backend APIs/params as web: GET /invoices (page,page_size,range,date_from,date_to,sort,search,invoice_type,payment_status,
+    min/max_amount,customer,booking_id), GET /invoices/{id}, /view, /pdf. Installed expo-sharing + expo-print.
+  - Env recreated (backend/.env MONGO_URL/DB_NAME, frontend/.env EXPO_PUBLIC_BACKEND_URL). Tested: backend 16/16, web-preview
+    flows (list/KPIs/search/sort/filters/detail/row-menu/viewer/share sheet/deep-link) verified via testing agent + screenshots.
+  - Known web-preview-only quirk (pre-existing, not invoice code): a live job push can switch the visible tab to Job Request.
+
 ## Backlog / Next
 - 2026-09-22: **Starter Kit & Profile/KYC parity** — verified mobile starter-kit.tsx (port of web
   PartnerStarterKit.jsx: sales/owned/tracking/renewal, APIs /starter-kit/me|order|mock, mock purchase
