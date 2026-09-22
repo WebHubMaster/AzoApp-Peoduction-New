@@ -25,6 +25,12 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   - Verified via curl: login, /agent/me, /agent/earnings, batches, QR list, merchant-search, assign
     (credits ₹20/mapping), wallet updates. All new frontend files compile (babel-preset-expo, 10/10 OK).
 
+- 2026-09-22: **Partner Rewards & Challenges parity** — mobile app/(partner)/partner/rewards.tsx confirmed
+  as a 1:1 port of web_panel ChallengesRewards.jsx (same /partner/challenges & /partner/my-bonuses APIs,
+  same hero/auto-payout/streak/my-bonuses/next-reward/challenges/penalties sections & logic; reachable via
+  Profile + More menu). Polished remaining ~5%: added web's error empty-state fallback (was infinite
+  "Loading…" on API error), matched Ring inner-% size/color, added animate-pulse on the "unlocked" badge.
+
 ## Backlog / Next
 - P1: Optional camera/barcode scan on Map QR screen (currently manual token entry — robust & dependency-free).
 - P2: Agent notifications when admin verifies bank / approves withdrawal.
