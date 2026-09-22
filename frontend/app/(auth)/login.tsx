@@ -17,6 +17,8 @@ type Role = "partner" | "merchant";
 type Mode = "login" | "register";
 type Step = "phone" | "otp" | "name";
 const APP_ROLES: Role[] = ["partner", "merchant"];
+const LOGIN_ROLES = ["partner", "merchant", "agent"] as const;
+const DEMO_ROLES = ["partner", "merchant", "agent"] as const;
 const HERO = require("../../assets/hero-pro.png"); // eslint-disable-line @typescript-eslint/no-require-imports
 const HERO_MERCHANT = require("../../assets/hero-merchant.png"); // eslint-disable-line @typescript-eslint/no-require-imports
 const FALLBACK_LOGO = require("../../assets/brand-logo.png"); // eslint-disable-line @typescript-eslint/no-require-imports
@@ -28,6 +30,7 @@ const TH = {
   register: { main: "#059669", dark: "#047857", soft: "#ECFDF5", border: "#A7F3D0", grad: ["#10B981", "#047857"] as const, chip: "REGISTER MODE", chipSub: "Create a new account", icon: "account-plus" as MdiName },
   partner: { main: "#059669", dark: "#047857", soft: "#ECFDF5", border: "#A7F3D0", grad: ["#10B981", "#047857"] as const, chip: "REGISTER · PARTNER", chipSub: "Offer services & receive jobs", icon: "wrench" as MdiName },
   merchant: { main: "#9333EA", dark: "#6B21A8", soft: "#FAF5FF", border: "#E9D5FF", grad: ["#A855F7", "#6B21A8"] as const, chip: "REGISTER · MERCHANT", chipSub: "List your shop & manage orders", icon: "storefront-outline" as MdiName },
+  agent: { main: "#B45309", dark: "#92400E", soft: "#FFFBEB", border: "#FDE68A", grad: ["#F59E0B", "#B45309"] as const, chip: "LOGIN · AGENT", chipSub: "Field QR mapping agent", icon: "map-marker-radius" as MdiName },
 };
 
 const FEATURES: { icon: MdiName; label: string; bg: string; fg: string }[] = [
@@ -62,10 +65,11 @@ export default function Login() {
   const ac = mode === "login" ? TH.login : registerRole ? TH[registerRole] : TH.register;
 
   const home = (u: AppUser) => {
+    if (u.role === "agent") return "/(agent)";
     if (u.role === "partner") return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_partner ? "/(partner)" : "/partner/register";
     return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
   };
-  useEffect(() => { if (user && APP_ROLES.includes(user.role as Role)) { setRouting(true); router.replace(home(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) { setRouting(true); router.replace(home(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Resend countdown (re-schedules once per second, no drift).
   useEffect(() => {
@@ -75,7 +79,7 @@ export default function Login() {
   }, [resendIn]);
 
   const finish = async ({ token, user: u }: any, greeting?: string) => {
-    if (!APP_ROLES.includes(u?.role)) { toast.error(`This app is for Partners & Merchants only. Your ${u?.role || ""} account can sign in on the web panel.`); return; }
+    if (!LOGIN_ROLES.includes(u?.role)) { toast.error(`This app is for Partners, Merchants & Agents only. Your ${u?.role || ""} account can sign in on the web panel.`); return; }
     setRouting(true);
     await login(token, u);
     toast.success(greeting || `Welcome, ${u.name || "back"}!`);
@@ -137,8 +141,8 @@ export default function Login() {
     setBusy("");
   };
 
-  const demoAccounts: any[] = APP_ROLES.map((r) => (demo?.accounts || []).find((a: any) => a.role === r)).filter(Boolean);
-  const showLoader = booting || loading || routing || (user && APP_ROLES.includes(user.role as Role));
+  const demoAccounts: any[] = DEMO_ROLES.map((r) => (demo?.accounts || []).find((a: any) => a.role === r)).filter(Boolean);
+  const showLoader = booting || loading || routing || (user && LOGIN_ROLES.includes(user.role as any));
   const showRolePicker = mode === "register" && !registerRole;
 
   const changeNumber = () => { setStep("phone"); setOtp(""); };
@@ -238,7 +242,7 @@ export default function Login() {
                   </LinearGradient>
                 </Pressable>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center", marginTop: 2 }}>
-                  <Icon name="lock-outline" size={13} color="#94A3B8" /><Text style={{ color: "#94A3B8", fontSize: 11.5 }}>Only Partner & Merchant numbers can sign in here</Text>
+                  <Icon name="lock-outline" size={13} color="#94A3B8" /><Text style={{ color: "#94A3B8", fontSize: 11.5 }}>Only Partner, Merchant & Agent numbers can sign in here</Text>
                 </View>
               </View>
             ) : null}
@@ -302,7 +306,7 @@ export default function Login() {
               <View testID="demo-accounts" style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: "#EEF2F7", gap: 10 }}>
                 <Text style={{ color: "#64748B", fontSize: 11.5, fontWeight: "900", letterSpacing: 0.8, textAlign: "center" }}>★ ONE-CLICK DEMO LOGIN ★</Text>
                 {demoAccounts.map((a) => {
-                  const t = TH[a.role as Role];
+                  const t = TH[a.role as keyof typeof TH] || TH.login;
                   return (
                     <Pressable key={a.role} testID={`demo-${a.role}`} onPress={() => quickLogin(a)} disabled={!!busy}
                       style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 14, borderWidth: 1.5, borderColor: t.border, backgroundColor: t.soft, opacity: busy && busy !== a.phone ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>

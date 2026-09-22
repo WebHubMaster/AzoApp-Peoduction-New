@@ -6,7 +6,10 @@ export interface AppUser {
   name: string;
   phone: string;
   email?: string;
-  role: "partner" | "merchant" | "customer" | "admin";
+  role: "partner" | "merchant" | "customer" | "admin" | "agent";
+  is_qr_agent?: boolean;
+  agent_active?: boolean;
+  assigned_batch_ids?: string[];
   photo?: string;
   kyc_status?: string;
   partner_status?: string;

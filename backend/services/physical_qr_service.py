@@ -209,6 +209,43 @@ async def seed_demo_batches():
     return {"seeded": total, "batches": len(demo)}
 
 
+async def seed_demo_agent():
+    """Idempotent: a demo QR field-agent (+919000000006) with the field-kit batches
+    assigned and a couple of sample mappings, so the Agent app has data out of the box."""
+    phone = "+919000000006"
+    existing = await db.users.find_one({"phone": phone}, {"_id": 0})
+    if existing:
+        return {"skipped": True, "reason": existing.get("role")}
+    # pick the "Field Kit" batches for this agent (leave the sample batch unassigned)
+    batches = await db[_QR].aggregate([
+        {"$group": {"_id": "$batch_id", "name": {"$first": "$batch_name"}, "min": {"$min": "$created_at"}}},
+        {"$sort": {"min": 1}},
+    ]).to_list(100)
+    field_batch_ids = [b["_id"] for b in batches if "Field Kit" in (b.get("name") or "")]
+    agent = build_user(phone, "agent", "Ravi (Field Agent)", is_demo=True)
+    agent["is_qr_agent"] = True
+    agent["agent_active"] = True
+    agent["assigned_batch_ids"] = field_batch_ids
+    await db.users.insert_one(dict(agent))
+    agent.pop("_id", None)
+    if field_batch_ids:
+        await db[_QR].update_many({"batch_id": {"$in": field_batch_ids}}, {"$set": {"agent_id": agent["id"]}})
+    # map two stickers to the demo merchant so wallet/earnings have data
+    mapped = 0
+    merchant = await db.users.find_one({"phone": "+919000000002", "role": "merchant"}, {"_id": 0})
+    if merchant and field_batch_ids:
+        to_map = await db[_QR].find(
+            {"batch_id": {"$in": field_batch_ids}, "status": "unassigned"}, {"_id": 0}
+        ).limit(2).to_list(2)
+        for qr in to_map:
+            try:
+                await assign(agent, qr["token"], merchant_id=merchant["id"])
+                mapped += 1
+            except Exception:  # noqa: BLE001
+                pass
+    return {"seeded": True, "agent_id": agent["id"], "batches": len(field_batch_ids), "mapped": mapped}
+
+
 
 
 async def list_batches(user: dict):
