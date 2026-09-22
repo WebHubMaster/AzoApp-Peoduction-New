@@ -94,7 +94,14 @@ export default function SupportThread() {
   };
 
   const confirmClose = () => {
-    Alert.alert("Close ticket?", "You won't be able to reply after closing — you'd need to raise a new ticket.", [
+    const msg = "Close this ticket? You won't be able to reply after closing — you'd need to raise a new ticket.";
+    if (Platform.OS === "web") {
+      // RN Web polyfills Alert.alert to a single-button window.alert (no callback),
+      // so use window.confirm to get a working OK path.
+      if (typeof window !== "undefined" && window.confirm(msg)) close.mutate();
+      return;
+    }
+    Alert.alert("Close ticket?", msg, [
       { text: "Cancel", style: "cancel" },
       { text: "Close ticket", style: "destructive", onPress: () => close.mutate() },
     ]);
