@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://mobile-invoice-build.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

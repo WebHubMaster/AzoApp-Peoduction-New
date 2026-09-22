@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://mobile-invoice-build.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

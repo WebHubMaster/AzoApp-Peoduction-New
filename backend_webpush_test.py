@@ -15,7 +15,7 @@ import requests
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://mobile-invoice-build.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

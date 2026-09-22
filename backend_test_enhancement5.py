@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL
-API = "https://mobile-invoice-build.preview.emergentagent.com/api"
+API = "https://invoice-sync-mobile-1.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
