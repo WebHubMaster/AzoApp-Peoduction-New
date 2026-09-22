@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, FlatList, Pressable, Modal, TextInput, ScrollView, RefreshControl } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -129,7 +130,7 @@ export default function SupportList() {
       />
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
+        <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={0}>
           <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
           <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.sm }}>
             <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "900" }}>New Ticket</Text>
@@ -152,7 +153,7 @@ export default function SupportList() {
             <Button title="Submit ticket" onPress={() => subject.trim() ? create.mutate() : toast.error("Enter a subject")} loading={create.isPending} testID="submit-ticket" />
             <Text style={{ color: colors.textMuted, fontSize: 11, textAlign: "center", marginTop: 2 }}>You can attach screenshots inside the ticket chat after creating it.</Text>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

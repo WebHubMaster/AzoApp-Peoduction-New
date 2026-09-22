@@ -75,9 +75,9 @@ export function AppTabBar({
             elevation: 12,
           }}
         >
-          {/* Frosted-glass pill — mirrors the web panel's `.glass` (rgba(255,255,255,0.72) + blur(18px) saturate) */}
+          {/* Frosted-glass pill — heavier blur + near-opaque fill so scrolling page content behind the bar is NOT visible through it */}
           <BlurView
-            intensity={40}
+            intensity={90}
             tint={mode === "dark" ? "dark" : "light"}
             experimentalBlurMethod="dimezisBlurView"
             style={{
@@ -86,7 +86,7 @@ export function AppTabBar({
               overflow: "hidden",
               borderWidth: 1,
               borderColor: mode === "dark" ? "rgba(51,65,85,0.6)" : "rgba(255,255,255,0.5)",
-              backgroundColor: mode === "dark" ? "rgba(15,23,42,0.72)" : "rgba(255,255,255,0.72)",
+              backgroundColor: mode === "dark" ? "rgba(15,23,42,0.94)" : "rgba(255,255,255,0.96)",
               paddingHorizontal: 6,
               paddingVertical: 4,
             }}
@@ -97,7 +97,7 @@ export function AppTabBar({
               return <TabButton key={r.key} icon={meta.icon} label={meta.label} focused={focused} badge={badges[r.name]} onPress={() => go(r.name, r.key)} />;
             })}
             {moreItems.length > 0 ? (
-              <TabButton icon="dots-horizontal" label="More" focused={moreOpen || activeIsMore} onPress={() => setMoreOpen(true)} testID="tab-more" />
+              <TabButton icon="dots-grid" label="More" focused={moreOpen || activeIsMore} onPress={() => setMoreOpen(true)} testID="tab-more" />
             ) : null}
           </BlurView>
         </View>
