@@ -16,16 +16,23 @@ export function invoiceSummaryText(inv: any) {
   return `${num} · ${money(inv?.total_amount, inv?.currency, 2)}${st} — AzoApp`;
 }
 
-/** Download the server-rendered PDF (WeasyPrint) — same template as preview/print. */
+/** Download the server-rendered invoice PDF (same template as preview/print) to a
+    cache file, sending the auth token so the request is authorised. Validates that a
+    non-empty file actually landed so we never share/print a broken/empty document. */
 export async function fetchInvoicePdfFile(inv: any): Promise<File> {
   const dir = new Directory(Paths.cache, "invoices");
   dir.create({ intermediates: true, idempotent: true });
   const file = new File(dir, `${safeName(inv.invoice_number)}.pdf`);
   const token = await getToken();
-  return File.downloadFileAsync(`${API_BASE}/invoices/${inv.id}/pdf`, file, {
+  const out = await File.downloadFileAsync(`${API_BASE}/invoices/${inv.id}/pdf`, file, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     idempotent: true,
   });
+  // Guard against a silent failure (auth error / empty body) being saved as a 0-byte
+  // "PDF" and then shared as a blank attachment.
+  const size = (() => { try { return Number(out?.size ?? file.size ?? 0); } catch { return 0; } })();
+  if (!size) throw new Error("empty pdf");
+  return out;
 }
 
 async function webBlob(inv: any) {

@@ -146,7 +146,11 @@ export default function PartnerInvoices() {
     if (channel === "email") { setEmailFor(inv); return; }
     if (channel === "whatsapp" || channel === "system") {
       toast.info("Preparing invoice…");
-      try { const r = await shareInvoicePdf(inv, channel as any); if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp"); }
+      try {
+        const r = await shareInvoicePdf(inv, channel as any);
+        if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp");
+        else if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
+      }
       catch { toast.error("Could not prepare the invoice PDF"); }
       return;
     }

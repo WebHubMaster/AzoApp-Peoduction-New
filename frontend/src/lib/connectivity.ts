@@ -6,6 +6,13 @@
  * when present in the native build, gives instant change events; we still verify
  * with a real ping so a "connected but no real internet" state is caught too.
  * Works everywhere (native build, Expo Go, web) — netinfo is optional.
+ *
+ * IMPORTANT (cold-start flash fix): on Android the FIRST NetInfo event replayed on
+ * subscribe frequently reports `isConnected: false` for a moment while the native
+ * network stack warms up, and the very first backend ping can also lose the race
+ * (DNS/TLS warm-up). We therefore NEVER show the "No Internet" gate on a single
+ * miss — the gate only appears after TWO consecutive confirmed-offline probes.
+ * Recovery (going back online) stays instant on the first success.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
@@ -41,31 +48,55 @@ export function useConnectivity() {
   const mounted = useRef(true);
   const onlineRef = useRef(true);
   const timer = useRef<any>(null);
+  // Consecutive confirmed-offline count. The gate only shows once this reaches 2,
+  // so a lone cold-start / warm-up miss can never flash "No Internet".
+  const failStreak = useRef(0);
 
   const check = useCallback(async () => {
     setChecking(true);
     let ok = await ping();
     // Never declare "offline" on a single miss: a cold-start request can lose the
     // first ping (DNS/TLS warm-up) even with a perfectly good connection. Confirm
-    // with a second, shorter probe before we ever show the gate. Recovery (going
-    // back online) stays instant on the first success.
+    // with a second, shorter probe before counting this cycle as a failure.
     if (!ok) ok = await ping(3000);
-    if (mounted.current) {
-      onlineRef.current = ok;
-      setOnline(ok);
-      setChecking(false);
+    if (!mounted.current) return ok;
+    if (ok) {
+      failStreak.current = 0;
+      onlineRef.current = true;
+      setOnline(true);
+    } else {
+      failStreak.current += 1;
+      // Require TWO consecutive confirmed failures before blocking the app.
+      if (failStreak.current >= 2) {
+        onlineRef.current = false;
+        setOnline(false);
+      }
     }
+    setChecking(false);
     return ok;
   }, []);
 
-  // Self-scheduling poll: fast (4s) while offline for quick auto-recovery,
-  // relaxed (20s) while online so we still notice a drop without netinfo.
+  // "Try Again" from the gate: probe once and reveal the app the instant we're back.
+  const retry = useCallback(async () => {
+    setChecking(true);
+    let ok = await ping();
+    if (!ok) ok = await ping(3000);
+    if (!mounted.current) return ok;
+    if (ok) { failStreak.current = 0; onlineRef.current = true; setOnline(true); }
+    setChecking(false);
+    return ok;
+  }, []);
+
+  // Self-scheduling poll. While we're online but a probe just missed (streak 1, gate
+  // still hidden) we re-check quickly so a genuine drop is caught within a few seconds
+  // without ever flashing on a transient warm-up miss. Steady online state polls slowly.
   const schedule = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
+    const delay = onlineRef.current ? (failStreak.current > 0 ? 3000 : 20000) : 4000;
     timer.current = setTimeout(async () => {
       await check();
       if (mounted.current) schedule();
-    }, onlineRef.current ? 20000 : 4000);
+    }, delay);
   }, [check]);
 
   useEffect(() => {
@@ -76,13 +107,12 @@ export function useConnectivity() {
     let unsub: any;
     if (NetInfo) {
       unsub = NetInfo.addEventListener((state: any) => {
-        // Trust ONLY a hard "no network interface" to show the gate immediately.
-        // Do NOT use `isInternetReachable` to force offline: on Android cold start
-        // it reports false/null for a few seconds while it verifies reachability,
-        // which used to flash the "No Internet" gate on every launch. For every
-        // other state we verify with an active backend ping (the source of truth).
-        if (state?.isConnected === false) { onlineRef.current = false; setOnline(false); }
-        else { check(); }
+        // We do NOT trust NetInfo to flip us offline directly — not even a hard
+        // `isConnected === false`. On Android cold start that state is replayed
+        // (or briefly reported) while the stack warms up, which used to flash the
+        // gate on every launch. The active backend ping is the ONLY source of
+        // truth: any state change just triggers a fresh verification.
+        check();
       });
     }
     const appSub = AppState.addEventListener("change", (s) => { if (s === "active") check(); });
@@ -95,5 +125,5 @@ export function useConnectivity() {
     };
   }, [check, schedule]);
 
-  return { online, checking, retry: check };
+  return { online, checking, retry };
 }
