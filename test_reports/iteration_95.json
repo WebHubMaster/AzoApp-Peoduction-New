@@ -1,0 +1,67 @@
+{
+  "summary": "Static code verification of Help & Support dropdown foreground fix in /app/frontend/app/support/index.tsx (Expo RN app; runtime headless browser interaction skipped per agent-to-agent note). Verified all 3 dropdowns (range, status, sort) render option menus inside a foreground React Native <Modal transparent statusBarTranslucent>, anchored via measureInWindow -> ddAnchor, with a tap-outside backdrop that closes the menu. All required testIDs are present and match the request.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "static_verification": {
+    "modal_foreground_portal": {
+      "status": "PASS",
+      "evidence": "line 72: <Modal visible={openDD === id} transparent animationType=\"fade\" onRequestClose={...} statusBarTranslucent> wraps the options list, so it is a foreground portal above the FlatList."
+    },
+    "measured_anchor_positioning": {
+      "status": "PASS",
+      "evidence": "lines 51-57: triggerRefs + openDropdown() calls node.measureInWindow((x,y,w,h) => setDdAnchor({x,y,w,h})). line 75: menu View uses position:'absolute', top: ddAnchor.y + ddAnchor.h + 4, left: ddAnchor.x, width: ddAnchor.w — positioned just under the trigger."
+    },
+    "backdrop_closes_menu": {
+      "status": "PASS",
+      "evidence": "line 73: <Pressable testID={`support-${id}-backdrop`} style={{ flex: 1 }} onPress={() => setOpenDD(null)}> spans the modal area and closes menu without selecting."
+    },
+    "z_stack_over_cards": {
+      "status": "PASS",
+      "evidence": "Menu is inside a native <Modal> (native window on Android) so it renders above the FlatList regardless of parent zIndex. Also elevation:24 and heavy boxShadow set for visual layering."
+    },
+    "range_dropdown": {
+      "status": "PASS",
+      "trigger_testid": "support-range",
+      "option_testids": ["support-range-all", "support-range-7d", "support-range-30d"],
+      "backdrop_testid": "support-range-backdrop",
+      "labels": ["All time", "Last 7 days", "Last 30 days"],
+      "evidence": "line 109: <DD id=\"range\" options={[['all','All time'],['7d','Last 7 days'],['30d','Last 30 days']]} .../>; testIDs built as support-${id} (line 68) and support-${id}-${v || 'all'} (line 76)."
+    },
+    "status_dropdown": {
+      "status": "PASS",
+      "trigger_testid": "support-status",
+      "option_testids": ["support-status-all", "support-status-open", "support-status-in_progress", "support-status-resolved", "support-status-closed"],
+      "backdrop_testid": "support-status-backdrop",
+      "evidence": "line 112: options [['','All statuses'],['open','Open'],['in_progress','In progress'],['resolved','Resolved'],['closed','Closed']]; empty value '' maps to '-all' suffix via `v || 'all'`."
+    },
+    "sort_dropdown": {
+      "status": "PASS",
+      "trigger_testid": "support-sort",
+      "option_testids": ["support-sort-newest", "support-sort-oldest"],
+      "backdrop_testid": "support-sort-backdrop",
+      "evidence": "line 113: options [['newest','Newest first'],['oldest','Oldest first']]."
+    },
+    "trigger_label_updates_and_closes": {
+      "status": "PASS",
+      "evidence": "line 76: onPress={() => { onChange(v); setOpenDD(null); }} updates state and closes. line 69: label reads options.find(o=>o[0]===value)?.[1] — will re-render with new label."
+    }
+  },
+  "runtime_verification": "SKIPPED — per review_request note, this is a native Expo RN app; expo-web headless preview typically blank/non-interactive due to font & native module gating (react-native-firebase, notifee). Static verification performed instead as instructed.",
+  "test_report_links": ["/app/frontend/app/support/index.tsx"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: The DD component is defined as an inline function inside SupportList (line 66), causing it to be re-created on every render. This is fine functionally but may cause TextInput focus loss issues in the search field on rapid re-renders. Consider useCallback or extracting the component.",
+    "Minor: ddAnchor is shared across all three dropdowns; if user rapidly opens different dropdowns before measureInWindow resolves, briefly the wrong anchor could be applied. Very edge-case, low priority.",
+    "Consider clearing ddAnchor on close (setDdAnchor(null)) to avoid a stale flash if menu re-opens before re-measure."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% (static)"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Fix verified statically only. If runtime verification is required, use Expo Go on a real Android device: login partner +919000000003 OTP 123456, open Help & Support, tap each of support-range/support-status/support-sort triggers, confirm menu overlays ticket cards, tap backdrop to close. Web preview will not reliably render these RN Modals."
+}

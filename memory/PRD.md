@@ -167,3 +167,8 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Bottom navbar blur: src/components/AppTabBar.tsx BlurView intensity 40→90 + backgroundColor alpha 0.72→0.96 (light)/0.94 (dark) so page content behind the floating pill is no longer visible.
 - 'More' tab icon: changed MDI 'dots-horizontal' → 'dots-grid' (3x3 grid, matches user's uploaded icon).
 - Verified: testing_agent iteration_94 = 3/3 static PASS; tsc/eslint clean; expo web bundle builds (HTTP 200). Native soft-keyboard behavior needs on-device/EAS build to see live.
+
+## Update (2026-06) — Help&Support filter dropdowns opened behind cards
+- Bug: 'All statuses' / sort / date-range dropdowns opened their option menu BEHIND the ticket list cards (Android paints FlatList items over an inline absolute view in the list header).
+- Fix (app/support/index.tsx DD component): menu now rendered inside a foreground <Modal transparent statusBarTranslucent>, anchored to the trigger via measureInWindow -> ddAnchor {x,y,w,h}, with a tap-outside backdrop (testid support-<id>-backdrop). Floats above all list content on Android+iOS.
+- Verified: testing_agent iteration_95 = 100% static PASS (all 3 dropdowns + backdrop + anchor). tsc/eslint clean, expo web bundle HTTP 200. Native tap runtime needs device/EAS build.
