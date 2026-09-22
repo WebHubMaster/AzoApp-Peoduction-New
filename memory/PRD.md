@@ -93,3 +93,18 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   pull-to-refresh and the refresh button so a manual refresh always re-fetches fresh HTML.
 - Verified: testing agent iteration_88 = 100% (5/5) pass, no bugs. Files: invoices.tsx, invoice.tsx
   (EmailSheet), DetailPanel.tsx, Viewer.tsx, invoiceActions.ts (emailInvoice).
+
+---
+
+## Partner Mobile — Help & Support (Web Parity) — 2026-06 (verified iteration_92, 100%)
+Goal: bring Partner Panel mobile Help & Support to parity with web SupportCenter (web_panel/src/components/SupportCenter.jsx). Shared support screens are re-exported by the partner panel at /partner/support and /partner/support/[id].
+
+Changed files (scope-limited):
+- frontend/app/support/[id].tsx — thread rewritten for parity: message field `m.at`, day separators (TODAY/YESTERDAY/date), centered system messages, admin sender label "Support", GREEN own-bubbles with read tick (unread_admin), agent typing indicator + typing ping (POST /support/tickets/{id}/typing, 3s poll), image attachments (pick via gallery, POST /support/upload, pending previews, lightbox), PDF attachment open, ticket-details bottom sheet (Ticket ID/Department/Priority/Status/Created/Updated/Agent/Attachments/Your other tickets), Platform-aware close confirm (window.confirm on web, Alert on native).
+- frontend/app/support/index.tsx — meta-driven categories/priorities from GET /support/meta (adds `refund` category, `urgent` priority), priority tone mapping, attach note.
+- frontend/src/components/AppTabBar.tsx — new `hideBarRoutes` prop (hides whole bar on a route).
+- frontend/app/(partner)/_layout.tsx — hideBarRoutes=["partner/support/[id]"] so the thread composer isn't overlapped by the bottom tab bar.
+
+Backend: UNCHANGED (existing /api/support/* reused).
+
+Env restored this session (fresh container had none): /app/backend/.env (local Mongo, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS=*, EMERGENT_LLM_KEY) and /app/frontend/.env (EXPO_PUBLIC_BACKEND_URL=preview host) so the web build talks to the in-cluster backend (fixes CORS block).
