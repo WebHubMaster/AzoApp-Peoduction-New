@@ -1,165 +1,241 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, Pressable, ScrollView, RefreshControl, Share, TextInput } from "react-native";
-import { useRouter } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+/* 1:1 port of web MerchantInvoices.jsx (role="partner") — "My Invoices", mobile (<md) variant */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, ScrollView, Pressable, RefreshControl } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme, spacing } from "@/src/theme";
-import { api } from "@/src/api/client";
+import NetInfo from "@react-native-community/netinfo";
+import { SlidersHorizontal, RefreshCw, ArrowUpDown, Search } from "lucide-react-native";
+import { api, ApiError } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
-import { AppShellHeader, Surface, KitEmpty, shortDate } from "@/src/components/AppShell";
-import { Icon } from "@/src/components/Icon";
-import { fmt } from "@/src/lib/format";
-import { InvStatusBadge, InvTypeChip } from "@/src/components/invoice";
+import { useToast } from "@/src/components/Toast";
+import { AppShellHeader, Surface } from "@/src/components/AppShell";
+import {
+  PageHeader, InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, AdvancedPaginator, TableSkeleton, InvEmpty, InvError,
+  IconSquare, ActiveChip, ActionSheet, RowMenuSheet, useDebounced, useInv,
+} from "@/src/components/invoice";
+import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
+import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
+import InvoiceViewer from "@/src/components/invoices/Viewer";
+import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, invoiceLink, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
+import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText } from "@/src/lib/invoiceActions";
 
-const RANGES = [
-  { key: "all", label: "All Time" }, { key: "today", label: "Today" }, { key: "yesterday", label: "Yesterday" },
-  { key: "7d", label: "Last 7 Days" }, { key: "30d", label: "Last 30 Days" }, { key: "this_month", label: "This Month" },
-] as const;
-const SORTS = [
-  { key: "newest", label: "Newest first" }, { key: "oldest", label: "Oldest first" },
-  { key: "amount_high", label: "Highest amount" }, { key: "amount_low", label: "Lowest amount" },
-] as const;
-const SLATE400 = "#94A3B8";
+const qs = (o: Record<string, any>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
-/** Web MerchantInvoices (role=partner) — "My Invoices" */
 export default function PartnerInvoices() {
-  const { colors } = useTheme();
+  const t = useInv();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const qc = useQueryClient();
+  const toast = useToast();
   const { user } = useAuth();
-  const [range, setRange] = useState<string>("all");
-  const [sort, setSort] = useState<string>("newest");
-  const [sortOpen, setSortOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const { invoice: deepLinkId } = useLocalSearchParams<{ invoice?: string }>();
+  const role = "partner"; const shopName = user?.name || "Partner";
+
+  /* ── list state ── */
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [range, setRange] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [applied, setApplied] = useState({ from: "", to: "" });
+  const [sort, setSort] = useState("newest");
+  const [searchRaw, setSearchRaw] = useState("");
+  const search = useDebounced(searchRaw.trim(), 350);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [pulling, setPulling] = useState(false);
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["partner-invoices", range, sort],
-    queryFn: () => api.get<any>(`/invoices?range=${range}&sort=${sort}&page_size=200`),
+  /* ── detail / viewer state ── */
+  const [selected, setSelected] = useState<any>(null);
+  const [viewerInv, setViewerInv] = useState<any>(null);
+  const [fullCache, setFullCache] = useState<Record<string, any>>({});
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [viewerLoading, setViewerLoading] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [printing, setPrinting] = useState(false);
+  const [menuFor, setMenuFor] = useState<any>(null);
+
+  const params = useMemo(() => ({
+    page, page_size: pageSize, range, sort,
+    date_from: range === "custom" ? applied.from || undefined : undefined,
+    date_to: range === "custom" ? applied.to || undefined : undefined,
+    search: search || undefined,
+    invoice_type: filters.types.length ? filters.types.join(",") : "all",
+    payment_status: filters.statuses.length ? filters.statuses.join(",") : "all",
+    min_amount: filters.minAmount || undefined, max_amount: filters.maxAmount || undefined,
+    customer: filters.customer || undefined, booking_id: filters.booking || undefined,
+  }), [page, pageSize, range, sort, applied, search, filters]);
+
+  const q = useQuery({
+    queryKey: ["partner-invoices", params],
+    queryFn: () => api.get<any>(`/invoices?${qs(params)}`),
+    placeholderData: keepPreviousData,
+    retry: false,
   });
-  const all: any[] = data?.items || [];
-  const filtered = search.trim() ? all.filter((x) => `${x.invoice_number} ${x.booking_code} ${x.customer_snapshot?.name || ""}`.toLowerCase().includes(search.trim().toLowerCase())) : all;
-  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const pg = Math.min(page, pages);
-  const items = filtered.slice((pg - 1) * pageSize, pg * pageSize);
-  const count = data?.summary?.total_count ?? all.length;
-  const totalAmt = data?.summary?.total_amount ?? all.reduce((s, x) => s + (x.total_amount || 0), 0);
-  const partyOf = (x: any) => x.customer_snapshot?.name || x.merchant_snapshot?.name || "—";
-  const iconBtn = { width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: "center" as const, justifyContent: "center" as const };
+  const data = q.data;
+  const loading = q.isFetching;
+  const error: null | "offline" | "error" = q.isError ? ((q.error as ApiError)?.status === 0 ? "offline" : "error") : null;
+  const load = useCallback(() => q.refetch(), [q]);
 
-  const Stat = ({ icon, label, value, sub, tone }: { icon: any; label: string; value: string; sub: string; tone: string }) => (
-    <Surface style={{ width: 180, padding: 16 }}>
-      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: tone, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={colors.primary} /></View>
-      <Text style={{ color: SLATE400, fontSize: 11, fontWeight: "700", letterSpacing: 0.8, marginTop: 14 }}>{label}</Text>
-      <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800", marginTop: 2 }} numberOfLines={1}>{value}</Text>
-      <Text style={{ color: SLATE400, fontSize: 12, marginTop: 4 }}>{sub}</Text>
-    </Surface>
-  );
+  // reset to page 1 whenever filters / search / sort / size change
+  const resetKey = JSON.stringify({ range, applied, sort, search, filters, pageSize });
+  const firstRun = useRef(true);
+  useEffect(() => { if (firstRun.current) { firstRun.current = false; return; } setPage(1); }, [resetKey]);
+
+  // reconnect handling
+  const errRef = useRef(error); errRef.current = error;
+  useEffect(() => {
+    const unsub = NetInfo.addEventListener((s) => { if (s.isConnected && errRef.current === "offline") { toast.success("Back online"); q.refetch(); } });
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* ── full invoice fetch (cached) ── */
+  const cacheRef = useRef(fullCache); cacheRef.current = fullCache;
+  const fetchFull = useCallback(async (id: string) => {
+    if (cacheRef.current[id]) return cacheRef.current[id];
+    const r = await api.get<any>(`/invoices/${id}`);
+    setFullCache((c) => ({ ...c, [id]: r }));
+    return r;
+  }, []);
+
+  const openDetail = async (inv: any) => {
+    setSelected(inv);
+    if (cacheRef.current[inv.id]) return;
+    setDetailLoading(true);
+    try { await fetchFull(inv.id); } catch { toast.error("Invoice details could not be loaded"); }
+    finally { setDetailLoading(false); }
+  };
+  const openViewer = async (inv: any) => {
+    setViewerInv({ id: inv.id, invoice_number: inv.invoice_number, issue_date: inv.issue_date });
+    setViewerLoading(true);
+    try { setViewerInv(await fetchFull(inv.id)); }
+    catch { toast.error("Invoice could not be loaded"); setViewerInv(null); }
+    finally { setViewerLoading(false); }
+  };
+
+  // deep-link: /partner/invoices?invoice=<id>
+  useEffect(() => {
+    if (deepLinkId) { openViewer({ id: deepLinkId }); router.setParams({ invoice: undefined } as any); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepLinkId]);
+
+  /* ── actions ── */
+  const download = async (inv: any) => {
+    if (!inv?.id) return;
+    setBusyId(inv.id);
+    toast.info("Preparing invoice...");
+    try { await downloadInvoicePdf(inv); toast.success("Invoice downloaded successfully"); }
+    catch { toast.error("Invoice could not be downloaded"); }
+    finally { setBusyId(null); }
+  };
+  const print = async (inv: any) => {
+    if (!inv?.id) return;
+    setPrinting(true);
+    try { await printInvoice(inv); }
+    catch (e: any) { if (!/cancel|dismiss/i.test(String(e?.message || ""))) toast.error("Invoice could not be printed"); }
+    finally { setPrinting(false); }
+  };
+  const share = async (inv: any, channel: string) => {
+    if (!inv) return;
+    if (channel === "whatsapp" || channel === "system") {
+      toast.info("Preparing invoice…");
+      try { const r = await shareInvoicePdf(inv, channel as any); if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp"); }
+      catch { toast.error("Could not prepare the invoice PDF"); }
+      return;
+    }
+    const text = shareText(inv); const link = invoiceLink(inv);
+    if (channel === "copy") { (await copyText(link)) ? toast.success("Invoice link copied") : toast.error("Could not copy link"); return; }
+    if (channel === "text") { (await copyText(text)) ? toast.success("Invoice details copied") : toast.error("Could not copy"); return; }
+  };
+  const copyNumber = async (inv: any) => { (await copyText(inv.invoice_number)) ? toast.success(`Copied ${inv.invoice_number}`) : toast.error("Could not copy"); };
+
+  const applyCustom = () => { setApplied({ from: dateFrom, to: dateTo }); };
+  const onRangeChange = (k: string) => { setRange(k); if (k !== "custom") setApplied({ from: "", to: "" }); };
+  const onRangeApplyFromDrawer = (k: string, f: string, tt: string) => { setRange(k); setDateFrom(f); setDateTo(tt); setApplied(k === "custom" ? { from: f, to: tt } : { from: "", to: "" }); };
+  const clearAll = () => { setFilters(EMPTY_FILTERS); setSearchRaw(""); setRange("all"); setApplied({ from: "", to: "" }); setDateFrom(""); setDateTo(""); };
+
+  const items: any[] = data?.items || [];
+  const summary = data?.summary || {};
+  const cur = items[0]?.currency || "INR";
+  const nFilters = countFilters(filters);
+  const isFiltered = nFilters > 0 || !!search || range !== "all";
+  const emptyHint = role === "partner" ? "Your booking, earnings & withdrawal documents will appear here." : undefined;
+  const searching = loading && !!data && (searchRaw.trim() !== search || !!search);
+  const rangeLabel = range === "custom" && (applied.from || applied.to) ? `${applied.from || "…"} → ${applied.to || "…"}` : presetLabel(range);
+  const rowActions = { onView: openDetail, onPreview: openViewer, onDownload: download, onPrint: print, onShare: share, onCopy: copyNumber };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1, backgroundColor: t.background }} testID="merchant-invoices">
       <AppShellHeader profileRoute="/(partner)/profile" />
-      <FlatList
-        data={items}
-        keyExtractor={(x) => x.id}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }}
-        refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-invoices"] })} tintColor={colors.primary} colors={[colors.primary]} />}
-        ListHeaderComponent={
-          <View style={{ gap: 16 }}>
-            <View>
-              <Text testID="partner-invoices-header" style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>My Invoices</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 2 }}>Booking, earnings, settlement & withdrawal documents</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: colors.surfaceSubtle, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, marginTop: 8 }}>
-                <Icon name="storefront-outline" size={14} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "600" }}>{user?.name || "Partner"}</Text>
-              </View>
-            </View>
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              <View style={{ flex: 1, flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, height: 44, backgroundColor: colors.surface }}>
-                <Icon name="magnify" size={18} color={SLATE400} />
-                <TextInput testID="invoice-search" value={search} onChangeText={(v) => { setSearch(v); setPage(1); }} placeholder="Search invoice #, book" placeholderTextColor={SLATE400} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 14 }} />
-              </View>
-              <Pressable testID="invoice-filter" onPress={() => setSortOpen((o) => !o)} style={iconBtn}><Icon name="tune-variant" size={18} color={colors.textSecondary} /></Pressable>
-              <Pressable testID="invoice-sort" onPress={() => setSortOpen((o) => !o)} style={iconBtn}><Icon name="swap-vertical" size={18} color={colors.textSecondary} /></Pressable>
-              <Pressable testID="invoice-refresh" onPress={() => qc.invalidateQueries({ queryKey: ["partner-invoices"] })} style={iconBtn}><Icon name="refresh" size={18} color={colors.textSecondary} /></Pressable>
-            </View>
-            {sortOpen ? (
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-                {SORTS.map((s) => { const on = sort === s.key; return (
-                  <Pressable key={s.key} testID={`sort-${s.key}`} onPress={() => { setSort(s.key); setSortOpen(false); }} style={{ paddingHorizontal: 12, height: 32, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.primary : colors.surface, borderWidth: 1, borderColor: on ? colors.primary : colors.border }}>
-                    <Text style={{ color: on ? "#fff" : colors.textSecondary, fontWeight: "600", fontSize: 12 }}>{s.label}</Text>
-                  </Pressable>); })}
-              </View>
-            ) : null}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-              {RANGES.map((r) => { const on = range === r.key; return (
-                <Pressable key={r.key} testID={`range-${r.key}`} onPress={() => { setRange(r.key); setPage(1); }} style={{ paddingHorizontal: 16, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.primary : colors.surface, borderWidth: 1, borderColor: on ? colors.primary : colors.border }}>
-                  <Text style={{ color: on ? "#fff" : colors.textSecondary, fontWeight: "600", fontSize: 13 }}>{r.label}</Text>
-                </Pressable>); })}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-              <Stat icon="file-document-outline" label="INVOICES" value={String(count)} sub={RANGES.find((r) => r.key === range)?.label || ""} tone={colors.primarySubtle} />
-              <Stat icon="currency-inr" label="TOTAL AMOUNT" value={fmt(totalAmt)} sub="Gross invoice value" tone={colors.primarySubtle} />
-              <Stat icon="check-circle-outline" label="PAID" value={fmt(data?.summary?.paid_amount)} sub={`${data?.summary?.paid_count ?? 0} invoices`} tone="#ECFDF5" />
-            </ScrollView>
-          </View>
-        }
-        ListEmptyComponent={isLoading ? <Surface style={{ padding: 16 }}><View style={{ height: 80, borderRadius: 12, backgroundColor: colors.surfaceSubtle }} /></Surface> : <Surface><KitEmpty icon="file-document-outline" title="No invoices" desc="Invoices are generated after completed jobs & settlements." /></Surface>}
-        renderItem={({ item }) => (
-          <Surface testID={`invoice-${item.id}`} style={{ padding: 16 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16 }}>{item.invoice_number}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
-                  <InvTypeChip type={item.invoice_type} />
-                  {item.booking_code ? <Text style={{ color: SLATE400, fontSize: 11, fontFamily: "monospace" }}>{item.booking_code}</Text> : null}
-                </View>
-              </View>
-              <InvStatusBadge status={item.payment_status} />
-            </View>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", marginTop: 12 }}>
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: colors.textSecondary, fontWeight: "500", fontSize: 14 }} numberOfLines={1}>{partyOf(item)}</Text>
-                <Text style={{ color: SLATE400, fontSize: 12, marginTop: 2 }}>{shortDate(item.booking_date || item.issue_date)}</Text>
-              </View>
-              <Text style={{ color: colors.text, fontWeight: "800", fontSize: 20 }}>{fmt(item.display_amount ?? item.total_amount)}</Text>
-            </View>
-            <View style={{ flexDirection: "row", gap: 8, marginTop: 14 }}>
-              <Pressable testID={`inv-view-${item.id}`} onPress={() => router.push(`/partner/invoice/${item.id}`)} style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}>
-                <Icon name="eye-outline" size={17} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 14 }}>View</Text>
-              </Pressable>
-              <Pressable testID={`inv-download-${item.id}`} onPress={() => router.push(`/partner/invoice/${item.id}?download=1`)} style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}>
-                <Icon name="download-outline" size={17} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 14 }}>Download</Text>
-              </Pressable>
-              <Pressable testID={`inv-more-${item.id}`} onPress={() => setMenuFor(menuFor === item.id ? null : item.id)} style={{ width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
-                <Icon name="dots-horizontal" size={18} color={colors.textSecondary} />
-              </Pressable>
-            </View>
-            {menuFor === item.id ? (
-              <Pressable testID={`inv-share-${item.id}`} onPress={() => { setMenuFor(null); Share.share({ message: `Invoice ${item.invoice_number} · ${fmt(item.total_amount)} · ${(item.payment_status || "").replace(/_/g, " ")} — AzoApp` }).catch(() => {}); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, height: 40, borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 12 }}>
-                <Icon name="share-variant-outline" size={16} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 13 }}>Share Invoice</Text>
-              </Pressable>
-            ) : null}
-          </Surface>
-        )}
-        ListFooterComponent={filtered.length > 0 ? (
-          <View style={{ alignItems: "center", gap: 12, paddingVertical: 12 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Text testID="pagination-info" style={{ color: colors.textMuted, fontSize: 13 }}>Showing <Text style={{ fontWeight: "700", color: colors.textSecondary }}>{(pg - 1) * pageSize + 1}–{Math.min(pg * pageSize, filtered.length)}</Text> of {filtered.length} invoices</Text>
-              <Pressable testID="page-size" onPress={() => { setPageSize(pageSize === 10 ? 25 : 10); setPage(1); }} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
-                <Text style={{ color: colors.textSecondary, fontSize: 13 }}>{pageSize} / page</Text><Icon name="chevron-down" size={14} color={SLATE400} />
-              </Pressable>
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Pressable testID="page-prev" disabled={pg <= 1} onPress={() => setPage(pg - 1)} style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center", opacity: pg <= 1 ? 0.4 : 1 }}><Icon name="chevron-left" size={18} color={SLATE400} /></Pressable>
-              <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{pg}</Text></View>
-              <Pressable testID="page-next" disabled={pg >= pages} onPress={() => setPage(pg + 1)} style={{ width: 36, height: 36, alignItems: "center", justifyContent: "center", opacity: pg >= pages ? 0.4 : 1 }}><Icon name="chevron-right" size={18} color={SLATE400} /></Pressable>
-            </View>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 20 }} keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={async () => { setPulling(true); try { await q.refetch(); } finally { setPulling(false); } }} tintColor={t.primary} colors={[t.primary]} />}>
+        {/* ── page header ── */}
+        <PageHeader shopName={shopName} title="My Invoices" subtitle="Booking, earnings, settlement & withdrawal documents" />
+
+        {/* ── mobile toolbar ── */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <SearchBox value={searchRaw} onChange={setSearchRaw} searching={searching} />
+          <IconSquare testID="invoice-filters-btn-m" onPress={() => setShowFilters(true)} badge={nFilters || undefined}><SlidersHorizontal size={18} color={t.t600} /></IconSquare>
+          <IconSquare testID="invoice-sort-btn-m" onPress={() => setSortOpen(true)}><ArrowUpDown size={18} color={t.t600} /></IconSquare>
+          <IconSquare testID="invoice-refresh-m" onPress={() => load()}><RefreshCw size={18} color={t.t600} /></IconSquare>
+        </View>
+
+        {/* ── date filters ── */}
+        <DateChips value={range} onChange={onRangeChange} dateFrom={dateFrom} dateTo={dateTo} onDateFrom={setDateFrom} onDateTo={setDateTo} onApplyCustom={applyCustom}
+          customApplied={range === "custom" && !!(applied.from || applied.to) && applied.from === dateFrom && applied.to === dateTo} />
+
+        {/* ── active filter chips ── */}
+        {(nFilters > 0 || search) ? (
+          <View testID="invoice-active-filters" style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+            <Text style={{ fontSize: 12, fontWeight: "600", color: t.t500, marginRight: 4 }}>{nFilters} filter{nFilters === 1 ? "" : "s"} applied{search ? " · search" : ""}</Text>
+            {filters.types.map((x) => <ActiveChip key={x} label={`Type: ${typeMeta(x).label}`} onRemove={() => setFilters((f) => ({ ...f, types: f.types.filter((y) => y !== x) }))} />)}
+            {filters.statuses.map((s) => <ActiveChip key={s} label={statusMeta(s).label} onRemove={() => setFilters((f) => ({ ...f, statuses: f.statuses.filter((y) => y !== s) }))} />)}
+            {(filters.minAmount || filters.maxAmount) ? <ActiveChip label={`₹${filters.minAmount || 0} – ${filters.maxAmount ? "₹" + filters.maxAmount : "any"}`} onRemove={() => setFilters((f) => ({ ...f, minAmount: "", maxAmount: "" }))} /> : null}
+            {filters.customer ? <ActiveChip label={`Customer: ${filters.customer}`} onRemove={() => setFilters((f) => ({ ...f, customer: "" }))} /> : null}
+            {filters.booking ? <ActiveChip label={`Booking: ${filters.booking}`} onRemove={() => setFilters((f) => ({ ...f, booking: "" }))} /> : null}
+            {search ? <ActiveChip label={<View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Search size={12} color={t.primary700} /><Text style={{ color: t.primary700, fontSize: 12, fontWeight: "600" }}>{search}</Text></View>} onRemove={() => setSearchRaw("")} /> : null}
+            <Pressable testID="invoice-clear-all" onPress={clearAll} style={{ marginLeft: 4 }}><Text style={{ fontSize: 12, fontWeight: "600", color: t.primary700 }}>Clear all</Text></Pressable>
           </View>
         ) : null}
-      />
+
+        {/* ── KPIs ── */}
+        {loading && !data ? <KpiSkeleton /> : <InvoiceKpis summary={summary} currency={cur} rangeLabel={rangeLabel} />}
+
+        {/* ── list ── */}
+        <Surface testID="invoice-list-surface" style={{ overflow: "hidden" }}>
+          {loading && !data ? <TableSkeleton /> : error ? <InvError offline={error === "offline"} onRetry={() => load()} />
+            : items.length === 0 ? <InvEmpty filtered={isFiltered} onClear={clearAll} hint={emptyHint} />
+            : (
+              <View style={{ opacity: loading ? 0.6 : 1 }} pointerEvents={loading ? "none" : "auto"}>
+                <View style={{ padding: 12 }}>
+                  <InvoiceCardList items={items} busyId={busyId} onMore={setMenuFor} {...rowActions} />
+                </View>
+                <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+                  <AdvancedPaginator page={data.page} pages={data.pages} total={data.total} pageSize={pageSize} onPage={(p) => setPage(p)} onPageSize={setPageSize} />
+                </View>
+              </View>
+            )}
+        </Surface>
+      </ScrollView>
+
+      {/* ── overlays ── */}
+      <ActionSheet open={sortOpen} onClose={() => setSortOpen(false)} title="Sort by" testID="invoice-sort-sheet">
+        {SORT_OPTIONS.map(([k, l]) => (
+          <Pressable key={k} testID={`invoice-sort-${k}`} onPress={() => { setSort(k); setSortOpen(false); }} style={{ height: 40, paddingHorizontal: 12, borderRadius: 8, justifyContent: "center", backgroundColor: sort === k ? t.primary50 : "transparent" }}>
+            <Text style={{ fontSize: 14, fontWeight: sort === k ? "600" : "400", color: sort === k ? t.primary700 : t.t800 }}>{l}</Text>
+          </Pressable>
+        ))}
+      </ActionSheet>
+      <RowMenuSheet inv={menuFor} onClose={() => setMenuFor(null)} {...rowActions} />
+      <InvoiceFilterSheet open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters}
+        range={range} dateFrom={dateFrom} dateTo={dateTo} onRangeApply={onRangeApplyFromDrawer} counts={summary} />
+      <InvoiceDetailPanel inv={selected} full={selected ? fullCache[selected.id] : null} loading={detailLoading} onClose={() => setSelected(null)}
+        onDownload={download} onPreview={(inv) => { openViewer(inv); }} onPrint={print} onShare={share} onCopy={copyNumber} downloading={!!selected && busyId === selected.id} merchantName={shopName} role={role} />
+      <InvoiceViewer inv={viewerInv} loading={viewerLoading} onClose={() => setViewerInv(null)} onDownload={download} onPrint={print} onShare={share}
+        downloading={!!viewerInv && busyId === viewerInv.id} printing={printing} />
     </View>
   );
 }

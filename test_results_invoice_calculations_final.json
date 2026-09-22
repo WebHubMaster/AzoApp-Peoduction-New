@@ -1,5 +1,5 @@
 {
-  "base_url": "https://azoapp-services.preview.emergentagent.com/api",
+  "base_url": "https://mobile-invoice-build.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Chandan Cancellation (AZO9HWVU1)",
