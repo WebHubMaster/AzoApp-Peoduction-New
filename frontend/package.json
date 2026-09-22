@@ -3,7 +3,7 @@
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
-    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://mobile-invoice-tools.preview.emergentagent.com expo start --port 3000",
+    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://fullscreen-alert-fix.preview.emergentagent.com expo start --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -16,7 +16,6 @@
     "@react-native-community/datetimepicker": "9.1.0",
     "@react-native-community/netinfo": "12.0.1",
     "@react-native-firebase/app": "^26.4.0",
-    "@react-native-firebase/messaging": "26.4.0",
     "@react-native-vector-icons/material-design-icons": "^13.1.4",
     "@tanstack/react-query": "5.102.8",
     "dayjs": "1.11.13",

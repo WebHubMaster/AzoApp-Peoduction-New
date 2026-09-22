@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://mobile-invoice-tools.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://fullscreen-alert-fix.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -172,3 +172,15 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Bug: 'All statuses' / sort / date-range dropdowns opened their option menu BEHIND the ticket list cards (Android paints FlatList items over an inline absolute view in the list header).
 - Fix (app/support/index.tsx DD component): menu now rendered inside a foreground <Modal transparent statusBarTranslucent>, anchored to the trigger via measureInWindow -> ddAnchor {x,y,w,h}, with a tap-outside backdrop (testid support-<id>-backdrop). Floats above all list content on Android+iOS.
 - Verified: testing_agent iteration_95 = 100% static PASS (all 3 dropdowns + backdrop + anchor). tsc/eslint clean, expo web bundle HTTP 200. Native tap runtime needs device/EAS build.
+
+## Update (2026-06) — REVERT RNFB messaging → restore expo-notifications token path (device registration + full-screen ring fix)
+- ROOT CAUSE: prior iteration added `@react-native-firebase/messaging@26.4.0` (plugin + dep + primary getToken path in notifications.ts, commit 619e3e9). On the user's FRESH EAS APK this made RNFB own native Firebase init + the FCM token path, which then failed on-device:
+  - admin diagnostics: `GETTOKEN_FAILED [messaging/unknown] java.io.IOException: FCM Registration failed!` and `NO_FCM_MODULE`.
+  - No device could register a push token → backend push never reached the phone → full-screen job/reschedule/reminder ring stopped firing when app closed / phone locked. (Ring DISPLAY code was fine.)
+  - Evidence: RNFB was the ONLY change vs the previously-working build (which used @react-native-firebase/app + expo-notifications, no messaging). Client reason "getToken_failed" is set only when RNFB AND the expo fallback both fail → RNFB's presence poisoned the shared FirebaseApp/FIS for expo too.
+- FIX (client, requires fresh EAS rebuild by user):
+  - Removed `@react-native-firebase/messaging` from frontend/package.json (yarn remove) and from app.json plugins. Kept `@react-native-firebase/app` (present in the known-good build).
+  - notifications.ts: messaging() now hard-returns null (single source of truth; removed the require so Metro won't relink the native module). registerPushToken() uses expo-notifications getDevicePushTokenAsync() (raw FCM token on Android) as the ONLY path, 4x retry+backoff. Accurate diagnostics: reports reason "registered:expo" on success, "no_token" + the real error on failure (was misleading "no_fcm_module").
+  - Full-screen ring unchanged: Notifee call-style FSI + expo-notifications background task (pushBackground.ts, top-level in index.js) render the ring for data-only killed/locked messages. Backend already sends data_only=True for job_request/reschedule_request/scheduled_reminder (booking_controller.py 1156/1005/1522).
+  - Added strong comment in messaging() warning NOT to re-add RNFB messaging (prevents recurrence).
+- VERIFIED here: tsc clean, eslint 0 errors, Metro/expo web bundle compiles without the removed module. ⚠️ On-device FCM token acquisition + locked-screen ring can ONLY be validated on a real Android device from a fresh EAS build (cannot run in this container).

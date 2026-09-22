@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://mobile-invoice-tools.preview.emergentagent.com/api"
+BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

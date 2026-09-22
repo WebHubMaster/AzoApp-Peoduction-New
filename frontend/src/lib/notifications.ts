@@ -1,13 +1,17 @@
 /**
  * Notifications for AzoApp Partner/Merchant — Notifee (display / channels /
- * permission / full-screen "incoming job" ring) + React Native Firebase
- * Messaging (FCM token + remote messages).
+ * permission / full-screen "incoming job" ring) + expo-notifications (FCM device
+ * token + killed/locked background delivery via pushBackground.ts).
  *
- * IMPORTANT: neither library runs in **Expo Go** or on web. Every native call
- * is lazily required behind `pushSupported` so the app stays usable there
- * (no-ops). On a real dev/production build everything works: FCM token
- * registration, WhatsApp-style chat pushes and the call-like job ring that
- * fires even when the app is closed or the phone is locked.
+ * IMPORTANT: Notifee + expo-notifications don't run in **Expo Go** or on web.
+ * Every native call is lazily required behind `pushSupported` so the app stays
+ * usable there (no-ops). On a real dev/production build everything works: FCM
+ * device-token registration, WhatsApp-style chat pushes and the call-like job
+ * ring that fires even when the app is closed or the phone is locked.
+ *
+ * NOTE: @react-native-firebase/messaging was removed on purpose — it broke FCM
+ * token registration (java.io.IOException: FCM Registration failed) which killed
+ * device registration and the background ring. See messaging() below.
  */
 import { Platform, Linking, AppState } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
@@ -77,28 +81,24 @@ async function setupExpoChannels() {
   } catch { /* ignore */ }
 }
 
-/** React Native Firebase Messaging — RE-ENABLED as the PRIMARY background/killed
- * push path. RNFB's native FirebaseMessagingService + Headless JS
- * (`setBackgroundMessageHandler`) is the ONLY reliable way to fire the call-style
- * full-screen job ring when the app is swiped away OR the phone is locked. The
- * previous expo-notifications-only background task did NOT fire in the killed
- * state, which is why the ring silently stopped working. Lazily required so
- * Expo Go / web (native module absent) keep no-oping gracefully. */
-let _messaging: any | null = null;
+/** React Native Firebase Messaging — INTENTIONALLY DISABLED.
+ *
+ * WHY: adding `@react-native-firebase/messaging` made RNFB own the native
+ * Firebase init + FCM token path. On real devices that path started failing with
+ *   `[messaging/unknown] java.io.IOException: FCM Registration failed!`
+ * (and older builds reported NO_FCM_MODULE), so NO device could register a push
+ * token → the backend push never reached the phone → the full-screen job ring
+ * stopped appearing when the app was closed / the phone was locked.
+ *
+ * The KNOWN-GOOD path (what shipped and worked before) is pure
+ * `expo-notifications` for the FCM device token + the expo background task in
+ * `pushBackground.ts` for killed/locked delivery, with Notifee rendering the
+ * call-style full-screen ring. We keep this helper returning `null` (single
+ * source of truth) so every RNFB code path below cleanly no-ops. Do NOT re-add
+ * the `require("@react-native-firebase/messaging")` here — it reintroduces the
+ * FCM Registration failure and also forces the native module back into the build. */
 export function messaging(): any | null {
-  if (!pushSupported) return null;
-  if (_messaging === null) {
-    try {
-      const M = require("@react-native-firebase/messaging");
-      // v26+ is modular-first (getMessaging()); older majors expose a callable
-      // default (messaging()). Both return an instance with getToken /
-      // onMessage / setBackgroundMessageHandler / onNotificationOpenedApp / etc.
-      _messaging = typeof M.getMessaging === "function" ? M.getMessaging()
-        : typeof M.default === "function" ? M.default()
-        : false;
-    } catch { _messaging = false; }
-  }
-  return _messaging || null;
+  return null;
 }
 
 /**
@@ -107,6 +107,7 @@ export function messaging(): any | null {
  * path to obtain a token that works even when @react-native-firebase/messaging
  * fails to instantiate, as long as google-services.json is bundled. Returns "".
  */
+let _lastExpoTokenErr = "";
 async function expoDeviceToken(): Promise<string> {
   const EN = expoNotif();
   if (!EN || Platform.OS === "web") return "";
@@ -114,7 +115,7 @@ async function expoDeviceToken(): Promise<string> {
     const t = await EN.getDevicePushTokenAsync();
     const val = typeof t === "string" ? t : t?.data;
     return typeof val === "string" ? val : "";
-  } catch { return ""; }
+  } catch (e: any) { _lastExpoTokenErr = String(e?.message || e || ""); return ""; }
 }
 
 export async function setupAndroidChannels() {
@@ -624,46 +625,26 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     if (!perm.granted) { report(false, "permission"); return { ok: false, reason: "permission" }; }
     await setupAndroidChannels().catch(() => {});
 
-    const m = messaging();
+    // expo-notifications native DEVICE push token = the RAW FCM token on Android
+    // (firebase-admin can target it directly). This is the SINGLE, known-good path
+    // (RNFB messaging is disabled — see messaging() above). getDevicePushTokenAsync
+    // can fail transiently right after launch (Play Services / network not ready),
+    // so retry a few times with backoff before giving up.
+    _lastExpoTokenErr = "";
     let token = "";
-    let lastErr: any = null;
-    let source = "";
-
-    // Path 1 — React Native Firebase (preferred: also gives token-refresh events).
-    // getToken() often fails transiently on Android (Play Services / network not
-    // ready right after launch), so retry a few times with backoff.
-    if (m) {
-      if (Platform.OS === "ios") { try { await m.registerDeviceForRemoteMessages(); } catch { /* ignore */ } }
-      for (let i = 0; i < 4 && !token; i += 1) {
-        try { token = await m.getToken(); }  // eslint-disable-line no-await-in-loop
-        catch (e) { lastErr = e; }
-        if (!token && i < 3) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
-      }
-      if (token) source = "rnfirebase";
-    }
-
-    // Path 2 — expo-notifications native device token. Independent of RNFB, so it
-    // rescues the (common) case where the Firebase messaging module fails to load.
-    if (!token) {
-      for (let i = 0; i < 3 && !token; i += 1) {
-        token = await expoDeviceToken();  // eslint-disable-line no-await-in-loop
-        if (!token && i < 2) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));  // eslint-disable-line no-await-in-loop
-      }
-      if (token) source = "expo";
+    for (let i = 0; i < 4 && !token; i += 1) {
+      token = await expoDeviceToken();
+      if (!token && i < 3) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
     }
 
     if (!token) {
-      const reason = m ? "getToken_failed" : "no_fcm_module";
-      report(false, reason, String(lastErr?.message || lastErr || "no token from RNFirebase or expo-notifications"));
-      return { ok: false, reason };
+      report(false, "no_token", _lastExpoTokenErr || "expo-notifications could not obtain an FCM device token (check Google Play services / network / google-services.json)");
+      return { ok: false, reason: "no_token" };
     }
 
     await postToken(token);
-    report(true, `registered:${source}`);
-
-    let unsubscribe: (() => void) | undefined;
-    if (m) { try { unsubscribe = m.onTokenRefresh((t: string) => { postToken(t).catch(() => {}); }); } catch { /* ignore */ } }
-    return { ok: true, unsubscribe };
+    report(true, "registered:expo");
+    return { ok: true };
   } catch (e: any) {
     report(false, "exception", String(e?.message || e));
     return { ok: false, reason: String(e?.message || e) };
@@ -673,10 +654,10 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
 /* ------------------------------------------------------------------ */
 /*  Foreground events: remote messages + notification taps              */
 /* ------------------------------------------------------------------ */
-/** Remote FCM data messages while the app is in the FOREGROUND. RNFB now owns FCM
- * delivery (its native service), so foreground data messages arrive via
- * `messaging().onMessage`; we ALSO keep the expo-notifications listener so any
- * expo-delivered local/remote notification still routes through. */
+/** Remote FCM data messages while the app is in the FOREGROUND arrive via the
+ * expo-notifications received-listener (RNFB messaging is disabled — messaging()
+ * is a no-op). The messaging() branch below is kept null-guarded only so the code
+ * still compiles if RNFB is ever re-enabled. */
 export function onForegroundPush(cb: (data: Record<string, any>) => void): () => void {
   const subs: (() => void)[] = [];
   const EN = expoNotif();
