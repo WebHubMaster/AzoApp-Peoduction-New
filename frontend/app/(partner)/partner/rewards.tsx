@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, ScrollView, RefreshControl } from "react-native";
+import { View, Text, ScrollView, RefreshControl, Animated } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,9 +20,23 @@ function Ring({ pct, size = 76, stroke = 8, color = "#0659B2" }: { pct: number; 
         <Circle cx={size / 2} cy={size / 2} r={r} stroke="#e2e8f0" strokeWidth={stroke} fill="none" />
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeDasharray={`${c}`} strokeDashoffset={off} strokeLinecap="round" />
       </Svg>
-      <Text style={{ color: "#0F172A", fontSize: 14, fontWeight: "800" }}>{Math.round(pct || 0)}%</Text>
+      <Text style={{ color: "#1E293B", fontSize: Math.round(size * 0.24), fontWeight: "800" }}>{Math.round(pct || 0)}%</Text>
     </View>
   );
+}
+
+/** Looping opacity pulse — mirrors web `animate-pulse`. */
+function Pulse({ children, style }: { children: React.ReactNode; style?: any }) {
+  const [a] = React.useState(() => new Animated.Value(1));
+  React.useEffect(() => {
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(a, { toValue: 0.5, duration: 900, useNativeDriver: true }),
+      Animated.timing(a, { toValue: 1, duration: 900, useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [a]);
+  return <Animated.View style={[style, { opacity: a }]}>{children}</Animated.View>;
 }
 
 /** Web ChallengesRewards.jsx 1:1 */
@@ -32,7 +46,8 @@ export default function PartnerRewards() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["partner-challenges"], queryFn: () => api.get<any>("/partner/challenges") });
   const bq = useQuery({ queryKey: ["partner-bonuses"], queryFn: () => api.get<any>("/partner/my-bonuses") });
-  const data = q.data; const bonuses = bq.data;
+  const data = q.data ?? (q.isError ? { challenges: [], stats: {}, penalties: [] } : undefined);
+  const bonuses = bq.data ?? (bq.isError ? { rows: [], totals: {}, grand_total: 0, count: 0 } : undefined);
   const reload = () => { qc.invalidateQueries({ queryKey: ["partner-challenges"] }); qc.invalidateQueries({ queryKey: ["partner-bonuses"] }); };
 
   const H = ({ icon, color, t, right }: { icon: MdiName; color: string; t: string; right?: React.ReactNode }) => (
@@ -58,7 +73,7 @@ export default function PartnerRewards() {
                   <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Total bonuses earned</Text><Text style={{ color: "#fff", fontSize: 36, fontWeight: "800" }}>{fmt(s.total_earned || 0)}</Text></View>
                   <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Fleet rank</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="crown-outline" size={20} color="#FCD34D" /><Text style={{ color: "#fff", fontSize: 24, fontWeight: "800" }}>#{s.rank || "—"}</Text><Text style={{ color: "#93C5FD", fontSize: 14, fontWeight: "500" }}> / {s.total_partners || 0}</Text></View></View>
                   <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Active challenges</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="fire" size={20} color="#FDBA74" /><Text style={{ color: "#fff", fontSize: 24, fontWeight: "800" }}>{s.active_count || 0}</Text></View></View>
-                  {s.eligible_count > 0 ? <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(52,211,153,0.9)", borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8 }}><Icon name="flash" size={16} color="#022C22" /><Text style={{ color: "#022C22", fontWeight: "600" }}>{s.eligible_count} reward{s.eligible_count > 1 ? "s" : ""} unlocked!</Text></View> : null}
+                  {s.eligible_count > 0 ? <Pulse style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(52,211,153,0.9)", borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8 }}><Icon name="flash" size={16} color="#022C22" /><Text style={{ color: "#022C22", fontWeight: "600" }}>{s.eligible_count} reward{s.eligible_count > 1 ? "s" : ""} unlocked!</Text></Pulse> : null}
                 </View>
               </LinearGradient>
 
