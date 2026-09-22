@@ -84,38 +84,38 @@ export default function PartnerPayouts() {
       <ScreenScroll refreshing={elig.isFetching && !elig.isLoading} onRefresh={refresh} contentStyle={{ paddingBottom: insets.bottom + 110 }}>
         {/* KYC status hero */}
         <LinearGradient colors={heroColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }} testID="payouts-header">
-          <View style={{ flexDirection: "row", gap: 14 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
-              <Icon name={e.eligible ? "shield-check-outline" : "shield-alert-outline"} size={24} color="#fff" />
+          <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
+            <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+              <Icon name={e.eligible ? "shield-check-outline" : "shield-alert-outline"} size={23} color="#fff" />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               {/* Title + status chip inline */}
               <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-                <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800", lineHeight: 24, flexShrink: 1 }}>{e.eligible ? "Verified — withdrawal enabled" : "Complete KYC to withdraw"}</Text>
+                <Text style={{ color: "#fff", fontSize: 17, fontWeight: "800", lineHeight: 23, flexShrink: 1 }}>{e.eligible ? "Verified — withdrawal enabled" : "Complete KYC to withdraw"}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
                   <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{e.eligible ? "Verified" : "Pending"}</Text>
                 </View>
               </View>
-              {!e.eligible && (e.blockers || []).length > 0 ? (
-                <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 6, lineHeight: 19 }}>Pending: {(e.blockers || []).join(", ")}</Text>
-              ) : e.eligible ? (
-                <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 6, lineHeight: 19 }}>Your verified bank account will receive payouts.</Text>
-              ) : null}
-              {/* Step chips — one responsive row */}
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-                {steps.map(([label, ok]) => (
-                  <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ok ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.12)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
-                    <Icon name={ok ? "check-circle-outline" : "alert-outline"} size={14} color={ok ? "#fff" : "rgba(255,255,255,0.8)"} />
-                    <Text style={{ color: ok ? "#fff" : "rgba(255,255,255,0.8)", fontSize: 12.5, fontWeight: "700" }}>{label}</Text>
-                  </View>
-                ))}
-              </View>
             </View>
             {/* Circular KYC progress ring */}
-            <View style={{ alignItems: "center", justifyContent: "flex-start" }} testID="kyc-ring">
-              <ProgressRing pct={kycPct} color="#fff" trackColor="rgba(255,255,255,0.22)" size={70} stroke={7} label="" centerBottom="KYC done" light />
+            <View style={{ alignItems: "center", justifyContent: "center" }} testID="kyc-ring">
+              <ProgressRing pct={kycPct} color="#fff" trackColor="rgba(255,255,255,0.22)" size={64} stroke={7} label="" centerBottom="KYC done" light />
             </View>
+          </View>
+          {!e.eligible && (e.blockers || []).length > 0 ? (
+            <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 12, lineHeight: 19 }}>Pending: {(e.blockers || []).join(", ")}</Text>
+          ) : e.eligible ? (
+            <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 12, lineHeight: 19 }}>Your verified bank account will receive payouts.</Text>
+          ) : null}
+          {/* Step chips — full-width, one row on every device */}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+            {steps.map(([label, ok]) => (
+              <View key={label} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ok ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.12)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
+                <Icon name={ok ? "check-circle-outline" : "alert-outline"} size={14} color={ok ? "#fff" : "rgba(255,255,255,0.8)"} />
+                <Text style={{ color: ok ? "#fff" : "rgba(255,255,255,0.8)", fontSize: 12.5, fontWeight: "700" }}>{label}</Text>
+              </View>
+            ))}
           </View>
         </LinearGradient>
 
