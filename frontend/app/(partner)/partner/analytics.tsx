@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, TextInput } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,6 +9,7 @@ import { api } from "@/src/api/client";
 import { AppShellHeader, Surface } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { LineChart } from "@/src/components/LineChart";
+import { WDatePicker } from "@/src/components/reg/DatePicker";
 import { fmtC } from "@/src/lib/format";
 
 const SLATE400 = "#94A3B8";
@@ -105,8 +106,21 @@ export default function PartnerAnalytics() {
               </Pressable>); })}
           </View>
           {showCustom && preset === "custom" ? (
-            <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-              {(["from", "to"] as const).map((f) => <TextInput key={f} testID={`custom-${f}`} value={custom[f]} onChangeText={(v) => setCustom({ ...custom, [f]: v })} placeholder={`${f === "from" ? "From" : "To"} YYYY-MM-DD`} placeholderTextColor="rgba(255,255,255,0.6)" style={{ flex: 1, height: 40, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", color: "#fff", paddingHorizontal: 12, fontSize: 13 }} />)}
+            <View testID="custom-range" style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 16, padding: 12 }}>
+              <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 11, marginBottom: 4 }}>From</Text>
+                  <WDatePicker testID="custom-from" value={custom.from} max={custom.to || iso(new Date())} placeholder="Start date" onChange={(v) => setCustom((c) => ({ ...c, from: v }))} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 11, marginBottom: 4 }}>To</Text>
+                  <WDatePicker testID="custom-to" value={custom.to} min={custom.from || undefined} max={iso(new Date())} placeholder="End date" onChange={(v) => setCustom((c) => ({ ...c, to: v }))} />
+                </View>
+                <Pressable testID="custom-close" onPress={() => { setShowCustom(false); setPreset("30d"); setCustom({ from: "", to: "" }); }} style={{ height: 48, width: 40, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+                  <Icon name="close" size={18} color="#fff" />
+                </Pressable>
+              </View>
+              <Text style={{ color: "rgba(224,242,254,0.7)", fontSize: 11, marginTop: 8 }}>{custom.from && custom.to ? "Range applied" : "Pick both dates to apply"}</Text>
             </View>
           ) : null}
         </LinearGradient>

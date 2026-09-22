@@ -30,6 +30,12 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   same hero/auto-payout/streak/my-bonuses/next-reward/challenges/penalties sections & logic; reachable via
   Profile + More menu). Polished remaining ~5%: added web's error empty-state fallback (was infinite
   "Loading…" on API error), matched Ring inner-% size/color, added animate-pulse on the "unlocked" badge.
+- 2026-09-22: **Partner Analytics parity** — mobile app/(partner)/partner/analytics.tsx confirmed as a 1:1
+  port of web_panel PremiumAnalytics (role=partner, "Earnings Analytics"): same /partner/analytics API,
+  same range presets, 4 KPI cards, earnings line chart, jobs/day bar chart, status donut + legend, ratings
+  (avg/breakdown/recent). Reachable via Profile + More menu. Improved the custom date range to use the
+  app's WDatePicker calendar (mobile equiv of web PremiumDatePicker) + close button, replacing fragile
+  raw text inputs that re-queried on every keystroke.
 
 ## Backlog / Next
 - P1: Optional camera/barcode scan on Map QR screen (currently manual token entry — robust & dependency-free).
