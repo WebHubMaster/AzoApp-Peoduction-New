@@ -138,8 +138,30 @@ async def send_notification(data):
 
 async def user_notifications(user):
     return await db.notifications.find(
-        {"$or": [{"audience": {"$in": ["all", user["role"]]}}, {"user_id": user["id"]}]},
+        {"$and": [
+            {"$or": [{"audience": {"$in": ["all", user["role"]]}}, {"user_id": user["id"]}]},
+            {"deleted_by": {"$ne": user["id"]}},
+        ]},
         {"_id": 0}).sort("created_at", -1).to_list(100)
+
+
+async def hide_notification(user, nid):
+    """Permanently hide ONE notification for THIS user only (per-user delete).
+    Broadcast notifications stay intact for everyone else; personal ones just get
+    the user added to `deleted_by` so they are never returned again."""
+    await db.notifications.update_one(
+        {"id": nid, "$or": [{"audience": {"$in": ["all", user["role"]]}}, {"user_id": user["id"]}]},
+        {"$addToSet": {"deleted_by": user["id"]}})
+    return {"ok": True}
+
+
+async def clear_notifications(user):
+    """Permanently hide ALL of this user's currently-visible notifications."""
+    res = await db.notifications.update_many(
+        {"$or": [{"audience": {"$in": ["all", user["role"]]}}, {"user_id": user["id"]}],
+         "deleted_by": {"$ne": user["id"]}},
+        {"$addToSet": {"deleted_by": user["id"]}})
+    return {"ok": True, "cleared": res.modified_count}
 
 
 # ---- support tickets ----

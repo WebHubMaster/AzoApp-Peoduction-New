@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { View, Text, Pressable, Modal } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -11,6 +12,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { api, mediaUrl } from "@/src/api/client";
 import { initials } from "@/src/lib/format";
+import { useToast } from "@/src/components/Toast";
 
 /**
  * Web-panel "appMode" header — floating glass card with brand wordmark on the
@@ -24,6 +26,7 @@ export function AppShellHeader({ profileRoute }: { profileRoute: string }) {
   const { user, logout } = useAuth();
   const brand = useBrand();
   const [menu, setMenu] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const notifs = useQuery({ queryKey: ["partner-notifs"], queryFn: () => api.get<any[]>("/notifications"), refetchInterval: 30000 });
   const unread = (notifs.data || []).filter((n) => !n.read).length;
@@ -114,7 +117,7 @@ export function AppShellHeader({ profileRoute }: { profileRoute: string }) {
               <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }} numberOfLines={1}>{user?.name}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>{user?.phone}</Text>
             </View>
-            <Pressable testID="edit-profile-button" onPress={() => { setMenu(false); router.push(profileRoute as any); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
+            <Pressable testID="edit-profile-button" onPress={() => { setMenu(false); setEditOpen(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
               <Icon name="account-outline" size={16} color={colors.textSecondary} />
               <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "500" }}>Edit Profile</Text>
             </Pressable>
@@ -125,7 +128,131 @@ export function AppShellHeader({ profileRoute }: { profileRoute: string }) {
           </View>
         </Pressable>
       </Modal>
+
+      <ProfileEditModal open={editOpen} onClose={() => setEditOpen(false)} />
     </View>
+  );
+}
+
+/**
+ * Edit Profile dialog — mirrors the web panel's ProfileEditModal (PanelLayout.jsx)
+ * 1:1: photo picker + name/email/phone, approved partners/merchants are LOCKED to
+ * photo-only edits, and it PUTs /auth/profile then refreshes the auth user.
+ */
+export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { colors } = useTheme();
+  const { user, setUser } = useAuth();
+  const toast = useToast();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [photo, setPhoto] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (open && user) { setName(user.name || ""); setEmail((user as any).email || ""); setPhoto((user as any).photo || ""); }
+  }, [open, user]);
+
+  const role = (user as any)?.role;
+  const approved = (user as any)?.kyc_status === "approved" || (user as any)?.verified_partner || (user as any)?.verified_merchant;
+  const locked = (role === "partner" || role === "merchant") && !!approved;
+
+  const pickPhoto = async () => {
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { toast.error("Please allow photo access to change your picture."); return; }
+      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7, base64: true });
+      if (res.canceled) return;
+      const a = res.assets?.[0];
+      if (a?.base64) { setPhoto(`data:${a.mimeType || "image/jpeg"};base64,${a.base64}`); toast.info("Photo ready — don't forget to save."); }
+    } catch { toast.error("Could not open the gallery. Please try again."); }
+  };
+
+  const save = async () => {
+    if (!locked && !name.trim()) { toast.error("Name is required"); return; }
+    setSaving(true);
+    try {
+      const payload = locked ? { photo } : { name: name.trim(), email: email.trim(), photo };
+      const data = await api.put<any>("/auth/profile", payload);
+      setUser(data);
+      toast.success("Profile updated");
+      onClose();
+    } catch (e: any) {
+      toast.error(e?.detail || e?.message || "Could not update profile");
+    } finally { setSaving(false); }
+  };
+
+  const avatarUri = photo ? (photo.startsWith("data:") ? photo : mediaUrl(photo)) : undefined;
+  const label = { color: colors.textMuted, fontSize: 11, fontWeight: "700" as const, letterSpacing: 0.4, textTransform: "uppercase" as const };
+  const field = (editable: boolean) => ({
+    height: 46, borderRadius: 12, borderWidth: 1, borderColor: colors.border,
+    backgroundColor: editable ? colors.surface : colors.surfaceSubtle,
+    paddingHorizontal: 12, color: editable ? colors.text : colors.textMuted, fontSize: 15, marginTop: 6,
+  });
+
+  return (
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={onClose} />
+          <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>Edit Profile</Text>
+                <Pressable testID="profile-edit-close" onPress={onClose} hitSlop={10}><Icon name="close" size={20} color={colors.textMuted} /></Pressable>
+              </View>
+
+              {locked ? (
+                <View testID="profile-locked-banner" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", borderRadius: 12, borderWidth: 1, borderColor: "#FDE68A", backgroundColor: "#FFFBEB", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16 }}>
+                  <Icon name="shield-check" size={16} color="#B45309" />
+                  <Text style={{ flex: 1, color: "#92400E", fontSize: 12.5, lineHeight: 18 }}>Your profile is approved and locked. You can update only your profile picture — contact admin to change other details.</Text>
+                </View>
+              ) : null}
+
+              <View style={{ alignItems: "center", marginBottom: 20 }}>
+                <View style={{ width: 88, height: 88 }}>
+                  <View style={{ width: 88, height: 88, borderRadius: 44, overflow: "hidden", backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border }}>
+                    {avatarUri ? (
+                      <Image source={{ uri: avatarUri }} style={{ width: 88, height: 88 }} contentFit="cover" />
+                    ) : (
+                      <Text style={{ color: colors.primary, fontWeight: "800", fontSize: 30 }}>{initials(name || user?.name)}</Text>
+                    )}
+                  </View>
+                  <Pressable testID="profile-photo-btn" onPress={pickPhoto} style={{ position: "absolute", bottom: -2, right: -2, height: 32, width: 32, borderRadius: 16, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
+                    <Icon name="camera" size={16} color="#fff" />
+                  </Pressable>
+                </View>
+                <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 8 }}>Tap the camera to change your photo</Text>
+              </View>
+
+              <View style={{ gap: 14 }}>
+                <View>
+                  <Text style={label}>Name</Text>
+                  <TextInput testID="profile-name-input" value={name} onChangeText={setName} editable={!locked} placeholder="Your name" placeholderTextColor={colors.textMuted} style={field(!locked)} />
+                </View>
+                <View>
+                  <Text style={label}>Email</Text>
+                  <TextInput testID="profile-email-input" value={email} onChangeText={setEmail} editable={!locked} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor={colors.textMuted} style={field(!locked)} />
+                </View>
+                <View>
+                  <Text style={label}>Phone</Text>
+                  <TextInput value={user?.phone || ""} editable={false} style={field(false)} />
+                </View>
+              </View>
+
+              <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
+                <Pressable testID="profile-cancel-btn" onPress={onClose} style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ color: colors.textSecondary, fontSize: 15, fontWeight: "600" }}>Cancel</Text>
+                </Pressable>
+                <Pressable testID="profile-save-btn" onPress={save} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
+                  {saving ? <ActivityIndicator color="#fff" size="small" /> : <Icon name="content-save" size={16} color="#fff" />}
+                  <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>{saving ? "Saving…" : "Save"}</Text>
+                </Pressable>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
