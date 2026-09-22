@@ -161,3 +161,9 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Backend already correct: job_request/reschedule_request/scheduled_reminder all dispatch with data_only=True (verified). Testing agent iteration_93: backend 100% (10/10), dispatch pipeline 500-free, invoice PDF/email regression clean.
 - Restored missing /app/backend/.env (MONGO_URL/DB_NAME=azoapp) — backend was crash-looping on KeyError before.
 - ⚠️ Native locked-screen full-screen ring can ONLY be validated on a real Android device with a fresh EAS build + FCM server key configured. Server side verified regression-free.
+
+## Update (2026-06) — Help&Support keyboard, bottom-nav blur, More icon
+- Keyboard covering inputs: wrapped Help&Support New Ticket modal (app/support/index.tsx) and ticket chat composer (app/support/[id].tsx) in KeyboardAvoidingView from `react-native-keyboard-controller` (behavior="padding") so focused inputs rise above the soft keyboard on Android+iOS (chat/[id].tsx already used it). Partner support screens re-export app/support/*.
+- Bottom navbar blur: src/components/AppTabBar.tsx BlurView intensity 40→90 + backgroundColor alpha 0.72→0.96 (light)/0.94 (dark) so page content behind the floating pill is no longer visible.
+- 'More' tab icon: changed MDI 'dots-horizontal' → 'dots-grid' (3x3 grid, matches user's uploaded icon).
+- Verified: testing_agent iteration_94 = 3/3 static PASS; tsc/eslint clean; expo web bundle builds (HTTP 200). Native soft-keyboard behavior needs on-device/EAS build to see live.
