@@ -16,6 +16,7 @@ const PERMS = [
   "android.permission.SYSTEM_ALERT_WINDOW",
   "android.permission.FOREGROUND_SERVICE",
   "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+  "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
   "android.permission.WAKE_LOCK",
   "android.permission.VIBRATE",
   "android.permission.RECEIVE_BOOT_COMPLETED",
@@ -37,7 +38,10 @@ function withManifest(config) {
     if (!app.service.some((s) => s.$["android:name"] === "app.notifee.core.ForegroundService")) {
       app.service.push({ $: {
         "android:name": "app.notifee.core.ForegroundService",
-        "android:foregroundServiceType": "mediaPlayback",
+        // mediaPlayback = looping ring; dataSync = the always-on background job
+        // listener that holds the SSE stream open (FCM-independent ring path).
+        "android:foregroundServiceType": "mediaPlayback|dataSync",
+        "android:stopWithTask": "false",
         "android:exported": "false",
       } });
     }

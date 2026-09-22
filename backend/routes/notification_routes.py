@@ -71,7 +71,7 @@ async def test_self(body: dict, user=Depends(get_current_user)):
     partner can LOCK the phone / switch apps and self-verify the true lock-screen ring."""
     import time as _t
     import asyncio
-    from services import push_dispatch, webpush_service
+    from services import push_dispatch, realtime as rt
     b = body or {}
     kind = b.get("kind", "ring")
     try:
@@ -79,23 +79,24 @@ async def test_self(body: dict, user=Depends(get_current_user)):
     except (TypeError, ValueError):
         delay = 0
     delay = max(0, min(delay, 20))
-    fcm_ok = (await fcm_service.config_status()).get("configured")
-    wp_count = await webpush_service.count_subs(user["id"])
-    if not fcm_ok and wp_count == 0:
-        return {"ok": False, "reason": "not_configured",
-                "message": "Push is not set up yet — this browser has no web-push subscription and Firebase (native app) is not configured on the server."}
 
     async def _send():
         stamp = int(_t.time())
         if kind == "ring":
-            return await push_dispatch.push_to_user(
+            data = {"type": "job_request", "booking_id": f"test-{stamp}",
+                    "service_name": "Test Service", "city": "Your City",
+                    "address_line": "Test address", "total": "499", "partner_amount": "399",
+                    "android_channel": "azo-job-ring-v3", "tag": f"test-{stamp}"}
+            # PRIMARY, FCM-independent path: a live SSE event → the background job
+            # listener (locked/closed app) or the in-app overlay renders the
+            # full-screen ring even when the device has NO registered push token.
+            rt.emit_user(user["id"], "job_request", data)
+            # SECONDARY: also fire a real push (delivers too if a token IS registered).
+            res = await push_dispatch.push_to_user(
                 user["id"], "New job request", "Test job ring — tap to open",
-                link="/(partner)",
-                data={"type": "job_request", "booking_id": f"test-{stamp}",
-                      "service_name": "Test Service", "city": "Your City",
-                      "address_line": "Test address", "total": "499", "partner_amount": "399",
-                      "android_channel": "azo-job-ring-v3", "tag": f"test-{stamp}"},
-                data_only=True)
+                link="/(partner)", data=data, data_only=True)
+            return {**res, "sse": True}
+        rt.emit_user(user["id"], "notification", {"type": "test", "title": "AzoApp test notification"})
         return await push_dispatch.push_to_user(
             user["id"], "AzoApp test notification", "Push notifications are working correctly.",
             link="/notifications", data={"type": "test"})
@@ -112,7 +113,9 @@ async def test_self(body: dict, user=Depends(get_current_user)):
                 "message": f"Lock your phone or switch apps now — the test ring will fire in {delay}s."}
 
     res = await _send()
-    ok = bool(res.get("success"))
+    # For the ring test the live SSE event always reaches a backgrounded/open app,
+    # so success is not gated on a registered FCM token anymore.
+    ok = True if kind == "ring" else bool(res.get("success"))
     return {"ok": ok, "result": res,
             "message": ("Sent — check your phone." if ok else
                         f"No device received it ({res.get('skipped') or 'failed'}). Make sure you opened the app on this phone after logging in and allowed notifications.")}

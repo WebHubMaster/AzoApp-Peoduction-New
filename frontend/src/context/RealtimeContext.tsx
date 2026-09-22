@@ -6,6 +6,7 @@ import * as Haptics from "expo-haptics";
 import { API_BASE, getToken, mediaUrl } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { getRingPrefs } from "@/src/lib/ringPrefs";
+import { startBackgroundJobListener, stopBackgroundJobListener } from "@/src/lib/backgroundRing";
 
 /**
  * Live dispatch over Server-Sent Events — mirrors web RealtimeContext.jsx.
@@ -73,18 +74,26 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [user, close, emit]);
 
   useEffect(() => {
-    if (user) connect(); else close();
+    if (user) connect(); else { close(); stopBackgroundJobListener().catch(() => {}); }
     return close;
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reconnect when the app returns to foreground (mobile OS suspends sockets).
+  // App backgrounded/locked: the foreground SSE can't survive, so for PARTNERS we
+  // hand off to a foreground-service background listener that keeps receiving jobs
+  // and fires the full-screen ring WITHOUT any FCM push. On return to foreground we
+  // stop it and resume the in-app stream.
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
-      if (s === "active" && user && !esRef.current) { retryRef.current = 1; connect(); }
-      else if (s === "background" && Platform.OS !== "web") close();
+      if (s === "active") {
+        stopBackgroundJobListener().catch(() => {});
+        if (user && !esRef.current) { retryRef.current = 1; connect(); }
+      } else if (s === "background" && Platform.OS !== "web") {
+        close();
+        if (user?.role === "partner") startBackgroundJobListener().catch(() => {});
+      }
     });
     return () => sub.remove();
-  }, [user, connect]);
+  }, [user, connect, close]);
 
   const subscribe = useCallback((cb: Listener) => { listeners.current.add(cb); return () => { listeners.current.delete(cb); }; }, []);
 
