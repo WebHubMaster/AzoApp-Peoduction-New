@@ -44,7 +44,12 @@ export function useConnectivity() {
 
   const check = useCallback(async () => {
     setChecking(true);
-    const ok = await ping();
+    let ok = await ping();
+    // Never declare "offline" on a single miss: a cold-start request can lose the
+    // first ping (DNS/TLS warm-up) even with a perfectly good connection. Confirm
+    // with a second, shorter probe before we ever show the gate. Recovery (going
+    // back online) stays instant on the first success.
+    if (!ok) ok = await ping(3000);
     if (mounted.current) {
       onlineRef.current = ok;
       setOnline(ok);
@@ -71,9 +76,13 @@ export function useConnectivity() {
     let unsub: any;
     if (NetInfo) {
       unsub = NetInfo.addEventListener((state: any) => {
-        const connected = state?.isConnected !== false && state?.isInternetReachable !== false;
-        if (!connected) { onlineRef.current = false; setOnline(false); }
-        else check();
+        // Trust ONLY a hard "no network interface" to show the gate immediately.
+        // Do NOT use `isInternetReachable` to force offline: on Android cold start
+        // it reports false/null for a few seconds while it verifies reachability,
+        // which used to flash the "No Internet" gate on every launch. For every
+        // other state we verify with an active backend ping (the source of truth).
+        if (state?.isConnected === false) { onlineRef.current = false; setOnline(false); }
+        else { check(); }
       });
     }
     const appSub = AppState.addEventListener("change", (s) => { if (s === "active") check(); });
