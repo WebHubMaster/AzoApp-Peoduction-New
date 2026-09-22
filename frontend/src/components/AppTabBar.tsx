@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 import * as Haptics from "expo-haptics";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useTheme, radius, fontSize, spacing } from "@/src/theme";
@@ -69,25 +70,36 @@ export function AppTabBar({
             alignSelf: "center",
             width: "100%",
             maxWidth: 448,
-            flexDirection: "row",
-            backgroundColor: mode === "dark" ? "rgba(15,23,42,0.94)" : "rgba(255,255,255,0.96)",
             borderRadius: 28,
-            borderWidth: 1,
-            borderColor: mode === "dark" ? "rgba(51,65,85,0.6)" : "rgba(255,255,255,0.5)",
-            paddingHorizontal: 6,
-            paddingVertical: 4,
             boxShadow: "0px 10px 30px -10px rgba(15,23,42,0.35), 0px 4px 12px -6px rgba(15,23,42,0.2)",
             elevation: 12,
           }}
         >
-          {routes.map((r) => {
-            const meta = TAB_META[r.name];
-            const focused = state.routes[state.index]?.name === r.name;
-            return <TabButton key={r.key} icon={meta.icon} label={meta.label} focused={focused} badge={badges[r.name]} onPress={() => go(r.name, r.key)} />;
-          })}
-          {moreItems.length > 0 ? (
-            <TabButton icon="dots-horizontal" label="More" focused={moreOpen || activeIsMore} onPress={() => setMoreOpen(true)} testID="tab-more" />
-          ) : null}
+          {/* Frosted-glass pill — mirrors the web panel's `.glass` (rgba(255,255,255,0.72) + blur(18px) saturate) */}
+          <BlurView
+            intensity={40}
+            tint={mode === "dark" ? "dark" : "light"}
+            experimentalBlurMethod="dimezisBlurView"
+            style={{
+              flexDirection: "row",
+              borderRadius: 28,
+              overflow: "hidden",
+              borderWidth: 1,
+              borderColor: mode === "dark" ? "rgba(51,65,85,0.6)" : "rgba(255,255,255,0.5)",
+              backgroundColor: mode === "dark" ? "rgba(15,23,42,0.72)" : "rgba(255,255,255,0.72)",
+              paddingHorizontal: 6,
+              paddingVertical: 4,
+            }}
+          >
+            {routes.map((r) => {
+              const meta = TAB_META[r.name];
+              const focused = state.routes[state.index]?.name === r.name;
+              return <TabButton key={r.key} icon={meta.icon} label={meta.label} focused={focused} badge={badges[r.name]} onPress={() => go(r.name, r.key)} />;
+            })}
+            {moreItems.length > 0 ? (
+              <TabButton icon="dots-horizontal" label="More" focused={moreOpen || activeIsMore} onPress={() => setMoreOpen(true)} testID="tab-more" />
+            ) : null}
+          </BlurView>
         </View>
       </View>
 
