@@ -2756,7 +2756,7 @@ async def upload_evidence_file(partner, booking_id, stage, raw, content_type):
                             detail="Before-work photo unlocks 30 minutes before your scheduled time.")
     try:
         res = await storage_service.save_image(raw, content_type or "image/jpeg",
-                                               folder="evidence", max_side=1600)
+                                               folder=storage_service.job_folder(b, partner, stage), max_side=1600)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     url = res["url"]

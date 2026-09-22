@@ -62,7 +62,7 @@ async def _upload(file: UploadFile, doc_type: str, aadhaar_number: str, user):
     raw = await file.read()
     ext = (file.filename or "").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else ""
     try:
-        res = await storage_service.save_document(raw, file.content_type or "", file.filename or "", folder="kyc")
+        res = await storage_service.save_document(raw, file.content_type or "", file.filename or "", folder=storage_service.entity_folder("partners", user, "kyc"))
     except ValueError as e:
         raise HTTPException(400, str(e))
     out = {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}

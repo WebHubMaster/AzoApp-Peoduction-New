@@ -84,16 +84,21 @@ async def delete_media(media_id: str, admin=Depends(ADMIN)):
     return {"deleted": True}
 
 
-@router.get("/file/{folder}/{name}")
-async def serve_file(folder: str, name: str):
-    path = UPLOAD_DIR / folder / name
-    if not path.exists():
+@router.get("/file/{path:path}")
+async def serve_file(path: str):
+    # Serve any locally-stored upload, including nested structured folders
+    # (e.g. partners/<id>-<name>/kyc/<uuid>.webp). Guard against path traversal.
+    rel = (path or "").lstrip("/")
+    full = (UPLOAD_DIR / rel).resolve()
+    try:
+        full.relative_to(UPLOAD_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if not full.is_file():
         raise HTTPException(status_code=404, detail="File not found")
-    media_type = "image/svg+xml" if name.lower().endswith(".svg") else None
+    media_type = "image/svg+xml" if rel.lower().endswith(".svg") else None
     # Uploaded files are content-addressed (uuid names) → safe to cache hard.
-    # This stops repeat downloads of logos/images on every page view (big win
-    # on slow networks). 30 days + immutable.
-    return FileResponse(str(path), media_type=media_type,
+    return FileResponse(str(full), media_type=media_type,
                         headers={"Cache-Control": "public, max-age=2592000, immutable"})
 
 

@@ -64,7 +64,8 @@ async def upload_doc(file: UploadFile = File(...),
     raw = await file.read()
     try:
         res = await storage_service.save_document(
-            raw, file.content_type or "", file.filename or "", folder="merchant")
+            raw, file.content_type or "", file.filename or "",
+            folder=storage_service.entity_folder("merchants", user, "kyc"))
     except (ValueError, OSError) as e:
         raise HTTPException(400, str(e) or "Unsupported or corrupt file. Use a JPG, PNG or PDF.")
     return {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}
