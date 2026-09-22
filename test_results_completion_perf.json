@@ -1,7 +1,7 @@
 {
   "test_name": "PERFORMANCE BUG FIX VERIFICATION \u2014 Job Completion Latency",
   "timestamp": "2026-09-15T13:10:30.130531",
-  "base_url": "https://azoapp-services.preview.emergentagent.com/api",
+  "base_url": "https://mobile-invoice-build.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Completion latency < 2 seconds",

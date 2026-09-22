@@ -3,7 +3,7 @@
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
-    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://azoapp-services.preview.emergentagent.com expo start --port 3000",
+    "start": "CI=1 EXPO_PACKAGER_PROXY_URL=https://mobile-invoice-build.preview.emergentagent.com expo start --port 3000",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
@@ -38,8 +38,10 @@
     "expo-location": "~57.0.18",
     "expo-navigation-bar": "~57.0.2",
     "expo-notifications": "~57.0.20",
+    "expo-print": "~57.0.2",
     "expo-router": "~57.0.21",
     "expo-secure-store": "~57.0.4",
+    "expo-sharing": "~57.0.21",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "57.0.1",
     "expo-system-ui": "~57.0.4",

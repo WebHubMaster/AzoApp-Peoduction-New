@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-09-10T02:25:04.576199",
   "endpoint": "GET /api/catalog/upsell",
-  "base_url": "https://azoapp-services.preview.emergentagent.com/api",
+  "base_url": "https://mobile-invoice-build.preview.emergentagent.com/api",
   "summary": {
     "total": 40,
     "passed": 40,

@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://azoapp-services.preview.emergentagent.com"
+BASE_URL = "https://mobile-invoice-build.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
