@@ -140,3 +140,11 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - Same folder string is used as the S3 object key when AWS S3 is enabled in Integration Center → structure applies to S3 too; preview via public base or authenticated `/api/media/s3/<key>` proxy.
 - Restored `/app/backend/.env` (was missing) so the local backend runs.
 - Verified (local, S3 off): partner OTP login → upload → URL `partners/<id>-<name>/kyc/<uuid>.webp` → preview GET 200 (image/webp); nested/legacy/missing/traversal serving all correct.
+
+---
+## 2026-06 — Fix "No Internet" gate flashing on every app open
+- `src/lib/connectivity.ts`:
+  - NetInfo listener no longer forces offline from `isInternetReachable` (Android reports it false/null for 1-3s at cold start → caused the flash). Now only a hard `isConnected === false` shows the gate immediately; every other state is verified by an active backend ping (the real source of truth).
+  - `check()` now confirms with a second short ping before ever declaring offline, so a single cold-start ping miss (DNS/TLS warm-up) can't flash the gate. Recovery stays instant on first success.
+- Root cause: `OfflineGate` (src/components/OfflineGate.tsx) renders when `useConnectivity().online === false`; the listener was flipping it false transiently on launch.
+- Verified: eslint 0 errors, bundle boots. (Android-specific flash can't be reproduced on web; fix is a targeted logic change with a confirmed root cause.)
