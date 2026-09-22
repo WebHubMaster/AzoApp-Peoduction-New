@@ -38,6 +38,12 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   raw text inputs that re-queried on every keystroke.
 
 ## Backlog / Next
+- 2026-09-22: **Starter Kit & Profile/KYC parity** — verified mobile starter-kit.tsx (port of web
+  PartnerStarterKit.jsx: sales/owned/tracking/renewal, APIs /starter-kit/me|order|mock, mock purchase
+  works e2e) and verification.tsx (port of web PartnerProfileView.jsx: hero+badges, personal/skills/
+  address/documents+zoom, onboarding banner; API /partner/registration/profile). Added the missing
+  "Starter Kit" tile to the partner profile hub (was only in the More-menu). Real Razorpay checkout
+  stays on web panel (RN limitation; free/mock paths work in-app).
 - P1: Optional camera/barcode scan on Map QR screen (currently manual token entry — robust & dependency-free).
 - P2: Agent notifications when admin verifies bank / approves withdrawal.
 - P2: Admin-side agent detail already exists (physical_qr_routes) — surface agent performance in admin UI.

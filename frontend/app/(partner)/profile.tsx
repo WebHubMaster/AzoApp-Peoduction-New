@@ -25,6 +25,7 @@ export default function PartnerProfile() {
     { icon: "calendar-clock", title: "Availability", sub: "Set your working days", onPress: () => router.push("/partner/availability") },
     { icon: "gift", title: "Rewards & Challenges", sub: "Bonuses & streaks", onPress: () => router.push("/partner/rewards") },
     { icon: "chart-line", title: "Analytics", sub: "Your performance insights", onPress: () => router.push("/partner/analytics") },
+    { icon: "crown", title: "Starter Kit", sub: "Become an AzoApp Pro", onPress: () => router.push("/partner/starter-kit") },
     { icon: "shield-check", title: "Profile & KYC", sub: "Verification status", onPress: () => router.push("/partner/verification") },
     { icon: "bell", title: "Notifications", sub: "Alerts & updates", onPress: () => router.push("/notifications") },
   ];
