@@ -36,11 +36,16 @@ export function AppTabBar({
   moreItems = [],
   onLogout,
   hideTabs = [],
+  hideBarRoutes = [],
   badges = {},
-}: BottomTabBarProps & { moreItems?: MoreItem[]; onLogout?: () => void; hideTabs?: string[]; badges?: Record<string, number> }) {
+}: BottomTabBarProps & { moreItems?: MoreItem[]; onLogout?: () => void; hideTabs?: string[]; hideBarRoutes?: string[]; badges?: Record<string, number> }) {
   const { colors, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const [moreOpen, setMoreOpen] = useState(false);
+
+  // Full-screen routes (e.g. the support chat thread) hide the entire bar so it
+  // never overlaps a bottom composer / intercepts its touches.
+  if (hideBarRoutes.includes(state.routes[state.index]?.name)) return null;
 
   const routes = state.routes.filter((r) => TAB_META[r.name] && !hideTabs.includes(r.name));
 
