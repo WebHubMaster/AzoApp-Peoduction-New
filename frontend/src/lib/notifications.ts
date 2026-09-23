@@ -181,7 +181,11 @@ function classifyTokenError(msg: string): string {
   const m = (msg || "").toLowerCase();
   if (!m) return "no_token";
   if (m.includes("too_many_registrations") || m.includes("too many registrations")) return "too_many_registrations";
-  if (m.includes("service_not_available") || m.includes("play services") || m.includes("playservices") || m.includes("missing_instanceid_service") || m.includes("api_unavailable")) return "play_services";
+  // SERVICE_NOT_AVAILABLE is almost always TRANSIENT (FCM 500/503, device clock,
+  // network not ready, WiFi blocking FCM ports) → retryable, NOT a fatal Play
+  // services problem. Keep it separate from a genuinely missing/outdated Play services.
+  if (m.includes("service_not_available") || m.includes("service not available")) return "service_unavailable";
+  if (m.includes("missing_instanceid_service") || m.includes("api_unavailable") || m.includes("play services") || m.includes("playservices")) return "play_services";
   if (m.includes("invalid argument") || m.includes("invalid-argument") || m.includes("given fid") || m.includes("api disabled") || m.includes("#register")) return "stale_fid";
   if (m.includes("fcm registration failed") || m.includes("fis_auth") || m.includes("authentication") || m.includes("installations") || m.includes("sender")) return "fcm_registration_failed";
   if (m.includes("network") || m.includes("timeout") || m.includes("unavailable") || m.includes("connection")) return "network";
@@ -708,29 +712,37 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     _lastExpoTokenErr = "";
     let token = "";
     let didReset = false;
-    // Up to 8 attempts. "FCM Registration failed!" / HTTP 400 on this device is a
-    // bad cached FCM registration (stale or unpropagated FID/IID). So on the FIRST
-    // failure we wipe the Firebase Installation + FCM token ONCE and keep retrying —
-    // getToken() then mints a fresh, valid registration. This runs for ANY failure
-    // reason (not just the "invalid argument" string) because the native layer often
-    // reports the same generic "FCM Registration failed!" message for all of them.
-    for (let i = 0; i < 8 && !token; i += 1) {
+    // Up to 10 attempts. Two special cases:
+    //  • SERVICE_NOT_AVAILABLE → transient (FCM 500/503, clock/network not ready,
+    //    WiFi blocking FCM ports) → we KEEP retrying with longer waits; it usually
+    //    clears within ~10-30s or once the network settles.
+    //  • A generic/400 failure → a bad cached FID → wipe the Firebase Installation
+    //    ONCE then keep retrying so getToken() mints a fresh, valid registration.
+    // We only bail early for the two truly-unfixable-by-retry cases below.
+    for (let i = 0; i < 10 && !token; i += 1) {
       token = await rnfbDeviceToken();               // RNBC path (owns killed-app delivery)
       if (!token) token = await expoDeviceToken();   // fallback
       if (!token) {
         const why = classifyTokenError(_lastExpoTokenErr);
-        // These are NOT fixable by resetting/retrying the FID — bail out fast so the
-        // user gets the real, actionable reason instead of an 8x delay:
+        // Not fixable by resetting/retrying → bail fast with the real reason:
         //  • too_many_registrations → device hit Android's ~100-app FCM cap.
-        //  • play_services          → Play services missing/outdated.
+        //  • play_services          → Play services genuinely missing/outdated.
         if (why === "too_many_registrations" || why === "play_services") break;
-        if (!didReset) {
+        // FID reset helps stale-registration / 400 errors, NOT SERVICE_NOT_AVAILABLE
+        // (that's network/server) — so only reset for the former, once.
+        if (!didReset && why !== "service_unavailable" && why !== "network") {
           didReset = true;
           await resetFirebaseInstallation();
           await new Promise((r) => setTimeout(r, 2000));
           continue; // retry immediately with a fresh FID (don't consume backoff)
         }
-        if (i < 7) await new Promise((r) => setTimeout(r, Math.min(1000 * 2 ** i, 8000))); // 1s,2s,4s,8s,8s...
+        if (i < 9) {
+          // Longer, steadier spacing for transient SERVICE_NOT_AVAILABLE recovery.
+          const wait = why === "service_unavailable" || why === "network"
+            ? Math.min(3000 + 2000 * i, 12000) // 3s,5s,7s… up to 12s
+            : Math.min(1000 * 2 ** i, 8000);   // 1s,2s,4s,8s…
+          await new Promise((r) => setTimeout(r, wait));
+        }
       }
     }
 
@@ -739,9 +751,11 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
       const hint =
         kind === "too_many_registrations"
           ? "This PHONE hit Android's limit of ~100 FCM app registrations — no app can register a new push token until you free space. FIX ON THE PHONE: Settings → Apps → 'Google Play services' → Storage → Manage space → 'Clear all data' (this resets FCM for all apps and is safe), OR uninstall a few unused apps. Then reopen AzoApp and tap Fix. (Restarting the phone once also helps.)"
-          : kind === "play_services"
-            ? "Google Play services is unavailable/outdated on this device — update Google Play services from the Play Store, then tap Fix."
-            : kind === "stale_fid" || kind === "fcm_registration_failed"
+          : kind === "service_unavailable"
+            ? "FCM SERVICE_NOT_AVAILABLE — this is usually TEMPORARY (network / server / device clock). FIX: 1) make sure the phone's Date & Time is set to AUTOMATIC, 2) switch network (try MOBILE DATA instead of WiFi — some WiFi/office networks block Google FCM), 3) restart the phone, then reopen AzoApp and tap Fix again. It typically registers on a retry."
+            : kind === "play_services"
+              ? "Google Play services is unavailable/outdated on this device — update Google Play services from the Play Store, then tap Fix."
+              : kind === "stale_fid" || kind === "fcm_registration_failed"
               ? "FCM registration was rejected even after resetting the Firebase Installation ID. FORCE-STOP + clear this app's storage (Settings → Apps → storage → Clear) OR uninstall & reinstall once, then reopen — this mints a brand-new FID. If it still fails on a fresh install, the device/network is blocking Google FCM."
               : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
       report(false, kind, `${_lastExpoTokenErr || "no token"} (fid-reset:${didReset ? "yes" : "no"}) — ${hint}`);
