@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://partner-invoice-fix.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://merchant-mobile-ui.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -440,3 +440,10 @@ table need production/build verification.
 - Cancel Download: fetchInvoicePdfFile exposes a cancel fn (createDownloadResumable.cancelAsync + AbortController fallback) via opts.onCancelReady. The progress toast now shows a "Cancel" button; cancelling throws a cancelled error handled as an info toast ("Download cancelled"), no error. Progress throttled to whole-percent changes.
 - Toast.progress(message, action?) supports an action button. shareInvoicePdf(inv, channel, { waPackage, onProgress, onCancelReady }).
 - Files: frontend/src/lib/invoiceActions.ts, frontend/src/components/Toast.tsx, frontend/app/(partner)/partner/invoices.tsx.
+
+## [Update] Merchant Mobile Home (HUBAHU web parity) — 2026-09-23
+- Rebuilt `frontend/app/(merchant)/index.tsx` to exactly match the WEB Merchant Home (`web_panel/src/pages/merchant/MerchantHome.jsx`).
+- Sections (web parity): navy Hero (Merchant pill, avatar, greeting, shop + Verified, Lifetime Commission + tap-to-copy Merchant Code, Scan&Share/Withdraw), 4 Quick actions, "Commission overview" 8 KPI ReportCards (Total = emerald primary), Recent commission list (service + TypeBadge + name·date·code + earned, empty state), Wallet snapshot, Privacy note.
+- APIs (unchanged, real): GET /api/merchant/overview, GET /api/merchant/my-code, GET /api/notifications. Routing already sends merchant→/(merchant) on login.
+- Verified live against backend api.webhubmaster.shop with demo merchant +919000000002/123456: my-code=3L6MKM3, overview total=508, wallet.available=20779.77, 8 recent rows. tsc --noEmit clean.
+- NOTE: native Expo app → browser screenshot/testing-agent not applicable; verified via API contract + TypeScript compile.

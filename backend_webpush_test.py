@@ -15,7 +15,7 @@ import requests
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-mobile-ui.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
