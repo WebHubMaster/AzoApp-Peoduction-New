@@ -33,12 +33,31 @@ let _stopResolve: (() => void) | null = null;
 
 const canRun = () => pushSupported && Platform.OS === "android";
 
+function _forceOpenApp() {
+  // Android auto-launches a full-screen intent ONLY when the screen is LOCKED.
+  // When the phone is UNLOCKED but the app is backgrounded / in another app, the
+  // ring would otherwise show only as a heads-up. Bring the app to the FOREGROUND
+  // so the in-app full-screen JobRingOverlay pops exactly like an incoming call —
+  // mirrors the FCM path in pushBackground.ts. Needs the "Display over other apps"
+  // (SYSTEM_ALERT_WINDOW) permission for the background activity launch to succeed.
+  try {
+    const { AppState } = require("react-native");
+    if (AppState.currentState !== "active") {
+      const Linking = require("expo-linking");
+      Linking.openURL(Linking.createURL("/")).catch(() => {});
+    }
+  } catch { /* ignore */ }
+}
+
 function _handle(ev: any) {
   const type = ev?.type;
   const d = ev?.data || {};
   if (RING_TYPES.has(type)) {
     const bid = String(d.booking_id || d.id || "");
-    if (bid) displayJobRing({ ...d, type, booking_id: bid }, "bg").catch(() => {});
+    if (bid) {
+      displayJobRing({ ...d, type, booking_id: bid }, "bg").catch(() => {});
+      _forceOpenApp();
+    }
   } else if (type === "job_taken" || type === "job_cancelled") {
     cancelJobRing(String(d.booking_id || d.id || "")).catch(() => {});
   }
