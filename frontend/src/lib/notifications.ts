@@ -302,7 +302,7 @@ export async function openFullScreenIntentSettings() {
 /*  Unified permission hub — everything the Job Ring needs, requested   */
 /*  the moment the app opens (see app/onboarding/permissions.tsx).      */
 /* ------------------------------------------------------------------ */
-export type PermKey = "notifications" | "location" | "battery" | "fullscreen" | "overlay";
+export type PermKey = "notifications" | "location" | "battery" | "fullscreen" | "overlay" | "oem";
 export type PermState = {
   key: PermKey;
   granted: boolean;      // true = fully satisfied
@@ -348,9 +348,71 @@ export async function requestOverlayPermission() {
   }
 }
 
+/* --- Aggressive-OEM background launch (MIUI / ColorOS / FuntouchOS / EMUI) ---
+ * Xiaomi/Redmi/Poco (MIUI), Oppo/Realme (ColorOS), Vivo/iQOO (FuntouchOS) and
+ * Huawei/Honor BLOCK background activity starts and DOWNGRADE full-screen intents
+ * to a plain heads-up UNLESS the user enables the OEM-specific "Autostart" +
+ * "Display pop-up windows while running in background" / "Show on lock screen".
+ * These live in the OEM security app, NOT standard Android settings — this is the
+ * #1 reason a job ring shows only a notification on Poco/Redmi even when FCM works.
+ * We deep-link straight to them; best-effort, falling back to app settings. */
+const OEM_ASKED_KEY = "azo_oem_asked";
+const _mfg = (): string => String(Device.manufacturer || "").toLowerCase();
+export function isAggressiveOem(): boolean {
+  return /(xiaomi|redmi|poco|oppo|realme|vivo|iqoo|huawei|honor)/.test(_mfg());
+}
+export async function oemState(): Promise<PermState> {
+  if (Platform.OS !== "android" || !isAggressiveOem())
+    return { key: "oem", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(OEM_ASKED_KEY)) === "1";
+  return { key: "oem", granted: asked, canAskAgain: true, available: true };
+}
+export async function requestOemSettings() {
+  if (Platform.OS !== "android") return;
+  try { await storage.setItem(OEM_ASKED_KEY, "1"); } catch { /* ignore */ }
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.partner";
+  const m = _mfg();
+  const targets: { packageName: string; className: string }[] = [];
+  if (/xiaomi|redmi|poco/.test(m)) {
+    targets.push(
+      { packageName: "com.miui.securitycenter", className: "com.miui.permcenter.permissions.PermissionsEditorActivity" },
+      { packageName: "com.miui.securitycenter", className: "com.miui.permcenter.autostart.AutoStartManagementActivity" },
+    );
+  } else if (/oppo|realme/.test(m)) {
+    targets.push(
+      { packageName: "com.coloros.safecenter", className: "com.coloros.safecenter.permission.startup.StartupAppListActivity" },
+      { packageName: "com.coloros.safecenter", className: "com.coloros.safecenter.startupapp.StartupAppListActivity" },
+      { packageName: "com.oppo.safe", className: "com.oppo.safe.permission.startup.StartupAppListActivity" },
+    );
+  } else if (/vivo|iqoo/.test(m)) {
+    targets.push(
+      { packageName: "com.vivo.permissionmanager", className: "com.vivo.permissionmanager.activity.BgStartUpManagerActivity" },
+      { packageName: "com.iqoo.secure", className: "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager" },
+    );
+  } else if (/huawei|honor/.test(m)) {
+    targets.push(
+      { packageName: "com.huawei.systemmanager", className: "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity" },
+      { packageName: "com.huawei.systemmanager", className: "com.huawei.systemmanager.optimize.process.ProtectActivity" },
+    );
+  }
+  try {
+    const IntentLauncher = require("expo-intent-launcher");
+    for (const t of targets) {
+      try {
+        await IntentLauncher.startActivityAsync("android.intent.action.MAIN", { packageName: t.packageName, className: t.className });
+        return; // opened the OEM autostart / pop-up-permission screen
+      } catch { /* activity not present on this ROM — try the next candidate */ }
+    }
+    try {
+      await IntentLauncher.startActivityAsync("android.settings.APPLICATION_DETAILS_SETTINGS", { data: `package:${pkg}` });
+      return;
+    } catch { /* ignore */ }
+  } catch { /* expo-intent-launcher unavailable */ }
+  try { await Linking.openSettings(); } catch { /* ignore */ }
+}
+
 /* Battery optimisation exemption — required so a killed app can still ring. */
-export async function batteryState(): Promise<PermState> {
-  if (Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+export async function batteryState(): Promise<PermState> {  if (Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
   const asked = (await storage.getItem(BATTERY_ASKED_KEY)) === "1";
   const n = NotifeeApi();
   if (n) {
@@ -436,10 +498,10 @@ export async function requestLocationPermission(): Promise<PermState> {
 
 /** Snapshot of every permission the Job Ring relies on. */
 export async function allPermissionStates(): Promise<Record<PermKey, PermState>> {
-  const [notif, battery, fullscreen, location, overlay] = await Promise.all([
-    notifState(), batteryState(), fullScreenState(), locationState(), overlayState(),
+  const [notif, battery, fullscreen, location, overlay, oem] = await Promise.all([
+    notifState(), batteryState(), fullScreenState(), locationState(), overlayState(), oemState(),
   ]);
-  return { notifications: notif, battery, fullscreen, location, overlay };
+  return { notifications: notif, battery, fullscreen, location, overlay, oem };
 }
 
 /** True when the app should show the full-screen permission gate on open. */
@@ -511,7 +573,7 @@ export function stopRingSound() {
  * background handler (app closed / locked) and from the foreground.
  * `asForegroundService` keeps the process alive so the ring keeps playing.
  */
-export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = "fg"): Promise<boolean> {
+export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = "fg", source: "sse" | "fcm" | "" = ""): Promise<boolean> {
   const n = NotifeeApi();
   const mod = notifee();
   if (!n || !d?.booking_id) return false;
@@ -530,7 +592,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   let did = "";
   try { did = await deviceId(); } catch { /* ignore */ }
   const report = (ok: boolean, m2: string, error = "") => {
-    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi, device_id: did }).catch(() => {});
+    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi, device_id: did, src: source }).catch(() => {});
   };
   // Notifee requires EVERY notification.data value to be a STRING. The FCM
   // payload from expo (data.notification.data) carries a `dataString` key and may
@@ -751,9 +813,15 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
         // Not fixable by resetting/retrying → bail fast with the real reason:
         //  • too_many_registrations → device hit Android's ~100-app FCM cap.
         //  • play_services          → Play services genuinely missing/outdated.
-        if (why === "too_many_registrations" || why === "play_services") break;
-        // FID reset helps stale-registration / 400 errors, NOT SERVICE_NOT_AVAILABLE
-        // (that's network/server) — so only reset for the former, once.
+        // play_services genuinely can't be fixed by retrying → bail with the real reason.
+        if (why === "play_services") break;
+        // too_many_registrations is a DEVICE-WIDE FCM cap (~100 app registrations per
+        // phone). Deleting THIS app's Firebase Installation frees our own slot and
+        // often lets getToken() succeed again — so try a one-time FID reset before
+        // giving up (previously we bailed immediately with fid-reset:no, no self-heal).
+        if (why === "too_many_registrations" && didReset) break;
+        // FID reset helps stale-registration / 400 / too_many errors, NOT
+        // SERVICE_NOT_AVAILABLE (that's network/server) — so only reset for those, once.
         if (!didReset && why !== "service_unavailable" && why !== "network") {
           didReset = true;
           await resetFirebaseInstallation();

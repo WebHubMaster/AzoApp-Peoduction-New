@@ -468,7 +468,8 @@ async def record_ring_status(user_id: str, body: dict):
     state = {
         "ok": bool(b.get("ok")),
         "ctx": str(b.get("ctx", ""))[:16],       # "bg" (closed/locked) | "fg" (open)
-        "mode": str(b.get("mode", ""))[:24],     # "fgs" | "no_fgs" | "failed"
+        "mode": str(b.get("mode", ""))[:24],     # "fs" | "fs_alive" | "failed"
+        "src": str(b.get("src", ""))[:8],        # "sse" | "fcm" — which path delivered
         "error": str(b.get("error", ""))[:300],
         "fsi": b.get("fsi"),                      # full-screen-intent permission granted?
         "booking_id": str(b.get("booking_id", ""))[:64],
@@ -480,7 +481,8 @@ async def record_ring_status(user_id: str, body: dict):
         await db.fcm_devices.update_one(
             {"user_id": user_id, "device_id": did},
             {"$set": {"last_ring_at": state["at"], "last_ring_ok": state["ok"],
-                      "last_ring_ctx": state["ctx"], "last_ring_mode": state["mode"]}})
+                      "last_ring_ctx": state["ctx"], "last_ring_mode": state["mode"],
+                      "last_ring_src": state["src"]}})
     try:
         await db.ring_status_logs.insert_one({"id": new_id(), "user_id": user_id, **state})
     except Exception:  # noqa: BLE001

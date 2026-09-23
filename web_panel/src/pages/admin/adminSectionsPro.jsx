@@ -1966,7 +1966,7 @@ function NotificationDiagnostics() {
                   <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{r.at ? new Date(r.at).toLocaleString() : "—"}</td>
                   <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
                   <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
-                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? `delivered${r.mode ? ` (${r.mode})` : ""}` : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
+                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? `delivered${r.src ? ` · ${r.src === "fcm" ? "push" : r.src === "sse" ? "live" : r.src}` : ""}` : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
                 </tr>
               ))}
             </tbody>

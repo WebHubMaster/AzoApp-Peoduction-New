@@ -55,7 +55,7 @@ function _handle(ev: any) {
   if (RING_TYPES.has(type)) {
     const bid = String(d.booking_id || d.id || "");
     if (bid) {
-      displayJobRing({ ...d, type, booking_id: bid }, "bg").catch(() => {});
+      displayJobRing({ ...d, type, booking_id: bid }, "bg", "sse").catch(() => {});
       _forceOpenApp();
     }
   } else if (type === "job_taken" || type === "job_cancelled") {

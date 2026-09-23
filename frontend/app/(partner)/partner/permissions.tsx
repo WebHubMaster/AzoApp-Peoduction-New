@@ -8,6 +8,7 @@ import { useToast } from "@/src/components/Toast";
 import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
+  requestOverlayPermission, requestOemSettings,
 } from "@/src/lib/notifications";
 import { api } from "@/src/api/client";
 
@@ -24,6 +25,8 @@ type Card = {
 const CARDS: Card[] = [
   { key: "notifications", icon: "bell-ring", title: "Notifications", why: "Ring loudly for every new job and show booking, chat & reminder alerts — even when the app is closed.", affected: "Without this you will NOT get the Job Ring or any push alerts.", tint: "#F59E0B", critical: true },
   { key: "fullscreen", icon: "cellphone-message", title: "Full-Screen Call Alert", why: "Show a call-style screen over your lock screen when a new job arrives.", affected: "New jobs won't pop up like an incoming call on a locked phone.", tint: "#22C55E" },
+  { key: "overlay", icon: "cellphone-arrow-down", title: "Full-Screen on Unlocked", why: "Let the ring pop up as a full call screen even when the phone is unlocked or you're in another app.", affected: "New jobs show only a heads-up notification when the phone is unlocked.", tint: "#F97316" },
+  { key: "oem", icon: "shield-alert-outline", title: "Autostart & Pop-up", why: "Your phone brand (MIUI/ColorOS/FuntouchOS etc.) blocks the call-style ring unless Autostart + 'Display pop-up windows while running in background' + 'Show on lock screen' are ON.", affected: "You'll get only a silent notification instead of the full call-style ring.", tint: "#EF4444", critical: true },
   { key: "battery", icon: "battery-heart-variant", title: "Run in Background", why: "Keep the app allowed to ring even when the phone tries to sleep it to save battery.", affected: "The ring may not fire reliably when the app is closed for a while.", tint: "#38BDF8", critical: true },
   { key: "location", icon: "map-marker-radius", title: "Location", why: "Show each job's distance & travel time, and share your live location while online.", affected: "Distance/ETA and live tracking won't work.", tint: "#A78BFA" },
 ];
@@ -84,6 +87,10 @@ export default function PermissionCenter() {
         if (!r.granted && !r.canAskAgain) { try { await Linking.openSettings(); } catch { /* ignore */ } }
       } else if (c.key === "battery") {
         await requestBatteryExemption();
+      } else if (c.key === "overlay") {
+        await requestOverlayPermission();
+      } else if (c.key === "oem") {
+        await requestOemSettings();
       } else if (c.key === "fullscreen") {
         await openFullScreenIntentSettings();
       }
@@ -119,6 +126,8 @@ export default function PermissionCenter() {
 
         {CARDS.map((c) => {
           const st = states?.[c.key];
+          // Hide the OEM card on phones that don't need it (non-aggressive brands).
+          if (c.key === "oem" && st && !st.available) return null;
           const granted = st?.granted ?? false;
           const unavailable = st ? !st.available : false;
           const permanentlyDenied = !!st && !granted && st.canAskAgain === false;
