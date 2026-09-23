@@ -308,3 +308,16 @@ force-opens app call-style). User must be ONLINE for the locked/closed SSE ring 
 Verified in-sandbox: tsc clean, 0 eslint errors, prebuild OK, BoM+newArch+manifest confirmed.
 NOT device-verified (no real Android/FCM here) — needs EAS build + fresh install. If EAS build fails
 to compile with BoM 33.16, remove ./plugins/withFirebaseBomPin.js from app.json plugins.
+
+## Update (2026-06) — FCM config CONFIRMED FIXED; remaining error is device-side
+- After the belt-and-suspenders build, on-device error changed to
+  IOException: TOO_MANY_REGISTRATIONS (fid-reset:yes). This is Android's hard ~100-FCM-
+  registrations-per-device cap — NOT an app/project/config problem. Proves the token request now
+  reaches FCM and the earlier config errors (400 / "API disabled") are resolved.
+- Locked/closed full-screen SSE ring is fully working in all conditions (user-confirmed) — DO NOT
+  touch backgroundRing/notifications ring path.
+- Code: classifyTokenError now detects too_many_registrations + play_services and BAILS (no useless
+  FID reset/retry), with a clear on-screen device-fix hint (clear Google Play services storage /
+  uninstall apps / restart).
+- USER DEVICE FIX (100%): Settings → Apps → Google Play services → Storage → Manage space → Clear all
+  data → restart → reopen app → Fix. Or uninstall unused apps. Normal user devices won't hit this cap.
