@@ -4,14 +4,19 @@ documents, admins see everything."""
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from fastapi.responses import Response
 from datetime import datetime
-import io, csv, zipfile
-from middleware.auth import get_current_user, require_role
+import io, csv, zipfile, hmac, hashlib
+from middleware.auth import get_current_user, require_role, SECRET
 from config.database import get_settings, now_iso
 import services.invoice_service as inv_svc
 
 router = APIRouter(prefix="/invoices", tags=["invoices"])
 
 _MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+
+def _share_sig(invoice_id: str) -> str:
+    """Unguessable HMAC signature that authorises the public invoice link."""
+    return hmac.new(SECRET.encode(), f"invoice-share:{invoice_id}".encode(), hashlib.sha256).hexdigest()[:32]
 
 
 @router.get("")
@@ -154,6 +159,35 @@ async def email_invoice_ep(invoice_id: str, body: dict = Body(default=None), use
             raise HTTPException(400, "Koi email address nahi mila — apna email daal kar bhejein.")
         raise HTTPException(400, r.get("error") or "Email bhejne me dikkat aayi.")
     return {"ok": True, "sent_to": to or (inv.get("customer_snapshot") or {}).get("email")}
+
+
+@router.get("/{invoice_id}/share-link")
+async def invoice_share_link(invoice_id: str, user: dict = Depends(get_current_user)):
+    """Return a signed token for a PUBLIC, no-login invoice link. The caller (owner)
+    builds the full URL as {API_BASE}/invoices/pub/{id}?s={sig}."""
+    inv = await inv_svc.get_invoice(user, invoice_id)
+    if inv is None:
+        raise HTTPException(404, "Invoice not found")
+    if inv == "forbidden":
+        raise HTTPException(403, "Not allowed")
+    sig = _share_sig(invoice_id)
+    return {"id": invoice_id, "sig": sig, "path": f"/invoices/pub/{invoice_id}?s={sig}"}
+
+
+@router.get("/pub/{invoice_id}")
+async def invoice_public_pdf(invoice_id: str, s: str = Query(default=""), download: int = 0):
+    """PUBLIC invoice PDF — no auth, gated by the HMAC signature `s`. Anyone with the
+    link can open/download the invoice. Served inline so browsers render + allow save."""
+    if not s or not hmac.compare_digest(s, _share_sig(invoice_id)):
+        raise HTTPException(404, "Invoice not found")
+    inv = await inv_svc.get_invoice_public(invoice_id)
+    if inv is None:
+        raise HTTPException(404, "Invoice not found")
+    from services.invoice_pdf_service import build_invoice_pdf
+    pdf = build_invoice_pdf(inv)
+    disp = "attachment" if download else "inline"
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'{disp}; filename="{inv.get("invoice_number", "invoice")}.pdf"'})
 
 
 @router.post("/render/pdf")

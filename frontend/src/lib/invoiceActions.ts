@@ -17,22 +17,39 @@ export function invoiceSummaryText(inv: any) {
 }
 
 /** Download the server-rendered invoice PDF (same template as preview/print) to a
-    cache file, sending the auth token so the request is authorised. Validates that a
-    non-empty file actually landed so we never share/print a broken/empty document. */
+    cache file, sending the auth token so the request is authorised. Falls back to a
+    manual byte-fetch if the native downloader fails on some ROMs, and validates that
+    a non-empty file actually landed so we never share/print a broken/empty document. */
 export async function fetchInvoicePdfFile(inv: any): Promise<File> {
   const dir = new Directory(Paths.cache, "invoices");
   dir.create({ intermediates: true, idempotent: true });
   const file = new File(dir, `${safeName(inv.invoice_number)}.pdf`);
   const token = await getToken();
-  const out = await File.downloadFileAsync(`${API_BASE}/invoices/${inv.id}/pdf`, file, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    idempotent: true,
-  });
-  // Guard against a silent failure (auth error / empty body) being saved as a 0-byte
-  // "PDF" and then shared as a blank attachment.
-  const size = (() => { try { return Number(out?.size ?? file.size ?? 0); } catch { return 0; } })();
-  if (!size) throw new Error("empty pdf");
-  return out;
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const url = `${API_BASE}/invoices/${inv.id}/pdf`;
+  // Primary: native downloader (fast, streamed to disk).
+  try {
+    const out = await File.downloadFileAsync(url, file, { headers, idempotent: true });
+    const size = (() => { try { return Number(out?.size ?? file.size ?? 0); } catch { return 0; } })();
+    if (size) return out;
+  } catch { /* some ROMs fail the native downloader — fall back to a manual fetch */ }
+  // Fallback: fetch the bytes ourselves and write the file (guarantees a real PDF lands).
+  const r = await fetch(url, { headers });
+  if (!r.ok) throw new Error("pdf failed");
+  const bytes = new Uint8Array(await r.arrayBuffer());
+  if (!bytes.length) throw new Error("empty pdf");
+  try { if (file.exists) file.delete(); } catch { /* ignore */ }
+  try { file.create({ overwrite: true } as any); } catch { /* may already exist */ }
+  file.write(bytes);
+  return file;
+}
+
+/** Ask the backend for a PUBLIC, no-login link to this invoice's PDF that ANYONE can
+    open/download (gated by an unguessable signature). */
+export async function getInvoiceShareLink(inv: any): Promise<string> {
+  const r = await api.get<any>(`/invoices/${inv.id}/share-link`);
+  if (!r?.sig) throw new Error("no link");
+  return `${API_BASE}/invoices/pub/${inv.id}?s=${r.sig}`;
 }
 
 async function webBlob(inv: any) {
@@ -96,6 +113,29 @@ export const copyText = async (text: string) => {
     caller can surface the backend message (e.g. "email not configured"). */
 export async function emailInvoice(inv: any, to?: string) {
   return api.post<any>(`/invoices/${inv.id}/email`, to ? { to } : {});
+}
+
+/** Email flow used by the app: on a phone this OPENS the device mail app with the
+    invoice PDF already ATTACHED (expo-mail-composer). If no mail app is available
+    (or on web), it falls back to the backend server-send. */
+export async function emailInvoiceCompose(inv: any, to?: string): Promise<"composed" | "sent"> {
+  if (Platform.OS !== "web") {
+    try {
+      const MailComposer = require("expo-mail-composer");
+      if (await MailComposer.isAvailableAsync().catch(() => false)) {
+        const file = await fetchInvoicePdfFile(inv);
+        await MailComposer.composeAsync({
+          recipients: to ? [to] : [],
+          subject: `Invoice ${inv.invoice_number || ""}`.trim(),
+          body: `${invoiceSummaryText(inv)}\n\nPlease find the invoice PDF attached.`,
+          attachments: [file.uri],
+        });
+        return "composed";
+      }
+    } catch { /* no mail app / attach failed → server-send below */ }
+  }
+  await emailInvoice(inv, to);
+  return "sent";
 }
 
 export const shareStatusLabel = (inv: any) => statusMeta(inv?.payment_status).label;

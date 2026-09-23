@@ -1325,6 +1325,22 @@ async def get_invoice(user: dict, invoice_id: str):
     return strip_for_role(inv, role)
 
 
+async def get_invoice_public(invoice_id: str):
+    """Prepare an invoice for a PUBLIC (unauthenticated) shareable link. Renders the
+    same customer-facing document that gets emailed/attached — safe to expose only
+    because the link carries an unguessable HMAC signature (see invoice_routes)."""
+    inv = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    if not inv:
+        return None
+    role = "customer"
+    inv = await fill_live_branding(inv)
+    inv = await _attach_role_earning(inv, role)
+    inv = await _attach_bill_to(inv, role)
+    inv = _mask_customer_pii(inv, role)
+    inv = _strip_platform_fees_invoice(inv, role)
+    return strip_for_role(inv, role)
+
+
 async def query_all(user: dict, params: dict, limit: int = 2000):
     """All matching invoices (no pagination) — for bulk ZIP / reports."""
     await sync_invoices()
