@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

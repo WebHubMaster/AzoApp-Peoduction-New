@@ -10,7 +10,7 @@
     "boot_and_navigate_to_permission_screen": "PASS - splash gate routed to /onboarding/notifications, no red-screen, no JS crash. Only expected warnings: useNativeDriver JS fallback on web, expo-notifications web push listener no-op, and CORS blocks against api.webhubmaster.shop (expected per instructions).",
     "permission_screen_render": "PASS - Title 'Never miss a job' visible, '0/4 ready' pill visible, all 4 cards visible: Job Ring Alerts (REQUIRED), Full-Screen Call Alert (Build only), Run in Background (Build only), Location.",
     "web_actionable_buttons": "PASS - data-testid perm-notifications-allow (count=1) and perm-location-allow (count=1) rendered with 'Allow' label. Sticky bottom bar shows 'Allow all permissions' (enable-all-permissions-button) and 'Maybe later' (skip-notifications-button).",
-    "maybe_later_navigation": "PASS - Tapping skip-notifications-button navigated from permission screen to https://fcm-token-fix-3.preview.emergentagent.com/login and rendered 'Sign in to continue' screen without crash."
+    "maybe_later_navigation": "PASS - Tapping skip-notifications-button navigated from permission screen to https://expo-troubleshoot-5.preview.emergentagent.com/login and rendered 'Sign in to continue' screen without crash."
   },
   "test_report_links": [],
   "action_items": [],
@@ -20,5 +20,5 @@
   "seed_data_creation": "None",
   "retest_needed": false,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "Preview URL: https://fcm-token-fix-3.preview.emergentagent.com. Mobile viewport 430x900. Splash + entrance animations require ~9-10s wait after load. Backend api.webhubmaster.shop is CORS-blocked on this preview - expected; do NOT test login/API flows here. Permission screen testIDs verified: enable-all-permissions-button, skip-notifications-button, perm-notifications-allow, perm-location-allow. 'Maybe later' routes to /login."
+  "context_for_next_testing_agent": "Preview URL: https://expo-troubleshoot-5.preview.emergentagent.com. Mobile viewport 430x900. Splash + entrance animations require ~9-10s wait after load. Backend api.webhubmaster.shop is CORS-blocked on this preview - expected; do NOT test login/API flows here. Permission screen testIDs verified: enable-all-permissions-button, skip-notifications-button, perm-notifications-allow, perm-location-allow. 'Maybe later' routes to /login."
 }
