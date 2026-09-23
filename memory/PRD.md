@@ -456,3 +456,11 @@ table need production/build verification.
 - APIs (real): GET /merchant/referral/customers?page&page_size&q ; GET /merchant/referral/customers/{id}. Switched off the old /merchant/customers (ops) endpoint to match web exactly.
 - Verified live (local backend, demo merchant +919000000002): 3 customers (Ravi/Sunita/Amit), report total ₹123, detail Ravi ₹60 w/ 2 services. tsc clean. Visual screenshots captured for list + detail.
 - IMPORTANT: set backend/.env MONGO_URL+DB_NAME to run local backend for verification; frontend/.env untouched (app still targets its configured backend).
+
+## [Update] Merchant Mobile Scan QR (HUBAHU web parity) — 2026-09-23
+- Rebuilt `frontend/app/merchant/scanqr.tsx` to match web `pages/merchant/scanqr/ScanQRModule.jsx` + `QRAnalytics.jsx`.
+- Added dep `react-native-qrcode-svg` (uses existing react-native-svg) for real QR rendering.
+- Sections: Hero (real QR of booking link `${MEDIA_ORIGIN}/?ref=CODE`, Verified chip, business name, tagline, link, Ref/Active/Verified/Booking chips, Share + WhatsApp), Booking link card (copy/share), Poster builder (color presets, business name, phone, tagline toggle, live preview, Print via expo-print, Save/Share PDF via expo-print+expo-sharing, config persisted to /merchant/panel/qr/config), QR Performance (range tabs 7d/30d/90d/year, 4 stat cards, month scans/bookings, SVG scans-vs-bookings bars, recent activity).
+- APIs (real): GET /merchant/my-code, GET+PUT /merchant/panel/qr/config, GET /merchant/panel/qr/analytics?range=, POST /merchant/qr-scan (public scan log).
+- Web-only bits adapted natively: html2canvas/jsPDF poster export -> expo-print PDF+share; recharts chart -> react-native-svg bars.
+- Verified live (demo merchant): analytics total_scans=6 after seeding, bookings=8, series=30, recent=8; tsc clean; screenshots captured (hero + poster builder + performance).
