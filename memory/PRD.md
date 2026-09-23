@@ -389,3 +389,28 @@ table need production/build verification.
   relaunching the app for the full-screen intent (FCM-killed path).
 - Verified: tsc clean, eslint 0 errors. NOTE: native Android lock-screen ring — must be
   confirmed on a real device build, not in this sandbox.
+
+## 2026-06 — Two-device ring investigation (Vivo V29e vs Poco M2 Pro) + fixes
+- Device A (Vivo V29e): FCM OFF (too_many_registrations) but Job Ring full-screen WORKS →
+  it rings via the FCM-INDEPENDENT SSE foreground-service listener (Path 1), which needs
+  partner=online. FCM being down doesn't matter for the ring.
+- Device B (Poco M2 Pro / MIUI): FCM ON, partner online, but only a plain notification, no
+  call-style. Root cause = MIUI/aggressive-OEM blocks background-activity-starts and
+  downgrades full-screen intents unless the OEM-specific "Autostart" + "Display pop-up
+  windows while running in background" + "Show on lock screen" are enabled (separate from
+  standard Android perms). Standard "Full-Screen on Unlocked"/overlay perm is NOT enough on MIUI.
+- Fixes implemented:
+  1. OEM autostart/pop-up deep-links: notifications.ts isAggressiveOem()/oemState()/
+     requestOemSettings() launch MIUI/ColorOS/FuntouchOS/EMUI security-centre activities
+     (autostart + permission editor) via expo-intent-launcher (best-effort, fallback to app
+     settings). New "Autostart & Pop-up" permission card shown ONLY on aggressive OEMs in
+     AlertsPanel (dashboard) + permissions.tsx. Added PermKey "oem" + allPermissionStates.
+  2. too_many_registrations self-heal: registerPushToken() now does a one-time Firebase
+     Installation reset (deleteToken + installations.delete) on too_many_registrations before
+     bailing (frees this app's FCM slot) — previously bailed immediately (fid-reset:no).
+  3. Delivery-path diagnostics: displayJobRing(d, ctx, source) reports src "sse"|"fcm";
+     stored in ring_status_logs + fcm_devices.last_ring_src; shown in AlertsPanel "last ring"
+     (via live/push) and admin per-device table (delivered · push/live).
+  4. Full-screen ring already posted as non-FGS (prior fix) so fullScreenAction fires on lock.
+- Verified: tsc clean, eslint 0 errors (frontend + web_panel), ruff F clean.
+- NOTE: native Android — MUST verify on a NEW BUILD/APK on both phones.

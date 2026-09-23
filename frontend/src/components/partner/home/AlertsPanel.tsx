@@ -8,7 +8,7 @@ import { useTheme } from "@/src/theme";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
-import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption, overlayState, requestOverlayPermission } from "@/src/lib/notifications";
+import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption, overlayState, requestOverlayPermission, oemState, requestOemSettings } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { TW } from "./tw";
@@ -32,10 +32,10 @@ export function TestRingCard() {
   const checkPerm = useCallback(() => {
     getPermissionStatus().then((p) => setPerm(p.granted ? "granted" : p.canAskAgain ? "prompt" : "denied")).catch(() => setPerm("prompt"));
   }, []);
-  const [extra, setExtra] = useState<{ fsi?: any; battery?: any; overlay?: any }>({});
+  const [extra, setExtra] = useState<{ fsi?: any; battery?: any; overlay?: any; oem?: any }>({});
   const loadExtra = useCallback(() => {
     if (Platform.OS !== "android") return;
-    Promise.all([fullScreenState(), batteryState(), overlayState()]).then(([fsi, battery, overlay]) => setExtra({ fsi, battery, overlay })).catch(() => {});
+    Promise.all([fullScreenState(), batteryState(), overlayState(), oemState()]).then(([fsi, battery, overlay, oem]) => setExtra({ fsi, battery, overlay, oem })).catch(() => {});
   }, []);
   useEffect(() => { checkPerm(); loadExtra(); }, [checkPerm, loadExtra]);
   // Re-check when returning from a system settings screen.
@@ -196,6 +196,23 @@ export function TestRingCard() {
               <Text style={{ color: extra.overlay?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.overlay?.granted ? "Open" : "Allow"}</Text>
             </Pressable>
           </View>
+          {/* OEM autostart / pop-up permission — MIUI/ColorOS/FuntouchOS block the
+              call-style ring (show only a notification) without this. Only shown on
+              aggressive-OEM phones (Poco/Redmi/Xiaomi, Oppo/Realme, Vivo, Huawei). */}
+          {extra.oem?.available ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Icon name={extra.oem?.granted ? "check-circle" : "shield-alert-outline"} size={15} color={extra.oem?.granted ? TW.emerald600 : TW.red600} />
+              <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Autostart & Pop-up{extra.oem?.granted ? " · opened" : " · needed on this phone"}</Text>
+              <Pressable testID="alert-allow-oem" onPress={() => requestOemSettings().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.oem?.granted ? colors.surfaceSubtle : colors.primary }}>
+                <Text style={{ color: extra.oem?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.oem?.granted ? "Open" : "Enable"}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          {extra.oem?.available && !extra.oem?.granted ? (
+            <Text style={{ color: TW.amber600, fontSize: 10.5, lineHeight: 15 }}>
+              Your phone brand blocks the call-style ring unless you turn ON “Autostart” and “Display pop-up windows while running in background” (and “Show on lock screen”). Tap Enable, find AzoApp, and turn these ON — otherwise you’ll only get a silent notification.
+            </Text>
+          ) : null}
         </View>
       ) : null}
       <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -234,7 +251,7 @@ export function TestRingCard() {
           <View testID="ring-diagnostic" style={{ marginTop: 8, borderRadius: 12, borderWidth: 1, borderColor: rs.ok ? TW.emerald200 : "#FECACA", backgroundColor: colors.surfaceSubtle, padding: 12, gap: 3 }}>
             <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>Last job ring on this phone</Text>
             <Text style={{ color: rs.ok ? TW.emerald600 : TW.red600, fontSize: 11, fontWeight: "600" }}>
-              {rs.ctx === "bg" ? "App closed / locked" : "App open"}: {rs.ok ? (rs.mode === "fgs" ? "full ring shown ✓" : "ring shown (single sound) ✓") : "NOT shown ✗"}
+              {rs.ctx === "bg" ? "App closed / locked" : "App open"}: {rs.ok ? `full-screen ring shown ✓${rs.src ? ` (via ${rs.src === "fcm" ? "push" : "live"})` : ""}` : "NOT shown ✗"}
             </Text>
             {rs.fsi === false ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
