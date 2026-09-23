@@ -5,16 +5,18 @@ import { useTheme, radius, spacing, fontSize } from "@/src/theme";
 import { Icon, MdiName } from "@/src/components/Icon";
 
 type ToastKind = "success" | "error" | "info";
+type ToastAction = { label: string; onPress: () => void };
 interface ToastItem {
   id: number;
   kind: ToastKind;
   message: string;
+  action?: ToastAction;
 }
 interface ToastCtx {
-  show: (message: string, kind?: ToastKind) => void;
-  success: (m: string) => void;
-  error: (m: string) => void;
-  info: (m: string) => void;
+  show: (message: string, kind?: ToastKind, action?: ToastAction) => void;
+  success: (m: string, action?: ToastAction) => void;
+  error: (m: string, action?: ToastAction) => void;
+  info: (m: string, action?: ToastAction) => void;
 }
 
 const Ctx = createContext<ToastCtx | null>(null);
@@ -31,20 +33,20 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   }, [anim]);
 
   const show = useCallback(
-    (message: string, kind: ToastKind = "info") => {
+    (message: string, kind: ToastKind = "info", action?: ToastAction) => {
       if (timer.current) clearTimeout(timer.current);
-      setToast({ id: Date.now(), kind, message });
+      setToast({ id: Date.now(), kind, message, action });
       Animated.spring(anim, { toValue: 1, useNativeDriver: true, friction: 8 }).start();
-      timer.current = setTimeout(hide, 2800);
+      timer.current = setTimeout(hide, action ? 6000 : 2800);
     },
     [anim, hide],
   );
 
   const api: ToastCtx = {
     show,
-    success: (m) => show(m, "success"),
-    error: (m) => show(m, "error"),
-    info: (m) => show(m, "info"),
+    success: (m, action) => show(m, "success", action),
+    error: (m, action) => show(m, "error", action),
+    info: (m, action) => show(m, "info", action),
   };
 
   const kindMeta: Record<ToastKind, { icon: MdiName; color: string }> = {
@@ -86,6 +88,16 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
           >
             <Icon name={kindMeta[toast.kind].icon} size={22} color={kindMeta[toast.kind].color} />
             <Text style={{ flex: 1, color: colors.text, fontSize: fontSize.sm, fontWeight: "600" }}>{toast.message}</Text>
+            {toast.action ? (
+              <Pressable
+                testID="toast-action"
+                onPress={() => { const a = toast.action; hide(); a?.onPress(); }}
+                hitSlop={8}
+                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: radius.sm, backgroundColor: kindMeta[toast.kind].color }}
+              >
+                <Text style={{ color: "#fff", fontSize: fontSize.sm, fontWeight: "800" }}>{toast.action.label}</Text>
+              </Pressable>
+            ) : null}
           </Pressable>
         </Animated.View>
       ) : null}

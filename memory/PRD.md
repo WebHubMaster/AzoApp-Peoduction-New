@@ -421,3 +421,10 @@ table need production/build verification.
 - Share link "Not Found" fixed: new PUBLIC landing page `GET /api/invoices/pub/{id}/page?s=<sig>` renders branded invoice summary + inline preview + Download button and auto-downloads the PDF. Frontend `getInvoiceShareLink` now points to this page. HMAC-gated, no login.
 - Files: backend/routes/invoice_routes.py (landing page route), frontend/src/lib/invoiceActions.ts (SAF save + link), frontend/app/(partner)/partner/invoices.tsx (toast).
 - Verified via curl: landing 200 (valid sig) / 404 (bad sig), PDF inline + download=1 attachment.
+
+## [2026-06] Partner App — Invoice actions enhancements
+- Open After Save: Toast now supports an action button. After a PDF saves to Downloads (Android SAF), the success toast shows an "Open" button that opens the file in the device PDF viewer (IntentLauncher ACTION_VIEW). Toast auto-dismiss extended to 6s when an action is present.
+- Direct WhatsApp: "Share on WhatsApp" on Android now jumps straight into WhatsApp's contact chooser with the PDF attached (IntentLauncher ACTION_SEND + getContentUriAsync, packageName com.whatsapp), skipping the generic app picker. Graceful fallback to the system share sheet, then a WhatsApp text link.
+- New Android config plugin plugins/withShareQueries.js adds <queries> for com.whatsapp / com.whatsapp.w4b + SEND/VIEW application/pdf so package visibility works on Android 11+ (targetSdk 36). Registered in app.json.
+- Files: frontend/src/components/Toast.tsx (action button), frontend/src/lib/invoiceActions.ts (openLocalFile + direct-WhatsApp + saved URI), frontend/app/(partner)/partner/invoices.tsx (Open action), frontend/plugins/withShareQueries.js, frontend/app.json.
+- Requires an APK/dev-build rebuild (new native config plugin + intent usage).
