@@ -7,7 +7,7 @@ import json
 import time
 
 # Backend base URL from frontend/.env
-BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
 
 # Test credentials (demo_mode)
 ADMIN_PHONE = "+919000000000"

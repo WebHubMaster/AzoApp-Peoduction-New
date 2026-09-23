@@ -53,6 +53,30 @@ function withManifest(config) {
       "android:value": "false",
       "tools:replace": "android:value",
     } });
+    // Manifest merger conflict fix: expo-notifications injects the Firebase
+    // Messaging default notification color/icon meta-data with OUR values
+    // (@color/notification_icon_color, @drawable/notification_icon), while the
+    // [:react-native-firebase_messaging] library ships the SAME meta-data with
+    // its own defaults (@color/white). The merger fails because two libraries
+    // set the same attribute to different values. We re-declare these meta-data
+    // with `tools:replace` so OUR value wins instead of aborting the build.
+    // This keeps the notification colour/icon exactly as configured — the
+    // ring / reminder / push behaviour is untouched.
+    const RES_META = [
+      { name: "com.google.firebase.messaging.default_notification_color", res: "@color/notification_icon_color" },
+      { name: "com.google.firebase.messaging.default_notification_icon", res: "@drawable/notification_icon" },
+    ];
+    for (const { name, res } of RES_META) {
+      // keep whatever resource value expo-notifications already set (if present)
+      const prev = app["meta-data"].find((m) => m.$["android:name"] === name);
+      const resource = (prev && prev.$["android:resource"]) || res;
+      app["meta-data"] = app["meta-data"].filter((m) => m.$["android:name"] !== name);
+      app["meta-data"].push({ $: {
+        "android:name": name,
+        "android:resource": resource,
+        "tools:replace": "android:resource",
+      } });
+    }
     app.service = app.service || [];
     if (!app.service.some((s) => s.$["android:name"] === "app.notifee.core.ForegroundService")) {
       app.service.push({ $: {

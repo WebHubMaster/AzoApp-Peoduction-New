@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

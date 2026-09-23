@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 # Configuration
-BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"
 MERCHANT_PHONE = "+919000000002"

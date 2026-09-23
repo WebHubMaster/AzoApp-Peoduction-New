@@ -74,6 +74,7 @@
       "expo-audio",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
+      "./plugins/withJobRingAndroid.js",
       [
         "expo-notifications",
         {
@@ -82,7 +83,6 @@
           "enableBackgroundRemoteNotifications": true
         }
       ],
-      "./plugins/withJobRingAndroid.js",
       [
         "expo-build-properties",
         {

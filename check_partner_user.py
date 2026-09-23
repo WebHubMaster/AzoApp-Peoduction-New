@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
+BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"
