@@ -295,6 +295,102 @@ async def google_services_status() -> dict:
             "web_config": row.get("web_config", {})}
 
 
+async def fcm_v1_send_probe() -> dict:
+    """Definitively tell whether 'Firebase Cloud Messaging API (V1)' is ENABLED for
+    the project the backend sends from — using the stored service-account with a
+    DRY-RUN send to a dummy token (no real delivery). If V1 is disabled the API
+    returns 403 SERVICE_DISABLED/PERMISSION_DENIED; if it's enabled the dummy token
+    is rejected with INVALID_ARGUMENT / NOT_FOUND (which proves the API works)."""
+    sa = await _load_service_account()
+    if not sa:
+        return {"ok": None, "reason": "no_service_account",
+                "hint": "Upload the Firebase service-account JSON in Admin so FCM V1 can be verified."}
+    try:
+        from firebase_admin import messaging
+        app = _init_app(sa)
+        msg = messaging.Message(token="AZO_FCM_V1_PROBE_INVALID_TOKEN", data={"probe": "1"})
+        await asyncio.to_thread(messaging.send, msg, True, app)  # dry_run=True
+        return {"ok": True, "reason": "fcm_v1_enabled", "project_id": sa.get("project_id")}
+    except Exception as e:  # noqa: BLE001
+        code = (getattr(e, "code", "") or "").lower()
+        msg = str(e)
+        low = msg.lower()
+        if ("registration-token-not-registered" in low or "invalid-argument" in low
+                or "invalid registration" in low or "not found" in low or "invalid" in code):
+            return {"ok": True, "reason": "fcm_v1_enabled", "project_id": sa.get("project_id"),
+                    "detail": "dummy token rejected — the FCM V1 API itself is reachable/enabled."}
+        if ("service_disabled" in low or "permission_denied" in low or "has not been used" in low
+                or "is disabled" in low or "403" in low or "permission-denied" in code):
+            return {"ok": False, "reason": "fcm_v1_disabled", "detail": msg[:300],
+                    "project_id": sa.get("project_id"),
+                    "enable_url": f"https://console.cloud.google.com/apis/library/fcm.googleapis.com?project={sa.get('project_id')}",
+                    "hint": ("'Firebase Cloud Messaging API (V1)' is DISABLED for project "
+                             f"'{sa.get('project_id')}'. Enable it in Google Cloud Console (link above), then re-test.")}
+        return {"ok": None, "reason": "unknown", "detail": msg[:300], "project_id": sa.get("project_id")}
+
+
+async def android_registration_diagnostic(package_name: str = "app.azoapp.partner") -> dict:
+    """Explain WHY the Android app gets 'FCM Registration failed!' from
+    getDevicePushTokenAsync — WITHOUT needing a device.
+
+    The native token call (FirebaseMessaging.getToken) needs, in order:
+      1. google-services.json baked into the APK (project + api key + app id), and
+      2. the project's 'Firebase Installations API' enabled + the Android API key
+         NOT restricted away from it (this is what mints the FID getToken depends on).
+
+    We probe the SAME api-key/project/app-id that the APK carries (read from the
+    uploaded google-services.json) so the admin sees the exact blocking API + a
+    one-line fix, instead of a vague 'device not registered'."""
+    row = await db.fcm_config.find_one({"_id": "google_services"})
+    if not row or not row.get("raw"):
+        return {"ok": None, "reason": "google_services_not_uploaded",
+                "hint": ("Upload the app's google-services.json in Admin -> Integration Center -> "
+                         "Firebase so the Android push credentials (project + api key) can be verified. "
+                         "NOTE: this must be the SAME google-services.json that is bundled into the APK.")}
+    try:
+        gs = json.loads(row["raw"])
+    except Exception:  # noqa: BLE001
+        return {"ok": None, "reason": "google_services_invalid",
+                "hint": "The stored google-services.json is not valid JSON — re-upload it."}
+    web = _derive_web_config(gs, package_name) or _derive_web_config(gs)
+    project_id, api_key, app_id = web.get("projectId"), web.get("apiKey"), web.get("appId")
+    if not (project_id and api_key and app_id):
+        return {"ok": None, "reason": "incomplete_google_services", "project_id": project_id,
+                "hint": f"google-services.json has no Android client for package '{package_name}'. "
+                        "Add that package in Firebase console and re-download google-services.json."}
+    probe = await check_web_api_key({"apiKey": api_key, "projectId": project_id, "appId": app_id})
+    checks = probe.get("checks", [])
+    installations = next((c for c in checks if "Installations" in c.get("api", "")), {})
+    blocked = [c.get("api") for c in checks if not c.get("ok")]
+    ok = bool(installations.get("ok"))
+    api_key_tail = "…" + api_key[-6:] if api_key else ""
+    fcm_v1 = await fcm_v1_send_probe()
+    out = {"ok": ok and fcm_v1.get("ok") is not False, "project_id": project_id, "app_id": app_id,
+           "api_key_tail": api_key_tail, "checks": checks, "fcm_v1": fcm_v1,
+           "enable_url": f"https://console.cloud.google.com/apis/library/firebaseinstallations.googleapis.com?project={project_id}"}
+    if not ok:
+        detail = (installations.get("detail") or "").strip()
+        out["reason"] = "installations_api_blocked"
+        out["hint"] = (
+            f"'FCM Registration failed!' on partners' phones = the Firebase Installations API is DISABLED or the "
+            f"Android API key ({api_key_tail}) is restricted away from it for project '{project_id}'. "
+            f"Fix: Google Cloud Console -> project {project_id} -> Enable 'Firebase Installations API' AND "
+            f"'Firebase Cloud Messaging API' (V1); then APIs & Services -> Credentials -> the Android API key -> "
+            f"API restrictions -> allow both (or 'Don't restrict key'). Blocked now: {', '.join(blocked) or 'installations'}."
+            + (f" Server said: {detail}" if detail else ""))
+    elif fcm_v1.get("ok") is False:
+        out["reason"] = "fcm_v1_disabled"
+        out["hint"] = fcm_v1.get("hint") or "Firebase Cloud Messaging API (V1) is disabled for the project."
+    else:
+        out["reason"] = "apis_reachable"
+        out["hint"] = ("Firebase Installations API + FCM V1 are reachable with this project's credentials. "
+                       "If phones STILL get 'FCM Registration failed!': (a) make sure the SAME google-services.json "
+                       "is bundled in the APK, (b) update Google Play services on the device, (c) rebuild after the "
+                       "'firebase_messaging_installation_id_enabled=false' manifest fix, and (d) confirm Firebase "
+                       "App Check is NOT enforced for Cloud Messaging on this project.")
+    return out
+
+
 async def get_google_services_json() -> str:
     row = await db.fcm_config.find_one({"_id": "google_services"})
     return row.get("raw") if row else None

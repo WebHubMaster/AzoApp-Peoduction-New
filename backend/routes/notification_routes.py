@@ -53,12 +53,13 @@ async def my_devices(user=Depends(get_current_user)):
     from config.database import db
     rows = await fcm_service.list_devices(user["id"])
     subs = await webpush_service.list_subs(user["id"])
-    me = await db.users.find_one({"id": user["id"]}, {"ring_state": 1, "_id": 0})
+    me = await db.users.find_one({"id": user["id"]}, {"ring_state": 1, "push_state": 1, "_id": 0})
     # Count BOTH channels so a browser registered via standard Web Push (VAPID)
     # is treated as a registered device (no false "device not registered" warning).
     return {"count": len(rows) + len(subs), "devices": rows,
             "webpush": subs, "webpush_count": len(subs),
-            "ring_state": (me or {}).get("ring_state")}
+            "ring_state": (me or {}).get("ring_state"),
+            "push_state": (me or {}).get("push_state")}
 
 
 @router.post("/test-self")

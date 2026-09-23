@@ -1,73 +1,77 @@
-# FCM Push-Token Registration Fix (partner "NO_TOKEN" / "FCM Registration failed!")
+# "FCM Registration failed!" — full diagnosis & fix
 
-## Root cause (confirmed, not guessed)
-`frontend/src/lib/notifications.ts` fetches the native FCM device token via
-`expo-notifications` `getDevicePushTokenAsync()` (RNFB messaging is intentionally
-disabled). That native call was throwing **"FCM Registration failed!"** because the
-**`expo-notifications` config plugin was MISSING from `app.json` → `plugins`** — only
-`@react-native-firebase/app` was present. Without the `expo-notifications` plugin, the
-Android FCM setup that expo-notifications needs was not bundled into the EAS build, so
-the device could never register an FCM token → backend push had 0 devices → SKIPPED 0/0
-→ no full-screen job ring when the phone was locked / app closed.
+## Exactly where the error comes from (traced in native code)
+`frontend/src/lib/notifications.ts` → `getDevicePushTokenAsync()` runs
+`node_modules/expo-notifications/.../PushTokenModule.kt`:
+```kotlin
+val instance = FirebaseMessaging.getInstance()   // SUCCEEDS -> google-services.json IS bundled + Firebase init OK
+instance.token.addOnCompleteListener { task ->
+  if (!task.isSuccessful)
+    promise.reject("E_REGISTRATION_FAILED", "Fetching the token failed: ${task.exception?.message}") // <-- here
+}
+```
+So `task.exception.message == "FCM Registration failed!"`. `getInstance()` did NOT throw
+(so the bundled `google-services.json` is fine). The **`.token` network call was rejected by
+Google's servers** — i.e. a **Firebase project / Google-Cloud-API problem, not the RN module**
+(it failed both WITH and WITHOUT `@react-native-firebase/messaging`).
 
-## What changed (project / sender / plugin)
-- **Project / sender (UNCHANGED):** `azo-project-9f857`, sender `960503871336`. The app
-  keeps using `frontend/google-services.json` which already contains BOTH Android
-  packages `app.azoapp.homeservice` and `app.azoapp.partner`. `android.googleServicesFile`
-  is confirmed bundled (verified via `npx expo config` — see below).
-- **PLUGIN (THE FIX):** Added the `expo-notifications` config plugin to
-  `frontend/app.json` `plugins`:
-  ```json
-  [
-    "expo-notifications",
-    {
-      "icon": "./assets/notification-icon.png",
-      "color": "#0D47A1",
-      "enableBackgroundRemoteNotifications": true
-    }
-  ]
-  ```
-  (Sounds are intentionally NOT declared here — the job-ring tone is copied to
-  `res/raw/job_ring.wav` by `plugins/withJobRingAndroid.js`; adding `job-ring.wav` via the
-  expo plugin would create an invalid hyphenated Android resource name and break the build.)
-- **Token fetch hardened** (`notifications.ts` `registerPushToken`):
-  - POST_NOTIFICATIONS is confirmed granted BEFORE `getDevicePushTokenAsync` (Android 13+).
-  - Exponential backoff retry: 1s, 2s, 4s, 8s (5 attempts) for transient native failures.
-  - New `classifyTokenError()` maps the raw native error to a stable reason
-    (`play_services` / `fcm_registration_failed` / `network` / `no_token`) and reports the
-    exact reason + a fix hint to the backend, so the Admin panel shows the real cause.
-- **Backend sender-mismatch surfaced** (`services/fcm_service.py` `send_to_user`):
-  detects `messaging/mismatched-credential` / SenderId-mismatch on send, does NOT
-  deactivate the (valid) token, and logs a clear "upload the service-account for
-  azo-project-9f857" delivery reason.
-- **Admin diagnostics** (`controllers/notification_admin_controller.py` `notification_health`):
-  now compares the uploaded service-account project vs the app's google-services project
-  and returns `sender_mismatch` + a `reasons.sender_mismatch` message; `ready_for_push`
-  is false when they differ. New `google_services` block is included in the response.
+## Important: the "dynamic" admin Firebase config does NOT drive native registration
+Native `getDevicePushTokenAsync()` only uses (1) the `google-services.json` **baked into the
+APK at build time** and (2) the **project's Google-Cloud APIs**. The dynamic config in
+Admin → Integration Center → Firebase is for WEB push + the backend SENDER. It can NOT make
+native token registration succeed. Only the bundled file + enabled Cloud APIs can.
 
-## Manual steps you must still do (console + build + device)
-These cannot be done from the code sandbox:
+## Live probe result (real project azo-project-9f857 + real Android key from google-services.json)
+Run from the backend against Google:
+- **Firebase Installations API → 200 (ENABLED, key NOT restricted)**
+- **FCM Registration API → reachable**
 
-1. **Google Cloud Console → project `azo-project-9f857`** → APIs & Services → Enable:
-   - **Firebase Cloud Messaging API (V1)**
-   - **Firebase Installations API**
-   - **FCM Registration API** + **Firebase Installations API** must ALSO be allowed on the
-     Web/Browser API key restrictions (the Admin → Notifications health card flags this as
-     `web_api_key` if blocked).
-   If the legacy FCM API is disabled/expired, that is fine — only **V1** is required.
-2. **Backend FCM service account (SENDER MATCH):** In Admin → upload the Firebase
-   **service-account JSON for `azo-project-9f857`**. If a service-account from a different
-   project is uploaded, the Admin health card now shows `sender_mismatch` and pushes are
-   rejected even with a valid token.
-3. **EAS build** (`eas build -p android --profile production-apk`) — confirm the build logs
-   show `google-services.json` processing. Install the fresh APK.
-4. **On-device acceptance:** partner login → Admin → Notifications: device shows REGISTERED
-   (not NO_TOKEN); "Send test push" → DELIVERED 1/1; new booking rings full-screen with
-   sound on locked / closed / background; reschedule + 30-min reminder ring the same way.
+So the API key restriction / Installations API are NOT the blocker. Remaining possible causes,
+now each covered by a definitive check or a fix:
+
+| Cause | How it's handled now |
+|---|---|
+| **Firebase Cloud Messaging API (V1) disabled** for the project | Backend now does a **dry-run send probe with the service account** and the Admin health card reports `fcm_v1: enabled/disabled` + an enable link. |
+| **firebase-messaging 25.1+ FID breaking change** disabling legacy `getToken()` | Added manifest meta-data `firebase_messaging_installation_id_enabled=false` (`tools:replace`) in `plugins/withJobRingAndroid.js` — forces the legacy path expo-notifications uses. |
+| **APK bundled a different/placeholder google-services.json** | Admin diagnostic probes the EXACT project+key from the stored google-services.json; must match the APK. |
+| **Firebase App Check enforced for Cloud Messaging** | Called out in the hint — must be OFF (or the app must implement App Check). |
+| **Device Google Play services outdated** | App classifies + shows `play_services`; token fetch retries with backoff. |
+
+## Code changes in this round
+1. **Backend `services/fcm_service.py`**
+   - `android_registration_diagnostic()` — probes Firebase Installations API + FCM Registration
+     API with the app's real Android key/project and returns a precise reason + one-line fix + enable URL.
+   - `fcm_v1_send_probe()` — dry-run send with the service account to detect if FCM V1 API is disabled.
+2. **Backend `controllers/notification_admin_controller.py`** — `notification_health` now returns
+   `android_push` (with `fcm_v1`) and adds a `reasons.android_registration` line; gates `ready_for_push`.
+3. **Backend `routes/notification_routes.py`** — `/notifications/my-devices` now returns `push_state`
+   (the exact native error) so the app can display it.
+4. **App `src/components/partner/home/AlertsPanel.tsx`**
+   - The **"Fix"** button no longer shows a false "enabled" toast — it now runs the real
+     `registerPushToken()`, shows a spinner, and surfaces the exact failure reason.
+   - A red **"Why push is off"** card shows the exact native error string (e.g. `FCM Registration
+     failed!`) with a plain-language explanation + tap-to-copy detail.
+5. **App `src/lib/notifications.ts`** (prev round) — POST_NOTIFICATIONS-gated fetch, exponential
+   backoff (1/2/4/8s), `classifyTokenError()` reporting the real reason to the backend.
+6. **`app.json`** (prev round) — added the `expo-notifications` config plugin.
+
+## What YOU must do (cannot be done from code) — in priority order
+1. **Admin → Notifications → health card** now shows `android_push` + `fcm_v1`. Read it:
+   - If `fcm_v1: disabled` → open the enable link → **Enable "Firebase Cloud Messaging API"** for
+     `azo-project-9f857`, wait 2–3 min.
+   - If `android_registration: installations_api_blocked` → enable Installations API / un-restrict the key.
+2. **Firebase Console → App Check** → make sure Cloud Messaging is **NOT enforced** (or configure App Check).
+3. **Rebuild** the APK (`eas build -p android --profile production-apk`) so the manifest FID fix +
+   expo-notifications plugin ship. Confirm build logs show `google-services.json` processing, and that
+   the bundled file is the `azo-project-9f857` one.
+4. Install → partner login → Dashboard → **Alert check** card now shows the exact error if it still
+   fails; tap **Fix** and read it. When it succeeds it flips to "Background push: ON".
 
 ## Verified in sandbox
-- `npx expo config --type public` resolves cleanly with `expo-notifications` plugin +
-  `googleServicesFile: ./google-services.json` + `withJobRingAndroid` all present.
-- `eslint src/lib/notifications.ts` → 0 errors.
-- Backend `notification_health()` runs against the live DB and correctly reports
-  `sender_mismatch` (proven with a simulated mismatched service-account).
+- `npx expo config` resolves (expo-notifications plugin + withJobRing + googleServicesFile).
+- `node -c` on the plugin OK; eslint 0 new errors.
+- Backend `android_registration_diagnostic()` + `notification_health()` run live against
+  azo-project-9f857 and correctly report Installations=200 / FCM Registration reachable, with the
+  `fcm_v1` service-account probe wired in.
+- **On-device (APK) FCM token registration cannot be executed from this sandbox** — needs an EAS
+  build + a real phone.
