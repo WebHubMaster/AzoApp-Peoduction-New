@@ -141,6 +141,7 @@ async def notification_health():
     wc = integ.get("fcm_web_config", {}) or {}
     vapid = integ.get("fcm_vapid_key", "") or ""
     sa_row = await fcm_service.config_status()  # {configured, project_id, filename, updated_at}
+    gs_row = await fcm_service.google_services_status()  # app google-services.json project
 
     web_config_fields = ["apiKey", "authDomain", "projectId", "storageBucket",
                          "messagingSenderId", "appId"]
@@ -204,8 +205,20 @@ async def notification_health():
     if not integ.get("fcm_enabled"):
         reasons["enabled"] = "FCM integration toggle is off (integrations.fcm_enabled=false)"
 
+    # SENDER/PROJECT MATCH (critical): the service-account the backend sends WITH
+    # must be the SAME Firebase project the app registers its token FROM. A
+    # mismatch means valid tokens still get rejected on delivery (SenderId mismatch).
+    sa_project = sa_row.get("project_id", "")
+    gs_project = gs_row.get("project_id", "") if gs_row.get("configured") else ""
+    sender_mismatch = bool(sa_project and gs_project and sa_project != gs_project)
+    if sender_mismatch:
+        reasons["sender_mismatch"] = (
+            f"Service-account project ('{sa_project}') != app google-services project ('{gs_project}'). "
+            "Device push tokens will be REJECTED on delivery. Upload the service-account for the SAME project "
+            "(app uses azo-project-9f857 / sender 960503871336).")
+
     ready_for_push = (bool(integ.get("fcm_enabled")) and sa_row.get("configured", False)
-                      and not missing and bool(vapid))
+                      and not missing and bool(vapid) and not sender_mismatch)
 
     # Probe the browser-side token chain with the SAME web API key partners' phones use.
     api_key_check = {"ok": None, "checks": []}
@@ -241,6 +254,12 @@ async def notification_health():
             "project_id": sa_row.get("project_id", ""),
             "updated_at": sa_row.get("updated_at", ""),
         },
+        "google_services": {
+            "configured": gs_row.get("configured", False),
+            "project_id": gs_row.get("project_id", ""),
+            "packages": gs_row.get("packages", []),
+        },
+        "sender_mismatch": sender_mismatch,
         "web_config": {
             "configured": not missing,
             "missing_fields": missing,

@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

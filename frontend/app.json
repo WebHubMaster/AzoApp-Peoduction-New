@@ -73,6 +73,14 @@
       "expo-image",
       "expo-audio",
       "@react-native-firebase/app",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#0D47A1",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
       "./plugins/withJobRingAndroid.js",
       [
         "expo-build-properties",

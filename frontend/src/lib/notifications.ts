@@ -120,6 +120,19 @@ async function expoDeviceToken(): Promise<string> {
   } catch (e: any) { _lastExpoTokenErr = String(e?.message || e || ""); return ""; }
 }
 
+/** Classify the raw native FCM token error into a stable reason the admin panel
+ * can act on. "FCM Registration failed!" / FIS auth / installations => the
+ * Firebase project APIs (FCM V1 + Installations) or the bundled expo-notifications
+ * FCM setup are the problem; SERVICE_NOT_AVAILABLE / play services => the device. */
+function classifyTokenError(msg: string): string {
+  const m = (msg || "").toLowerCase();
+  if (!m) return "no_token";
+  if (m.includes("service_not_available") || m.includes("play services") || m.includes("playservices") || m.includes("missing_instanceid_service") || m.includes("api_unavailable")) return "play_services";
+  if (m.includes("fcm registration failed") || m.includes("fis_auth") || m.includes("authentication") || m.includes("installations") || m.includes("sender")) return "fcm_registration_failed";
+  if (m.includes("network") || m.includes("timeout") || m.includes("unavailable") || m.includes("connection")) return "network";
+  return "no_token";
+}
+
 export async function setupAndroidChannels() {
   const n = NotifeeApi();
   const mod = notifee();
@@ -638,16 +651,27 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     // (RNFB messaging is disabled — see messaging() above). getDevicePushTokenAsync
     // can fail transiently right after launch (Play Services / network not ready),
     // so retry a few times with backoff before giving up.
+    // POST_NOTIFICATIONS is already granted above (perm.granted) — required on
+    // Android 13+ BEFORE fetching the token. getDevicePushTokenAsync hits native
+    // FCM which can fail transiently right after launch (Play Services / network /
+    // Firebase Installations not ready), so retry with EXPONENTIAL backoff.
     _lastExpoTokenErr = "";
     let token = "";
-    for (let i = 0; i < 4 && !token; i += 1) {
+    for (let i = 0; i < 5 && !token; i += 1) {
       token = await expoDeviceToken();
-      if (!token && i < 3) await new Promise((r) => setTimeout(r, 1500 * (i + 1)));
+      if (!token && i < 4) await new Promise((r) => setTimeout(r, 1000 * 2 ** i)); // 1s, 2s, 4s, 8s
     }
 
     if (!token) {
-      report(false, "no_token", _lastExpoTokenErr || "expo-notifications could not obtain an FCM device token (check Google Play services / network / google-services.json)");
-      return { ok: false, reason: "no_token" };
+      const kind = classifyTokenError(_lastExpoTokenErr);
+      const hint =
+        kind === "play_services"
+          ? "Google Play services is unavailable/outdated on this device."
+          : kind === "fcm_registration_failed"
+            ? "Native FCM registration failed — enable 'Firebase Cloud Messaging API (V1)' + 'Firebase Installations API' for project azo-project-9f857 (sender 960503871336) and ship a build that bundles google-services.json + the expo-notifications plugin."
+            : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
+      report(false, kind, `${_lastExpoTokenErr || "no token"} — ${hint}`);
+      return { ok: false, reason: kind };
     }
 
     await postToken(token);

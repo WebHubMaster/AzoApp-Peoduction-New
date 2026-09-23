@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

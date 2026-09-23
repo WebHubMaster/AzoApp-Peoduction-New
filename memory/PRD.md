@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://fullscreen-alert-fix.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://fcm-token-fix-3.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -213,3 +213,30 @@ Env restored this session (fresh container had none): /app/backend/.env (local M
 - VERIFIED: testing_agent iteration_96 = backend 6/6 (100%). SSE /realtime/stream delivers job_request (immediate + delay=3) with full payload; ring-status stamps device + shows in admin health recent_ring_events; diagnostics 200. tsc/eslint 0 errors; plugin JS loads. Regression suite: backend/tests/test_iter96_sse_ring.py.
 - SSE envelope = {type, data:{booking_id,...}, ts}; backgroundRing._handle reads ev.data (matches JobRingOverlay/RealtimeContext).
 - LIMITATION (device-only): the Android foreground-service overlay itself can't be tested in-container. Needs the user's fresh EAS build. On aggressive Chinese OEMs a fully-killed process may still need battery-optimisation off (already prompted). While app is merely backgrounded/locked the FGS keeps the ring working without FCM.
+
+---
+## 2026-09-23 — FCM push-token registration bug fix (partner NO_TOKEN)
+**Problem:** Partner devices could not register an FCM push token ("FCM Registration failed!"),
+so all pushes SKIPPED 0/0 and the full-screen job ring never fired when locked/closed.
+
+**Root cause (confirmed):** `expo-notifications` config plugin was MISSING from
+`frontend/app.json` plugins (only `@react-native-firebase/app` present) → expo-notifications'
+Android FCM setup not bundled → `getDevicePushTokenAsync()` failed natively.
+
+**Changes:**
+- `frontend/app.json`: added `expo-notifications` plugin (icon/color/enableBackgroundRemoteNotifications).
+- `frontend/src/lib/notifications.ts`: POST_NOTIFICATIONS-gated token fetch + exponential backoff
+  (1/2/4/8s) + `classifyTokenError()` reporting real reason to backend.
+- `backend/services/fcm_service.py`: detect SenderId/credential mismatch on send, keep valid token,
+  log clear reason.
+- `backend/controllers/notification_admin_controller.py`: `notification_health` now compares
+  service-account project vs app google-services project → `sender_mismatch` + reason; gates ready_for_push.
+- Project/sender UNCHANGED: azo-project-9f857 / sender 960503871336. google-services.json has both
+  packages (homeservice + partner). See frontend/PUSH_TOKEN_FCM_FIX.md.
+
+**Verified (sandbox):** expo config resolves plugin + googleServicesFile; eslint 0 errors;
+backend health mismatch logic proven live. **On-device (APK install / test push / full-screen ring)
+requires an EAS build + physical device — must be done by the user; cannot run in the sandbox.**
+
+**Remaining manual steps:** enable FCM V1 + Firebase Installations API in Google Cloud for
+azo-project-9f857; upload matching service-account in Admin; run EAS build; verify on device.

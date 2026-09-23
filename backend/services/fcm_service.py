@@ -524,12 +524,23 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
         resp = await asyncio.to_thread(
             messaging.send_each_for_multicast, msg, False, app)
         invalid = []
+        mismatch = False
         for tok, r in zip(tokens, resp.responses):
             if not r.success:
-                code = getattr(r.exception, "code", "")
+                code = getattr(r.exception, "code", "") or ""
+                emsg = str(getattr(r, "exception", "") or "").lower()
                 if code in {"messaging/registration-token-not-registered",
                             "messaging/invalid-registration-token"}:
                     invalid.append(tok)
+                elif (code in {"messaging/mismatched-credential",
+                               "messaging/sender-id-mismatch",
+                               "messaging/third-party-auth-error"}
+                      or "senderid mismatch" in emsg or "sender id mismatch" in emsg
+                      or "mismatched" in emsg):
+                    # SenderId mismatch = the service-account project != the project
+                    # that issued the device token. The token is VALID, so do NOT
+                    # deactivate it — the fix is uploading the matching service-account.
+                    mismatch = True
         if invalid:
             # (#11/#12) Deactivate dead tokens rather than hard-deleting — keeps the
             # device history and stops it counting as "registered" or receiving pushes.
@@ -537,9 +548,17 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
                 {"token": {"$in": invalid}},
                 {"$set": {"is_active": False, "permission_status": "unregistered",
                           "updated_at": now_iso()}})
+        if mismatch:
+            detail = ("SenderId mismatch: the uploaded Firebase service-account is from a "
+                      "DIFFERENT project than the device token. Upload the service-account for "
+                      "project azo-project-9f857 (sender 960503871336) so delivery succeeds.")
+        elif invalid:
+            detail = f"{len(invalid)} invalid token(s) removed"
+        else:
+            detail = ""
         await _log_delivery(user_id, title,
                             "sent" if resp.success_count else "failed",
-                            f"{len(invalid)} invalid token(s) removed" if invalid else "",
+                            detail,
                             tokens=len(tokens), success=resp.success_count, failure=resp.failure_count)
         return {"success": resp.success_count, "failure": resp.failure_count}
     except Exception as e:  # noqa: BLE001
