@@ -10,6 +10,7 @@ import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
 import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption, overlayState, requestOverlayPermission } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
+import { useRealtime } from "@/src/context/RealtimeContext";
 import { TW } from "./tw";
 
 function Surface({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
@@ -21,6 +22,7 @@ function Surface({ children, testID, style }: { children: React.ReactNode; testI
 export function TestRingCard() {
   const { colors } = useTheme();
   const toast = useToast();
+  const { bgListening } = useRealtime();
   const [busy, setBusy] = useState(false);
   const [perm, setPerm] = useState<"granted" | "denied" | "prompt">("prompt");
   const [last, setLast] = useState<{ sentAt: number; push: any; doneAt: number | null; verb?: string } | null>(null);
@@ -150,6 +152,21 @@ export function TestRingCard() {
           </Pressable>
         );
       })() : null}
+      {Platform.OS === "android" ? (
+        <View testID="bg-listener-state" style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: bgListening ? TW.emerald200 : colors.border, backgroundColor: colors.surfaceSubtle, padding: 10 }}>
+          <Icon name={bgListening ? "radio-tower" : "radio-tower"} size={16} color={bgListening ? TW.emerald600 : TW.slate400} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: bgListening ? TW.emerald600 : colors.textSecondary }}>
+              {bgListening ? "Locked/closed ring listener: ON" : "Locked/closed ring listener: OFF"}
+            </Text>
+            <Text style={{ fontSize: 11, color: TW.slate400, marginTop: 1 }}>
+              {bgListening
+                ? "Full-screen job ring works even when locked or app is closed — no internet push needed."
+                : "Go ONLINE (toggle at the top) to start it. This is what rings you when the phone is locked."}
+            </Text>
+          </View>
+        </View>
+      ) : null}
       {Platform.OS === "android" ? (
         <View testID="ring-permissions" style={{ marginTop: 10, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 }}>
           <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>For the call-style ring on a locked / closed phone</Text>
