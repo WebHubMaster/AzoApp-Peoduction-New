@@ -120,3 +120,35 @@ NO dependency on FCM.
 Metro bundles cleanly, eslint 0 errors, tsc 0 errors in the changed files. Backend broker
 multi-subscriber behaviour verified by reading `services/realtime.py`. On-device lock/close
 behaviour must be confirmed on the rebuilt APK.
+
+---
+# Issue 3: Restored the "RNBC" killed-app method (@react-native-firebase/messaging)
+
+## What "RNBC" was + why killed-app auto-launch stopped
+Git history (commit `1797b74`, Sep 21) REMOVED `@react-native-firebase/messaging` and
+switched the killed/closed FCM handling to the expo-notifications background task. RNFB's
+native `FirebaseMessagingService` is what reliably wakes a FULLY CLOSED / swiped app on an
+FCM data message and lets us auto-launch the Notifee full-screen ring. The expo-notifications
+background task is less reliable at waking a killed app, so that removal is what broke the
+"app closed → auto-relaunch → full-screen" behaviour the partner remembers.
+
+## Restored now
+- `yarn add @react-native-firebase/messaging@^26.4.0` (matches `@react-native-firebase/app`).
+- `app.json` plugins: added `@react-native-firebase/messaging`.
+- `src/lib/notifications.ts`: `messaging()` re-enabled (was hard-coded to return null); added
+  `rnfbDeviceToken()` and the token fetch now tries the RNFB path first, expo as fallback.
+- `src/lib/pushBackground.ts`: `messaging().setBackgroundMessageHandler(...)` is now active
+  again (it was already coded, just gated behind the null `messaging()`), so a data-only FCM
+  ring wakes the killed app → `handleRemoteData` → `displayJobRing` full-screen.
+
+## STILL REQUIRED for killed-app delivery (unchanged OS reality)
+RNFB and expo mint the token via the SAME `FirebaseMessaging.getToken()`, so a killed app can
+only be woken by an FCM push that needs a REGISTERED token. Enable for azo-project-9f857:
+Firebase Cloud Messaging API (V1) + Firebase Installations API, and ensure App Check is NOT
+enforced. Then rebuild the APK (native change) and the killed/locked auto-launch full-screen
+returns as before.
+
+## Verified in sandbox
+`npx expo config` resolves both `@react-native-firebase/app` + `messaging` + `expo-notifications`;
+eslint 0 errors; tsc 0 errors in notifications.ts; Metro bundles clean. Native killed-app
+behaviour must be confirmed on the rebuilt APK.
