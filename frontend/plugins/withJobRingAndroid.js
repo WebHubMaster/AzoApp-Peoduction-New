@@ -57,9 +57,13 @@ function withManifest(config) {
     if (!app.service.some((s) => s.$["android:name"] === "app.notifee.core.ForegroundService")) {
       app.service.push({ $: {
         "android:name": "app.notifee.core.ForegroundService",
-        // mediaPlayback = looping ring; dataSync = the always-on background job
-        // listener that holds the SSE stream open (FCM-independent ring path).
-        "android:foregroundServiceType": "mediaPlayback|dataSync",
+        // dataSync ONLY: keeps the process alive + holds the always-on SSE job
+        // listener open. We deliberately do NOT use "mediaPlayback" — on Android
+        // 14+ starting a mediaPlayback foreground service without an active
+        // MediaSession throws and CRASHES the app (the "toggle online / ring →
+        // app closes" bug). The ring tone plays via expo-audio (its own audio
+        // focus), so dataSync is all we need.
+        "android:foregroundServiceType": "dataSync",
         "android:stopWithTask": "false",
         "android:exported": "false",
       } });

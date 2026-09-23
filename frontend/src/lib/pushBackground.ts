@@ -83,26 +83,28 @@ export async function respondToJob(bookingId: string, action: "accept" | "reject
 }
 
 if (pushSupported) {
-  // Create the (fresh, high-importance) channels at app entry so the loud ring
-  // channel exists before the very first background/killed message arrives.
-  setupAndroidChannels().catch(() => {});
-  const m = messaging();
-  const n = NotifeeApi();
-  const mod = notifee();
-  if (m) m.setBackgroundMessageHandler(async (rm: any) => { await handleRemoteData(rm?.data, true); });
-  if (n && mod) {
-    // Keeps the process alive while the ring OR the background job listener runs.
-    n.registerForegroundService(() => backgroundRingServiceTask());
-    n.onBackgroundEvent(async ({ type, detail }: any) => {
-      const { EventType } = mod;
-      const data = detail?.notification?.data || {};
-      const bid = String(data.booking_id || "");
-      if (type === EventType.ACTION_PRESS && data.type === "job_request") {
-        const id = detail?.pressAction?.id;
-        if (id === "accept" || id === "reject") await respondToJob(bid, id);
-      } else if (type === EventType.DISMISSED && data.type === "job_request") {
-        await cancelJobRing(bid);
-      }
-    });
-  }
+  try {
+    // Create the (fresh, high-importance) channels at app entry so the loud ring
+    // channel exists before the very first background/killed message arrives.
+    setupAndroidChannels().catch(() => {});
+    const m = messaging();
+    const n = NotifeeApi();
+    const mod = notifee();
+    if (m) m.setBackgroundMessageHandler(async (rm: any) => { await handleRemoteData(rm?.data, true); });
+    if (n && mod) {
+      // Keeps the process alive while the ring OR the background job listener runs.
+      n.registerForegroundService(() => backgroundRingServiceTask());
+      n.onBackgroundEvent(async ({ type, detail }: any) => {
+        const { EventType } = mod;
+        const data = detail?.notification?.data || {};
+        const bid = String(data.booking_id || "");
+        if (type === EventType.ACTION_PRESS && data.type === "job_request") {
+          const id = detail?.pressAction?.id;
+          if (id === "accept" || id === "reject") await respondToJob(bid, id);
+        } else if (type === EventType.DISMISSED && data.type === "job_request") {
+          await cancelJobRing(bid);
+        }
+      });
+    }
+  } catch { /* never let push init crash app launch */ }
 }
