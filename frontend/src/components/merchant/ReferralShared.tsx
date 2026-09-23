@@ -3,12 +3,11 @@
  * (My Customers / My Partners / Commission). Mirrors the web
  * `pages/merchant/referral/ReferralShared.jsx` behaviour + visuals.
  */
-import React from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable, TextInput, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
-import { useRouter } from "expo-router";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
@@ -160,5 +159,152 @@ export function MPrivacyNote() {
         Personal contact details (phone, email, address) are protected and not shared with merchants. You only see referral &amp; commission information.
       </Text>
     </View>
+  );
+}
+
+
+/** Referral-type badge — customer = sky, partner = violet (matches web TypeBadge). */
+export function MTypeBadge({ type }: { type?: string }) {
+  const isCust = type === "customer";
+  const bg = isCust ? "rgba(2,132,199,0.12)" : "rgba(124,58,237,0.12)";
+  const fg = isCust ? "#0284C7" : "#7C3AED";
+  return (
+    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, alignSelf: "flex-start" }} testID={`type-badge-${isCust ? "customer" : "partner"}`}>
+      <Text style={{ color: fg, fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.4 }}>{isCust ? "Customer" : "Partner"}</Text>
+    </View>
+  );
+}
+
+/* ─────────────── Date-range filter (presets + custom range calendar) ─────────────── */
+export type DateRange = { range: string; date_from?: string; date_to?: string };
+
+const PRESETS: [string, string][] = [
+  ["", "All time"], ["today", "Today"], ["yesterday", "Yesterday"],
+  ["this_week", "This Week"], ["this_month", "This Month"], ["last_month", "Last Month"],
+];
+const WD = ["S", "M", "T", "W", "T", "F", "S"];
+const _iso = (dt: Date) => {
+  const z = new Date(dt.getTime() - dt.getTimezoneOffset() * 60000);
+  return z.toISOString().slice(0, 10);
+};
+
+/** Range calendar — mirrors web RangeCalendar tap logic (from → to, swap, disable future). */
+function RangeCalendar({ from, to, onPick }: { from?: string; to?: string; onPick: (f: string, t: string) => void }) {
+  const { colors } = useTheme();
+  const base = from ? new Date(from) : new Date();
+  const [view, setView] = useState(new Date(base.getFullYear(), base.getMonth(), 1));
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const y = view.getFullYear(), m = view.getMonth();
+  const firstDow = new Date(y, m, 1).getDay();
+  const dim = new Date(y, m + 1, 0).getDate();
+  const monthLabel = view.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const fromD = from ? new Date(`${from}T00:00:00`) : null;
+  const toD = to ? new Date(`${to}T00:00:00`) : null;
+
+  const pick = (dt: Date) => {
+    const s = _iso(dt);
+    if (!fromD || (fromD && toD)) onPick(s, "");
+    else if (dt < fromD) onPick(s, _iso(fromD));
+    else onPick(_iso(fromD), s);
+  };
+
+  const cells: (Date | null)[] = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= dim; d++) cells.push(new Date(y, m, d));
+  const shift = (n: number) => setView(new Date(y, m + n, 1));
+
+  return (
+    <View testID="range-calendar">
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <Pressable testID="cal-prev" onPress={() => shift(-1)} hitSlop={8} style={{ width: 32, height: 32, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" }}>
+          <Icon name="chevron-left" size={20} color={colors.textSecondary} />
+        </Pressable>
+        <Text style={{ fontSize: fontSize.sm, fontWeight: "800", color: colors.text }}>{monthLabel}</Text>
+        <Pressable testID="cal-next" onPress={() => shift(1)} hitSlop={8} style={{ width: 32, height: 32, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" }}>
+          <Icon name="chevron-right" size={20} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+      <View style={{ flexDirection: "row" }}>
+        {WD.map((w, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 10, fontWeight: "700", color: colors.textMuted, paddingVertical: 2 }}>{w}</Text>)}
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+        {cells.map((dt, i) => {
+          if (!dt) return <View key={i} style={{ width: `${100 / 7}%`, height: 38 }} />;
+          const s = _iso(dt);
+          const isFrom = fromD && s === _iso(fromD);
+          const isTo = toD && s === _iso(toD);
+          const inRange = fromD && toD && dt > fromD && dt < toD;
+          const isToday = s === _iso(today);
+          const future = dt > today;
+          const edge = isFrom || isTo;
+          return (
+            <View key={i} style={{ width: `${100 / 7}%`, height: 38, alignItems: "center", justifyContent: "center" }}>
+              <Pressable testID={`cal-day-${s}`} disabled={future} onPress={() => pick(dt)}
+                style={{ height: 34, width: 34, borderRadius: radius.sm, alignItems: "center", justifyContent: "center", opacity: future ? 0.3 : 1, backgroundColor: edge ? colors.primary : inRange ? colors.primarySubtle : "transparent" }}>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: edge ? "#fff" : inRange ? colors.primary : colors.text }}>{dt.getDate()}</Text>
+                {isToday && !edge ? <View style={{ position: "absolute", bottom: 3, height: 3, width: 3, borderRadius: 2, backgroundColor: colors.primary }} /> : null}
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+/** Date range filter trigger + bottom-sheet (presets + custom range). Matches web DateRangeFilter. */
+export function MDateRangeFilter({ value, onChange }: { value: DateRange; onChange: (v: DateRange) => void }) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
+  const range = value.range || "";
+  const label = range === "custom"
+    ? `${value.date_from || "…"} → ${value.date_to || "…"}`
+    : (PRESETS.find((p) => p[0] === range)?.[1] || "All time");
+
+  return (
+    <>
+      <Pressable testID="date-filter-toggle" onPress={() => setOpen(true)}
+        style={{ height: 44, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
+        <Icon name="calendar" size={18} color={colors.primary} />
+        <Text numberOfLines={1} style={{ flex: 1, fontSize: fontSize.sm, fontWeight: "600", color: colors.text }}>{label}</Text>
+        <Icon name="chevron-down" size={18} color={colors.textMuted} />
+      </Pressable>
+
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <View style={{ flex: 1, justifyContent: "flex-end" }}>
+          <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
+          <View testID="date-filter-panel" style={{ backgroundColor: colors.card, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing.xl }}>
+            <View style={{ alignItems: "center", marginBottom: spacing.md }}>
+              <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border }} />
+            </View>
+            <Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, color: colors.textMuted, marginBottom: spacing.sm }}>Quick ranges</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {PRESETS.map(([k, lbl]) => {
+                const on = range === k;
+                return (
+                  <Pressable key={k || "all"} testID={`date-preset-${k || "all"}`} onPress={() => { onChange({ range: k }); setOpen(false); }}
+                    style={{ width: "31.5%", height: 40, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.primary : colors.surfaceSubtle }}>
+                    <Text style={{ fontSize: 12, fontWeight: "800", color: on ? "#fff" : colors.textSecondary }}>{lbl}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={{ marginTop: spacing.lg, paddingTop: spacing.md, borderTopWidth: 1, borderTopColor: colors.border }}>
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
+                <Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5, color: colors.textMuted }}>Custom range</Text>
+                <Text testID="custom-range-label" style={{ fontSize: 11, fontWeight: "700", color: colors.primary }}>{value.date_from || "start"} → {value.date_to || "end"}</Text>
+              </View>
+              <RangeCalendar from={value.date_from} to={value.date_to}
+                onPick={(f, t) => onChange({ range: "custom", date_from: f, date_to: t })} />
+              <Pressable testID="date-apply" disabled={!value.date_from || !value.date_to} onPress={() => setOpen(false)}
+                style={{ marginTop: spacing.md, height: 46, borderRadius: radius.md, alignItems: "center", justifyContent: "center", backgroundColor: colors.primary, opacity: (!value.date_from || !value.date_to) ? 0.4 : 1 }}>
+                <Text style={{ color: "#fff", fontSize: fontSize.sm, fontWeight: "800" }}>Apply</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
