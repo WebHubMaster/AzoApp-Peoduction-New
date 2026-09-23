@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any
 
 # Base URL from frontend/.env
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

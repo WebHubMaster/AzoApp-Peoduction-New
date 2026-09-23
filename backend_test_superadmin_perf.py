@@ -1,13 +1,13 @@
 """
 Backend API Testing for AzoApp - Super Admin PERFORMANCE Feature
 Tests the NEW Super Admin PERFORMANCE backend feature on AzoApp.
-Base URL: https://fullscreen-alert-fix.preview.emergentagent.com/api
+Base URL: https://fcm-token-fix-3.preview.emergentagent.com/api
 """
 import requests
 import time
 
 # Base URL from review request
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials (demo mode, OTP = 123456)

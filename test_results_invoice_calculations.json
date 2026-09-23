@@ -1,5 +1,5 @@
 {
-  "base_url": "https://fullscreen-alert-fix.preview.emergentagent.com/api",
+  "base_url": "https://fcm-token-fix-3.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",

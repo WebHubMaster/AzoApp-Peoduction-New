@@ -11,7 +11,7 @@ import requests
 from datetime import datetime
 
 # Configuration
-BASE_URL = os.getenv("REACT_APP_BACKEND_URL", "https://fullscreen-alert-fix.preview.emergentagent.com")
+BASE_URL = os.getenv("REACT_APP_BACKEND_URL", "https://fcm-token-fix-3.preview.emergentagent.com")
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials (from /app/memory/test_credentials.md)

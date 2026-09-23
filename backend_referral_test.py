@@ -6,7 +6,7 @@ import requests
 import json
 
 # Base URL from frontend/.env
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 CUSTOMER_PHONE = "+919000000004"  # Priya Verma

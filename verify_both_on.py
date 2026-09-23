@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://fullscreen-alert-fix.preview.emergentagent.com/api"
+BASE_URL = "https://fcm-token-fix-3.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
