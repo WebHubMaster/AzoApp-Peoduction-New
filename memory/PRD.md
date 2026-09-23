@@ -367,3 +367,25 @@ Requirement: device registration must work for BOTH browser (web) and Android ap
 Verified: tsc clean (notifications.ts), ruff F-checks pass. Backend not runtime-tested in sandbox
 (MONGO_URL empty by design; app targets production api.webhubmaster.shop). On-device ring + admin
 table need production/build verification.
+
+## 2026-06 — Full-screen ring regression on LOCKED/CLOSED phone (real root cause)
+- Symptom: full-screen job alert fires when app is OPEN, but NOT when phone is locked
+  or app is closed/background. Worked "one commit ago". All permissions green
+  (push registered, listener ON, full-screen allowed).
+- Root cause: Notifee's `fullScreenAction` is IGNORED when the notification is posted
+  as a foreground service (`asForegroundService: true`) — Android then treats it as an
+  ongoing service notification, not a heads-up/full-screen alert. Commit f492f94 made the
+  background listener's foreground service (ONLINE_FGS) reliably run whenever a partner is
+  ONLINE. After that, displayJobRing's `build(true)` (asForegroundService:true) SUCCEEDS on a
+  locked/closed phone → the ring became an FGS notification → fullScreenAction suppressed →
+  no full-screen. Before f492f94 the FGS usually wasn't running, so build(true) failed and the
+  code fell back to build(false) (a plain notification) whose fullScreenAction DID fire — that
+  is why it "worked one commit ago".
+- Fix (frontend/src/lib/notifications.ts displayJobRing): ALWAYS post the ring as a normal
+  high-importance full-screen notification (asForegroundService:false) so fullScreenAction
+  reliably launches the call UI over the lock screen. The ring TONE is played by the launched
+  in-app JobRingOverlay (RealtimeContext.playRing), so the FGS gave no sound benefit anyway.
+  Process stays alive via the SEPARATE ONLINE_FGS notification (online) or via Android
+  relaunching the app for the full-screen intent (FCM-killed path).
+- Verified: tsc clean, eslint 0 errors. NOTE: native Android lock-screen ring — must be
+  confirmed on a real device build, not in this sandbox.

@@ -550,10 +550,8 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   // fall back to the bundled AzoApp logo — the ring is ALWAYS branded, never blank.
   const resolvedImg = mediaUrl(typeof d.image === "string" ? d.image : "");
   const largeIcon = resolvedImg && /^https?:\/\//i.test(resolvedImg) ? resolvedImg : APP_LOGO_ICON;
-  // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
-  // service from a background FCM message can be rejected on Android 14+; if that
-  // happens we retry WITHOUT the service so the full-screen ring still appears
-  // (sound plays once instead of looping) — the alert must never be swallowed.
+  // Build the ring notification. `asFgs` stays false (see the CRITICAL note below):
+  // the ring must NOT be a foreground service or its full-screen intent won't fire.
   const build = (asFgs: boolean) => ({
     id: `job-${d.booking_id}`,
     title: isReminder ? "\u{1F514} Work starting soon" : isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request"),
@@ -595,17 +593,22 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       foregroundPresentationOptions: { banner: true, sound: true, list: true, badge: true },
     },
   });
+  // CRITICAL: Notifee's `fullScreenAction` is IGNORED when a notification is shown
+  // as a foreground service (`asForegroundService: true`) — Android then treats it
+  // as an ongoing service notification, not a heads-up/full-screen alert, so the
+  // call-style screen never auto-launches on a locked/closed phone. The ring's tone
+  // is played by the launched in-app JobRingOverlay (see note below), NOT by this
+  // notification, so a foreground service buys us nothing here and only suppresses
+  // the full-screen intent. We therefore ALWAYS post the ring as a normal
+  // high-importance full-screen notification → fullScreenAction reliably launches
+  // the call UI over the lock screen (process stays alive via the SEPARATE online
+  // foreground-service notification, or via Android relaunching us for the intent).
   try {
-    await n.displayNotification(build(true) as any);
-    report(true, "fgs");
-  } catch (e1: any) {
-    try {
-      await n.displayNotification(build(false) as any);
-      report(true, "no_fgs", String(e1?.message || e1));
-    } catch (e2: any) {
-      report(false, "failed", String(e2?.message || e2));
-      return false;
-    }
+    await n.displayNotification(build(false) as any);
+    report(true, isBgListenerActive() ? "fs_alive" : "fs");
+  } catch (e2: any) {
+    report(false, "failed", String(e2?.message || e2));
+    return false;
   }
   // NOTE: sound is played by the in-app JobRingOverlay (RealtimeContext.playRing)
   // once the app comes to the foreground — a SINGLE source, so it never overlaps
