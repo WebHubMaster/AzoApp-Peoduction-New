@@ -271,3 +271,22 @@ azo-project-9f857; upload matching service-account in Admin; run EAS build; veri
   generated AndroidManifest.xml via expo prebuild.
 - User must REBUILD (EAS) and reinstall; then tap Fix/Test in app — device should register and the
   closed/locked full-screen push ring should work.
+
+## Update (2026-06) — DEFINITIVE FCM fix: getToken() deprecation + stale FID
+- Confirmed via Firebase docs + on-device errors:
+  * flag=true  → firebase-messaging 25.x (RNFB v26 / BoM 34.18) DISABLES legacy getToken()
+                 → "API disabled. Please use register()" → no_token.
+  * flag=false → getToken() works, but a STALE Firebase Installation ID (FID) on the
+                 test device made FCM Registration return HTTP 400 INVALID_ARGUMENT.
+- Both expo-notifications (getDevicePushTokenAsync) and RNFB messaging().getToken() still call
+  the legacy getToken(), so flag MUST be false. Reverted plugin to flag=false.
+- Added @react-native-firebase/installations@26.4.0 + resetFirebaseInstallation() (deleteToken +
+  installations().delete()). registerPushToken() now detects the 400 / "invalid argument" /
+  "api disabled" (classifyTokenError → "stale_fid") and self-heals ONCE: wipes the FID and retries
+  getToken() with a fresh installation. Improved diagnostic hint for stale_fid.
+- Verified in-sandbox: plugin syntax OK, tsc clean, expo prebuild OK, manifest has flag=false +
+  color tools:replace. NEW dependency installed.
+- NOT verifiable in-sandbox: native FCM token acquisition / foreground-service ring / full-screen
+  intent need a real Android device + EAS build (no Play Services/FCM/Android here). User must EAS
+  build + test on device. If FID reset doesn't self-heal, clearing app storage / reinstalling once
+  forces a fresh FID.
