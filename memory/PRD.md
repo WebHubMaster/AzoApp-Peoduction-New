@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://push-notify-fix-16.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://partner-invoice-fix.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -414,3 +414,10 @@ table need production/build verification.
   4. Full-screen ring already posted as non-FGS (prior fix) so fullScreenAction fires on lock.
 - Verified: tsc clean, eslint 0 errors (frontend + web_panel), ruff F clean.
 - NOTE: native Android — MUST verify on a NEW BUILD/APK on both phones.
+
+## [2026-06] Partner App — Invoice actions completed
+- Download PDF (Android): now saves to real Downloads folder via StorageAccessFramework (one-time folder grant, persisted) + success toast; iOS/web unchanged (save/share sheet / browser download).
+- Print / WhatsApp / Email: fetch the actual server PDF (auth token) and print via expo-print, share the PDF via native sheet, and attach the PDF via expo-mail-composer.
+- Share link "Not Found" fixed: new PUBLIC landing page `GET /api/invoices/pub/{id}/page?s=<sig>` renders branded invoice summary + inline preview + Download button and auto-downloads the PDF. Frontend `getInvoiceShareLink` now points to this page. HMAC-gated, no login.
+- Files: backend/routes/invoice_routes.py (landing page route), frontend/src/lib/invoiceActions.ts (SAF save + link), frontend/app/(partner)/partner/invoices.tsx (toast).
+- Verified via curl: landing 200 (valid sig) / 404 (bad sig), PDF inline + download=1 attachment.

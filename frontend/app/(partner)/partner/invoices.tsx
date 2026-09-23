@@ -130,7 +130,12 @@ export default function PartnerInvoices() {
     if (!inv?.id) return;
     setBusyId(inv.id);
     toast.info("Preparing invoice...");
-    try { await downloadInvoicePdf(inv); toast.success("Invoice downloaded successfully"); }
+    try {
+      const r = await downloadInvoicePdf(inv);
+      if (r === "saved") toast.success("Invoice saved to your Downloads");
+      else if (r === "downloaded") toast.success("Invoice downloaded successfully");
+      else toast.success("Invoice ready — choose where to save it");
+    }
     catch { toast.error("Invoice could not be downloaded"); }
     finally { setBusyId(null); }
   };

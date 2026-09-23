@@ -1,5 +1,5 @@
 {
-  "base_url": "https://push-notify-fix-16.preview.emergentagent.com/api",
+  "base_url": "https://partner-invoice-fix.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",

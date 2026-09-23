@@ -10,7 +10,7 @@ import time
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
+BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"
