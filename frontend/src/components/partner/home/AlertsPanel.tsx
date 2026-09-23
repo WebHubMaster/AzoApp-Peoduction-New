@@ -43,15 +43,35 @@ export function TestRingCard() {
   }, [checkPerm, loadExtra]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => onRing("test-ring-done", (d) => setLast((l) => (l ? { ...l, doneAt: Date.now(), verb: d?.verb } : l))), []);
 
+  const [fixing, setFixing] = useState(false);
   const fix = async () => {
-    const res = await requestNotificationPermission();
-    // Register THIS device's token right now (don't wait for a background/foreground
-    // cycle) so "device registered" flips on immediately after the user allows.
-    if (res.granted) { try { await registerPushToken(); } catch { /* reported to backend */ } }
-    checkPerm(); devices.refetch();
-    if (res.granted) toast.success(registered ? "Notifications enabled" : "Permission granted — background push activates on the installed app build");
-    else if (!res.canAskAgain && Platform.OS !== "web") Linking.openSettings();
-    else toast.info("Enable notifications to receive job rings");
+    setFixing(true);
+    try {
+      const res = await requestNotificationPermission();
+      if (!res.granted) {
+        checkPerm();
+        if (!res.canAskAgain && Platform.OS !== "web") { Linking.openSettings(); return; }
+        toast.error("Allow notifications to receive job rings");
+        return;
+      }
+      // Register THIS device's token right now and SHOW the real outcome (the old
+      // code always showed "enabled" even when the native FCM token fetch failed).
+      let reg: { ok: boolean; reason?: string } = { ok: false, reason: "no_module" };
+      try { reg = await registerPushToken(); } catch (e: any) { reg = { ok: false, reason: String(e?.message || e) }; }
+      checkPerm();
+      await devices.refetch();
+      if (reg.ok) {
+        toast.success("Device registered — background push is ON");
+      } else if (reg.reason === "fcm_registration_failed") {
+        toast.error("FCM registration rejected by Google — ask admin to enable Firebase Installations + Cloud Messaging API. Tap the error below for details.");
+      } else if (reg.reason === "play_services") {
+        toast.error("Update Google Play services on this phone, then tap Fix again");
+      } else if (reg.reason === "permission") {
+        toast.error("Notifications are blocked — allow them in Settings");
+      } else {
+        toast.error(`Could not register this device (${reg.reason || "unknown"}). Details below.`);
+      }
+    } finally { setFixing(false); }
   };
 
   const send = async () => {
@@ -100,10 +120,36 @@ export function TestRingCard() {
             <Text style={{ fontSize: 11, fontWeight: "600", color: pushOk ? TW.emerald600 : perm === "denied" ? TW.red600 : TW.amber600 }}>
               {pushOk ? "Background push: ON (device registered)" : perm === "denied" ? "Background push: blocked on this device" : "Background push: OFF (device not registered)"}
             </Text>
-            {!pushOk ? <Pressable testID="test-ring-fix" onPress={fix} hitSlop={6}><Text style={{ color: colors.primaryHover, fontSize: 11, fontWeight: "600", textDecorationLine: "underline" }}>Fix</Text></Pressable> : null}
+            {!pushOk ? <Pressable testID="test-ring-fix" onPress={fix} disabled={fixing} hitSlop={6}><Text style={{ color: colors.primaryHover, fontSize: 11, fontWeight: "600", textDecorationLine: "underline" }}>{fixing ? "Fixing…" : "Fix"}</Text></Pressable> : null}
           </View>
         </View>
       </View>
+      {!pushOk && devices.data?.push_state && (devices.data.push_state.reason || devices.data.push_state.error) ? (() => {
+        const ps: any = devices.data.push_state;
+        const isFcm = ps.reason === "fcm_registration_failed" || String(ps.error || "").includes("FCM Registration failed");
+        return (
+          <Pressable
+            testID="push-error-detail"
+            onPress={() => toast.info(String(ps.error || ps.reason))}
+            style={{ marginTop: 10, borderRadius: 12, borderWidth: 1, borderColor: "#FECACA", backgroundColor: "rgba(254,242,242,0.7)", padding: 12, gap: 4 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name="alert-circle-outline" size={15} color={TW.red600} />
+              <Text style={{ color: TW.red600, fontSize: 12, fontWeight: "700", flex: 1 }}>
+                Why push is off: {ps.reason || "registration failed"}
+              </Text>
+            </View>
+            <Text style={{ color: TW.slate500, fontSize: 11, lineHeight: 15 }} numberOfLines={4}>
+              {String(ps.error || "This device could not obtain a push token.")}
+            </Text>
+            {isFcm ? (
+              <Text style={{ color: TW.amber600, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
+                This is a Firebase project setting (not the app). Ask the admin to enable “Firebase Installations API” + “Firebase Cloud Messaging API (V1)” for the project and un‑restrict the Android API key, then tap Fix again.
+              </Text>
+            ) : null}
+            {ps.at ? <Text style={{ color: TW.slate400, fontSize: 10 }}>Last attempt: {new Date(ps.at).toLocaleString()}</Text> : null}
+          </Pressable>
+        );
+      })() : null}
       {Platform.OS === "android" ? (
         <View testID="ring-permissions" style={{ marginTop: 10, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 }}>
           <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>For the call-style ring on a locked / closed phone</Text>

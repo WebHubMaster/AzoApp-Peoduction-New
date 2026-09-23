@@ -27,6 +27,11 @@ const PERMS = [
 function withManifest(config) {
   return withAndroidManifest(config, (cfg) => {
     const manifest = cfg.modResults;
+    // `tools:` namespace is needed for the meta-data override below.
+    manifest.manifest.$ = manifest.manifest.$ || {};
+    if (!manifest.manifest.$["xmlns:tools"]) {
+      manifest.manifest.$["xmlns:tools"] = "http://schemas.android.com/tools";
+    }
     manifest.manifest["uses-permission"] = manifest.manifest["uses-permission"] || [];
     for (const p of PERMS) {
       if (!manifest.manifest["uses-permission"].some((x) => x.$["android:name"] === p)) {
@@ -34,6 +39,20 @@ function withManifest(config) {
       }
     }
     const app = AndroidConfig.Manifest.getMainApplicationOrThrow(manifest);
+    // Firebase Messaging 25.1+ ships FID-based registration; if any (transitive)
+    // SDK flips `firebase_messaging_installation_id_enabled` to true, the LEGACY
+    // FirebaseMessaging.getToken() that expo-notifications' getDevicePushTokenAsync
+    // relies on gets DISABLED and throws "FCM Registration failed!". Force it back
+    // to the legacy path so token registration works. `tools:replace` wins over
+    // whatever a library merged in.
+    app["meta-data"] = app["meta-data"] || [];
+    const FID_FLAG = "firebase_messaging_installation_id_enabled";
+    app["meta-data"] = app["meta-data"].filter((m) => m.$["android:name"] !== FID_FLAG);
+    app["meta-data"].push({ $: {
+      "android:name": FID_FLAG,
+      "android:value": "false",
+      "tools:replace": "android:value",
+    } });
     app.service = app.service || [];
     if (!app.service.some((s) => s.$["android:name"] === "app.notifee.core.ForegroundService")) {
       app.service.push({ $: {

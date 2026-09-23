@@ -220,6 +220,16 @@ async def notification_health():
     ready_for_push = (bool(integ.get("fcm_enabled")) and sa_row.get("configured", False)
                       and not missing and bool(vapid) and not sender_mismatch)
 
+    # DEFINITIVE Android-registration probe: WHY do partners' phones get
+    # "FCM Registration failed!"? Probe the exact api-key/project the APK carries.
+    try:
+        android_push = await fcm_service.android_registration_diagnostic()
+    except Exception as e:  # noqa: BLE001
+        android_push = {"ok": None, "reason": "probe_error", "hint": str(e)[:200]}
+    if android_push.get("ok") is False:
+        reasons["android_registration"] = android_push.get("hint") or "Android FCM registration APIs are blocked."
+        ready_for_push = False
+
     # Probe the browser-side token chain with the SAME web API key partners' phones use.
     api_key_check = {"ok": None, "checks": []}
     if not missing:
@@ -260,6 +270,7 @@ async def notification_health():
             "packages": gs_row.get("packages", []),
         },
         "sender_mismatch": sender_mismatch,
+        "android_push": android_push,
         "web_config": {
             "configured": not missing,
             "missing_fields": missing,
