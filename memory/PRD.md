@@ -258,3 +258,16 @@ azo-project-9f857; upload matching service-account in Admin; run EAS build; veri
   to app.azoapp.partner in Firebase; ensure App Check not enforced for FCM.
 - Killed-app full-screen ring REQUIRES working FCM push (RNFB setBackgroundMessageHandler) — the
   SSE foreground-service survives background/lock but not a full process kill on aggressive OEMs.
+
+## Update (2026-06) — ROOT CAUSE FOUND: FCM Registration 400 INVALID_ARGUMENT
+- Google Cloud FCM Registration API metrics showed response codes 200 + 400 (NOT 403).
+  400 = INVALID_ARGUMENT → not an API-key/SHA/App-Check problem (all ruled out via console:
+  API key allows all FCM APIs + no app restriction; App Check unenforced everywhere; FCM V1 enabled).
+- Cause: plugins/withJobRingAndroid.js FORCED firebase_messaging_installation_id_enabled=false
+  (legacy IID path). Modern firebase-messaging registers via FID (Firebase Installations); this
+  project's Installations API works (0% err), so forcing legacy produced invalid registration
+  requests → 400 → "FCM Registration failed!" → device never registered.
+- FIX: flag now forced to "true" (FID-based modern registration) with tools:replace. Verified in
+  generated AndroidManifest.xml via expo prebuild.
+- User must REBUILD (EAS) and reinstall; then tap Fix/Test in app — device should register and the
+  closed/locked full-screen push ring should work.

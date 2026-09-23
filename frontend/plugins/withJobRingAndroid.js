@@ -39,18 +39,20 @@ function withManifest(config) {
       }
     }
     const app = AndroidConfig.Manifest.getMainApplicationOrThrow(manifest);
-    // Firebase Messaging 25.1+ ships FID-based registration; if any (transitive)
-    // SDK flips `firebase_messaging_installation_id_enabled` to true, the LEGACY
-    // FirebaseMessaging.getToken() that expo-notifications' getDevicePushTokenAsync
-    // relies on gets DISABLED and throws "FCM Registration failed!". Force it back
-    // to the legacy path so token registration works. `tools:replace` wins over
-    // whatever a library merged in.
+    // FCM token registration: FORCE the modern FID (Firebase Installations)-based
+    // registration ON. Diagnosis: the FCM Registration API (fcmregistrations.
+    // googleapis.com) was returning HTTP 400 INVALID_ARGUMENT (device could not
+    // register → "FCM Registration failed!") because this flag had been forced to
+    // "false" (legacy IID path). firebase-messaging 24/25+ registers via FID, and
+    // this project's Firebase Installations API works fine (0% errors), so FID
+    // MUST stay enabled. Setting it to "true" with tools:replace guarantees the
+    // working modern path even if a transitive library merges in "false".
     app["meta-data"] = app["meta-data"] || [];
     const FID_FLAG = "firebase_messaging_installation_id_enabled";
     app["meta-data"] = app["meta-data"].filter((m) => m.$["android:name"] !== FID_FLAG);
     app["meta-data"].push({ $: {
       "android:name": FID_FLAG,
-      "android:value": "false",
+      "android:value": "true",
       "tools:replace": "android:value",
     } });
     // Manifest merger conflict fix: expo-notifications injects the Firebase
