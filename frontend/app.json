@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "scheme": "azoapppartner",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "ios": {
       "supportsTablet": true,
@@ -74,6 +75,7 @@
       "expo-audio",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
+      "./plugins/withFirebaseBomPin.js",
       "./plugins/withJobRingAndroid.js",
       [
         "expo-notifications",
