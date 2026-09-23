@@ -1,6 +1,6 @@
 /* 1:1 port of web MerchantInvoices.jsx (role="partner") — "My Invoices", mobile (<md) variant */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, RefreshControl } from "react-native";
+import { View, Text, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,8 +18,8 @@ import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
 import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
 import InvoiceViewer from "@/src/components/invoices/Viewer";
 import { clearInvoiceHtmlCache } from "@/src/components/invoices/Viewer";
-import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, invoiceLink, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
-import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice } from "@/src/lib/invoiceActions";
+import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
+import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice, emailInvoiceCompose, getInvoiceShareLink } from "@/src/lib/invoiceActions";
 
 const qs = (o: Record<string, any>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
@@ -143,7 +143,15 @@ export default function PartnerInvoices() {
   };
   const share = async (inv: any, channel: string) => {
     if (!inv) return;
-    if (channel === "email") { setEmailFor(inv); return; }
+    if (channel === "email") {
+      if (Platform.OS === "web") { setEmailFor(inv); return; }
+      toast.info("Opening email…");
+      try {
+        const r = await emailInvoiceCompose(inv);
+        if (r === "sent") toast.success("Invoice emailed");
+      } catch { setEmailFor(inv); }  // no mail app / attach failed → fall back to the send sheet
+      return;
+    }
     if (channel === "whatsapp" || channel === "system") {
       toast.info("Preparing invoice…");
       try {
@@ -154,9 +162,15 @@ export default function PartnerInvoices() {
       catch { toast.error("Could not prepare the invoice PDF"); }
       return;
     }
-    const text = shareText(inv); const link = invoiceLink(inv);
-    if (channel === "copy") { (await copyText(link)) ? toast.success("Invoice link copied") : toast.error("Could not copy link"); return; }
-    if (channel === "text") { (await copyText(text)) ? toast.success("Invoice details copied") : toast.error("Could not copy"); return; }
+    if (channel === "copy") {
+      toast.info("Preparing link…");
+      try {
+        const link = await getInvoiceShareLink(inv);
+        (await copyText(link)) ? toast.success("Invoice link copied — anyone can open it") : toast.error("Could not copy link");
+      } catch { toast.error("Could not create the share link"); }
+      return;
+    }
+    if (channel === "text") { (await copyText(shareText(inv))) ? toast.success("Invoice details copied") : toast.error("Could not copy"); return; }
   };
   const copyNumber = async (inv: any) => { (await copyText(inv.invoice_number)) ? toast.success(`Copied ${inv.invoice_number}`) : toast.error("Could not copy"); };
 
