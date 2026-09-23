@@ -464,3 +464,9 @@ table need production/build verification.
 - APIs (real): GET /merchant/my-code, GET+PUT /merchant/panel/qr/config, GET /merchant/panel/qr/analytics?range=, POST /merchant/qr-scan (public scan log).
 - Web-only bits adapted natively: html2canvas/jsPDF poster export -> expo-print PDF+share; recharts chart -> react-native-svg bars.
 - Verified live (demo merchant): analytics total_scans=6 after seeding, bookings=8, series=30, recent=8; tsc clean; screenshots captured (hero + poster builder + performance).
+
+## [Update] Merchant Mobile Wallet (HUBAHU web parity) — 2026-09-23
+- Rebuilt `frontend/app/(merchant)/wallet.tsx` to match web `pages/merchant/finance/WalletModule.jsx`.
+- Switched to PANEL endpoints (same as web): GET /merchant/panel/wallet/overview, /wallet/withdrawals, /wallet/transactions?q&direction&page&page_size, POST /merchant/panel/withdraw.
+- Sections: hero (available balance + MoM trend + withdrawable/pending/withdrawn + Withdraw), KYC blocker (routes to /merchant/payouts when !eligible), 3 KPI cards (Total Earned/Commission/Processing), SegTabs Overview/Transactions/Withdrawals, Overview (recent activity + recent withdrawals), Transactions (search + credit/debit filter + pagination via MPagination + tx detail sheet), Withdrawals (list + detail sheet w/ fee/net), multi-step WithdrawFlow (amount->bank->review->confirm->success).
+- Verified live (demo merchant): available ₹32,164.97, trend +49%, 24 ledger, transactions paginated, eligible=false -> KYC blocker + withdraw guard. tsc clean. Screenshots captured (overview, transactions, withdraw guard->KYC).
