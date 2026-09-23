@@ -470,3 +470,11 @@ table need production/build verification.
 - Switched to PANEL endpoints (same as web): GET /merchant/panel/wallet/overview, /wallet/withdrawals, /wallet/transactions?q&direction&page&page_size, POST /merchant/panel/withdraw.
 - Sections: hero (available balance + MoM trend + withdrawable/pending/withdrawn + Withdraw), KYC blocker (routes to /merchant/payouts when !eligible), 3 KPI cards (Total Earned/Commission/Processing), SegTabs Overview/Transactions/Withdrawals, Overview (recent activity + recent withdrawals), Transactions (search + credit/debit filter + pagination via MPagination + tx detail sheet), Withdrawals (list + detail sheet w/ fee/net), multi-step WithdrawFlow (amount->bank->review->confirm->success).
 - Verified live (demo merchant): available ₹32,164.97, trend +49%, 24 ledger, transactions paginated, eligible=false -> KYC blocker + withdraw guard. tsc clean. Screenshots captured (overview, transactions, withdraw guard->KYC).
+
+## [Update] Merchant Mobile Profile & KYC (HUBAHU web parity) — 2026-09-23
+- Rebuilt `frontend/app/merchant/profilekyc.tsx` to match web `pages/merchant/MerchantRegistration.jsx` rendered EMBEDDED (the "onboarding"/"Profile & KYC" panel tab).
+- Reuses existing wizard primitives from `src/components/reg/*` (ScoreRing, Field, WInput, WTextarea, Combo, WSelect, WDatePicker, LivePhotoCapture, GpsPhotoCapture, Uploader, MapPreview, MerchantProgress, StepTitle, RegNav, ReviewCard, PincodeBadge, OutOfArea, InfoBox, banners, useServiceability) — same components used by the standalone onboarding `register.tsx`.
+- 4 steps: Owner / Shop / Address / Review, with score ring header, approved/under_review/rejected banners, pincode serviceability, GPS location + shop photo, GST upload, submit (score==100). Embedded difference vs register.tsx: no approved-redirect (approved merchants VIEW their profile here), view-only nav when approved/under_review.
+- APIs (real, same as web): GET /merchant/registration/profile, /meta; PUT /basic /shop /address /shop-photo; POST /upload /submit; GET /geo/serviceability, /geo/reverse.
+- Verified live (demo merchant approved, score 100): profile+meta return real data; view-only mode shows ApprovedBanner + locked fields + GPS-verified shop photo. tsc clean. Screenshots captured (Owner + Shop steps).
+- register.tsx (standalone onboarding) left untouched — no regression.
