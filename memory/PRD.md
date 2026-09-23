@@ -434,3 +434,9 @@ table need production/build verification.
 - Progress indicator: fetchInvoicePdfFile now uses legacy createDownloadResumable with a progress callback (0..1 or null). All actions (download/print/share/email) accept onProgress. Toast gained a progress(message) method that live-updates the visible toast without re-animating; handlers surface "Preparing invoice… NN%".
 - Files: frontend/src/lib/invoiceActions.ts, frontend/src/components/Toast.tsx, frontend/app/(partner)/partner/invoices.tsx.
 - Requires APK/dev-build rebuild (native intent + queries already added earlier).
+
+## [2026-06] Partner App — WhatsApp flavour chooser + cancellable download
+- Share Sheet Choice: on Android, "Share on WhatsApp" now opens an in-app chooser (ActionSheet "Send invoice via") → WhatsApp / WhatsApp Business / Other apps. Selected flavour gets the PDF via a targeted SEND intent; "not_installed" → clear error toast. iOS still uses the system share sheet.
+- Cancel Download: fetchInvoicePdfFile exposes a cancel fn (createDownloadResumable.cancelAsync + AbortController fallback) via opts.onCancelReady. The progress toast now shows a "Cancel" button; cancelling throws a cancelled error handled as an info toast ("Download cancelled"), no error. Progress throttled to whole-percent changes.
+- Toast.progress(message, action?) supports an action button. shareInvoicePdf(inv, channel, { waPackage, onProgress, onCancelReady }).
+- Files: frontend/src/lib/invoiceActions.ts, frontend/src/components/Toast.tsx, frontend/app/(partner)/partner/invoices.tsx.
