@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://expo-troubleshoot-5.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://push-notify-fix-16.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -339,3 +339,18 @@ Requirement: device registration must work for BOTH browser (web) and Android ap
 - Verified in-sandbox: tsc clean, eslint 0 errors, sw.js node --check OK, VAPID gen OK. NOT browser-e2e
   tested (needs live deploy + real browser/push service). Sandbox backend was down only due to empty
   .env MONGO_URL (sandbox-only; app targets production api.webhubmaster.shop).
+
+## 2026-06 — Full-screen job ring regression fix (largeIcon)
+- Bug: After push/SSE delivery started working, lock-screen/app-closed full-screen job
+  ring stopped showing. Device diagnostic showed:
+  `notifee.displayNotification(*) 'notification.android.largeIcon' expected a React Native
+  ImageResource value or a valid string URL.`
+- Root cause: frontend/src/lib/notifications.ts displayJobRing() set
+  `largeIcon: d.image || undefined`. The service image (`d.image`) can be a relative path /
+  bare filename / non-URL string. Notifee THROWS on such a largeIcon, and since BOTH the
+  fgs (build(true)) and non-fgs (build(false)) payloads carried it, every ring attempt
+  failed → "App closed/locked: NOT shown".
+- Fix: only attach largeIcon when it is a valid absolute URL (http/https/file); otherwise
+  drop it. Ring now renders regardless of image validity; icon still shows for valid URLs.
+- Verified: tsc clean on notifications.ts. NOTE: native Android lock-screen ring can only be
+  fully verified on a real device build, not in this sandbox.
