@@ -19,7 +19,7 @@ import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
 import InvoiceViewer from "@/src/components/invoices/Viewer";
 import { clearInvoiceHtmlCache } from "@/src/components/invoices/Viewer";
 import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
-import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice, emailInvoiceCompose, getInvoiceShareLink } from "@/src/lib/invoiceActions";
+import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice, emailInvoiceCompose, getInvoiceShareLink, openLocalFile } from "@/src/lib/invoiceActions";
 
 const qs = (o: Record<string, any>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
@@ -132,8 +132,10 @@ export default function PartnerInvoices() {
     toast.info("Preparing invoice...");
     try {
       const r = await downloadInvoicePdf(inv);
-      if (r === "saved") toast.success("Invoice saved to your Downloads");
-      else if (r === "downloaded") toast.success("Invoice downloaded successfully");
+      if (r.status === "saved") {
+        toast.success("Invoice saved to your Downloads",
+          r.openUri ? { label: "Open", onPress: async () => { try { await openLocalFile(r.openUri!); } catch { toast.error("Couldn't open the file"); } } } : undefined);
+      } else if (r.status === "downloaded") toast.success("Invoice downloaded successfully");
       else toast.success("Invoice ready — choose where to save it");
     }
     catch { toast.error("Invoice could not be downloaded"); }

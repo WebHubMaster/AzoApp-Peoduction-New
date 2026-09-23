@@ -77,6 +77,7 @@
       "@react-native-firebase/messaging",
       "./plugins/withFirebaseBomPin.js",
       "./plugins/withJobRingAndroid.js",
+      "./plugins/withShareQueries.js",
       [
         "expo-notifications",
         {
