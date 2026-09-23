@@ -1,13 +1,46 @@
 /* Native equivalents of web invoiceShare.js / invoicePrint.js / download() */
 import { Platform, Linking } from "react-native";
 import { File, Directory, Paths } from "expo-file-system";
+import * as LegacyFS from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import * as Clipboard from "expo-clipboard";
 import { API_BASE, getToken, api } from "@/src/api/client";
 import { money, statusMeta } from "@/src/lib/invoiceUtils";
+import { storage } from "@/src/utils/storage";
 
 const safeName = (s: any) => String(s || "invoice").replace(/[^\w.-]+/g, "_");
+
+/* Persisted Android Storage-Access-Framework directory grant (user picks once —
+   e.g. Downloads — and every future save writes there silently). */
+const SAF_DIR_KEY = "azo_saf_download_dir";
+
+/** Android-only: save the already-downloaded PDF into a real, user-visible folder
+    (Downloads) via SAF. Returns true only when the file was actually written. */
+async function saveToAndroidDownloads(fileUri: string, filename: string): Promise<boolean> {
+  const SAF: any = (LegacyFS as any).StorageAccessFramework;
+  if (!SAF) return false;
+  let base64: string;
+  try {
+    base64 = await LegacyFS.readAsStringAsync(fileUri, { encoding: LegacyFS.EncodingType.Base64 });
+  } catch { return false; }
+  const writeInto = async (dirUri: string) => {
+    const target = await SAF.createFileAsync(dirUri, filename.replace(/\.pdf$/i, ""), "application/pdf");
+    await LegacyFS.writeAsStringAsync(target, base64, { encoding: LegacyFS.EncodingType.Base64 });
+  };
+  const cached = await storage.getItem(SAF_DIR_KEY);
+  if (cached) {
+    try { await writeInto(cached); return true; }
+    catch { await storage.removeItem(SAF_DIR_KEY); /* grant stale/revoked → re-request */ }
+  }
+  try {
+    const perm = await SAF.requestDirectoryPermissionsAsync();
+    if (!perm?.granted) return false;
+    await storage.setItem(SAF_DIR_KEY, perm.directoryUri);
+    await writeInto(perm.directoryUri);
+    return true;
+  } catch { return false; }
+}
 
 /** Short human summary used as the WhatsApp/native-share caption (web invoiceSummaryText). */
 export function invoiceSummaryText(inv: any) {
@@ -44,12 +77,12 @@ export async function fetchInvoicePdfFile(inv: any): Promise<File> {
   return file;
 }
 
-/** Ask the backend for a PUBLIC, no-login link to this invoice's PDF that ANYONE can
-    open/download (gated by an unguessable signature). */
+/** Ask the backend for a PUBLIC, no-login landing page for this invoice that ANYONE
+    can open to preview + download the PDF (gated by an unguessable signature). */
 export async function getInvoiceShareLink(inv: any): Promise<string> {
   const r = await api.get<any>(`/invoices/${inv.id}/share-link`);
   if (!r?.sig) throw new Error("no link");
-  return `${API_BASE}/invoices/pub/${inv.id}?s=${r.sig}`;
+  return `${API_BASE}/invoices/pub/${inv.id}/page?s=${r.sig}`;
 }
 
 async function webBlob(inv: any) {
@@ -59,18 +92,28 @@ async function webBlob(inv: any) {
   return r.blob();
 }
 
-/** Save the PDF to the device (native → system share/save sheet; web → browser download). */
-export async function downloadInvoicePdf(inv: any) {
+/** Save the PDF to the device.
+    - web  → browser download.
+    - Android → real Downloads folder via SAF (returns "saved"); if the user denies
+      the one-time folder grant, falls back to the system save/share sheet.
+    - iOS → system save/share sheet (Save to Files). */
+export async function downloadInvoicePdf(inv: any): Promise<"downloaded" | "saved" | "shared"> {
   if (Platform.OS === "web") {
     const blob = await webBlob(inv);
     const href = URL.createObjectURL(blob); const a = document.createElement("a");
     a.href = href; a.download = `${inv.invoice_number || "invoice"}.pdf`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(href);
-    return;
+    return "downloaded";
   }
   const file = await fetchInvoicePdfFile(inv);
+  const filename = `${safeName(inv.invoice_number)}.pdf`;
+  if (Platform.OS === "android") {
+    const saved = await saveToAndroidDownloads(file.uri, filename);
+    if (saved) return "saved";
+  }
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(file.uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: `${inv.invoice_number || "Invoice"}.pdf` });
   }
+  return "shared";
 }
 
 /** Print the invoice — the downloaded PDF is printed 1:1 (preview == print == PDF). */

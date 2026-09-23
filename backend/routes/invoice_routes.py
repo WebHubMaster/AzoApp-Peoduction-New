@@ -1,8 +1,9 @@
 """Role-based invoice endpoints. Authorization enforced at the API layer —
 customers see only their own invoices, merchants/partners only their related
 documents, admins see everything."""
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
-from fastapi.responses import Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Body, Request
+from fastapi.responses import Response, HTMLResponse
+from html import escape as _esc
 from datetime import datetime
 import io, csv, zipfile, hmac, hashlib
 from middleware.auth import get_current_user, require_role, SECRET
@@ -190,6 +191,86 @@ async def invoice_public_pdf(invoice_id: str, s: str = Query(default=""), downlo
                     headers={"Content-Disposition": f'{disp}; filename="{inv.get("invoice_number", "invoice")}.pdf"'})
 
 
+_CUR_SYM = {"INR": "₹", "USD": "$", "EUR": "€", "GBP": "£", "AED": "AED "}
+
+
+@router.get("/pub/{invoice_id}/page", response_class=HTMLResponse)
+async def invoice_public_page(invoice_id: str, request: Request, s: str = Query(default="")):
+    """PUBLIC, no-login landing page for a shared invoice link. Anyone who opens the
+    link sees the invoice summary, an inline preview, and a prominent Download button
+    (the PDF also auto-downloads). Gated by the same unguessable HMAC signature."""
+    if not s or not hmac.compare_digest(s, _share_sig(invoice_id)):
+        raise HTTPException(404, "Invoice not found")
+    inv = await inv_svc.get_invoice_public(invoice_id)
+    if inv is None:
+        raise HTTPException(404, "Invoice not found")
+    # Relative links resolve against .../pub/{id}/page → .../pub/{id}
+    pdf_inline = f"../{invoice_id}?s={s}"
+    pdf_download = f"../{invoice_id}?s={s}&download=1"
+    biz = inv.get("business_snapshot") or {}
+    biz_name = _esc(str(biz.get("name") or biz.get("business") or "AzoApp"))
+    number = _esc(str(inv.get("invoice_number") or "Invoice"))
+    cur = str(inv.get("currency") or "INR")
+    sym = _CUR_SYM.get(cur, cur + " ")
+    try:
+        total = f"{sym}{float(inv.get('total_amount') or 0):,.2f}"
+    except Exception:
+        total = f"{sym}{inv.get('total_amount') or 0}"
+    pstatus = _esc(str(inv.get("payment_status") or "").replace("_", " ").title())
+    html = f"""<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+<title>{number} · {biz_name}</title>
+<style>
+  :root {{ --brand:#0D47A1; --ink:#0F172A; --muted:#64748B; --line:#E2E8F0; --bg:#F1F5F9; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }}
+  .wrap {{ max-width:820px; margin:0 auto; padding:16px; }}
+  .card {{ background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 8px 30px rgba(2,32,71,.08); }}
+  .head {{ padding:20px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); flex-wrap:wrap; }}
+  .biz {{ font-size:12px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-weight:800; }}
+  .num {{ font-size:20px; font-weight:800; margin-top:2px; }}
+  .amt {{ text-align:right; }}
+  .amt .lbl {{ font-size:11px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted); font-weight:800; }}
+  .amt .val {{ font-size:26px; font-weight:800; }}
+  .badge {{ display:inline-block; margin-top:4px; font-size:12px; font-weight:700; color:var(--brand); background:rgba(13,71,161,.08); padding:2px 10px; border-radius:999px; }}
+  .actions {{ padding:16px 20px; display:flex; gap:10px; flex-wrap:wrap; }}
+  .btn {{ flex:1; min-width:160px; text-align:center; text-decoration:none; font-weight:700; font-size:15px; padding:14px 18px; border-radius:12px; border:1px solid var(--line); color:var(--ink); background:#fff; }}
+  .btn.primary {{ background:var(--brand); color:#fff; border-color:var(--brand); }}
+  .preview {{ border-top:1px solid var(--line); background:#fff; }}
+  .preview iframe {{ width:100%; height:78vh; border:0; display:block; }}
+  .foot {{ text-align:center; color:var(--muted); font-size:12px; padding:16px; }}
+</style>
+</head><body>
+  <div class="wrap">
+    <div class="card">
+      <div class="head">
+        <div>
+          <div class="biz">{biz_name}</div>
+          <div class="num">{number}</div>
+          {f'<span class="badge">{pstatus}</span>' if pstatus else ''}
+        </div>
+        <div class="amt">
+          <div class="lbl">Invoice Total</div>
+          <div class="val">{total}</div>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="btn primary" id="dl" href="{pdf_download}">⬇ Download PDF</a>
+        <a class="btn" href="{pdf_inline}" target="_blank" rel="noopener">Open / Print</a>
+      </div>
+      <div class="preview">
+        <iframe title="invoice" src="{pdf_inline}"></iframe>
+      </div>
+    </div>
+    <div class="foot">This is a computer-generated invoice · {number}</div>
+  </div>
+  <iframe id="auto" style="display:none" src="{pdf_download}"></iframe>
+</body></html>"""
+    return HTMLResponse(content=html)
+
+
 @router.post("/render/pdf")
 async def render_pdf(payload: dict, admin: dict = Depends(require_role("admin"))):
     from services.invoice_pdf_service import build_invoice_pdf
@@ -204,7 +285,6 @@ async def render_html(payload: dict, admin: dict = Depends(require_role("admin")
     """Render a SAMPLE invoice payload to the unified HTML (same template the PDF
     uses) so the admin Business/Theme config screen can preview branding + theme
     changes live before saving."""
-    from fastapi.responses import HTMLResponse
     from services.invoice_html_service import build_invoice_html
     payload = await inv_svc.fill_live_branding(payload or {}, force_theme=False)
     return HTMLResponse(content=build_invoice_html(payload))
@@ -228,7 +308,6 @@ async def invoice_view(invoice_id: str, user: dict = Depends(get_current_user)):
     """Return the unified invoice HTML (same template the PDF is rendered from).
     The frontend loads this into an A4 iframe for preview + print, guaranteeing
     preview == print == downloaded PDF."""
-    from fastapi.responses import HTMLResponse
     inv = await inv_svc.get_invoice(user, invoice_id)
     if inv is None:
         raise HTTPException(404, "Invoice not found")

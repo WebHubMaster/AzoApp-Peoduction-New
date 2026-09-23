@@ -8,7 +8,7 @@ import json
 from decimal import Decimal
 
 # Configuration
-BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
+BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

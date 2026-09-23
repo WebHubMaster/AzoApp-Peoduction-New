@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
+BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"

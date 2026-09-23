@@ -9,7 +9,7 @@ import json
 import sys
 
 # Base URL from frontend/.env
-BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
+BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
 
 # Test credentials (demo accounts with OTP 123456)
 ADMIN_PHONE = "+919000000000"
