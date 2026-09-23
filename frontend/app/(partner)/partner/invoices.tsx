@@ -19,7 +19,7 @@ import InvoiceDetailPanel from "@/src/components/invoices/DetailPanel";
 import InvoiceViewer from "@/src/components/invoices/Viewer";
 import { clearInvoiceHtmlCache } from "@/src/components/invoices/Viewer";
 import { SORT_OPTIONS, presetLabel, typeMeta, statusMeta, shareText, EMPTY_FILTERS, countFilters, Filters } from "@/src/lib/invoiceUtils";
-import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice, emailInvoiceCompose, getInvoiceShareLink, openLocalFile } from "@/src/lib/invoiceActions";
+import { downloadInvoicePdf, printInvoice, shareInvoicePdf, copyText, emailInvoice, emailInvoiceCompose, getInvoiceShareLink, openLocalFile, isCancelled } from "@/src/lib/invoiceActions";
 
 const qs = (o: Record<string, any>) => Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== "").map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&");
 
@@ -59,6 +59,9 @@ export default function PartnerInvoices() {
   const [menuFor, setMenuFor] = useState<any>(null);
   const [emailFor, setEmailFor] = useState<any>(null);
   const [emailing, setEmailing] = useState(false);
+  const [waChooser, setWaChooser] = useState<any>(null); // WhatsApp flavour chooser (Android)
+  const cancelRef = useRef<null | (() => void)>(null);   // cancels the in-flight PDF download
+  const lastPctRef = useRef<number>(-1);
 
   const params = useMemo(() => ({
     page, page_size: pageSize, range, sort,
@@ -126,32 +129,59 @@ export default function PartnerInvoices() {
   }, [deepLinkId]);
 
   /* ── actions ── */
-  // Small live progress indicator surfaced through the toast (e.g. "Preparing invoice… 62%").
-  const prog = (label: string) => (pct: number | null) =>
-    toast.progress(pct == null ? `${label}…` : `${label}… ${Math.round(pct * 100)}%`);
+  // Live progress toast with a Cancel button, throttled to whole-percent changes.
+  const makeOpts = (label: string) => {
+    lastPctRef.current = -1;
+    const cancelAction = { label: "Cancel", onPress: () => cancelRef.current?.() };
+    return {
+      onCancelReady: (c: () => void) => { cancelRef.current = c; },
+      onProgress: (pct: number | null) => {
+        if (pct == null) { toast.progress(`${label}…`, cancelAction); return; }
+        const p = Math.round(pct * 100);
+        if (p === lastPctRef.current) return;
+        lastPctRef.current = p;
+        toast.progress(`${label}… ${p}%`, p < 100 ? cancelAction : undefined);
+      },
+    };
+  };
 
   const download = async (inv: any) => {
     if (!inv?.id) return;
     setBusyId(inv.id);
     toast.info("Preparing invoice…");
     try {
-      const r = await downloadInvoicePdf(inv, prog("Preparing invoice"));
+      const r = await downloadInvoicePdf(inv, makeOpts("Downloading invoice"));
       if (r.status === "saved") {
         toast.success("Invoice saved to your Downloads",
           r.openUri ? { label: "Open", onPress: async () => { try { await openLocalFile(r.openUri!); } catch { toast.error("Couldn't open the file"); } } } : undefined);
       } else if (r.status === "downloaded") toast.success("Invoice downloaded successfully");
       else toast.success("Invoice ready — choose where to save it");
     }
-    catch { toast.error("Invoice could not be downloaded"); }
-    finally { setBusyId(null); }
+    catch (e) { if (isCancelled(e)) toast.info("Download cancelled"); else toast.error("Invoice could not be downloaded"); }
+    finally { cancelRef.current = null; setBusyId(null); }
   };
   const print = async (inv: any) => {
     if (!inv?.id) return;
     setPrinting(true);
     toast.info("Preparing invoice…");
-    try { await printInvoice(inv, prog("Preparing invoice")); }
-    catch (e: any) { if (!/cancel|dismiss/i.test(String(e?.message || ""))) toast.error("Invoice could not be printed"); }
-    finally { setPrinting(false); }
+    try { await printInvoice(inv, makeOpts("Preparing invoice")); }
+    catch (e: any) {
+      if (isCancelled(e)) toast.info("Cancelled");
+      else if (!/cancel|dismiss/i.test(String(e?.message || ""))) toast.error("Invoice could not be printed");
+    }
+    finally { cancelRef.current = null; setPrinting(false); }
+  };
+  // Actually perform the WhatsApp share (optionally targeting a specific flavour).
+  const doWhatsApp = async (inv: any, waPackage?: string) => {
+    setWaChooser(null);
+    toast.info("Preparing invoice…");
+    try {
+      const r = await shareInvoicePdf(inv, "whatsapp", { ...makeOpts("Preparing invoice"), waPackage });
+      if (r === "not_installed") { toast.error(waPackage === "com.whatsapp.w4b" ? "WhatsApp Business isn't installed" : "WhatsApp isn't installed"); }
+      else if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
+    }
+    catch (e) { if (isCancelled(e)) toast.info("Cancelled"); else toast.error("Could not prepare the invoice PDF"); }
+    finally { cancelRef.current = null; }
   };
   const share = async (inv: any, channel: string) => {
     if (!inv) return;
@@ -159,19 +189,29 @@ export default function PartnerInvoices() {
       if (Platform.OS === "web") { setEmailFor(inv); return; }
       toast.info("Opening email…");
       try {
-        const r = await emailInvoiceCompose(inv, undefined, prog("Preparing invoice"));
+        const r = await emailInvoiceCompose(inv, undefined, makeOpts("Preparing invoice"));
         if (r === "sent") toast.success("Invoice emailed");
-      } catch { setEmailFor(inv); }  // no mail app / attach failed → fall back to the send sheet
+      } catch (e) { if (isCancelled(e)) toast.info("Cancelled"); else setEmailFor(inv); }  // no mail app → fall back to send sheet
+      finally { cancelRef.current = null; }
       return;
     }
-    if (channel === "whatsapp" || channel === "system") {
+    if (channel === "whatsapp") {
+      // On Android, ask which WhatsApp flavour to send to; iOS uses the system sheet.
+      if (Platform.OS === "android") { setWaChooser(inv); return; }
       toast.info("Preparing invoice…");
       try {
-        const r = await shareInvoicePdf(inv, channel as any, prog("Preparing invoice"));
-        if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp");
-        else if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
+        const r = await shareInvoicePdf(inv, "whatsapp", makeOpts("Preparing invoice"));
+        if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
       }
-      catch { toast.error("Could not prepare the invoice PDF"); }
+      catch (e) { if (isCancelled(e)) toast.info("Cancelled"); else toast.error("Could not prepare the invoice PDF"); }
+      finally { cancelRef.current = null; }
+      return;
+    }
+    if (channel === "system") {
+      toast.info("Preparing invoice…");
+      try { await shareInvoicePdf(inv, "system", makeOpts("Preparing invoice")); }
+      catch (e) { if (isCancelled(e)) toast.info("Cancelled"); else toast.error("Could not prepare the invoice PDF"); }
+      finally { cancelRef.current = null; }
       return;
     }
     if (channel === "copy") {
@@ -276,6 +316,27 @@ export default function PartnerInvoices() {
         ))}
       </ActionSheet>
       <RowMenuSheet inv={menuFor} onClose={() => setMenuFor(null)} {...rowActions} />
+      <ActionSheet open={!!waChooser} onClose={() => setWaChooser(null)} title="Send invoice via" testID="wa-chooser-sheet">
+        {[
+          { key: "std", pkg: "com.whatsapp", title: "WhatsApp", sub: "Send the invoice PDF", tid: "wa-standard" },
+          { key: "biz", pkg: "com.whatsapp.w4b", title: "WhatsApp Business", sub: "Send the invoice PDF", tid: "wa-business" },
+        ].map((o) => (
+          <Pressable key={o.key} testID={o.tid} onPress={() => doWhatsApp(waChooser, o.pkg)}
+            style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10 }}>
+            <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: t.dark ? "rgba(2,44,34,0.4)" : "#ECFDF5" }}>
+              <Text style={{ fontSize: 18 }}>✆</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 15, fontWeight: "700", color: t.t900 }}>{o.title}</Text>
+              <Text style={{ fontSize: 12, color: t.t500 }}>{o.sub}</Text>
+            </View>
+          </Pressable>
+        ))}
+        <Pressable testID="wa-other" onPress={() => { const inv = waChooser; setWaChooser(null); share(inv, "system"); }}
+          style={{ paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: t.border }}>
+          <Text style={{ fontSize: 14, fontWeight: "600", color: t.t700 }}>Other apps…</Text>
+        </Pressable>
+      </ActionSheet>
       <InvoiceFilterSheet open={showFilters} onClose={() => setShowFilters(false)} filters={filters} onApply={setFilters}
         range={range} dateFrom={dateFrom} dateTo={dateTo} onRangeApply={onRangeApplyFromDrawer} counts={summary} />
       <InvoiceDetailPanel inv={selected} full={selected ? fullCache[selected.id] : null} loading={detailLoading} onClose={() => setSelected(null)}
