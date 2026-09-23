@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
+BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

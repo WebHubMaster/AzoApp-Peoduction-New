@@ -16,7 +16,7 @@ import json
 import sys
 from typing import Dict, Any, List, Tuple
 
-BASE_URL = "https://expo-troubleshoot-5.preview.emergentagent.com/api"
+BASE_URL = "https://push-notify-fix-16.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

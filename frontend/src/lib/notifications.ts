@@ -540,6 +540,12 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   const reschedBody = `${d.requester_name || "The customer"} wants to move ${d.service_name || "the job"} to ${d.new_date || ""} · ${d.new_time || ""}`.trim();
   const reminderBody = `${d.service_name || "Your scheduled job"} starts at ${d.scheduled_time || "soon"}${d.scheduled_label ? ` (${d.scheduled_label})` : ""}. Get ready to start.`.trim();
   const ringBody = isReminder ? reminderBody : isResched ? reschedBody : jobRingBody(d);
+  // Notifee's `largeIcon` accepts ONLY a valid absolute URL (http/https/file) or a
+  // bundled resource — a relative path / bare filename / empty string makes
+  // displayNotification THROW, which would swallow the entire full-screen ring.
+  // So only attach it when it is a safe absolute URL; otherwise drop it.
+  const rawImg = typeof d.image === "string" ? d.image.trim() : "";
+  const largeIcon = /^(https?:|file:)\/\//i.test(rawImg) ? rawImg : undefined;
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears
@@ -558,7 +564,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
       smallIcon: "ic_notification",
       color: "#0D47A1",
       colorized: true,
-      largeIcon: d.image || undefined,
+      largeIcon,
       vibrationPattern: [400, 250, 400, 250],
       lightUpScreen: true,
       ongoing: asFgs,
