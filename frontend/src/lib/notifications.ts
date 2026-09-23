@@ -99,8 +99,28 @@ async function setupExpoChannels() {
  * source of truth) so every RNFB code path below cleanly no-ops. Do NOT re-add
  * the `require("@react-native-firebase/messaging")` here — it reintroduces the
  * FCM Registration failure and also forces the native module back into the build. */
+/** React Native Firebase Messaging — RE-ENABLED (the reliable "RNBC" killed-app path).
+ *
+ * WHY back: on a FULLY CLOSED / swiped / force-stopped app the JS runtime is dead,
+ * so the SSE foreground-service listener can't run. The ONLY thing that reliably
+ * wakes a killed app is RNFB's native FirebaseMessagingService, which delivers the
+ * FCM data message to `setBackgroundMessageHandler` (see pushBackground.ts) → we
+ * launch the Notifee full-screen ring (fullScreenAction) and the app auto-opens —
+ * exactly the behaviour that worked before it was removed.
+ *
+ * REQUIREMENT: this needs a working FCM device token, which needs the Firebase
+ * project's Cloud Messaging API (V1) + Installations API enabled and App Check NOT
+ * enforced. RNFB and expo-notifications both mint the token via the SAME
+ * FirebaseMessaging.getToken(), so the project-side fix is still required for
+ * delivery — but with RNFB the killed-app HANDLER is reliable again. */
+let _rnfbMessaging: any = null;
 export function messaging(): any | null {
-  return null;
+  if (!pushSupported) return null;
+  if (_rnfbMessaging === null) {
+    try { _rnfbMessaging = require("@react-native-firebase/messaging").default; }
+    catch { _rnfbMessaging = false; }
+  }
+  try { return _rnfbMessaging ? _rnfbMessaging() : null; } catch { return null; }
 }
 
 /**
@@ -117,6 +137,18 @@ async function expoDeviceToken(): Promise<string> {
     const t = await EN.getDevicePushTokenAsync();
     const val = typeof t === "string" ? t : t?.data;
     return typeof val === "string" ? val : "";
+  } catch (e: any) { _lastExpoTokenErr = String(e?.message || e || ""); return ""; }
+}
+
+/** RNFB native FCM token — the "RNBC" path. Same underlying FirebaseMessaging.getToken()
+ * as expo, but preferred because RNFB's service is what delivers to a killed app. */
+async function rnfbDeviceToken(): Promise<string> {
+  if (Platform.OS === "web") return "";
+  try {
+    const m = messaging();
+    if (!m?.getToken) return "";
+    const t = await m.getToken();
+    return typeof t === "string" ? t : "";
   } catch (e: any) { _lastExpoTokenErr = String(e?.message || e || ""); return ""; }
 }
 
@@ -658,7 +690,8 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     _lastExpoTokenErr = "";
     let token = "";
     for (let i = 0; i < 5 && !token; i += 1) {
-      token = await expoDeviceToken();
+      token = await rnfbDeviceToken();               // RNBC path (owns killed-app delivery)
+      if (!token) token = await expoDeviceToken();   // fallback
       if (!token && i < 4) await new Promise((r) => setTimeout(r, 1000 * 2 ** i)); // 1s, 2s, 4s, 8s
     }
 
