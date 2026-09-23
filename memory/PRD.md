@@ -447,3 +447,12 @@ table need production/build verification.
 - APIs (unchanged, real): GET /api/merchant/overview, GET /api/merchant/my-code, GET /api/notifications. Routing already sends merchant→/(merchant) on login.
 - Verified live against backend api.webhubmaster.shop with demo merchant +919000000002/123456: my-code=3L6MKM3, overview total=508, wallet.available=20779.77, 8 recent rows. tsc --noEmit clean.
 - NOTE: native Expo app → browser screenshot/testing-agent not applicable; verified via API contract + TypeScript compile.
+
+## [Update] Merchant Mobile Customers (HUBAHU web parity) — 2026-09-23
+- Rebuilt `frontend/app/(merchant)/customers.tsx` to exactly match web `pages/merchant/referral/MerchantReferralCustomers.jsx` (list + detail in one screen).
+- New shared module `frontend/src/components/merchant/ReferralShared.tsx`: MReportCards, MSearchBox, MPagination, MModuleHeader, MBackLink, MPrivacyNote (reusable for Partners/Commission pages).
+- List: gradient header, 7 ReportCards, debounced search (350ms), rows (avatar, name, completed/total services, commission, chevron), server pagination.
+- Detail: back link, avatar+name+code, 7 ReportCards, service-wise commission list, privacy note.
+- APIs (real): GET /merchant/referral/customers?page&page_size&q ; GET /merchant/referral/customers/{id}. Switched off the old /merchant/customers (ops) endpoint to match web exactly.
+- Verified live (local backend, demo merchant +919000000002): 3 customers (Ravi/Sunita/Amit), report total ₹123, detail Ravi ₹60 w/ 2 services. tsc clean. Visual screenshots captured for list + detail.
+- IMPORTANT: set backend/.env MONGO_URL+DB_NAME to run local backend for verification; frontend/.env untouched (app still targets its configured backend).
