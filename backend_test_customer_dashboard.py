@@ -3,7 +3,7 @@
 Backend API Testing for CUSTOMER DASHBOARD (2026-09 continuation)
 Tests: Customer reschedule booking, Customer tip, Booking chat messages
 Customer auth: +919000000004, OTP 123456
-BASE_URL: https://partner-invoice-fix.preview.emergentagent.com/api
+BASE_URL: https://merchant-mobile-ui.preview.emergentagent.com/api
 """
 import requests
 import time
@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from typing import Dict, Any
 
 # Load BASE_URL
-BASE_URL = "https://partner-invoice-fix.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-mobile-ui.preview.emergentagent.com/api"
 
 # Test credentials
 CUSTOMER_PHONE = "+919000000004"
