@@ -43,6 +43,10 @@ const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat"];
 /** Raw Android sound resource copied by plugins/withJobRingAndroid.js */
 export const JOB_RING_SOUND = "job_ring";
 
+/** Bundled AzoApp logo used as the ring's largeIcon when a job has no usable
+ *  remote image — keeps every full-screen ring visually branded. */
+const APP_LOGO_ICON = require("../../assets/brand-logo.png");
+
 // Expo Go (StoreClient) and web don't support the native modules — no-op there.
 export const pushSupported =
   Platform.OS !== "web" &&
@@ -540,12 +544,12 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   const reschedBody = `${d.requester_name || "The customer"} wants to move ${d.service_name || "the job"} to ${d.new_date || ""} · ${d.new_time || ""}`.trim();
   const reminderBody = `${d.service_name || "Your scheduled job"} starts at ${d.scheduled_time || "soon"}${d.scheduled_label ? ` (${d.scheduled_label})` : ""}. Get ready to start.`.trim();
   const ringBody = isReminder ? reminderBody : isResched ? reschedBody : jobRingBody(d);
-  // Notifee's `largeIcon` accepts ONLY a valid absolute URL (http/https/file) or a
-  // bundled resource — a relative path / bare filename / empty string makes
-  // displayNotification THROW, which would swallow the entire full-screen ring.
-  // So only attach it when it is a safe absolute URL; otherwise drop it.
-  const rawImg = typeof d.image === "string" ? d.image.trim() : "";
-  const largeIcon = /^(https?:|file:)\/\//i.test(rawImg) ? rawImg : undefined;
+  // largeIcon: prefer the job's image — absolutised + http→https via mediaUrl so a
+  // relative backend path also renders. Notifee THROWS on an invalid largeIcon
+  // (which would swallow the whole ring), so if it isn't a usable http(s) URL we
+  // fall back to the bundled AzoApp logo — the ring is ALWAYS branded, never blank.
+  const resolvedImg = mediaUrl(typeof d.image === "string" ? d.image : "");
+  const largeIcon = resolvedImg && /^https?:\/\//i.test(resolvedImg) ? resolvedImg : APP_LOGO_ICON;
   // `asFgs` = keep the process alive + loop the ringtone. Starting a foreground
   // service from a background FCM message can be rejected on Android 14+; if that
   // happens we retry WITHOUT the service so the full-screen ring still appears

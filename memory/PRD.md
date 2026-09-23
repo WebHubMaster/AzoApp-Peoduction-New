@@ -354,3 +354,16 @@ Requirement: device registration must work for BOTH browser (web) and Android ap
   drop it. Ring now renders regardless of image validity; icon still shows for valid URLs.
 - Verified: tsc clean on notifications.ts. NOTE: native Android lock-screen ring can only be
   fully verified on a real device build, not in this sandbox.
+
+## 2026-06 — Ring enhancements (fallback icon, per-device dashboard, absolute images)
+1. Fallback icon: frontend/src/lib/notifications.ts displayJobRing() largeIcon now uses
+   mediaUrl(d.image) (absolutises relative paths + http→https); if not a usable http(s)
+   URL it falls back to the bundled AzoApp logo (assets/brand-logo.png) → ring always branded.
+2. Per-device ring dashboard: backend fcm_service.ring_devices_overview() (latest ring status
+   per device via aggregation) → exposed as `ring_devices` in /admin/notifications/health →
+   rendered as "Per-device last ring status" table in web_panel adminSectionsPro.jsx (Diagnostics).
+3. Absolute image URLs: backend booking_controller._abs_media() normalizes service_image to
+   absolute https (used in SSE brief + FCM/webpush push payload) so lock-screen icon renders reliably.
+Verified: tsc clean (notifications.ts), ruff F-checks pass. Backend not runtime-tested in sandbox
+(MONGO_URL empty by design; app targets production api.webhubmaster.shop). On-device ring + admin
+table need production/build verification.

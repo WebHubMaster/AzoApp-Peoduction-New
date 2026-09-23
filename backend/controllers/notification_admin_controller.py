@@ -175,6 +175,12 @@ async def notification_health():
     except Exception:  # noqa: BLE001
         ring_events = []
 
+    # Latest ring status PER DEVICE (one row per phone) for the admin dashboard.
+    try:
+        ring_devices = await fcm_service.ring_devices_overview(40)
+    except Exception:  # noqa: BLE001
+        ring_devices = []
+
     # Browser-side registration attempts (why a device did/didn't register)
     reg_rows = await db.push_registration_logs.find(
         {}, {"_id": 0}).sort("at", -1).limit(30).to_list(30)
@@ -283,6 +289,7 @@ async def notification_health():
         "online_partners": online_partners,
         "recent_delivery_logs": recent_logs,
         "recent_ring_events": ring_events,
+        "ring_devices": ring_devices,
         "registration_attempts": reg_rows,
         "partners_without_device": partners_no_device,
     }

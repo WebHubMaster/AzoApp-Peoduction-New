@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, X, Trash2, Pencil, ChevronUp, ChevronDown, Bold, Italic, List, ListOrdered, Heading, Link2, ImagePlus, Plus, Star, Copy, Sparkles, Layers, Tag, Globe, Info, Check, ChevronRight, Search as SearchIcon, Image as ImageIcon, MapPin, Phone, Clock, User as UserIcon, CheckCircle2, Loader2, RefreshCw, Calendar, Briefcase, Mail, Bell, Send, Users, Link as LinkIcon } from "lucide-react";
+import { Upload, X, Trash2, Pencil, ChevronUp, ChevronDown, Bold, Italic, List, ListOrdered, Heading, Link2, ImagePlus, Plus, Star, Copy, Sparkles, Layers, Tag, Globe, Info, Check, ChevronRight, Search as SearchIcon, Image as ImageIcon, MapPin, Phone, Clock, User as UserIcon, CheckCircle2, Loader2, RefreshCw, Calendar, Briefcase, Mail, Bell, Send, Users, Link as LinkIcon, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { applySiteTheme, useSiteConfig } from "@/context/SiteConfigContext";
 import DataTable from "@/components/admin/DataTable";
@@ -1932,6 +1932,41 @@ function NotificationDiagnostics() {
                   <td className="py-2 pr-3 text-slate-600">{r.mode || "—"}</td>
                   <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
                   <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? "delivered" : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-100 p-5 bg-white" data-testid="diag-ring-devices">
+        <div className="flex items-center gap-2 mb-1">
+          <Smartphone className="h-4 w-4 text-primary-700" />
+          <h3 className="font-bold text-slate-900">Per-device last ring status</h3>
+          <span className="ml-auto text-xs font-bold text-slate-600 bg-slate-100 rounded-full px-2 py-0.5">{(health.ring_devices || []).length}</span>
+        </div>
+        <p className="text-xs text-slate-500 mb-3">One row per phone — the <b>most recent</b> call-style ring outcome on that device, so you can instantly see which devices are ringing OK and which are failing (with the reason). <b>FSI</b> = full-screen-intent permission granted on that phone.</p>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="text-slate-400 uppercase tracking-wider border-b border-slate-100">
+              <th className="text-left font-semibold py-2 pr-3">Device</th><th className="text-left font-semibold py-2 pr-3">User</th><th className="text-left font-semibold py-2 pr-3">Last ring</th><th className="text-left font-semibold py-2 pr-3">Where</th><th className="text-left font-semibold py-2 pr-3">FSI</th><th className="text-left font-semibold py-2">Status / Reason</th>
+            </tr></thead>
+            <tbody>
+              {(health.ring_devices || []).length === 0 && (
+                <tr><td colSpan={6} className="py-6 text-center text-slate-400">No device has reported a ring yet — send a test ring or dispatch a job.</td></tr>
+              )}
+              {(health.ring_devices || []).map((r) => (
+                <tr key={r.device_id} className="border-b border-slate-50" data-testid={`diag-ringdev-${r.device_id}`}>
+                  <td className="py-2 pr-3 text-slate-600">
+                    <span className="font-medium text-slate-800">{r.device?.platform || "device"}</span>
+                    {r.device?.browser && <span className="text-slate-400 ml-1">({r.device.browser})</span>}
+                    <span className="block text-[10px] text-slate-400 truncate max-w-[150px]" title={r.device_id}>{r.device_id}</span>
+                  </td>
+                  <td className="py-2 pr-3"><span className="font-medium text-slate-800">{r.user?.name || r.user_id?.slice(0, 8)}</span>{r.user?.role && <span className="text-slate-400 ml-1">({r.user.role})</span>}</td>
+                  <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{r.at ? new Date(r.at).toLocaleString() : "—"}</td>
+                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
+                  <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
+                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? `delivered${r.mode ? ` (${r.mode})` : ""}` : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
                 </tr>
               ))}
             </tbody>
