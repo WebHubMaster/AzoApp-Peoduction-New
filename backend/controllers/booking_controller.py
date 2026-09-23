@@ -1,5 +1,6 @@
 import random
 import string
+import os
 from fastapi import HTTPException
 from pymongo.errors import DuplicateKeyError
 from config.database import db, now_iso, get_settings
@@ -16,6 +17,26 @@ from datetime import datetime, timezone, timedelta
 PRO_HEADSTART_SECONDS = 30
 
 
+def _abs_media(url: str) -> str:
+    """Make a stored media URL absolute + https so it renders as the job image on
+    every ring/push channel. FCM (`notification.image`) and Web Push require an
+    ABSOLUTE https URL, and Android 15+ blocks cleartext http — a relative path or
+    an http URL silently fails to load. Returns "" when it can't be resolved."""
+    u = (url or "").strip()
+    if not u:
+        return ""
+    if u.startswith("http://"):
+        return "https://" + u[len("http://"):]
+    if u.startswith("https://"):
+        return u
+    base = (os.environ.get("REACT_APP_BACKEND_URL") or os.environ.get("PUBLIC_APP_URL") or "").rstrip("/")
+    if not base:
+        return ""
+    if base.startswith("http://"):
+        base = "https://" + base[len("http://"):]
+    return base + (u if u.startswith("/") else "/" + u)
+
+
 def _job_brief(b):
     """Compact booking payload broadcast over SSE to partners/admin."""
     addr = b.get("address") or {}
@@ -24,7 +45,7 @@ def _job_brief(b):
     # able to contact the customer — mask the phone in the ring/feed payload too.
     _cust_phone = None if _sched.get("comm_locked") else b.get("customer_phone")
     _items = b.get("items") or []
-    _img = (_items[0].get("image") if _items else "") or b.get("image") or ""
+    _img = _abs_media((_items[0].get("image") if _items else "") or b.get("image") or "")
     _pricing = b.get("pricing") or {}
     # Pre-tax service value for the whole order (base + add-ons, GST EXCLUDED). Used
     # for the incoming-ring so partners see the service cost WITHOUT tax.
@@ -1123,7 +1144,6 @@ async def _push_job_request(pid, booking, brief):
     Returns the FCM result dict so the caller can log it in the dispatch feed."""
     try:
         import json as _json
-        from services import fcm_service
         _items = brief.get("items") or []
         # Compact per-service list (name + pre-tax price) for the SW so the ring
         # shows every individual service instead of "N services · Category".

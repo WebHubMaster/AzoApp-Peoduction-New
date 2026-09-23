@@ -501,6 +501,42 @@ async def recent_ring_events(limit: int = 30):
     return rows
 
 
+async def ring_devices_overview(limit: int = 40):
+    """Latest Job-Ring status PER DEVICE (ok/failed + reason) for the admin
+    dashboard — one row per phone with its most recent ring outcome, so admins can
+    see at a glance which devices last rang OK and which failed (and why)."""
+    pipeline = [
+        {"$match": {"device_id": {"$nin": ["", None]}}},
+        {"$sort": {"at": -1}},
+        {"$group": {"_id": "$device_id", "doc": {"$first": "$$ROOT"}}},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$sort": {"at": -1}},
+        {"$limit": limit},
+    ]
+    try:
+        rows = await db.ring_status_logs.aggregate(pipeline).to_list(limit)
+    except Exception:  # noqa: BLE001
+        return []
+    for r in rows:
+        r.pop("_id", None)
+    uids = list({r.get("user_id") for r in rows if r.get("user_id")})
+    dids = list({r.get("device_id") for r in rows if r.get("device_id")})
+    umap = {}
+    if uids:
+        async for u in db.users.find({"id": {"$in": uids}}, {"_id": 0, "id": 1, "name": 1, "role": 1, "phone": 1}):
+            umap[u["id"]] = u
+    dmap = {}
+    if dids:
+        async for d in db.fcm_devices.find(
+                {"device_id": {"$in": dids}},
+                {"_id": 0, "device_id": 1, "platform": 1, "browser": 1, "last_seen_at": 1}):
+            dmap.setdefault(d["device_id"], d)
+    for r in rows:
+        r["user"] = umap.get(r.get("user_id"))
+        r["device"] = dmap.get(r.get("device_id"))
+    return rows
+
+
 async def deactivate_stale_devices(days: int = 45) -> int:
     """Auto-cleanup: mark devices not seen in `days` days as inactive so 'registered
     devices' counts + online-device lists stay accurate (an uninstalled/logged-out
