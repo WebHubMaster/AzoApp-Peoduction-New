@@ -126,12 +126,16 @@ export default function PartnerInvoices() {
   }, [deepLinkId]);
 
   /* ── actions ── */
+  // Small live progress indicator surfaced through the toast (e.g. "Preparing invoice… 62%").
+  const prog = (label: string) => (pct: number | null) =>
+    toast.progress(pct == null ? `${label}…` : `${label}… ${Math.round(pct * 100)}%`);
+
   const download = async (inv: any) => {
     if (!inv?.id) return;
     setBusyId(inv.id);
-    toast.info("Preparing invoice...");
+    toast.info("Preparing invoice…");
     try {
-      const r = await downloadInvoicePdf(inv);
+      const r = await downloadInvoicePdf(inv, prog("Preparing invoice"));
       if (r.status === "saved") {
         toast.success("Invoice saved to your Downloads",
           r.openUri ? { label: "Open", onPress: async () => { try { await openLocalFile(r.openUri!); } catch { toast.error("Couldn't open the file"); } } } : undefined);
@@ -144,7 +148,8 @@ export default function PartnerInvoices() {
   const print = async (inv: any) => {
     if (!inv?.id) return;
     setPrinting(true);
-    try { await printInvoice(inv); }
+    toast.info("Preparing invoice…");
+    try { await printInvoice(inv, prog("Preparing invoice")); }
     catch (e: any) { if (!/cancel|dismiss/i.test(String(e?.message || ""))) toast.error("Invoice could not be printed"); }
     finally { setPrinting(false); }
   };
@@ -154,7 +159,7 @@ export default function PartnerInvoices() {
       if (Platform.OS === "web") { setEmailFor(inv); return; }
       toast.info("Opening email…");
       try {
-        const r = await emailInvoiceCompose(inv);
+        const r = await emailInvoiceCompose(inv, undefined, prog("Preparing invoice"));
         if (r === "sent") toast.success("Invoice emailed");
       } catch { setEmailFor(inv); }  // no mail app / attach failed → fall back to the send sheet
       return;
@@ -162,7 +167,7 @@ export default function PartnerInvoices() {
     if (channel === "whatsapp" || channel === "system") {
       toast.info("Preparing invoice…");
       try {
-        const r = await shareInvoicePdf(inv, channel as any);
+        const r = await shareInvoicePdf(inv, channel as any, prog("Preparing invoice"));
         if (r === "downloaded") toast.success("Invoice PDF downloaded — attach it in WhatsApp");
         else if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
       }

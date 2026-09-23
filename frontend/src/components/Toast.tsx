@@ -14,6 +14,7 @@ interface ToastItem {
 }
 interface ToastCtx {
   show: (message: string, kind?: ToastKind, action?: ToastAction) => void;
+  progress: (message: string) => void;
   success: (m: string, action?: ToastAction) => void;
   error: (m: string, action?: ToastAction) => void;
   info: (m: string, action?: ToastAction) => void;
@@ -42,8 +43,21 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     [anim, hide],
   );
 
+  // Live-updates the visible toast's text (used for download/share progress) without
+  // re-animating; keeps it on screen with a safety auto-hide.
+  const progress = useCallback(
+    (message: string) => {
+      if (timer.current) clearTimeout(timer.current);
+      setToast((prev) => (prev ? { ...prev, kind: "info", message, action: undefined } : { id: Date.now(), kind: "info", message }));
+      Animated.spring(anim, { toValue: 1, useNativeDriver: true, friction: 8 }).start();
+      timer.current = setTimeout(hide, 12000);
+    },
+    [anim, hide],
+  );
+
   const api: ToastCtx = {
     show,
+    progress,
     success: (m, action) => show(m, "success", action),
     error: (m, action) => show(m, "error", action),
     info: (m, action) => show(m, "info", action),

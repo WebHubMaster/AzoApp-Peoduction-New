@@ -428,3 +428,9 @@ table need production/build verification.
 - New Android config plugin plugins/withShareQueries.js adds <queries> for com.whatsapp / com.whatsapp.w4b + SEND/VIEW application/pdf so package visibility works on Android 11+ (targetSdk 36). Registered in app.json.
 - Files: frontend/src/components/Toast.tsx (action button), frontend/src/lib/invoiceActions.ts (openLocalFile + direct-WhatsApp + saved URI), frontend/app/(partner)/partner/invoices.tsx (Open action), frontend/plugins/withShareQueries.js, frontend/app.json.
 - Requires an APK/dev-build rebuild (new native config plugin + intent usage).
+
+## [2026-06] Partner App — WhatsApp Business + share/download progress
+- WhatsApp Business support: direct share now tries com.whatsapp then com.whatsapp.w4b (loop) before the generic sheet — works when only WhatsApp Business is installed. Both packages already in withShareQueries.js <queries>.
+- Progress indicator: fetchInvoicePdfFile now uses legacy createDownloadResumable with a progress callback (0..1 or null). All actions (download/print/share/email) accept onProgress. Toast gained a progress(message) method that live-updates the visible toast without re-animating; handlers surface "Preparing invoice… NN%".
+- Files: frontend/src/lib/invoiceActions.ts, frontend/src/components/Toast.tsx, frontend/app/(partner)/partner/invoices.tsx.
+- Requires APK/dev-build rebuild (native intent + queries already added earlier).

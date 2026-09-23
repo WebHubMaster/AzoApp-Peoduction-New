@@ -68,32 +68,47 @@ export function invoiceSummaryText(inv: any) {
   return `${num} · ${money(inv?.total_amount, inv?.currency, 2)}${st} — AzoApp`;
 }
 
+type ProgressCb = (pct: number | null) => void;
+
 /** Download the server-rendered invoice PDF (same template as preview/print) to a
-    cache file, sending the auth token so the request is authorised. Falls back to a
-    manual byte-fetch if the native downloader fails on some ROMs, and validates that
-    a non-empty file actually landed so we never share/print a broken/empty document. */
-export async function fetchInvoicePdfFile(inv: any): Promise<File> {
-  const dir = new Directory(Paths.cache, "invoices");
-  dir.create({ intermediates: true, idempotent: true });
-  const file = new File(dir, `${safeName(inv.invoice_number)}.pdf`);
+    cache file, sending the auth token so the request is authorised. Reports download
+    progress (0..1, or null when the size is unknown) via `onProgress`. Falls back to a
+    manual byte-fetch if the streamed download fails on some ROMs, and validates that a
+    non-empty file actually landed so we never share/print a broken/empty document. */
+export async function fetchInvoicePdfFile(inv: any, onProgress?: ProgressCb): Promise<{ uri: string }> {
+  const name = safeName(inv.invoice_number);
+  const dir = `${LegacyFS.cacheDirectory}invoices/`;
+  try { await LegacyFS.makeDirectoryAsync(dir, { intermediates: true }); } catch { /* already exists */ }
+  const fileUri = `${dir}${name}.pdf`;
   const token = await getToken();
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
   const url = `${API_BASE}/invoices/${inv.id}/pdf`;
-  // Primary: native downloader (fast, streamed to disk).
+  // Primary: resumable download streamed to disk with real progress callbacks.
   try {
-    const out = await File.downloadFileAsync(url, file, { headers, idempotent: true });
-    const size = (() => { try { return Number(out?.size ?? file.size ?? 0); } catch { return 0; } })();
-    if (size) return out;
-  } catch { /* some ROMs fail the native downloader — fall back to a manual fetch */ }
+    const dl = LegacyFS.createDownloadResumable(url, fileUri, { headers }, (p: any) => {
+      const total = Number(p?.totalBytesExpectedToWrite || 0);
+      onProgress?.(total > 0 ? Math.min(1, Number(p?.totalBytesWritten || 0) / total) : null);
+    });
+    const res = await dl.downloadAsync();
+    if (res?.uri) {
+      const info: any = await LegacyFS.getInfoAsync(res.uri);
+      if (info?.exists && Number(info?.size || 0) > 0) { onProgress?.(1); return { uri: res.uri }; }
+    }
+  } catch { /* some ROMs fail the streamed download — fall back to a manual fetch */ }
   // Fallback: fetch the bytes ourselves and write the file (guarantees a real PDF lands).
+  onProgress?.(null);
   const r = await fetch(url, { headers });
   if (!r.ok) throw new Error("pdf failed");
   const bytes = new Uint8Array(await r.arrayBuffer());
   if (!bytes.length) throw new Error("empty pdf");
-  try { if (file.exists) file.delete(); } catch { /* ignore */ }
-  try { file.create({ overwrite: true } as any); } catch { /* may already exist */ }
-  file.write(bytes);
-  return file;
+  const d2 = new Directory(Paths.cache, "invoices");
+  d2.create({ intermediates: true, idempotent: true });
+  const f = new File(d2, `${name}.pdf`);
+  try { if (f.exists) f.delete(); } catch { /* ignore */ }
+  try { f.create({ overwrite: true } as any); } catch { /* may already exist */ }
+  f.write(bytes);
+  onProgress?.(1);
+  return { uri: f.uri };
 }
 
 /** Ask the backend for a PUBLIC, no-login landing page for this invoice that ANYONE
@@ -116,16 +131,17 @@ async function webBlob(inv: any) {
     - Android → real Downloads folder via SAF (returns "saved"); if the user denies
       the one-time folder grant, falls back to the system save/share sheet.
     - iOS → system save/share sheet (Save to Files). */
-export async function downloadInvoicePdf(inv: any): Promise<{ status: "downloaded" | "saved" | "shared"; openUri?: string }> {
+export async function downloadInvoicePdf(inv: any, onProgress?: ProgressCb): Promise<{ status: "downloaded" | "saved" | "shared"; openUri?: string }> {
   if (Platform.OS === "web") {
     const blob = await webBlob(inv);
     const href = URL.createObjectURL(blob); const a = document.createElement("a");
     a.href = href; a.download = `${inv.invoice_number || "invoice"}.pdf`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(href);
     return { status: "downloaded" };
   }
-  const file = await fetchInvoicePdfFile(inv);
+  const file = await fetchInvoicePdfFile(inv, onProgress);
   const filename = `${safeName(inv.invoice_number)}.pdf`;
   if (Platform.OS === "android") {
+    onProgress?.(null); // indeterminate while writing into the chosen folder
     const savedUri = await saveToAndroidDownloads(file.uri, filename);
     if (savedUri) return { status: "saved", openUri: savedUri };
   }
@@ -136,42 +152,47 @@ export async function downloadInvoicePdf(inv: any): Promise<{ status: "downloade
 }
 
 /** Print the invoice — the downloaded PDF is printed 1:1 (preview == print == PDF). */
-export async function printInvoice(inv: any) {
+export async function printInvoice(inv: any, onProgress?: ProgressCb) {
   if (Platform.OS === "web") {
     const blob = await webBlob(inv);
     const href = URL.createObjectURL(blob); const w = window.open(href, "_blank");
     w?.addEventListener?.("load", () => w.print());
     return;
   }
-  const file = await fetchInvoicePdfFile(inv);
+  const file = await fetchInvoicePdfFile(inv, onProgress);
   await Print.printAsync({ uri: file.uri });
 }
 
 /** WhatsApp / system share → sends the ACTUAL invoice PDF.
-    - channel "whatsapp" on Android → opens WhatsApp directly (its contact chooser)
+    - channel "whatsapp" on Android → opens WhatsApp (or WhatsApp Business) directly
       with the PDF attached, skipping the generic app picker.
     - otherwise → native share sheet with the PDF attached.
     Falls back gracefully (generic sheet, then a WhatsApp text link) if anything fails. */
-export async function shareInvoicePdf(inv: any, channel: "whatsapp" | "system" = "whatsapp") {
+export async function shareInvoicePdf(inv: any, channel: "whatsapp" | "system" = "whatsapp", onProgress?: ProgressCb) {
   const text = invoiceSummaryText(inv);
   if (Platform.OS === "web") {
     await downloadInvoicePdf(inv);
     if (channel === "whatsapp") window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
     return "downloaded";
   }
-  const file = await fetchInvoicePdfFile(inv);
+  const file = await fetchInvoicePdfFile(inv, onProgress);
   // Direct WhatsApp (Android): jump straight into WhatsApp's contact chooser with the PDF.
+  // Try consumer WhatsApp first, then WhatsApp Business (works when only Business is installed).
   if (channel === "whatsapp" && Platform.OS === "android") {
     try {
       const contentUri = await LegacyFS.getContentUriAsync(file.uri);
-      await IntentLauncher.startActivityAsync("android.intent.action.SEND", {
-        type: "application/pdf",
-        extra: { "android.intent.extra.STREAM": contentUri },
-        packageName: "com.whatsapp",
-        flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
-      });
-      return "shared";
-    } catch { /* WhatsApp not installed / intent failed → generic sheet below */ }
+      for (const pkg of ["com.whatsapp", "com.whatsapp.w4b"]) {
+        try {
+          await IntentLauncher.startActivityAsync("android.intent.action.SEND", {
+            type: "application/pdf",
+            extra: { "android.intent.extra.STREAM": contentUri },
+            packageName: pkg,
+            flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+          });
+          return "shared";
+        } catch { /* this WhatsApp flavour not installed → try the next */ }
+      }
+    } catch { /* couldn't build a content uri → generic sheet below */ }
   }
   try {
     await Sharing.shareAsync(file.uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: channel === "whatsapp" ? "Share on WhatsApp" : "Share invoice" });
@@ -201,12 +222,12 @@ export async function emailInvoice(inv: any, to?: string) {
 /** Email flow used by the app: on a phone this OPENS the device mail app with the
     invoice PDF already ATTACHED (expo-mail-composer). If no mail app is available
     (or on web), it falls back to the backend server-send. */
-export async function emailInvoiceCompose(inv: any, to?: string): Promise<"composed" | "sent"> {
+export async function emailInvoiceCompose(inv: any, to?: string, onProgress?: ProgressCb): Promise<"composed" | "sent"> {
   if (Platform.OS !== "web") {
     try {
       const MailComposer = require("expo-mail-composer");
       if (await MailComposer.isAvailableAsync().catch(() => false)) {
-        const file = await fetchInvoicePdfFile(inv);
+        const file = await fetchInvoicePdfFile(inv, onProgress);
         await MailComposer.composeAsync({
           recipients: to ? [to] : [],
           subject: `Invoice ${inv.invoice_number || ""}`.trim(),
