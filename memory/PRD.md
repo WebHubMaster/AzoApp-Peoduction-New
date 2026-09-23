@@ -240,3 +240,21 @@ requires an EAS build + physical device — must be done by the user; cannot run
 
 **Remaining manual steps:** enable FCM V1 + Firebase Installations API in Google Cloud for
 azo-project-9f857; upload matching service-account in Admin; run EAS build; verify on device.
+
+## Update (2026-06) — FCM registration + background full-screen ring
+- Fixed Android manifest merger build failure: added tools:replace="android:resource" for
+  com.google.firebase.messaging.default_notification_color/icon in plugins/withJobRingAndroid.js,
+  and reordered app.json so the plugin runs AFTER expo-notifications (Expo LIFO mod order).
+- Removed generated android/ios (managed workflow — EAS reprebuilds).
+- backgroundRing.ts SSE path now force-opens the app to foreground (Linking.openURL) on
+  job_request/reschedule/reminder, matching the FCM path — so full-screen ring pops even when
+  phone is UNLOCKED + app backgrounded (Android auto-launches full-screen intent only when locked).
+- ROOT CAUSE of "device not registered (fcm_registration_failed)" + "no full-screen ring when
+  closed/locked": Google Cloud API key restriction excludes FCM Registration API + Firebase
+  Cloud Messaging API (Installations API works = 0% err, FCM Registration API = 100% err).
+  This is a Firebase/Google Cloud CONSOLE fix the project owner must do (cannot be done from code):
+  un-restrict the Android API key OR allow all of: Firebase Installations API, Firebase Cloud
+  Messaging API, FCM Registration API; remove any HTTP-referrer restriction; add release SHA-1/256
+  to app.azoapp.partner in Firebase; ensure App Check not enforced for FCM.
+- Killed-app full-screen ring REQUIRES working FCM push (RNFB setBackgroundMessageHandler) — the
+  SSE foreground-service survives background/lock but not a full process kill on aggressive OEMs.
