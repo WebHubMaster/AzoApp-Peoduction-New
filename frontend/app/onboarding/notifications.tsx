@@ -10,7 +10,7 @@ import { useToast } from "@/src/components/Toast";
 import {
   PermKey, PermState, allPermissionStates, requestNotificationPermission,
   requestLocationPermission, requestBatteryExemption, openFullScreenIntentSettings,
-  fullScreenState, markPrompted, requestOverlayPermission, overlayState,
+  markPrompted, requestOverlayPermission,
 } from "@/src/lib/notifications";
 
 type Card = {
@@ -25,7 +25,7 @@ type Card = {
 const CARDS: Card[] = [
   { key: "notifications", icon: "bell-ring", title: "Job Ring Alerts", sub: "Ring loudly for every new job — even when the app is closed", tint: "#F59E0B", critical: true },
   { key: "fullscreen", icon: "cellphone-message", title: "Full-Screen Call Alert", sub: "Show a call-style screen when your phone is locked", tint: "#22C55E" },
-  { key: "overlay", icon: "cellphone-arrow-down", title: "Display Over Other Apps", sub: "Show the full-screen ring even when your phone is unlocked & in use", tint: "#F472B6" },
+  { key: "overlay", icon: "cellphone-arrow-down", title: "Display Over Other Apps", sub: "Optional — only needed to pop the ring while your phone is UNLOCKED & in use. The locked-screen ring works without it.", tint: "#F472B6" },
   { key: "battery", icon: "battery-heart-variant", title: "Run in Background", sub: "Keep ringing reliably without being stopped to save battery", tint: "#38BDF8" },
   { key: "location", icon: "map-marker-radius", title: "Location", sub: "See each job's distance & travel time on the ring", tint: "#A78BFA" },
 ];
@@ -98,29 +98,26 @@ export default function PermissionsOnboarding() {
 
   const handleAll = useCallback(async () => {
     setBusy("all");
-    // 1) Fast in-app permission DIALOGS first (one tap each) — reflect immediately.
+    // Only the FAST, one-tap in-app dialogs — NO confusing chain of system-settings
+    // screens (the old flow auto-opened Full-Screen + "Display over other apps",
+    // and the overlay screen asks for the lock-screen password on many phones).
+    // Full-Screen and Overlay stay as clearly-labelled MANUAL cards the user taps
+    // one at a time (overlay is optional). This keeps onboarding short & clear.
     await runOne("notifications");
     setStates(await allPermissionStates());
     await runOne("location");
     setStates(await allPermissionStates());
-    // 2) Battery — direct one-tap "run in background" system dialog (Android).
     if (Platform.OS === "android") {
       await requestBatteryExemption();
       setStates(await allPermissionStates());
-      // 3) Full-screen intent — only Android 14+ needs the settings toggle; open
-      //    it just once and only when it isn't already satisfied.
-      const fs = await fullScreenState();
-      if (fs.available && !fs.granted) await openFullScreenIntentSettings();
-      // 4) Display over other apps — enables the full-screen ring on an UNLOCKED
-      //    screen. Open it once if not already granted.
-      const ov = await overlayState();
-      if (ov.available && !ov.granted) await requestOverlayPermission();
     }
     const next = await allPermissionStates();
     setStates(next);
     setBusy(null);
     toast[next.notifications.granted ? "success" : "info"](
-      next.notifications.granted ? "You're all set — job alerts are on" : "Enable Job Ring alerts to never miss a job",
+      next.notifications.granted
+        ? "Job alerts are ON. Full-Screen & 'Display over other apps' are optional — tap them below if you want."
+        : "Enable Job Ring alerts to never miss a job",
     );
   }, [runOne, toast]);
 
