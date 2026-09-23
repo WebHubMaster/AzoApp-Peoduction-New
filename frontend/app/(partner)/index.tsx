@@ -18,6 +18,7 @@ import { ProPerks, OnboardingBanner } from "@/src/components/partner/home/HomeBa
 import { EarningsHero, RangeFilter } from "@/src/components/partner/home/EarningsHero";
 import { HeaderCard, PriorityAction, WalletCard, KpiGrid, TrendCard, PerformanceCard, GrowthCard, RecentJobs, QuickActions, NavKey } from "@/src/components/partner/home/HomeSections";
 import { TestRingCard, SnoozeCard, StreakCard, MissedRequestsCard } from "@/src/components/partner/home/AlertsPanel";
+import { requestNotificationPermission, registerPushToken } from "@/src/lib/notifications";
 import { TW } from "@/src/components/partner/home/tw";
 
 /* web NAV key → mobile route */
@@ -88,7 +89,21 @@ export default function PartnerHome() {
   const toggleOnline = useMutation({
     mutationFn: (v: boolean) => api.put<any>("/auth/partner/online-status", { online: v }),
     onMutate: (v) => setOnline(v),
-    onSuccess: (data, v) => { setUser?.({ ...(data || user), partner_status: v ? "online" : "offline" }); toast.success(v ? "You are online" : "You are offline"); if (v) qc.invalidateQueries({ queryKey: ["partner-missed"] }); },
+    onSuccess: (data, v) => {
+      setUser?.({ ...(data || user), partner_status: v ? "online" : "offline" });
+      toast.success(v ? "You are online" : "You are offline");
+      if (v) {
+        qc.invalidateQueries({ queryKey: ["partner-missed"] });
+        // Going online = we start the FCM-independent background ring listener
+        // (RealtimeContext). Make sure notifications are allowed so the persistent
+        // "you're online" service notification + the full-screen job ring can show.
+        if (Platform.OS !== "web") {
+          requestNotificationPermission()
+            .then((r) => { if (r.granted) registerPushToken().catch(() => {}); })
+            .catch(() => {});
+        }
+      }
+    },
     onError: (e: any, v) => { setOnline(!v); toast.error(e?.detail || "Could not update status"); },
   });
 

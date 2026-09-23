@@ -20,12 +20,13 @@ type Listener = (ev: RtEvent) => void;
 
 type RtCtx = {
   connected: boolean;
+  bgListening: boolean;
   subscribe: (cb: Listener) => () => void;
   playRing: () => void;
   stopRing: () => void;
 };
 
-const Ctx = createContext<RtCtx>({ connected: false, subscribe: () => () => {}, playRing: () => {}, stopRing: () => {} });
+const Ctx = createContext<RtCtx>({ connected: false, bgListening: false, subscribe: () => () => {}, playRing: () => {}, stopRing: () => {} });
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const RING = require("../../assets/sounds/job-ring.wav");
@@ -88,10 +89,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   // via Notifee with NO FCM push required. Stop it only when the partner goes
   // offline or logs out.
   const partnerOnline = user?.role === "partner" && user?.partner_status === "online";
+  const [bgListening, setBgListening] = useState(false);
   useEffect(() => {
     if (Platform.OS === "web") return;
-    if (partnerOnline) startBackgroundJobListener().catch(() => {});
-    else stopBackgroundJobListener().catch(() => {});
+    if (partnerOnline) { startBackgroundJobListener().then(() => setBgListening(true)).catch(() => setBgListening(false)); }
+    else { stopBackgroundJobListener().catch(() => {}); setBgListening(false); }
   }, [partnerOnline]);
 
   // App backgrounded/locked: the foreground SSE can't reliably survive, so we drop
@@ -126,7 +128,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [player]);
   const stopRing = useCallback(() => { try { player.pause(); player.seekTo(0); } catch { /* ignore */ } }, [player]);
 
-  const value = useMemo(() => ({ connected, subscribe, playRing, stopRing }), [connected, subscribe, playRing, stopRing]);
+  const value = useMemo(() => ({ connected, bgListening, subscribe, playRing, stopRing }), [connected, bgListening, subscribe, playRing, stopRing]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
