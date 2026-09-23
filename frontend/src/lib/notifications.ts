@@ -180,6 +180,7 @@ async function resetFirebaseInstallation(): Promise<void> {
 function classifyTokenError(msg: string): string {
   const m = (msg || "").toLowerCase();
   if (!m) return "no_token";
+  if (m.includes("too_many_registrations") || m.includes("too many registrations")) return "too_many_registrations";
   if (m.includes("service_not_available") || m.includes("play services") || m.includes("playservices") || m.includes("missing_instanceid_service") || m.includes("api_unavailable")) return "play_services";
   if (m.includes("invalid argument") || m.includes("invalid-argument") || m.includes("given fid") || m.includes("api disabled") || m.includes("#register")) return "stale_fid";
   if (m.includes("fcm registration failed") || m.includes("fis_auth") || m.includes("authentication") || m.includes("installations") || m.includes("sender")) return "fcm_registration_failed";
@@ -717,6 +718,12 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
       token = await rnfbDeviceToken();               // RNBC path (owns killed-app delivery)
       if (!token) token = await expoDeviceToken();   // fallback
       if (!token) {
+        const why = classifyTokenError(_lastExpoTokenErr);
+        // These are NOT fixable by resetting/retrying the FID — bail out fast so the
+        // user gets the real, actionable reason instead of an 8x delay:
+        //  • too_many_registrations → device hit Android's ~100-app FCM cap.
+        //  • play_services          → Play services missing/outdated.
+        if (why === "too_many_registrations" || why === "play_services") break;
         if (!didReset) {
           didReset = true;
           await resetFirebaseInstallation();
@@ -730,11 +737,13 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     if (!token) {
       const kind = classifyTokenError(_lastExpoTokenErr);
       const hint =
-        kind === "play_services"
-          ? "Google Play services is unavailable/outdated on this device."
-          : kind === "stale_fid" || kind === "fcm_registration_failed"
-            ? "FCM registration was rejected even after resetting the Firebase Installation ID. FORCE-STOP + clear this app's storage (Settings → Apps → storage → Clear) OR uninstall & reinstall once, then reopen — this mints a brand-new FID. If it still fails on a fresh install, the device/network is blocking Google FCM."
-            : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
+        kind === "too_many_registrations"
+          ? "This PHONE hit Android's limit of ~100 FCM app registrations — no app can register a new push token until you free space. FIX ON THE PHONE: Settings → Apps → 'Google Play services' → Storage → Manage space → 'Clear all data' (this resets FCM for all apps and is safe), OR uninstall a few unused apps. Then reopen AzoApp and tap Fix. (Restarting the phone once also helps.)"
+          : kind === "play_services"
+            ? "Google Play services is unavailable/outdated on this device — update Google Play services from the Play Store, then tap Fix."
+            : kind === "stale_fid" || kind === "fcm_registration_failed"
+              ? "FCM registration was rejected even after resetting the Firebase Installation ID. FORCE-STOP + clear this app's storage (Settings → Apps → storage → Clear) OR uninstall & reinstall once, then reopen — this mints a brand-new FID. If it still fails on a fresh install, the device/network is blocking Google FCM."
+              : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
       report(false, kind, `${_lastExpoTokenErr || "no token"} (fid-reset:${didReset ? "yes" : "no"}) — ${hint}`);
       return { ok: false, reason: kind };
     }
