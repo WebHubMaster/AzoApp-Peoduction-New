@@ -78,18 +78,33 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return close;
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // App backgrounded/locked: the foreground SSE can't survive, so for PARTNERS we
-  // hand off to a foreground-service background listener that keeps receiving jobs
-  // and fires the full-screen ring WITHOUT any FCM push. On return to foreground we
-  // stop it and resume the in-app stream.
+  // FCM-INDEPENDENT background job listener (the reliable "other method").
+  // START it the MOMENT a partner is ONLINE — while the app is still in the
+  // FOREGROUND — so we NEVER hit Android 12+'s "can't start a foreground service
+  // from the background" restriction (that silent failure was why the locked/closed
+  // full-screen ring stopped firing). Once running, the Notifee foreground service
+  // (stopWithTask=false) keeps the process + SSE stream alive through screen-lock,
+  // app-close and swipe-away, so booking / reschedule / reminder all ring locally
+  // via Notifee with NO FCM push required. Stop it only when the partner goes
+  // offline or logs out.
+  const partnerOnline = user?.role === "partner" && user?.partner_status === "online";
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    if (partnerOnline) startBackgroundJobListener().catch(() => {});
+    else stopBackgroundJobListener().catch(() => {});
+  }, [partnerOnline]);
+
+  // App backgrounded/locked: the foreground SSE can't reliably survive, so we drop
+  // it and let the always-on background listener (started above while online) keep
+  // receiving jobs. On return to foreground we resume the in-app stream. We NO LONGER
+  // start the foreground service here — it is already running whenever the partner
+  // is online, which is what makes the locked/closed ring reliable.
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") {
-        stopBackgroundJobListener().catch(() => {});
         if (user && !esRef.current) { retryRef.current = 1; connect(); }
       } else if (s === "background" && Platform.OS !== "web") {
         close();
-        if (user?.role === "partner") startBackgroundJobListener().catch(() => {});
       }
     });
     return () => sub.remove();

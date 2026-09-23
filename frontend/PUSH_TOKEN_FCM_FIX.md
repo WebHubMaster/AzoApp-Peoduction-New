@@ -75,3 +75,48 @@ now each covered by a definitive check or a fix:
   `fcm_v1` service-account probe wired in.
 - **On-device (APK) FCM token registration cannot be executed from this sandbox** — needs an EAS
   build + a real phone.
+
+---
+# Issue 2: Full-screen ring stopped firing when phone LOCKED / app CLOSED (booking + reschedule + reminder)
+
+## This ring is NOT Firebase/FCM — it's the FCM-independent SSE + foreground-service path
+`src/lib/backgroundRing.ts` keeps a Notifee **foreground service** alive and holds open the
+same realtime **SSE** stream (`/api/realtime/stream`). When a `job_request` /
+`reschedule_request` / `scheduled_reminder` event arrives it renders the full-screen Notifee
+ring locally — no push token required. This is the "other method" that worked 100% before.
+
+## Root cause of the regression
+`RealtimeContext.tsx` started that foreground-service listener **only on `AppState → background`**.
+On Android 12+ (the app targets SDK 36), you **cannot start a foreground service from the
+background** (`ForegroundServiceStartNotAllowedException`). The start was wrapped in a
+`try/catch` that swallowed the exception, so the service never actually started → the process
+got killed on lock/close → the SSE died → NO ring for booking, reschedule OR reminder. (This
+broke when the target SDK was raised; it "worked before" on the older target.)
+
+## Fix (robust, won't regress)
+`RealtimeContext.tsx` now starts the listener **the moment a partner is ONLINE, while the app
+is still in the FOREGROUND** (never from the background):
+```ts
+const partnerOnline = user?.role === "partner" && user?.partner_status === "online";
+useEffect(() => {
+  if (Platform.OS === "web") return;
+  if (partnerOnline) startBackgroundJobListener();   // FGS starts in foreground → always allowed
+  else stopBackgroundJobListener();                  // offline / logout
+}, [partnerOnline]);
+```
+Because the foreground service is already running before the phone is locked / the app is
+swiped (`android:stopWithTask="false"`), it survives and keeps the SSE alive → the full-screen
+ring fires in all three cases (booking, reschedule, 30-min reminder), locked or closed, with
+NO dependency on FCM.
+
+- `backgroundRing.ts`: also declares the explicit `dataSync` `foregroundServiceTypes` for
+  Android 14+ so the service is accepted.
+- Backend `services/realtime.py` confirmed to support MULTIPLE concurrent SSE connections per
+  user (each gets its own queue), so the foreground stream + the background-listener stream
+  coexist with no disconnect thrashing. `displayJobRing` no-ops when the app is active, so there
+  is no double ring.
+
+## Verified in sandbox
+Metro bundles cleanly, eslint 0 errors, tsc 0 errors in the changed files. Backend broker
+multi-subscriber behaviour verified by reading `services/realtime.py`. On-device lock/close
+behaviour must be confirmed on the rebuilt APK.

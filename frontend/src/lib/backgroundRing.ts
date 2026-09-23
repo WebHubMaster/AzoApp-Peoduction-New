@@ -96,6 +96,7 @@ export async function startBackgroundJobListener(): Promise<void> {
   setBgListenerActive(true);
   try {
     await setupAndroidChannels();
+    const fgsType = mod.AndroidForegroundServiceType?.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
     await n.displayNotification({
       id: ONLINE_FGS_ID,
       title: "AzoApp — you're online",
@@ -103,6 +104,7 @@ export async function startBackgroundJobListener(): Promise<void> {
       android: {
         channelId: CHANNELS.online,
         asForegroundService: true,
+        ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
         ongoing: true,
         smallIcon: "ic_notification",
         color: "#0D47A1",
