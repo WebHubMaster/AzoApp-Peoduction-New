@@ -152,6 +152,27 @@ async function rnfbDeviceToken(): Promise<string> {
   } catch (e: any) { _lastExpoTokenErr = String(e?.message || e || ""); return ""; }
 }
 
+/** Firebase Installations (FID). A STALE / duplicated FID (e.g. after many
+ * re-installs or a restored backup) makes FCM registration reject getToken() with
+ * HTTP 400 "Invalid argument for the given fid" → device never registers. Deleting
+ * the installation forces the SDK to mint a fresh FID + FCM token on the next
+ * getToken(). Installations API works in this project (0% errors), so this is the
+ * reliable self-heal for the 400. Best-effort — never throws. */
+let _installations: any = null;
+function installations(): any | null {
+  if (!pushSupported || Platform.OS === "web") return null;
+  if (_installations === null) {
+    try { _installations = require("@react-native-firebase/installations").default; }
+    catch { _installations = false; }
+  }
+  try { return _installations ? _installations() : null; } catch { return null; }
+}
+
+async function resetFirebaseInstallation(): Promise<void> {
+  try { const m = messaging(); if (m?.deleteToken) await m.deleteToken(); } catch { /* ignore */ }
+  try { const inst = installations(); if (inst?.delete) await inst.delete(); } catch { /* ignore */ }
+}
+
 /** Classify the raw native FCM token error into a stable reason the admin panel
  * can act on. "FCM Registration failed!" / FIS auth / installations => the
  * Firebase project APIs (FCM V1 + Installations) or the bundled expo-notifications
@@ -160,6 +181,7 @@ function classifyTokenError(msg: string): string {
   const m = (msg || "").toLowerCase();
   if (!m) return "no_token";
   if (m.includes("service_not_available") || m.includes("play services") || m.includes("playservices") || m.includes("missing_instanceid_service") || m.includes("api_unavailable")) return "play_services";
+  if (m.includes("invalid argument") || m.includes("invalid-argument") || m.includes("given fid") || m.includes("api disabled") || m.includes("#register")) return "stale_fid";
   if (m.includes("fcm registration failed") || m.includes("fis_auth") || m.includes("authentication") || m.includes("installations") || m.includes("sender")) return "fcm_registration_failed";
   if (m.includes("network") || m.includes("timeout") || m.includes("unavailable") || m.includes("connection")) return "network";
   return "no_token";
@@ -689,10 +711,22 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     // Firebase Installations not ready), so retry with EXPONENTIAL backoff.
     _lastExpoTokenErr = "";
     let token = "";
+    let didReset = false;
     for (let i = 0; i < 5 && !token; i += 1) {
       token = await rnfbDeviceToken();               // RNBC path (owns killed-app delivery)
       if (!token) token = await expoDeviceToken();   // fallback
-      if (!token && i < 4) await new Promise((r) => setTimeout(r, 1000 * 2 ** i)); // 1s, 2s, 4s, 8s
+      if (!token) {
+        // Self-heal a STALE Firebase Installation ID (HTTP 400 "invalid argument
+        // for the given fid" / "API disabled") ONCE: wipe the FID + token so the
+        // next getToken() mints a fresh, valid registration.
+        if (!didReset && classifyTokenError(_lastExpoTokenErr) === "stale_fid") {
+          didReset = true;
+          await resetFirebaseInstallation();
+          await new Promise((r) => setTimeout(r, 1500));
+          continue; // retry immediately with a fresh FID (don't consume backoff)
+        }
+        if (i < 4) await new Promise((r) => setTimeout(r, 1000 * 2 ** i)); // 1s, 2s, 4s, 8s
+      }
     }
 
     if (!token) {
@@ -700,9 +734,11 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
       const hint =
         kind === "play_services"
           ? "Google Play services is unavailable/outdated on this device."
-          : kind === "fcm_registration_failed"
-            ? "Native FCM registration failed — enable 'Firebase Cloud Messaging API (V1)' + 'Firebase Installations API' for project azo-project-9f857 (sender 960503871336) and ship a build that bundles google-services.json + the expo-notifications plugin."
-            : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
+          : kind === "stale_fid"
+            ? "The device's Firebase Installation ID was rejected (HTTP 400). We reset it — reopen the app or reinstall once; if it persists, clear the app's storage so a fresh FID is generated."
+            : kind === "fcm_registration_failed"
+              ? "Native FCM registration failed — enable 'Firebase Cloud Messaging API (V1)' + 'Firebase Installations API' for project azo-project-9f857 (sender 960503871336) and ship a build that bundles google-services.json + the expo-notifications plugin."
+              : "Could not obtain an FCM device token (check Play services / network / google-services.json).";
       report(false, kind, `${_lastExpoTokenErr || "no token"} — ${hint}`);
       return { ok: false, reason: kind };
     }
