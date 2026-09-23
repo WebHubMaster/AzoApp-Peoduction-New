@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://merchant-mobile-ui.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://role-based-ui-9.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
@@ -478,3 +478,14 @@ table need production/build verification.
 - APIs (real, same as web): GET /merchant/registration/profile, /meta; PUT /basic /shop /address /shop-photo; POST /upload /submit; GET /geo/serviceability, /geo/reverse.
 - Verified live (demo merchant approved, score 100): profile+meta return real data; view-only mode shows ApprovedBanner + locked fields + GPS-verified shop photo. tsc clean. Screenshots captured (Owner + Shop steps).
 - register.tsx (standalone onboarding) left untouched — no regression.
+
+---
+## 2026-06 — Merchant Mobile: "My Partners" (web parity) 
+- Built `frontend/app/merchant/partners.tsx` — HUBAHU port of web `web_panel/src/pages/merchant/referral/MerchantPartners.jsx`.
+  Uses SAME real endpoints: `GET /merchant/referral/partners` (page,page_size,q,status) + `GET /merchant/referral/partners/{id}`.
+- Parity features: gradient ModuleHeader, 6 ReportCards (primary emerald), status tabs (All/Active/Pending/Suspended),
+  debounced search (350ms), server pagination, violet avatars, StatusBadge, partner rows (code·category·N completed·commission),
+  detail view (KPIs + service-wise commission + privacy note), loading/empty/error states. Reuses `merchant/ReferralShared` + `ui` components.
+- Navigation: home quick-action "My Partners" now → /merchant/partners (was wrongly → /merchant/network). Added "My Partners" to (merchant) More menu; kept "My Network" (separate /merchant/panel/network feature) intact.
+- Verified e2e against LOCAL backend (restored /app/backend/.env: MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp → seeds demo data; /app/frontend/.env preview host). Demo merchant +919000000002 / OTP 123456: list returns 1 partner (Raj Kumar, ₹385, 4 completed), detail returns 4 services, status=active→1 / status=suspended→0. tsc clean, eslint 0 errors.
+- NOTE: Expo-web preview renders blank in headless Chromium (useFonts hangs) — pre-existing env limitation; app targets devices/production. Visual screenshot not obtainable here; backend integration proven via curl.

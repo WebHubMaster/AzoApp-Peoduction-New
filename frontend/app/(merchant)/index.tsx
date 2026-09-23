@@ -120,7 +120,7 @@ export default function MerchantHome() {
 
   const quick: { k: string; label: string; icon: MdiName; sub: string; route: string; bg: string; fg: string }[] = [
     { k: "customers", label: "My Customers", icon: "account-group", sub: `${counts.customers || 0} referred`, route: "/(merchant)/customers", bg: "rgba(2,132,199,0.12)", fg: "#0284C7" },
-    { k: "network", label: "My Partners", icon: "account-network", sub: `${counts.partners || 0} referred`, route: "/merchant/network", bg: "rgba(124,58,237,0.12)", fg: "#7C3AED" },
+    { k: "network", label: "My Partners", icon: "account-network", sub: `${counts.partners || 0} referred`, route: "/merchant/partners", bg: "rgba(124,58,237,0.12)", fg: "#7C3AED" },
     { k: "earnings", label: "Commission", icon: "trending-up", sub: "earning history", route: "/merchant/commission", bg: "rgba(5,150,105,0.12)", fg: "#059669" },
     { k: "scanqr", label: "Scan QR", icon: "qrcode", sub: "share & grow", route: "/merchant/scanqr", bg: colors.primarySubtle, fg: colors.primary },
   ];
