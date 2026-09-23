@@ -699,7 +699,18 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     }).catch(() => {});
   };
   try {
-    if (Platform.OS === "web") return { ok: false, reason: "web" };
+    if (Platform.OS === "web") {
+      // WEB target: register via standard VAPID Web Push (reliable — no FCM getToken).
+      try {
+        const { registerWebPush } = require("@/src/lib/webPush");
+        const r = await registerWebPush();
+        report(r.ok, r.ok ? "registered:webpush" : (r.reason || "web"), r.error || "");
+        return { ok: r.ok, reason: r.ok ? undefined : (r.reason || "web") };
+      } catch (e: any) {
+        report(false, "web", String(e?.message || e));
+        return { ok: false, reason: "web" };
+      }
+    }
     if (!pushSupported) { report(false, "expo_go"); return { ok: false, reason: "expo_go" }; }
     const perm = await getPermissionStatus();
     if (!perm.granted) { report(false, "permission"); return { ok: false, reason: "permission" }; }

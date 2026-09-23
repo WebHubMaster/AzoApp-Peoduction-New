@@ -321,3 +321,21 @@ to compile with BoM 33.16, remove ./plugins/withFirebaseBomPin.js from app.json 
   uninstall apps / restart).
 - USER DEVICE FIX (100%): Settings → Apps → Google Play services → Storage → Manage space → Clear all
   data → restart → reopen app → Fix. Or uninstall unused apps. Normal user devices won't hit this cap.
+
+## Update (2026-06) — Robust dual-channel push registration (web + app)
+Requirement: device registration must work for BOTH browser (web) and Android app.
+- WEB (NEW): src/lib/webPush.ts registerWebPush() — Notification permission → GET
+  /notifications/webpush/public-key (self-gen VAPID, verified 65-byte EC point) → register
+  /public/sw.js → PushManager.subscribe(applicationServerKey) → POST /notifications/webpush/subscribe.
+  Uses the browser push service, NOT FCM getToken → immune to TOO_MANY_REGISTRATIONS /
+  SERVICE_NOT_AVAILABLE. public/sw.js renders the FCM-style payload + opens app on click.
+  notifications.ts web branch now calls it (was a no-op "web" return).
+- NATIVE: FCM getToken hardened (BoM 24.x pin, newArch, flag=false, setAutoInitEnabled, FID reset,
+  10x retry incl. transient SERVICE_NOT_AVAILABLE backoff, error classify + actionable hints).
+  Auto-retry already wired in ChatNotifier (launch + foreground + network-reconnect + push_reregister,
+  throttled 20s). FCM-independent SSE foreground-service ring works in all conditions (untouched).
+- BACKEND (pre-existing): push_dispatch sends BOTH webpush + fcm; VAPID self-generated (no external
+  config). Verified: router included, py_vapid/pywebpush installed, public_key() returns valid key.
+- Verified in-sandbox: tsc clean, eslint 0 errors, sw.js node --check OK, VAPID gen OK. NOT browser-e2e
+  tested (needs live deploy + real browser/push service). Sandbox backend was down only due to empty
+  .env MONGO_URL (sandbox-only; app targets production api.webhubmaster.shop).
