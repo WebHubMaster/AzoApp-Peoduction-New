@@ -9,8 +9,9 @@ export default function MerchantLayout() {
 
   const moreItems: MoreItem[] = [
     { key: "commission", label: "Commission", icon: "trending-up", onPress: () => router.push("/merchant/commission") },
+    { key: "partners", label: "My Partners", icon: "account-network", onPress: () => router.push("/merchant/partners") },
     { key: "scanqr", label: "My QR / Code", icon: "qrcode-scan", onPress: () => router.push("/merchant/scanqr") },
-    { key: "network", label: "My Network", icon: "account-network", onPress: () => router.push("/merchant/network") },
+    { key: "network", label: "My Network", icon: "account-group", onPress: () => router.push("/merchant/network") },
     { key: "payouts", label: "Payouts & Bank", icon: "bank", onPress: () => router.push("/merchant/payouts") },
     { key: "bankkyc", label: "Bank & KYC", icon: "credit-card", onPress: () => router.push("/merchant/bankkyc") },
     { key: "analytics", label: "Analytics", icon: "chart-box", onPress: () => router.push("/merchant/analytics") },

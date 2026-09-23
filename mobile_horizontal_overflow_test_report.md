@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://merchant-mobile-ui.preview.emergentagent.com  
+**App URL:** https://role-based-ui-9.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary
