@@ -700,15 +700,10 @@ export async function registerPushToken(): Promise<{ ok: boolean; reason?: strin
     if (!perm.granted) { report(false, "permission"); return { ok: false, reason: "permission" }; }
     await setupAndroidChannels().catch(() => {});
 
-    // expo-notifications native DEVICE push token = the RAW FCM token on Android
-    // (firebase-admin can target it directly). This is the SINGLE, known-good path
-    // (RNFB messaging is disabled — see messaging() above). getDevicePushTokenAsync
-    // can fail transiently right after launch (Play Services / network not ready),
-    // so retry a few times with backoff before giving up.
-    // POST_NOTIFICATIONS is already granted above (perm.granted) — required on
-    // Android 13+ BEFORE fetching the token. getDevicePushTokenAsync hits native
-    // FCM which can fail transiently right after launch (Play Services / network /
-    // Firebase Installations not ready), so retry with EXPONENTIAL backoff.
+    // Belt-and-suspenders: make sure FCM auto-init is ON. Some devices/builds leave
+    // it disabled (no token is ever minted). Safe to call every launch.
+    try { const m = messaging(); if (m?.setAutoInitEnabled) await m.setAutoInitEnabled(true); } catch { /* ignore */ }
+
     _lastExpoTokenErr = "";
     let token = "";
     let didReset = false;

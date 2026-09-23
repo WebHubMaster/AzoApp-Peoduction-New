@@ -290,3 +290,21 @@ azo-project-9f857; upload matching service-account in Admin; run EAS build; veri
   intent need a real Android device + EAS build (no Play Services/FCM/Android here). User must EAS
   build + test on device. If FID reset doesn't self-heal, clearing app storage / reinstalling once
   forces a fresh FID.
+
+## Update (2026-06) — "Apply everything" FCM belt-and-suspenders (per user request)
+All safe FCM fixes stacked so at least one path works:
+1. app.json newArchEnabled=true (RNFB v26 is TurboModule-only; guarantees native module loads).
+2. NEW plugins/withFirebaseBomPin.js → forces Firebase Android BoM to 33.16.0 (firebase-messaging
+   24.1.x) via root build.gradle allprojects resolutionStrategy.force — restores the classic working
+   getToken() (messaging 25.x/BoM 34.x deprecated it → 400 "FCM Registration failed" / "API disabled").
+   Verified block lands in android/build.gradle via prebuild.
+3. firebase_messaging_installation_id_enabled=false (legacy getToken path).
+4. notifications.ts: messaging().setAutoInitEnabled(true) before token fetch.
+5. FID self-heal: resetFirebaseInstallation() (deleteToken + installations().delete()) on the FIRST
+   failure (ANY reason) + up to 8 getToken retries with backoff. Diagnostic shows (fid-reset:yes/no).
+6. Manifest merger build fix (tools:replace) retained.
+Ring: FCM push (killed app) + FCM-independent SSE foreground-service (background/locked when ONLINE,
+force-opens app call-style). User must be ONLINE for the locked/closed SSE ring listener to run.
+Verified in-sandbox: tsc clean, 0 eslint errors, prebuild OK, BoM+newArch+manifest confirmed.
+NOT device-verified (no real Android/FCM here) — needs EAS build + fresh install. If EAS build fails
+to compile with BoM 33.16, remove ./plugins/withFirebaseBomPin.js from app.json plugins.
