@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
-import { Icon } from "@/src/components/Icon";
+import { Network, Wrench, CheckCircle2, ChevronRight } from "lucide-react-native";
 import { fmt, fmtDate, initials } from "@/src/lib/format";
 import { Card, EmptyState, Badge, statusTone } from "@/src/components/ui";
 import { MReportCards, MSearchBox, MPagination, MModuleHeader, MBackLink, MPrivacyNote, Kpi } from "@/src/components/merchant/ReferralShared";
@@ -67,7 +67,7 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="Partner" subtitle="Referred partner commission" icon="account-wrench" />
+      <MModuleHeader title="Partner" subtitle="Referred partner commission" icon={Wrench} />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
@@ -100,7 +100,7 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
 
             <View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.sm }}>
-                <Icon name="wrench" size={16} color={colors.primary} />
+                <Wrench size={16} color={colors.primary} />
                 <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "800" }}>Service-wise commission</Text>
               </View>
               <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
@@ -166,7 +166,7 @@ export default function MerchantPartners() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="My Partners" subtitle="Partners registered with your merchant code — and your earned commission" icon="account-network" />
+      <MModuleHeader title="My Partners" subtitle="Partners registered with your merchant code — and your earned commission" icon={Network} />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
@@ -200,7 +200,7 @@ export default function MerchantPartners() {
                   </View>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2, flexWrap: "wrap" }}>
                     <Text style={{ color: colors.textMuted, fontSize: 11 }} numberOfLines={1}>{[p.partner_code, p.category].filter(Boolean).join(" · ")}</Text>
-                    <Icon name="check-circle" size={12} color={colors.success} />
+                    <CheckCircle2 size={12} color={colors.success} />
                     <Text style={{ color: colors.textMuted, fontSize: 11 }}>{p.completed_services} completed</Text>
                   </View>
                 </View>
@@ -208,7 +208,7 @@ export default function MerchantPartners() {
                   <Text style={{ color: colors.success, fontWeight: "900", fontSize: fontSize.sm }}>{fmt(p.total_commission)}</Text>
                   <Text style={{ color: colors.textMuted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>commission</Text>
                 </View>
-                <Icon name="chevron-right" size={18} color={colors.textMuted} />
+                <ChevronRight size={18} color={colors.textMuted} />
               </Pressable>
             ))
           )}

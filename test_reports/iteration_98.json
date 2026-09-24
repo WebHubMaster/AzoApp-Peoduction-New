@@ -1,0 +1,25 @@
+{
+  "summary": "Verified one-click demo login for all four roles on the web panel at https://profile-kyc-panel.preview.emergentagent.com/login. All four roles (admin, partner, customer, merchant) sign in successfully same-origin via /api, show 'Demo login: ...' success toast, and land on the correct portal. No 'Demo login failed' or CORS errors observed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "demo-admin": {"url": "/admin", "toast": "Demo login: AzoApp Admin", "status": "PASS"},
+    "demo-partner": {"url": "/partner", "toast": "Demo login: Raj Kumar", "status": "PASS"},
+    "demo-customer": {"url": "/account", "toast": "Demo login: Priya Verma", "status": "PASS"},
+    "demo-merchant": {"url": "/merchant", "toast": "Demo login: Sharma Electricals (dashboard shows lifetime commission ₹508, code G9X93ED)", "status": "PASS"}
+  },
+  "console_notes": "Only two benign 403 resource errors (likely notification/permission related, non-blocking). No CORS or network errors.",
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "seed_data_creation": "None (backend auto-seeded demo data on start).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Web panel same-origin API works via REACT_APP_BACKEND_URL empty (falls back to window.location.origin + /api). All four demo login buttons on /login are functional. Dev OTP for all demo accounts is 123456."
+}

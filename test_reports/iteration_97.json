@@ -1,0 +1,29 @@
+{
+  "summary": "Frontend-only test of the 4 one-click demo logins on the web panel (Admin, Partner, Customer, Merchant). All four logins succeed with no CORS errors, no 'Demo login failed' toast, correct success toast ('Demo login: <name>'), and correct role landing pages. All /api/auth/send-otp and /api/auth/verify-otp calls returned 200 on the same origin (window.location.origin fallback in api.js works as intended).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Customer portal home", "issue": "GET /api/partner/alert-prefs is called twice from the customer session and returns 403 (partner-only endpoint). Not blocking, but pollutes console and generates unnecessary requests. Should be role-gated so it only fires for role=partner.", "affected_selectors": ["/account"]}
+    ],
+    "design_issues": [
+      {"screen": "Admin Dashboard charts", "issues": ["Recharts warning: 'width(-1)/height(-1) of chart should be greater than 0' spammed ~14x on initial render — add minHeight/aspect to ResponsiveContainer parent"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Gate /api/partner/alert-prefs call to role=partner only (avoids 403 spam on /account for customer sessions).",
+    "Fix Recharts ResponsiveContainer parent sizing in admin dashboard to eliminate initial width/height=-1 warnings."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/src/lib/api.js same-origin fallback (window.location.origin) is working correctly — verified via network trace, all /api/auth/* calls are same-origin 200.",
+    "Login.jsx quickLogin flow works end-to-end for all 4 roles; success toast shows account name and navigation to role home is correct."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (4/4 demo logins passed)"},
+  "test_credentials": "One-click demo — no manual creds used. OTP 123456 for all roles per spec.",
+  "seed_data_creation": "None — used backend self-seeded demo accounts.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 4 demo login buttons on /login (data-testid demo-admin/demo-partner/demo-customer/demo-merchant) work. Landing routes: admin→/admin, partner→/partner, customer→/account, merchant→/merchant. Auth uses /api/auth/send-otp then /api/auth/verify-otp — both same-origin 200. Side observation: customer portal spuriously calls /api/partner/alert-prefs (403 x2)."
+}

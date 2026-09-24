@@ -216,3 +216,21 @@ async def qr_config(user=APPROVED):
 async def qr_save_config(data: dict, user=APPROVED):
     from services import merchant_qr_service as mqs
     return await mqs.save_config(user["id"], data)
+
+
+@router.get("/qr/poster")
+async def qr_poster(fmt: str = "png", link: str = "", name: str = "", primary: str = "", secondary: str = "",
+                    logo: str = "", site: str = "", trust: str = "Trusted Home Services", caption: str = "", user=APPROVED):
+    """Server-rendered booking poster (identical on every device) → PNG / JPG / PDF."""
+    from services import merchant_code_service
+    from services import qr_poster_service as qps
+    code = await merchant_code_service.ensure_merchant_code(user)
+    if not link or f"ref={code}" not in link:
+        from services.physical_qr_service import _app_url
+        link = f"{_app_url()}/?ref={code}"
+    fmt, data = await qps.render_poster(
+        fmt=fmt, link=link, code=code, merchant_name=name or user.get("shop_name") or user.get("name") or "",
+        primary=primary, secondary=secondary, logo_url=logo, site_name=site, trust_line=trust, caption=caption[:600])
+    mime = {"png": "image/png", "jpg": "image/jpeg", "pdf": "application/pdf"}[fmt]
+    return Response(content=data, media_type=mime,
+                    headers={"Content-Disposition": f'inline; filename="azoapp-poster-{code}.{fmt}"', "Cache-Control": "no-store"})

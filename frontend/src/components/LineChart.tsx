@@ -51,7 +51,7 @@ function monotoneTangents(pts: Pt[]): number[] {
   return t;
 }
 
-function monotoneLine(pts: Pt[]): string {
+export function monotoneLine(pts: Pt[]): string {
   if (pts.length === 0) return "";
   if (pts.length === 1) return `M${pts[0].x},${pts[0].y}`;
   const t = monotoneTangents(pts);

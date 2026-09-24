@@ -1,0 +1,42 @@
+{
+  "summary": "Iter 107 retest of the XSS fix in /app/backend/services/qr_share_page_service.py (_js() escapes <, >, & as \\u003c/\\u003e/\\u0026 in JSON literals inlined into <script>). Ran the existing iter106 pytest suite (5/5 PASS incl. the previously-failing caption-with-script test) and a new iter107 xss-fix suite (3/3 PASS) that specifically asserts (a) response body must NOT contain '</script>hi' or '<script>alert' anywhere, (b) response body MUST contain the escaped '\\u003cscript\\u003ealert(1)\\u003c/script\\u003ehi' literal, (c) name='<b>x' is also escaped, (d) invalid code still 404, (e) regression normal caption with emoji + https link still 200 w/ Cache-Control:no-store, navigator.share, 'Share on WhatsApp' button label. Playwright mobile-viewport (420x800) load of the exact XSS URL from the request: no alert dialog fires, #cap innerText equals literal '<script>alert(1)</script>hi', #go button visible with text 'Share on WhatsApp', zero JS/page console errors, and no raw '<b>x' present in DOM source (though it is rendered as inert text inside the poster SVG image, which is safe). XSS fix verified working end-to-end.",
+  "test_matrix_backend": {
+    "iter106_whatsapp_channel_valid_code_200_html_no_store_navigator_share_inline_poster": "PASS",
+    "iter106_system_channel_button_text": "PASS",
+    "iter106_invalid_code_404": "PASS",
+    "iter106_caption_with_script_safely_encoded_in_CAP_literal": "PASS (previously FAIL — now fixed)",
+    "iter106_link_without_ref_rebuilt_server_side_200": "PASS",
+    "iter107_script_breakout_payload_is_unicode_escaped (CAP + TITLE)": "PASS",
+    "iter107_regression_normal_caption_with_emoji_and_link": "PASS",
+    "iter107_invalid_code_still_404": "PASS"
+  },
+  "test_matrix_frontend_playwright": {
+    "load_page_with_xss_caption_and_name_no_alert_dialog": "PASS",
+    "cap_element_shows_escaped_text_literally": "PASS (#cap text = '<script>alert(1)</script>hi')",
+    "go_button_visible_share_on_whatsapp": "PASS",
+    "zero_console_or_page_errors": "PASS",
+    "no_raw_html_b_tag_in_dom_source": "PASS"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_qr_share_page_iter106.py",
+    "/app/backend/tests/test_merchant_qr_share_page_iter107.py",
+    "/app/test_reports/pytest/iter107_share_page.xml",
+    "/app/test_reports/pytest/iter107_xss_fix.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "_js() correctly escapes <, >, & as \\u escapes — this defeats the '</script>' script-breakout, '<!--' HTML-comment breakout, and '<script>' nested-open, all at once. Good choice over the minimal '</'→'<\\\\/' fix.",
+    "Poster SVG (qr_poster_service.render_poster) still receives raw name/site/trust query params and embeds them into SVG text — verified via the '<b>x' name payload rendering as inert visible text '<b>x' inside the poster PNG (not HTML). Confirms the SVG path is XML-escaped. No action needed.",
+    "Order of replace() in _js is safe: '&' → '\\u0026' happens LAST so it doesn't double-escape the '&' inside earlier-produced '\\u003c' sequences (those contain no '&'). Correct."
+  ],
+  "updated_files": ["/app/backend/tests/test_merchant_qr_share_page_iter107.py (new)"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% (5/5 playwright checks)"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456. Valid code=XZ6SV49.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "XSS fix in qr_share_page_service._js() is verified. If share-page ever accepts new query params that get inlined into the <script> block, route them through _js() too. Regression tests live at /app/backend/tests/test_merchant_qr_share_page_iter106.py and /app/backend/tests/test_merchant_qr_share_page_iter107.py — both need REACT_APP_BACKEND_URL env or fall back to hardcoded preview URL.",
+  "rca of the issue": "Original bug: json.dumps output was inlined verbatim inside <script> — JSON does not require escaping '</' so a caption containing '</script>' terminated the outer <script> tag at the HTML-parser level. Fix: services/qr_share_page_service.py:_js() runs json.dumps then .replace('<','\\u003c').replace('>','\\u003e').replace('&','\\u0026') on the result. Verified: (1) source body contains '\\u003cscript\\u003ealert(1)\\u003c/script\\u003ehi' and does NOT contain '</script>hi' or '<script>alert'; (2) at runtime JS sees the correct string 'AC<script>alert(1)</script>hi' and injects it into #cap via HTML-escaping innerHTML so no alert fires and no rogue DOM is created."
+}

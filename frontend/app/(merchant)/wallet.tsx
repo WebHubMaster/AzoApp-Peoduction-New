@@ -1,495 +1,497 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, ActivityIndicator } from "react-native";
-import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
+import React, { useMemo, useState } from "react";
+import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, KeyboardAvoidingView } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
-import { AppHeader } from "@/src/components/Screen";
-import { Card, Badge, EmptyState, CardSkeleton, statusTone } from "@/src/components/ui";
-import { Icon, MdiName } from "@/src/components/Icon";
-import { fmt, fmtDate } from "@/src/lib/format";
+import { useAuth } from "@/src/context/AuthContext";
+import { AppShellHeader } from "@/src/components/AppShell";
+import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
-import { MPagination } from "@/src/components/merchant/ReferralShared";
+import { SLATE } from "@/src/components/qr/qrKit";
+import {
+  useFin, KpiCard, Surface, SegTabs, DetailDrawer, KV, Timeline, EmptyState, RowsSkeleton, Paginator, StatusBadge,
+  PremiumSelect, FBtn, Sk, money, shortDate, EMERALD, ROSE, AMBER, TAB,
+} from "@/src/components/merchant/FinanceKit";
 
-const money = (n: any) => fmt(n);
-const shortDate = (s?: string) => fmtDate(s);
-const wdId = (id: string) => "WD-" + (id || "").slice(0, 6).toUpperCase();
+/* 1:1 port of web_panel/src/pages/merchant/finance/WalletModule.jsx (mobile view). */
+const PANEL = "/merchant/panel";
 const monthKey = (s?: string) => (s || "").slice(0, 7);
+const wdId = (id?: string) => "WD-" + (id || "").slice(0, 6).toUpperCase();
 type Tab = "overview" | "transactions" | "withdrawals";
 
-/* Bottom sheet used for tx / withdrawal detail. */
-function Sheet({ open, onClose, title, subtitle, children, testID }: { open: boolean; onClose: () => void; title: string; subtitle?: string; children: React.ReactNode; testID?: string }) {
-  const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
-  return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View testID={testID} style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, maxHeight: "82%" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>{title}</Text>
-              {subtitle ? <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 1 }} numberOfLines={1}>{subtitle}</Text> : null}
-            </View>
-            <Pressable testID="sheet-close" onPress={onClose} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false}>{children}</ScrollView>
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
-function KV({ k, v, strong }: { k: string; v: any; strong?: boolean }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-      <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{k}</Text>
-      <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: strong ? "900" : "700" }}>{v}</Text>
-    </View>
-  );
-}
-
-function TxRow({ t, onOpen }: { t: any; onOpen: () => void }) {
-  const { colors } = useTheme();
-  const credit = t.direction === "credit";
-  return (
-    <Pressable testID={`wallet-tx-item-${t.id}`} onPress={onOpen} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 10, opacity: pressed ? 0.7 : 1 })}>
-      <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: credit ? colors.successSubtle : colors.dangerSubtle, alignItems: "center", justifyContent: "center" }}>
-        <Icon name={credit ? "arrow-bottom-left" : "arrow-top-right"} size={18} color={credit ? colors.success : colors.danger} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm }} numberOfLines={1}>{t.note || t.kind}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }}>{shortDate(t.created_at)} · {t.status}</Text>
-      </View>
-      <Text style={{ color: credit ? colors.success : colors.danger, fontWeight: "900", fontSize: fontSize.sm }}>{credit ? "+" : "−"}{money(t.amount)}</Text>
-    </Pressable>
-  );
-}
-
-function WdRow({ w, onOpen }: { w: any; onOpen: () => void }) {
-  const { colors } = useTheme();
-  return (
-    <Pressable testID={`wd-item-${w.id}`} onPress={onOpen} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, opacity: pressed ? 0.7 : 1 })}>
-      <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
-        <Icon name="bank-transfer-out" size={18} color={colors.primary} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{wdId(w.id)}</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }}>{shortDate(w.requested_at)} · {(w.method || "").toUpperCase()}</Text>
-      </View>
-      <View style={{ alignItems: "flex-end", gap: 4 }}>
-        <Text style={{ color: colors.text, fontWeight: "900", fontSize: fontSize.sm }}>{money(w.amount)}</Text>
-        <Badge label={w.status} tone={statusTone(w.status)} />
-      </View>
-    </Pressable>
-  );
-}
-
 export default function MerchantWallet() {
-  const { colors } = useTheme();
+  const F = useFin();
+  const { P, dark, colors, heading, muted, strong, link } = F;
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const qc = useQueryClient();
   const toast = useToast();
+  const { user } = useAuth();
+  const shopName = user?.shop_name || user?.name || "My Shop";
 
   const [tab, setTab] = useState<Tab>("overview");
-  const [txq, setTxq] = useState("");
-  const [txDir, setTxDir] = useState("");
-  const [txPage, setTxPage] = useState(1);
-  const [txPageSize, setTxPageSize] = useState(10);
+  const [txf, setTxf] = useState({ q: "", direction: "", page: 1, page_size: 10 });
   const [detail, setDetail] = useState<any>(null);
   const [wdDetail, setWdDetail] = useState<any>(null);
   const [flow, setFlow] = useState(false);
 
-  const ovQ = useQuery({ queryKey: ["m-wallet-overview"], queryFn: () => api.get<any>("/merchant/panel/wallet/overview") });
-  const wdsQ = useQuery({ queryKey: ["m-wallet-withdrawals"], queryFn: () => api.get<any[]>("/merchant/panel/wallet/withdrawals") });
+  const accessQ = useQuery({ queryKey: ["m-panel-access"], queryFn: () => api.get<any>(`${PANEL}/access`) });
+  const approved = !!(accessQ.data?.approved || user?.kyc_status === "approved");
+  const ovQ = useQuery({ queryKey: ["m-wallet-overview"], queryFn: () => api.get<any>(`${PANEL}/wallet/overview`), enabled: approved });
+  const wdsQ = useQuery({ queryKey: ["m-wallet-withdrawals"], queryFn: () => api.get<any[]>(`${PANEL}/wallet/withdrawals`), enabled: approved });
   const txQ = useQuery({
-    queryKey: ["m-wallet-tx", tab, txq, txDir, txPage, txPageSize],
-    queryFn: () => api.get<any>(`/merchant/panel/wallet/transactions?q=${encodeURIComponent(txq)}&direction=${txDir}&page=${txPage}&page_size=${txPageSize}`),
-    enabled: tab === "transactions",
+    queryKey: ["m-wallet-tx", txf],
+    queryFn: () => api.get<any>(`${PANEL}/wallet/transactions?q=${encodeURIComponent(txf.q)}&direction=${txf.direction}&page=${txf.page}&page_size=${txf.page_size}`),
+    enabled: approved && tab === "transactions",
   });
-
-  useEffect(() => { setTxPage(1); }, [txq, txDir, txPageSize]);
+  // web: any filter change resets to page 1
+  const patchTx = (p: Partial<typeof txf>) => setTxf((f) => ({ ...f, ...p, page: p.page ?? 1 }));
 
   const ov = ovQ.data;
   const s = ov?.summary || {};
   const cfg = ov?.config || {};
   const fin = ov?.finance || { eligible: false, blockers: [], banks: [], primary_bank: null };
   const eligible = !!fin.eligible;
-  const ledger: any[] = s.ledger || [];
   const wds: any[] = wdsQ.data || [];
   const tx = txQ.data || { items: [], total: 0, page: 1, pages: 1 };
 
   const trend = useMemo(() => {
-    if (!ledger.length) return null;
+    const led: any[] = s.ledger || [];
+    if (!led.length) return null;
     const now = new Date(); const cur = monthKey(now.toISOString());
     const prev = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString());
     let c = 0, p = 0;
-    ledger.forEach((l) => { if (l.direction !== "credit") return; const m = monthKey(l.created_at); if (m === cur) c += l.amount; else if (m === prev) p += l.amount; });
+    led.forEach((l) => { if (l.direction !== "credit") return; const m = monthKey(l.created_at); if (m === cur) c += l.amount; else if (m === prev) p += l.amount; });
     if (!p) return c > 0 ? 100 : null;
     return Math.round(((c - p) / p) * 100);
-  }, [ledger]);
+  }, [s.ledger]);
 
-  const startWithdraw = () => { if (!eligible) { toast.info("Complete Bank & KYC verification first"); router.push("/merchant/payouts"); return; } setFlow(true); };
-  const refresh = () => { qc.invalidateQueries({ queryKey: ["m-wallet-overview"] }); qc.invalidateQueries({ queryKey: ["m-wallet-withdrawals"] }); if (tab === "transactions") txQ.refetch(); };
+  const gotoKyc = () => router.push("/merchant/bankkyc");
+  const startWithdraw = () => { if (!eligible) { gotoKyc(); toast.info("Complete Bank & KYC verification first"); } else setFlow(true); };
+  const recentTx: any[] = (s.ledger || []).slice(0, 6);
+  const load = () => { qc.invalidateQueries({ queryKey: ["m-wallet-overview"] }); qc.invalidateQueries({ queryKey: ["m-wallet-withdrawals"] }); if (tab === "transactions") txQ.refetch(); };
 
-  const kpis: { icon: MdiName; label: string; value: string; sub: string; bg: string; fg: string }[] = [
-    { icon: "trending-up", label: "Total Earned", value: money(s.total_earned), sub: "Lifetime earnings", bg: colors.successSubtle, fg: colors.success },
-    { icon: "wallet", label: "Commission", value: money((s.total_referral || 0) + (s.total_customer || 0)), sub: "Referral + booking", bg: colors.primarySubtle, fg: colors.primary },
-    { icon: "clock-outline", label: "Processing", value: money(s.pending_balance), sub: "Locked in withdrawals", bg: colors.warningSubtle, fg: colors.warning },
-  ];
+  const sectionTitle = (icon: any, title: string, onAll: () => void, testID: string) => (
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Icon name={icon} size={16} color={P[600]} />
+        <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "700", color: heading }}>{title}</Text>
+      </View>
+      <Pressable testID={testID} onPress={onAll} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "600", color: link }}>View all</Text>
+        <Icon name="arrow-right" size={12} color={link} />
+      </Pressable>
+    </View>
+  );
+
+  const withdrawBtn = <FBtn label="Withdraw Money" onPress={startWithdraw} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Wallet" subtitle="Commission & withdrawals" variant="gradient" testID="merchant-wallet-header" />
       <ScrollView
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.md }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={ovQ.isFetching} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={!!ov && ovQ.isFetching} onRefresh={load} tintColor={P[700]} colors={[P[700]]} />}
         testID="wallet-module"
       >
-        {ovQ.isLoading ? <CardSkeleton /> : (
-          <>
+        {/* Page header (MerchantDashboard.jsx) */}
+        <View style={{ marginBottom: 16 }}>
+          <Text testID="merchant-wallet-header" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Wallet & Withdraw</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+            <Icon name="store" size={14} color={P[700]} />
+            <Text style={{ fontSize: 12, lineHeight: 16, color: muted }} numberOfLines={1}>{shopName}</Text>
+          </View>
+        </View>
+
+        {accessQ.isLoading || (approved && !ov && !ovQ.isError) ? (
+          <View style={{ gap: 20 }}>
+            <Surface style={{ padding: 24 }}><Sk style={{ height: 160, borderRadius: 12 }} /></Surface>
+            <View style={{ flexDirection: "row", gap: 12 }}>
+              {[0, 1, 2].map((i) => <Surface key={i} style={{ flex: 1, padding: 20 }}><Sk style={{ height: 40, width: 40, borderRadius: 12 }} /><Sk style={{ height: 12, width: 80, marginTop: 16 }} /><Sk style={{ height: 24, width: 96, marginTop: 8 }} /></Surface>)}
+            </View>
+          </View>
+        ) : !approved ? (
+          <LockedCard completion={accessQ.data?.completion ?? 0} status={accessQ.data?.status} onGo={() => router.push("/merchant/profilekyc")} />
+        ) : ovQ.isError ? (
+          <Surface><EmptyState icon="alert-circle-outline" title="Could not load wallet" hint={(ovQ.error as any)?.detail || "Please try again."} action={<FBtn label="Retry" onPress={load} />} /></Surface>
+        ) : (
+          <View style={{ gap: 20 }}>
             {/* HERO */}
-            <LinearGradient colors={["#0f52ba", "#0D47A1", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: spacing.lg }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Icon name="wallet" size={15} color="#BFDBFE" />
-                <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.5 }}>Available Balance</Text>
+            <LinearGradient colors={["#0D47A1", "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }} testID="wallet-hero">
+              <View style={{ position: "absolute", right: -64, top: -64, height: 224, width: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.1)" }} />
+              <View style={{ position: "absolute", right: 40, bottom: -40, height: 128, width: 128, borderRadius: 64, backgroundColor: "rgba(125,211,252,0.1)" }} />
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <Icon name="wallet-outline" size={16} color={P[100]} />
+                <Text style={{ fontSize: 11, lineHeight: 14, textTransform: "uppercase", letterSpacing: 2.2, fontWeight: "600", color: P[100] }}>Available Balance</Text>
               </View>
-              <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 4 }}>
-                <Text testID="wallet-balance" style={{ color: "#fff", fontSize: 40, fontWeight: "900" }}>{money(s.available_balance)}</Text>
+              <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 12, marginTop: 6, flexWrap: "wrap" }}>
+                <Text testID="wallet-balance" style={{ fontSize: 36, lineHeight: 40, fontWeight: "800", color: "#fff", ...TAB }}>{money(s.available_balance)}</Text>
                 {trend != null ? (
-                  <View style={{ marginBottom: 8, backgroundColor: trend >= 0 ? "rgba(52,211,153,0.2)" : "rgba(251,113,133,0.2)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill }}>
-                    <Text style={{ color: trend >= 0 ? "#D1FAE5" : "#FECDD3", fontSize: 11, fontWeight: "800" }}>{trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}%</Text>
+                  <View style={{ marginBottom: 6, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: trend >= 0 ? "rgba(52,211,153,0.2)" : "rgba(251,113,133,0.2)" }}>
+                    <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "700", color: trend >= 0 ? EMERALD[100] : "#fecdd3" }}>{trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}% <Text style={{ fontWeight: "400", opacity: 0.8 }}>this month</Text></Text>
                   </View>
                 ) : null}
               </View>
-              <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}>
-                {[["Withdrawable", s.withdrawable_balance], ["Pending", s.pending_balance], ["Withdrawn", s.total_withdrawn]].map(([k, v]) => (
-                  <View key={k as string} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: radius.md, paddingHorizontal: 10, paddingVertical: 8 }}>
-                    <Text style={{ color: "#BFDBFE", fontSize: 9, fontWeight: "700", textTransform: "uppercase" }}>{k as string}</Text>
-                    <Text style={{ color: "#fff", fontSize: fontSize.sm, fontWeight: "800", marginTop: 2 }} numberOfLines={1}>{money(v)}</Text>
+              <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
+                {([["Withdrawable", s.withdrawable_balance], ["Pending", s.pending_balance], ["Withdrawn", s.total_withdrawn]] as [string, any][]).map(([k, v]) => (
+                  <View key={k} style={{ flex: 1, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", paddingHorizontal: 12, paddingVertical: 10 }}>
+                    <Text style={{ fontSize: 10, lineHeight: 14, textTransform: "uppercase", letterSpacing: 0.25, color: P[100] }} numberOfLines={1}>{k}</Text>
+                    <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "700", color: "#fff", marginTop: 2, ...TAB }} numberOfLines={1} adjustsFontSizeToFit>{money(v)}</Text>
                   </View>
                 ))}
               </View>
-              <Pressable testID="withdraw-btn" onPress={startWithdraw} style={({ pressed }) => ({ marginTop: spacing.lg, height: 48, borderRadius: radius.lg, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
-                <Icon name="bank-transfer-out" size={18} color={colors.primary} />
-                <Text style={{ color: colors.primary, fontSize: fontSize.md, fontWeight: "900" }}>Withdraw Money</Text>
-              </Pressable>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: spacing.sm, justifyContent: "center" }}>
-                <Icon name="shield-check" size={13} color="#BFDBFE" />
-                <Text style={{ color: "#BFDBFE", fontSize: 11 }}>Secured payouts to your verified bank account</Text>
+              <View style={{ gap: 12, marginTop: 24 }}>
+                <FBtn testID="withdraw-btn" label="Withdraw Money" icon="cash" variant="white" size="lg" onPress={startWithdraw} />
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Icon name="shield-check-outline" size={16} color={P[100]} />
+                  <Text style={{ fontSize: 12, lineHeight: 16, color: P[100] }}>Secured payouts to your verified bank account</Text>
+                </View>
               </View>
             </LinearGradient>
 
             {/* KYC blocker */}
             {!eligible ? (
-              <Pressable testID="wallet-kyc-blocker" onPress={() => router.push("/merchant/payouts")}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: radius.lg, padding: spacing.md }}>
-                  <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: "rgba(217,119,6,0.15)", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="alert" size={20} color={colors.warning} />
+              <Surface testID="wallet-kyc-blocker" style={{ padding: 16, borderColor: dark ? "rgba(120,53,15,0.5)" : AMBER[200], backgroundColor: dark ? AMBER[950] : "rgba(255,251,235,0.6)" }}>
+                <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+                  <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: dark ? AMBER[900] : AMBER[100], alignItems: "center", justifyContent: "center" }}><Icon name="alert-outline" size={20} color={AMBER[600]} /></View>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "600", color: strong }}>Complete Bank & KYC to withdraw</Text>
+                    <Text style={{ fontSize: 14, lineHeight: 20, color: dark ? "rgba(252,211,77,0.9)" : AMBER[700], marginTop: 2 }}>Pending: {(fin.blockers || []).join(", ") || "verification"}</Text>
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>Complete Bank & KYC to withdraw</Text>
-                    <Text style={{ color: colors.warning, fontSize: fontSize.xs, marginTop: 2 }} numberOfLines={2}>Pending: {(fin.blockers || []).join(", ") || "verification"}</Text>
-                  </View>
-                  <Icon name="chevron-right" size={22} color={colors.textMuted} />
                 </View>
-              </Pressable>
+                <FBtn testID="wallet-complete-kyc" label="Complete Bank & KYC" onPress={gotoKyc} style={{ marginTop: 12 }} />
+              </Surface>
             ) : null}
 
-            {/* KPI grid */}
-            <View style={{ flexDirection: "row", gap: spacing.sm }}>
-              {kpis.map((k) => (
-                <View key={k.label} style={{ flex: 1 }}>
-                  <Card padded={false} style={{ padding: spacing.md }} testID={`kpi-${k.label}`}>
-                    <View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: k.bg, alignItems: "center", justifyContent: "center" }}>
-                      <Icon name={k.icon} size={16} color={k.fg} />
-                    </View>
-                    <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "900", marginTop: 8 }} numberOfLines={1}>{k.value}</Text>
-                    <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: "700", marginTop: 1 }} numberOfLines={1}>{k.label}</Text>
-                  </Card>
-                </View>
-              ))}
+            {/* KPI grid (grid-cols-2 on mobile) */}
+            <View style={{ gap: 12 }}>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flex: 1 }}><KpiCard icon="trending-up" tone="emerald" label="Total Earned" value={money(s.total_earned)} sub="Lifetime earnings" trend={trend} testID="kpi-total-earned" /></View>
+                <View style={{ flex: 1 }}><KpiCard icon="wallet-outline" tone="primary" label="Commission" value={money((s.total_referral || 0) + (s.total_customer || 0))} sub="Referral + booking" testID="kpi-commission" /></View>
+              </View>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <View style={{ flex: 1 }}><KpiCard icon="clock-outline" tone="amber" label="Processing" value={money(s.pending_balance)} sub="Locked in withdrawals" testID="kpi-processing" /></View>
+                <View style={{ flex: 1 }} />
+              </View>
             </View>
 
-            {/* SegTabs */}
-            <View style={{ flexDirection: "row", gap: 6, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md, padding: 4 }}>
-              {(["overview", "transactions", "withdrawals"] as Tab[]).map((t) => {
-                const on = tab === t;
-                return (
-                  <Pressable key={t} testID={`wallet-tab-${t}`} onPress={() => setTab(t)} style={{ flex: 1, paddingVertical: 8, borderRadius: radius.sm, alignItems: "center", backgroundColor: on ? colors.surface : "transparent" }}>
-                    <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: "800", textTransform: "capitalize" }}>{t}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <SegTabs tabs={["overview", "transactions", "withdrawals"] as Tab[]} value={tab} onChange={setTab} testidPrefix="wallet-tab" />
 
             {/* OVERVIEW */}
             {tab === "overview" ? (
-              <>
-                <Card padded={false} style={{ padding: spacing.lg }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="receipt" size={16} color={colors.primary} /><Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "800" }}>Recent Activity</Text></View>
-                    <Pressable testID="wallet-view-all-tx" onPress={() => setTab("transactions")} hitSlop={8}><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>View all</Text></Pressable>
-                  </View>
-                  {ledger.length === 0 ? <EmptyState icon="receipt-text-outline" title="No activity yet" subtitle="Your wallet credits and debits will appear here." /> : (
-                    ledger.slice(0, 6).map((t, i) => (
-                      <View key={t.id || i} style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}><TxRow t={t} onOpen={() => setDetail(t)} /></View>
-                    ))
+              <View style={{ gap: 16 }}>
+                <Surface style={{ padding: 20 }}>
+                  {sectionTitle("receipt-text-outline", "Recent Activity", () => setTab("transactions"), "wallet-view-all-tx")}
+                  {recentTx.length === 0 ? <EmptyState icon="receipt-text-outline" title="No activity yet" hint="Your wallet credits and debits will appear here." testID="wallet-overview-empty" /> : (
+                    <View style={{ gap: 4 }}>{recentTx.map((t) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} />)}</View>
                   )}
-                </Card>
-                <Card padded={false} style={{ padding: spacing.lg }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="bank-transfer-out" size={16} color={colors.primary} /><Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "800" }}>Recent Withdrawals</Text></View>
-                    <Pressable testID="wallet-view-all-wd" onPress={() => setTab("withdrawals")} hitSlop={8}><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>View all</Text></Pressable>
-                  </View>
-                  {wds.length === 0 ? <EmptyState icon="bank-outline" title="No withdrawals yet" subtitle="Withdraw your earnings to your verified bank account." /> : (
-                    <View style={{ gap: spacing.sm }}>{wds.slice(0, 5).map((w) => <WdRow key={w.id} w={w} onOpen={() => setWdDetail(w)} />)}</View>
+                </Surface>
+                <Surface style={{ padding: 20 }}>
+                  {sectionTitle("cash", "Recent Withdrawals", () => setTab("withdrawals"), "wallet-view-all-wd")}
+                  {wds.length === 0 ? <EmptyState icon="cash" title="No withdrawals yet" hint="Withdraw your earnings to your verified bank account." action={withdrawBtn} testID="wallet-wd-empty" /> : (
+                    <View style={{ gap: 8 }}>{wds.slice(0, 5).map((w) => <WdRow key={w.id} w={w} onOpen={() => setWdDetail(w)} />)}</View>
                   )}
-                </Card>
-              </>
+                </Surface>
+              </View>
             ) : null}
 
             {/* TRANSACTIONS */}
             {tab === "transactions" ? (
-              <Card padded={false} style={{ padding: spacing.lg }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 44 }}>
-                  <Icon name="magnify" size={20} color={colors.textMuted} />
-                  <TextInput testID="wallet-tx-search" value={txq} onChangeText={setTxq} placeholder="Search description, reference…" placeholderTextColor={colors.textMuted} style={{ flex: 1, color: colors.text, fontSize: fontSize.sm }} />
+              <Surface style={{ padding: 16 }}>
+                <View style={{ gap: 8, marginBottom: 16 }}>
+                  <View style={{ position: "relative" }}>
+                    <View style={{ position: "absolute", left: 12, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 }}><Icon name="magnify" size={16} color={SLATE[400]} /></View>
+                    <TextInput testID="wallet-tx-search" value={txf.q} onChangeText={(q) => patchTx({ q })} placeholder="Search description, reference…" placeholderTextColor={SLATE[400]}
+                      style={{ height: 44, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: F.card, paddingLeft: 36, paddingRight: 12, fontSize: 14, color: heading }} />
+                  </View>
+                  <PremiumSelect testID="wallet-tx-direction" value={txf.direction} onChange={(direction) => patchTx({ direction })} height={44} radius={12} placeholder="All types"
+                    options={[{ value: "", label: "All types" }, { value: "credit", label: "Credit" }, { value: "debit", label: "Debit" }]} />
                 </View>
-                <View style={{ flexDirection: "row", gap: 6, marginTop: spacing.md }}>
-                  {[["", "All"], ["credit", "Credit"], ["debit", "Debit"]].map(([v, l]) => {
-                    const on = txDir === v;
-                    return (
-                      <Pressable key={v as string} testID={`wallet-tx-dir-${v || "all"}`} onPress={() => setTxDir(v as string)} style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: on ? colors.primary : colors.surfaceSubtle }}>
-                        <Text style={{ color: on ? "#fff" : colors.textSecondary, fontSize: 12, fontWeight: "800" }}>{l as string}</Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <View style={{ marginTop: spacing.sm }}>
-                  {txQ.isLoading ? (
-                    <View style={{ paddingVertical: 30, alignItems: "center" }}><ActivityIndicator color={colors.primary} /></View>
-                  ) : (tx.items || []).length === 0 ? (
-                    <EmptyState icon="receipt-text-outline" title="No transactions found" subtitle="Try adjusting your search or filters." />
-                  ) : (
-                    <>
-                      {tx.items.map((t: any, i: number) => (
-                        <View key={t.id} testID={`wallet-tx-row-${t.id}`} style={{ borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}><TxRow t={t} onOpen={() => setDetail(t)} /></View>
-                      ))}
-                      <View style={{ marginTop: spacing.md }}>
-                        <MPagination page={tx.page || 1} pages={tx.pages || 1} total={tx.total || 0} pageSize={txPageSize} onPage={setTxPage} onPageSize={setTxPageSize} />
-                      </View>
-                    </>
-                  )}
-                </View>
-              </Card>
+                {txQ.isLoading || (txQ.isFetching && !txQ.data) ? <RowsSkeleton /> : (tx.items || []).length === 0 ? (
+                  <EmptyState icon="receipt-text-outline" title="No transactions found" hint="Try adjusting your search or filters." testID="wallet-tx-empty" />
+                ) : (
+                  <>
+                    <View style={{ gap: 8 }}>{tx.items.map((t: any) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} card />)}</View>
+                    <Paginator page={tx.page || 1} pages={tx.pages || 1} total={tx.total || 0} pageSize={txf.page_size} onPage={(p) => patchTx({ page: p })} onPageSize={(n) => patchTx({ page_size: n })} />
+                  </>
+                )}
+              </Surface>
             ) : null}
 
             {/* WITHDRAWALS */}
             {tab === "withdrawals" ? (
-              <Card padded={false} style={{ padding: spacing.lg }} testID="withdrawal-history">
-                {wds.length === 0 ? (
-                  <EmptyState icon="bank-outline" title="No withdrawals yet" subtitle="Your withdrawal history will appear here." action="Withdraw Money" onAction={startWithdraw} />
-                ) : (
-                  <View style={{ gap: spacing.sm }}>{wds.map((w) => <WdRow key={w.id} w={w} onOpen={() => setWdDetail(w)} />)}</View>
+              <Surface style={{ padding: 16 }} testID="withdrawal-history">
+                {wds.length === 0 ? <EmptyState icon="cash" title="No withdrawals yet" hint="Your withdrawal history will appear here." action={withdrawBtn} testID="wallet-wd-empty2" /> : (
+                  <View style={{ gap: 8 }}>{wds.map((w) => <WdRow key={w.id} w={w} onOpen={() => setWdDetail(w)} />)}</View>
                 )}
-              </Card>
+              </Surface>
             ) : null}
-          </>
+          </View>
         )}
       </ScrollView>
 
-      {/* Transaction detail */}
-      <Sheet open={!!detail} onClose={() => setDetail(null)} title="Transaction details" subtitle={detail?.note} testID="wallet-tx-drawer">
+      {/* Transaction detail drawer */}
+      <DetailDrawer open={!!detail} onClose={() => setDetail(null)} title="Transaction details" subtitle={detail?.note} testID="wallet-tx-drawer">
         {detail ? (
-          <View>
-            <View style={{ borderRadius: radius.lg, padding: spacing.lg, alignItems: "center", backgroundColor: detail.direction === "credit" ? colors.successSubtle : colors.dangerSubtle, marginBottom: spacing.md }}>
-              <Text style={{ color: detail.direction === "credit" ? colors.success : colors.danger, fontSize: 30, fontWeight: "900" }}>{detail.direction === "credit" ? "+" : "−"}{money(detail.amount)}</Text>
-              <View style={{ marginTop: 8 }}><Badge label={detail.status} tone={statusTone(detail.status)} /></View>
+          <View style={{ gap: 20 }}>
+            <View style={{ borderRadius: 16, padding: 16, alignItems: "center", backgroundColor: detail.direction === "credit" ? (dark ? "rgba(2,44,34,0.3)" : EMERALD[50]) : (dark ? "rgba(76,5,25,0.3)" : ROSE[50]) }}>
+              <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: detail.direction === "credit" ? EMERALD[600] : ROSE[500], ...TAB }}>{detail.direction === "credit" ? "+" : "−"}{money(detail.amount)}</Text>
+              <View style={{ marginTop: 8 }}><StatusBadge status={detail.status} /></View>
             </View>
-            <KV k="Reference ID" v={detail.ref_id || (detail.id || "").slice(0, 10).toUpperCase()} />
-            <KV k="Date" v={shortDate(detail.created_at)} />
-            <KV k="Type" v={detail.kind} />
-            <KV k="Direction" v={detail.direction} />
-            <KV k="Amount" v={money(detail.amount)} strong />
-            <KV k="Balance after" v={detail.balance != null ? money(detail.balance) : "—"} />
+            <View>
+              <KV k="Reference ID" v={detail.ref_id || (detail.id || "").slice(0, 10).toUpperCase()} mono />
+              <KV k="Date" v={shortDate(detail.created_at)} />
+              <KV k="Type" v={detail.kind} transform="capitalize" />
+              <KV k="Direction" v={detail.direction} transform="capitalize" />
+              <KV k="Amount" v={money(detail.amount)} strong />
+              <KV k="Balance after" v={detail.balance != null ? money(detail.balance) : "—"} />
+            </View>
           </View>
         ) : null}
-      </Sheet>
+      </DetailDrawer>
 
-      {/* Withdrawal detail */}
-      <Sheet open={!!wdDetail} onClose={() => setWdDetail(null)} title="Withdrawal details" subtitle={wdDetail ? wdId(wdDetail.id) : ""} testID="wallet-wd-drawer">
+      {/* Withdrawal detail drawer */}
+      <DetailDrawer open={!!wdDetail} onClose={() => setWdDetail(null)} title="Withdrawal details" subtitle={wdDetail ? wdId(wdDetail.id) : ""} testID="wallet-wd-drawer">
         {wdDetail ? (
-          <View>
-            <View style={{ borderRadius: radius.lg, padding: spacing.lg, alignItems: "center", backgroundColor: colors.primarySubtle, marginBottom: spacing.md }}>
-              <Text style={{ color: colors.primary, fontSize: 30, fontWeight: "900" }}>{money(wdDetail.amount)}</Text>
-              <View style={{ marginTop: 8 }}><Badge label={wdDetail.status} tone={statusTone(wdDetail.status)} /></View>
+          <View style={{ gap: 20 }}>
+            <View style={{ borderRadius: 16, padding: 16, alignItems: "center", backgroundColor: dark ? "rgba(13,71,161,0.2)" : P[50] }}>
+              <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: dark ? P[300] : P[700], ...TAB }}>{money(wdDetail.amount)}</Text>
+              <View style={{ marginTop: 8 }}><StatusBadge status={wdDetail.status} /></View>
             </View>
-            <KV k="Withdrawal ID" v={wdId(wdDetail.id)} />
-            <KV k="Requested" v={shortDate(wdDetail.requested_at)} />
-            <KV k="Method" v={(wdDetail.method || "").toUpperCase()} />
-            <KV k="Bank" v={wdDetail.bank?.bank_name || (wdDetail.method === "upi" ? wdDetail.upi_id : "—")} />
-            {wdDetail.bank?.account_number ? <KV k="Account" v={"••••" + String(wdDetail.bank.account_number).slice(-4)} /> : null}
-            <KV k="Processing fee" v={"−" + money(wdDetail.fee || 0)} />
-            <KV k="Net payable" v={money(wdDetail.net_amount ?? wdDetail.amount)} strong />
-            {wdDetail.status === "rejected" && wdDetail.reason ? <KV k="Reason" v={wdDetail.reason} /> : null}
+            <View>
+              <KV k="Withdrawal ID" v={wdId(wdDetail.id)} mono />
+              <KV k="Requested" v={shortDate(wdDetail.requested_at)} />
+              <KV k="Method" v={wdDetail.method} transform="uppercase" />
+              <KV k="Bank" v={wdDetail.bank?.bank_name || (wdDetail.method === "upi" ? wdDetail.upi_id : "—")} />
+              {wdDetail.bank?.account_number ? <KV k="Account" v={"••••" + String(wdDetail.bank.account_number).slice(-4)} mono /> : null}
+              <KV k="Amount" v={money(wdDetail.amount)} />
+              <KV k="Processing fee" v={"−" + money(wdDetail.fee || 0)} />
+              <KV k="Net payable" v={money(wdDetail.net_amount ?? wdDetail.amount)} strong />
+              {wdDetail.status === "rejected" && wdDetail.reason ? <KV k="Reason" v={wdDetail.reason} color={ROSE[500]} /> : null}
+            </View>
+            <View>
+              <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.3, color: SLATE[400], marginBottom: 12 }}>Timeline</Text>
+              <Timeline steps={[
+                { title: "Request submitted", time: shortDate(wdDetail.requested_at), done: true },
+                { title: "Under review", done: wdDetail.status !== "pending", active: wdDetail.status === "pending" },
+                { title: wdDetail.status === "rejected" ? "Rejected" : "Completed", time: wdDetail.processed_at ? shortDate(wdDetail.processed_at) : "", done: wdDetail.status === "completed" || wdDetail.status === "rejected" },
+              ]} />
+            </View>
           </View>
         ) : null}
-      </Sheet>
+      </DetailDrawer>
 
-      {flow ? <WithdrawFlow ov={ov} cfg={cfg} fin={fin} onClose={() => setFlow(false)} onDone={() => { setFlow(false); refresh(); setTab("withdrawals"); }} /> : null}
+      {flow ? <WithdrawFlow ov={ov} cfg={cfg} fin={fin} onClose={() => setFlow(false)} onDone={() => { setFlow(false); load(); setTab("withdrawals"); }} /> : null}
     </View>
   );
 }
 
-/* ── Multi-step withdraw ── */
+/* web MerchantDashboard lockedCard (renderGated) */
+function LockedCard({ completion, status, onGo }: { completion: number; status?: string; onGo: () => void }) {
+  const { heading, muted, primaryText, dark } = useFin();
+  return (
+    <Surface testID="feature-locked" style={{ padding: 32, alignItems: "center" }}>
+      <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
+      <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Feature locked</Text>
+      <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>Yeh feature tab unlock hoga jab aapka profile 100% complete ho aur admin approve kar de.</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: "700", color: primaryText }}>{completion}%</Text>
+        <Text style={{ fontSize: 14, color: SLATE[400] }}>complete · {(status || "").replace("_", " ")}</Text>
+      </View>
+      <FBtn testID="goto-profile" label="Complete Profile" icon="arrow-right" onPress={onGo} style={{ marginTop: 16, height: 44 }} />
+    </Surface>
+  );
+}
+
+function TxRow({ t, onOpen, card }: { t: any; onOpen: () => void; card?: boolean }) {
+  const { dark, strong, hairline } = useFin();
+  const credit = t.direction === "credit";
+  return (
+    <Pressable testID={`wallet-tx-item-${t.id}`} onPress={onOpen}
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 10, borderWidth: card ? 1 : 0, borderColor: hairline, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
+      <View style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: credit ? (dark ? EMERALD[950] : EMERALD[50]) : (dark ? ROSE[950] : ROSE[50]) }}>
+        <Icon name={credit ? "arrow-bottom-right" : "arrow-top-right"} size={16} color={credit ? EMERALD[600] : ROSE[500]} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "500", color: strong }} numberOfLines={1}>{t.note}</Text>
+        <Text style={{ fontSize: 11, lineHeight: 14, color: SLATE[400], marginTop: 1 }} numberOfLines={1}>{shortDate(t.created_at)} · <Text style={{ textTransform: "capitalize" }}>{t.status}</Text></Text>
+      </View>
+      <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "700", color: credit ? EMERALD[600] : ROSE[500], ...TAB }}>{credit ? "+" : "−"}{money(t.amount)}</Text>
+    </Pressable>
+  );
+}
+
+function WdRow({ w, onOpen }: { w: any; onOpen: () => void }) {
+  const { dark, strong, hairline, P, heading } = useFin();
+  return (
+    <Pressable testID={`wd-item-${w.id}`} onPress={onOpen}
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: hairline, padding: 12, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
+      <View style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: dark ? "rgba(13,71,161,0.3)" : P[50] }}><Icon name="cash" size={16} color={P[700]} /></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", color: strong }}>{wdId(w.id)}</Text>
+        <Text style={{ fontSize: 11, lineHeight: 14, color: SLATE[400], marginTop: 1 }}>{shortDate(w.requested_at)} · {(w.method || "").toUpperCase()}</Text>
+      </View>
+      <View style={{ alignItems: "flex-end" }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "700", color: heading, ...TAB }}>{money(w.amount)}</Text>
+        <View style={{ marginTop: 4 }}><StatusBadge status={w.status} /></View>
+      </View>
+    </Pressable>
+  );
+}
+
+/* ── multi-step withdraw ── */
 function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fin: any; onClose: () => void; onDone: () => void }) {
-  const { colors } = useTheme();
+  const { P, dark, card, heading, muted, strong, well, primarySubtle, primaryText } = useFin();
   const insets = useSafeAreaInsets();
   const toast = useToast();
   const s = ov?.summary || {};
-  const banks = (fin.banks || []).filter((b: any) => b.status === "approved");
+  const banks: any[] = (fin.banks || []).filter((b: any) => b.status === "approved");
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState("");
   const [bankId, setBankId] = useState(fin.primary_bank?.id || banks[0]?.id || "");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<any>(null);
-
   const amt = Number(amount) || 0;
   const min = cfg.min_withdrawal || 100, max = cfg.max_withdrawal || 50000;
   const maxAllowed = Math.min(max, s.withdrawable_balance || 0);
   const fee = Math.round((amt * (cfg.processing_fee_pct || 0) / 100 + (cfg.processing_fee_flat || 0)) * 100) / 100;
   const net = Math.max(0, amt - fee);
-  const bank = banks.find((b: any) => b.id === bankId) || fin.primary_bank || {};
+  const bank = banks.find((b) => b.id === bankId) || fin.primary_bank || {};
   const masked = bank.account_number ? "••••" + String(bank.account_number).slice(-4) : "";
-  const amtError = amt > 0 && amt < min ? `Minimum ${money(min)}` : amt > maxAllowed ? `Max ${money(maxAllowed)}` : "";
+  const amtError = amt > 0 && amt < min ? `Minimum ₹${min}` : amt > maxAllowed ? `Max ${money(maxAllowed)}` : "";
 
   const submit = async () => {
     setBusy(true);
     try {
-      const data = await api.post<any>("/merchant/panel/withdraw", { amount: amt, method: "bank", bank });
+      const data = await api.post<any>(`${PANEL}/withdraw`, { amount: amt, method: "bank", bank });
       setResult(data); setStep(5); toast.success("Withdrawal request submitted");
     } catch (e: any) { toast.error(e?.detail || "Withdrawal failed"); } finally { setBusy(false); }
   };
 
+  const h3 = { fontSize: 20, lineHeight: 28, fontWeight: "700" as const, color: heading };
+  const sub = { fontSize: 14, lineHeight: 20, color: muted, marginTop: 4 };
+  const row = { flexDirection: "row" as const, gap: 8, marginTop: 24 };
+  const outline = { flex: 1, height: 44 };
+  const primary = { flex: 1, height: 44 };
+
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardProvider>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
-          <Pressable style={{ flex: 1 }} onPress={onClose} />
-          <View testID="withdraw-flow" style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, maxHeight: "90%" }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID="withdraw-flow">
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={{ maxHeight: "92%", backgroundColor: card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
+          <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24 }}>
             {step < 5 ? (
-              <View style={{ flexDirection: "row", gap: 6, marginBottom: spacing.lg }}>
-                {[1, 2, 3, 4].map((n) => <View key={n} style={{ height: 6, borderRadius: 3, width: n === step ? 28 : 14, backgroundColor: n <= step ? colors.primary : colors.surfaceSubtle }} />)}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 20 }}>
+                {[1, 2, 3, 4].map((n) => <View key={n} style={{ height: 6, borderRadius: 3, width: n === step ? 24 : 12, backgroundColor: n === step ? P[600] : n < step ? P[400] : (dark ? SLATE[700] : SLATE[200]) }} />)}
               </View>
             ) : null}
 
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {step === 1 ? (
-                <View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900" }}>Enter amount</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, marginTop: 4 }}>Available {money(s.withdrawable_balance)} · Min {money(min)} · Max {money(max)}</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, height: 60, marginTop: spacing.md }}>
-                    <Text style={{ color: colors.textMuted, fontSize: 26, fontWeight: "900" }}>₹</Text>
-                    <TextInput testID="withdraw-amount" value={amount} onChangeText={(t) => setAmount(t.replace(/[^0-9]/g, ""))} placeholder="0" placeholderTextColor={colors.textMuted} keyboardType="number-pad" autoFocus style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 26, fontWeight: "900" }} />
-                  </View>
-                  {amtError ? <Text testID="withdraw-amount-error" style={{ color: colors.danger, fontSize: fontSize.xs, marginTop: 6 }}>{amtError}</Text> : null}
-                  <View style={{ flexDirection: "row", gap: 8, marginTop: spacing.md }}>
-                    {[500, 1000, 2000, 5000].map((q) => (
-                      <Pressable key={q} disabled={q > maxAllowed} testID={`withdraw-quick-${q}`} onPress={() => setAmount(String(q))} style={{ flex: 1, height: 40, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: q > maxAllowed ? 0.4 : 1 }}>
-                        <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "800" }}>₹{q >= 1000 ? q / 1000 + "k" : q}</Text>
-                      </Pressable>
-                    ))}
-                    <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: radius.md, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
-                      <Text style={{ color: colors.primary, fontSize: 12, fontWeight: "900" }}>Max</Text>
+            {step === 1 ? (
+              <View>
+                <Text style={h3}>Enter amount</Text>
+                <Text style={sub}>Available {money(s.withdrawable_balance)} · Min {money(min)} · Max {money(max)}</Text>
+                <View style={{ marginTop: 16, position: "relative" }}>
+                  <View style={{ position: "absolute", left: 16, top: 0, bottom: 0, justifyContent: "center", zIndex: 1 }}><Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "700", color: SLATE[400] }}>₹</Text></View>
+                  <TextInput testID="withdraw-amount" value={amount} onChangeText={(t) => setAmount(t.replace(/[^0-9.]/g, ""))} placeholder="0" placeholderTextColor={SLATE[400]} keyboardType="numeric" autoFocus
+                    style={{ height: 64, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: card, paddingLeft: 40, paddingRight: 12, fontSize: 30, fontWeight: "800", color: heading }} />
+                </View>
+                {amtError ? <Text testID="withdraw-amount-error" style={{ fontSize: 12, lineHeight: 16, color: ROSE[500], marginTop: 6 }}>{amtError}</Text> : null}
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
+                  {[500, 1000, 2000, 5000].map((q) => (
+                    <Pressable key={q} disabled={q > maxAllowed} testID={`withdraw-quick-${q}`} onPress={() => setAmount(String(q))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center", opacity: q > maxAllowed ? 0.4 : 1 }}>
+                      <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "600", color: dark ? SLATE[300] : SLATE[600] }}>₹{q >= 1000 ? q / 1000 + "k" : q}</Text>
                     </Pressable>
-                  </View>
-                  <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}>
-                    <Pressable onPress={onClose} style={{ flex: 1, height: 46, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "800" }}>Cancel</Text></Pressable>
-                    <Pressable disabled={!amt || !!amtError} testID="withdraw-next-1" onPress={() => setStep(banks.length ? 2 : 3)} style={{ flex: 1, height: 46, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: !amt || !!amtError ? 0.5 : 1 }}><Text style={{ color: "#fff", fontWeight: "800" }}>Continue</Text></Pressable>
-                  </View>
+                  ))}
+                  <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: P[200], backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "700", color: primaryText }}>Max</Text>
+                  </Pressable>
                 </View>
-              ) : null}
+                <View style={row}>
+                  <FBtn label="Cancel" variant="outline" onPress={onClose} style={outline} testID="withdraw-cancel" />
+                  <FBtn label="Continue" disabled={!amt || !!amtError} onPress={() => setStep(2)} style={primary} testID="withdraw-next-1" />
+                </View>
+              </View>
+            ) : null}
 
-              {step === 2 ? (
-                <View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900" }}>Select bank account</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, marginTop: 4 }}>Money will be sent to your verified account.</Text>
-                  <View style={{ gap: spacing.sm, marginTop: spacing.md }}>
-                    {banks.map((b: any) => {
-                      const on = bankId === b.id;
-                      return (
-                        <Pressable key={b.id} testID={`withdraw-bank-${b.id}`} onPress={() => setBankId(b.id)} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, borderWidth: 1.5, borderColor: on ? colors.primary : colors.border, borderRadius: radius.lg, padding: spacing.md, backgroundColor: on ? colors.primarySubtle : "transparent" }}>
-                          <View style={{ width: 40, height: 40, borderRadius: 11, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank" size={20} color={colors.primary} /></View>
-                          <View style={{ flex: 1 }}>
-                            <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{b.bank_name}</Text>
-                            <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>••••{String(b.account_number).slice(-4)} · {b.ifsc}</Text>
+            {step === 2 ? (
+              <View>
+                <Text style={h3}>Select bank account</Text>
+                <Text style={sub}>Money will be sent to your verified account.</Text>
+                <View style={{ gap: 8, marginTop: 16 }}>
+                  {banks.map((b) => {
+                    const on = bankId === b.id;
+                    return (
+                      <Pressable key={b.id} testID={`withdraw-bank-${b.id}`} onPress={() => setBankId(b.id)}
+                        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: on ? 2 : 1, borderColor: on ? P[500] : (dark ? SLATE[700] : SLATE[200]), padding: on ? 13 : 14, backgroundColor: on ? (dark ? "rgba(13,71,161,0.2)" : `${P[50]}80`) : "transparent", boxShadow: on ? `0px 0px 0px 2px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
+                        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={P[700]} /></View>
+                        <View style={{ flex: 1, minWidth: 0 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                            <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "600", color: strong, flexShrink: 1 }} numberOfLines={1}>{b.bank_name}</Text>
+                            {b.is_primary ? <View style={{ borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: dark ? "rgba(13,71,161,0.5)" : P[100] }}><Text style={{ fontSize: 9, lineHeight: 12, color: primaryText }}>PRIMARY</Text></View> : null}
                           </View>
-                          {on ? <Icon name="check-circle" size={20} color={colors.primary} /> : null}
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                  <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}>
-                    <Pressable onPress={() => setStep(1)} style={{ flex: 1, height: 46, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "800" }}>Back</Text></Pressable>
-                    <Pressable disabled={!bankId} testID="withdraw-next-2" onPress={() => setStep(3)} style={{ flex: 1, height: 46, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: !bankId ? 0.5 : 1 }}><Text style={{ color: "#fff", fontWeight: "800" }}>Review</Text></Pressable>
-                  </View>
+                          <Text style={{ fontSize: 12, lineHeight: 16, color: muted }}>••••{String(b.account_number).slice(-4)} · {b.ifsc}</Text>
+                        </View>
+                        {on ? <Icon name="check-circle" size={20} color={P[600]} /> : null}
+                      </Pressable>
+                    );
+                  })}
                 </View>
-              ) : null}
+                <View style={row}>
+                  <FBtn label="Back" variant="outline" onPress={() => setStep(1)} style={outline} testID="withdraw-back-2" />
+                  <FBtn label="Review" disabled={!bankId} onPress={() => setStep(3)} style={primary} testID="withdraw-next-2" />
+                </View>
+              </View>
+            ) : null}
 
-              {step === 3 ? (
-                <View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900" }}>Review withdrawal</Text>
-                  <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: radius.lg, padding: spacing.md, marginTop: spacing.md }}>
-                    <KV k="Withdrawal amount" v={money(amt)} />
-                    <KV k="Processing fee" v={"−" + money(fee)} />
-                    <KV k="Net amount" v={money(net)} strong />
-                    <KV k="Bank account" v={`${bank.bank_name || "—"} ${masked}`} />
-                    <KV k="Expected processing" v="1–2 business days" />
-                  </View>
-                  <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}>
-                    <Pressable onPress={() => setStep(banks.length ? 2 : 1)} style={{ flex: 1, height: 46, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "800" }}>Back</Text></Pressable>
-                    <Pressable testID="withdraw-next-3" onPress={() => setStep(4)} style={{ flex: 1, height: 46, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "800" }}>Confirm</Text></Pressable>
-                  </View>
+            {step === 3 ? (
+              <View>
+                <Text style={h3}>Review withdrawal</Text>
+                <View style={{ borderRadius: 16, backgroundColor: well, padding: 16, marginTop: 16 }}>
+                  <KV k="Withdrawal amount" v={money(amt)} />
+                  <KV k="Processing fee" v={"−" + money(fee)} />
+                  <KV k="Net amount" v={money(net)} strong />
+                  <KV k="Bank account" v={`${bank.bank_name || "—"} ${masked}`} />
+                  <KV k="Expected processing" v="1–2 business days" />
                 </View>
-              ) : null}
+                <View style={row}>
+                  <FBtn label="Back" variant="outline" onPress={() => setStep(2)} style={outline} testID="withdraw-back-3" />
+                  <FBtn label="Confirm" onPress={() => setStep(4)} style={primary} testID="withdraw-next-3" />
+                </View>
+              </View>
+            ) : null}
 
-              {step === 4 ? (
-                <View style={{ alignItems: "center" }}>
-                  <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={28} color={colors.primary} /></View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900", marginTop: spacing.md }}>Confirm withdrawal</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, marginTop: 4, textAlign: "center" }}>You are about to withdraw <Text style={{ color: colors.text, fontWeight: "800" }}>{money(amt)}</Text> to {bank.bank_name} {masked}. This can't be undone once submitted.</Text>
-                  <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg, alignSelf: "stretch" }}>
-                    <Pressable onPress={() => setStep(3)} style={{ flex: 1, height: 46, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "800" }}>Back</Text></Pressable>
-                    <Pressable testID="withdraw-submit" disabled={busy} onPress={submit} style={{ flex: 1, height: 46, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>{busy ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "#fff", fontWeight: "800" }}>Confirm & Submit</Text>}</Pressable>
-                  </View>
+            {step === 4 ? (
+              <View style={{ alignItems: "center" }}>
+                <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={28} color={P[700]} /></View>
+                <Text style={{ ...h3, marginTop: 16 }}>Confirm withdrawal</Text>
+                <Text style={{ ...sub, textAlign: "center" }}>You are about to withdraw <Text style={{ fontWeight: "700", color: strong }}>{money(amt)}</Text> to {bank.bank_name} {masked}. This can&apos;t be undone once submitted.</Text>
+                <View style={{ ...row, alignSelf: "stretch" }}>
+                  <FBtn label="Back" variant="outline" onPress={() => setStep(3)} style={outline} testID="withdraw-back-4" />
+                  <FBtn label={busy ? "Submitting…" : "Confirm & Submit"} disabled={busy} onPress={submit} style={primary} testID="withdraw-submit" />
                 </View>
-              ) : null}
+              </View>
+            ) : null}
 
-              {step === 5 && result ? (
-                <View style={{ alignItems: "center", paddingVertical: 6 }} testID="withdraw-success">
-                  <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.successSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="check-circle" size={36} color={colors.success} /></View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900", marginTop: spacing.md }}>Withdrawal submitted!</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, marginTop: 4 }}>Your request is now pending approval.</Text>
-                  <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: radius.lg, padding: spacing.md, marginTop: spacing.md, alignSelf: "stretch" }}>
-                    <KV k="Withdrawal ID" v={wdId(result.id)} />
-                    <KV k="Amount" v={money(result.amount)} strong />
-                    <KV k="Bank" v={`${bank.bank_name || "—"} ${masked}`} />
-                    <KV k="Expected arrival" v="1–2 business days" />
-                  </View>
-                  <Pressable onPress={onDone} style={{ height: 46, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", alignSelf: "stretch", marginTop: spacing.lg }}><Text style={{ color: "#fff", fontWeight: "800" }}>Done</Text></Pressable>
+            {step === 5 && result ? (
+              <View style={{ alignItems: "center", paddingVertical: 8 }} testID="withdraw-success">
+                <View style={{ height: 64, width: 64, borderRadius: 32, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="check-circle-outline" size={36} color={EMERALD[600]} /></View>
+                <Text style={{ ...h3, marginTop: 16 }}>Withdrawal submitted!</Text>
+                <Text style={sub}>Your request is now pending approval.</Text>
+                <View style={{ borderRadius: 16, backgroundColor: well, padding: 16, marginTop: 16, alignSelf: "stretch" }}>
+                  <KV k="Withdrawal ID" v={wdId(result.id)} mono />
+                  <KV k="Amount" v={money(result.amount)} strong />
+                  <KV k="Bank" v={`${bank.bank_name || "—"} ${masked}`} />
+                  <KV k="Expected arrival" v="1–2 business days" />
                 </View>
-              ) : null}
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
-      </KeyboardProvider>
+                <FBtn label="Done" onPress={onDone} style={{ height: 44, alignSelf: "stretch", marginTop: 20 }} testID="withdraw-done" />
+              </View>
+            ) : null}
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -72,7 +72,7 @@ export default function MerchantCommission() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="Commission" subtitle="Your actual earned referral commission — customer & partner" icon="trending-up" />
+      <MModuleHeader title="Commission" subtitle="Your actual earned referral commission — customer & partner" />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}

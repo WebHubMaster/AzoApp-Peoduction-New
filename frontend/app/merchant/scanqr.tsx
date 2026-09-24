@@ -1,373 +1,297 @@
-import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Share, Linking, ActivityIndicator } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Linking, ActivityIndicator, Modal, Platform } from "react-native";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Clipboard from "expo-clipboard";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
 import QRCode from "react-native-qrcode-svg";
-import Svg, { Rect } from "react-native-svg";
-import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api, MEDIA_ORIGIN } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
-import { AppHeader } from "@/src/components/Screen";
-import { Card, CardSkeleton } from "@/src/components/ui";
-import { Icon, MdiName } from "@/src/components/Icon";
+import { AppShellHeader } from "@/src/components/AppShell";
+import { Icon } from "@/src/components/Icon";
+import { QrBookingPoster } from "@/src/components/qr/QrBookingPoster";
+import { PosterControls } from "@/src/components/qr/PosterControls";
+import { QrAnalytics } from "@/src/components/qr/QrAnalytics";
+import { KitCard, KitSeg, WBtn, SLATE, EMERALD, useQrPalette } from "@/src/components/qr/qrKit";
+import { buildPoster, savePosterFile, sharePosterFile, printPosterFile, openPosterFile, canShareWithCaption, shareViaBrowser, PosterFormat, PosterParams } from "@/src/lib/posterActions";
+import { TEMPLATES, DEFAULT_CONFIG, QrConfig, POSTER_CANVAS } from "@/src/pages/merchant/qrData";
 
-const DEFAULT_SERVICES = ["Electrician", "Plumber", "AC Repair", "Appliance Repair", "Carpenter", "Cleaning"];
-const COLOR_PRESETS = [
-  { id: "azo_blue", label: "Blue", primary: "#0D47A1" },
-  { id: "emerald", label: "Emerald", primary: "#059669" },
-  { id: "purple", label: "Purple", primary: "#7C3AED" },
-  { id: "orange", label: "Orange", primary: "#EA580C" },
-  { id: "navy", label: "Navy", primary: "#0B1220" },
-];
-const RANGES: [string, string][] = [["7d", "7 Days"], ["30d", "30 Days"], ["90d", "90 Days"], ["year", "Year"]];
+const WEB_ORIGIN = (process.env.EXPO_PUBLIC_WEB_URL || MEDIA_ORIGIN).replace(/\/+$/, "");
+const PANEL = "/merchant/panel";
 
-function timeAgo(iso?: string) {
-  if (!iso) return "";
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-}
-
+/* 1:1 port of web_panel/src/pages/merchant/scanqr/ScanQRModule.jsx (mobile view). */
 export default function MerchantScanQr() {
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const brand = useBrand();
   const toast = useToast();
+  const qc = useQueryClient();
+  const { P, dark, heading, muted, colors } = useQrPalette();
 
   const codeQ = useQuery({ queryKey: ["merchant-my-code"], queryFn: () => api.get<any>("/merchant/my-code") });
-  const cfgQ = useQuery({ queryKey: ["merchant-qr-config"], queryFn: () => api.get<any>("/merchant/panel/qr/config") });
+  const cfgQ = useQuery({ queryKey: ["merchant-qr-config"], queryFn: () => api.get<any>(`${PANEL}/qr/config`) });
   const code: string = codeQ.data?.merchant_code || "";
-  const link = `${MEDIA_ORIGIN}/?ref=${code}`;
-
-  const [range, setRange] = useState("30d");
-  const analytics = useQuery({ queryKey: ["merchant-qr-analytics", range], queryFn: () => api.get<any>(`/merchant/panel/qr/analytics?range=${range}`) });
-  const a = analytics.data || {};
-
-  // ── poster config (persisted) ──
-  const [primary, setPrimary] = useState("#0D47A1");
-  const [businessName, setBusinessName] = useState("");
-  const [taglineOn, setTaglineOn] = useState(true);
-  const [phone, setPhone] = useState("");
-  const [busy, setBusy] = useState("");
-  const qrRef = useRef<any>(null);
-  const [qrData, setQrData] = useState<string | null>(null);
-  const lastSaved = useRef<string | null>(null);
-  const hydrated = useRef(false);
-
+  const link = `${WEB_ORIGIN}/?ref=${code}`;
   const shopName = user?.shop_name || user?.name || "My Shop";
+  const adminLogo = brand.branding.logo_light || brand.branding.logo_dark || brand.branding.logo || "";
 
-  // hydrate from server config once
-  useEffect(() => {
-    if (!cfgQ.data || hydrated.current) return;
-    const s = cfgQ.data || {};
-    setPrimary(s.primary || "#0D47A1");
-    setBusinessName(s.businessName || shopName);
-    setTaglineOn(s?.show?.tagline !== false);
-    setPhone(s.phone || user?.phone?.replace("+91", "") || "");
-    lastSaved.current = JSON.stringify({ primary: s.primary || "#0D47A1", businessName: s.businessName || shopName, show: { tagline: s?.show?.tagline !== false }, phone: s.phone || "" });
-    hydrated.current = true;
-  }, [cfgQ.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [config, setConfigState] = useState<QrConfig | null>(null);
+  const [tab, setTab] = useState<"preview" | "edit">("preview");
+  const [zoom, setZoom] = useState(1);
+  const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [busy, setBusy] = useState("");
+  const [waMsgOverride, setWaMsg] = useState<string | null>(null);
+  const [boxW, setBoxW] = useState(340);
+  const exportRef = useRef<View>(null);
+  const lastSaved = useRef<string | null>(null);
 
-  // debounced persist
+  // hydrate from server config (same merge rules as web)
   useEffect(() => {
-    if (!hydrated.current) return;
-    const snap = JSON.stringify({ primary, businessName, show: { tagline: taglineOn }, phone });
+    if (!cfgQ.isSuccess && !cfgQ.isError) return;
+    const saved = cfgQ.data || {};
+    const s = saved.show || {};
+    const merged: QrConfig = {
+      ...DEFAULT_CONFIG, ...saved,
+      businessName: saved.businessName || shopName,
+      phone: saved.phone || user?.phone?.replace("+91", "") || "",
+      logoUrl: adminLogo,
+      show: { logo: s.logo !== false, tagline: s.tagline !== false },
+      services: saved.services || DEFAULT_CONFIG.services,
+    };
+    lastSaved.current = JSON.stringify(merged);
+    setConfigState(merged);
+  }, [cfgQ.data, cfgQ.isSuccess, cfgQ.isError]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const defaultWaMsg = useMemo(() => `Hi \u{1F44B}\nBook trusted home services from ${shopName}.\nElectrician, Plumber, AC Repair, Appliance Repair and more.\n\nBook now:\n${link}\n\nScan our QR or use the booking link.`, [shopName, link]);
+  const waMsg = waMsgOverride ?? defaultWaMsg;
+
+  useEffect(() => {
+    if (config && (config.logoUrl || "") !== (adminLogo || "")) setConfigState((c) => (c ? { ...c, logoUrl: adminLogo } : c));
+  }, [adminLogo]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // debounced persist — only when the config actually changed vs last saved
+  useEffect(() => {
+    if (!config) return;
+    const snap = JSON.stringify(config);
     if (snap === lastSaved.current) return;
-    const t = setTimeout(() => {
-      lastSaved.current = snap;
-      api.put("/merchant/panel/qr/config", { primary, businessName, phone, show: { tagline: taglineOn }, services: DEFAULT_SERVICES }).catch(() => {});
-    }, 900);
+    const t = setTimeout(() => { lastSaved.current = snap; api.put(`${PANEL}/qr/config`, config).catch(() => {}); }, 900);
     return () => clearTimeout(t);
-  }, [primary, businessName, taglineOn, phone]);
+  }, [config]);
 
-  const shareMessage = `Book trusted home services with ${businessName || shopName} on ${brand.branding.site_name} — Electrician, Plumber, AC Repair, Appliance Repair & more.\n\nBook now: ${link}`;
+  const setConfig = (patch: Partial<QrConfig>) => setConfigState((c) => (c ? { ...c, ...patch } : c));
+  const resetConfig = () => setConfigState({ ...DEFAULT_CONFIG, businessName: shopName, phone: user?.phone?.replace("+91", "") || "", logoUrl: adminLogo });
 
-  const copyLink = async () => { await Clipboard.setStringAsync(link); toast.success("Link copied successfully"); };
-  const nativeShare = async () => { try { await Share.share({ message: shareMessage, title: businessName || shopName }); } catch { /* cancelled */ } };
-  const waShare = async () => {
-    const url = `whatsapp://send?text=${encodeURIComponent(shareMessage)}`;
-    const can = await Linking.canOpenURL(url).catch(() => false);
-    Linking.openURL(can ? url : `https://wa.me/?text=${encodeURIComponent(shareMessage)}`).catch(() => toast.error("Could not open WhatsApp"));
+  const businessName = config?.businessName || shopName;
+  const tpl = TEMPLATES.find((t) => t.id === config?.template) || TEMPLATES[0];
+  const posterBrand = useMemo(() => ({
+    logo: config?.show?.logo === false ? "" : (config?.logoUrl || adminLogo || ""),
+    siteName: brand.branding.site_name || "AzoApp",
+    primary: config?.primary || tpl.primary || "#0D47A1",
+    secondary: tpl.primary2 || "",
+  }), [config?.show?.logo, config?.logoUrl, config?.primary, adminLogo, tpl, brand.branding.site_name]);
+  const posterTrust = config?.show?.tagline === false ? "" : "Trusted Home Services";
+
+  const shareCaption = `Book trusted home services with ${businessName} on ${brand.branding.site_name || "AzoApp"} — Electrician, Plumber, AC Repair, Appliance Repair & more.`;
+  const shareMessage = `${shareCaption}\n\nBook now: ${link}`;
+  const fileName = `azoapp-poster-${code}`;
+  const posterParams: PosterParams = { link, name: businessName, primary: posterBrand.primary, secondary: posterBrand.secondary, logo: posterBrand.logo, site: posterBrand.siteName, trust: posterTrust };
+  const makePoster = (fmt: PosterFormat, caption?: string) => buildPoster(fmt, caption ? { ...posterParams, caption } : posterParams, fileName, exportRef);
+  // Native single-message share (react-native-share in EAS build / Web Share) when available.
+  // Expo Go: open the share page in Chrome/Safari → Web Share sends poster + caption as ONE message.
+  // Last resort: the message + link are printed INTO the poster (one image = one message).
+  const shareWith = async (channel: "system" | "whatsapp", caption: string) => {
+    if (canShareWithCaption()) return sharePosterFile(await makePoster("png"), { channel, caption, title: businessName });
+    if (Platform.OS !== "web" && (await shareViaBrowser(posterParams, code, channel, caption))) return "shared" as const;
+    const file = await makePoster("png", caption);
+    return sharePosterFile(file, { channel, caption, title: businessName, captionEmbedded: true });
   };
 
-  const posterHtml = () => {
-    const img = qrData ? `<img src="data:image/png;base64,${qrData}" style="width:220px;height:220px" />` : "";
-    const chips = DEFAULT_SERVICES.map((s) => `<span style="display:inline-block;background:rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:6px 12px;margin:4px;font-size:15px">${s}</span>`).join("");
-    return `<html><head><meta name="viewport" content="width=device-width, initial-scale=1"/></head>
-      <body style="margin:0"><div style="width:100%;min-height:100vh;background:${primary};color:#fff;font-family:Helvetica,Arial;padding:48px 32px;text-align:center;box-sizing:border-box">
-        <div style="font-size:22px;font-weight:800;letter-spacing:1px">${brand.branding.site_name}</div>
-        <div style="font-size:34px;font-weight:900;margin-top:10px">${businessName || shopName}</div>
-        ${taglineOn ? `<div style="font-size:18px;opacity:.85;margin-top:6px">Trusted Home Services</div>` : ""}
-        <div style="background:#fff;border-radius:24px;display:inline-block;padding:20px;margin:28px auto">${img}</div>
-        <div style="font-size:26px;font-weight:900;letter-spacing:3px">Scan to Book a Service</div>
-        <div style="margin-top:8px;font-size:16px;opacity:.9">Ref: ${code}${phone ? " · " + phone : ""}</div>
-        <div style="margin-top:20px">${chips}</div>
-        <div style="margin-top:24px;font-size:14px;opacity:.85;word-break:break-all">${link}</div>
-      </div></body></html>`;
-  };
+  const copy = async () => { await Clipboard.setStringAsync(link); setCopied(true); toast.success("Link copied successfully"); setTimeout(() => setCopied(false), 1500); };
+  const isAbort = (e: any) => e && (e.name === "AbortError" || /cancel|abort/i.test(String(e.message || "")));
 
-  const printPoster = async () => { setBusy("print"); try { await Print.printAsync({ html: posterHtml() }); } catch { toast.error("Print failed"); } finally { setBusy(""); } };
-  const savePoster = async () => {
-    setBusy("save");
+  const nativeShare = async () => {
+    if (busy) return;
+    setBusy("share");
     try {
-      const { uri } = await Print.printToFileAsync({ html: posterHtml() });
-      if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType: "application/pdf", dialogTitle: "Save / share your poster" });
-      else toast.success("Poster PDF created");
-    } catch { toast.error("Could not create poster"); } finally { setBusy(""); }
+      const r = await shareWith("system", shareMessage);
+      if (r === "shared-two-step") toast.info("Poster shared — now send the message with your link");
+    } catch (e) { if (!isAbort(e)) setShareOpen(true); } finally { setBusy(""); }
+  };
+  const waShare = async () => {
+    if (busy) return;
+    setBusy("wa");
+    try {
+      const r = await shareWith("whatsapp", waMsg);
+      if (r === "shared-two-step") toast.info("Poster shared — now send the message with your link on WhatsApp");
+      else if (r === "fallback") toast.success("Poster saved — attach it in WhatsApp with your message");
+    } catch (e) {
+      if (isAbort(e)) return;
+      toast.error("Could not attach the poster — sharing the link instead");
+      const wa = `whatsapp://send?text=${encodeURIComponent(waMsg)}`;
+      const can = await Linking.canOpenURL(wa).catch(() => false);
+      Linking.openURL(can ? wa : `https://wa.me/?text=${encodeURIComponent(waMsg)}`).catch(() => toast.error("Could not open WhatsApp"));
+    } finally { setBusy(""); }
+  };
+  const downloadPoster = async (fmt: PosterFormat) => {
+    if (busy) return;
+    setBusy(fmt);
+    try {
+      const file = await makePoster(fmt);
+      const r = await savePosterFile(file);
+      if (r.status === "saved") {
+        toast.success(`Poster downloaded (${fmt.toUpperCase()})`);
+        if (fmt === "pdf") openPosterFile(file, r.uri).catch(() => {});
+      } else toast.success(`Poster ready (${fmt.toUpperCase()}) — choose where to save`);
+    } catch (e) { if (!isAbort(e)) toast.error("Download failed — please retry"); } finally { setBusy(""); }
+  };
+  const printPoster = async () => {
+    if (busy) return;
+    setBusy("print");
+    try { await printPosterFile(await makePoster("png")); }
+    catch (e) { if (!isAbort(e)) toast.error("Print failed"); } finally { setBusy(""); }
   };
 
-  const loading = codeQ.isLoading || cfgQ.isLoading;
+  const refreshing = codeQ.isFetching || cfgQ.isFetching;
+  const onRefresh = () => { codeQ.refetch(); cfgQ.refetch(); qc.invalidateQueries({ queryKey: ["merchant-qr-analytics"] }); };
 
-  const chips: { label: string; icon: MdiName }[] = [
-    { label: "Active", icon: "check-circle" },
-    { label: "Verified", icon: "check-circle" },
-    { label: "Booking Enabled", icon: "check-circle" },
-  ];
+  // preview: web previewBaseW = 340 → poster scaled to fit, × zoom
+  const baseW = Math.min(340, boxW);
+  const previewScale = (baseW / POSTER_CANVAS.w) * zoom;
+  const pw = POSTER_CANVAS.w * previewScale, ph = POSTER_CANVAS.h * previewScale;
 
-  const stats: { label: string; value: string; icon: MdiName; bg: string; fg: string }[] = [
-    { label: "Total Scans", value: Number(a.total_scans ?? 0).toLocaleString("en-IN"), icon: "qrcode", bg: colors.primarySubtle, fg: colors.primary },
-    { label: "Unique Visitors", value: Number(a.unique_visitors ?? 0).toLocaleString("en-IN"), icon: "account-multiple", bg: "rgba(124,58,237,0.12)", fg: "#7C3AED" },
-    { label: "Bookings", value: Number(a.bookings ?? 0).toLocaleString("en-IN"), icon: "shopping", bg: colors.successSubtle, fg: colors.success },
-    { label: "Conversion", value: `${a.conversion ?? 0}%`, icon: "trending-up", bg: colors.warningSubtle, fg: colors.warning },
-  ];
-
-  // simple bar chart from series (scans vs bookings)
-  const series: any[] = (a.series || []).slice(-14);
-  const maxV = Math.max(1, ...series.map((s) => Math.max(s.scans || 0, s.bookings || 0)));
-  const CH = 120;
+  const ready = !!config && !codeQ.isLoading;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Scan QR" subtitle="Share your booking link & QR poster" back variant="gradient" testID="merchant-scanqr-header" />
+
+      {/* offscreen full-res poster (1080×1350, same as web export node) */}
+      {ready ? (
+        <View style={Platform.OS === "web" ? { position: "absolute", left: 0, top: 0, zIndex: -1 } : { position: "absolute", left: -4000, top: 0 }} pointerEvents="none">
+          <View ref={exportRef} collapsable={false} style={{ width: POSTER_CANVAS.w, height: POSTER_CANVAS.h, backgroundColor: "#fff" }}>
+            <QrBookingPoster qrValue={link} token={code} merchantName={businessName} brand={posterBrand} trustLine={posterTrust} width={POSTER_CANVAS.w} height={POSTER_CANVAS.h} scale={POSTER_CANVAS.scale} link={link} />
+          </View>
+        </View>
+      ) : null}
+
       <ScrollView
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={codeQ.isFetching || analytics.isFetching} onRefresh={() => { codeQ.refetch(); cfgQ.refetch(); analytics.refetch(); }} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={refreshing && ready} onRefresh={onRefresh} tintColor={P[700]} colors={[P[700]]} />}
         testID="scanqr-module"
       >
-        {loading ? <CardSkeleton /> : (
+        {!ready ? (
+          <View style={{ paddingVertical: 80, alignItems: "center" }}><ActivityIndicator color={P[600]} /></View>
+        ) : (
           <>
+            {/* Header */}
+            <View style={{ marginBottom: 20 }}>
+              <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "800", letterSpacing: -0.6, color: heading }} testID="merchant-scanqr-header">Scan QR</Text>
+              <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4 }}>Share your booking link, generate branded QR posters and let customers book your services instantly.</Text>
+            </View>
+
             {/* Hero */}
-            <LinearGradient colors={[colors.primaryHover, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 26, padding: spacing.lg }}>
-              <View style={{ alignItems: "center", marginBottom: spacing.md }}>
-                <View style={{ backgroundColor: "#fff", borderRadius: 20, padding: 14 }}>
-                  <QRCode value={link || " "} size={150} color="#0b1220" backgroundColor="#fff" getRef={(c: any) => { qrRef.current = c; if (c && !qrData) setTimeout(() => c.toDataURL?.((d: string) => setQrData(d)), 300); }} />
-                </View>
+            <LinearGradient colors={[P[800], P[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, marginBottom: 24, gap: 24, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }} testID="scanqr-hero">
+              <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 16, alignSelf: "center" }}>
+                <QRCode value={link || " "} size={150} color="#0b1220" backgroundColor="#fff" />
               </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "center", paddingHorizontal: 12, paddingVertical: 5, borderRadius: radius.pill }}>
-                <Icon name="shield-check" size={13} color="#fff" />
-                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Verified Merchant QR</Text>
-              </View>
-              <Text style={{ color: "#fff", fontSize: 22, fontWeight: "900", textAlign: "center", marginTop: 10 }} numberOfLines={1}>{businessName || shopName}</Text>
-              <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: fontSize.sm, textAlign: "center", marginTop: 2 }}>Trusted Home Services</Text>
-              <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: fontSize.xs, textAlign: "center", marginTop: 8 }} numberOfLines={1}>{link}</Text>
-              <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 6, marginTop: 10 }}>
-                <View style={{ backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.sm }}>
-                  <Text style={{ color: "#fff", fontSize: 11 }}>Ref: <Text style={{ fontWeight: "900" }}>{code}</Text></Text>
+              <View style={{ minWidth: 0 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, marginBottom: 8 }}>
+                  <Icon name="shield-check" size={14} color="#fff" />
+                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>Verified Merchant QR</Text>
                 </View>
-                {chips.map((c) => (
-                  <View key={c.label} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                    <Icon name={c.icon} size={13} color="#A7F3D0" />
-                    <Text style={{ color: "#A7F3D0", fontSize: 11, fontWeight: "600" }}>{c.label}</Text>
+                <Text style={{ color: "#fff", fontSize: 24, lineHeight: 32, fontWeight: "800" }}>{businessName}</Text>
+                <Text style={{ color: P[100], fontSize: 14, lineHeight: 20 }}>{config?.tagline || "Trusted Home Services"}</Text>
+                <Text style={{ color: P[100], fontSize: 12, lineHeight: 16, marginTop: 8 }} testID="hero-link">{link}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                  <View style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 4, paddingHorizontal: 8, paddingVertical: 2 }}>
+                    <Text style={{ color: "#fff", fontSize: 11 }}>Ref: <Text style={{ fontWeight: "700" }}>{code}</Text></Text>
                   </View>
-                ))}
-              </View>
-              <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.md }}>
-                <Pressable testID="hero-share" onPress={nativeShare} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: radius.md, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-                  <Icon name="share-variant" size={16} color={colors.primary} />
-                  <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "800" }}>Share</Text>
-                </Pressable>
-                <Pressable testID="hero-whatsapp" onPress={waShare} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: radius.md, backgroundColor: "#22C55E", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-                  <Icon name="whatsapp" size={16} color="#fff" />
-                  <Text style={{ color: "#fff", fontSize: 13, fontWeight: "800" }}>WhatsApp</Text>
-                </Pressable>
+                  {["Active", "Verified", "Booking Enabled"].map((l) => (
+                    <View key={l} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                      <Icon name="check-circle" size={14} color={EMERALD[200]} />
+                      <Text style={{ color: EMERALD[200], fontSize: 11 }}>{l}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
+                  <WBtn testID="hero-share" label="Share" icon="share-variant" variant="white" bold onPress={nativeShare} busy={busy === "share"} disabled={!!busy} style={{ flex: 1 }} />
+                  <WBtn testID="hero-whatsapp" label="WhatsApp" icon="whatsapp" variant="whatsapp" onPress={waShare} busy={busy === "wa"} disabled={!!busy} style={{ flex: 1 }} />
+                </View>
               </View>
             </LinearGradient>
 
-            {/* Booking link */}
-            <Card>
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>Your booking link</Text>
-              <Text style={{ color: colors.text, fontSize: fontSize.sm, marginTop: 6 }} numberOfLines={2}>{link}</Text>
-              <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.md }}>
-                <Pressable testID="copy-link" onPress={copyLink} style={{ flex: 1, height: 42, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
-                  <Icon name="content-copy" size={16} color={colors.primary} />
-                  <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "800" }}>Copy Link</Text>
-                </Pressable>
-                <Pressable testID="link-share" onPress={nativeShare} style={{ flex: 1, height: 42, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
-                  <Icon name="share-variant" size={16} color="#fff" />
-                  <Text style={{ color: "#fff", fontSize: 13, fontWeight: "800" }}>Share</Text>
-                </Pressable>
-              </View>
-            </Card>
-
             {/* Poster builder */}
-            <Card>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.md }}>
-                <Icon name="qrcode" size={18} color={colors.primary} />
-                <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "900" }}>Create Your Booking Poster</Text>
-              </View>
-
-              {/* Preview */}
-              <View testID="poster-preview" style={{ borderRadius: radius.lg, backgroundColor: primary, padding: spacing.lg, alignItems: "center" }}>
-                <Text style={{ color: "#fff", fontSize: fontSize.sm, fontWeight: "800", letterSpacing: 0.5 }}>{brand.branding.site_name}</Text>
-                <Text style={{ color: "#fff", fontSize: fontSize.xl, fontWeight: "900", marginTop: 4 }} numberOfLines={1}>{businessName || shopName}</Text>
-                {taglineOn ? <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: fontSize.xs, marginTop: 2 }}>Trusted Home Services</Text> : null}
-                <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 12, marginTop: spacing.md }}>
-                  <QRCode value={link || " "} size={110} color="#0b1220" backgroundColor="#fff" />
+            <KitCard style={{ marginBottom: 24 }} testID="poster-builder">
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 }}>
+                  <Icon name="qrcode" size={20} color={P[700]} />
+                  <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Create Your Booking Poster</Text>
                 </View>
-                <Text style={{ color: "#fff", fontSize: fontSize.sm, fontWeight: "900", marginTop: spacing.md, letterSpacing: 1 }}>Scan to Book a Service</Text>
-                <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 11, marginTop: 4 }}>Ref: {code}{phone ? ` · ${phone}` : ""}</Text>
+                <KitSeg items={[{ v: "preview", l: "Preview", icon: "eye" }, { v: "edit", l: "Customize", icon: "tune-variant" }]} value={tab} onChange={setTab} testidPrefix="poster-tab" />
               </View>
 
-              {/* Customize */}
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "700", textTransform: "uppercase", marginTop: spacing.md, marginBottom: 6 }}>Poster color</Text>
-              <View style={{ flexDirection: "row", gap: 10 }}>
-                {COLOR_PRESETS.map((p) => {
-                  const on = primary === p.primary;
-                  return (
-                    <Pressable key={p.id} testID={`poster-color-${p.id}`} onPress={() => setPrimary(p.primary)} style={{ alignItems: "center", gap: 4 }}>
-                      <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: p.primary, borderWidth: on ? 3 : 0, borderColor: colors.text }} />
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "700", textTransform: "uppercase", marginTop: spacing.md, marginBottom: 6 }}>Business name</Text>
-              <TextInput testID="poster-business-name" value={businessName} onChangeText={setBusinessName} placeholder={shopName} placeholderTextColor={colors.textMuted}
-                style={{ height: 44, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, color: colors.text, fontSize: fontSize.sm, backgroundColor: colors.surface }} />
-
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "700", textTransform: "uppercase", marginTop: spacing.md, marginBottom: 6 }}>Phone (optional)</Text>
-              <TextInput testID="poster-phone" value={phone} onChangeText={(v) => setPhone(v.replace(/[^0-9]/g, "").slice(0, 10))} keyboardType="number-pad" placeholder="98765 43210" placeholderTextColor={colors.textMuted}
-                style={{ height: 44, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, color: colors.text, fontSize: fontSize.sm, backgroundColor: colors.surface }} />
-
-              <Pressable testID="poster-tagline-toggle" onPress={() => setTaglineOn((v) => !v)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: spacing.md }}>
-                <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "700" }}>Show tagline</Text>
-                <View style={{ width: 44, height: 26, borderRadius: 13, backgroundColor: taglineOn ? colors.primary : colors.surfaceSubtle, padding: 3, alignItems: taglineOn ? "flex-end" : "flex-start" }}>
-                  <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: "#fff" }} />
-                </View>
-              </Pressable>
-
-              <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: spacing.lg }}>
-                <Pressable testID="poster-save" onPress={savePoster} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.border, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
-                  {busy === "save" ? <ActivityIndicator size="small" color={colors.primary} /> : <Icon name="download" size={16} color={colors.primary} />}
-                  <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "800" }}>Save / Share</Text>
-                </Pressable>
-                <Pressable testID="poster-print" onPress={printPoster} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: radius.md, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
-                  {busy === "print" ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="printer" size={16} color="#fff" />}
-                  <Text style={{ color: "#fff", fontSize: 13, fontWeight: "800" }}>Print</Text>
-                </Pressable>
-              </View>
-            </Card>
-
-            {/* QR Analytics */}
-            <View>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <Icon name="trending-up" size={18} color={colors.primary} />
-                  <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "900" }}>QR Performance</Text>
-                </View>
-              </View>
-              <View style={{ flexDirection: "row", gap: 6, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md, padding: 4, marginBottom: spacing.md }}>
-                {RANGES.map(([v, l]) => {
-                  const on = range === v;
-                  return (
-                    <Pressable key={v} testID={`qra-range-${v}`} onPress={() => setRange(v)} style={{ flex: 1, paddingVertical: 7, borderRadius: radius.sm, alignItems: "center", backgroundColor: on ? colors.surface : "transparent" }}>
-                      <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: "800" }}>{l}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }}>
-                {stats.map((st) => (
-                  <View key={st.label} style={{ width: "47.8%" }}>
-                    <Card padded={false} style={{ padding: spacing.md }}>
-                      <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: st.bg, alignItems: "center", justifyContent: "center" }}>
-                        <Icon name={st.icon} size={18} color={st.fg} />
-                      </View>
-                      <Text style={{ color: colors.text, fontSize: fontSize.xl, fontWeight: "900", marginTop: 8 }}>{st.value}</Text>
-                      <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4, marginTop: 1 }}>{st.label}</Text>
-                    </Card>
+              {tab === "preview" ? (
+                <View>
+                  <View testID="poster-preview" onLayout={(e) => setBoxW(Math.max(200, e.nativeEvent.layout.width - 32))} style={{ borderRadius: 16, backgroundColor: dark ? "rgba(30,41,59,0.6)" : SLATE[100], borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16, alignItems: "center", overflow: "hidden" }}>
+                    <View style={{ flexDirection: "row", gap: 4, alignSelf: "flex-end", marginBottom: 12 }}>
+                      {([["zoom-out", "magnify-minus-outline", () => setZoom((z) => Math.max(0.5, z - 0.15))], ["zoom-fit", "arrow-expand-all", () => setZoom(1)], ["zoom-in", "magnify-plus-outline", () => setZoom((z) => Math.min(2, z + 0.15))]] as [string, any, () => void][]).map(([id, ic, fn]) => (
+                        <Pressable key={id} testID={id} onPress={fn} style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: dark ? SLATE[900] : "#fff", borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}>
+                          <Icon name={ic} size={16} color={SLATE[500]} />
+                        </Pressable>
+                      ))}
+                    </View>
+                    <View style={{ width: pw, height: ph, borderRadius: 12, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }}>
+                      <QrBookingPoster qrValue={link} token={code} merchantName={businessName} brand={posterBrand} trustLine={posterTrust} width={pw} height={ph} scale={POSTER_CANVAS.scale * previewScale} />
+                    </View>
                   </View>
-                ))}
-              </View>
-
-              <View style={{ flexDirection: "row", gap: spacing.md, marginTop: spacing.md }}>
-                <Card padded={false} style={{ flex: 1, padding: spacing.md }}>
-                  <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>This Month Scans</Text>
-                  <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "900", marginTop: 4 }}>{Number(a.month_scans ?? 0).toLocaleString("en-IN")}</Text>
-                </Card>
-                <Card padded={false} style={{ flex: 1, padding: spacing.md }}>
-                  <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>This Month Bookings</Text>
-                  <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "900", marginTop: 4 }}>{Number(a.month_bookings ?? 0).toLocaleString("en-IN")}</Text>
-                </Card>
-              </View>
-
-              {/* Scans vs Bookings mini chart */}
-              <Card style={{ marginTop: spacing.md }}>
-                <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: "700", marginBottom: spacing.md }}>Scans vs Bookings</Text>
-                {series.length === 0 ? (
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, textAlign: "center", paddingVertical: 20 }}>No data yet</Text>
-                ) : (
-                  <>
-                    <Svg width="100%" height={CH}>
-                      {series.map((s, i) => {
-                        const bw = 100 / series.length;
-                        const x = i * bw;
-                        const sh = ((s.scans || 0) / maxV) * (CH - 10);
-                        const bh = ((s.bookings || 0) / maxV) * (CH - 10);
-                        return (
-                          <React.Fragment key={i}>
-                            <Rect x={`${x + bw * 0.18}%`} y={CH - sh} width={`${bw * 0.3}%`} height={sh} rx={2} fill={colors.primary} />
-                            <Rect x={`${x + bw * 0.52}%`} y={CH - bh} width={`${bw * 0.3}%`} height={bh} rx={2} fill={colors.success} />
-                          </React.Fragment>
-                        );
-                      })}
-                    </Svg>
-                    <View style={{ flexDirection: "row", gap: spacing.lg, marginTop: spacing.sm }}>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.primary }} /><Text style={{ color: colors.textMuted, fontSize: 11 }}>Scans</Text></View>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: colors.success }} /><Text style={{ color: colors.textMuted, fontSize: 11 }}>Bookings</Text></View>
-                    </View>
-                  </>
-                )}
-              </Card>
-
-              {/* Recent activity */}
-              <Card padded={false} style={{ padding: spacing.lg, marginTop: spacing.md }} testID="qra-recent">
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.sm }}>
-                  <Icon name="calendar-clock" size={16} color={colors.primary} />
-                  <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "800" }}>Recent Activity</Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                    <WBtn testID="dl-png" label="PNG" icon="download" variant="outline" onPress={() => downloadPoster("png")} busy={busy === "png"} disabled={!!busy} style={{ width: "48.5%" }} />
+                    <WBtn testID="dl-jpg" label="JPG" icon="download" variant="outline" onPress={() => downloadPoster("jpg")} busy={busy === "jpg"} disabled={!!busy} style={{ width: "48.5%" }} />
+                    <WBtn testID="dl-pdf" label="PDF" icon="download" variant="outline" onPress={() => downloadPoster("pdf")} busy={busy === "pdf"} disabled={!!busy} style={{ width: "48.5%" }} />
+                    <WBtn testID="dl-print" label="Print" icon="printer" onPress={printPoster} busy={busy === "print"} disabled={!!busy} style={{ width: "48.5%" }} />
+                  </View>
                 </View>
-                {(a.recent || []).length === 0 ? (
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, textAlign: "center", paddingVertical: 18 }}>No scans yet. Share your QR to start tracking.</Text>
-                ) : (
-                  (a.recent || []).map((r: any, i: number) => (
-                    <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 8, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: r.type === "booking" ? colors.successSubtle : colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
-                        <Icon name={r.type === "booking" ? "shopping" : "qrcode"} size={16} color={r.type === "booking" ? colors.success : colors.primary} />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "600" }} numberOfLines={1}>{r.label}</Text>
-                        {r.city ? <Text style={{ color: colors.textMuted, fontSize: 11 }}>{r.city}</Text> : null}
-                      </View>
-                      <Text style={{ color: colors.textMuted, fontSize: 11 }}>{timeAgo(r.at)}</Text>
-                    </View>
-                  ))
-                )}
-              </Card>
-            </View>
+              ) : (
+                <View>
+                  <PosterControls config={config!} setConfig={setConfig} adminLogo={adminLogo} />
+                  <WBtn testID="reset-poster" label="Reset design" icon="restore" variant="ghost" onPress={resetConfig} style={{ alignSelf: "flex-start", marginTop: 16 }} />
+                </View>
+              )}
+            </KitCard>
+
+            <QrAnalytics />
           </>
         )}
       </ScrollView>
+
+      {/* Share modal (fallback when the native sheet is unavailable) */}
+      <Modal visible={shareOpen} transparent animationType="fade" onRequestClose={() => setShareOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "center", padding: 16 }}>
+          <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={() => setShareOpen(false)} />
+          <View testID="share-modal" style={{ backgroundColor: dark ? SLATE[900] : "#fff", borderRadius: 16, padding: 20, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <Text style={{ fontSize: 18, fontWeight: "800", color: heading }}>Share your booking link</Text>
+              <Pressable testID="share-close" onPress={() => setShareOpen(false)} hitSlop={8} style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color={SLATE[400]} /></Pressable>
+            </View>
+            <Text style={{ fontSize: 12, color: SLATE[500], marginBottom: 8 }}>Edit the message before sharing (your booking link is already included):</Text>
+            <TextInput testID="share-message" multiline value={waMsg} onChangeText={setWaMsg} style={{ minHeight: 120, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], borderRadius: 6, padding: 12, color: heading, fontSize: 14, lineHeight: 20, textAlignVertical: "top", backgroundColor: dark ? SLATE[900] : "#fff" }} />
+            <Pressable testID="share-save-poster" onPress={() => downloadPoster("png")} disabled={!!busy} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: P[300], backgroundColor: dark ? "rgba(13,71,161,0.2)" : `${P[50]}99`, paddingVertical: 8, paddingHorizontal: 12, opacity: busy ? 0.6 : 1 }}>
+              {busy === "png" ? <ActivityIndicator size="small" color={P[700]} /> : <Icon name="download" size={16} color={P[700]} />}
+              <Text style={{ color: dark ? P[300] : P[700], fontSize: 12, fontWeight: "600" }}>Save designed poster to attach with your message</Text>
+            </Pressable>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
+              <WBtn testID="share-wa" label="WhatsApp" icon="whatsapp" variant="whatsapp" onPress={waShare} busy={busy === "wa"} disabled={!!busy} style={{ width: "48.5%", height: 44 }} />
+              <WBtn testID="share-tg" label="Telegram" variant="outline" onPress={() => { const t = waMsg.split(link).join("").replace(/\n{3,}/g, "\n\n").trim(); Linking.openURL(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t)}`); }} style={{ width: "48.5%", height: 44 }} />
+              <WBtn testID="share-fb" label="Facebook" variant="outline" onPress={() => Linking.openURL(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`)} style={{ width: "48.5%", height: 44 }} />
+              <WBtn testID="share-copy" label="Copy Link" icon={copied ? "clipboard-check-outline" : "content-copy"} variant="outline" onPress={copy} style={{ width: "48.5%", height: 44 }} />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

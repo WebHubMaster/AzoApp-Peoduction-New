@@ -6,7 +6,7 @@ Each route resolves a target merchant by user_id and calls the same
 `merchant_reg_service` functions the merchant uses, with admin_override so an
 already-approved profile can still be corrected by an admin.
 """
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from middleware.auth import require_role
 from services import merchant_reg_service as mrs
 from services import storage_service
@@ -68,14 +68,15 @@ async def submit(uid: str, actor=Depends(ADMIN)):
 
 
 @router.post("/merchants/{uid}/reg/upload")
-async def upload(uid: str, file: UploadFile = File(...), doc_type: str = Form("document"),
+async def upload(uid: str, request: Request, file: UploadFile = File(...), doc_type: str = Form("document"),
                  actor=Depends(ADMIN)):
     m = await _target(uid)
     raw = await file.read()
     try:
         res = await storage_service.save_document(
             raw, file.content_type or "", file.filename or "",
-            folder=storage_service.entity_folder("merchants", m, "kyc"))
+            folder=storage_service.entity_folder("merchants", m, "kyc"),
+            base_hint=storage_service.request_base(request))
     except ValueError as e:
         raise HTTPException(400, str(e))
     return {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}

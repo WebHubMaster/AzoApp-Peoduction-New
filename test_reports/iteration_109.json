@@ -1,0 +1,49 @@
+{
+  "summary": "Backend demo auth endpoints all working (200/OK, sent:true, token issued, demo-status lists 5 roles). BUT: public URL is NOT serving the CRA web_panel — supervisor `webpanel` is in FATAL state because port 3000 is already bound by supervisor `frontend` (Expo `expo start --port 3000`, PID 766). The Expo web bundle is being served instead of /app/web_panel/src/pages/auth/Login.jsx. Consequently the login page shown to end users only exposes 3 demo tiles (Partner, Merchant, Agent) — Admin (+919000000000) and Customer (+919000000004) tiles are NOT rendered anywhere, so the '4 one-click demo logins' acceptance criterion cannot pass. Partner tile → partner dashboard OK. Merchant tile → merchant home OK, Wallet tab renders (₹35,744.18 available, ₹35,244.18 withdrawable, Withdraw button visible). No CORS errors, no 'Demo login failed' toasts observed for the tiles that DO exist; all /api calls are same-origin as intended.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Supervisor / port 3000 ownership", "issue": "`webpanel` program FATAL: 'Something is already running on port 3000' — `frontend` (Expo) holds the port. Public URL therefore serves the Expo mobile web bundle (title 'AzoApp Partner', /index.bundle?platform=web) instead of the CRA web_panel. Login page shows only Partner/Merchant/Agent tiles; Admin & Customer demo tiles never render. Review request explicitly said `frontend` should be STOPPED and `webpanel` should own :3000 — actual state is inverted. Per instructions we did NOT touch supervisor.", "selector": "[data-testid=demo-admin], [data-testid=demo-customer]", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [
+      {"flow": "Admin one-click demo login", "issue": "No [data-testid=demo-admin] on served /login (Expo bundle only exposes partner/merchant/agent tiles). Cannot exercise the flow from UI. Backend supports it: POST /api/auth/verify-otp with +919000000000/123456 returns admin token.", "affected_selectors": ["[data-testid=demo-admin]"]},
+      {"flow": "Customer one-click demo login", "issue": "No [data-testid=demo-customer] on served /login. Same reason as above. Backend returns valid customer token for +919000000004/123456.", "affected_selectors": ["[data-testid=demo-customer]"]}
+    ],
+    "design_issues": []
+  },
+  "verified_working": [
+    "GET  /api/               → 200",
+    "GET  /api/auth/demo-status → demo_mode:true, roles present: admin(1), partner(10), customer(32), merchant(1), agent(1)",
+    "POST /api/auth/send-otp  {phone:+919000000002} → {sent:true, dev_otp:'123456'}",
+    "POST /api/auth/verify-otp {phone:+919000000002, otp:'123456'} → JWT + user{role:merchant,name:Sharma Electricals}",
+    "Web (Expo-served) /login → click 'Login as Partner' tile → partner dashboard renders (Raj, ₹449.25 earnings, Track jobs, missed-job card). No CORS, no error toast.",
+    "Web (Expo-served) /login → click 'Login as Merchant' tile → merchant home (Sharma Electricals ₹508 lifetime commission). Tap Wallet tab → /wallet renders (₹35,744.18 available balance card, Withdraw button).",
+    "All /api/* network requests go to same-origin host (756fe6c8-b693-4ecc-9106-a590d19672be.preview.emergentagent.com). Zero CORS console errors."
+  ],
+  "test_report_links": ["/app/test_reports/iteration_109.json"],
+  "action_items": [
+    "CRITICAL: Fix supervisor port 3000 ownership. Either set `frontend` autostart=false, or move Expo off :3000, or ensure `webpanel` starts first. Right now `webpanel` FATAL-loops with 'Something is already running on port 3000' and Expo bundle is served publicly. The review-request premise ('web_panel owns port 3000') is not satisfied in this fork.",
+    "Once webpanel owns :3000, retest the 4 tiles — src/pages/auth/Login.jsx correctly iterates ['admin','partner','customer','merchant'] and demo-status returns all four, so the flow should just work.",
+    "Optional: Add a supervisor `priority=` so webpanel binds :3000 before frontend, and/or start frontend on a different port when both need to coexist."
+  ],
+  "critical_code_review_comments": [
+    "/etc/supervisor/conf.d/webpanel.conf: `frontend` and `webpanel` both autostart=true and both target port 3000 → race condition, currently `frontend` wins on every restart.",
+    "web_panel/src/pages/auth/Login.jsx: quickLogin() correctly calls send-otp then verify-otp and toasts 'Demo login failed' on any error; no bug in the code itself, purely deployment/routing issue."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "50% (2 of 4 tiles even exist in served UI; those 2 work end-to-end)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456; Merchant +919000000002 / 123456; Partner +919000000003 / 123456; Customer +919000000004 / 123456; Agent +919000000006 / 123456 (all confirmed via /api/auth/demo-status)",
+  "seed_data_creation": "None; used pre-seeded demo accounts.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "The public URL serves the Expo bundle. Run `sudo supervisorctl status` first — if `webpanel` is FATAL, no amount of Playwright work on data-testid=demo-admin/demo-customer will succeed because those tiles are not rendered by the Expo login page. Grep the served HTML for 'AzoApp Partner' (Expo) vs an empty <div id=\"root\"> without expo-reset styles (CRA) to distinguish. Backend API endpoints under /api are healthy and correctly proxied.",
+  "rca_of_the_issue": {
+    "symptom": "'demo-admin' and 'demo-customer' tiles are absent; only Partner/Merchant/Agent tiles present.",
+    "root_cause": "supervisor `webpanel` program is FATAL (`Something is already running on port 3000`), so the CRA web_panel never starts. Supervisor `frontend` (Expo `expo start --port 3000`, PID 766) took port 3000 first. Kubernetes ingress therefore proxies :3000 → Expo web bundle, whose login page differs from the CRA Login.jsx (it exposes partner/merchant/agent only, per `Only Partner, Merchant & Agent numbers can sign in here`).",
+    "reproduction": "1) curl -s https://<preview>/ | head → title 'AzoApp Partner' with /index.bundle?platform=web (Expo signature). 2) sudo supervisorctl status → webpanel FATAL, frontend RUNNING. 3) tail /var/log/supervisor/webpanel.out.log → 'Something is already running on port 3000'.",
+    "mitigation": "Stop/disable `frontend` (Expo) or reassign its port; then `sudo supervisorctl restart webpanel`. Or set priority/startsecs so webpanel binds :3000 before Expo. Do not modify web_panel/.env — it is intentionally empty per problem statement."
+  }
+}

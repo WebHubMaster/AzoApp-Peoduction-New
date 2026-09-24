@@ -1,0 +1,43 @@
+{
+  "summary": "Regression testing of the Mobile (Expo web) Merchant Scan QR fixes for PDF/Print/Share/WhatsApp/booking-link parity. Backend (4 endpoints) + Frontend (Expo web at http://localhost:8081) both pass 100%.",
+  "backend_checks": {
+    "POST /api/auth/verify-otp (+919000000002/123456)": "200 -> token issued",
+    "GET /api/merchant/my-code": "200 -> {merchant_code: U32QUR6}",
+    "GET /api/merchant/panel/qr/config": "200 (persisted config for Sharma Electricals)",
+    "GET /api/merchant/panel/qr/analytics?range=30d": "200 (bookings=8)",
+    "GET https://profile-kyc-panel.preview.emergentagent.com/?ref=U32QUR6": "200 (web panel captures ref)"
+  },
+  "frontend_checks": {
+    "onboarding->demo-merchant->tab-scanqr flow": "PASS (no red overlay, no runtime crash)",
+    "app-shell-header / scanqr-hero / poster-builder / qr-analytics visible": "PASS",
+    "hero-link equals `${EXPO_PUBLIC_WEB_URL}/?ref=U32QUR6`": "PASS - exact match https://profile-kyc-panel.preview.emergentagent.com/?ref=U32QUR6 (same format as web ScanQRModule)",
+    "dl-png download": "PASS - filename azoapp-poster-U32QUR6.png, 329229 bytes, dimensions 1080x1350",
+    "dl-jpg download": "PASS - filename azoapp-poster-U32QUR6.jpg, 213825 bytes, dimensions 1080x1350",
+    "dl-pdf on web": "PASS - clicking does not crash; posterToPdf(web) calls Print.printAsync (opens print dialog / falls to toast 'Choose Save as PDF'). No JS exception.",
+    "dl-print button": "PASS - present and enabled (not clicked to avoid hanging headless).",
+    "hero-share fallback (no navigator.share)": "PASS - share-modal opens, share-copy toast 'Link copied successfully', share-close dismisses",
+    "hero-whatsapp fallback (headless)": "PASS - triggers poster PNG download azoapp-poster-U32QUR6.png (329229 bytes) then opens wa.me popup; no crash. Matches web fallback (webDownload + window.open in posterActions.ts).",
+    "booking-logic parity": "PASS - QR encodes and hero-link renders the same string web uses: `${window.location.origin}/?ref=${merchant_code}` (WEB_ORIGIN taken from EXPO_PUBLIC_WEB_URL)."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": [], "console_warnings": [
+    "Animated useNativeDriver not supported on web (RN-web expected)",
+    "props.pointerEvents deprecated warning (RN-web upstream)",
+    "expo-notifications listener no-op on web (expected)"
+  ]},
+  "test_report_links": ["/app/backend/tests/test_merchant_scanqr_iter98.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "posterActions.ts sharePosterFile web path correctly probes navigator.canShare({files}) first, then falls back to webDownload+wa.me for whatsapp — verified working in headless.",
+    "posterToPdf(web) opens print dialog and returns null; scanqr.tsx handles null by showing toast 'Choose Save as PDF in the print dialog'. No crash.",
+    "Native PDF path (printToFileAsync -> moveAsync to readable name -> openPosterFile with Android VIEW intent) is guarded by Platform checks and cannot be exercised on web; code paths look correct and are protected with try/catch fallback to Sharing.shareAsync.",
+    "hero-link uses process.env.EXPO_PUBLIC_WEB_URL || MEDIA_ORIGIN and matches web format exactly. Web panel /?ref=U32QUR6 returns 200 — booking logic parity confirmed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Merchant demo +919000000002 / OTP 123456 (merchant_code U32QUR6)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expo web served by Metro on http://localhost:8081. Flow: onboard-skip -> skip-notifications-button -> demo-merchant -> tab-scanqr. All Scan QR interactive elements have data-testid. Native-only code paths (Android SAF, VIEW intent PDF open, react-native-share) cannot be validated on web; code review shows they are guarded with Platform.OS checks and try/catch fallbacks (Sharing.shareAsync + Clipboard caption + Linking to whatsapp://). Backend regression is stable."
+}

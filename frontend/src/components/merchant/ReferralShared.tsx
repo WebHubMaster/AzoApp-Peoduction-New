@@ -5,43 +5,52 @@
  */
 import React, { useState } from "react";
 import { View, Text, Pressable, TextInput, Modal } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { StatusBar } from "expo-status-bar";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
-import { Icon, MdiName } from "@/src/components/Icon";
+import { Search, X, ChevronLeft, ChevronRight, ChevronDown, ArrowLeft, ShieldCheck, Calendar, TrendingUp, type LucideIcon } from "lucide-react-native";
 import { fmt } from "@/src/lib/format";
 import { Card } from "@/src/components/ui";
 
 export type Kpi = { label: string; value: any; money?: boolean; primary?: boolean; sub?: string };
 
-/** 2-col ReportCards grid — primary card is an emerald gradient (matches web). */
-export function MReportCards({ cards, testID }: { cards: Kpi[]; testID?: string }) {
+// web numbers use `tabular-nums`; NEVER set an explicit fontFamily on Android (weight-family
+// + fontWeight makes RN fall back to the system font) — rely on the global-font weight patch.
+const TAB = { fontVariant: ["tabular-nums" as const] };
+function chunk2<T>(a: T[]): T[][] { const o: T[][] = []; for (let i = 0; i < a.length; i += 2) o.push(a.slice(i, i + 2)); return o; }
+
+/** One KPI card — matches web ReportCards (rounded-2xl=16, p-4=16, extrabold tabular numbers). */
+function MKpiCard({ c }: { c: Kpi }) {
   const { colors } = useTheme();
+  const display = c.money ? fmt(c.value) : Number(c.value || 0).toLocaleString("en-IN");
+  if (c.primary) {
+    return (
+      <LinearGradient colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={{ flex: 1, borderRadius: 16, padding: spacing.lg }}>
+        <Text style={{ color: "#ECFDF5", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
+        <Text style={{ color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4, letterSpacing: -0.24, ...TAB }} numberOfLines={1}>{display}</Text>
+        {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
+      </LinearGradient>
+    );
+  }
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.md }} testID={testID || "report-cards"}>
-      {cards.map((c) => {
-        const display = c.money ? fmt(c.value) : Number(c.value || 0).toLocaleString("en-IN");
-        if (c.primary) {
-          return (
-            <LinearGradient key={c.label} colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={{ width: "47.8%", borderRadius: radius.lg, padding: spacing.md }}>
-              <Text style={{ color: "#ECFDF5", fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{c.label}</Text>
-              <Text style={{ color: "#fff", fontSize: fontSize.xxl, fontWeight: "900", marginTop: 4 }} numberOfLines={1}>{display}</Text>
-              {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
-            </LinearGradient>
-          );
-        }
-        return (
-          <View key={c.label} style={{ width: "47.8%" }}>
-            <Card padded={false} style={{ padding: spacing.md }}>
-              <Text style={{ color: colors.textMuted, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }} numberOfLines={1}>{c.label}</Text>
-              <Text style={{ color: c.money ? colors.success : colors.text, fontSize: fontSize.lg, fontWeight: "900", marginTop: 4 }} numberOfLines={1}>{display}</Text>
-              {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
-            </Card>
-          </View>
-        );
-      })}
+    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 16 }}>
+      <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
+      <Text style={{ color: c.money ? colors.success : colors.text, fontSize: 18, fontWeight: "800", marginTop: 4, letterSpacing: -0.18, ...TAB }} numberOfLines={1}>{display}</Text>
+      {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
+    </Card>
+  );
+}
+
+/** 2-col ReportCards grid with EQUAL-HEIGHT rows (mirrors web `grid grid-cols-2`). */
+export function MReportCards({ cards, testID }: { cards: Kpi[]; testID?: string }) {
+  return (
+    <View style={{ gap: spacing.md }} testID={testID || "report-cards"}>
+      {chunk2(cards).map((row, ri) => (
+        <View key={ri} style={{ flexDirection: "row", gap: spacing.md, alignItems: "stretch" }}>
+          {row.map((c) => <MKpiCard key={c.label} c={c} />)}
+          {row.length === 1 ? <View style={{ flex: 1 }} /> : null}
+        </View>
+      ))}
     </View>
   );
 }
@@ -52,7 +61,7 @@ export function MSearchBox({ value, onChange, placeholder = "Search…", testID 
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 44 }}>
-      <Icon name="magnify" size={20} color={colors.textMuted} />
+      <Search size={20} color={colors.textMuted} />
       <TextInput
         testID={testID}
         value={value}
@@ -63,7 +72,7 @@ export function MSearchBox({ value, onChange, placeholder = "Search…", testID 
       />
       {value ? (
         <Pressable testID={`${testID}-clear`} onPress={() => onChange("")} hitSlop={8}>
-          <Icon name="close-circle" size={18} color={colors.textMuted} />
+          <X size={18} color={colors.textMuted} />
         </Pressable>
       ) : null}
     </View>
@@ -97,7 +106,7 @@ export function MPagination({ page, pages, total, pageSize, onPage, onPageSize }
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         <Pressable testID="page-prev" disabled={page <= 1} onPress={() => onPage(page - 1)} style={{ width: 36, height: 36, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: page <= 1 ? 0.4 : 1 }}>
-          <Icon name="chevron-left" size={18} color={colors.textSecondary} />
+          <ChevronLeft size={18} color={colors.textSecondary} />
         </Pressable>
         {nums.map((n) => {
           const on = n === page;
@@ -108,33 +117,47 @@ export function MPagination({ page, pages, total, pageSize, onPage, onPageSize }
           );
         })}
         <Pressable testID="page-next" disabled={page >= pages} onPress={() => onPage(page + 1)} style={{ width: 36, height: 36, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: page >= pages ? 0.4 : 1 }}>
-          <Icon name="chevron-right" size={18} color={colors.textSecondary} />
+          <ChevronRight size={18} color={colors.textSecondary} />
         </Pressable>
       </View>
     </View>
   );
 }
 
-/** Premium gradient module header banner (matches web ModuleHeader). */
-export function MModuleHeader({ title, subtitle, icon = "trending-up", right }:
-  { title: string; subtitle?: string; icon?: MdiName; right?: React.ReactNode }) {
-  const insets = useSafeAreaInsets();
-  return (
-    <>
-      <StatusBar style="light" />
-      <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-        <View style={{ paddingTop: insets.top + 10, paddingBottom: 16, paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <View style={{ width: 46, height: 46, borderRadius: radius.lg, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
-            <Icon name={icon} size={24} color="#fff" />
+/** Premium gradient module header (matches web ModuleHeader). `card` = in-content
+ *  rounded-3xl banner (web); default = full-bleed top strip (kept for other screens). */
+export function MModuleHeader({ title, subtitle, icon: Ico = TrendingUp, right, card = false }:
+  { title: string; subtitle?: string; icon?: LucideIcon; right?: React.ReactNode; card?: boolean }) {
+  if (card) {
+    return (
+      <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+        style={{ borderRadius: 24, padding: 20, overflow: "hidden" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+          <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+            <Ico size={24} color="#fff" strokeWidth={1.9} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: "#fff", fontSize: fontSize.xl, fontWeight: "900" }} numberOfLines={1}>{title}</Text>
-            {subtitle ? <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: fontSize.xs, marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
+            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800", letterSpacing: -0.2 }} numberOfLines={1}>{title}</Text>
+            {subtitle ? <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 12, marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
           </View>
           {right}
         </View>
       </LinearGradient>
-    </>
+    );
+  }
+  return (
+    <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+      <View style={{ paddingTop: 14, paddingBottom: 16, paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+          <Ico size={24} color="#fff" strokeWidth={1.9} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: "#fff", fontSize: fontSize.xl, fontWeight: "800", letterSpacing: -0.2 }} numberOfLines={1}>{title}</Text>
+          {subtitle ? <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: fontSize.xs, marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
+        </View>
+        {right}
+      </View>
+    </LinearGradient>
   );
 }
 
@@ -143,7 +166,7 @@ export function MBackLink({ label, onPress, testID = "detail-back" }: { label: s
   const { colors } = useTheme();
   return (
     <Pressable testID={testID} onPress={onPress} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" }}>
-      <Icon name="arrow-left" size={16} color={colors.textMuted} />
+      <ArrowLeft size={16} color={colors.textMuted} />
       <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontWeight: "700" }}>{label}</Text>
     </Pressable>
   );
@@ -154,7 +177,7 @@ export function MPrivacyNote() {
   const { colors } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: 10 }}>
-      <View style={{ marginTop: 1 }}><Icon name="shield-check" size={16} color={colors.success} /></View>
+      <View style={{ marginTop: 1 }}><ShieldCheck size={16} color={colors.success} /></View>
       <Text style={{ color: colors.textMuted, fontSize: 11, lineHeight: 17, flex: 1 }}>
         Personal contact details (phone, email, address) are protected and not shared with merchants. You only see referral &amp; commission information.
       </Text>
@@ -166,11 +189,11 @@ export function MPrivacyNote() {
 /** Referral-type badge — customer = sky, partner = violet (matches web TypeBadge). */
 export function MTypeBadge({ type }: { type?: string }) {
   const isCust = type === "customer";
-  const bg = isCust ? "rgba(2,132,199,0.12)" : "rgba(124,58,237,0.12)";
-  const fg = isCust ? "#0284C7" : "#7C3AED";
+  const bg = isCust ? "#E0F2FE" : "#EDE9FE";
+  const fg = isCust ? "#0369A1" : "#6D28D9";
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, alignSelf: "flex-start" }} testID={`type-badge-${isCust ? "customer" : "partner"}`}>
-      <Text style={{ color: fg, fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.4 }}>{isCust ? "Customer" : "Partner"}</Text>
+      <Text style={{ color: fg, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{isCust ? "Customer" : "Partner"}</Text>
     </View>
   );
 }
@@ -217,11 +240,11 @@ function RangeCalendar({ from, to, onPick }: { from?: string; to?: string; onPic
     <View testID="range-calendar">
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
         <Pressable testID="cal-prev" onPress={() => shift(-1)} hitSlop={8} style={{ width: 32, height: 32, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" }}>
-          <Icon name="chevron-left" size={20} color={colors.textSecondary} />
+          <ChevronLeft size={20} color={colors.textSecondary} />
         </Pressable>
         <Text style={{ fontSize: fontSize.sm, fontWeight: "800", color: colors.text }}>{monthLabel}</Text>
         <Pressable testID="cal-next" onPress={() => shift(1)} hitSlop={8} style={{ width: 32, height: 32, borderRadius: radius.sm, alignItems: "center", justifyContent: "center" }}>
-          <Icon name="chevron-right" size={20} color={colors.textSecondary} />
+          <ChevronRight size={20} color={colors.textSecondary} />
         </Pressable>
       </View>
       <View style={{ flexDirection: "row" }}>
@@ -265,9 +288,9 @@ export function MDateRangeFilter({ value, onChange }: { value: DateRange; onChan
     <>
       <Pressable testID="date-filter-toggle" onPress={() => setOpen(true)}
         style={{ height: 44, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}>
-        <Icon name="calendar" size={18} color={colors.primary} />
+        <Calendar size={18} color={colors.primary} />
         <Text numberOfLines={1} style={{ flex: 1, fontSize: fontSize.sm, fontWeight: "600", color: colors.text }}>{label}</Text>
-        <Icon name="chevron-down" size={18} color={colors.textMuted} />
+        <ChevronDown size={18} color={colors.textMuted} />
       </Pressable>
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
