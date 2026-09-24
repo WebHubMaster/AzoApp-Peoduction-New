@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://role-based-ui-9.preview.emergentagent.com"
+BASE_URL = "https://azo-app-staging.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

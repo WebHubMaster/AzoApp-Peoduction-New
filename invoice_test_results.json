@@ -180,22 +180,22 @@
       "tests": [
         {
           "name": "Partner GET /invoices",
-          "url": "https://role-based-ui-9.preview.emergentagent.com/api/invoices",
+          "url": "https://azo-app-staging.preview.emergentagent.com/api/invoices",
           "passed": true
         },
         {
           "name": "Customer GET /invoices",
-          "url": "https://role-based-ui-9.preview.emergentagent.com/api/invoices",
+          "url": "https://azo-app-staging.preview.emergentagent.com/api/invoices",
           "passed": true
         },
         {
           "name": "Partner GET cancellation invoice",
-          "url": "https://role-based-ui-9.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e",
+          "url": "https://azo-app-staging.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e",
           "passed": true
         },
         {
           "name": "Partner GET cancellation HTML",
-          "url": "https://role-based-ui-9.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e/view",
+          "url": "https://azo-app-staging.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e/view",
           "passed": true
         }
       ]
