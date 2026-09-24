@@ -4,7 +4,7 @@ Lets an admin or a merchant drive the EXACT same multi-step registration wizard
 on behalf of a partner they are creating. Each route resolves a target partner
 by user_id and calls the same partner_reg_service functions the partner uses.
 """
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from middleware.auth import require_role
 from services import partner_reg_service as prs
 from services import storage_service
@@ -58,11 +58,11 @@ async def _profile(user):
             "rejection_reason": p.get("rejection_reason", "")}
 
 
-async def _upload(file: UploadFile, doc_type: str, aadhaar_number: str, user):
+async def _upload(file: UploadFile, doc_type: str, aadhaar_number: str, user, base_hint: str = ""):
     raw = await file.read()
     ext = (file.filename or "").rsplit(".", 1)[-1].lower() if "." in (file.filename or "") else ""
     try:
-        res = await storage_service.save_document(raw, file.content_type or "", file.filename or "", folder=storage_service.entity_folder("partners", user, "kyc"))
+        res = await storage_service.save_document(raw, file.content_type or "", file.filename or "", folder=storage_service.entity_folder("partners", user, "kyc"), base_hint=base_hint)
     except ValueError as e:
         raise HTTPException(400, str(e))
     out = {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}
@@ -111,9 +111,10 @@ def _build(prefix, dep, as_merchant):
         return await prs.submit_profile(await _target(uid, actor, as_merchant))
 
     @r.post("/partners/{uid}/reg/upload")
-    async def upload(uid: str, file: UploadFile = File(...), doc_type: str = Form("document"),
+    async def upload(uid: str, request: Request, file: UploadFile = File(...), doc_type: str = Form("document"),
                      aadhaar_number: str = Form(""), actor=Depends(dep)):
-        return await _upload(file, doc_type, aadhaar_number, await _target(uid, actor, as_merchant))
+        return await _upload(file, doc_type, aadhaar_number, await _target(uid, actor, as_merchant),
+                             base_hint=storage_service.request_base(request))
 
     return r
 

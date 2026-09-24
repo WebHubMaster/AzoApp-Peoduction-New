@@ -16,7 +16,7 @@ export default function MerchantNetwork() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="My Network" back variant="gradient" testID="merchant-network-header" />
+      <AppHeader title="My Network" back embedded variant="gradient" testID="merchant-network-header" />
       <ScreenScroll refreshing={stats.isFetching} onRefresh={() => { stats.refetch(); list.refetch(); }}>
         <View style={{ flexDirection: "row", gap: spacing.md }}>
           <StatCard label="Total Members" value={String(s.total ?? 0)} icon="account-group" tone="primary" />

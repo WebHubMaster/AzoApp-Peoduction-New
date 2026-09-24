@@ -1,5 +1,5 @@
 """Advanced Support / Helpdesk routes — shared user endpoints + admin inbox."""
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Request
 from models.support import TicketCreate, MessageCreate, StatusUpdate, AssignUpdate, PriorityUpdate
 from middleware.auth import require_role, get_current_user
 from services import support_service as svc
@@ -18,7 +18,7 @@ async def support_meta():
 
 # ---------- shared file upload (any authenticated user, incl. admin) ----------
 @router.post("/support/upload")
-async def support_upload(file: UploadFile = File(...), user=Depends(get_current_user)):
+async def support_upload(request: Request, file: UploadFile = File(...), user=Depends(get_current_user)):
     ct = (file.content_type or "").lower()
     if ct not in svc.ALLOWED_MIME:
         raise HTTPException(status_code=400, detail="Only images (JPG/PNG/WebP/GIF) or PDF are allowed")
@@ -26,7 +26,7 @@ async def support_upload(file: UploadFile = File(...), user=Depends(get_current_
     if len(raw) > svc.MAX_FILE_BYTES:
         raise HTTPException(status_code=400, detail=f"File too large (max {svc.MAX_FILE_BYTES // (1024*1024)}MB)")
     try:
-        res = await storage_service.save_document(raw, ct, filename=file.filename or "", folder=storage_service.entity_folder("support", user))
+        res = await storage_service.save_document(raw, ct, filename=file.filename or "", folder=storage_service.entity_folder("support", user), base_hint=storage_service.request_base(request))
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     kind = "pdf" if (ct == "application/pdf" or res.get("kind") == "pdf") else "image"

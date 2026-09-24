@@ -17,6 +17,24 @@ from config.database import db, get_settings
 UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+
+def request_base(request) -> str:
+    """Absolute backend origin from proxy headers so stored media URLs are absolute
+    (fixes broken <img>/<Image> when the panel host != backend host, and RN needs a
+    fully-qualified URL). Scheme is forced to https for any real (non-local) host —
+    Android blocks cleartext image loads. Falls back to REACT_APP_BACKEND_URL env."""
+    try:
+        host = (request.headers.get("x-forwarded-host", "") or request.headers.get("host", "")).split(",")[0].strip()
+    except Exception:  # noqa: BLE001
+        host = ""
+    if not host:
+        return os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
+    if host.startswith(("localhost", "127.0.0.1", "0.0.0.0")):
+        proto = (request.headers.get("x-forwarded-proto", "") or getattr(request.url, "scheme", "") or "http").split(",")[0].strip()
+    else:
+        proto = "https"
+    return f"{proto}://{host}"
+
 ALLOWED = {"image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp", "image/svg+xml"}
 MAX_BYTES = 12 * 1024 * 1024  # 12MB raw upload cap
 

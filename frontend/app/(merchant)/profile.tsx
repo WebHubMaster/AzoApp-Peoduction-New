@@ -30,7 +30,7 @@ export default function MerchantProfile() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Profile" variant="gradient" testID="merchant-profile-header" />
+      <AppHeader title="Profile" embedded variant="gradient" testID="merchant-profile-header" />
       <ScreenScroll>
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>

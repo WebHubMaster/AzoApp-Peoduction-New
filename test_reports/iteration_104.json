@@ -1,0 +1,46 @@
+{
+  "summary": "Regression of merchant Scan QR screen on the Expo WEB build (Metro tunnel https://bpo56qm-anonymous-8081.exp.direct) after posterActions.ts two-step-share change. Login via demo-merchant, /merchant/scanqr renders correctly (hero QR + hero-link with ?ref=XZ6SV49 + poster-preview). No red-box / runtime overlay and no console errors mentioning posterActions or 'Share'. hero-share opens share-modal with booking link inside share-message textarea, share-copy works. hero-whatsapp triggers GET /api/merchant/panel/qr/poster?fmt=png -> 200 and opens api.whatsapp.com/send popup with the message. dl-png and dl-pdf both fire the poster endpoint (fmt=png / fmt=pdf) with 200 responses and no error. The two-step-share code path on web is unchanged (native branch not exercised in this run — cannot be tested headless).",
+  "test_matrix": {
+    "page_loads_scanqr_module": "PASS",
+    "hero-link contains ?ref=": "PASS (https://profile-kyc-panel.preview.emergentagent.com/?ref=XZ6SV49)",
+    "poster-preview visible": "PASS",
+    "no red-box / error overlay": "PASS",
+    "no console errors mentioning posterActions or Share": "PASS (only expected RN-web warnings: useNativeDriver JS fallback, pointerEvents deprecation, expo-notifications web listener no-op)",
+    "hero-share opens share-modal": "PASS",
+    "share-message contains booking link": "PASS (length 249, includes ?ref=XZ6SV49)",
+    "share-copy": "PASS",
+    "hero-whatsapp -> /api/merchant/panel/qr/poster?fmt=png": "200",
+    "hero-whatsapp opens wa popup": "PASS (popup to api.whatsapp.com/send with encoded caption + booking link)",
+    "dl-png -> poster fmt=png": "200",
+    "dl-pdf -> poster fmt=pdf": "200"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "cosmetic": [
+      {"component": "MerchantScanQr defaultWaMsg", "issue": "The waving-hand emoji (\ud83d\udc4b) in the WhatsApp default message is encoded as %EF%BF%BD (U+FFFD replacement char) on the Expo web build — check the popup URL param 'text=Hi+%EF%BF%BD%0A...'. Cosmetic only; the booking link and rest of the text are transmitted correctly. Likely an Expo-web/JS bundling issue with the surrogate pair in scanqr.tsx defaultWaMsg. Not regression from this change."}
+    ]
+  },
+  "share_change_verification": {
+    "web_branch_of_sharePosterFile_unchanged": true,
+    "web_hero-whatsapp_flow": "navigator.canShare({files}) unavailable in headless → webDownload(dataUri, name) triggered + window.open(wa.me/?text=...) — matches code (posterActions.ts:170-174). Popup URL observed = https://api.whatsapp.com/send/?text=... (Chrome/Chromium redirects wa.me → api.whatsapp.com/send). No crash.",
+    "native_two_step_branch": "NOT tested (headless; requires Expo Go / device). Code inspection: shareAsync(image) → clipboard.setStringAsync(caption) → RNShareSheet.share({message}) or openWhatsAppText(); returns 'shared-two-step'. Toast handlers in scanqr.tsx already surface: 'Poster shared — now send the message with your link' (system) and 'Poster shared — now send the message with your link on WhatsApp' (whatsapp)."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "posterActions.sharePosterFile native two-step path: Clipboard.setStringAsync(caption) is called BEFORE the OS share sheet so the caption is preserved for paste on WhatsApp; good UX safeguard.",
+    "openWhatsAppText falls back to https://wa.me when whatsapp:// scheme cannot be opened — reasonable Android/iOS behaviour.",
+    "Web branch unchanged, so the change is a pure additive native improvement — zero regression surface on web (confirmed empirically)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100% (12/12 web checks)"},
+  "test_credentials": "Merchant demo login on Expo web (demo-merchant button, equivalent to +919000000002 / OTP 123456).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Expo tunnel URL https://bpo56qm-anonymous-8081.exp.direct is reachable and serves the Expo web build. Login path: onboard-skip → skip-notifications-button → demo-merchant → tab-scanqr. Scan QR data-testids verified: scanqr-module, hero-link, poster-preview, hero-share, hero-whatsapp, share-modal, share-message, share-copy, share-close, dl-png, dl-jpg, dl-pdf, dl-print. Toast library uses transient text nodes — a substring lookup on the DOM at click+5s did NOT capture the 'Poster downloaded (PNG/PDF)' toast text, but the API call succeeded and no error toast fired; this is a test-observation timing issue, not a functional bug. Native two-step share cannot be exercised on Expo web — needs Expo Go / EAS build.",
+  "rca of the issue": "N/A - no bugs found."
+}

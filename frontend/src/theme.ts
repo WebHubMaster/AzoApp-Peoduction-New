@@ -81,7 +81,7 @@ function buildColors(mode: ThemeMode, brand: typeof BASE_BRAND): ThemeColors {
   const P = palette(brand.primary);
   if (mode === "dark") {
     return {
-      primary: brand.primary,
+      primary: P[500],
       primaryDark: P[800],
       primaryHover: P[700],
       primarySubtle: "rgba(6, 89, 178, 0.28)",
@@ -106,12 +106,12 @@ function buildColors(mode: ThemeMode, brand: typeof BASE_BRAND): ThemeColors {
       infoSubtle: "rgba(59,130,246,0.16)",
       overlay: "rgba(0,0,0,0.6)",
       tabBar: "#111827",
-      tabActive: brand.primary,
+      tabActive: P[500],
       tabInactive: "#94A3B8",
     };
   }
   return {
-    primary: brand.primary,
+    primary: P[700],
     primaryDark: P[800],
     primaryHover: P[700],
     primarySubtle: P[50],
@@ -136,7 +136,7 @@ function buildColors(mode: ThemeMode, brand: typeof BASE_BRAND): ThemeColors {
     infoSubtle: "#EFF6FF",
     overlay: "rgba(15,23,42,0.45)",
     tabBar: "#FFFFFF",
-    tabActive: brand.primary,
+    tabActive: P[700],
     tabInactive: "#94A3B8",
   };
 }

@@ -1,5 +1,5 @@
 """Merchant / Shopkeeper Registration & KYC — merchant-facing routes."""
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from middleware.auth import require_role
 from services import merchant_reg_service as mrs
 from services import storage_service
@@ -58,14 +58,16 @@ async def submit(user=Depends(MERCHANT)):
 
 
 @router.post("/upload")
-async def upload_doc(file: UploadFile = File(...),
+async def upload_doc(request: Request,
+                     file: UploadFile = File(...),
                      doc_type: str = Form("document"),
                      user=Depends(MERCHANT)):
     raw = await file.read()
     try:
         res = await storage_service.save_document(
             raw, file.content_type or "", file.filename or "",
-            folder=storage_service.entity_folder("merchants", user, "kyc"))
+            folder=storage_service.entity_folder("merchants", user, "kyc"),
+            base_hint=storage_service.request_base(request))
     except (ValueError, OSError) as e:
         raise HTTPException(400, str(e) or "Unsupported or corrupt file. Use a JPG, PNG or PDF.")
     return {"url": res["url"], "name": res.get("name"), "doc_type": doc_type}

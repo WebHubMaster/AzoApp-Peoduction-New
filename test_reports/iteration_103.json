@@ -1,0 +1,52 @@
+{
+  "summary": "Verified /app/web_panel bring-up on the preview URL. All 4 one-click demo logins (Admin, Partner, Customer, Merchant) work end-to-end from /login — no 'Demo login failed' toast, no CORS/network errors. Each role redirects to the correct dashboard. Merchant Scan QR module renders (QR image, merchant name 'Sharma Electricals', ?ref=XZ6SV49 booking link, dl-png button) and PNG download via [data-testid='dl-png'] succeeds (file downloaded: azoapp-poster-XZ6SV49.png). Backend sanity: GET /api/ → 200; GET /api/auth/demo-status → 200 with demo_mode=true and demo accounts including admin/partner/merchant/customer at the expected phone numbers.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/realtime/stream", "issue": "SSE endpoint returns errors (page shows repeated failed GETs) but does not affect user-visible functionality; keeps admin page in non-networkidle state."},
+      {"endpoint": "/api/auth/config", "issue": "Intermittent failure observed in one nav; app falls back gracefully (login UI still rendered)."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard", "issues": ["Console warnings 'width(-1) height(-1) of chart' — Recharts container measured 0 during initial paint; cosmetic only."]}
+    ]
+  },
+  "role_landings": {
+    "admin": "/admin",
+    "partner": "/partner",
+    "customer": "/account",
+    "merchant": "/merchant"
+  },
+  "scan_qr_verification": {
+    "renders": true,
+    "merchant_name": "Sharma Electricals",
+    "ref_link_contains": "?ref=XZ6SV49",
+    "dl_png_testid_present": true,
+    "png_download_success": true,
+    "downloaded_filename": "azoapp-poster-XZ6SV49.png",
+    "note": "Direct fetch of /api/merchant/panel/qr/poster?fmt=png with localStorage.getItem('token') returned 401 (token stored under different key), but the in-app UI download works, confirming the endpoint is functional via the app's authenticated session."
+  },
+  "backend_sanity": {
+    "GET /api/": "200",
+    "GET /api/auth/demo-status": "200, demo_mode=true, admin/partner/merchant/customer accounts present"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional: investigate /api/realtime/stream SSE errors and /api/auth/config intermittent failure (non-blocking).",
+    "Optional: silence Recharts width/height warnings by giving chart containers explicit min dimensions."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/.env intentionally leaves REACT_APP_BACKEND_URL empty; api.js falls back to window.location.origin — same-origin /api works via ingress. This is correct for the current preview deployment.",
+    "Login.jsx uses data-testid demo-<role> for demo buttons which is testable and consistent."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (2/2 sanity)", "frontend": "100% (4/4 demo logins + Scan QR + PNG download)"},
+  "test_credentials": "OTP 123456 for all; +919000000000 admin, +919000000002 merchant, +919000000003 partner, +919000000004 customer (from /api/auth/demo-status).",
+  "seed_data_creation": "None — used pre-seeded demo accounts.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web panel is served by supervisor program 'webpanel' on :3000; 'frontend' (Expo) is stopped. Login page is at /login. Demo login buttons: [data-testid=demo-{admin|partner|customer|merchant}]. Merchant post-login lands on /merchant with 'Scan QR' side-nav. On dashboards SSE /api/realtime/stream fails and causes networkidle waits to time out — use wait_until='domcontentloaded' in Playwright."
+}

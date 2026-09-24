@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://azo-app-staging.preview.emergentagent.com/api"
+BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo credentials

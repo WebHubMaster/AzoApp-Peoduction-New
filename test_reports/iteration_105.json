@@ -1,0 +1,53 @@
+{
+  "summary": "Iter 105 verifies the new `caption` param on the merchant QR poster endpoint plus the Expo-web Scan-QR flow that embeds the caption into the poster when the share sheet can't carry image+caption. Backend: 6/6 pytest cases green — PNG w/o caption = 1080x1350; PNG with multiline caption (containing an https link) = 1080x >1350 (caption strip appended); PDF with caption = 200 application/pdf; emoji-only caption safely collapses back to 1080x1350 (emoji stripped server-side, no crash); caption with emoji+text + long-link produces height >1350; 900+ char caption → 200 (server truncates to 600). Frontend (Expo web via Metro tunnel https://bpo56qm-anonymous-8081.exp.direct, demo-merchant login → /merchant/scanqr): hero-whatsapp fires GET /api/merchant/panel/qr/poster?fmt=png with a NON-EMPTY caption= param (294 chars, contains full waMsg + booking link) and opens api.whatsapp.com/send popup; hero-share (canShare unavailable in headless) opens share-modal AND fires poster fmt=png with a NON-EMPTY caption= (shareMessage). dl-png and dl-pdf both send caption= EMPTY (plain poster). No red-box overlay, zero console errors.",
+  "test_matrix_backend": {
+    "png_no_caption_1080x1350": "PASS",
+    "png_with_caption_height_gt_1350": "PASS",
+    "pdf_with_caption_200": "PASS",
+    "emoji_only_caption_no_crash_and_collapses": "PASS",
+    "emoji_plus_text_caption": "PASS",
+    "very_long_caption_600plus_truncated": "PASS"
+  },
+  "test_matrix_frontend": {
+    "scanqr_module_visible": "PASS",
+    "hero-link_ref_present": "PASS (…/?ref=XZ6SV49)",
+    "hero-whatsapp -> poster fmt=png with non-empty caption": "PASS (caption len=294)",
+    "hero-whatsapp opens wa popup": "PASS (api.whatsapp.com/send)",
+    "hero-share opens share-modal": "PASS",
+    "hero-share -> poster fmt=png with non-empty caption (shareMessage embedded)": "PASS",
+    "dl-png -> poster fmt=png with caption= EMPTY": "PASS",
+    "dl-pdf -> poster fmt=pdf with caption= EMPTY": "PASS",
+    "no red-box / no console errors": "PASS"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "cosmetic": [
+      {"component": "MerchantScanQr.defaultWaMsg (Expo web build)", "issue": "Waving-hand emoji \\u{1F44B} in defaultWaMsg is transmitted as U+FFFD (%EF%BF%BD) in the wa.me/send popup URL. Pre-existing (documented in iteration_104), not a regression from this change. Booking link + rest of caption arrive intact. Cosmetic only."}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_qr_poster_caption_iter105.py",
+    "/app/test_reports/pytest/iter105_caption.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "qr_poster_service.build_svg: height correctly derived from caption strip (total_h = H + strip_h) and rendered by render() via regex — clean and safe for pdf too.",
+    "_strip_emoji + _caption_lines properly handle multi-line captions incl. https link paragraphs (bold link line) and truncate to 14 lines; safe from renderer crashes.",
+    "route: caption[:600] server-side truncation is defensive — matches spec.",
+    "posterActions.canShareWithCaption() returns !!navigator.canShare on web — in headless (no canShare) the caption is embedded via the caption= query param. Verified empirically that both hero-share and hero-whatsapp send NON-EMPTY caption while dl-png/dl-pdf send caption= EMPTY, exactly as spec'd.",
+    "shareWith() correctly passes `captionEmbedded: embed` down to sharePosterFile so the two-step share on native Expo Go is skipped when caption already lives in the image."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_merchant_qr_poster_caption_iter105.py (new)"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (9/9)"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456 (backend). Expo web: demo-merchant tile.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend pytest: EXPO_PUBLIC_BACKEND_URL or REACT_APP_BACKEND_URL must be set (conftest raises if REACT_APP_BACKEND_URL missing). Frontend flow: Expo tunnel https://bpo56qm-anonymous-8081.exp.direct → onboard-skip → skip-notifications-button → demo-merchant → tab-scanqr. Native (Expo Go) two-step share still NOT exercisable in headless; the caption-embedded single-image path on web IS covered here and works.",
+  "rca of the issue": "N/A — no bugs."
+}

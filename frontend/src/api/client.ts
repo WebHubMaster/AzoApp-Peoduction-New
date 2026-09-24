@@ -18,6 +18,9 @@ export const TOKEN_KEY = "azo_token";
  */
 export function mediaUrl(u?: string | null): string | undefined {
   if (!u) return undefined;
+  // Local / inline URIs must pass through untouched — prefixing them corrupts the
+  // source (e.g. a base64 profile photo or a freshly-picked file:// image).
+  if (/^(data:|blob:|file:|content:|asset:)/i.test(u)) return u;
   if (/^https?:\/\//i.test(u)) {
     // Android 15+ blocks cleartext http (network security policy) → every http
     // image silently fails to load. Our backend serves https, so upgrade any

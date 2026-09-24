@@ -15,6 +15,16 @@ async def qr_scan(data: dict, request: Request):
     return await mqs.log_scan(data.get("code"), ip, data.get("source", "qr"))
 
 
+@router.get("/qr/share-page")
+async def qr_share_page(code: str = "", link: str = "", name: str = "", primary: str = "", secondary: str = "",
+                        logo: str = "", site: str = "", trust: str = "Trusted Home Services", caption: str = "",
+                        channel: str = "system"):
+    """Public: browser page that shares poster image + caption via the Web Share API (used by Expo Go)."""
+    from services import qr_share_page_service as sps
+    return await sps.share_page(code=code, link=link, name=name, primary=primary, secondary=secondary, logo=logo,
+                                site=site, trust=trust, caption=caption[:600], channel=channel)
+
+
 @router.get("/dashboard")
 async def dashboard(user=Depends(require_role("merchant"))):
     return await c.merchant_dashboard(user)
@@ -176,14 +186,15 @@ async def get_poster_logo(user=Depends(M)):
 
 
 @router.post("/poster-logo")
-async def upload_poster_logo(file: UploadFile = File(...), user=Depends(M)):
+async def upload_poster_logo(request: Request, file: UploadFile = File(...), user=Depends(M)):
     from services import merchant_ops_service as ops
     from services import storage_service
     raw = await file.read()
     try:
         res = await storage_service.save_document(raw, file.content_type or "",
                                                   file.filename or "",
-                                                  folder=storage_service.entity_folder("merchants", user, "branding"))
+                                                  folder=storage_service.entity_folder("merchants", user, "branding"),
+                                                  base_hint=storage_service.request_base(request))
     except ValueError as e:
         raise HTTPException(400, str(e))
     except Exception:  # noqa: BLE001

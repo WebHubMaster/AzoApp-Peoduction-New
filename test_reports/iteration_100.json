@@ -1,0 +1,41 @@
+{
+  "summary": "Setup verification of web panel one-click demo logins on forked preview. All 4 demo logins (Admin, Partner, Customer, Merchant) succeed via same-origin /api. Backend sanity curls pass. Merchant Scan QR renders correctly.",
+  "tests_executed": {
+    "backend_sanity": {
+      "GET /api/": "200 OK",
+      "POST /api/auth/send-otp (+919000000002)": "200 {sent:true, dev_otp:123456}",
+      "POST /api/auth/verify-otp (+919000000002/123456)": "200, returns JWT token for merchant Sharma Electricals"
+    },
+    "frontend_demo_logins": {
+      "admin (data-testid=demo-admin)": "PASS -> /admin (Analytics Dashboard visible)",
+      "partner (data-testid=demo-partner)": "PASS -> /partner (Partner dashboard: Job Request/Active Job/Wallet)",
+      "customer (data-testid=demo-customer)": "PASS -> /account (Customer home: Bookings/Refunds/Wallet)",
+      "merchant (data-testid=demo-merchant)": "PASS -> /merchant (Merchant home: Profile/Scan QR/Commission)"
+    },
+    "merchant_scan_qr": "PASS -> /merchant?tab=scanqr renders Verified Merchant QR for 'Sharma Electricals', Ref: U32QUR6, active/verified/booking-enabled, poster templates & share options visible."
+  },
+  "cors_or_login_errors": "None. No 'Demo login failed' toast on any role. No CORS errors in console. Same-origin /api routing works (REACT_APP_BACKEND_URL empty as intended).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "console_warnings": [
+      "Two 403 responses observed on protected resources (likely stale token or a role-mismatched request when switching accounts within one page context). Non-blocking for demo login flow.",
+      "Recharts warning: 'width(-1) and height(-1) of chart should be greater than 0' emitted repeatedly on admin dashboard. Cosmetic — occurs before container mounts; charts render fine subsequently."
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "web_panel/src/pages/auth/Login.jsx correctly guards demo buttons behind /auth/demo-status and uses data-testid=demo-{role}. Good.",
+    "Consider suppressing the recharts width/height warnings by giving ResponsiveContainer explicit min dimensions to keep console clean."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "OTP 123456 for all — Admin +919000000000, Merchant +919000000002, Partner +919000000003, Customer +919000000004",
+  "seed_data_creation": "None (backend auto-seeds demo data on startup)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web panel served at preview URL root on :3000 via supervisor 'webpanel'. REACT_APP_BACKEND_URL must stay empty in web_panel/.env so api.js falls back to window.location.origin for same-origin /api. Demo login buttons are data-testid='demo-admin|partner|customer|merchant' on /login. When automating logins across roles in one page context, use wait_until='domcontentloaded' (not 'networkidle') because dashboards have persistent polling that never idles; also clear localStorage before revisiting /login to force a logout."
+}

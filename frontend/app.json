@@ -79,6 +79,13 @@
       "./plugins/withJobRingAndroid.js",
       "./plugins/withShareQueries.js",
       [
+        "react-native-share",
+        {
+          "ios": ["whatsapp"],
+          "android": ["com.whatsapp", "com.whatsapp.w4b"]
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",

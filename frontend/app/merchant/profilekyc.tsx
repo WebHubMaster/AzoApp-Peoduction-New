@@ -138,7 +138,7 @@ export default function MerchantProfileKyc() {
   if (!loaded) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <AppHeader title="Profile & KYC" back variant="gradient" testID="merchant-profilekyc-header" />
+        <AppHeader title="Profile & KYC" back embedded variant="gradient" testID="merchant-profilekyc-header" />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={P[400]} /></View>
       </View>
     );
@@ -149,7 +149,7 @@ export default function MerchantProfileKyc() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Profile & KYC" back variant="gradient" testID="merchant-profilekyc-header" />
+      <AppHeader title="Profile & KYC" back embedded variant="gradient" testID="merchant-profilekyc-header" />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120, gap: spacing.md }}
         showsVerticalScrollIndicator={false}

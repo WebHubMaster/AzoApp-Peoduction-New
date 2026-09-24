@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useTheme, radius } from "@/src/theme";
+import { LinearGradient } from "expo-linear-gradient";
 import { Icon } from "@/src/components/Icon";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
@@ -19,7 +20,7 @@ import { useToast } from "@/src/components/Toast";
  * left and NotificationBell · ThemeToggle · divider · ProfileChip on the right.
  * Mirrors PanelLayout.jsx <header> (mobile) 1:1.
  */
-export function AppShellHeader({ profileRoute }: { profileRoute: string }) {
+export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profileRoute: string; crumbLabel?: string; panelTitle?: string }) {
   const { colors, mode, toggleMode } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -67,6 +68,17 @@ export function AppShellHeader({ profileRoute }: { profileRoute: string }) {
         <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }} testID="app-brand">
           {logo ? (
             <Image source={{ uri: mediaUrl(logo) }} style={{ height: 40, width: 150 }} contentFit="contain" contentPosition="left" />
+          ) : crumbLabel ? (
+            /* Web PanelLayout appMode brand: initial square + page crumb + panel title */
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <LinearGradient colors={[colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.3)", elevation: 3 }}>
+                <Text style={{ color: "#fff", fontSize: 16, fontWeight: "900", fontFamily: "PublicSans-ExtraBold" }}>{(brand.branding.site_name || "A")[0]}</Text>
+              </LinearGradient>
+              <View style={{ minWidth: 0 }}>
+                <Text style={{ color: colors.text, fontSize: 14, fontWeight: "800", fontFamily: "PublicSans-ExtraBold", lineHeight: 17 }} numberOfLines={1}>{crumbLabel}</Text>
+                <Text style={{ color: colors.textMuted, fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 1 }} numberOfLines={1}>{panelTitle || ""}</Text>
+              </View>
+            </View>
           ) : (
             <View>
               <Text style={{ color: colors.primary, fontSize: 24, fontWeight: "900", letterSpacing: -0.5, lineHeight: 28 }} numberOfLines={1}>

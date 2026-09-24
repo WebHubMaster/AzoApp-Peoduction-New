@@ -1,0 +1,20 @@
+{
+  "summary": "Full backend + frontend regression of Merchant Scan QR module (mobile Expo web). Backend: 8/8 pytest checks passed (auth OTP, /merchant/my-code, GET/PUT /merchant/panel/qr/config with persistence roundtrip, GET /merchant/panel/qr/analytics for 7d/30d/90d/year, restore to classic_blue). Frontend: onboarding→demo-merchant→tab-scanqr flow works, /merchant/scanqr renders with app-shell-header, hero card (Sharma Electricals, Trusted Home Services, hero-link contains /?ref=U32QUR6, Ref chip, Active/Verified/Booking Enabled chips, Share + WhatsApp buttons). Poster builder Preview/Customize tabs, zoom in/out/fit, PNG and JPG downloads via expect_download produce azoapp-poster-U32QUR6.png / .jpg. Customize tab shows all templates, colour swatches, logo-managed card, show-logo/show-tagline checkboxes, reset-poster. No Business Name/Phone inputs (per spec). Selecting tpl-royal_purple recolours poster; toggling show-tagline removes 'Trusted Home Services' from poster; changes auto-persist to backend; reset-poster restores classic_blue (verified via GET /qr/config). Analytics range pills switch and re-query, chart SVG renders. Share fallback modal opens with all 7 sub-selectors, share-message contains link exactly once, share-copy shows 'Link copied successfully' toast, share-close dismisses. sticky-bar absent (as required); merchant-bottom-nav still present. Web-panel 1:1 parity looks good.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_scanqr_iter98.py",
+    "/app/test_reports/pytest/scanqr_iter98.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Not blocking: dl-pdf and dl-print rely on window.print for web (per spec); native PDF handled via expo-print. dl-print not exercised to avoid hanging headless browser — main agent should smoke-test manually if needed."
+  ],
+  "updated_files": ["/app/backend/tests/test_merchant_scanqr_iter98.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Merchant demo: +919000000002 / OTP 123456 (merchant_code U32QUR6)",
+  "seed_data_creation": "None (used existing demo merchant). PUT /qr/config exercised then reset to classic_blue.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "backend_test file at /app/backend/tests/test_merchant_scanqr_iter98.py. Run with REACT_APP_BACKEND_URL env. Frontend flow: onboard-skip → skip-notifications-button → demo-merchant → tab-scanqr. All Scan QR elements have data-testid. dl-print skipped (window.print would hang headless)."
+}

@@ -18,7 +18,7 @@ export default function MerchantReminders() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Service Reminders" back subtitle={`${items.length} due`} variant="gradient" testID="merchant-reminders-header" />
+      <AppHeader title="Service Reminders" back embedded subtitle={`${items.length} due`} variant="gradient" testID="merchant-reminders-header" />
       {isLoading ? (
         <View style={{ padding: spacing.lg, gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View>
       ) : (

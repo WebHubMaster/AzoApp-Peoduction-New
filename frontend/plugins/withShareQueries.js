@@ -40,6 +40,7 @@ module.exports = function withShareQueries(config) {
     };
     addIntent("android.intent.action.SEND", "application/pdf");
     addIntent("android.intent.action.VIEW", "application/pdf");
+    addIntent("android.intent.action.SEND", "image/*");
 
     return cfg;
   });

@@ -1,0 +1,55 @@
+{
+  "summary": "Iter 102 backend + frontend regression of new server-rendered QR poster endpoint (/api/merchant/panel/qr/poster) and merchant QR attribution flow. 9/9 backend pytest cases pass and all Scan-QR frontend interactions (dl-png/jpg/pdf/print + hero-share modal + share-copy) hit the new poster endpoint and return 200. QR scan increments analytics and a customer booking with merchant_ref_code is attributed to the merchant.",
+  "backend_checks": {
+    "auth (send-otp/verify-otp +919000000002 / +919000000004)": "200",
+    "GET /api/merchant/my-code": "200 -> merchant_code=XZ6SV49 (Sharma Electricals)",
+    "GET /api/merchant/panel/qr/poster?fmt=png (merchant token)": "200, image/png, 1080x1350, size >10KB, Content-Disposition azoapp-poster-XZ6SV49.png",
+    "GET /api/merchant/panel/qr/poster?fmt=jpg": "200, image/jpeg, size >10KB, filename azoapp-poster-XZ6SV49.jpg",
+    "GET /api/merchant/panel/qr/poster?fmt=pdf": "200, application/pdf, %PDF header, filename azoapp-poster-XZ6SV49.pdf",
+    "GET /api/merchant/panel/qr/poster (unauthenticated)": "401",
+    "GET /api/merchant/panel/qr/poster (customer +919000000004)": "403",
+    "GET poster with foreign link (?link=https://evil.example.com/?ref=XXXXXXX)": "200 - server rebuilds link with own merchant code",
+    "GET poster with fmt=bogus": "200 image/png (fallback to png)",
+    "POST /api/merchant/qr-scan {code, source:qr} (public)": "200 {ok:true}",
+    "GET /api/merchant/panel/qr/analytics?range=30d": "200 scans >= 1",
+    "POST /api/bookings/grouped with merchant_ref_code (customer)": "200, booking.merchant_id == merchant.user.id (attribution stamped)"
+  },
+  "frontend_checks": {
+    "onboard-skip / skip-notifications / demo-merchant -> tab-scanqr flow": "PASS",
+    "hero-link": "PASS - text = https://profile-kyc-panel.preview.emergentagent.com/?ref=XZ6SV49",
+    "poster-preview element": "PRESENT",
+    "dl-png": "PASS - GET /api/merchant/panel/qr/poster?fmt=png&link=&name=Sharma+Electricals&primary=%230D47A1&site=AzoApp&trust=Trusted+Home+Services -> 200",
+    "dl-jpg": "PASS - fmt=jpg -> 200",
+    "dl-pdf": "PASS - fmt=pdf -> 200",
+    "dl-print": "PASS - fmt=png -> 200 (print dialog attempt; headless browser may not surface print UI but no 'Print failed' toast)",
+    "hero-share": "PASS - share-modal opens (navigator.share fallback path)",
+    "share-copy": "PASS - toast 'Link copied successfully'",
+    "console errors": "None (only expected RN-web warnings: useNativeDriver JS fallback, pointerEvents deprecation, expo-notifications web listener no-op)"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": [], "console_warnings": [
+    "Animated useNativeDriver not supported on web (RN-web expected)",
+    "props.pointerEvents deprecated (RN-web upstream)",
+    "expo-notifications web listener no-op (expected)"
+  ]},
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_qr_poster_iter102.py",
+    "/app/test_reports/pytest/iter102.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "qr_poster_service.py cleanly renders SVG->PNG/JPG/PDF via cairosvg; segno for QR path; fonts loaded via a private fontconfig. Uses asyncio.to_thread to avoid blocking. Good.",
+    "Route handler at merchant_panel_routes.py:qr_poster correctly re-injects merchant_code into the link if caller passes a foreign one, protecting attribution.",
+    "Poster endpoint mime map cannot KeyError because fmt is normalised to png/jpg/pdf inside render_poster().",
+    "Content-Disposition is 'inline' — good for browser preview; download filename still respected by the front-end's a[download] anchor (posterActions.ts webDownload).",
+    "Merchant role check enforced via require_role('merchant') and mrs.assert_merchant_approved – customer correctly gets 403, unauth 401."
+  ],
+  "updated_files": ["/app/backend/tests/test_merchant_qr_poster_iter102.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456 (code XZ6SV49). Customer +919000000004 / 123456.",
+  "seed_data_creation": "1 test booking created via customer with merchant_ref_code=XZ6SV49 (attribution verification only, not settled).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview base URL is https://profile-kyc-panel.preview.emergentagent.com. Tests at /app/backend/tests/test_merchant_qr_poster_iter102.py require REACT_APP_BACKEND_URL env var (see conftest.py). Frontend served by Expo Web on same host; merchant demo login path: onboard-skip -> skip-notifications-button -> demo-merchant -> tab-scanqr. All Scan-QR interactive elements (hero-link, hero-share, hero-whatsapp, poster-preview, dl-png, dl-jpg, dl-pdf, dl-print, share-modal, share-copy) verified with data-testid. Server-rendered poster pipeline replaces older view-shot pipeline and works end-to-end.",
+  "rca of the issue": "N/A - no bugs found."
+}

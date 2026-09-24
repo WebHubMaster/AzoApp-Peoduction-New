@@ -16,7 +16,7 @@ export default function MerchantAnalytics() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Analytics" back subtitle={data?.range ? `Last ${data.range.days} days` : undefined} variant="gradient" testID="merchant-analytics-header" />
+      <AppHeader title="Analytics" back embedded subtitle={data?.range ? `Last ${data.range.days} days` : undefined} variant="gradient" testID="merchant-analytics-header" />
       <ScreenScroll>
         {isLoading ? <><CardSkeleton /><CardSkeleton /></> : (
           <>

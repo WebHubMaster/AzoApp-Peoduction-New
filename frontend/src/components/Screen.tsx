@@ -14,6 +14,7 @@ export function AppHeader({
   back,
   right,
   variant = "plain",
+  embedded = false,
   testID,
 }: {
   title: string;
@@ -21,6 +22,7 @@ export function AppHeader({
   back?: boolean;
   right?: React.ReactNode;
   variant?: "plain" | "gradient";
+  embedded?: boolean;
   testID?: string;
 }) {
   const insets = useSafeAreaInsets();
@@ -31,7 +33,7 @@ export function AppHeader({
   const subFg = gradient ? "rgba(255,255,255,0.85)" : colors.textMuted;
 
   const inner = (
-    <View style={{ paddingTop: insets.top + 6, paddingBottom: 12, paddingHorizontal: spacing.lg }}>
+    <View style={{ paddingTop: (embedded ? 12 : insets.top + 6), paddingBottom: 12, paddingHorizontal: spacing.lg }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
         {back ? (
           <Pressable
@@ -61,7 +63,7 @@ export function AppHeader({
   if (gradient) {
     return (
       <>
-        <StatusBar style="light" />
+        {!embedded ? <StatusBar style="light" /> : null}
         <LinearGradient colors={[colors.primary, colors.primaryHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
           {inner}
         </LinearGradient>
@@ -70,7 +72,7 @@ export function AppHeader({
   }
   return (
     <>
-      <StatusBar style={colors.text === "#0F172A" ? "dark" : "light"} />
+      {!embedded ? <StatusBar style={colors.text === "#0F172A" ? "dark" : "light"} /> : null}
       <View style={{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}>{inner}</View>
     </>
   );

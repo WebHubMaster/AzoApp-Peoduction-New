@@ -45,7 +45,7 @@ export default function MerchantPayouts() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Payouts & Bank" back subtitle="Verify KYC to withdraw commission" variant="gradient" testID="merchant-payouts-header" />
+      <AppHeader title="Payouts & Bank" back embedded subtitle="Verify KYC to withdraw commission" variant="gradient" testID="merchant-payouts-header" />
       <ScreenScroll refreshing={elig.isFetching} onRefresh={refresh} contentStyle={{ paddingBottom: insets.bottom + spacing.xl }}>
         {elig.isLoading ? <CardSkeleton /> : (
           <Card>

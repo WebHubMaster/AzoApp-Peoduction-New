@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://azo-app-staging.preview.emergentagent.com/api"
+BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

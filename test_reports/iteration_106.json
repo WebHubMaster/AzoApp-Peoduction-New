@@ -1,0 +1,55 @@
+{
+  "summary": "Iter 106: Tested new public endpoint GET /api/merchant/qr/share-page and the mobile-viewport browser render of that share page. Backend 4/5 pytest (public share-page endpoint): valid code + channel=whatsapp returns 200 text/html with 'no-store' in Cache-Control, contains navigator.share, 'Share on WhatsApp', inline <img> with data:image/png;base64 poster, and the caption text incl. https link; channel=system swaps button label to 'Share poster + message'; invalid code=BADCODE returns 404; link without ref=<code> is transparently rebuilt server-side and still returns 200. **1 FAIL — Real XSS/serialisation bug**: caption containing '</script>' is emitted verbatim inside the CAP JS string literal (json.dumps does NOT escape '</'), which prematurely closes the outer <script> block. Browser mobile-viewport render (420x800) of the share-page URL: poster renders, caption bubble shows message with https link rendered as <a>, #go button 'Share on WhatsApp' visible; clicking #go (headless — no navigator.canShare) triggers the fallback download of the poster PNG and navigates to https://wa.me/?text=<encoded caption> (browser followed 301 → api.whatsapp.com/send), zero JS console errors (only unrelated Permissions-Policy: 'bluetooth' warning from WhatsApp's landing page). Regression: existing merchant poster endpoint /api/merchant/panel/qr/poster still returns 200 for fmt=png (with & without caption) and fmt=pdf (spot-check with valid merchant JWT). Expo-web tunnel flow was already fully exercised in iter105 and is not re-run here.",
+  "test_matrix_backend": {
+    "share_page_whatsapp_valid_code_200_html_no_store_navigatorshare_inline_poster_caption": "PASS",
+    "share_page_system_channel_button_share_poster_plus_message": "PASS",
+    "share_page_invalid_code_404": "PASS",
+    "share_page_caption_with_script_safely_serialised_in_CAP_JS_literal": "FAIL — CRITICAL (see backend_issues.critical)",
+    "share_page_link_without_ref_rebuilt_server_side_200": "PASS",
+    "regression_merchant_panel_qr_poster_png_no_caption_200": "PASS",
+    "regression_merchant_panel_qr_poster_png_with_caption_200": "PASS",
+    "regression_merchant_panel_qr_poster_pdf_200": "PASS"
+  },
+  "test_matrix_frontend": {
+    "share_page_mobile_420x800_poster_data_url_visible": "PASS",
+    "share_page_caption_bubble_shows_text_and_https_link_as_anchor": "PASS",
+    "share_page_go_button_visible_text_matches_channel": "PASS (Share on WhatsApp)",
+    "share_page_click_go_headless_fallback_downloads_png_and_navigates_wa_me": "PASS (redirected to api.whatsapp.com/send/?text=…)",
+    "share_page_no_js_console_errors": "PASS (only unrelated third-party permissions-policy warning)"
+  },
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "GET /api/merchant/qr/share-page",
+        "issue": "Caption is embedded into the inline <script> block as `const CAP=<json.dumps(caption)>` but Python's json.dumps does NOT escape the sequence '</' — so a caption containing '</script>' (or an attacker-supplied merchant name / caption) will prematurely close the outer <script> tag and inject arbitrary HTML into the page. Reproduced with `caption=<script>alert(1)</script>hi` — the response body contains literal `const CAP=\"<script>alert(1)</script>hi\", TITLE=…` and the browser HTML parser terminates the <script> at the first `</script>`. Because #cap is later populated via innerHTML with HTML-escaping, the *display* is safe, but the *page structure itself* is broken — this is a stored/reflected XSS surface on a public, un-auth'd endpoint that accepts arbitrary caption= query param.",
+        "priority": "CRITICAL",
+        "fix": "In services/qr_share_page_service.py, replace `json.dumps(caption or \"\")` (and the same for TITLE / FILE / WA) with a variant that escapes </, <, > for safe inlining inside <script>. Minimal fix: `json.dumps(x).replace('</', '<\\\\/')` — or use `json.dumps(x, ensure_ascii=True).replace('<', '\\\\u003c').replace('>', '\\\\u003e').replace('&', '\\\\u0026')`."
+      }
+    ],
+    "minor": []
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_qr_share_page_iter106.py",
+    "/app/test_reports/pytest/iter106_share_page.xml"
+  ],
+  "action_items": [
+    "Fix reflected-XSS / script-breakout in qr_share_page_service.share_page: escape '</' (and ideally <, >, & as \\u escapes) inside the CAP / TITLE / FILE / WA JSON literals that are inlined into the <script> block. Endpoint is public (no auth) so this is high-severity."
+  ],
+  "critical_code_review_comments": [
+    "services/qr_share_page_service.py L49: `const CAP={json.dumps(caption or \"\")}, TITLE={json.dumps(name)}, FILE={json.dumps(file_name)}, WA={json.dumps(wa)}` — json.dumps output is safe for JSON but NOT for HTML <script> context. Add a `_js(s)` helper that does json.dumps then .replace('</','<\\\\/').replace('<!--','<\\\\u003c!--') before inlining.",
+    "services/qr_share_page_service.py L19: `if not link or f\"ref={code}\" not in link:` correctly rebuilds link server-side — matches spec.",
+    "services/qr_share_page_service.py L26: HEX6 regex validates primary color before injecting into CSS var — good (prevents CSS injection via primary=).",
+    "services/qr_share_page_service.py: `logo`, `site`, `trust`, `name` query params are passed into qr_poster_service.render_poster which renders them into an SVG. Confirm those are XML/SVG-escaped there (not verified in this iteration; note for follow-up)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_merchant_qr_share_page_iter106.py (new)"
+  ],
+  "success_rate": {"backend": "80% (4/5 share-page + 3/3 regression = 7/8)", "frontend": "100% (5/5 mobile-viewport share-page render/interaction)"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456. Valid code=XZ6SV49.",
+  "seed_data_creation": "None.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The share-page endpoint is unauthenticated. After main agent fixes the </script> escape, re-run /app/backend/tests/test_merchant_qr_share_page_iter106.py. The test asserts the CAP JS literal (regex `const CAP=(.*?), TITLE=`) contains no raw '</script>'. Also worth adding: caption='</script><img src=x onerror=alert(1)>' end-to-end via a real browser to confirm no script execution outside the CAP literal after the fix. Native Expo Go two-step share (canShareWithCaption() true path) still cannot be exercised in headless — only web fallback verified.",
+  "rca of the issue": "share_page() builds a full <script>…const CAP={json.dumps(caption)}…</script> HTML page. Python's json.dumps produces valid JSON, but JSON allows the two-character sequence '</' unchanged. When that JSON literal is inlined inside an HTML <script> element, the HTML parser (per the HTML spec's script-data state) terminates the <script> element at the first '</script' sequence in the raw source — regardless of JSON quoting. Consequence: attacker-controlled caption (public endpoint, no auth) can inject arbitrary HTML after the closing </script>. The runtime HTML-escaping applied by capEl.innerHTML=CAP.replace(...) only protects the *display* text inside #cap; it does not protect the source-level HTML parsing. Mitigation: escape '</' → '<\\\\/' (and '<!--', '<script') in every json.dumps result inlined into <script>. Two-line fix in qr_share_page_service.py."
+}

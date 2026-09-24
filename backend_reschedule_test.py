@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 # Configuration
-BASE_URL = "https://azo-app-staging.preview.emergentagent.com/api"
+BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

@@ -1,0 +1,27 @@
+{
+  "summary": "Verified image preview + absolute URL fix across all upload endpoints and the merchant profile UI. All 5 backend tests pass (merchant KYC, poster-logo, partner KYC, support upload, and profile-photo data: URL preservation). Every upload endpoint now returns an ABSOLUTE https URL that serves a valid image (200 + image/*). Frontend: Owner Live Photo (live-photo-capture) and Shop Verification Photo (gps-photo-capture) render correctly on /merchant/profilekyc for seeded merchant Sharma Electricals. The persistent top-bar profile-chip-photo renders the data:image PNG stored via PUT /api/auth/profile (mediaUrl passthrough working).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Merchant Profile & KYC - Shop step (web)", "issues": ["'React Native WebView does not support this platform.' text appears in red on the address map area — this is a known RN-web artifact per problem statement, not a bug."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_absolute_media_urls_iter110.py",
+    "/app/test_reports/pytest/iter110_media.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "storage_service._put uses REACT_APP_BACKEND_URL env OR base_hint fallback — good; verified request_base(request) is passed to all 4 upload routes (merchant_reg, partner_reg, support, merchant poster-logo).",
+    "mediaUrl() passthrough for data:/blob:/file:/content: verified — chip photo rendered stored data URL 1:1."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "100%"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456 (dev fixed); Partner +919000555001 / OTP 123456",
+  "seed_data_creation": "Test created partner user +919000555001 (role=partner) via create_if_new during login.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iter110 verified image PREVIEW fix. All backend upload endpoints (/api/merchant/registration/upload, /api/merchant/poster-logo, /api/partner/registration/upload, /api/support/upload) return absolute https URLs. Profile photo data: URLs are preserved unchanged by PUT /api/auth/profile. Frontend Owner Live Photo + Shop GPS Photo render on /merchant/profilekyc for seeded approved merchant Sharma Electricals. Backend tests must run with REACT_APP_BACKEND_URL env exported (conftest requires it)."
+}

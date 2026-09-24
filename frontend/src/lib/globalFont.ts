@@ -71,17 +71,27 @@ export function installGlobalFont() {
     return;
   }
 
-  for (const Comp of [Text, TextInput] as any[]) {
-    const orig = Comp.render;
-    if (typeof orig !== "function") continue;
-    Comp.render = function (...args: any[]) {
-      const el = orig.apply(this, args);
-      if (!el) return el;
-      const style = el.props?.style;
-      const flat = StyleSheet.flatten(style) || {};
-      if (flat.fontFamily) return el; // don't override explicit families (icons)
-      const fontFamily = familyFor(flat);
-      return React.cloneElement(el, { style: { ...flat, fontFamily } });
+  // RN ≥0.80: <Text>/<TextInput> are plain function components (React 19 ref-as-prop),
+  // so there is no `.render` to patch. Instead we wrap them and re-export the wrapper
+  // through react-native's lazy module getters — every `import { Text }` resolves to
+  // the wrapper at render time, so the whole app picks the right Public Sans face.
+  const RN = require("react-native");
+  const wrap = (Orig: any, name: string) => {
+    const Wrapped = (props: any) => {
+      const flat = StyleSheet.flatten(props.style) || {};
+      if (flat.fontFamily) return React.createElement(Orig, props);
+      // weight is baked into the font file → drop fontWeight so Android never applies faux-bold
+      const { fontWeight: _w, ...rest } = flat;
+      return React.createElement(Orig, { ...props, style: { ...rest, fontFamily: familyFor(flat) } });
     };
-  }
+    Object.assign(Wrapped, Orig); // keep statics (TextInput.State, propTypes…)
+    (Wrapped as any).displayName = name;
+    return Wrapped;
+  };
+  const PatchedText = wrap(Text, "Text");
+  const PatchedInput = wrap(TextInput, "TextInput");
+  try {
+    Object.defineProperty(RN, "Text", { get: () => PatchedText, configurable: true, enumerable: true });
+    Object.defineProperty(RN, "TextInput", { get: () => PatchedInput, configurable: true, enumerable: true });
+  } catch { /* non-configurable exports — leave defaults */ }
 }
