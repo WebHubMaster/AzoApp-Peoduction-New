@@ -9,7 +9,7 @@ import time
 import sys
 
 # Configuration - read from frontend/.env
-BASE_URL = "https://role-based-ui-9.preview.emergentagent.com/api"
+BASE_URL = "https://azo-app-staging.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

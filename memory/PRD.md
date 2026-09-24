@@ -72,7 +72,7 @@ Native-first Expo app for Partners, Merchants and (now) field QR Agents. Web pre
   crash-looped on `KeyError: 'MONGO_URL'` (curl :8001 → 000), and the app had no backend URL.
 - Fix: recreated `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CACHE/FCM Fernet keys,
   CORS_ORIGINS, APP_URL, EMERGENT_LLM_KEY) and `frontend/.env`
-  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://role-based-ui-9.preview.emergentagent.com,
+  (EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = https://azo-app-staging.preview.emergentagent.com,
   aligned to the Expo packager proxy host). Backend now seeds ("AzoApp seed complete") and returns 200.
 - Verified (curl): partner login (+919000000003 / OTP 123456) → 9 invoices; GET /invoices/{id}
   role_earning (rate 60, base 2000, commission 1200, net 1200); /view HTML 200; /pdf 200 (14KB).
