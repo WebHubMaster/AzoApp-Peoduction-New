@@ -1,10 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, Linking, Platform } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, Linking, Platform, Alert } from "react-native";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
+import { oversizeMessage, assetSizeBytes } from "@/src/components/reg/Photo";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
 import { AppHeader, ScreenScroll } from "@/src/components/Screen";
@@ -24,6 +25,8 @@ async function pickImage(): Promise<string | null> {
   const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true, mediaTypes: ["images"] });
   if (res.canceled || !res.assets?.[0]?.base64) return null;
   const asset = res.assets[0];
+  const sizeMsg = oversizeMessage(assetSizeBytes(asset), "gallery");
+  if (sizeMsg) { Alert.alert("Image too large", sizeMsg); return null; }
   return `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`;
 }
 

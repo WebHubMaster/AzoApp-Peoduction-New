@@ -13,6 +13,7 @@ import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api, mediaUrl } from "@/src/api/client";
 import { AppShellHeader, StatusBadge } from "@/src/components/AppShell";
 import { Button } from "@/src/components/ui";
+import { oversizeMessage, assetSizeBytes } from "@/src/components/reg/Photo";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
@@ -573,6 +574,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
       const res = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true, cameraType: ImagePicker.CameraType.back });
       if (res.canceled || !res.assets?.[0]?.base64) return;
       const asset = res.assets[0];
+      const sizeMsg = oversizeMessage(assetSizeBytes(asset), "camera");
+      if (sizeMsg) { toast.error(sizeMsg); return; }
       await api.post(`/bookings/${b.id}/evidence`, { stage, images: [`data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`] });
       toast.success(`${stage === "before" ? "Before" : "After"} photo captured ✓`);
       onUpdate();

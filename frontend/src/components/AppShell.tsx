@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { oversizeMessage, assetSizeBytes } from "@/src/components/reg/Photo";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -175,6 +176,8 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
       const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.7, base64: true });
       if (res.canceled) return;
       const a = res.assets?.[0];
+      const sizeMsg = a ? oversizeMessage(assetSizeBytes(a), "gallery") : null;
+      if (sizeMsg) { toast.error(sizeMsg); return; }
       if (a?.base64) { setPhoto(`data:${a.mimeType || "image/jpeg"};base64,${a.base64}`); toast.info("Photo ready — don't forget to save."); }
     } catch { toast.error("Could not open the gallery. Please try again."); }
   };

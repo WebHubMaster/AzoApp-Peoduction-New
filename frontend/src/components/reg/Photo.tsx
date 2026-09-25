@@ -19,6 +19,28 @@ async function ensurePerm(kind: "camera" | "gallery"): Promise<boolean> {
   return p.granted;
 }
 
+/* ── Image size limits (applied everywhere) ──
+ * Live camera capture: max 5 MB · Gallery pick: max 3 MB. Checked on the picked
+ * asset (its real file size) before upload, and a clear message is shown if over. */
+export const MAX_CAMERA_BYTES = 5 * 1024 * 1024;
+export const MAX_GALLERY_BYTES = 3 * 1024 * 1024;
+
+export function assetSizeBytes(asset: any): number {
+  if (asset && typeof asset.fileSize === "number" && asset.fileSize > 0) return asset.fileSize;
+  if (asset && typeof asset.base64 === "string" && asset.base64) return Math.floor(asset.base64.length * 0.75);
+  return 0; // unknown → allow (backend still caps at its own max)
+}
+
+export function oversizeMessage(bytes: number, source: "camera" | "gallery"): string | null {
+  const max = source === "camera" ? MAX_CAMERA_BYTES : MAX_GALLERY_BYTES;
+  if (!bytes || bytes <= max) return null;
+  const mb = (bytes / (1024 * 1024)).toFixed(1);
+  const lim = source === "camera" ? "5 MB" : "3 MB";
+  const what = source === "camera" ? "Live photo" : "Gallery photo";
+  const action = source === "camera" ? "please retake a closer photo" : "please choose a smaller image";
+  return `${what} is too large (${mb} MB). Maximum allowed is ${lim} — ${action}.`;
+}
+
 export async function pickImage(source: "camera" | "gallery", facing: "front" | "back" = "back"): Promise<ImagePicker.ImagePickerAsset | null> {
   if (!(await ensurePerm(source))) throw new Error(source === "camera" ? "Camera permission denied. Please allow camera access and try again." : "Gallery permission denied. Please allow photo access and try again.");
   // Small delay after the permission grant so the native camera UI reliably launches
@@ -27,7 +49,12 @@ export async function pickImage(source: "camera" | "gallery", facing: "front" | 
   const res = source === "camera"
     ? await ImagePicker.launchCameraAsync({ quality: 0.85, cameraType: facing === "front" ? ImagePicker.CameraType.front : ImagePicker.CameraType.back })
     : await ImagePicker.launchImageLibraryAsync({ quality: 0.85, mediaTypes: ["images"] });
-  return res.canceled ? null : res.assets?.[0] || null;
+  const asset = res.canceled ? null : res.assets?.[0] || null;
+  if (asset) {
+    const msg = oversizeMessage(assetSizeBytes(asset), source);
+    if (msg) throw new Error(msg);
+  }
+  return asset;
 }
 
 const parseUploadError = (status: number, text: string) => {
