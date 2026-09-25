@@ -18,7 +18,7 @@ const TITLES: Record<string, string> = {
   "(merchant)": "Home", index: "Home", customers: "My Customers", wallet: "Wallet & Withdraw",
   profile: "Profile", profilekyc: "Profile & KYC", partners: "My Partners", network: "My Partners",
   commission: "Commission", bankkyc: "Bank & KYC", analytics: "Analytics", scanqr: "Scan QR",
-  payouts: "Payouts", reminders: "Reminders", register: "Register",
+  payouts: "Payouts", reminders: "Reminders", register: "Register", support: "Help & Support",
 };
 const SEEN_KEY = "azo_notif_seen";
 
