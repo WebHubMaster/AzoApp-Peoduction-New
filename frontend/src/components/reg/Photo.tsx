@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 import { File as FsFile, UploadType } from "expo-file-system";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Camera, RefreshCw, CheckCircle2, CameraOff, AlertTriangle, FileText, MapPin, Image as ImageIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { API_BASE, getToken, mediaUrl } from "@/src/api/client";
@@ -63,10 +64,49 @@ const parseUploadError = (status: number, text: string) => {
   return new Error(typeof d === "string" ? d : JSON.stringify(d));
 };
 
+/* Downscale + re-encode a picked photo on-device before upload. A 12MP camera JPEG is
+ * 3–5 MB; at 1600px/0.75 it is ~250–400 KB → 10x faster upload on mobile data, and the
+ * backend stores ≤1600px anyway so nothing visible is lost. Falls back to the original. */
+export async function shrinkForUpload(asset: ImagePicker.ImagePickerAsset, maxSide = 1600, quality = 0.75): Promise<ImagePicker.ImagePickerAsset> {
+  if (Platform.OS === "web" || !asset?.uri) return asset;
+  const w = asset.width || 0, h = asset.height || 0;
+  const big = Math.max(w, h);
+  const size = assetSizeBytes(asset);
+  if (big && big <= maxSide && size && size < 400 * 1024) return asset;
+  try {
+    const ctx = ImageManipulator.manipulate(asset.uri);
+    if (big > maxSide) ctx.resize(w >= h ? { width: maxSide } : { height: maxSide });
+    const ref = await ctx.renderAsync();
+    const out = await ref.saveAsync({ compress: quality, format: SaveFormat.JPEG });
+    ref.release?.();
+    return { ...asset, uri: out.uri, width: out.width, height: out.height, mimeType: "image/jpeg", fileSize: undefined, base64: undefined, fileName: (asset.fileName || `photo_${Date.now()}`).replace(/\.\w+$/, "") + ".jpg" };
+  } catch {
+    return asset;
+  }
+}
+
+/* Small data: URL (for JSON endpoints that accept an inline photo). Shrinks on-device
+ * first so the payload is ~50–150 KB instead of several MB. */
+export async function toSmallDataUrl(asset: ImagePicker.ImagePickerAsset, maxSide = 800, quality = 0.8): Promise<string | null> {
+  if (Platform.OS !== "web" && asset?.uri) {
+    try {
+      const w = asset.width || 0, h = asset.height || 0;
+      const ctx = ImageManipulator.manipulate(asset.uri);
+      if (Math.max(w, h) > maxSide) ctx.resize(w >= h ? { width: maxSide } : { height: maxSide });
+      const ref = await ctx.renderAsync();
+      const out = await ref.saveAsync({ compress: quality, format: SaveFormat.JPEG, base64: true });
+      ref.release?.();
+      if (out.base64) return `data:image/jpeg;base64,${out.base64}`;
+    } catch { /* fall through to the raw picker base64 */ }
+  }
+  return asset?.base64 ? `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}` : null;
+}
+
 /* Multipart upload — native uses expo-file-system File.upload (expo/fetch does not support {uri} parts). */
 export async function uploadAsset(base: string, docType: string, asset: ImagePicker.ImagePickerAsset, extra?: Record<string, string>): Promise<any> {
   const token = await getToken();
   const url = `${API_BASE}${base}/upload`;
+  asset = await shrinkForUpload(asset, 1800, 0.8);
   const mime = asset.mimeType || "image/jpeg";
   const params: Record<string, string> = { doc_type: docType };
   if (extra) Object.entries(extra).forEach(([k, v]) => { if (v) params[k] = v; });

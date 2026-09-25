@@ -13,7 +13,7 @@ import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api, mediaUrl } from "@/src/api/client";
 import { AppShellHeader, StatusBadge } from "@/src/components/AppShell";
 import { Button } from "@/src/components/ui";
-import { oversizeMessage, assetSizeBytes } from "@/src/components/reg/Photo";
+import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@/src/components/reg/Photo";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
@@ -490,8 +490,8 @@ function PhotoBlock({ title, items, onAdd, onRemove, uploading, testID }: { titl
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
           {items.map((u, i) => (
             <View key={u} style={{ width: "31%", aspectRatio: 1, borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: colors.border }}>
-              <Image source={{ uri: mediaUrl(u) }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
-              <Pressable testID={`${testID}-remove-${i}`} onPress={() => onRemove(u)} style={{ position: "absolute", top: 4, right: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" }}>
+              <Image source={{ uri: mediaUrl(u) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={u} transition={120} />
+              <Pressable testID={`${testID}-remove-${i}`} onPress={() => onRemove(u)} disabled={uploading} style={{ position: "absolute", top: 4, right: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" }}>
                 <Icon name="close" size={13} color="#fff" />
               </Pressable>
             </View>
@@ -571,15 +571,18 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
     try {
       // Delay works around an Android race where the camera UI fails to launch right after a grant.
       await new Promise((r) => setTimeout(r, 250));
-      const res = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true, cameraType: ImagePicker.CameraType.back });
-      if (res.canceled || !res.assets?.[0]?.base64) return;
+      // No base64: the frame is shrunk on-device and streamed as a multipart FILE. The
+      // server stores it in S3/disk and keeps only the URL in the booking (never inline data).
+      const res = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.back });
+      if (res.canceled || !res.assets?.[0]?.uri) return;
       const asset = res.assets[0];
       const sizeMsg = oversizeMessage(assetSizeBytes(asset), "camera");
       if (sizeMsg) { toast.error(sizeMsg); return; }
-      await api.post(`/bookings/${b.id}/evidence`, { stage, images: [`data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`] });
+      const small = await shrinkForUpload(asset, 1600, 0.75);
+      await uploadAsset(`/bookings/${b.id}/evidence`, "evidence", small, { stage });
       toast.success(`${stage === "before" ? "Before" : "After"} photo captured ✓`);
       onUpdate();
-    } catch (e: any) { toast.error(e?.detail || "Upload failed, please retake"); }
+    } catch (e: any) { toast.error(e?.detail || e?.message || "Upload failed, please retake"); }
     finally { setBusy(null); }
   };
   const removePhoto = async (stage: "before" | "after", url: string) => {

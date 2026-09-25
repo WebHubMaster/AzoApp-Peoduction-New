@@ -185,17 +185,40 @@ def _safe_compress(raw: bytes, content_type: str, max_side: int, quality: int = 
         raise ValueError("Corrupt or unsupported image. Please upload a valid JPG, PNG, GIF, WebP or SVG.") from e
 
 
+_CLIENTS: dict = {}
+
+
+def _client(conf: dict, *, timeouts=(5, 20)):
+    """Cached boto3 S3 client per credential set. Creating a client per request costs
+    ~50-150ms (credential/endpoint resolution) — reuse makes upload + proxy fast."""
+    import boto3
+    from botocore.config import Config as BotoConfig
+    key = (conf["key"], conf["bucket"], conf["region"])
+    c = _CLIENTS.get(key)
+    if c is None:
+        c = boto3.client(
+            "s3", region_name=conf["region"],
+            aws_access_key_id=conf["key"], aws_secret_access_key=conf["secret"],
+            config=BotoConfig(connect_timeout=timeouts[0], read_timeout=timeouts[1],
+                              retries={"max_attempts": 2}, max_pool_connections=32))
+        _CLIENTS[key] = c
+    return c
+
+
 async def _put(name: str, data: bytes, mime: str, base_hint: str = "") -> str:
     conf = await _s3_conf()
     if conf:
-        import boto3
+        import anyio
         from botocore.exceptions import ClientError, BotoCoreError
         key = _s3_key(conf, name)
+        client = _client(conf)
+
+        def _do():
+            client.put_object(Bucket=conf["bucket"], Key=key, Body=data, ContentType=mime,
+                              CacheControl="public, max-age=31536000, immutable")
         try:
-            client = boto3.client(
-                "s3", region_name=conf["region"],
-                aws_access_key_id=conf["key"], aws_secret_access_key=conf["secret"])
-            client.put_object(Bucket=conf["bucket"], Key=key, Body=data, ContentType=mime)
+            # Network I/O runs in a worker thread so the event loop keeps serving others.
+            await anyio.to_thread.run_sync(_do)
         except (ClientError, BotoCoreError) as e:
             raise ValueError(f"AWS S3 upload failed: {_s3_error_msg(e)}. Open Integration Center → AWS S3 → Test Connection to diagnose.")
         return _public_url(conf, key, base_hint)
@@ -222,7 +245,9 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
         name = f"{folder}/{uid}.svg"
         url = await _put(name, raw, "image/svg+xml", base_hint)
         return {"url": url, "size": len(raw), "name": name, "thumb_url": url}
-    data, ext, mime = _safe_compress(raw, content_type, max_side)
+    import anyio
+    # Pillow decode/resize/encode is CPU-bound — off the event loop.
+    data, ext, mime = await anyio.to_thread.run_sync(_safe_compress, raw, content_type, max_side)
     uid = uuid.uuid4().hex
     name = f"{folder}/{uid}.{ext}"
     url = await _put(name, data, mime, base_hint)
@@ -232,6 +257,23 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
     # web-optimized (compressed WebP), so `thumb_url` simply points at the same URL.
     # `thumb` is kept as a no-op arg for backwards compatibility with old call sites.
     return {"url": url, "size": len(data), "name": name, "thumb_url": url}
+
+
+async def materialize_data_url(value, folder: str, max_side: int = 1600, base_hint: str = ""):
+    """If `value` is an inline base64 `data:` image, store it as a real file and return
+    its URL; any other value is returned unchanged. Raises ValueError on bad data.
+    Inline base64 must never be persisted in Mongo documents (it bloats every read)."""
+    import base64 as _b64
+    if not isinstance(value, str) or not value.startswith("data:"):
+        return value
+    head, _, payload = value.partition(",")
+    ct = head[5:].split(";")[0].strip() or "image/jpeg"
+    try:
+        raw = _b64.b64decode(payload, validate=False)
+    except Exception as e:  # noqa: BLE001
+        raise ValueError("Invalid image data") from e
+    res = await save_image(raw, ct, folder=folder, max_side=max_side, base_hint=base_hint)
+    return res["url"]
 
 
 async def save_document(raw: bytes, content_type: str, filename: str = "",
@@ -469,13 +511,8 @@ async def migrate_local_to_s3() -> dict:
 
 def _sync_fetch(conf: dict, key: str):
     """Authenticated GetObject → (bytes, content_type) or None."""
-    import boto3
     from botocore.exceptions import ClientError, BotoCoreError
-    from botocore.config import Config as BotoConfig
-    client = boto3.client(
-        "s3", region_name=conf["region"],
-        aws_access_key_id=conf["key"], aws_secret_access_key=conf["secret"],
-        config=BotoConfig(connect_timeout=4, read_timeout=15, retries={"max_attempts": 1}))
+    client = _client(conf)
     try:
         obj = client.get_object(Bucket=conf["bucket"], Key=key)
         return obj["Body"].read(), (obj.get("ContentType") or "application/octet-stream")
@@ -491,6 +528,43 @@ async def fetch_s3_object(key: str):
         return None
     import anyio
     return await anyio.to_thread.run_sync(_sync_fetch, conf, key)
+
+
+async def migrate_inline_evidence(limit: int = 300) -> dict:
+    """One-time repair for legacy bookings whose evidence.before/after arrays hold inline
+    base64 `data:` images (stored by old mobile builds). Each is decoded, saved as a real
+    file (S3/local) and replaced by its URL — the booking documents shrink from MBs to
+    KBs so every list/poll/OTP response becomes fast. Idempotent; safe to re-run."""
+    import base64 as _b64
+    q = {"$or": [{"evidence.before": {"$elemMatch": {"$regex": "^data:"}}},
+                 {"evidence.after": {"$elemMatch": {"$regex": "^data:"}}}]}
+    rows = await db.bookings.find(q, {"_id": 0, "id": 1, "code": 1, "evidence": 1}).to_list(limit)
+    fixed = 0
+    failed = 0
+    for b in rows:
+        ev = b.get("evidence") or {}
+        new_ev = {}
+        try:
+            for stage in ("before", "after"):
+                out = []
+                for img in ev.get(stage) or []:
+                    s = (img or "").strip()
+                    if not s.startswith("data:"):
+                        out.append(s)
+                        continue
+                    head, _, payload = s.partition(",")
+                    ct = head[5:].split(";")[0].strip() or "image/jpeg"
+                    raw = _b64.b64decode(payload, validate=False)
+                    res = await save_image(raw, ct, folder=job_folder(b, None, stage), max_side=1600)
+                    out.append(res["url"])
+                new_ev[stage] = out
+            for k, v in ev.items():
+                new_ev.setdefault(k, v)
+            await db.bookings.update_one({"id": b["id"]}, {"$set": {"evidence": new_ev}})
+            fixed += 1
+        except Exception:  # noqa: BLE001 — one bad booking must not abort the batch
+            failed += 1
+    return {"scanned": len(rows), "fixed": fixed, "failed": failed}
 
 
 async def repair_s3_urls() -> int:

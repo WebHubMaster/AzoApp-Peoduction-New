@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { oversizeMessage, assetSizeBytes } from "@/src/components/reg/Photo";
+import { oversizeMessage, assetSizeBytes, toSmallDataUrl } from "@/src/components/reg/Photo";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
 import { AppHeader, ScreenScroll } from "@/src/components/Screen";
@@ -22,12 +22,12 @@ async function pickImage(): Promise<string | null> {
     if (!perm.granted && !perm.canAskAgain) { Linking.openSettings(); return null; }
     if (!perm.granted) return null;
   }
-  const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true, mediaTypes: ["images"] });
-  if (res.canceled || !res.assets?.[0]?.base64) return null;
+  const res = await ImagePicker.launchImageLibraryAsync({ quality: 0.8, base64: Platform.OS === "web", mediaTypes: ["images"] });
+  if (res.canceled || !res.assets?.[0]?.uri) return null;
   const asset = res.assets[0];
   const sizeMsg = oversizeMessage(assetSizeBytes(asset), "gallery");
   if (sizeMsg) { Alert.alert("Image too large", sizeMsg); return null; }
-  return `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`;
+  return await toSmallDataUrl(asset, 1600, 0.8);
 }
 
 export default function MerchantPayouts() {
