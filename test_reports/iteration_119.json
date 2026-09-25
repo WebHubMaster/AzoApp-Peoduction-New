@@ -1,0 +1,21 @@
+{
+  "summary": "Verified Metro 500 ENOENT bundle bug fix and ran the requested Customer app web regressions. Bundle URL returns HTTP 200 (~13.98MB JS) on both localhost:3001 and the public Expo tunnel; manifest returns 200 JSON with extra.expoClient.hostUri. Web login flow works end-to-end (demo customer -> customer-home with stat-total, reload persists session). Non-customer login (partner 9000000003 + OTP 123456) is correctly blocked with error toast and the form resets automatically to phone step; localStorage azo_token is cleared. All checks passed.",
+  "bundle_verification": {
+    "localhost_bundle": {"status": 200, "size_bytes": 13977099},
+    "tunnel_bundle": {"status": 200, "size_bytes": 13977137, "url": "http://yjnus5m-anonymous-3001.exp.direct/index.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable"},
+    "tunnel_manifest": {"status": 200, "extra_expoClient_hostUri": "yjnus5m-anonymous-3001.exp.direct", "runtimeVersion": "exposdk:57.0.0"}
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_customer_app_backend.py"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Customer 9000000004 / OTP 123456; Partner 9000000003 / OTP 123456 (blocked)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "customer_expo supervisor program serves the Customer Expo app on port 3001 (tunnel yjnus5m-anonymous-3001.exp.direct). If ENOENT errors recur due to stale Metro file map after node_modules change, restart with 'sudo supervisorctl restart customer_expo'. Bundle cold build ~14MB; use curl -m 300.",
+  "rca of the issue": "Metro bundler kept a stale file map after node_modules mutated while server ran in CI/no-watch mode, causing ENOENT for hoist-non-react-statics/react-is/package.json and a 500 InternalError. Mitigation: clean restart of the customer_expo supervisor program rebuilt Metro's file map. Verified by 200 responses on bundle+manifest via both localhost and tunnel."
+}
