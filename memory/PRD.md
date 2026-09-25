@@ -129,3 +129,12 @@ Backlog / next: replicate any remaining merchant panel pages the user wants port
 5. **Scheduled 30-min reminder**: persisted per-booking "shown" timestamp in `ringPrefs.ts` (`wasReminderShownRecently`/`markReminderShown`, 30-min cooldown, survives app restart). `JobRingOverlay` skips re-showing within cooldown. Backend already excludes `started` jobs, so no reminder after work starts.
 - Camera "not opening" root fix: added **expo-image-picker config plugin** to `app.json` (Android FileProvider + iOS/Android permission strings). REQUIRES a native rebuild (prebuild/EAS APK) to take effect.
 - Verified: `tsc --noEmit` clean on changed files, `app.json` valid JSON, `expo config` resolves plugin. Native camera + reminder need on-device verification.
+
+---
+## S3 duplicate-image + enterprise folder fix — 2026-06
+- BUG: every image upload wrote the full image PLUS a near-identical resized `thumb_<uid>` copy (user saw X.webp + thumb_X.webp on AWS = "duplicate, different size").
+- FIX (`services/storage_service.py`): `save_image()` no longer creates a separate `thumb_` object — returns `thumb_url == url` (callers unaffected; the stored WebP is already web-optimized). `thumb` kwarg kept as no-op for compat.
+- ENTERPRISE FOLDERS: `entity_folder()` → `partners/<id>/kyc` and `job_folder()` → `jobs/<bookingId>/before|after` now key on STABLE ids only (name/service slug removed) so a rename can NEVER fork a second folder (prevents scattered data). Centralized taxonomy documented at top of storage_service.py.
+- VERIFIED by testing_agent iter117: 100% (4/4) backend — no new thumb_ files; job photo path = jobs/<bookingId>/<stage>/<uuid>.webp; url==thumb_url; uploads serve 200. Test at backend/tests/test_storage_no_duplicate.py.
+- NOTE: pre-existing legacy `thumb_*` objects already on S3/disk are orphaned historical duplicates — not removed (destructive). Offer an opt-in cleanup script if the user wants old ones purged.
+- ENV: fresh pod again had missing backend/.env + frontend/.env (recurring). Recreated: backend MONGO_URL=mongodb://localhost:27017, DB_NAME=azo_app, JWT_SECRET, CORS_ORIGINS=*, REACT_APP_BACKEND_URL=pod preview URL; frontend EXPO_PUBLIC_BACKEND_URL/WEB_URL. Backend auto-seeded (45 users). Demo OTP 123456.
