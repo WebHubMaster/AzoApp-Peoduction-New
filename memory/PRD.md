@@ -50,6 +50,14 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Startup permissions: location + notifications (`src/lib/permissions.ts`).
 - Verified by testing agent iterations 121–126 (all pass).
 
+## Bookings · Wallet · Live Tracking · Push — 2026-09-25 (latest)
+- `/(customer)/orders` = port of web BookingsView: KPIs, search, tabs, `BookingCard` (OTP banners, current-step, Track Live, timeline, reschedule pending accept/reject/withdraw, additional-work pay, spare parts) + dialogs (Cancel w/ cancellation-preview & reasons, Review, Reschedule request, Details sheet, Additional pay). `src/lib/payments.ts` = runPayment (mock gateway path).
+- `/(customer)/wallet` = balance card + top-up (presets/amount → /payments/order purpose wallet → mock) + stats + filters + transactions.
+- `/(customer)/track/[id]` = live status hero, partner card (call), OTP code, progress steps, address; 5s polling. Home LiveBookingCard → track.
+- Push: `src/lib/push.ts` registers ExponentPushToken via POST /notifications/devices (works in dev/prod builds; Expo Go remote push unsupported → silent). Backend `services/expo_push_service.py` added to `notification_service.notify()` (FCM skips Expo tokens). Customer alerts in `booking_controller._advance` (arrived_shop / arrived_customer / started) + completion. NEW partner routes: `POST /bookings/{id}/on-my-way` (→arrived_shop), `POST /bookings/{id}/arrived` (→arrived_customer); start-otp now also allowed from arrived_customer.
+- Verified: iteration_127 (orders/wallet/track 100%; push registration + in-app alerts) + manual on-my-way/arrived flow.
+- NOTE: create_file tool truncates very large files — write big files in chunks (create + search_replace markers).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
