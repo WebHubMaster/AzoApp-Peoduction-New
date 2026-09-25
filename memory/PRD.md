@@ -33,6 +33,14 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Tunnel URL (stable via `.expo/settings.json` urlRandomness): **exp://yjnus5m-anonymous-3001.exp.direct** · QR: `/app/Customer/expo_qr.png`.
 - Web preview for testing: http://localhost:3001 (first bundle 30–60s).
 
+## Public site (Landing) — added 2026-09-25
+- App now OPENS on the public Landing (`app/(site)/index.tsx`) = 1:1 port of `web_panel/src/pages/customer/Landing.jsx` mobile view.
+- `app/(site)/_layout.tsx` = `SiteNavbar` (logo · membership crown · search modal · cart · profile/login · menu w/ LocationButton) + `MobileBottomNav` (Home/Services/Booking/Orders/Profile; Orders/Profile → login if logged out, else /(customer)).
+- Sections (all dynamic): HomeHero (+hero banners / category tiles, stats from /site/config), TrustBar, LocationHint, MemberSavingsBanner (/memberships/me), /site/homepage sections (categories / featured / trending / banners), Promotions (/site/promotions: offers, membership banner, coupons w/ copy→azo_coupon), Reviews (/content/testimonials), GrowCta, FAQ (/content/faqs/grouped), Blog (/content/blogs), SiteFooter, LocationGate (expo-location + /serviceability + /geo/reverse), CategoryServicesSheet (/catalog/services?category_id=).
+- `src/lib/location.ts` = azo_location store (+ useCity) mirroring web localStorage/event. `src/components/site/*` = ui, SiteNavbar, ServiceSearch, HomeSections, HomeBlocks.
+- Login has "← Back to home"; logout returns to landing. Placeholders: `app/(site)/[...page].tsx` (services, book, membership, service/:id, blog, about, contact).
+- VERIFIED testing agent iteration_120: 100% backend + frontend.
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
@@ -42,7 +50,8 @@ Provide a working Expo preview URL + QR for Expo Go.
 
 ## Backlog (page-by-page, in web NAV order)
 - P0: My Bookings (`BookingsView` + BookingCard, cancel/review/pay/repeat dialogs) — `orders` tab (supports `?focus=CODE`).
-- P0: Services / booking flow (web `/services`, `/service/:id`, checkout) — currently placeholder `services` route.
+- P0: Services page (`/services` w/ ?q ?category), Service detail (`/service/:id`), Booking cart (`/book`) + Checkout (guest booking, coupons azo_coupon, schedule picker, address, payment) — placeholders now.
+- P1: Membership page, Blog list/detail, About/Contact static pages; cart count in navbar (CartContext port).
 - P1: Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor).
 - P1: Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat).
 - P2: OnboardingTour, ScheduleAlerts, RescheduleRing, SearchingStatus polling, push notifications, brand logo dark/light from admin.
