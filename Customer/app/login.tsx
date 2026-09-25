@@ -64,7 +64,7 @@ export default function Login() {
   const normalized = () => { let p = phone.trim().replace(/\s/g, ""); if (!p.startsWith("+")) p = "+91" + p.replace(/^0+/, ""); return p; };
 
   const finish = async (data: { token: string; user: AppUser }, greeting?: string) => {
-    if (!isCustomer(data?.user)) { toast.error(ROLE_BLOCKED); return false; }
+    if (!isCustomer(data?.user)) { toast.error(ROLE_BLOCKED); setOtp(""); setName(""); setStep(1); return false; }
     setRouting(true);
     await login(data.token, data.user);
     toast.success(greeting || `Welcome, ${data.user.name}!`);
