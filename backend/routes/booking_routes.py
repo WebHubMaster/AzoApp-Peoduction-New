@@ -171,6 +171,16 @@ async def seen(booking_id: str, user=Depends(require_role("partner"))):
     return await c.mark_job_seen(user, booking_id)
 
 
+@router.post("/{booking_id}/on-my-way")
+async def on_my_way(booking_id: str, user=Depends(require_role("partner"))):
+    return await c.partner_set_travel_status(user, booking_id, "arrived_shop")
+
+
+@router.post("/{booking_id}/arrived")
+async def arrived(booking_id: str, user=Depends(require_role("partner"))):
+    return await c.partner_set_travel_status(user, booking_id, "arrived_customer")
+
+
 @router.post("/{booking_id}/start-otp")
 async def start_otp(booking_id: str, req: OTPActionRequest, user=Depends(require_role("partner"))):
     return await c.verify_start_otp(user, booking_id, req.otp)

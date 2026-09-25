@@ -1,0 +1,59 @@
+{
+  "summary": "iter127 — Verified NEW Customer Expo screens (/orders, /wallet, /(customer)/track/<id>) + backend push registration/pipeline for customer 9000000004. Nearly ALL targeted checks PASS. Key finding: NO backend endpoint transitions a booking to `arrived_shop` or `arrived_customer`; the corresponding _STATUS_ALERTS branches in booking_controller._advance() (Partner is on the way / Partner has arrived) are effectively DEAD CODE — never reachable from any partner or admin route. Only `started` (via /bookings/{id}/start-otp) reaches _advance().",
+  "backend_verified": {
+    "GET /api/bookings (customer)": "200 · count=10; statuses include searching/pending_payment/completed/paid/started/assigned/cancelled — matches KPIs on /orders (Total 10, Active 6, Completed 2, Cancelled 2, Spent ₹1.77K).",
+    "GET /api/wallet": "200 · balance 250 → 500 → 750 across two mock top-ups (POST /api/payments/mock returns {ok:true}). New credit txn 'Wallet top-up' appears at top of list.",
+    "POST /api/notifications/devices": "200 {ok:true} for ExponentPushToken[qa-test-token] + device_id qa-dev-1 + platform expo-android.",
+    "GET /api/notifications": "200 · returns bare list (NOT wrapped in {items:[]}). Contains 'Booking confirmed' and (after partner accept) 'Partner assigned' rows for customer.",
+    "GET /api/bookings/{id}/cancellation-preview": "200 · returns cancellable/refund/reasons.",
+    "POST /api/bookings/{id}/cancel": "200 with body {reason:'booked_by_mistake'} · status → cancelled.",
+    "POST /api/bookings/{id}/review": "200 · rating persists; card shows review afterwards.",
+    "GET /api/bookings/{id}/repeat-preview": "200 · available:true.",
+    "POST /api/bookings/{id}/accept (partner 9000000003)": "200 · booking status → assigned; 'Partner assigned' in-app notification created for customer.",
+    "POST /api/payments/order": "200 {mock:true} · POST /api/payments/mock: 200 {ok:true} — wallet balance increments correctly."
+  },
+  "frontend_verified": {
+    "/orders (orders-page)": "Renders My Bookings with page-title. KPI counts match GET /api/bookings (kpi-total 10, kpi-active 6, kpi-completed 2, kpi-cancelled 2, kpi-spent ₹1.77K). bk-search present. bk-tab-searching filters to 1 card; bk-tab-completed filters to 2 cards. booking-card-<code> and booking-status-<code> present for all 10 bookings. timeline-toggle-<code> expands the 5-step timeline (Booking Confirmed → Partner Assigned → Partner On The Way → Work Started → Work Completed). details-<code> opens details-sheet (Booking #<code>, Service/Category/Status/Address/Partner rows) and details-sheet-close is present. cancel-<code> opens cancel-dialog with cancel-preview ('Free cancellation') and cancel-reason-booked-by-mistake plus all other reasons. track-<code>, pay-<code>, repeat-<code>, call-<code>, call-btn-<code> all present.",
+    "/wallet (wallet-page)": "Renders. wallet-balance shows ₹500 (matches API). topup-preset-250 click sets topup-amount input to '250'. Tapping topup-btn (Add Money) triggers mock payment → wallet-balance becomes ₹750 within ~5s. Transactions list shows new 'Topup · Wallet top-up · +₹250'. w-search, w-type-credit, w-type-debit filter chips render. Stats cards show Total Added ₹829, Total Spent ₹1.01K, 5 transactions.",
+    "/track/<id> (track-page)": "For AZO7D3BB6 (assigned): track-status='Partner assigned', track-partner shows Raj Kumar + +919000000003, track-otp-start shows '1234' code with 'SHARE THIS OTP TO START WORK' banner, track-call button present, track-steps timeline visible, track-open-booking (Manage booking) navigates back to /orders.",
+    "Android bundle": "GET http://localhost:3001/index.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable → HTTP 200."
+  },
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "(missing) POST /api/bookings/{id}/arrive or partner status-advance",
+        "issue": "No backend route/handler transitions bookings to `arrived_shop` or `arrived_customer`. Consequently the customer alerts 'Partner is on the way 🚗' (arrived_shop) and 'Partner has arrived 👋' (arrived_customer) coded inside booking_controller._STATUS_ALERTS are UNREACHABLE. Grep across /app/backend confirms _advance() is only called with 'started'. Seed data does contain arrived_customer in historical timelines (AZOF3C0ED) but no live path exists. Track UI can therefore never display 'Partner has arrived' end-to-end in this environment.",
+        "priority": "HIGH"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "GET /api/notifications",
+        "issue": "Returns a bare JSON list rather than {items:[]} — spec text 'contain new items titled …' still holds because the notifications ARE created; just flagging shape."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add a partner-side route (e.g. POST /api/bookings/{id}/arrive-shop and /arrive-customer, or a single /advance-status) that calls _advance(booking_id, 'arrived_shop'|'arrived_customer'), so the two coded _STATUS_ALERTS actually fire and the /track UI reflects live progression."
+  ],
+  "critical_code_review_comments": [
+    "booking_controller._advance() defines _STATUS_ALERTS for arrived_shop/arrived_customer but no caller ever passes those statuses — the strings, translations, and Expo push branch are effectively dead code. Either wire up the partner routes or delete the branches to avoid misleading spec.",
+    "booking_controller.verify_start_otp() strictly requires b['status'] in ('assigned','arrived_shop'). Since arrived_shop is unreachable, this precondition reduces to 'assigned' — fine, but consider documenting.",
+    "/orders BookingCard exposes both `call-<code>` and `call-btn-<code>` for the same phone action — duplicated testIDs are harmless but bloat.",
+    "GET /api/notifications returns a raw list; frontend appears to handle both shapes but standardising to {items:[], unread:n} would be safer."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "~92% (10/11 categories pass; arrive-status endpoint absent)", "frontend": "100% (orders, wallet, track all pass targeted checks)"},
+  "test_credentials": "Customer +919000000004 OTP 123456; Partner +919000000003 OTP 123456.",
+  "seed_data_creation": "Cancelled 1 searching booking (AZOYM3ZAX) via cancel API. Partner-accepted 1 searching booking (AZO3B9237 → assigned by Raj Kumar). Posted 4★ review on completed AZOF3C0ED. Added ₹500 (2× ₹250) to customer wallet via mock top-ups. One searching booking remains (AZOW392EY) for future flows.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Auth: set token in localStorage under any of keys ['azoapp_token','azo_token','token','auth_token','customer_token','jwt','authToken'] on http://localhost:3001 then visit /orders /wallet /track/<id>. GET /api/notifications returns a bare list. Payments are mock — POST /api/payments/mock enough. NO endpoint yet transitions bookings to arrived_shop/arrived_customer; only accept→started via /bookings/{id}/start-otp works (and needs pre-uploaded 'before' evidence + not within 30-min lock).",
+  "rca of the issue": "Grep of /app/backend/routes and /app/backend/controllers shows _advance() is invoked ONLY from verify_start_otp() with 'started'. There is no partner-facing route matching /arrive-*, /status, or /advance. Notification strings for arrived_shop/arrived_customer therefore never fire in the current codebase — even though the spec text and frontend both expect them."
+}

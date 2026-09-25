@@ -2746,9 +2746,22 @@ async def _partner_owns(partner, booking_id):
     return b
 
 
+async def partner_set_travel_status(partner, booking_id, status):
+    """Partner taps 'On my way' (arrived_shop) / 'I have arrived' (arrived_customer) — customer gets a live alert."""
+    b = await _partner_owns(partner, booking_id)
+    allowed = {"arrived_shop": ("assigned",), "arrived_customer": ("assigned", "arrived_shop")}
+    if status not in allowed:
+        raise HTTPException(status_code=400, detail="Invalid status")
+    if b["status"] not in allowed[status]:
+        raise HTTPException(status_code=400, detail="Invalid step")
+    out = await _advance(booking_id, status)
+    out["otps"] = {}
+    return _slim_partner_job(out, partner["id"])
+
+
 async def verify_start_otp(partner, booking_id, otp):
     b = await _partner_owns(partner, booking_id)
-    if b["status"] not in ("assigned", "arrived_shop"):
+    if b["status"] not in ("assigned", "arrived_shop", "arrived_customer"):
         raise HTTPException(status_code=400, detail="Invalid step")
     # Spec 2/18: Start-Work is locked until 30 minutes before a scheduled job.
     if schedule_state(b).get("comm_locked"):
