@@ -41,11 +41,22 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Login has "← Back to home"; logout returns to landing. Placeholders: `app/(site)/[...page].tsx` (services, book, membership, service/:id, blog, about, contact).
 - VERIFIED testing agent iteration_120: 100% backend + frontend.
 
+## App Home redesign + CMS + Booking flow — 2026-09-25 (later session)
+- Home = reference-screenshot design, ALL content from `GET /api/app/home` (single request, AsyncStorage cache, progressive FlatList). Blocks: header (dynamic logo only if uploaded, location pill → premium top LocationSheet, bell muted when permission denied, avatar), search + voice (Web Speech / expo-speech-recognition — not in Expo Go), poster hero slider (autoplay 4.5s, admin slides), 3-col category tiles (uploaded image) → `/(site)/category/[id]` (incremental 8/scroll), offer banner (copy code), quick features, Most Booked, Why Choose Us, Trending, Salon tabs (needs salon categories/tabs), Offers row, admin **custom sections** (`custom:<id>` — services / category / banner).
+- Admin CMS: web_panel → **Mobile App → Customer App Home** (`AppHomeManager.jsx`, `/admin?tab=app_home`) ↔ `GET/PUT /api/admin/app-home` (`backend/controllers/app_home_controller.py`, cache bust on save).
+- Bottom nav: Home · My Bookings · Book Now FAB (→ /services) · Membership (→ `/(site)/membership`, port of web Membership.jsx incl. mock/Razorpay-WebView buy) · Account. Hidden on `/service/*` and `/book`.
+- Booking flow (port of web): `/(site)/services` (search + category chips, incremental), `/(site)/service/[id]` (tiers, add-ons, qty, sticky add bar), `/(site)/book` checkout (cart w/ upsell `/catalog/upsell`, schedule + slots `/bookings/slot-availability`, address w/ GPS + saved addresses, coupon `/bookings/validate-coupon`, wallet/online pay, `/bookings/grouped` + `/payments/order|mock`, confirm). CartContext = port of web (AsyncStorage `azo_cart_v1`).
+- Offers page `/(site)/offers`. Placeholders: blog/about/contact/privacy/terms/refund/faq (explicit routes — NEVER re-add a `(site)/[...page]` catch-all: it swallows `/(customer)/orders`).
+- Startup permissions: location + notifications (`src/lib/permissions.ts`).
+- Verified by testing agent iterations 121–126 (all pass).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
 
 ## Learnings
+- Expo dev server runs WITHOUT CI=1 now (file watching works → hot reload). After installing new packages still run `sudo supervisorctl restart customer_expo`.
+- Web panel dev server for admin UI testing: `cd /app/web_panel && PORT=3002 BROWSER=none REACT_APP_BACKEND_URL=http://localhost:8001 nohup yarn start &` (node_modules installed).
 - Metro runs in CI (no-watch) mode under supervisor: after ANY `yarn add`/node_modules change run `sudo supervisorctl restart customer_expo`, else Expo Go gets a 500 ENOENT bundle error (stale file map).
 
 ## Backlog (page-by-page, in web NAV order)

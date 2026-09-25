@@ -1,0 +1,21 @@
+{
+  "summary": "iter126 — Verified checkout upsell + Book Now everywhere + nav-hide changes on Customer Expo web (http://localhost:3001, 390x844). ALL TARGETED CHECKS PASSED. (1) Home Book Now: after wheel-scrolling the home FlatList, app-trending-0-book, app-most-booked-0-book, and app-custom-cs-demo-0-book all FOUND. Tapping app-most-booked-0-book → /service/<id> (Door Repair 52dab6d4). (2) Service detail: app-bottom-nav ABSENT (hideNav correct). add-to-booking-mobile clicked → go-checkout-mobile appears → tap → /book → checkout-page rendered. (3) Checkout: app-bottom-nav ABSENT on /book. step-cart renders with cart-line for Door Repair; upsell-together card visible with one card upsell-9765cf51-... (Furniture Repair, ₹349). checkout-total = ₹299 initially, footer text 'Services subtotal · taxes at checkout' present. Tapping upsell-add-9765cf51-... added a 2nd cart-line, toast contained 'added', checkout-total updated to ₹648 (₹299 + ₹349 = ₹648) ✓. add-more (dashed button) navigates to /services (services-page found). checkout-next from step-cart advances to step-schedule ✓. (4) Regression: bn-membership → /membership with membership-page + app-bottom-nav visible ✓; bn-bookings logged-out → /login ✓; landing hero-slider renders ✓. Android bundle URL → HTTP 200 ✓.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "(site)/_layout.tsx hideNav = path.startsWith('/service/') || path.startsWith('/book') is clean and correctly excludes bottom nav on both routes. Path prefix approach is safe for expo-router web.",
+    "book.tsx upsell fetch keys on cartServiceIds join — good dedup filter excludes services already in cart before rendering cards. Empty state (no eligible upsells) correctly hides upsell-together.",
+    "checkout-total footer uses estimateTotal for step 0 with subtitle 'Services subtotal · taxes at checkout' — matches spec exactly.",
+    "ServiceTile testID={`${testID}-book`} propagates through ServicesRow/salon/custom so all tile variants expose consistent app-<row>-<idx>-book testIDs — enables reliable regression selectors."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (all targeted checks pass)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (not required — flow tested logged-out up to step-schedule)",
+  "seed_data_creation": "None (no order placed; cart persisted 2 items during test session).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iter126 items pass. Upsell for Door Repair returns exactly one candidate (Furniture Repair id 9765cf51-bcd9-46e7-80aa-1de9c7730d41 at ₹349). checkout-total sums lineEstimate which for these two services = ₹648. add-more preserves cart on return (cart lines still present after page.go_back). Note: benign console warnings 'useNativeDriver not supported' and 'props.pointerEvents is deprecated' from react-native-web — cosmetic only.",
+  "rca of the issue": "N/A — no failures."
+}
