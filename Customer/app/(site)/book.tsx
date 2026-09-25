@@ -61,7 +61,7 @@ export default function Checkout() {
     const payload = { schedule_type: schedule, ...(applied ? { coupon_code: applied } : {}), address: addr, items: items.map(toReqItem) };
     const attempt = async (n: number) => {
       try {
-        const r: any = await api.post("/bookings/cart-quote", payload, { auth: false });
+        const r: any = await api.post("/bookings/cart-quote", payload);
         if (cancelled) return;
         setCartPricing({ ...r.pricing, cart_service_total: r.cart_service_total });
         if (applied && r.coupon_applied === false) { setApplied(""); setCouponMsg({ ok: false, text: "Coupon no longer applies to this order (minimum order not met)" }); }
@@ -76,8 +76,9 @@ export default function Checkout() {
 
   const applyCoupon = async () => {
     if (!coupon || !items.length) return;
+    if (!user) { toast.info("Please sign in to apply a coupon"); router.push("/login"); return; }
     try {
-      const d: any = await api.post("/bookings/validate-coupon", { code: coupon, items: items.map(toReqItem), schedule_type: schedule, address: addr }, { auth: false });
+      const d: any = await api.post("/bookings/validate-coupon", { code: coupon, items: items.map(toReqItem), schedule_type: schedule, address: addr });
       setApplied(coupon); setCouponMsg({ ok: true, text: `${d.message} — applied to your order` });
     } catch (e: any) { setApplied(""); setCouponMsg({ ok: false, text: e?.message || "Invalid coupon" }); }
   };

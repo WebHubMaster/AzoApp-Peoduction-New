@@ -8,7 +8,7 @@ import { EmptyState } from "@/src/components/customer/ux";
 
 const TITLES: Record<string, string> = { services: "All Services", book: "Booking", membership: "Membership", service: "Service Details", blog: "Blog", about: "About us", contact: "Contact us" };
 
-export default function SitePlaceholder() {
+export function SitePlaceholder() {
   const pathname = usePathname();
   const params = useLocalSearchParams();
   const segs = pathname.split("/").filter(Boolean);
