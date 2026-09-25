@@ -37,6 +37,9 @@ Provide a working Expo preview URL + QR for Expo Go.
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
 
+## Learnings
+- Metro runs in CI (no-watch) mode under supervisor: after ANY `yarn add`/node_modules change run `sudo supervisorctl restart customer_expo`, else Expo Go gets a 500 ENOENT bundle error (stale file map).
+
 ## Backlog (page-by-page, in web NAV order)
 - P0: My Bookings (`BookingsView` + BookingCard, cancel/review/pay/repeat dialogs) — `orders` tab (supports `?focus=CODE`).
 - P0: Services / booking flow (web `/services`, `/service/:id`, checkout) — currently placeholder `services` route.
