@@ -188,6 +188,15 @@ async def update_profile(user, data: dict):
         data = {"photo": photo}
     if data.get("photo") and _data_url_bytes(data["photo"]) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=400, detail="Image too large (max 2 MB). Please use a smaller photo.")
+    # Inline base64 photos are converted to a stored file (S3/disk) so the user
+    # document — returned on every /auth/me, list and booking lookup — stays tiny.
+    if isinstance(data.get("photo"), str) and data["photo"].startswith("data:"):
+        from services import storage_service as _st
+        kind = {"partner": "partners", "merchant": "merchants"}.get(role, "customers")
+        try:
+            data["photo"] = await _st.materialize_data_url(data["photo"], _st.entity_folder(kind, user, "profile"), max_side=600)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
     upd = {k: v for k, v in data.items() if v is not None}
     if upd:
         old = await db.users.find_one({"id": user["id"]}, {"_id": 0}) or {}

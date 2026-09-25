@@ -103,8 +103,12 @@ async def serve_file(path: str):
 
 
 @router.get("/s3/{key:path}")
-async def serve_s3(key: str):
+async def serve_s3(key: str, request: Request):
     """Stream a private-bucket S3 object through the backend so it displays on the site."""
+    # Keys are uuid-named (immutable) → a revalidation can be answered without S3.
+    etag = f'"{key.rsplit("/", 1)[-1]}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=31536000, immutable"})
     got = await storage_service.fetch_s3_object(key)
     if got is None:
         raise HTTPException(status_code=404, detail="File not found")
@@ -122,4 +126,4 @@ async def serve_s3(key: str):
                 content_type = ct
                 break
     return Response(content=body, media_type=content_type,
-                    headers={"Cache-Control": "public, max-age=2592000, immutable"})
+                    headers={"Cache-Control": "public, max-age=31536000, immutable", "ETag": etag})

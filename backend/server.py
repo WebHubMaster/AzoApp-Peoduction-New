@@ -382,6 +382,27 @@ async def startup():
     except Exception as e:  # noqa: BLE001
         logger.warning("partner availability sweep not started: %s", e)
 
+    # One-time repair: legacy bookings with inline base64 job photos → real files/URLs.
+    # Runs in the background so boot is not delayed; loops until nothing is left.
+    async def _inline_evidence_migration():
+        from services import storage_service as _st
+        await asyncio.sleep(5)
+        while True:
+            try:
+                r = await _st.migrate_inline_evidence(limit=100)
+                if r.get("fixed") or r.get("failed"):
+                    logger.info("inline evidence migration: %s", r)
+                if r.get("scanned", 0) == 0 or r.get("fixed", 0) == 0:
+                    break
+            except Exception as e:  # noqa: BLE001
+                logger.warning("inline evidence migration error: %s", e)
+                break
+
+    try:
+        asyncio.create_task(_inline_evidence_migration())
+    except Exception as e:  # noqa: BLE001
+        logger.warning("inline evidence migration not started: %s", e)
+
 
 
 @app.on_event("shutdown")

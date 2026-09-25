@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from config.database import db, now_iso
 from models.user import new_id
 from services import profile_audit_service as pa
+from services import storage_service
 
 
 def _mname(merchant):
@@ -63,6 +64,10 @@ async def add_bank(merchant, data: dict):
         raise HTTPException(400, "Please enter a valid IFSC code")
     if not passbook:
         raise HTTPException(400, "Please upload your bank passbook / cheque image")
+    try:
+        passbook = await storage_service.materialize_data_url(passbook, storage_service.entity_folder("merchants", merchant, "kyc"), max_side=1800)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
     count = await db.merchant_bank_accounts.count_documents({"merchant_id": merchant["id"]})
     doc = {"id": new_id(), "merchant_id": merchant["id"], "merchant_name": _mname(merchant),
            "account_holder": holder, "bank_name": bank_name, "account_number": acc,
@@ -87,6 +92,11 @@ async def update_bank(merchant, bank_id, data: dict):
             upd[f] = str(data[f]).strip()
     if "ifsc" in data and data["ifsc"]:
         upd["ifsc"] = str(data["ifsc"]).strip().upper()
+    if upd.get("passbook_url"):
+        try:
+            upd["passbook_url"] = await storage_service.materialize_data_url(upd["passbook_url"], storage_service.entity_folder("merchants", merchant, "kyc"), max_side=1800)
+        except ValueError as e:
+            raise HTTPException(400, str(e))
     if any(k in upd for k in ("account_number", "ifsc", "account_holder", "bank_name", "passbook_url")):
         upd["status"] = "pending"
         upd["reason"] = ""

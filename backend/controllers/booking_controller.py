@@ -2285,10 +2285,11 @@ async def partner_active_jobs(partner):
     rows = await db.bookings.find(
         {"partner_id": partner["id"],
          "status": {"$in": ["assigned", "arrived_shop", "arrived_customer", "started"]}},
-        {"_id": 0}).sort("updated_at", -1).to_list(100)
+        {"_id": 0, "eligible_partner_ids": 0, "idempotency_key": 0}).sort("updated_at", -1).to_list(100)
     settings = await get_settings()
     is_demo = bool(partner.get("is_demo"))
     for b in rows:
+        _slim_partner_job(b, partner["id"])
         # Demo accounts see the customer's Start/Completion OTP so the full active-job
         # flow is testable end-to-end in the demo app. Real accounts never do.
         b["demo_otps"] = (b.get("otps") or {}) if is_demo else {}
@@ -2309,7 +2310,8 @@ async def partner_history(partner, status="all"):
         status, ["completed", "paid", "cancelled"])
     rows = await db.bookings.find(
         {"partner_id": partner["id"], "status": {"$in": wanted}},
-        {"_id": 0, "otps": 0}).sort("updated_at", -1).to_list(500)
+        {"_id": 0, "otps": 0, "eligible_partner_ids": 0, "eligible_detail": 0,
+         "idempotency_key": 0}).sort("updated_at", -1).to_list(500)
     settings = await get_settings()
     for b in rows:
         b["schedule"] = schedule_state(b)
@@ -2746,20 +2748,53 @@ async def verify_start_otp(partner, booking_id, otp):
         raise HTTPException(status_code=400, detail="Invalid customer start OTP")
     out = await _advance(booking_id, "started")
     out["otps"] = {}
-    return out
+    return _slim_partner_job(out, partner["id"])
+
+
+def _slim_partner_job(b: dict, partner_id: str = None) -> dict:
+    """Drop heavy, partner-irrelevant fields from a booking payload (dispatch lists can
+    hold hundreds of ids). Keeps only this partner's own eligible_detail entry."""
+    b.pop("eligible_partner_ids", None)
+    b.pop("idempotency_key", None)
+    det = b.get("eligible_detail")
+    if isinstance(det, dict) and partner_id:
+        b["eligible_detail"] = {partner_id: det[partner_id]} if partner_id in det else {}
+    return b
+
+
+async def _materialize_evidence(b: dict, partner: dict, stage: str, images: list) -> list:
+    """Turn any inline base64 `data:` images into stored files (S3/local) and return
+    URL-only list. Base64 must NEVER be persisted in the booking document — it bloats
+    every list/poll/OTP response by megabytes and is the #1 cause of app latency."""
+    import asyncio as _aio
+    from services import storage_service
+    folder = storage_service.job_folder(b, partner, stage)
+
+    async def _one(img: str) -> str:
+        try:
+            return await storage_service.materialize_data_url((img or "").strip(), folder, max_side=1600)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    urls = await _aio.gather(*[_one(i) for i in images])
+    return [u for u in urls if u]
 
 
 async def upload_evidence(partner, booking_id, req):
+    if req.stage not in ("before", "after"):
+        raise HTTPException(status_code=400, detail="stage must be 'before' or 'after'")
     b = await _partner_owns(partner, booking_id)
     # Spec 2: Before-Work photo is LOCKED until 30 min before a scheduled job.
     if req.stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
                             detail="Before-work photo unlocks 30 minutes before your scheduled time.")
-    await db.bookings.update_one(
-        {"id": booking_id}, {"$push": {f"evidence.{req.stage}": {"$each": req.images}}})
+    urls = await _materialize_evidence(b, partner, req.stage, req.images or [])
+    if urls:
+        await db.bookings.update_one(
+            {"id": booking_id}, {"$push": {f"evidence.{req.stage}": {"$each": urls}}})
     out = await _get_booking(booking_id)
     out["otps"] = {}
-    return out
+    return _slim_partner_job(out, partner["id"])
 
 
 async def upload_evidence_file(partner, booking_id, stage, raw, content_type):
@@ -2800,7 +2835,7 @@ async def remove_evidence(partner, booking_id, stage, url):
         {"id": booking_id}, {"$pull": {f"evidence.{stage}": url}})
     out = await _get_booking(booking_id)
     out["otps"] = {}
-    return out
+    return _slim_partner_job(out, partner["id"])
 
 
 async def add_spare_part(partner, booking_id, req):
@@ -3045,60 +3080,57 @@ async def complete_job(partner, booking_id, otp):
     # Accept-Streak Rewards: the milestone bonus is earned ONLY now that the accepted
     # job is actually COMPLETED — an accept that was later cancelled never counts.
     await _advance_accept_streak(partner["id"])
-    # Loyalty: reward the customer with points for the completed booking.
-    try:
-        from services import loyalty_service as _loy
-        await _loy.earn(b.get("customer_id"), b.get("pricing", {}).get("total", 0), b.get("code"))
-    except Exception:
-        pass
-    # Refer-a-friend: credit the referrer's wallet on the referee's first completed booking.
-    try:
-        from services import referral_service as _ref
-        await _ref.on_booking_completed(b.get("customer_id"), b)
-    except Exception:
-        pass
-    # Cashback / Scratch card: issue a reward on eligible completed bookings.
-    try:
-        from services import growth_service as _growth
-        await _growth.issue_for_booking(await _get_booking(booking_id) or b)
-    except Exception:
-        pass
     if partner.get("referred_by_merchant") and ledger["merchant_referral"]:
         await db.merchant_partner_referrals.update_one(
             {"merchant_id": partner["referred_by_merchant"], "partner_phone": partner["phone"]},
             {"$inc": {"total_jobs": 1, "total_commission": ledger["merchant_referral"]}})
-    # Auto Payout: a freshly completed job may unlock an incentive — credit it
-    # straight to the partner's wallet, no admin approval needed.
-    try:
-        from services import partner_service as _ps
-        await _ps.auto_award_incentives(partner["id"])
-    except Exception:
-        pass
     out = await _get_booking(booking_id)
-    # Customer completion notification (in-app + push + template SMS/email) can hit
-    # external services — fire it in the BACKGROUND so the partner's "Complete" tap
-    # returns instantly instead of waiting on network round-trips.
-    import asyncio as _aio
-    try:
-        _aio.create_task(_notify(
+    rt.emit_admin("job_update", _job_brief(out))
+
+    # Everything below is a side-effect the partner does NOT need to wait for
+    # (loyalty points, referral credit, cashback, incentives, invoice, customer
+    # notification). Run it in ONE background task so the "Complete Job" tap returns
+    # as soon as the job is completed + the partner's earning is credited.
+    async def _post_complete():
+        try:
+            from services import loyalty_service as _loy
+            await _loy.earn(b.get("customer_id"), b.get("pricing", {}).get("total", 0), b.get("code"))
+        except Exception:
+            pass
+        try:
+            from services import referral_service as _ref
+            await _ref.on_booking_completed(b.get("customer_id"), b)
+        except Exception:
+            pass
+        try:
+            from services import growth_service as _growth
+            await _growth.issue_for_booking(await _get_booking(booking_id) or b)
+        except Exception:
+            pass
+        try:
+            from services import partner_service as _ps
+            await _ps.auto_award_incentives(partner["id"])
+        except Exception:
+            pass
+        try:
+            from services import invoice_service as _inv
+            fresh = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+            await _inv.ensure_booking_invoice(fresh, settings)
+        except Exception:
+            pass
+        await _notify(
             b["customer_id"], "Service completed",
             f"Invoice for {b['code']} is ready: ₹{b['pricing']['total']}. Please rate your experience.",
             event_type="booking_completed",
-            ctx={"customer_name": b.get("customer_name", ""), "booking_id": b["code"]}))
-    except RuntimeError:
-        pass
-    rt.emit_admin("job_update", _job_brief(out))
-    # Generate the invoice (fast, local). The invoice PDF email to customer + partner
-    # is dispatched in the BACKGROUND inside ensure_booking_invoice, so this does not
-    # block the response on SMTP.
+            ctx={"customer_name": b.get("customer_name", ""), "booking_id": b["code"]})
+
+    import asyncio as _aio
     try:
-        from services import invoice_service as _inv
-        fresh = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
-        await _inv.ensure_booking_invoice(fresh, settings)
-    except Exception:
-        pass
+        _aio.create_task(_post_complete())
+    except RuntimeError:
+        await _post_complete()
     out["otps"] = {}
-    return out
+    return _slim_partner_job(out, partner["id"])
 
 
 async def expire_stale_jobs():
