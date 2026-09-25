@@ -3,7 +3,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Home, ClipboardList, Plus, BadgePercent, User } from "lucide-react-native";
+import { Home, ClipboardList, Plus, Crown, User } from "lucide-react-native";
 import { PRIMARY, SLATE } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 
@@ -35,7 +35,7 @@ export function AppBottomNav() {
           </Pressable>
           <Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[700], marginTop: 4 }}>Book Now</Text>
         </View>
-        <Tab testID="bn-offers" Icon={BadgePercent} label="Offers" active={path.includes("/offers")} onPress={() => router.push("/(site)/offers" as any)} />
+        <Tab testID="bn-membership" Icon={Crown} label="Membership" active={path.includes("/membership")} onPress={() => router.push("/(site)/membership" as any)} />
         <Tab testID="bn-account" Icon={User} label="Account" active={path.startsWith("/(customer)") && !path.includes("/orders")} onPress={() => go("/(customer)", true)} />
       </View>
     </View>

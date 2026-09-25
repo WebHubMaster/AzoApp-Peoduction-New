@@ -1,6 +1,6 @@
 /** Home header (logo · location pill · bell · avatar) + search bar with voice — per the approved mobile design. */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView, ActivityIndicator, Platform } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,7 +13,7 @@ import { useNotifPermission, enableNotifications } from "../../lib/permissions";
 import { useVoiceSearch } from "../../lib/voice";
 import { api } from "../../api/client";
 import { fmt } from "../../lib/format";
-import { LocationButton } from "../site/SiteNavbar";
+import { LocationSheet } from "./LocationSheet";
 
 
 export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: number }) {
@@ -43,14 +43,14 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1, minWidth: 110 }}>
           {branding?.logo ? (
-            <Image source={{ uri: branding.logo }} style={{ height: 34, width: 124 }} contentFit="contain" contentPosition="left" />
+            <Image testID="app-logo-image" source={{ uri: branding.logo }} style={{ height: 44, width: 150 }} contentFit="contain" contentPosition="left" />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
               <Text style={{ fontSize: 25, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.6 }}>{branding?.site_name || "AzoApp"}</Text>
               <HomeIcon size={22} color={PRIMARY[700]} strokeWidth={2.4} />
             </View>
           )}
-          {branding?.show_tagline !== false && branding?.tagline ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding.tagline}</Text> : null}
+          {!branding?.logo && branding?.show_tagline !== false && branding?.tagline ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding.tagline}</Text> : null}
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
@@ -69,16 +69,7 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
         </Pressable>
       </View>
 
-      <Modal visible={locOpen} transparent animationType="slide" onRequestClose={() => setLocOpen(false)}>
-        <Pressable style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)" }} onPress={() => setLocOpen(false)} />
-        <View testID="app-location-sheet" style={{ backgroundColor: "#fff", borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Your location</Text>
-            <Pressable testID="app-location-close" onPress={() => setLocOpen(false)} style={{ height: 32, width: 32, alignItems: "center", justifyContent: "center", borderRadius: 16, backgroundColor: SLATE[100] }}><X size={16} color={SLATE[600]} /></Pressable>
-          </View>
-          <LocationButton testID="app-location" />
-        </View>
-      </Modal>
+      <LocationSheet open={locOpen} onClose={() => setLocOpen(false)} />
     </View>
   );
 }
@@ -118,7 +109,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
       <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 18, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 16, gap: 10 }}>
         <Search size={20} color={SLATE[500]} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && onSubmit(q.trim())} returnKeyType="search"
-          placeholder="Search for services (AC Repair, Cleaning…)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14, color: SLATE[800], height: 52, paddingVertical: 0 }} />
+          placeholder="Search for services (AC Repair, Cleaning…)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }}><X size={16} color={SLATE[400]} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={voice.toggle} style={{ height: 36, width: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : PRIMARY[50] }}>
           {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? PRIMARY[700] : SLATE[300]} />}

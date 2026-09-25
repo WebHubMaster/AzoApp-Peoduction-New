@@ -1,11 +1,11 @@
 /** Home screen blocks — all content comes from GET /app/home (admin CMS + live catalog). */
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, useWindowDimensions, FlatList } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Clipboard from "expo-clipboard";
-import { Star, ArrowRight, Copy, ChevronRight, LayoutGrid, Zap, Shield, Sparkles } from "lucide-react-native";
-import { PRIMARY, SLATE, AMBER, ORANGE, ROSE, EMERALD, VIOLET, SKY, BLUE, INDIGO, shadowBtn } from "../../theme";
+import { Star, ArrowRight, Copy, ChevronRight, Grip, Zap, Shield, Sparkles } from "lucide-react-native";
+import { PRIMARY, SLATE, AMBER, ORANGE, ROSE, EMERALD, VIOLET, shadowBtn } from "../../theme";
 import { LucideByName, compactNum } from "../site/ui";
 import { fmt } from "../../lib/format";
 import { storage } from "../../utils/storage";
@@ -30,10 +30,20 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
   const { width } = useWindowDimensions();
   const W = width - 40;
   const [idx, setIdx] = useState(0);
-  if (!slides?.length) return null;
+  const listRef = useRef<FlatList>(null);
+  const n = slides?.length || 0;
+  useEffect(() => {
+    if (n < 2) return;
+    const t = setInterval(() => {
+      setIdx((i) => { const next = (i + 1) % n; listRef.current?.scrollToOffset({ offset: next * width, animated: true }); return next; });
+    }, 4500);
+    return () => clearInterval(t);
+  }, [n, width]);
+  if (!n) return null;
   return (
     <View testID="hero-slider" style={{ marginBottom: 28 }}>
-      <FlatList data={slides} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(s) => s.id} snapToInterval={width} decelerationRate="fast"
+      <FlatList ref={listRef} data={slides} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(s) => s.id} snapToInterval={width} decelerationRate="fast"
+        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         onMomentumScrollEnd={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item: s, index }) => (
           <View style={{ width, paddingHorizontal: 20 }}>
@@ -82,35 +92,27 @@ const Dots = ({ n, i }: { n: number; i: number }) => (
 );
 
 /* ---------------- Categories grid (2 rows × 6, paged) ---------------- */
-const PASTEL = [SKY[50], AMBER[50], BLUE[50], "#FFF1E6", VIOLET[50], SLATE[100], ROSE[50], EMERALD[50], INDIGO[50], "#FDF2F8", "#ECFEFF", PRIMARY[50]];
 
 export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any[]; config: any; onCategory: (c: any) => void; onMore: () => void }) {
   const { width } = useWindowDimensions();
   const limit = Math.max(1, Number(config?.limit || 11));
   const showMore = config?.show_more !== false;
   const tiles: any[] = cats.slice(0, limit);
-  if (showMore) tiles.push({ id: "__more", name: config?.more_label || "More Services", more: true });
-  const perPage = 12;
-  const pages: any[][] = [];
-  for (let i = 0; i < tiles.length; i += perPage) pages.push(tiles.slice(i, i + perPage));
-  const [idx, setIdx] = useState(0);
-  const tileW = (width - 40) / 6;
+  if (showMore) tiles.push({ id: "__more", name: config?.more_label || "All services", more: true });
+  const gap = 14;
+  const tileW = (width - 40 - gap * 2) / 3;
   return (
-    <View testID="app-categories" style={{ marginBottom: 24 }}>
-      <FlatList data={pages} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(_, i) => String(i)} onMomentumScrollEnd={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / width))}
-        renderItem={({ item: page }) => (
-          <View style={{ width, paddingHorizontal: 20, flexDirection: "row", flexWrap: "wrap" }}>
-            {page.map((c: any, i: number) => (
-              <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={{ width: tileW, alignItems: "center", paddingVertical: 10 }}>
-                <View style={{ height: 56, width: 56, borderRadius: 28, backgroundColor: c.more ? PRIMARY[50] : PASTEL[i % PASTEL.length], alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                  {c.more ? <LayoutGrid size={24} color={PRIMARY[700]} /> : c.icon ? <LucideByName name={c.icon} size={26} color={PRIMARY[700]} strokeWidth={1.8} /> : c.image ? <Image source={{ uri: c.image }} style={{ height: 54, width: 54 }} contentFit="cover" transition={150} /> : <Sparkles size={24} color={PRIMARY[700]} />}
-                </View>
-                <Text numberOfLines={2} style={{ fontSize: 11, fontWeight: "600", color: c.more ? PRIMARY[700] : SLATE[700], textAlign: "center", marginTop: 8, lineHeight: 14 }}>{c.name}</Text>
-              </Pressable>
-            ))}
+    <View testID="app-categories" style={{ marginBottom: 24, paddingHorizontal: 20, flexDirection: "row", flexWrap: "wrap", gap }}>
+      {tiles.map((c: any) => (
+        <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={{ width: tileW, alignItems: "center" }}>
+          <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 18, backgroundColor: SLATE[100], alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {c.more ? <Grip size={34} color={SLATE[800]} strokeWidth={2.2} />
+              : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} />
+              : c.icon ? <LucideByName name={c.icon} size={40} color={PRIMARY[700]} strokeWidth={1.6} /> : <Sparkles size={34} color={PRIMARY[700]} />}
           </View>
-        )} />
-      {pages.length > 1 ? <Dots n={pages.length} i={idx} /> : null}
+          <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "500", color: SLATE[800], textAlign: "center", marginTop: 10, lineHeight: 19, paddingHorizontal: 2 }}>{c.name}</Text>
+        </Pressable>
+      ))}
     </View>
   );
 }
@@ -130,10 +132,10 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
         {label ? <View style={{ position: "absolute", right: 14, top: 40, backgroundColor: ROSE[500], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 8, alignItems: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 14 }}>{label.split(" ")[0]}</Text><Text style={{ color: "#fff", fontWeight: "700", fontSize: 9 }}>{label.split(" ").slice(1).join(" ") || "OFF"}</Text></View> : null}
         <View style={{ padding: 20, width: "62%" }}>
           {cfg.eyebrow ? <View style={{ alignSelf: "flex-start", backgroundColor: ORANGE[500], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{cfg.eyebrow}</Text></View> : null}
-          <Text style={{ fontSize: 24, fontWeight: "900", color: SLATE[900], marginTop: 12, lineHeight: 29, letterSpacing: -0.4 }}>
+          <Text style={{ fontSize: 22, fontWeight: "900", color: SLATE[900], marginTop: 12, lineHeight: 27, letterSpacing: -0.4 }}>
             {label ? <>Get Up to <Text style={{ color: ROSE[600] }}>{label}</Text></> : (off.title || cfg.title)}
           </Text>
-          <Text numberOfLines={2} style={{ fontSize: 15, fontWeight: "600", color: SLATE[700], marginTop: 2 }}>{label ? `on ${off.title || off.subtitle || "Your First Booking"}` : (off.subtitle || off.description || "")}</Text>
+          <Text numberOfLines={2} style={{ fontSize: 15, fontWeight: "600", color: SLATE[700], marginTop: 2 }}>{label ? (off.subtitle || off.description || `on ${off.title || "Your First Booking"}`) : (off.subtitle || off.description || "")}</Text>
           {code ? (
             <Pressable testID="app-offer-copy" onPress={copy} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14, alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: AMBER[200] }}>
               <Text style={{ fontSize: 12, color: SLATE[500], fontWeight: "600" }}>Use Code</Text><Text style={{ fontSize: 16, fontWeight: "800", color: SLATE[900] }}>{code}</Text><Copy size={15} color={SLATE[500]} />
@@ -200,28 +202,20 @@ export function ServicesRow({ sec, navigate, compact, testID }: { sec: any; navi
 /* ---------------- Why choose ---------------- */
 export function WhyChoose({ data }: { data: any }) {
   const items = data?.items || [];
-  const hasSide = !!data?.image;
   return (
     <View testID="app-why-choose" style={{ marginHorizontal: 20, marginBottom: 30 }}>
-      <LinearGradient colors={[PRIMARY[50], "#EEF5FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: PRIMARY[100], flexDirection: "row" }}>
-        <View style={{ padding: 20, flex: 1 }}>
-          <Text style={{ fontSize: 19, fontWeight: "900", color: SLATE[900], letterSpacing: -0.3 }}>{data?.title}</Text>
-          {data?.side_text && !hasSide ? <Text style={{ fontSize: 13, color: SLATE[600], marginTop: 4 }}>{data.side_text}</Text> : null}
-          <View style={{ flexDirection: "row", marginTop: 18 }}>
-            {items.map((it: any, i: number) => (
-              <View key={i} style={{ flex: 1, alignItems: "center", paddingHorizontal: 0 }}>
-                <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", ...shadowBtn }}><LucideByName name={it.icon} size={20} color={PRIMARY[700]} strokeWidth={2} /></View>
-                <Text numberOfLines={3} style={{ fontSize: 9.5, fontWeight: "600", color: SLATE[700], textAlign: "center", marginTop: 8, lineHeight: 12, letterSpacing: -0.2 }}>{it.title}</Text>
-              </View>
-            ))}
-          </View>
+      <LinearGradient colors={[PRIMARY[50], "#EEF5FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: PRIMARY[100], padding: 20 }}>
+        <Text style={{ fontSize: 19, fontWeight: "900", color: SLATE[900], letterSpacing: -0.3 }}>{data?.title}</Text>
+        {data?.side_text ? <Text style={{ fontSize: 13, color: SLATE[600], marginTop: 4 }}>{data.side_text}</Text> : null}
+        <View style={{ flexDirection: "row", marginTop: 18 }}>
+          {items.map((it: any, i: number) => (
+            <View key={i} style={{ flex: 1, alignItems: "center" }}>
+              <View style={{ height: 46, width: 46, borderRadius: 23, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", ...shadowBtn }}><LucideByName name={it.icon} size={21} color={PRIMARY[700]} strokeWidth={2} /></View>
+              <Text numberOfLines={3} style={{ fontSize: 10, fontWeight: "600", color: SLATE[700], textAlign: "center", marginTop: 8, lineHeight: 12.5, letterSpacing: -0.2 }}>{it.title}</Text>
+            </View>
+          ))}
         </View>
-        {hasSide ? (
-          <View style={{ width: "30%", justifyContent: "flex-start", alignItems: "flex-end" }}>
-            {data?.image ? <Image source={{ uri: data.image }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "100%" }} contentFit="cover" contentPosition="bottom" transition={200} /> : null}
-            {data?.side_text ? <Text style={{ fontSize: 11, fontWeight: "700", color: SLATE[800], textAlign: "right", padding: 12, paddingBottom: 0, lineHeight: 14 }}>{data.side_text}</Text> : null}
-          </View>
-        ) : null}
+        {data?.image ? <Image source={{ uri: data.image }} style={{ height: 120, width: "100%", borderRadius: 16, marginTop: 16 }} contentFit="cover" transition={200} /> : null}
       </LinearGradient>
     </View>
   );

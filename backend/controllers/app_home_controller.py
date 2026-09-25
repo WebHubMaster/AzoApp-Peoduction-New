@@ -34,7 +34,7 @@ DEFAULT = {
                              {"icon": "clock", "title": "On-time Service"},
                              {"icon": "headphones", "title": "24/7 Customer Support"}]},
     "salon": {"enabled": True, "title": "Salon at Home", "icon": "sparkles", "tabs": [], "limit": 8},
-    "categories": {"limit": 11, "show_more": True, "more_label": "More Services"},
+    "categories": {"limit": 11, "show_more": True, "more_label": "All services"},
     "offer_banner": {"enabled": True, "eyebrow": "LIMITED TIME OFFER", "cta_label": "Book Now", "cta_link": "/services", "image": "", "offer_id": ""},
     "sections": [
         {"key": "categories", "enabled": True, "title": ""},

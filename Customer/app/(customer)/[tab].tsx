@@ -11,7 +11,8 @@ export default function ComingSoon() {
   const { c } = useTheme();
   const pathname = usePathname();
   const params = useLocalSearchParams();
-  const seg = String(params.tab || pathname.split("/").filter(Boolean).filter((x) => !x.startsWith("(")).pop() || "");
+  const rawTab = String(params.tab || "");
+  const seg = (rawTab && !rawTab.startsWith("(") ? rawTab : "") || pathname.split("/").filter(Boolean).filter((x) => !x.startsWith("(")).pop() || "";
   const item = NAV.find((n) => n.key === seg);
   const title = item?.label || (seg === "services" ? "Services" : seg.replace(/_/g, " "));
   const extra = Object.entries(params).filter(([k]) => k !== "tab");

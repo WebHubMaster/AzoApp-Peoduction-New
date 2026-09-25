@@ -1,7 +1,7 @@
 /** Customer App Home — admin-managed layout (GET /app/home), progressive rendering, offline-first cache. */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, FlatList, RefreshControl, Pressable } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { PRIMARY, SLATE } from "../../src/theme";
 import { useCity } from "../../src/lib/location";
 import { useAppHome } from "../../src/lib/appHome";
@@ -18,6 +18,7 @@ export default function AppHome() {
   const city = useCity();
   const { data, loading, error, refetch, refreshing } = useAppHome(city);
   const navigate = useNavigate();
+  const router = useRouter();
   const [sheetCat, setSheetCat] = useState<any>(null);
   const [visibleCount, setVisibleCount] = useState(3);
   const listRef = useRef<FlatList>(null);
@@ -31,7 +32,7 @@ export default function AppHome() {
     out.push({ key: "hero", render: () => <HeroSlider slides={data.hero_slides} stats={data.stats} navigate={navigate} /> });
     for (const sec of data.sections || []) {
       const k = sec.key;
-      if (k === "categories") out.push({ key: k, render: () => <CategoriesGrid cats={sec.data || []} config={sec.config} onCategory={(c) => setSheetCat(c)} onMore={() => navigate("/services")} /> });
+      if (k === "categories") out.push({ key: k, render: () => <CategoriesGrid cats={sec.data || []} config={sec.config} onCategory={(c) => router.push({ pathname: "/(site)/category/[id]", params: { id: c.id, name: c.name } } as any)} onMore={() => navigate("/services")} /> });
       else if (k === "offer_banner") out.push({ key: k, render: () => <OfferBanner sec={sec} navigate={navigate} /> });
       else if (k === "quick_features") out.push({ key: k, render: () => <QuickFeatures items={sec.data || []} navigate={navigate} /> });
       else if (k === "most_booked") out.push({ key: k, render: () => <ServicesRow sec={sec} navigate={navigate} testID="app-most-booked" /> });
@@ -41,7 +42,7 @@ export default function AppHome() {
       else if (k === "offers") out.push({ key: k, render: () => <OffersRow sec={sec} navigate={navigate} /> });
     }
     return out;
-  }, [data, navigate]);
+  }, [data, navigate, router]);
 
   const shown = blocks.slice(0, visibleCount);
 
