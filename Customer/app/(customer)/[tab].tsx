@@ -11,10 +11,11 @@ export default function ComingSoon() {
   const { c } = useTheme();
   const pathname = usePathname();
   const params = useLocalSearchParams();
-  const seg = pathname.split("/").filter(Boolean).pop() || "";
+  const seg = String(params.tab || pathname.split("/").filter(Boolean).filter((x) => !x.startsWith("(")).pop() || "");
   const item = NAV.find((n) => n.key === seg);
   const title = item?.label || (seg === "services" ? "Services" : seg.replace(/_/g, " "));
-  const sub = Object.keys(params).length ? Object.entries(params).map(([k, v]) => `${k}: ${v}`).join(" · ") : "";
+  const extra = Object.entries(params).filter(([k]) => k !== "tab");
+  const sub = extra.length ? extra.map(([k, v]) => `${k}: ${v}`).join(" · ") : "";
   return (
     <View testID={`page-${seg}`} style={{ gap: 20 }}>
       <View>

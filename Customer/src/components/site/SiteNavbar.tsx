@@ -55,17 +55,17 @@ export function LocationButton({ testID = "nav-location" }: { testID?: string })
             <>
               <Text style={{ fontSize: 14, fontWeight: "600", color: SLATE[800], marginBottom: 8 }}>Where do you need service?</Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <TextInput testID="nav-location-input" value={val} onChangeText={setVal} onSubmitEditing={save} placeholder="City or pincode" placeholderTextColor={SLATE[400]} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 8, borderWidth: 1, borderColor: SLATE[200], fontSize: 14, color: SLATE[900] }} />
-                <Pressable testID="nav-location-set" onPress={save} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Set</Text></Pressable>
+                <TextInput testID={`${testID}-input`} value={val} onChangeText={setVal} onSubmitEditing={save} placeholder="City or pincode" placeholderTextColor={SLATE[400]} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 8, borderWidth: 1, borderColor: SLATE[200], fontSize: 14, color: SLATE[900] }} />
+                <Pressable testID={`${testID}-set`} onPress={save} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Set</Text></Pressable>
               </View>
               {isPin ? (
-                <View testID="nav-pincode-badge" style={{ marginTop: 8, flexDirection: "row" }}>
+                <View testID={`${testID}-pincode-badge`} style={{ marginTop: 8, flexDirection: "row" }}>
                   {pinChecking ? <Text style={{ fontSize: 12, fontWeight: "600", color: SLATE[600], backgroundColor: SLATE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>Checking availability…</Text>
-                    : pinCov?.serviceable === true ? <View testID="nav-pincode-serviceable" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></View>
-                    : pinCov?.serviceable === false ? <View testID="nav-pincode-blocked" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View> : null}
+                    : pinCov?.serviceable === true ? <View testID={`${testID}-pincode-serviceable`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></View>
+                    : pinCov?.serviceable === false ? <View testID={`${testID}-pincode-blocked`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View> : null}
                 </View>
               ) : null}
-              <Pressable testID="nav-detect-location" onPress={detect} disabled={status === "locating"} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, opacity: status === "locating" ? 0.7 : 1 }}>
+              <Pressable testID={`${testID}-detect`} onPress={detect} disabled={status === "locating"} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, opacity: status === "locating" ? 0.7 : 1 }}>
                 {status === "locating" ? <ActivityIndicator size="small" color={PRIMARY[700]} /> : <MapPin size={16} color={PRIMARY[700]} />}
                 <Text style={{ fontSize: 14, color: PRIMARY[700], fontWeight: "500" }}>{status === "locating" ? "Detecting your location…" : "Use my current location"}</Text>
               </Pressable>
