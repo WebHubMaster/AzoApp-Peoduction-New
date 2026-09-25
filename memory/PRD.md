@@ -101,3 +101,10 @@ with all features working end-to-end against the SAME FastAPI backend.
   - Same API: GET /api/merchant/referral/commission (summary + items + pagination).
 
 Backlog / next: replicate any remaining merchant panel pages the user wants ported from web (same shared-component approach).
+
+## Update — 2026-06 · Merchant Mobile Bank & KYC page parity (DONE, tested iteration_114 — 100%)
+- `/app/frontend/app/merchant/bankkyc.tsx` rewritten as 1:1 RN port of `web_panel/src/pages/merchant/MerchantFinanceKyc.jsx` (mobile view): page header + LockedCard gate, gradient progress hero (blue → emerald when eligible, X/2 verified), PAN card (approved/pending/form + upload w/ progress, preview/replace/delete, submit/resubmit), Bank Accounts (cards w/ PRIMARY chip, StatusBadge, masked acc, Set primary / Remove with confirm, add-bank form with confirm-acc + IFSC live validation, Savings/Current PremiumSelect, passbook upload), SecurityNote, fullscreen preview modal.
+- APIs: `GET/POST /merchant/panel/finance-kyc[/pan|/banks|/banks/{id}/primary]`, `DELETE /banks/{id}`, upload → `POST /merchant/registration/upload` (web: XHR w/ % progress; native: expo-file-system upload).
+- `FinanceKit.tsx` now exports `SecurityNote` + `LockedCard` (moved out of wallet.tsx).
+- Old generic `src/components/FinanceKyc.tsx` still used by partner finance-kyc only.
+- Demo merchant left in approved state (PAN ABCDE1234F + primary HDFC bank) by testing agent.

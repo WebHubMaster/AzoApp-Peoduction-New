@@ -1,0 +1,29 @@
+{
+  "summary": "Tested Merchant Bank & KYC mobile port (Expo/React Native web) at /merchant/bankkyc and its backend APIs end-to-end incl. admin approval flow. All 8 pytest backend tests pass; frontend renders the eligible state (2/2 verified) with PAN approved + primary bank card. Bank form validation (mismatch, invalid IFSC, IFSC uppercase strip) works. Wallet regression /wallet also renders fine (routes are under (merchant) group so URL is /wallet, not /merchant/wallet). Merchant left in approved state with a primary HDFC bank (as requested).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_finance_kyc.py",
+    "/app/test_reports/pytest/merchant_bankkyc.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "bankkyc.tsx submit-bank enabling logic is fine (canConfirm covers all required fields) but note: uploadPct.passbook_url being undefined is NOT required in disabled expression; user could tap Submit while passbook is uploading (backend catches it with 400 'Please upload your bank passbook / cheque image'). Suggest adding `|| uploadPct.passbook_url !== undefined || !bank.passbook_url` to Submit disabled for a smoother UX (though the toast surfaces the error).",
+    "Confirm mismatch message uses Unicode curly apostrophe (don\\u2019t) — matches spec but ensure font renders it correctly on all devices.",
+    "runUpload catch reads e.message but api.post throws with e.detail — inconsistent error extraction pattern is used elsewhere (submitPan/submitBank use e?.detail). Harmless because uploadDoc rejects with new Error(detail), but worth aligning."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_merchant_finance_kyc.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Merchant +919000000002 / OTP 123456; Admin +919000000000 / OTP 123456",
+  "seed_data_creation": "Merchant Sharma Electricals now has approved PAN (ABCDE1234F) + one approved+primary HDFC bank (acc ...1234, IFSC HDFC0001234) so the eligible UI is visible.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Merchant panel routes finance-kyc live under /api/merchant/panel/... Admin approves via /api/admin/merchant/{id}/finance/pan/action and /api/admin/merchant/finance/banks/{bank_id}/action. Wallet page URL is /wallet (route group). PAN uppercases + strips non-alphanumerics in input; IFSC uppercases; account_number keyboard is number-pad. Toasts are custom (src/components/Toast.tsx). Merchant is left in the approved state — do not delete the demo merchant or its bank/PAN.",
+  "rca of the issue": "N/A — no issues found"
+}
