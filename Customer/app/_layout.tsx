@@ -5,6 +5,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
+import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
+import { useNavigate } from "../src/lib/navigate";
+setupNotificationHandler();
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
@@ -44,7 +47,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
       <BrandProvider value={data}>
         <AuthProvider><CartProvider>
           <ToastProvider>
-            <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+            <PushTapBridge /><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(site)" />
               <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
@@ -55,6 +58,12 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
       </BrandProvider>
     </ThemeProvider>
   );
+}
+
+function PushTapBridge() {
+  const navigate = useNavigate();
+  useEffect(() => onNotificationTap((link) => navigate(link)), [navigate]);
+  return null;
 }
 
 export default function RootLayout() {

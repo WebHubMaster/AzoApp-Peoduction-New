@@ -65,6 +65,11 @@ async def notify(user_id: str, title: str, body: str, *, link: str = "/",
             result["push"] = await send_to_user(user_id, title, body, link, data, image=image)
         except Exception as e:  # noqa: BLE001
             result["push"] = {"error": str(e)[:120]}
+        try:
+            from services.expo_push_service import send_to_user as expo_send
+            result["expo"] = await expo_send(user_id, title, body, link, data)
+        except Exception as e:  # noqa: BLE001
+            result["expo"] = {"error": str(e)[:120]}
 
     # 5) Email — dynamic: only when the caller supplied HTML (template-driven)
     try:
