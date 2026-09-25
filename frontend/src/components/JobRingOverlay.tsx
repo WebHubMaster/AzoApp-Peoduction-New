@@ -13,7 +13,7 @@ import { useRealtime } from "@/src/context/RealtimeContext";
 import { useToast } from "@/src/components/Toast";
 import { Icon } from "@/src/components/Icon";
 import { cancelJobRing, onForegroundPush } from "@/src/lib/notifications";
-import { emitRing, getRingPrefs, isDndActive, isSnoozed, loadLocal, onRing, syncPrefsFromServer } from "@/src/lib/ringPrefs";
+import { emitRing, getRingPrefs, isDndActive, isSnoozed, loadLocal, onRing, syncPrefsFromServer, wasReminderShownRecently, markReminderShown } from "@/src/lib/ringPrefs";
 import { TW } from "@/src/components/partner/home/tw";
 
 /* 1:1 port of web components/partner/IncomingJobRing.jsx.
@@ -138,6 +138,9 @@ export function JobRingOverlay() {
   const enqueue = useCallback((job: RingJob, force = false) => {
     if (!job || !job.id) return;
     if (handledRef.current.has(job.id)) return;
+    // Scheduled 30-min reminder: only show once per cooldown window — never on every
+    // app re-open. (Backend keeps offering it while the job hasn't been started.)
+    if (job._reminder && wasReminderShownRecently(job.id)) return;
     // Smart Snooze: non-emergency requests are ignored entirely (never counted as missed).
     if (!force && isSnoozed() && job.schedule_type !== "emergency") return;
     const isTest = !!job.is_test || String(job.id).startsWith("test-");
@@ -153,6 +156,12 @@ export function JobRingOverlay() {
     const startedAt = Date.now();
     const iv = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
     return () => clearInterval(iv);
+  }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Record when a scheduled reminder is actually shown so it isn't re-shown on the
+  // next app open within the cooldown window.
+  useEffect(() => {
+    if (current?._reminder && current.id) markReminderShown(current.id);
   }, [current?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // SSE: new requests + jobs taken by someone else (+ list refreshes, as web PartnerDashboard).

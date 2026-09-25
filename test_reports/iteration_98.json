@@ -1,5 +1,5 @@
 {
-  "summary": "Verified one-click demo login for all four roles on the web panel at https://merchant-panel-sync.preview.emergentagent.com/login. All four roles (admin, partner, customer, merchant) sign in successfully same-origin via /api, show 'Demo login: ...' success toast, and land on the correct portal. No 'Demo login failed' or CORS errors observed.",
+  "summary": "Verified one-click demo login for all four roles on the web panel at https://reminder-logic.preview.emergentagent.com/login. All four roles (admin, partner, customer, merchant) sign in successfully same-origin via /api, show 'Demo login: ...' success toast, and land on the correct portal. No 'Demo login failed' or CORS errors observed.",
   "backend_issues": {"critical": [], "minor": []},
   "frontend_issues": {
     "ui_bugs": [],

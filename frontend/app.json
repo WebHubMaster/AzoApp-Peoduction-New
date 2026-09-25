@@ -72,6 +72,13 @@
       ],
       "expo-font",
       "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Upload documents and job proof photos",
+          "cameraPermission": "Capture KYC documents and live job photos"
+        }
+      ],
       "expo-audio",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",

@@ -21,6 +21,9 @@ async function ensurePerm(kind: "camera" | "gallery"): Promise<boolean> {
 
 export async function pickImage(source: "camera" | "gallery", facing: "front" | "back" = "back"): Promise<ImagePicker.ImagePickerAsset | null> {
   if (!(await ensurePerm(source))) throw new Error(source === "camera" ? "Camera permission denied. Please allow camera access and try again." : "Gallery permission denied. Please allow photo access and try again.");
+  // Small delay after the permission grant so the native camera UI reliably launches
+  // (works around an Android permission-resolution race where launchCameraAsync no-ops).
+  if (source === "camera") await new Promise((r) => setTimeout(r, 250));
   const res = source === "camera"
     ? await ImagePicker.launchCameraAsync({ quality: 0.85, cameraType: facing === "front" ? ImagePicker.CameraType.front : ImagePicker.CameraType.back })
     : await ImagePicker.launchImageLibraryAsync({ quality: 0.85, mediaTypes: ["images"] });

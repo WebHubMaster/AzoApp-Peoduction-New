@@ -3,7 +3,7 @@
 [1mINVOICE PREVIEW = PDF DOWNLOAD = PRINT FIX - COMPREHENSIVE TEST[0m
 [1m================================================================================
 [0m
-[94mBASE_URL: https://merchant-panel-sync.preview.emergentagent.com/api[0m
+[94mBASE_URL: https://reminder-logic.preview.emergentagent.com/api[0m
 [94mTest Date: 2026-09-10 10:00:48[0m
 [94m🔐 Logging in as +919000000000...[0m
 [92m✅ Logged in successfully[0m
