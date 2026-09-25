@@ -1,0 +1,28 @@
+{
+  "summary": "Verified merchant module header UI parity fix. My Partners, Commission, and Partner-detail pages now all render the ROUNDED gradient CARD banner (borderRadius 24, drop shadow, blue→purple gradient, translucent icon box, decorative circles) INSIDE the scroll content with page margins — matching the already-correct My Customers style and web panel. No flush edge-to-edge bars observed. Merchant login (one-click demo) and downstream KPI cards, tabs, search, partner list, and partner detail all rendered correctly with live data.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_flows": [
+    "Merchant one-click demo login → merchant home loaded (Sharma Electrics, CR9Z6…)",
+    "/merchant/partners: rounded gradient card 'My Partners' with subtitle + Network icon, KPIs (Total Commission ₹385, 1 partner), status tabs, partner-search input, and 1 partner row (Raj Kumar PTR-C0A949 Active, ₹385 commission) all visible.",
+    "/merchant/commission: rounded gradient card 'Commission' with subtitle + TrendingUp icon, 8 KPI cards, All/Customer/Partner tabs, commission-search, date filter visible.",
+    "Partner detail: tapped Raj Kumar row → partner-detail testID rendered rounded gradient card 'Partner' / 'Referred partner commission' with detail-back link, avatar, status pill, KPIs, service-wise commission list, privacy note."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MModuleHeader default (non-card) variant is still exported but no longer referenced by these three pages — safe to keep, but confirm no other screen depends on it before pruning.",
+    "boxShadow on card variant is a web-only CSS style (native RN would need elevation/shadow*) — currently OK because this Expo build is web-served, but for native builds add elevation/shadowColor/shadowOpacity/shadowRadius/shadowOffset to preserve depth on iOS/Android."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "Merchant one-click demo login (label 'Login as Merchant' on /login) — no phone/OTP required. Phone +919000000002 / OTP 123456 also documented per request.",
+  "seed_data_creation": "None (demo seed).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Merchant referral screens (partners/commission/partner-detail) now use MModuleHeader card variant. TestIDs: merchant-partners, merchant-commission, partner-detail, partner-row-<id>, detail-back. Note: /merchant/customers direct URL 404s — customers page lives under expo-router group /(merchant)/customers; navigate via bottom-nav 'Customers' tab if needed."
+}
