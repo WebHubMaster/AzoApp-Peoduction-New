@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
+import { registerPushToken } from "../lib/push";
 import { api, getToken, setToken } from "@/src/api/client";
 
 export interface AppUser {
@@ -40,6 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const me = await api.get<AppUser>("/auth/me");
       if (!isCustomer(me)) { await setToken(null); setUser(null); return null; }
       setUser(me);
+      registerPushToken();
       return me;
     } catch (e: any) {
       // Only drop the session on a genuine 401 — never on transient network/5xx.
@@ -51,6 +53,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => { (async () => { await refresh(); setBooting(false); })(); }, [refresh]);
 
   const login = useCallback(async (token: string, u: AppUser) => {
+    registerPushToken();
     setLoading(true);
     await setToken(token);
     setUser(u);

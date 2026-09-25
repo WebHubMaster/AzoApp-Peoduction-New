@@ -608,7 +608,7 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
     if not sa:
         await _log_delivery(user_id, title, "skipped", "FCM service account not configured")
         return {"success": 0, "failure": 0, "skipped": "not_configured"}
-    rows = await db.fcm_devices.find({"user_id": user_id, "is_active": {"$ne": False}}).to_list(500)
+    rows = await db.fcm_devices.find({"user_id": user_id, "is_active": {"$ne": False}, "token": {"$not": {"$regex": "^ExponentPushToken"}}}).to_list(500)
     if not rows:
         await _log_delivery(user_id, title, "skipped", "No registered device/token for user")
         return {"success": 0, "failure": 0, "skipped": "no_devices"}

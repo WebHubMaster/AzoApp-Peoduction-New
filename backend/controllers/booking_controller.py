@@ -2580,6 +2580,18 @@ async def _advance(booking_id, status):
     brief = _job_brief(b)
     rt.emit_admin("job_update", brief)
     rt.emit_user(b.get("customer_id"), "booking_update", brief)
+    _STATUS_ALERTS = {
+        "arrived_shop": ("Partner is on the way \U0001F698", "{partner} is heading to you for {service}. Booking #{code}"),
+        "arrived_customer": ("Partner has arrived \U0001F44B", "{partner} has arrived. Share your START OTP to begin {service}. #{code}"),
+        "started": ("Work started \U0001F527", "{partner} has started {service}. Booking #{code}"),
+    }
+    if status in _STATUS_ALERTS and b.get("customer_id"):
+        t, body = _STATUS_ALERTS[status]
+        try:
+            await _notify(b["customer_id"], t, body.format(partner=b.get("partner_name") or "Your partner", service=b.get("service_name") or "your service", code=b.get("code")),
+                          f"booking_{status}", {"panel": "account?tab=orders", "booking_id": booking_id, "code": b.get("code"), "type": "booking_status"})
+        except Exception:
+            pass
     return b
 
 
@@ -3077,6 +3089,12 @@ async def complete_job(partner, booking_id, otp):
                   "payment_method": b.get("payment_method") or "prepaid",
                   "commission": ledger, "updated_at": now_iso()},
          "$push": {"timeline": {"status": "completed", "at": now_iso()}}})
+    try:
+        await _notify(b["customer_id"], "Work completed \u2705",
+                      f"{b.get('service_name') or 'Your service'} is complete. Booking #{b.get('code')} — please rate your experience.",
+                      "booking_completed", {"panel": "account?tab=orders", "booking_id": booking_id, "code": b.get("code"), "type": "booking_status"})
+    except Exception:
+        pass
     # Accept-Streak Rewards: the milestone bonus is earned ONLY now that the accepted
     # job is actually COMPLETED — an accept that was later cancelled never counts.
     await _advance_accept_streak(partner["id"])
