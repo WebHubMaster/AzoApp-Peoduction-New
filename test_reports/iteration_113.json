@@ -1,0 +1,30 @@
+{
+  "summary": "Verified merchant Scan QR canonical link contract. Backend + Frontend + regression all pass. Bug fix confirmed: (a) GET /api/merchant/my-code now returns {merchant_code, ref_url} and ref_url is derived from _app_url() (APP_URL || PUBLIC_APP_URL || REACT_APP_BACKEND_URL); (b) GET /api/merchant/qr/share-page rewrites any foreign host in link and caption to the canonical ref_url — foreign host does NOT appear anywhere in the returned HTML; (c) GET /api/merchant/panel/qr/poster?fmt=png returns 200 image/png; (d) Mobile Scan QR page's hero-link (testID) EQUALS the backend ref_url exactly (verified via runtime fetch inside the page). In this preview all env bases point to the same host so www-vs-api can't be visually differentiated, but the CONTRACT is proven — in prod (PUBLIC_APP_URL=www) the exact same code path will emit the www URL.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "verified_flows": [
+    "Merchant login (one-click 'Login as Merchant' demo) — session established; +919000000002 / OTP 123456 also documented",
+    "GET /api/merchant/my-code (auth merchant): returns merchant_code=CR9Z67N and ref_url=<preview>/?ref=CR9Z67N (matches shape <base>/?ref=<code>)",
+    "GET /api/merchant/qr/share-page with foreign link+caption (host api.example.com): 200 OK, HTML contains only canonical /?ref=CR9Z67N link on preview base; 'api.example.com' NOT present anywhere",
+    "GET /api/merchant/panel/qr/poster?fmt=png (auth merchant): 200 image/png, > 1KB body",
+    "Mobile Scan QR page /merchant/scanqr: hero-link testID text == backend ref_url (exact string match). QR poster preview, Share, WhatsApp buttons render. Ref: CR9Z67N badge, Active/Verified/Booking Enabled pills all visible."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_qr_canonical_link_iter113.py",
+    "/app/test_reports/pytest/iter113.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/routes/merchant_routes.py my_code() correctly imports _app_url() from physical_qr_service — single source of truth for the canonical public base. Good DRY.",
+    "backend/services/qr_share_page_service.py + backend/routes/merchant_panel_routes.py qr_poster() both re-derive link from _app_url() AND re-write stale ref links out of the caption with the same regex `https?://\\S*ref=<code>\\S*` — behaviour is consistent across share-page and poster endpoints.",
+    "frontend/app/merchant/scanqr.tsx line 38: `link = codeQ.data?.ref_url || (code ? `${WEB_ORIGIN}/?ref=${code}` : '')` — preferred path uses backend ref_url. Safe fallback only when API hasn't returned yet.",
+    "Minor: the caption regex only rewrites links whose ref= matches the merchant's OWN code. If a caption contains a foreign host with a DIFFERENT ref code (unlikely in real flows) it would be left alone. Acceptable given only the merchant's own scanqr.tsx can produce the caption."
+  ],
+  "updated_files": ["/app/backend/tests/test_merchant_qr_canonical_link_iter113.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "100%"},
+  "test_credentials": "Merchant: one-click 'Login as Merchant' demo on /login (session token stored in localStorage). Equivalent phone/OTP: +919000000002 / 123456. Merchant code observed: CR9Z67N.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Preview pod has APP_URL/PUBLIC_APP_URL/REACT_APP_BACKEND_URL all pointing to the same preview host so the www vs api visual difference cannot be shown — verify by CONTRACT: hero-link testID string == /api/merchant/my-code ref_url; share-page HTML must never leak a host passed in `link`/`caption`. Auth endpoints are POST /api/auth/send-otp then POST /api/auth/verify-otp with body {phone, otp, role:'merchant'}. Scan QR is /merchant/scanqr (Metro CI mode; frontend restart needed for code changes)."
+}
