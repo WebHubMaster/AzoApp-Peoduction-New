@@ -214,7 +214,7 @@ const _iso = (dt: Date) => {
 };
 
 /** Range calendar — mirrors web RangeCalendar tap logic (from → to, swap, disable future). */
-function RangeCalendar({ from, to, onPick }: { from?: string; to?: string; onPick: (f: string, t: string) => void }) {
+export function RangeCalendar({ from, to, onPick }: { from?: string; to?: string; onPick: (f: string, t: string) => void }) {
   const { colors } = useTheme();
   const base = from ? new Date(from) : new Date();
   const [view, setView] = useState(new Date(base.getFullYear(), base.getMonth(), 1));
