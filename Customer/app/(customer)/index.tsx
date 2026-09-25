@@ -1,0 +1,30 @@
+/** Home tab — CustomerDashboard.jsx `active === "home"` → <HomeView .../> */
+import React from "react";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/src/context/AuthContext";
+import { useCustomerData } from "@/src/context/CustomerDataContext";
+import HomeView from "@/src/components/customer/HomeView";
+import { NAV, NavKey } from "@/src/components/customer/nav";
+
+export default function Home() {
+  const router = useRouter();
+  const { user } = useAuth();
+  const d = useCustomerData();
+
+  const goTo = (key: NavKey, code?: string) => {
+    const route = NAV.find((n) => n.key === key)?.route || "/(customer)";
+    router.push((code ? `${route}?focus=${encodeURIComponent(code)}` : route) as any);
+  };
+  const openBooking = (b: any) => router.push(`/(customer)/orders?focus=${encodeURIComponent(b.code)}` as any);
+
+  return (
+    <HomeView
+      user={user} bookings={d.bookings} wallet={d.wallet} refunds={d.refunds} categories={d.categories} services={d.services} referral={d.referral} loading={d.loading}
+      onNavigate={goTo}
+      onBook={() => router.push("/(customer)/services" as any)}
+      onCategory={(id) => router.push(`/(customer)/services?category=${id}` as any)}
+      onOpenBooking={openBooking}
+      onService={(id) => router.push(`/(customer)/services?service=${id}` as any)}
+    />
+  );
+}
