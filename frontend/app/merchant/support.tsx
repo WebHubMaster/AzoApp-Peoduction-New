@@ -142,7 +142,8 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
 
   const allAttachments: any[] = (t.messages || []).flatMap((m: any) => m.attachments || []);
   const others = (tickets || []).filter((x) => x.id !== ticket.id);
-  let lastDay: string | null = null;
+  const msgs: any[] = t.messages || [];
+  const seps = msgs.map((m, i) => (dayKey(m.at) !== (i ? dayKey(msgs[i - 1].at) : null) ? daySep(m.at) : null));
   const cardH = Math.max(480, winH - 230);
 
   return (
@@ -177,9 +178,8 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
 
         {/* messages */}
         <ScrollView ref={endRef} style={{ flex: 1, backgroundColor: dark ? "rgba(2,6,23,0.3)" : "rgba(248,250,252,0.6)" }} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, gap: 8 }} nestedScrollEnabled keyboardShouldPersistTaps="handled" testID="support-messages">
-          {(t.messages || []).map((m: any) => {
-            const sep = dayKey(m.at) !== lastDay ? daySep(m.at) : null;
-            lastDay = dayKey(m.at);
+          {msgs.map((m: any, idx: number) => {
+            const sep = seps[idx];
             const mine = m.sender_id === myId;
             const isAdmin = m.sender_role === "admin";
             return (

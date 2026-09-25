@@ -10,7 +10,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { fmt, fmtC } from "@/src/lib/format";
 import { Icon } from "@/src/components/Icon";
 import { SLATE } from "@/src/components/qr/qrKit";
-import { useFin, Surface, LockedCard, TAB } from "@/src/components/merchant/FinanceKit";
+import { useFin, LockedCard, TAB } from "@/src/components/merchant/FinanceKit";
 import { RangeCalendar } from "@/src/components/merchant/ReferralShared";
 import { AreaTrend, StackedBars, Donut, Pt } from "@/src/components/merchant/AnalyticsCharts";
 
