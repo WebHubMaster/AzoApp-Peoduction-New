@@ -50,8 +50,8 @@ export default function AppHome() {
       <AppHeader branding={data?.branding} />
       <AppSearchBar onSubmit={(q) => navigate(`/services?q=${encodeURIComponent(q)}`)} />
       {loading ? (
-        <View style={{ padding: 16, gap: 14 }} testID="app-home-skeleton">
-          <Sk style={{ height: 230, borderRadius: 20 }} />
+        <View style={{ padding: 20, gap: 18 }} testID="app-home-skeleton">
+          <Sk style={{ height: 280, borderRadius: 24 }} />
           <View style={{ flexDirection: "row", gap: 10 }}>{[0, 1, 2, 3, 4, 5].map((i) => <Sk key={i} style={{ flex: 1, height: 72 }} />)}</View>
           <Sk style={{ height: 150, borderRadius: 20 }} />
         </View>
@@ -72,7 +72,7 @@ export default function AppHome() {
           onEndReachedThreshold={0.6}
           onEndReached={() => setVisibleCount((c) => Math.min(blocks.length, c + 2))}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refetch()} tintColor={PRIMARY[700]} />}
-          contentContainerStyle={{ paddingTop: 4, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingTop: 6, paddingBottom: 36 }}
           keyboardShouldPersistTaps="handled"
           ListFooterComponent={visibleCount < blocks.length ? <View style={{ padding: 16 }}><Sk style={{ height: 120 }} /></View> : null}
         />

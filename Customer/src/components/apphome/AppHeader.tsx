@@ -4,7 +4,7 @@ import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator,
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight, Zap } from "lucide-react-native";
+import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight } from "lucide-react-native";
 import { PRIMARY, SLATE, ROSE, shadowBtn } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../Toast";
@@ -39,31 +39,33 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   };
 
   return (
-    <View testID="app-header" style={{ paddingTop: insets.top + 8, paddingHorizontal: 16, paddingBottom: 8, backgroundColor: "#fff" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1 }}>
+    <View testID="app-header" style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: "#fff" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1, minWidth: 110 }}>
           {branding?.logo ? (
-            <Image source={{ uri: branding.logo }} style={{ height: 30, width: 112 }} contentFit="contain" contentPosition="left" />
+            <Image source={{ uri: branding.logo }} style={{ height: 34, width: 124 }} contentFit="contain" contentPosition="left" />
           ) : (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ height: 30, width: 30, borderRadius: 9, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Zap size={16} color="#fff" fill="#fff" /></View>
-              <Text style={{ fontSize: 20, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.5 }}>{branding?.site_name || "AzoApp"}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+              <Text style={{ fontSize: 25, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.6 }}>{branding?.site_name || "AzoApp"}</Text>
+              <HomeIcon size={22} color={PRIMARY[700]} strokeWidth={2.4} />
             </View>
           )}
-          {branding?.show_tagline !== false && branding?.tagline ? <Text testID="app-tagline" style={{ fontSize: 10, color: SLATE[500], marginTop: 2 }} numberOfLines={1}>{branding.tagline}</Text> : null}
+          {branding?.show_tagline !== false && branding?.tagline ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding.tagline}</Text> : null}
         </Pressable>
-        <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[50], borderRadius: 999, paddingHorizontal: 12, height: 34, marginLeft: "auto", maxWidth: 150 }}>
-          <MapPin size={15} color={PRIMARY[700]} />
-          <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: SLATE[800], flexShrink: 1 }}>{city || "Set location"}</Text>
-          <ChevronDown size={14} color={SLATE[500]} />
-        </Pressable>
-        <Pressable testID="app-bell" onPress={onBell} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}>
-          {notif === "denied" ? <BellOff size={22} color={SLATE[400]} /> : <Bell size={22} color={SLATE[800]} />}
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
+            <MapPin size={16} color={PRIMARY[700]} />
+            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: SLATE[800], flexShrink: 1 }}>{city || "Set location"}</Text>
+            <ChevronDown size={14} color={SLATE[500]} />
+          </Pressable>
+        </View>
+        <Pressable testID="app-bell" onPress={onBell} style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center" }}>
+          {notif === "denied" ? <BellOff size={24} color={SLATE[400]} /> : <Bell size={24} color={SLATE[800]} />}
           {(unread > 0 || notif === "undetermined") && notif !== "denied" ? <View testID="app-bell-dot" style={{ position: "absolute", top: 5, right: 7, height: 8, width: 8, borderRadius: 4, backgroundColor: ROSE[500], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
           {notif === "denied" ? <View testID="app-bell-muted" style={{ position: "absolute", top: 4, right: 5, height: 9, width: 9, borderRadius: 5, backgroundColor: SLATE[400], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
         </Pressable>
-        <Pressable testID="app-avatar" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
-          {user ? <Text style={{ color: "#fff", fontWeight: "800", fontSize: 13 }}>{initials || "U"}</Text> : <User size={20} color="#fff" />}
+        <Pressable testID="app-avatar" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", ...shadowBtn }}>
+          {user ? <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>{initials || "U"}</Text> : <User size={22} color="#fff" />}
         </Pressable>
       </View>
 
@@ -112,19 +114,19 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   }, [q]);
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingBottom: 12, backgroundColor: "#fff", zIndex: 20 }}>
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 46, borderRadius: 14, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 12, gap: 8 }}>
-        <Search size={18} color={SLATE[500]} />
+    <View style={{ paddingHorizontal: 20, paddingBottom: 18, backgroundColor: "#fff", zIndex: 20 }}>
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 18, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 16, gap: 10 }}>
+        <Search size={20} color={SLATE[500]} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && onSubmit(q.trim())} returnKeyType="search"
-          placeholder="Search for services (e.g. AC Repair, Cleaning, Salon)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 13, color: SLATE[800], height: 44, paddingVertical: 0 }} />
+          placeholder="Search for services (AC Repair, Cleaning…)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14, color: SLATE[800], height: 52, paddingVertical: 0 }} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }}><X size={16} color={SLATE[400]} /></Pressable> : null}
-        <Pressable testID="app-voice-btn" onPress={voice.toggle} style={{ height: 32, width: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
-          {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? SLATE[700] : SLATE[300]} />}
+        <Pressable testID="app-voice-btn" onPress={voice.toggle} style={{ height: 36, width: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : PRIMARY[50] }}>
+          {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? PRIMARY[700] : SLATE[300]} />}
         </Pressable>
       </View>
       {voice.listening ? <Text testID="app-voice-listening" style={{ fontSize: 11, color: ROSE[600], marginTop: 6, fontWeight: "600" }}>● Listening… speak now</Text> : null}
       {open && q.trim().length >= 2 ? (
-        <View testID="app-search-results" style={{ position: "absolute", top: 50, left: 16, right: 16, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
+        <View testID="app-search-results" style={{ position: "absolute", top: 58, left: 20, right: 20, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={PRIMARY[700]} style={{ margin: 12 }} /> : null}
           <ScrollView keyboardShouldPersistTaps="handled">
             {(results || []).slice(0, 8).map((s) => (
