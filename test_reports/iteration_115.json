@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only test of Merchant Analytics mobile page (412x900). Logged in as Sharma Electricals via OTP, navigated to /merchant/analytics. Header/hero, range label, all 4 preset switches (today/7d/30d/month/custom) fire correct GET /merchant/analytics?date_from=...&date_to=... requests, KPI cards (earning ₹358, customer ₹123, partner ₹235, avg ₹11.93) render in ₹-compact format matching API. AreaTrend, StackedBars and Donut all render, tap tooltips work (Commission / Customer+Partner / donut slice). Custom range: RangeCalendar with 30 day cells, cal-prev/cal-next exist, picking two dates enables custom-apply which reloads data; custom-close hides box and resets preset to 30 Days (label restored). Regression: /merchant/bankkyc and /wallet render correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "console_warnings": [
+      {"component": "AnalyticsCharts / Pressable+Svg", "issue": "Console warnings still present on /merchant/analytics: `Unknown event handler property onStartShouldSetResponder` (also onResponderTerminationRequest, onResponderGrant, onResponderMove, onResponderRelease, onResponderTerminate). The task asked to confirm this was fixed after removing Path onPress. It is not fully fixed — RN Pressable responder props are leaking to DOM/SVG children on web. Not a functional blocker but user asked to confirm gone.", "priority": "LOW"}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Investigate remaining onStartShouldSetResponder / onResponder* warnings on Analytics page. Likely originates from Pressable wrapping <Svg> (react-native-svg on web) or from a nested touchable in charts. Consider replacing outer Pressable with a plain View + onClick via web-only wrapper, or using react-native-svg's built-in touch props filter."
+  ],
+  "critical_code_review_comments": [
+    "AnalyticsCharts.tsx: xTickIdx uses `every = Math.max(1, Math.ceil(50/step))` even though comment mentions minTickGap=20; slight inconsistency but visually fine.",
+    "analytics.tsx custom-apply calls `load` which uses the memoised `range`. Because `range` derives from `custom` state, this works, but on the very first apply React may batch — currently OK since setCustom sync updates before onPress. Verified by end-to-end network capture (custom apply fires the correct date_from/date_to).",
+    "Custom-close resets preset to 30d but does NOT clear `custom.from/to`. If user reopens range-custom, the previously picked dates remain highlighted. Minor UX nit — the web reference behaves the same, so acceptable.",
+    "KPI tile uses `boxShadow` string which works only on web; on native it would need shadowOpacity/elevation. Fine since this is expo-web target."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% functional, 1 residual console warning"},
+  "test_credentials": "Merchant +919000000002 OTP 123456 (Sharma Electricals, approved).",
+  "seed_data_creation": "None — used existing demo commissions (₹358 last 30 days).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Analytics mobile port fully working. Only leftover: RN responder-prop console warnings on the /merchant/analytics route. Reproduce by logging in as merchant, opening /merchant/analytics, inspecting devtools console for `Unknown event handler property onStartShouldSetResponder`.",
+  "rca of the issue": "Pressable from react-native (rendered on web via RNW) exposes responder handler props (onStartShouldSetResponder, onResponderGrant/Move/Release/Terminate/TerminationRequest). When these props are forwarded to a child SVG element from react-native-svg on web, React DOM logs `Unknown event handler property` warnings because <svg> DOM node doesn't recognise them. Mitigation: wrap Svg inside a plain View so Pressable receives responder events only on the wrapping View, or filter props in the chart components before spreading."
+}

@@ -108,3 +108,9 @@ Backlog / next: replicate any remaining merchant panel pages the user wants port
 - `FinanceKit.tsx` now exports `SecurityNote` + `LockedCard` (moved out of wallet.tsx).
 - Old generic `src/components/FinanceKyc.tsx` still used by partner finance-kyc only.
 - Demo merchant left in approved state (PAN ABCDE1234F + primary HDFC bank) by testing agent.
+
+## Update — 2026-06 · Merchant Mobile Analytics page parity (DONE, tested iteration_115 — 100%)
+- `/app/frontend/app/merchant/analytics.tsx` rewritten as 1:1 RN port of `web_panel/src/pages/merchant/MerchantAnalytics.jsx`: page header + LockedCard gate, blue→violet gradient hero (title, range label w/ customers/partners, Today/7/30/90 Days/This Month/Custom pills, custom RangeCalendar box w/ Apply + X), 4 gradient KPI tiles (fmtC), Commission Trend area chart, Customer vs Partner stacked bars + legend, Commission Split donut + legend, loading spinner, empty state.
+- Charts: new `src/components/merchant/AnalyticsCharts.tsx` (react-native-svg ports of recharts Area/Bar/Pie w/ nice ticks, dashed grid, dark tap tooltips). `RangeCalendar` now exported from `ReferralShared.tsx`.
+- API: `GET /merchant/analytics?date_from&date_to` (unchanged backend).
+- NOTE: Metro (expo web) serves a stale bundle after edits — run `sudo supervisorctl restart frontend` before screenshot/testing.
