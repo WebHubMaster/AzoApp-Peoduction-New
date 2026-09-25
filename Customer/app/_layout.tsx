@@ -9,6 +9,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
 import { ThemeProvider } from "@/src/theme";
+import { CartProvider } from "../src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { ToastProvider } from "@/src/components/Toast";
@@ -41,7 +42,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
   return (
     <ThemeProvider>
       <BrandProvider value={data}>
-        <AuthProvider>
+        <AuthProvider><CartProvider>
           <ToastProvider>
             <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
@@ -50,7 +51,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="(customer)" />
             </Stack>
           </ToastProvider>
-        </AuthProvider>
+        </CartProvider></AuthProvider>
       </BrandProvider>
     </ThemeProvider>
   );

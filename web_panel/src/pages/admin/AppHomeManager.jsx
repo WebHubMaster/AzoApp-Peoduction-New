@@ -66,12 +66,14 @@ export default function AppHomeManager() {
   const [cfg, setCfg] = useState(null);
   const [cats, setCats] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [services, setServices] = useState([]);
   const [saving, setSaving] = useState(false);
   const load = () => api.get("/admin/app-home").then((r) => setCfg(r.data));
   useEffect(() => {
     load();
     api.get("/catalog/categories").then((r) => setCats(r.data || [])).catch(() => {});
     api.get("/site/promotions").then((r) => setOffers(r.data?.offers || [])).catch(() => {});
+    api.get("/catalog/services").then((r) => setServices(r.data || [])).catch(() => {});
   }, []);
   if (!cfg) return <div className="p-6 text-sm text-slate-500">Loading…</div>;
 
@@ -82,7 +84,10 @@ export default function AppHomeManager() {
   const move = (k, i, d) => setCfg((p) => { const a = [...p[k]]; const j = i + d; if (j < 0 || j >= a.length) return p; [a[i], a[j]] = [a[j], a[i]]; return { ...p, [k]: a }; });
   const save = async () => {
     setSaving(true);
-    try { const { data } = await api.put("/admin/app-home", cfg); setCfg(data); toast.success("Customer App home saved — live in the app within a minute"); }
+    const known = new Set(cfg.sections.map((x) => x.key));
+    const extra = (cfg.custom_sections || []).filter((c) => !known.has(`custom:${c.id}`)).map((c) => ({ key: `custom:${c.id}`, enabled: true }));
+    const body = { ...cfg, sections: [...cfg.sections, ...extra].filter((x) => !x.key.startsWith("custom:") || (cfg.custom_sections || []).some((c) => `custom:${c.id}` === x.key)) };
+    try { const { data } = await api.put("/admin/app-home", body); setCfg(data); toast.success("Customer App home saved — live in the app within a minute"); }
     catch (e) { toast.error(e?.response?.data?.detail || "Save failed"); } finally { setSaving(false); }
   };
 
@@ -124,16 +129,16 @@ export default function AppHomeManager() {
               </div>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
-              <Field label="Badge"><Input value={s.badge || ""} onChange={(e) => upList("hero_slides", i, { badge: e.target.value })} /></Field>
+              <Field label="Eyebrow text (e.g. Salon at home)"><Input value={s.badge || ""} onChange={(e) => upList("hero_slides", i, { badge: e.target.value })} /></Field>
               <Field label="Side text (next to image)"><Input value={s.side_text || ""} onChange={(e) => upList("hero_slides", i, { side_text: e.target.value })} /></Field>
-              <Field label="Title (line 1)"><Input data-testid={`hero-title-${i}`} value={s.title || ""} onChange={(e) => upList("hero_slides", i, { title: e.target.value })} /></Field>
-              <Field label="Highlight (line 2, blue)"><Input value={s.highlight || ""} onChange={(e) => upList("hero_slides", i, { highlight: e.target.value })} /></Field>
+              <Field label="Headline"><Input data-testid={`hero-title-${i}`} value={s.title || ""} onChange={(e) => upList("hero_slides", i, { title: e.target.value })} /></Field>
+              <Field label="Headline (line 2, optional)"><Input value={s.highlight || ""} onChange={(e) => upList("hero_slides", i, { highlight: e.target.value })} /></Field>
               <Field label="Subtitle" className="sm:col-span-2"><Input value={s.subtitle || ""} onChange={(e) => upList("hero_slides", i, { subtitle: e.target.value })} /></Field>
               <Field label="Rating value"><Input value={s.rating_value || ""} onChange={(e) => upList("hero_slides", i, { rating_value: e.target.value })} placeholder="4.8 (empty = live rating)" /></Field>
               <Field label="Rating label"><Input value={s.rating_label || ""} onChange={(e) => upList("hero_slides", i, { rating_label: e.target.value })} /></Field>
               <Field label="Button label"><Input value={s.cta_label || ""} onChange={(e) => upList("hero_slides", i, { cta_label: e.target.value })} /></Field>
               <Field label="Button link" hint="/services · /services?category=ID · /service/ID · /membership · /offers"><Input value={s.cta_link || ""} onChange={(e) => upList("hero_slides", i, { cta_link: e.target.value })} /></Field>
-              <Field label="Image (professional / right side)" className="sm:col-span-2"><ImageUpload value={s.image} onChange={(v) => upList("hero_slides", i, { image: v })} wide testid={`hero-image-${i}`} /></Field>
+              <Field label="Slider poster image (full banner · recommended 1000×430px)" className="sm:col-span-2"><ImageUpload value={s.image} onChange={(v) => upList("hero_slides", i, { image: v })} wide testid={`hero-image-${i}`} /></Field>
             </div>
             <Field label="Feature bullets (icon · title · sub)">
               <div className="space-y-2">
@@ -219,11 +224,32 @@ export default function AppHomeManager() {
         </div>
       </Card>
 
+      <Card title="Custom home sections" sub="Create your own rows: hand-picked services, a whole category, or a promo banner. They appear on the app home in the order below." right={<Button size="sm" variant="outline" data-testid="custom-add" onClick={() => set({ custom_sections: [...(cfg.custom_sections || []), { id: uid(), enabled: true, type: "services", title: "", subtitle: "", icon: "sparkles", service_ids: [], category_id: "", limit: 8, image: "", link: "/services" }], sections: [...cfg.sections] })}><Plus className="h-4 w-4 mr-1" />Add section</Button>}>
+        {(cfg.custom_sections || []).length === 0 && <p className="text-sm text-slate-400">No custom sections yet.</p>}
+        {(cfg.custom_sections || []).map((c, i) => (
+          <div key={c.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-4 space-y-3" data-testid={`custom-section-${i}`}>
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2 text-sm font-semibold"><Switch checked={c.enabled !== false} onCheckedChange={(v) => upList("custom_sections", i, { enabled: v })} /> Section {i + 1}</label>
+              <Button size="icon" variant="ghost" className="text-red-600" data-testid={`custom-remove-${i}`} onClick={() => set({ custom_sections: cfg.custom_sections.filter((_, k) => k !== i), sections: cfg.sections.filter((x) => x.key !== `custom:${c.id}`) })}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              <Field label="Type"><select data-testid={`custom-type-${i}`} value={c.type} onChange={(e) => upList("custom_sections", i, { type: e.target.value })} className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm w-full"><option value="services">Hand-picked services</option><option value="category">All services of a category</option><option value="banner">Promo banner (image + link)</option></select></Field>
+              <Field label="Title"><Input data-testid={`custom-title-${i}`} value={c.title || ""} onChange={(e) => upList("custom_sections", i, { title: e.target.value })} placeholder="e.g. Monsoon Essentials" /></Field>
+              <Field label="Icon"><IconSelect value={c.icon} onChange={(v) => upList("custom_sections", i, { icon: v })} /></Field>
+              {c.type === "services" && <Field label="Services (multi-select)" className="sm:col-span-3"><select multiple data-testid={`custom-services-${i}`} value={c.service_ids || []} onChange={(e) => upList("custom_sections", i, { service_ids: Array.from(e.target.selectedOptions).map((o) => o.value) })} className="h-36 rounded-md border border-slate-200 bg-white px-2 text-sm w-full">{services.map((sv) => <option key={sv.id} value={sv.id}>{sv.name} · {sv.category_name}</option>)}</select></Field>}
+              {c.type === "category" && <Field label="Category"><select data-testid={`custom-category-${i}`} value={c.category_id || ""} onChange={(e) => upList("custom_sections", i, { category_id: e.target.value })} className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm w-full"><option value="">Select category</option>{cats.map((ct) => <option key={ct.id} value={ct.id}>{ct.name}</option>)}</select></Field>}
+              {c.type !== "banner" && <Field label="Max items"><Input type="number" value={c.limit || 8} onChange={(e) => upList("custom_sections", i, { limit: Number(e.target.value) })} /></Field>}
+              {c.type === "banner" && <><Field label="Banner image" className="sm:col-span-2"><ImageUpload value={c.image} onChange={(v) => upList("custom_sections", i, { image: v })} wide testid={`custom-image-${i}`} /></Field><Field label="Link"><Input value={c.link || ""} onChange={(e) => upList("custom_sections", i, { link: e.target.value })} placeholder="/services" /></Field><Field label="Subtitle" className="sm:col-span-3"><Input value={c.subtitle || ""} onChange={(e) => upList("custom_sections", i, { subtitle: e.target.value })} /></Field></>}
+            </div>
+          </div>
+        ))}
+      </Card>
+
       <Card title="Sections — order & visibility" sub="Drag order with arrows; toggle to hide a block; edit titles for service rows.">
         {cfg.sections.map((s, i) => (
           <div key={s.key} className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2" data-testid={`section-row-${s.key}`}>
             <Switch checked={s.enabled !== false} onCheckedChange={(v) => upList("sections", i, { enabled: v })} data-testid={`section-toggle-${s.key}`} />
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 w-56 shrink-0">{SECTION_LABELS[s.key] || s.key}</span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100 w-56 shrink-0">{SECTION_LABELS[s.key] || (s.key.startsWith("custom:") ? `Custom · ${(cfg.custom_sections || []).find((c) => `custom:${c.id}` === s.key)?.title || "section"}` : s.key)}</span>
             {["most_booked", "trending", "offers"].includes(s.key) && (
               <>
                 <Input className="h-8" value={s.title || ""} onChange={(e) => upList("sections", i, { title: e.target.value })} placeholder="Title" />
