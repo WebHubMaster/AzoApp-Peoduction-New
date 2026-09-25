@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 # Configuration
-BASE_URL = "https://reminder-logic.preview.emergentagent.com/api"
+BASE_URL = "https://customer-auth-native.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

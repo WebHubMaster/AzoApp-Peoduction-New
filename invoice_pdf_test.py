@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://reminder-logic.preview.emergentagent.com/api"
+BASE_URL = "https://customer-auth-native.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials
