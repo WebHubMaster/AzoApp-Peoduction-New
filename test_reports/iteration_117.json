@@ -1,0 +1,25 @@
+{
+  "summary": "Verified backend-only fix for duplicate image uploads (thumb_ removal) and enterprise-centralized folder structure in storage_service.py. Wrote /app/backend/tests/test_storage_no_duplicate.py (4 tests, all PASSED) covering: (a) POST /api/media/upload returns url==thumb_url with no thumb_ object on disk; (b) POST /api/bookings/{id}/evidence/upload (multipart, stage=after) stores exactly one webp under 'jobs/<bookingId>/<stage>/<uuid>.webp' with url==thumb_url and no thumb_ file created; (c) uploaded URL serves 200 image via /api/media/file/*; (d) end-to-end second upload also produces zero new thumb_ files. Confirmed on disk: new evidence file at /app/backend/uploads/jobs/d8ec01ac-.../after/04d693795b7842....webp with NO paired thumb_ sibling. Legacy thumb_* files from before the fix still exist under /app/backend/uploads/{evidence,testimonials,branding}/ (historical, not created by the current code path).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_storage_no_duplicate.py",
+    "/app/test_reports/pytest/storage_no_dup.xml"
+  ],
+  "action_items": [
+    "Optional: run a one-off cleanup job to delete pre-existing legacy thumb_* files under /app/backend/uploads/ (evidence/, testimonials/, branding/) — they are orphaned duplicates from before the fix. Not required for correctness; user only asked to stop creating new duplicates."
+  ],
+  "critical_code_review_comments": [
+    "storage_service.save_image: `thumb` kwarg kept as no-op for backward compat — good. Consider deleting after call-sites migrate to avoid dead-code confusion.",
+    "job_folder() still accepts `partner` for backwards compat but silently ignores it — add a docstring warning (already there) and consider removing param on next major refactor.",
+    "slugify lowercases the booking id: works fine because seeded ids are already lowercase hex UUIDs, but if any code path uses mixed-case codes elsewhere it would silently normalize. Not a bug today.",
+    "Legacy thumb_* files remain on disk; consider a housekeeping script."
+  ],
+  "updated_files": ["/app/backend/tests/test_storage_no_duplicate.py"],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "not tested (backend-only request)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456, Partner +919000000003 / OTP 123456 (endpoint is POST /api/auth/send-otp + /api/auth/verify-otp — NOT /request-otp as stated in review_request).",
+  "seed_data_creation": "None — used freshly auto-seeded partner booking (id d8ec01ac-65af-45c1-8d40-a0e0550d85d4). One 'after' evidence photo attached during tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Duplicate-thumb fix verified. Note the correct OTP endpoint is /api/auth/send-otp (not /request-otp). Reusable regression test lives at backend/tests/test_storage_no_duplicate.py — needs REACT_APP_BACKEND_URL env exported before pytest, and pytest.ini's default addopts uses xdist so pass `-o addopts=''` when running alone."
+}
