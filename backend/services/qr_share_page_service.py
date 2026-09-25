@@ -16,13 +16,17 @@ def _js(v):
 
 
 async def share_page(*, code, link, name, primary, secondary, logo, site, trust, caption, channel):
+    import re
     m = await merchant_code_service.validate_code((code or "").strip())
     if not m:
         raise HTTPException(status_code=404, detail="Invalid merchant code")
     code = m.get("merchant_code") or code
-    if not link or f"ref={code}" not in link:
-        from services.physical_qr_service import _app_url
-        link = f"{_app_url()}/?ref={code}"
+    # Always canonical booking URL (public site), never the api host — and rewrite any
+    # stale ref link an older app build may have baked into the caption.
+    from services.physical_qr_service import _app_url
+    link = f"{_app_url()}/?ref={code}"
+    if caption and code:
+        caption = re.sub(r"https?://\S*ref=" + re.escape(code) + r"\S*", link, caption)
     name = name or m.get("shop_name") or m.get("name") or ""
     _, png = await qps.render_poster(fmt="png", link=link, code=code, merchant_name=name, primary=primary, secondary=secondary,
                                      logo_url=logo, site_name=site, trust_line=trust)

@@ -33,7 +33,9 @@ export default function MerchantScanQr() {
   const codeQ = useQuery({ queryKey: ["merchant-my-code"], queryFn: () => api.get<any>("/merchant/my-code") });
   const cfgQ = useQuery({ queryKey: ["merchant-qr-config"], queryFn: () => api.get<any>(`${PANEL}/qr/config`) });
   const code: string = codeQ.data?.merchant_code || "";
-  const link = `${WEB_ORIGIN}/?ref=${code}`;
+  // Prefer the canonical customer-facing URL from the backend (matches the web panel &
+  // physical QR — always the public site, never the api host). Fall back to the web origin.
+  const link = codeQ.data?.ref_url || (code ? `${WEB_ORIGIN}/?ref=${code}` : "");
   const shopName = user?.shop_name || user?.name || "My Shop";
   const adminLogo = brand.branding.logo_light || brand.branding.logo_dark || brand.branding.logo || "";
 

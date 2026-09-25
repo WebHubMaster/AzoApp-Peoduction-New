@@ -48,8 +48,12 @@ async def earnings(user=Depends(require_role("merchant"))):
 @router.get("/my-code")
 async def my_code(user=Depends(require_role("merchant"))):
     from services import merchant_code_service
+    from services.physical_qr_service import _app_url
     code = await merchant_code_service.ensure_merchant_code(user)
-    return {"merchant_code": code}
+    # Canonical customer-facing booking/referral URL — same public base the backend
+    # uses for physical QR posters (PUBLIC_APP_URL/APP_URL), NOT the api backend host.
+    ref_url = f"{_app_url()}/?ref={code}" if code else ""
+    return {"merchant_code": code, "ref_url": ref_url}
 
 
 @router.get("/validate-code")

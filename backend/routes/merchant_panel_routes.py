@@ -224,10 +224,14 @@ async def qr_poster(fmt: str = "png", link: str = "", name: str = "", primary: s
     """Server-rendered booking poster (identical on every device) → PNG / JPG / PDF."""
     from services import merchant_code_service
     from services import qr_poster_service as qps
+    from services.physical_qr_service import _app_url
+    import re
     code = await merchant_code_service.ensure_merchant_code(user)
-    if not link or f"ref={code}" not in link:
-        from services.physical_qr_service import _app_url
-        link = f"{_app_url()}/?ref={code}"
+    # Always use the canonical customer-facing booking URL (public site), never the
+    # api host — regardless of what an older app build passed in `link`/`caption`.
+    link = f"{_app_url()}/?ref={code}"
+    if caption and code:
+        caption = re.sub(r"https?://\S*ref=" + re.escape(code) + r"\S*", link, caption)
     fmt, data = await qps.render_poster(
         fmt=fmt, link=link, code=code, merchant_name=name or user.get("shop_name") or user.get("name") or "",
         primary=primary, secondary=secondary, logo_url=logo, site_name=site, trust_line=trust, caption=caption[:600])
