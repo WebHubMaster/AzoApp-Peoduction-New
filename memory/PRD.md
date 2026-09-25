@@ -138,3 +138,10 @@ Backlog / next: replicate any remaining merchant panel pages the user wants port
 - VERIFIED by testing_agent iter117: 100% (4/4) backend — no new thumb_ files; job photo path = jobs/<bookingId>/<stage>/<uuid>.webp; url==thumb_url; uploads serve 200. Test at backend/tests/test_storage_no_duplicate.py.
 - NOTE: pre-existing legacy `thumb_*` objects already on S3/disk are orphaned historical duplicates — not removed (destructive). Offer an opt-in cleanup script if the user wants old ones purged.
 - ENV: fresh pod again had missing backend/.env + frontend/.env (recurring). Recreated: backend MONGO_URL=mongodb://localhost:27017, DB_NAME=azo_app, JWT_SECRET, CORS_ORIGINS=*, REACT_APP_BACKEND_URL=pod preview URL; frontend EXPO_PUBLIC_BACKEND_URL/WEB_URL. Backend auto-seeded (45 users). Demo OTP 123456.
+
+---
+## Image upload size limits — 2026-06
+- Requirement: live camera photo ≤ 5 MB, gallery photo ≤ 3 MB, everywhere, with a message when exceeded.
+- Central helpers in `src/components/reg/Photo.tsx`: `MAX_CAMERA_BYTES` (5MB), `MAX_GALLERY_BYTES` (3MB), `assetSizeBytes()`, `oversizeMessage(bytes, source)`. Enforced inside shared `pickImage()` (throws → caller toasts) → covers LivePhotoCapture, GpsPhotoCapture, Uploader/SourceSheet, merchant support, bankkyc, support/[id], partner payouts.
+- Direct pickers also patched: `app/(partner)/active.tsx` before/after camera (5MB, toast), `src/components/AppShell.tsx` profile gallery (3MB, toast), `app/merchant/payouts.tsx` passbook gallery (3MB, Alert).
+- Size checked on the PICKED asset's real fileSize (base64 length fallback); unknown size → allowed (backend still caps at 12MB). Boundaries verified (≤limit allowed, >limit blocked). TS clean. Client-side — verify on device.
