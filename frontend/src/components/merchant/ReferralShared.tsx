@@ -131,7 +131,9 @@ export function MModuleHeader({ title, subtitle, icon: Ico = TrendingUp, right, 
   if (card) {
     return (
       <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 24, padding: 20, overflow: "hidden" }}>
+        style={{ borderRadius: 24, padding: 20, overflow: "hidden", boxShadow: "0px 10px 30px rgba(13,71,161,0.28)" }}>
+        <View style={{ position: "absolute", top: -30, left: -10, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.12)" }} />
+        <View style={{ position: "absolute", bottom: -40, right: -20, width: 140, height: 140, borderRadius: 70, backgroundColor: "rgba(255,255,255,0.08)" }} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
           <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
             <Ico size={24} color="#fff" strokeWidth={1.9} />

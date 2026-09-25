@@ -67,7 +67,6 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="Partner" subtitle="Referred partner commission" icon={Wrench} />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
@@ -75,6 +74,7 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
         testID="partner-detail"
       >
         <MBackLink label="Back to partners" onPress={onBack} />
+        <MModuleHeader card title="Partner" subtitle="Referred partner commission" icon={Wrench} />
 
         {detail.isLoading ? (
           <View style={{ paddingVertical: 40, alignItems: "center" }}><ActivityIndicator color={colors.primary} /></View>
@@ -166,13 +166,13 @@ export default function MerchantPartners() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="My Partners" subtitle="Partners registered with your merchant code — and your earned commission" icon={Network} />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={list.isFetching} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
         testID="merchant-partners"
       >
+        <MModuleHeader card title="My Partners" subtitle="Partners registered with your merchant code — and your earned commission" icon={Network} />
         <MReportCards cards={cards} />
 
         <StatusTabs value={status} onChange={setStatus} />
