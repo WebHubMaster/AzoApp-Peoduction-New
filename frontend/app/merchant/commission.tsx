@@ -72,13 +72,13 @@ export default function MerchantCommission() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <MModuleHeader title="Commission" subtitle="Your actual earned referral commission — customer & partner" />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={list.isFetching} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
         testID="merchant-commission"
       >
+        <MModuleHeader card title="Commission" subtitle="Your actual earned referral commission — customer & partner" />
         <MReportCards cards={cards} />
 
         <TypeTabs value={type} onChange={setType} />
