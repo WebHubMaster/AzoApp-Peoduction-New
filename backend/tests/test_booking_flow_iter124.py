@@ -123,7 +123,7 @@ def test_validate_coupon_invalid(customer_token):
         pass
     print(f"invalid coupon: status={r.status_code} body={j}")
     if r.status_code == 200:
-        assert not (j.get("valid") is True), "invalid code should not be valid"
+        assert j.get("valid") is not True, "invalid code should not be valid"
 
 
 # -------- Slot availability --------
