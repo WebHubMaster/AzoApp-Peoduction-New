@@ -8,6 +8,7 @@ import { Bell, ChevronDown, LogOut, X, User as UserIcon, ShieldCheck, Save } fro
 import { Image } from "expo-image";
 import { useTheme } from "@/src/theme";
 import { api, mediaUrl } from "@/src/api/client";
+import { useBrand } from "@/src/context/BrandContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { storage } from "@/src/utils/storage";
@@ -175,19 +176,31 @@ function ProfileChip() {
  * chip on the right. Rendered by the merchant layouts so it shows on every page.
  */
 export function MerchantTopBar() {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
   const insets = useSafeAreaInsets();
   const title = useTitle();
+  const brand = useBrand();
+  const b = brand?.branding || ({} as any);
+  // Match web PanelLayout: dark mode → logo_dark (fallback light), else logo_light (fallback dark/logo).
+  const logo = mediaUrl(
+    (mode === "dark" ? b.logo_dark || b.logo_light : b.logo_light || b.logo_dark) || b.logo,
+  );
+  const brandName = b.site_name || "AzoApp";
+  const brandInitial = (brandName || "A").trim().charAt(0).toUpperCase();
   return (
     <View style={{ backgroundColor: colors.background, paddingTop: insets.top + 8, paddingHorizontal: 12, paddingBottom: 8 }}>
       <StatusBar style={colors.background === "#0B1120" ? "light" : "dark"} />
       <View style={{ backgroundColor: colors.surface, borderRadius: 18, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
-        <LinearGradient colors={[colors.primary, colors.primaryDark] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
-          <Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>A</Text>
-        </LinearGradient>
+        {logo ? (
+          <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 36, width: 44, borderRadius: 10 }} contentFit="contain" transition={150} />
+        ) : (
+          <LinearGradient testID="merchant-brand-fallback" colors={[colors.primary, colors.primaryDark] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
+            <Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{brandInitial}</Text>
+          </LinearGradient>
+        )}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "800", color: colors.text }}>{title}</Text>
-          <Text style={{ fontSize: 9.5, letterSpacing: 1.5, textTransform: "uppercase", color: colors.textMuted, marginTop: 1 }}>Merchant</Text>
+          <Text numberOfLines={1} style={{ fontSize: 9.5, letterSpacing: 1.5, textTransform: "uppercase", color: colors.textMuted, marginTop: 1 }}>Merchant</Text>
         </View>
         <NotificationBell />
         <ProfileChip />
