@@ -8,7 +8,7 @@ import os
 import requests
 import pytest
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://profile-kyc-panel.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://merchant-panel-sync.preview.emergentagent.com").rstrip("/")
 IMG = "https://images.unsplash.com/photo-1519681393784-d120267933ba"
 
 ADMIN_PHONE = "+919000000000"

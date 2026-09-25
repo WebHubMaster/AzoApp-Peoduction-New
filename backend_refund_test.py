@@ -9,7 +9,7 @@ import sys
 from typing import Dict, List, Optional
 
 # Configuration
-BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-panel-sync.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

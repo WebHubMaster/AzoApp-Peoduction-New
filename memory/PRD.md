@@ -89,3 +89,15 @@ with all features working end-to-end against the SAME FastAPI backend.
   - backend/.env: MONGO_URL (local), DB_NAME="azo_app", fresh JWT_SECRET, URLs = pod preview URL.
   - frontend/.env: EXPO_PUBLIC_BACKEND_URL / EXPO_PUBLIC_WEB_URL = pod preview URL.
 - Local MongoDB is EMPTY (fresh) — no seeded users yet. Run seed_*.py scripts to populate demo/admin data before testing authenticated flows.
+
+---
+## Update — 2026-06 · Merchant Mobile Commission page parity
+
+- Recreated missing env files: `backend/.env` (MONGO_URL, DB_NAME, JWT_SECRET, CORS_ORIGINS) and `frontend/.env` (EXPO_PUBLIC_BACKEND_URL) — backend was crashing on boot (KeyError: MONGO_URL) and DB was empty.
+- Reworked `frontend/app/merchant/commission.tsx` list-row layout to mirror the WEB panel's mobile/responsive grid (`web_panel/src/pages/merchant/referral/MerchantCommission.jsx`): Row1 = Date + booking code (left) · type badge (right); Row2 = Service + referred name (full width); Row3 = "Eligible ₹x" + "₹earned" (emerald, right-aligned left col) · "%" (right col). Added tabular-nums.
+- Verified end-to-end on mobile width (412px) with real seeded data via merchant +919000000002:
+  - Gradient header, green primary KPI + 2-col KPI grid, All/Customer/Partner tabs, search, date filter, pagination — all match web.
+  - Type filter (Partner → 1–4 of 4), date-filter bottom sheet (presets + custom calendar), pagination sizes all functional.
+  - Same API: GET /api/merchant/referral/commission (summary + items + pagination).
+
+Backlog / next: replicate any remaining merchant panel pages the user wants ported from web (same shared-component approach).

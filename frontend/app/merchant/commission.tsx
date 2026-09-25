@@ -10,6 +10,9 @@ import { MReportCards, MSearchBox, MPagination, MModuleHeader, MTypeBadge, MDate
 
 const TYPE_TABS: [string, string][] = [["", "All"], ["customer", "Customer"], ["partner", "Partner"]];
 
+// tabular-nums so money/percent columns align (mirrors web `tabular-nums`)
+const TAB = { fontVariant: ["tabular-nums" as const] };
+
 /* ─────────────── Type tabs (All / Customer / Partner) ─────────────── */
 function TypeTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const { colors } = useTheme();
@@ -93,27 +96,39 @@ export default function MerchantCommission() {
           ) : items.length === 0 ? (
             <EmptyState icon="cash-remove" title="No commission yet" subtitle="Commission from your referred customers and partners will appear here." />
           ) : (
-            items.map((it, i) => (
+            items.map((it) => (
               <View
                 key={it.id}
                 testID={`commission-row-${it.id}`}
-                style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}
+                style={{ paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border, gap: 6 }}
               >
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                    <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm, flexShrink: 1 }} numberOfLines={1}>{it.service_name}</Text>
-                    <MTypeBadge type={it.referral_type} />
+                {/* Row 1 — Date + booking code (left) · type badge (right) */}
+                <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: spacing.md }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: colors.textSecondary, fontSize: fontSize.sm, fontWeight: "500", ...TAB }} numberOfLines={1}>{fmtDate(it.date)}</Text>
+                    {it.booking_code ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 1 }} numberOfLines={1}>{it.booking_code}</Text> : null}
                   </View>
-                  <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>
-                    {[it.name, fmtDate(it.date), it.booking_code].filter(Boolean).join(" · ")}
-                  </Text>
-                  <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 1 }} numberOfLines={1}>
-                    Eligible {fmt(it.eligible_amount)} · {it.commission_pct}%
-                  </Text>
+                  <MTypeBadge type={it.referral_type} />
                 </View>
-                <View style={{ alignItems: "flex-end" }}>
-                  <Text style={{ color: colors.success, fontWeight: "900", fontSize: fontSize.sm }}>{fmt(it.earned)}</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.4 }}>earned</Text>
+
+                {/* Row 2 — Referral / Service (full width) */}
+                <View>
+                  <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "600" }} numberOfLines={1}>{it.service_name}</Text>
+                  <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 1 }} numberOfLines={1}>{it.name}</Text>
+                </View>
+
+                {/* Row 3 — Eligible + Earned (left col) · % (right col), all right-aligned (mirrors web grid) */}
+                <View style={{ flexDirection: "row", gap: spacing.md }}>
+                  <View style={{ flex: 1, alignItems: "flex-end", gap: 2 }}>
+                    <Text style={{ fontSize: fontSize.sm, ...TAB }} numberOfLines={1}>
+                      <Text style={{ color: colors.textMuted, fontSize: 11 }}>Eligible </Text>
+                      <Text style={{ color: colors.textSecondary }}>{fmt(it.eligible_amount)}</Text>
+                    </Text>
+                    <Text style={{ color: colors.success, fontSize: fontSize.sm, fontWeight: "800", ...TAB }} numberOfLines={1}>{fmt(it.earned)}</Text>
+                  </View>
+                  <View style={{ flex: 1, alignItems: "flex-end" }}>
+                    <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, ...TAB }} numberOfLines={1}>{it.commission_pct}%</Text>
+                  </View>
                 </View>
               </View>
             ))

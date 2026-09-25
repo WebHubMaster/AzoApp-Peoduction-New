@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-panel-sync.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"

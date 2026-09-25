@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://profile-kyc-panel.preview.emergentagent.com/api"
+BASE = "https://merchant-panel-sync.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):
