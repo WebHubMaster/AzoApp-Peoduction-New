@@ -21,7 +21,9 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D47A1"
       },
-      "permissions": ["VIBRATE"]
+      "permissions": [
+        "VIBRATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -32,6 +34,15 @@
       "expo-secure-store",
       "expo-font",
       "expo-image",
+      "expo-notifications",
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "AzoApp uses your location to show services available in your area." }
+      ],
+      [
+        "expo-speech-recognition",
+        { "microphonePermission": "AzoApp uses the microphone for voice search.", "speechRecognitionPermission": "AzoApp uses speech recognition for voice search." }
+      ],
       [
         "expo-splash-screen",
         {
@@ -40,7 +51,8 @@
           "resizeMode": "contain",
           "imageWidth": 240
         }
-      ]
+      ],
+      "expo-speech-recognition"
     ],
     "experiments": {
       "typedRoutes": false

@@ -3,7 +3,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
   Percent, Tag, Bell, Send, Ticket, Image, FileText, HelpCircle, ShieldCheck, Sparkles,
   Activity, MapPin, ShieldAlert, Boxes, Truck, Megaphone, Crown, Gift, ScrollText, ShieldQuestion, KeyRound,
   Layers, Award, GraduationCap, Briefcase, TrendingUp, Receipt, Coins, Handshake, BadgePercent,
-  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode } from "lucide-react";
+  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
@@ -32,6 +32,7 @@ import SupportInbox from "@/pages/admin/SupportInbox";
 import FinancialReports from "@/pages/admin/FinancialReports";
 import MembershipManager from "@/pages/admin/MembershipManager";
 import GrowthCenter from "@/pages/admin/GrowthCenter";
+import AppHomeManager from "@/pages/admin/AppHomeManager";
 import CouponsManager from "@/components/marketing/CouponsManager";
 import OffersManager from "@/components/marketing/OffersManager";
 import MerchantWithdrawals from "@/pages/admin/MerchantWithdrawals";
@@ -130,6 +131,10 @@ const NAV = [
     { key: "growth", label: "Growth Center", icon: Sparkles },
   ]},
 
+  { group: "Mobile App", icon: Smartphone, items: [
+    { key: "app_home", label: "Customer App Home", icon: Smartphone },
+  ]},
+
   { group: "Website / CMS", icon: Globe, items: [
     { key: "homepage", label: "Homepage Builder", icon: LayoutDashboard },
     { key: "media", label: "Media Library", icon: Image },
@@ -182,7 +187,7 @@ const GROUP_MODULE = {
   "Live Partner Map": "live_partner_map", "Services": "services", "Services Config": "services", "Partners": "partners",
   "Notifications": "notifications", "Partner Growth": "partner_growth", "Customers": "customers",
   "Merchants": "merchants", "Finance": "finance", "Marketing": "marketing",
-  "Website / CMS": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
+  "Website / CMS": "website_cms", "Mobile App": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
   "Access Control": "access_control", "System": "system", "Platform": "system",
 };
 const ITEM_MODULE = { tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
@@ -197,7 +202,7 @@ const KEY_MODULE = (() => {
   });
   return m;
 })();
-const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pro_partners","merchants","customers",
+const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pro_partners","merchants","customers","app_home",
   "authcfg","addresscfg","deletions","categories","subcategories","services","addons","custom_jobs","ratings","homepage","media","branding","rate_cards",
   "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","banners","blogs","testimonials","starter_kit_admin",
   "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",
@@ -293,7 +298,7 @@ export default function AdminDashboard() {
     spareparts: "Spare Parts Inventory", vendors: "Vendors", complaints: "Complaints",
     disputes: "Disputes", warranty: "Warranty Policies", roles: "Roles & Permissions", flags: "Feature Flags", audit: "Audit Logs",
     authcfg: "Authentication & Profile Settings", integrations: "Integrations / API Config",
-    subcategories: "Sub-categories", homepage: "Homepage Builder", media: "Media Library",
+    subcategories: "Sub-categories", homepage: "Homepage Builder", media: "Media Library", app_home: "Customer App · Home Page",
     branding: "Branding & Theme", about: "About Us", contact: "Contact Us",
     privacy: "Privacy Policy", terms: "Terms & Conditions", refund: "Refund Policy",
     business: "Business Settings", sms_templates: "SMS Templates",
@@ -357,6 +362,7 @@ export default function AdminDashboard() {
       {active === "custom_jobs" && <CustomJobsAdmin />}
       {active === "ratings" && <RatingsReviews />}
       {active === "homepage" && <P.HomepageBuilder />}
+      {active === "app_home" && <AppHomeManager />}
       {active === "media" && <P.MediaManager />}
       {active === "branding" && <P.BrandingSettings />}
       {active === "business" && <S.BusinessSettings />}
