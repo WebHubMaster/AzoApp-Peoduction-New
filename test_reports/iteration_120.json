@@ -1,0 +1,35 @@
+{
+  "summary": "End-to-end regression on the new Customer Expo landing/home experience at http://localhost:3001. Bundle serves 200 on localhost (14.22MB) and via Expo tunnel (yjnus5m-anonymous-3001.exp.direct). Backend content endpoints (/api/site/homepage, /api/catalog/categories, /api/site/promotions, /api/content/testimonials, /api/content/faqs/grouped, /api/content/blogs, /api/site/config) all return 200 with expected shapes (7 homepage sections, 6 cats, 7 offers/3 coupons, stats 5-star/9 jobs/9 verified pros). Landing UI renders every required testID (landing-page, hero-title/search/stats/chips, home-cat-*, home-featured_services-*, home-trending_services-*, home-trust, home-offers, home-membership-banner, home-coupons, home-grow-cta, home-faq, home-blog, site-footer). Location gate shows on first visit and dismisses via loc-skip. Coupon copy toast for AZO50 fires correctly. Navbar mobile search opens mobile-search-modal and returns search-result-* for query 'ac'. Navbar menu -> nav-location accepts pincode 800001, badge shows 'We serve your area', nav-location-set removes home-location-hint. Auth: logged-out tab-profile -> login (with login-back-home working), phone 9000000004 + OTP 123456 -> customer-home; navbar swaps to nav-account-mobile and tab-profile shortcuts straight to customer-home. After page.reload the app opens on landing (as spec) and session persists. Partner 9000000003 + OTP 123456 is correctly blocked with 'Only Customers can sign in to the Customer App...' toast and remains on login. All acceptance criteria met.",
+  "bundle_verification": {
+    "localhost_bundle": {"status": 200, "size_bytes": 14221793},
+    "tunnel_bundle": {"status": 200, "size_bytes": 14221831}
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Landing scroll tree", "issue": "Two DOM nodes carry data-testid=\"landing-page\" (and correspondingly duplicate tab-profile/tab-home from MobileBottomNav) once the /(site) route has been mounted alongside another route. Tests must use .first to disambiguate. Functionally harmless but confuses automated selectors.", "selector": "[data-testid=\"landing-page\"]", "priority": "LOW"},
+      {"component": "category-sheet-close", "issue": "When CategoryServicesSheet is open on mobile viewport (390x844) with many services, the close button (category-sheet-close) is positioned outside the initial viewport for some categories; Playwright reports 'Element is outside of the viewport'. Consider sticking the close button to the sheet header so it is always reachable without scrolling.", "selector": "[data-testid=\"category-sheet-close\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_customer_app_backend.py"],
+  "action_items": [
+    "(LOW) Ensure only a single instance of landing-page + MobileBottomNav is mounted at any time so testIDs are unique.",
+    "(LOW) Pin category-sheet-close inside the sheet's sticky header for reliable dismissal on small viewports."
+  ],
+  "critical_code_review_comments": [
+    "MobileBottomNav.go() correctly routes bookings/profile to /login when logged out and /(customer) when logged in — verified end-to-end.",
+    "LocationButton persistence + pincode serviceability call to /api/geo/serviceability?pincode=800001 works and updates city header + hides home-location-hint.",
+    "Role guard in Customer/app/login.tsx blocks partner/merchant/admin/agent phones with clear toast and no token leak — verified with 9000000003.",
+    "GET /api/site/promotions returns membership_plans=[] but the home-membership-banner still renders (defaults). Confirm this is intentional or hide the banner when no plan is available."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100% of acceptance criteria (all landing/nav/auth flows passed)"},
+  "test_credentials": "Customer 9000000004 / OTP 123456; Partner 9000000003 / OTP 123456 (blocked)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer Expo app served by supervisor 'customer_expo' on :3001. All landing testIDs live under /app/Customer/app/(site)/index.tsx + /app/Customer/src/components/site/*. Login testIDs are send-otp-button/verify-otp-button/login-otp-input/login-phone-input/login-back-home (NOT login-send-otp/login-verify). MobileBottomNav renders tab-{home,services,cart,bookings,profile}. Some landing testIDs (landing-page, tab-*) may resolve to 2 elements once /(site) is remounted — use locator().first. After page.reload the router returns to /(site) landing (even if user is logged in) by design; tab-profile then routes to /(customer) without re-login. Partner/merchant/admin/agent numbers are blocked in Customer app.",
+  "rca of the issue": "N/A — no functional bugs found. Two low-priority polish items (duplicate landing-page node; category-sheet-close visibility on small viewports)."
+}
