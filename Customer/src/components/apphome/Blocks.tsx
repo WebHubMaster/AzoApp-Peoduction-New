@@ -41,43 +41,23 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
   }, [n, width]);
   if (!n) return null;
   return (
-    <View testID="hero-slider" style={{ marginBottom: 28 }}>
+    <View testID="hero-slider" style={{ marginBottom: 24 }}>
       <FlatList ref={listRef} data={slides} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(s) => s.id} snapToInterval={width} decelerationRate="fast"
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         onMomentumScrollEnd={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item: s, index }) => (
           <View style={{ width, paddingHorizontal: 20 }}>
-            <LinearGradient colors={[PRIMARY[50], "#E3F0FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: W, borderRadius: 24, overflow: "hidden", minHeight: 280, borderWidth: 1, borderColor: PRIMARY[100] }} testID={`hero-slide-${index}`}>
-              {s.image ? <Image source={{ uri: s.image }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: W * 0.48 }} contentFit="cover" contentPosition="bottom" transition={200} /> : null}
-              {s.rating_value || stats?.rating ? (
-                <View testID="hero-rating" style={{ position: "absolute", top: 18, right: 16, backgroundColor: "#fff", borderRadius: 14, paddingHorizontal: 12, paddingVertical: 8, alignItems: "center", ...shadowBtn }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><Text style={{ fontSize: 15, fontWeight: "800", color: SLATE[900] }}>{s.rating_value || stats?.rating}</Text><Star size={13} color={AMBER[500]} fill={AMBER[500]} /></View>
-                  <Text style={{ fontSize: 9, color: SLATE[500], fontWeight: "600" }}>{s.rating_label || "Customer Rating"}</Text>
-                </View>
-              ) : null}
-              <View style={{ padding: 22, width: s.image ? W * 0.62 : W }}>
-                {s.badge ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7 }}><View style={{ height: 14, width: 14, borderRadius: 7, backgroundColor: EMERALD[500], alignItems: "center", justifyContent: "center" }}><Shield size={8} color="#fff" /></View><Text style={{ fontSize: 11, fontWeight: "700", color: SLATE[700] }}>{s.badge}</Text></View> : null}
-                <Text testID="hero-title" style={{ fontSize: 30, fontWeight: "900", color: SLATE[900], marginTop: 14, lineHeight: 34, letterSpacing: -0.5 }}>{s.title}</Text>
-                {s.highlight ? <Text style={{ fontSize: 30, fontWeight: "900", color: PRIMARY[700], lineHeight: 34, letterSpacing: -0.5 }}>{s.highlight}</Text> : null}
-                {s.subtitle ? <Text style={{ fontSize: 14, color: SLATE[600], marginTop: 10, lineHeight: 21 }}>{s.subtitle}</Text> : null}
-                {s.features?.length ? (
-                  <View style={{ flexDirection: "row", gap: 16, marginTop: 18, flexWrap: "wrap" }}>
-                    {s.features.map((f: any, i: number) => (
-                      <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                        <View style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><LucideByName name={f.icon} size={17} color="#fff" strokeWidth={2} /></View>
-                        <View><Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[800] }}>{f.title}</Text><Text style={{ fontSize: 11, color: SLATE[500] }}>{f.sub}</Text></View>
-                      </View>
-                    ))}
-                  </View>
-                ) : null}
-                {s.cta_label ? (
-                  <Pressable testID={`hero-cta-${index}`} onPress={() => navigate(s.cta_link || "/services")} style={{ marginTop: 22, alignSelf: "flex-start", backgroundColor: PRIMARY[700], borderRadius: 14, paddingHorizontal: 22, height: 48, flexDirection: "row", alignItems: "center", gap: 10, ...shadowBtn }}>
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{s.cta_label}</Text><ArrowRight size={17} color="#fff" />
-                  </Pressable>
-                ) : null}
+            <Pressable testID={`hero-slide-${index}`} onPress={() => navigate(s.cta_link || "/services")} style={{ width: W, height: Math.round(W * 0.43), borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700] }}>
+              <LinearGradient colors={[s.bg_color || VIOLET[500], s.bg_color2 || "#B69CFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} />
+              {s.image ? <Image source={{ uri: s.image }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} contentFit="cover" transition={250} /> : null}
+              {s.image ? <LinearGradient colors={["rgba(15,23,42,0.55)", "rgba(15,23,42,0.05)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} /> : null}
+              <View style={{ padding: 20, width: "66%", flex: 1, justifyContent: "center" }}>
+                {s.badge ? <Text style={{ fontSize: 13, fontWeight: "600", color: s.text_color || "#fff", opacity: 0.95 }}>{s.badge}</Text> : null}
+                <Text testID="hero-title" style={{ fontSize: 19, fontWeight: "800", color: s.text_color || "#fff", marginTop: 6, lineHeight: 25, letterSpacing: -0.3 }}>{[s.title, s.highlight].filter(Boolean).join(" ")}</Text>
+                {s.cta_label ? <View testID={`hero-cta-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 14 }}><Text style={{ fontSize: 14, fontWeight: "700", color: s.text_color || "#fff" }}>{s.cta_label}</Text><ArrowRight size={16} color={s.text_color || "#fff"} /></View> : null}
               </View>
-              {s.side_text && s.image ? <Text style={{ position: "absolute", right: W * 0.36, top: 56, fontSize: 12, fontWeight: "700", color: SLATE[700], transform: [{ rotate: "-12deg" }], width: 90, textAlign: "center" }}>{s.side_text}</Text> : null}
-            </LinearGradient>
+              {s.rating_value ? <View testID="hero-rating" style={{ position: "absolute", top: 12, right: 12, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 3 }}><Text style={{ fontSize: 12, fontWeight: "800", color: SLATE[900] }}>{s.rating_value}</Text><Star size={11} color={AMBER[500]} fill={AMBER[500]} /></View> : null}
+            </Pressable>
           </View>
         )} />
       {slides.length > 1 ? <Dots n={slides.length} i={idx} /> : null}
@@ -191,7 +171,7 @@ export function ServicesRow({ sec, navigate, compact, testID }: { sec: any; navi
   if (!sec.data?.length) return null;
   return (
     <View testID={testID} style={{ marginBottom: 30 }}>
-      <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate("/services")} />
+      <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate(sec.category_id ? `/services?category=${sec.category_id}` : "/services")} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
         {sec.data.map((s: any, i: number) => <ServiceTile key={s.id} s={s} navigate={navigate} compact={compact} testID={`${testID}-${i}`} />)}
       </ScrollView>
@@ -270,6 +250,16 @@ export function OffersRow({ sec, navigate }: { sec: any; navigate: Nav }) {
         })}
       </ScrollView>
     </View>
+  );
+}
+
+export function CustomBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
+  const d = sec.data || {};
+  return (
+    <Pressable testID={`app-custom-${sec.key.split(":")[1]}`} onPress={() => navigate(d.link || "/services")} style={{ marginHorizontal: 20, marginBottom: 28, borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700], minHeight: 140 }}>
+      {d.image ? <Image source={{ uri: d.image }} style={{ width: "100%", height: 150 }} contentFit="cover" transition={200} /> : null}
+      {d.title || d.subtitle ? <View style={{ padding: 16, position: d.image ? "absolute" : "relative", left: 0, right: 0, bottom: 0 }}>{d.title ? <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{d.title}</Text> : null}{d.subtitle ? <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 2 }}>{d.subtitle}</Text> : null}</View> : null}
+    </Pressable>
   );
 }
 

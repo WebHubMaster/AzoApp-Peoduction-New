@@ -36,6 +36,7 @@ DEFAULT = {
     "salon": {"enabled": True, "title": "Salon at Home", "icon": "sparkles", "tabs": [], "limit": 8},
     "categories": {"limit": 11, "show_more": True, "more_label": "All services"},
     "offer_banner": {"enabled": True, "eyebrow": "LIMITED TIME OFFER", "cta_label": "Book Now", "cta_link": "/services", "image": "", "offer_id": ""},
+    "custom_sections": [],
     "sections": [
         {"key": "categories", "enabled": True, "title": ""},
         {"key": "offer_banner", "enabled": True, "title": ""},
@@ -106,7 +107,12 @@ async def _public_home(city: str):
         return hot
 
     sections = []
-    for sec in cfg["sections"]:
+    order = list(cfg["sections"])
+    known = {x.get("key") for x in order}
+    for cs in (cfg.get("custom_sections") or []):
+        if f"custom:{cs.get('id')}" not in known:
+            order.append({"key": f"custom:{cs.get('id')}", "enabled": True})
+    for sec in order:
         if not sec.get("enabled", True):
             continue
         k = sec["key"]
@@ -153,6 +159,25 @@ async def _public_home(city: str):
         elif k == "offers":
             item["data"] = offers[:lim]
             item["coupons"] = coupons
+        elif k.startswith("custom:"):
+            cs = next((c for c in (cfg.get("custom_sections") or []) if f"custom:{c.get('id')}" == k), None)
+            if not cs or not cs.get("enabled", True):
+                continue
+            ctype = cs.get("type") or "services"
+            item.update({"title": cs.get("title") or "", "icon": cs.get("icon") or "sparkles", "custom_type": ctype, "subtitle": cs.get("subtitle") or ""})
+            clim = int(cs.get("limit") or 8)
+            if ctype == "services":
+                ids = cs.get("service_ids") or []
+                rows = [s for s in visible if s["id"] in ids] if ids else []
+                rows.sort(key=lambda s: ids.index(s["id"]) if s["id"] in ids else 999)
+                item["data"] = [_svc_card(s, demand) for s in rows[:clim]]
+            elif ctype == "category":
+                item["data"] = [_svc_card(s, demand) for s in visible if s.get("category_id") == cs.get("category_id")][:clim]
+                item["category_id"] = cs.get("category_id")
+            elif ctype == "banner":
+                item["data"] = {"image": cs.get("image") or "", "link": cs.get("link") or "/services", "title": cs.get("title") or "", "subtitle": cs.get("subtitle") or ""}
+            if not item.get("data"):
+                continue
         sections.append(item)
 
     branding = await sc.public_site_config()

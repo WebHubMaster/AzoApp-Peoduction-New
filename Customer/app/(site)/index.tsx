@@ -8,7 +8,7 @@ import { useAppHome } from "../../src/lib/appHome";
 import { useNavigate } from "../../src/lib/navigate";
 import { requestStartupPermissions } from "../../src/lib/permissions";
 import { AppHeader, AppSearchBar } from "../../src/components/apphome/AppHeader";
-import { HeroSlider, CategoriesGrid, OfferBanner, QuickFeatures, ServicesRow, WhyChoose, SalonSection, OffersRow } from "../../src/components/apphome/Blocks";
+import { HeroSlider, CategoriesGrid, OfferBanner, QuickFeatures, ServicesRow, WhyChoose, SalonSection, OffersRow, CustomBanner } from "../../src/components/apphome/Blocks";
 import { CategoryServicesSheet } from "../../src/components/site/HomeSections";
 import { Sk } from "../../src/components/site/ui";
 
@@ -40,6 +40,7 @@ export default function AppHome() {
       else if (k === "why_choose") out.push({ key: k, render: () => <WhyChoose data={sec.data} /> });
       else if (k === "salon") out.push({ key: k, render: () => <SalonSection sec={sec} navigate={navigate} /> });
       else if (k === "offers") out.push({ key: k, render: () => <OffersRow sec={sec} navigate={navigate} /> });
+      else if (k.startsWith("custom:")) out.push({ key: k, render: () => (sec.custom_type === "banner" ? <CustomBanner sec={sec} navigate={navigate} /> : <ServicesRow sec={sec} navigate={navigate} testID={`app-custom-${sec.key.split(":")[1]}`} />) });
     }
     return out;
   }, [data, navigate, router]);
