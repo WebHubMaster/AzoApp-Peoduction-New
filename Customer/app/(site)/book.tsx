@@ -29,7 +29,7 @@ export default function Checkout() {
   const router = useRouter();
   const toast = useToast();
   const { user, refresh } = useAuth();
-  const { items, removeItem, setQty, clear, count, estimateTotal } = useCart();
+  const { items, addService, removeItem, setQty, clear, count, estimateTotal } = useCart();
   const [step, setStep] = useState(0);
   const [schedule, setSchedule] = useState<"schedule" | "emergency">("schedule");
   const [day, setDay] = useState(dateStr(new Date()));
@@ -45,6 +45,12 @@ export default function Checkout() {
   const [walletBal, setWalletBal] = useState(0);
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState<any>(null);
+  const [upsell, setUpsell] = useState<any>({ popular_addons: {}, frequently_together: [] });
+  const cartServiceIds = items.map((it) => it.service_id).filter(Boolean).join(",");
+  useEffect(() => {
+    if (!cartServiceIds) { setUpsell({ popular_addons: {}, frequently_together: [] }); return; }
+    api.get<any>(`/catalog/upsell?service_ids=${cartServiceIds}`, { auth: false }).then(setUpsell).catch(() => {});
+  }, [cartServiceIds]);
   const [locating, setLocating] = useState(false);
   const nonceRef = useRef<string | null>(null);
   const savedAddresses: any[] = user?.addresses || [];
@@ -166,8 +172,9 @@ export default function Checkout() {
               <View key={it.id} testID={`cart-line-${it.service_id || it.id}`} style={{ flexDirection: "row", gap: 12, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 12, marginBottom: 12 }}>
                 {it.image ? <Image source={{ uri: it.image }} style={{ height: 72, width: 72, borderRadius: 12 }} contentFit="cover" /> : null}
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontWeight: "700", color: SLATE[900], fontSize: 15 }}>{it.name}</Text>
-                  <Text style={{ fontSize: 12, color: SLATE[500] }}>{it.category_name}{it.tier_index != null && it.tiers?.[it.tier_index] ? ` · ${it.tiers[it.tier_index].label}` : ""}{it.addons?.length ? ` · +${it.addons.length} add-on` : ""}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[700], textTransform: "uppercase", letterSpacing: 0.8 }}>{it.category_name}</Text>
+                  <Text style={{ fontWeight: "700", color: SLATE[900], fontSize: 16 }}>{it.name}</Text>
+                  <Text style={{ fontSize: 12, color: SLATE[500] }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? ` · ${it.tiers[it.tier_index].label}` : ""}{it.addons?.length ? ` · +${it.addons.length} add-on` : ""}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}>
                     <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 10, borderWidth: 1, borderColor: SLATE[200], height: 34 }}>
                       <Pressable testID={`cart-minus-${it.id}`} onPress={() => setQty(it.id, it.qty - 1)} style={{ paddingHorizontal: 10, height: "100%", justifyContent: "center" }}><Minus size={14} color={SLATE[500]} /></Pressable>
@@ -180,7 +187,26 @@ export default function Checkout() {
                 </View>
               </View>
             ))}
-            {items.length ? <Pressable testID="add-more" onPress={() => router.push("/(site)/services" as any)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, height: 44 }}><Plus size={16} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontWeight: "600" }}>Add more services</Text></Pressable> : null}
+            {items.length && (upsell.frequently_together || []).filter((s: any) => !items.some((it) => it.service_id === s.id)).length ? (
+              <View testID="upsell-together" style={{ borderRadius: 18, borderWidth: 1, borderColor: AMBER[200], backgroundColor: "#FFFBEB", padding: 14, marginBottom: 14 }}>
+                <Text style={{ fontWeight: "700", color: SLATE[900], fontSize: 15, marginBottom: 12 }}>🎉 Frequently booked together</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                  {(upsell.frequently_together || []).filter((s: any) => !items.some((it) => it.service_id === s.id)).map((s: any) => (
+                    <View key={s.id} testID={`upsell-${s.id}`} style={{ width: 200, backgroundColor: "#fff", borderRadius: 14, borderWidth: 1, borderColor: SLATE[200], overflow: "hidden" }}>
+                      <Image source={{ uri: s.image }} style={{ height: 96, width: "100%" }} contentFit="cover" />
+                      <View style={{ padding: 10 }}>
+                        <Text numberOfLines={1} style={{ fontWeight: "600", color: SLATE[800], fontSize: 14 }}>{s.name}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
+                          <Text style={{ fontWeight: "800", color: SLATE[900], fontSize: 16 }}>{fmt(s.discounted_price || s.base_price)}</Text>
+                          <Pressable testID={`upsell-add-${s.id}`} onPress={() => { addService(s); toast.success(`${s.name} added`); }} style={{ height: 32, paddingHorizontal: 14, borderRadius: 16, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={14} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Add</Text></Pressable>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+            {items.length ? <Pressable testID="add-more" onPress={() => router.push("/(site)/services" as any)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 56, borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: PRIMARY[200], backgroundColor: "#fff" }}><Plus size={18} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 16 }}>Add more services</Text></Pressable> : null}
           </View>
         ) : null}
 
@@ -290,8 +316,8 @@ export default function Checkout() {
       </ScrollView>
 
       {step < 4 ? (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], padding: 16, paddingBottom: insets.bottom + 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <View><Text style={{ fontSize: 11, color: SLATE[400] }}>{cartPricing ? "Total" : "Estimated total"}</Text><Text testID="checkout-total" style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(displayTotal)}</Text></View>
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], padding: 16, paddingBottom: insets.bottom + 16, flexDirection: "row", alignItems: "center", gap: 12, boxShadow: "0px -8px 24px rgba(15,23,42,0.06)" }}>
+          <View style={{ maxWidth: "45%" }}><Text style={{ fontSize: 11, color: SLATE[400] }}>{step === 0 ? "Services subtotal · taxes at checkout" : cartPricing ? "Total" : "Estimated total"}</Text><Text testID="checkout-total" style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(step === 0 ? estimateTotal : displayTotal)}</Text></View>
           {step < 3 ? <Pressable testID="checkout-next" onPress={next} style={{ ...primaryBtn, flex: 1, marginLeft: "auto" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Continue</Text></Pressable>
             : <Pressable testID="place-order" disabled={placing || !cartPricing} onPress={placeOrder} style={{ ...primaryBtn, flex: 1, marginLeft: "auto", backgroundColor: EMERALD[600], opacity: placing || !cartPricing ? 0.7 : 1 }}>{placing ? <ActivityIndicator color="#fff" /> : <><ShieldCheck size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{payMethod === "wallet" ? "Pay with wallet" : "Confirm & pay"}</Text></>}</Pressable>}
         </View>
