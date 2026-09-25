@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, FlatList, RefreshControl, Pressable } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "../../src/api/client";
 import { PRIMARY, SLATE } from "../../src/theme";
 import { useCity } from "../../src/lib/location";
 import { useAppHome } from "../../src/lib/appHome";
@@ -23,7 +25,12 @@ export default function AppHome() {
   const [visibleCount, setVisibleCount] = useState(3);
   const listRef = useRef<FlatList>(null);
 
-  useEffect(() => { if (!permissionsAsked) { permissionsAsked = true; requestStartupPermissions(); } }, []);
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!permissionsAsked) { permissionsAsked = true; requestStartupPermissions(); }
+    qc.prefetchQuery({ queryKey: ["services-all"], queryFn: () => api.get<any[]>("/catalog/services", { auth: false }), staleTime: 60_000 });
+    qc.prefetchQuery({ queryKey: ["categories"], queryFn: () => api.get<any[]>("/catalog/categories", { auth: false }), staleTime: 300_000 });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useFocusEffect(React.useCallback(() => { refetch(); }, [refetch]));
 
   const blocks = useMemo(() => {

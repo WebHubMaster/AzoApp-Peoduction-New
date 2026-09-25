@@ -157,11 +157,11 @@ export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate
           <Star size={12} color={AMBER[500]} fill={AMBER[500]} /><Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[700] }}>{Number(s.rating || 0).toFixed(1)}</Text>{count ? <Text style={{ fontSize: 11, color: SLATE[400] }}>({count})</Text> : null}
         </View>
         <Text style={{ fontSize: 12, color: SLATE[500], marginTop: 5 }}>From <Text style={{ fontSize: 15, fontWeight: "800", color: SLATE[900] }}>{fmt(s.base_price)}</Text></Text>
-        {!compact ? (
+        {(
           <Pressable testID={`${testID}-book`} onPress={() => navigate(`/service/${s.id}`)} style={{ marginTop: 12, height: 36, borderRadius: 10, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}>
             <Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700] }}>Book Now</Text>
           </Pressable>
-        ) : null}
+        )}
       </View>
     </Pressable>
   );

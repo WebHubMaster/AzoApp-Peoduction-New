@@ -1,0 +1,20 @@
+{
+  "summary": "iter125 — Verified BOTH iter124 fixes on Customer Expo web (http://localhost:3001, 390x844) plus regression + Android bundle. FIX 1 (coupon auth): PASSED. On checkout step-summary, coupon-apply for 'AZO50' now sends Authorization: Bearer <token> (confirmed via network sniff — POST /api/bookings/validate-coupon shows AUTH header). coupon-msg = 'New user special on your first booking — applied to your order' (contains 'applied to your order', NOT 'Not authenticated'). price-breakdown updated: Discount row jumped from ₹22.19 → ₹164.69 and Total dropped ₹497.56 → ₹329.41 (Door Repair qty1, tomorrow 2026-09-26 08:30, saved addr '12 MG Road, Patna 800001'). Invalid 'BADCODE' → coupon-msg = 'Invalid or inactive coupon' (backend returned 400 as expected). place-order (pay-online) succeeded → step-confirm placed-AZOYM3ZAX '#AZOYM3ZAX Carpentry ₹329.41' (final total includes coupon discount). FIX 2 (page-title 'My Bookings'): PASSED. From landing, tap bn-bookings → URL /orders → page-title = 'My Bookings' (previously showed '(customer)'). From step-confirm, tap view-bookings → URL /orders → page-title = 'My Bookings'. REGRESSION: /blog placeholder shows page-title 'Blog' ✓; bn-membership → /membership with membership-page present ✓; bn-account → / with customer-home present ✓; landing hero-slider + hero-slide-0 + app-categories render ✓. Android bundle GET http://localhost:3001/index.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable → HTTP 200 ✓.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "book.tsx applyCoupon now correctly relies on api.post default (auth=true) → Bearer token attached. Verified via request interception (POST /api/bookings/validate-coupon carries Authorization header).",
+    "[tab].tsx segment cleaner (decodeURIComponent + strip '(' / ')' + NAV.key match) correctly resolves 'orders' → 'My Bookings' on expo-router web. Recurring bug (4 prior iterations) is now resolved.",
+    "Explicit /(site) placeholder routes (blog/about/contact/privacy/terms/refund/faq) render SitePlaceholder without the previous catch-all swallowing /(customer)/orders. Route table cleanup is clean."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (2/2 targeted fixes + all regression checks pass)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (demo-customer button)",
+  "seed_data_creation": "One extra booking placed during test: code AZOYM3ZAX for customer 9000000004 (Door Repair qty1, 2026-09-26 08:30, coupon AZO50, total ₹329.41, pay-online).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both iter124 outstanding bugs are fixed and verified end-to-end. Coupon flow: AZO50 discount = ₹164.69 on Door Repair qty1 with surge + visiting + GST → total ₹329.41. If regressions surface, tests to re-run: (1) tap bn-bookings on landing → /orders + page-title 'My Bookings'; (2) checkout step-summary → coupon-apply AZO50 → coupon-msg contains 'applied to your order' AND request has Authorization header. Also note: slot-08:00 for tomorrow was showing disabled (likely another booking held that slot); slot-08:30 works fine — prefer 08:30+ for tomorrow in future tests.",
+  "rca of the issue": "Both root causes addressed. (1) applyCoupon now uses api.post default auth=true (Bearer token attached automatically from AuthContext-stored token) — no explicit {auth:false} override. (2) [tab].tsx normalizes route-group segment via decodeURIComponent + strip parentheses AND matches against NAV.key whitelist including 'services', so '(customer)/orders' correctly resolves to seg='orders' → title 'My Bookings'."
+}
