@@ -157,7 +157,7 @@ export default function PartnerHome() {
             <TrendCard k={k} chart={chart} filterKey={filter.key} />
             <PerformanceCard k={k} />
             <GrowthCard growth={growth} alerts={alerts} nav={nav} />
-            <RecentJobs recent={d?.recent || []} nav={nav} onOpen={(id) => router.push(`/(partner)/booking/${id}` as any)} />
+            <RecentJobs recent={d?.recent || []} nav={nav} onOpen={(id) => router.push(`/(partner)/booking/${id}` as any)} onViewAll={() => router.push({ pathname: "/(partner)/active", params: { view: "completed" } } as any)} />
             <QuickActions k={k} nav={nav} />
           </>
         )}

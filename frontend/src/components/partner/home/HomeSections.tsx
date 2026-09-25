@@ -259,13 +259,13 @@ export function GrowthCard({ growth, alerts, nav }: { growth: any; alerts: { ico
 }
 
 /* ------------------------------------------------------------ RECENT JOBS */
-export function RecentJobs({ recent, nav, onOpen }: { recent: any[]; nav: Nav; onOpen: (id: string) => void }) {
+export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; nav: Nav; onOpen: (id: string) => void; onViewAll?: () => void }) {
   const { colors } = useTheme();
   return (
     <Card testID="ph-recent" style={{ overflow: "hidden" }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16 }}>
         <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16 }}>Recent jobs</Text>
-        <LinkBtn label="View all" onPress={() => nav("active")} testID="ph-recent-all" />
+        <LinkBtn label="View all" onPress={() => (onViewAll ? onViewAll() : nav("active"))} testID="ph-recent-all" />
       </View>
       {recent.length === 0 ? (
         <View style={{ paddingVertical: 48, alignItems: "center" }}>

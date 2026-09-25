@@ -11,7 +11,7 @@ import io
 from PIL import Image
 
 # Configuration
-BASE_URL = "https://merchant-panel-sync.preview.emergentagent.com/api"
+BASE_URL = "https://reminder-logic.preview.emergentagent.com/api"
 OTP = "123456"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"

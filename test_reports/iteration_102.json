@@ -16,7 +16,7 @@
   },
   "frontend_checks": {
     "onboard-skip / skip-notifications / demo-merchant -> tab-scanqr flow": "PASS",
-    "hero-link": "PASS - text = https://merchant-panel-sync.preview.emergentagent.com/?ref=XZ6SV49",
+    "hero-link": "PASS - text = https://reminder-logic.preview.emergentagent.com/?ref=XZ6SV49",
     "poster-preview element": "PRESENT",
     "dl-png": "PASS - GET /api/merchant/panel/qr/poster?fmt=png&link=&name=Sharma+Electricals&primary=%230D47A1&site=AzoApp&trust=Trusted+Home+Services -> 200",
     "dl-jpg": "PASS - fmt=jpg -> 200",
@@ -50,6 +50,6 @@
   "seed_data_creation": "1 test booking created via customer with merchant_ref_code=XZ6SV49 (attribution verification only, not settled).",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "Preview base URL is https://merchant-panel-sync.preview.emergentagent.com. Tests at /app/backend/tests/test_merchant_qr_poster_iter102.py require REACT_APP_BACKEND_URL env var (see conftest.py). Frontend served by Expo Web on same host; merchant demo login path: onboard-skip -> skip-notifications-button -> demo-merchant -> tab-scanqr. All Scan-QR interactive elements (hero-link, hero-share, hero-whatsapp, poster-preview, dl-png, dl-jpg, dl-pdf, dl-print, share-modal, share-copy) verified with data-testid. Server-rendered poster pipeline replaces older view-shot pipeline and works end-to-end.",
+  "context_for_next_testing_agent": "Preview base URL is https://reminder-logic.preview.emergentagent.com. Tests at /app/backend/tests/test_merchant_qr_poster_iter102.py require REACT_APP_BACKEND_URL env var (see conftest.py). Frontend served by Expo Web on same host; merchant demo login path: onboard-skip -> skip-notifications-button -> demo-merchant -> tab-scanqr. All Scan-QR interactive elements (hero-link, hero-share, hero-whatsapp, poster-preview, dl-png, dl-jpg, dl-pdf, dl-print, share-modal, share-copy) verified with data-testid. Server-rendered poster pipeline replaces older view-shot pipeline and works end-to-end.",
   "rca of the issue": "N/A - no bugs found."
 }

@@ -75,6 +75,19 @@ export function Button({
 }) {
   const { colors } = useTheme();
   const heights = { sm: 40, md: 50, lg: 56 };
+  // Guard against accidental double-taps firing the same request twice. The lock
+  // releases shortly after; for async actions the `loading` prop keeps it disabled.
+  const lockRef = React.useRef(false);
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  const handlePress = () => {
+    if (lockRef.current || loading || disabled) return;
+    lockRef.current = true;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => { lockRef.current = false; }, 800);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    onPress?.();
+  };
   const bg =
     variant === "primary"
       ? colors.primary
@@ -95,10 +108,7 @@ export function Button({
     <Pressable
       testID={testID}
       disabled={disabled || loading}
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-        onPress?.();
-      }}
+      onPress={handlePress}
       style={({ pressed }) => ({
         height: heights[size],
         borderRadius: radius.md,

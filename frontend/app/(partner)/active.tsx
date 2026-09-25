@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Pressable, Linking, Modal, TextInput, ScrollView, Alert, Platform, RefreshControl } from "react-native";
 import { CalendarSlotPicker } from "@/src/components/CalendarSlotPicker";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,7 +28,9 @@ export default function PartnerActiveJob() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const [view, setView] = useState<"active" | "completed">("active");
+  const params = useLocalSearchParams<{ view?: string }>();
+  const [view, setView] = useState<"active" | "completed">(params.view === "completed" ? "completed" : "active");
+  useEffect(() => { if (params.view === "completed" || params.view === "active") setView(params.view); }, [params.view]);
 
   const activeQ = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active"), refetchInterval: 15000 });
   const doneQ = useQuery({ queryKey: ["partner-joblist", "history", "completed"], queryFn: () => api.get<any[]>("/bookings/partner/history?status=completed") });
@@ -499,6 +501,7 @@ function PhotoBlock({ title, items, onAdd, onRemove, uploading, testID }: { titl
         <Icon name="camera-outline" size={16} color={colors.textSecondary} />
         <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>{uploading ? "Uploading…" : items.length ? "Add more photos" : `Add ${title.split(" ")[0]} Photos`}</Text>
       </Pressable>
+      <Text style={{ color: SLATE400, fontSize: 11, marginTop: 6, textAlign: "center" }}>Live camera only · gallery upload is not allowed</Text>
     </View>
   );
 }
@@ -555,16 +558,19 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const watchRef = useRef<Location.LocationSubscription | null>(null);
 
   const capture = async (stage: "before" | "after") => {
+    // LIVE CAMERA ONLY — gallery selection is not allowed for job proof photos.
     let perm = await ImagePicker.getCameraPermissionsAsync();
+    if (!perm.granted && perm.canAskAgain) perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      if (perm.canAskAgain) perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted && !perm.canAskAgain) { Linking.openSettings(); return; }
+      toast.error("Camera access is required to capture live job photos. Please allow camera permission.");
+      if (!perm.canAskAgain) Linking.openSettings();
+      return;
     }
     setBusy(`photo-${stage}`);
     try {
-      const res = perm.granted
-        ? await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true })
-        : await ImagePicker.launchImageLibraryAsync({ quality: 0.6, base64: true, mediaTypes: ["images"] });
+      // Delay works around an Android race where the camera UI fails to launch right after a grant.
+      await new Promise((r) => setTimeout(r, 250));
+      const res = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true, cameraType: ImagePicker.CameraType.back });
       if (res.canceled || !res.assets?.[0]?.base64) return;
       const asset = res.assets[0];
       await api.post(`/bookings/${b.id}/evidence`, { stage, images: [`data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`] });

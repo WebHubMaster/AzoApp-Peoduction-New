@@ -119,3 +119,13 @@ Backlog / next: replicate any remaining merchant panel pages the user wants port
 - New `/app/frontend/app/merchant/support.tsx` = 1:1 RN port of `web_panel/src/components/SupportCenter.jsx` (mobile view): list (title, count, New Ticket, search + range/status/sort PremiumSelects, ticket rows w/ code/priority/status/subject, unread dot, dashed empty state, 6s polling), New ticket form (subject, category/priority selects from /support/meta, message, validations), Thread (conversation card h=win-230 min 480: header w/ code/subject/Updated·Live/status/⋮ Close ticket, day separators, system pills, emerald mine bubbles w/ ✓/✓✓, Support bubbles w/ avatar, typing indicator, 3s polling, composer w/ attach (camera/gallery → /support/upload), pending thumbs, Enter-to-send on web, closed note) + stacked info panel (Ticket details, Attachments, Other tickets) + lightbox.
 - `src/components/merchant/SupportKit.tsx`: status/priority badges, InfoRow, AttachmentView, time helpers.
 - MerchantBottomNav "Help & Support" → `/merchant/support`; MerchantTopBar title added. Generic `/support` (partner) untouched.
+
+---
+## Mobile bug-fix batch — 2026-06 (5 issues, no logic breakage)
+1. **Merchant register chrome hidden**: `app/merchant/_layout.tsx` now hides `MerchantTopBar` + `MerchantBottomNav` on `/merchant/register` (usePathname) — form-only like web panel. Approve→login flow already backend-driven.
+2. **Duplicate requests**: shared `Button` (`src/components/ui.tsx`) got an 800ms re-entrancy lock to block double-taps; loading spinner + existing success toasts give feedback.
+3. **"View all" target**: partner dashboard Recent jobs "View all" now opens Active screen's **Completed** tab (`onViewAll` prop in `HomeSections.RecentJobs`, `active.tsx` reads `?view=completed`).
+4. **Partner before/after photos**: `active.tsx capture()` is now **live-camera-only** (removed gallery fallback) + 250ms launch delay; PhotoBlock shows "Live camera only" hint.
+5. **Scheduled 30-min reminder**: persisted per-booking "shown" timestamp in `ringPrefs.ts` (`wasReminderShownRecently`/`markReminderShown`, 30-min cooldown, survives app restart). `JobRingOverlay` skips re-showing within cooldown. Backend already excludes `started` jobs, so no reminder after work starts.
+- Camera "not opening" root fix: added **expo-image-picker config plugin** to `app.json` (Android FileProvider + iOS/Android permission strings). REQUIRES a native rebuild (prebuild/EAS APK) to take effect.
+- Verified: `tsc --noEmit` clean on changed files, `app.json` valid JSON, `expo config` resolves plugin. Native camera + reminder need on-device verification.

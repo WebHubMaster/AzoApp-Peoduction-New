@@ -5,12 +5,12 @@
     "GET /api/merchant/my-code": "200 -> {merchant_code: U32QUR6}",
     "GET /api/merchant/panel/qr/config": "200 (persisted config for Sharma Electricals)",
     "GET /api/merchant/panel/qr/analytics?range=30d": "200 (bookings=8)",
-    "GET https://merchant-panel-sync.preview.emergentagent.com/?ref=U32QUR6": "200 (web panel captures ref)"
+    "GET https://reminder-logic.preview.emergentagent.com/?ref=U32QUR6": "200 (web panel captures ref)"
   },
   "frontend_checks": {
     "onboarding->demo-merchant->tab-scanqr flow": "PASS (no red overlay, no runtime crash)",
     "app-shell-header / scanqr-hero / poster-builder / qr-analytics visible": "PASS",
-    "hero-link equals `${EXPO_PUBLIC_WEB_URL}/?ref=U32QUR6`": "PASS - exact match https://merchant-panel-sync.preview.emergentagent.com/?ref=U32QUR6 (same format as web ScanQRModule)",
+    "hero-link equals `${EXPO_PUBLIC_WEB_URL}/?ref=U32QUR6`": "PASS - exact match https://reminder-logic.preview.emergentagent.com/?ref=U32QUR6 (same format as web ScanQRModule)",
     "dl-png download": "PASS - filename azoapp-poster-U32QUR6.png, 329229 bytes, dimensions 1080x1350",
     "dl-jpg download": "PASS - filename azoapp-poster-U32QUR6.jpg, 213825 bytes, dimensions 1080x1350",
     "dl-pdf on web": "PASS - clicking does not crash; posterToPdf(web) calls Print.printAsync (opens print dialog / falls to toast 'Choose Save as PDF'). No JS exception.",

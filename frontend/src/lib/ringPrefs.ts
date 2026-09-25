@@ -5,6 +5,10 @@ import { api } from "@/src/api/client";
 
 const PREF_KEY = "azo_ring_prefs";
 const MISSED_KEY = "azo_missed_jobs";
+const REMINDER_KEY = "azo_reminder_shown";
+// Once a "job starts in 30 min" reminder is shown, suppress re-showing it for this
+// long (survives app restarts). Matches product rule: next reminder only after 30 min.
+const REMINDER_COOLDOWN_MS = 30 * 60 * 1000;
 
 export type RingPrefs = {
   tone: string; volume: number; dndEnabled: boolean; dndStart: string; dndEnd: string;
@@ -32,6 +36,7 @@ export function emitRing(event: "prefs" | "missed" | "open-ring" | "test-ring-do
 
 let prefs: RingPrefs = { ...DEFAULTS };
 let missed: MissedJob[] = [];
+let reminderShown: Record<string, number> = {};
 let loaded = false;
 
 export async function loadLocal() {
@@ -39,6 +44,7 @@ export async function loadLocal() {
   loaded = true;
   try { prefs = { ...DEFAULTS, ...(JSON.parse((await storage.getItem(PREF_KEY)) || "{}") || {}) }; } catch { /* ignore */ }
   try { missed = JSON.parse((await storage.getItem(MISSED_KEY)) || "[]") || []; } catch { /* ignore */ }
+  try { reminderShown = JSON.parse((await storage.getItem(REMINDER_KEY)) || "{}") || {}; } catch { /* ignore */ }
   emitRing("prefs", prefs); emitRing("missed", missed);
 }
 
@@ -97,4 +103,22 @@ export function removeMissed(id: string) {
   storage.setItem(MISSED_KEY, JSON.stringify(missed));
   emitRing("missed", missed);
   return missed;
+}
+
+/* ── Scheduled "job starts in 30 min" reminder throttle ──
+ * The backend polling/SSE fallback keeps offering the reminder for the whole
+ * pre-start window, so without this the full-screen reminder re-appears every
+ * time the partner reopens the app. We remember when it was last shown (per
+ * booking, persisted) and suppress re-showing within the cooldown. */
+export function wasReminderShownRecently(id: string) {
+  const t = reminderShown[String(id)];
+  return !!t && Date.now() - t < REMINDER_COOLDOWN_MS;
+}
+export function markReminderShown(id: string) {
+  const key = String(id);
+  reminderShown[key] = Date.now();
+  // prune entries older than 6h so the map never grows unbounded
+  const cutoff = Date.now() - 6 * 60 * 60 * 1000;
+  for (const k of Object.keys(reminderShown)) if (reminderShown[k] < cutoff) delete reminderShown[k];
+  storage.setItem(REMINDER_KEY, JSON.stringify(reminderShown));
 }
