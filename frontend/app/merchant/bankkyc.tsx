@@ -333,7 +333,7 @@ export default function MerchantBankKyc() {
                   </Pressable>
                   <View style={{ flexDirection: "row", gap: 8 }}>
                     <Btn height={44} variant="outline" label="Cancel" onPress={() => { setShowBank(false); setBank(EMPTY_BANK); }} testID="mfk-bank-cancel" />
-                    <Btn height={44} label="Submit for verification" onPress={submitBank} loading={busy} disabled={busy || !canConfirm} style={{ flex: 1 }} testID="mfk-submit-bank" />
+                    <Btn height={44} label="Submit for verification" onPress={submitBank} loading={busy} disabled={busy || !canConfirm || uploadPct.passbook_url !== undefined} style={{ flex: 1 }} testID="mfk-submit-bank" />
                   </View>
                 </View>
               ) : null}
