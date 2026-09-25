@@ -45,7 +45,8 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
           <ToastProvider>
             <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
-              <Stack.Screen name="login" />
+              <Stack.Screen name="(site)" />
+              <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
               <Stack.Screen name="(customer)" />
             </Stack>
           </ToastProvider>

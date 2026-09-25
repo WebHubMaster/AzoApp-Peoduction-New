@@ -59,7 +59,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
   const location = user?.addresses?.find((a: any) => a.is_default)?.city || user?.addresses?.[0]?.city || "Patna";
 
   const go = (n: NavItem) => { setMoreOpen(false); router.push(n.route as any); };
-  const doLogout = async () => { setMoreOpen(false); await logout(); router.replace("/login"); };
+  const doLogout = async () => { setMoreOpen(false); await logout(); router.replace("/(site)"); };
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>

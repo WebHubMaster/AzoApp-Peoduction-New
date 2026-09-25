@@ -7,11 +7,11 @@ import { PRIMARY } from "@/src/theme";
 
 export default function Gate() {
   const router = useRouter();
-  const { booting, user } = useAuth();
+  const { booting } = useAuth();
   useEffect(() => {
     if (booting) return;
-    router.replace(user ? "/(customer)" : "/login");
-  }, [booting, user]); // eslint-disable-line react-hooks/exhaustive-deps
+    router.replace("/(site)");
+  }, [booting]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <View testID="login-auth-loader" style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
       <ActivityIndicator size="large" color={PRIMARY[700]} />
