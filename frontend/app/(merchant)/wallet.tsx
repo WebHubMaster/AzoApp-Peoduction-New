@@ -12,7 +12,7 @@ import { useToast } from "@/src/components/Toast";
 import { SLATE } from "@/src/components/qr/qrKit";
 import {
   useFin, KpiCard, Surface, SegTabs, DetailDrawer, KV, Timeline, EmptyState, RowsSkeleton, Paginator, StatusBadge,
-  PremiumSelect, FBtn, Sk, money, shortDate, EMERALD, ROSE, AMBER, TAB,
+  PremiumSelect, FBtn, Sk, LockedCard, money, shortDate, EMERALD, ROSE, AMBER, TAB,
 } from "@/src/components/merchant/FinanceKit";
 
 /* 1:1 port of web_panel/src/pages/merchant/finance/WalletModule.jsx (mobile view). */
@@ -289,22 +289,7 @@ export default function MerchantWallet() {
   );
 }
 
-/* web MerchantDashboard lockedCard (renderGated) */
-function LockedCard({ completion, status, onGo }: { completion: number; status?: string; onGo: () => void }) {
-  const { heading, muted, primaryText, dark } = useFin();
-  return (
-    <Surface testID="feature-locked" style={{ padding: 32, alignItems: "center" }}>
-      <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
-      <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Feature locked</Text>
-      <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>Yeh feature tab unlock hoga jab aapka profile 100% complete ho aur admin approve kar de.</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
-        <Text style={{ fontSize: 14, fontWeight: "700", color: primaryText }}>{completion}%</Text>
-        <Text style={{ fontSize: 14, color: SLATE[400] }}>complete · {(status || "").replace("_", " ")}</Text>
-      </View>
-      <FBtn testID="goto-profile" label="Complete Profile" icon="arrow-right" onPress={onGo} style={{ marginTop: 16, height: 44 }} />
-    </Surface>
-  );
-}
+/* web MerchantDashboard lockedCard — shared in FinanceKit.LockedCard */
 
 function TxRow({ t, onOpen, card }: { t: any; onOpen: () => void; card?: boolean }) {
   const { dark, strong, hairline } = useFin();

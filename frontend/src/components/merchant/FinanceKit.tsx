@@ -293,5 +293,36 @@ export function Paginator({ page, pages, total, pageSize, onPage, onPageSize }: 
   );
 }
 
+/* ── security/trust footer ── */
+export function SecurityNote({ text = "Your banking information is encrypted and securely protected. AzoApp never shares your financial details." }: { text?: string }) {
+  const { dark, well, strong, muted } = useFin();
+  return (
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 16, backgroundColor: well, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16 }}>
+      <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color={EMERALD[600]} /></View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", color: strong }}>Bank-grade security</Text>
+        <Text style={{ fontSize: 12, lineHeight: 16, color: muted, marginTop: 2 }}>{text}</Text>
+      </View>
+    </View>
+  );
+}
+
+/* ── web MerchantDashboard lockedCard (renderGated) ── */
+export function LockedCard({ completion, status, onGo }: { completion: number; status?: string; onGo: () => void }) {
+  const { heading, muted, primaryText, dark } = useFin();
+  return (
+    <Surface testID="feature-locked" style={{ padding: 32, alignItems: "center" }}>
+      <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
+      <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Feature locked</Text>
+      <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>Yeh feature tab unlock hoga jab aapka profile 100% complete ho aur admin approve kar de.</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
+        <Text style={{ fontSize: 14, fontWeight: "700", color: primaryText }}>{completion}%</Text>
+        <Text style={{ fontSize: 14, color: SLATE[400] }}>complete · {(status || "").replace("_", " ")}</Text>
+      </View>
+      <FBtn testID="goto-profile" label="Complete Profile" icon="arrow-right" onPress={onGo} style={{ marginTop: 16, height: 44 }} />
+    </Surface>
+  );
+}
+
 export const money = (n: any) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const shortDate = (s?: string) => { try { return new Date(s || "").toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return (s || "").slice(0, 10); } };
