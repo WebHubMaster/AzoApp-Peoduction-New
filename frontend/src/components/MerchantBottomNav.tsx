@@ -37,7 +37,7 @@ const MORE: Item[] = [
   { key: "commission", label: "Commission", icon: TrendingUp, route: "/merchant/commission" },
   { key: "bankkyc", label: "Bank & KYC", icon: CreditCard, route: "/merchant/bankkyc" },
   { key: "analytics", label: "Analytics", icon: Sparkles, route: "/merchant/analytics" },
-  { key: "support", label: "Help & Support", icon: LifeBuoy, route: "/support" },
+  { key: "support", label: "Help & Support", icon: LifeBuoy, route: "/merchant/support" },
 ];
 
 /** Map the current route (useSegments) → active primary/more key. */
