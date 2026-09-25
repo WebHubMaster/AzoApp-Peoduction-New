@@ -15,7 +15,7 @@ import os
 import time
 
 # Base URL from environment
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://profile-kyc-panel.preview.emergentagent.com") + "/api"
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://merchant-panel-sync.preview.emergentagent.com") + "/api"
 print(f"Testing against: {BASE_URL}")
 
 # Admin credentials

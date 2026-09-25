@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://profile-kyc-panel.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-panel-sync.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 

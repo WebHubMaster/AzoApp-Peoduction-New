@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL
-API = "https://profile-kyc-panel.preview.emergentagent.com/api"
+API = "https://merchant-panel-sync.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
