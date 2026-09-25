@@ -21,10 +21,10 @@ export default function Home() {
     <HomeView
       user={user} bookings={d.bookings} wallet={d.wallet} refunds={d.refunds} categories={d.categories} services={d.services} referral={d.referral} loading={d.loading}
       onNavigate={goTo}
-      onBook={() => router.push("/(customer)/services" as any)}
-      onCategory={(id) => router.push(`/(customer)/services?category=${id}` as any)}
+      onBook={() => router.push("/(site)/services" as any)}
+      onCategory={(id) => router.push(`/(site)/services?category=${id}` as any)}
       onOpenBooking={openBooking}
-      onService={(id) => router.push(`/(customer)/services?service=${id}` as any)}
+      onService={(id) => router.push(`/(site)/service/${id}` as any)}
     />
   );
 }

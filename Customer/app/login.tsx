@@ -249,6 +249,8 @@ export default function Login() {
             <Text style={{ fontSize: 11, color: SLATE[400], marginTop: 8, textAlign: "center" }}>Signs you straight into the customer account with pre-loaded demo data.</Text>
           </View>
         ) : null}
+
+        <Pressable testID="login-back-home" onPress={() => router.replace("/(site)")} style={{ marginTop: 24, alignSelf: "flex-start" }}><Text style={{ fontSize: 14, color: SLATE[500] }}>← Back to home</Text></Pressable>
       </KeyboardAwareScrollView>
 
       {showLoader ? (

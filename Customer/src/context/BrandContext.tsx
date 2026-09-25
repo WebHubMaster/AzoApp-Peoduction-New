@@ -9,13 +9,17 @@ export interface SiteBranding {
   logo_dark?: string;
 }
 export interface SiteConfig {
-  branding: SiteBranding;
+  branding: SiteBranding & { footer_text?: string; phone?: string; email?: string };
   theme: { primary: string; secondary: string; accent: string; default_mode?: string };
+  stats?: Record<string, any>;
+  apps?: Record<string, any>;
+  seo?: Record<string, any>;
 }
 
 const DEFAULTS: SiteConfig = {
   branding: { site_name: "AzoApp", tagline: "Service at Your Door Steps" },
   theme: { primary: "#0659B2", secondary: "#1E7AD6", accent: "#F59E0B", default_mode: "light" },
+  stats: {},
 };
 
 const Ctx = createContext<SiteConfig>(DEFAULTS);
@@ -32,8 +36,10 @@ export function useSiteConfigQuery() {
           tagline: b.tagline || "Service at Your Door Steps",
           logo_light: mediaUrl(b.logo_light) || "",
           logo_dark: mediaUrl(b.logo_dark) || "",
+          footer_text: b.footer_text, phone: b.phone, email: b.email,
         },
         theme: { ...DEFAULTS.theme, ...(raw.theme || {}) },
+        stats: raw.stats || {}, apps: raw.apps || {}, seo: raw.seo || {},
       } as SiteConfig;
     },
     staleTime: 5 * 60 * 1000,
