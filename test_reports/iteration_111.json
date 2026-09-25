@@ -1,0 +1,32 @@
+{
+  "summary": "Verified 3 merchant UI-parity fixes on /merchant/profilekyc: (1) dynamic brand logo in MerchantTopBar, (2) plain (non-gradient) Profile & KYC heading, (3) inline (non-overlapping) Back/Next footer on KYC wizard. All fixes render correctly after a frontend restart (Metro runs in CI mode so watch/hot-reload was off; the changes were on disk but the served bundle was stale). All three testIDs behave as expected on steps 1–4.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_details": {
+    "merchant-brand-logo": "Present as <img> with src pointing to seeded logo (static.prod-images.emergentagent.com/.../5d43dc...jpeg). merchant-brand-fallback NOT rendered (correct).",
+    "merchant-profilekyc-header": "Header parent chain has NO LinearGradient; backgrounds are transparent/white; text 'Profile & KYC' rendered dark on white — matches web panel plain header.",
+    "reg-nav embedded": "On steps 1,2,3,4 computed style is position:'relative', borderRadius:'18px', testid 'reg-nav'. Nav appears as a rounded inline card at the end of scrollable content, no overlap with 'Shop Verification Photo' or any other card.",
+    "top bar controls": "notif-bell and profile-chip both render and are clickable.",
+    "wizard navigation": "reg-next advances step 1→2→3→4 successfully (PUT /merchant/registration/basic|shop|address returned OK, no console errors)."
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL/INFRA: Metro is started with CI=1 (see /var/log/supervisor/frontend.out.log: 'Metro is running in CI mode, reloads are disabled'). Any future code edits to /app/frontend will NOT reflect in the served bundle until `sudo supervisorctl restart frontend`. Consider removing CI=1 from the frontend start command so hot-reload works for iterative development. This bit the initial verification of this task (fixes were on disk but the old bundle was live)."
+  ],
+  "critical_code_review_comments": [
+    "Screen.tsx AppHeader: variant='plain' works as intended after rebuild. No changes needed.",
+    "Fields.tsx RegNav: `embedded` prop toggles inline vs absolute footer correctly.",
+    "MerchantTopBar.tsx: useBrand()+mediaUrl() chain is correct; falls back to LinearGradient when logo is missing."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (skipped)", "frontend": "100%" },
+  "test_credentials": "Merchant login: +919000000002 / OTP 123456 (demo). Session was already active during test so login flow itself was not re-executed this iteration.",
+  "seed_data_creation": "None (brand logo already seeded server-side in db.settings.global.branding).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "If verifying frontend changes and they don't appear, run `sudo supervisorctl restart frontend` and wait ~40s for Metro to rebuild — CI=1 disables Metro watch mode. Test uses the preview URL directly; the merchant session persists so /merchant/profilekyc is reachable without going through the phone+OTP flow again in the same browser context. Key testIDs: merchant-brand-logo (img in top bar), merchant-profilekyc-header (page heading Text), reg-nav / reg-view-nav (bottom nav — must be position:relative with borderRadius:18 when embedded)."
+}
