@@ -138,7 +138,7 @@ export default function MerchantProfileKyc() {
   if (!loaded) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }}>
-        <AppHeader title="Profile & KYC" back embedded variant="gradient" testID="merchant-profilekyc-header" />
+        <AppHeader title="Profile & KYC" back embedded variant="plain" testID="merchant-profilekyc-header" />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={P[400]} /></View>
       </View>
     );
@@ -149,7 +149,7 @@ export default function MerchantProfileKyc() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Profile & KYC" back embedded variant="gradient" testID="merchant-profilekyc-header" />
+      <AppHeader title="Profile & KYC" back embedded variant="plain" testID="merchant-profilekyc-header" />
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120, gap: spacing.md }}
         showsVerticalScrollIndicator={false}
@@ -293,10 +293,10 @@ export default function MerchantProfileKyc() {
         {/* nav */}
         <View style={{ marginTop: spacing.sm }}>
           {editable ? (
-            <RegNav step={step} total={STEPS.length} onBack={() => setStep((s) => Math.max(0, s - 1))} saving={saving} onNext={next} nextDisabled={step === 2 && blocked}
+            <RegNav step={step} total={STEPS.length} embedded onBack={() => setStep((s) => Math.max(0, s - 1))} saving={saving} onNext={next} nextDisabled={step === 2 && blocked}
               onSubmit={submit} submitLabel={status === "rejected" ? "Re-submit" : "Submit Application"} submitDisabled={(score?.score || 0) < 100} />
           ) : (
-            <RegNav step={step} total={STEPS.length} onBack={() => setStep((s) => Math.max(0, s - 1))} viewOnly onViewNext={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} />
+            <RegNav step={step} total={STEPS.length} embedded onBack={() => setStep((s) => Math.max(0, s - 1))} viewOnly onViewNext={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} />
           )}
         </View>
       </ScrollView>

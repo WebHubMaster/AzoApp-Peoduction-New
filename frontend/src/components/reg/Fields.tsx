@@ -322,14 +322,20 @@ export function ReviewCard({ title, rows, onEdit, editable = true }: { title: st
 }
 
 /* ---------------- Sticky bottom nav ---------------- */
-export function RegNav({ step, total, onBack, saving, onNext, nextDisabled, onSubmit, submitLabel, submitDisabled, viewOnly, onViewNext }: {
+export function RegNav({ step, total, onBack, saving, onNext, nextDisabled, onSubmit, submitLabel, submitDisabled, viewOnly, onViewNext, embedded }: {
   step: number; total: number; onBack: () => void; saving?: boolean; onNext?: () => void; nextDisabled?: boolean;
-  onSubmit?: () => void; submitLabel?: string; submitDisabled?: boolean; viewOnly?: boolean; onViewNext?: () => void;
+  onSubmit?: () => void; submitLabel?: string; submitDisabled?: boolean; viewOnly?: boolean; onViewNext?: () => void; embedded?: boolean;
 }) {
   const insets = useSafeAreaInsets();
   const last = step === total - 1;
+  // Embedded (inside the merchant panel scroll view): render inline as a rounded
+  // card so it flows after the content instead of floating over it. Standalone
+  // registration keeps the fixed footer pinned to the bottom of the screen.
+  const containerStyle = embedded
+    ? { borderRadius: 18, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate100, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, gap: 12 }
+    : { position: "absolute" as const, left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: "rgba(255,255,255,0.92)", borderTopWidth: 1, borderTopColor: TW.slate100, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, gap: 12 };
   return (
-    <View testID={viewOnly ? "reg-view-nav" : "reg-nav"} style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: "rgba(255,255,255,0.92)", borderTopWidth: 1, borderTopColor: TW.slate100, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+    <View testID={viewOnly ? "reg-view-nav" : "reg-nav"} style={containerStyle}>
       <WButton title="Back" variant="outline" IconLeft={ChevronLeft} onPress={onBack} disabled={step === 0} testID="reg-back" />
       {viewOnly ? (
         <>
