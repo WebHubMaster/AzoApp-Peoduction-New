@@ -1,0 +1,27 @@
+{
+  "summary": "End-to-end test of the new mobile Merchant Help & Support page (/merchant/support) at 412x900. Backend endpoints /api/support/meta and /api/support/tickets return expected data (TKT-100003 seeded). UI: page header 'Help & Support' + 'Sharma Electricals' shop label render; support-count reads '1 ticket · chat with our support team, attach screenshots, track status.'; support-list shows TKT-100003 with Open + Medium badges + subject 'Payout not received'. New Ticket flow: support-new-btn → support-new-form; empty subject → toast 'Please enter a subject'; empty message → toast 'Please describe your issue'; valid submit → toast 'Ticket TKT-100004 created' + support-thread opens showing TODAY separator + right-aligned emerald bubble with check icon. Composer send text works (bubble appears). Admin flow: POST /api/admin/support/tickets/{id}/messages returns 200 and the left-aligned 'Support'-labeled bubble arrives within 3s polling; POST .../typing returns 200 and support-agent-typing indicator becomes visible. Close ticket: support-menu-btn → support-close-btn → window.confirm accepted → toast 'Ticket closed', support-thread-status shows 'Closed', composer replaced by support-closed-note, menu btn hidden. Back navigation refreshes list — closed ticket appears with Closed badge. Filters: status=Closed keeps only TKT-100004 (100003 hidden); sort=oldest reorders (100003 before 100004); range=Today keeps today's tickets; search with no matches → support-empty + support-empty-new-btn. Bottom-nav: tab-more → 'Help & Support' entry navigates to /merchant/support (route wired via MerchantBottomNav.tsx line 40). Regression: /merchant/analytics and /merchant/bankkyc still render.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "console_warnings": [
+      {"component": "expo-web", "issue": "useNativeDriver / expo-notifications / pointerEvents deprecation warnings appear on route entry — non-blocking, unrelated to support page.", "priority": "LOW"}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "support.tsx Thread: cardH = winH - 230 works well at 412x900 but on very small viewports (<560h) the message ScrollView could become cramped; min 480 is fine.",
+    "Attachment upload flow (support-attach-btn → SourceSheet → file chooser) was not exercised end-to-end here due to expo-image-picker file chooser flakiness in headless Playwright; consider adding a data-testid on the hidden file input to allow direct set_input_files in tests.",
+    "range='today' comparator uses cut variable then overrides with midnight in filter — logic works but slightly confusing; could simplify by computing cut once."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Merchant +919000000002 / 123456; Admin +919000000000 / 123456.",
+  "seed_data_creation": "Created TKT-100004 'TEST_ Automation subject' (subsequently CLOSED during test). Original TKT-100003 'Payout not received' remains OPEN for the demo merchant as required.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Merchant Help & Support mobile port is fully functional and 1:1 with the web reference. Attachment upload / lightbox was NOT exercised via Playwright (expo-image-picker uses hidden file input; add testID='support-attach-file-input' on the hidden <input type=file> to allow set_input_files-based testing in the future). All other flows (list, filters, new ticket, thread, admin live reply/typing via polling, close, back-refresh) verified.",
+  "rca of the issue": "N/A — no issues found."
+}

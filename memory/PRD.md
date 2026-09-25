@@ -114,3 +114,8 @@ Backlog / next: replicate any remaining merchant panel pages the user wants port
 - Charts: new `src/components/merchant/AnalyticsCharts.tsx` (react-native-svg ports of recharts Area/Bar/Pie w/ nice ticks, dashed grid, dark tap tooltips). `RangeCalendar` now exported from `ReferralShared.tsx`.
 - API: `GET /merchant/analytics?date_from&date_to` (unchanged backend).
 - NOTE: Metro (expo web) serves a stale bundle after edits — run `sudo supervisorctl restart frontend` before screenshot/testing.
+
+## Update — 2026-06 · Merchant Mobile Help & Support parity (DONE, tested iteration_116 — 100%)
+- New `/app/frontend/app/merchant/support.tsx` = 1:1 RN port of `web_panel/src/components/SupportCenter.jsx` (mobile view): list (title, count, New Ticket, search + range/status/sort PremiumSelects, ticket rows w/ code/priority/status/subject, unread dot, dashed empty state, 6s polling), New ticket form (subject, category/priority selects from /support/meta, message, validations), Thread (conversation card h=win-230 min 480: header w/ code/subject/Updated·Live/status/⋮ Close ticket, day separators, system pills, emerald mine bubbles w/ ✓/✓✓, Support bubbles w/ avatar, typing indicator, 3s polling, composer w/ attach (camera/gallery → /support/upload), pending thumbs, Enter-to-send on web, closed note) + stacked info panel (Ticket details, Attachments, Other tickets) + lightbox.
+- `src/components/merchant/SupportKit.tsx`: status/priority badges, InfoRow, AttachmentView, time helpers.
+- MerchantBottomNav "Help & Support" → `/merchant/support`; MerchantTopBar title added. Generic `/support` (partner) untouched.

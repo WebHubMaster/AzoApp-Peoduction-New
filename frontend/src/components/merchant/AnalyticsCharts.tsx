@@ -174,14 +174,12 @@ export function Donut({ data, colors, height = 180 }: { data: { name: string; va
     const big = a1 - a0 > Math.PI ? 1 : 0;
     return `M${o0.x},${o0.y} A${R},${R} 0 ${big} 1 ${o1.x},${o1.y} L${i1.x},${i1.y} A${r},${r} 0 ${big} 0 ${i0.x},${i0.y} Z`;
   };
-  let a = -Math.PI / 2;
-  const slices = data.map((d, i) => {
+  const g = (pad * Math.PI) / 180;
+  const slices = data.reduce<{ acc: number; out: { i: number; a0: number; a1: number }[] }>((st, d, i) => {
     const span = ((d.value || 0) / total) * Math.PI * 2;
-    const g = (pad * Math.PI) / 180;
-    const s = { i, a0: a + g / 2, a1: a + span - g / 2 };
-    a += span;
-    return s;
-  });
+    st.out.push({ i, a0: st.acc + g / 2, a1: st.acc + span - g / 2 });
+    return { acc: st.acc + span, out: st.out };
+  }, { acc: -Math.PI / 2, out: [] }).out;
   const onTap = (e: any) => {
     const lx = e.nativeEvent.locationX ?? e.nativeEvent.offsetX ?? 0;
     const ly = e.nativeEvent.locationY ?? e.nativeEvent.offsetY ?? 0;
