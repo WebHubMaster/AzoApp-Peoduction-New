@@ -1,0 +1,35 @@
+{
+  "summary": "End-to-end testing of the new Customer Expo/RN app on http://localhost:3001 against the shared FastAPI backend. Backend sanity (14 pytest cases) all pass. Frontend Playwright covered: login screen, phone validation, OTP prefill/resend, role restriction (partner blocked), customer login → home dashboard, stats/wallet/refunds, categories & popular services, refer promo, recent bookings, search dropdown, bottom nav placeholder pages, More sheet + logout, notification panel, theme toggle, and session persistence via reload. All acceptance criteria met.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Login page (post role-rejection)", "issue": "After a partner/merchant is blocked with the correct 'Only Customers can sign in...' toast and token cleared, the UI remains on OTP step 2 (still shows 'Enter the 6-digit code sent to +91xxx' and OTP boxes) instead of resetting to the phone-entry step. User must click 'Change number' to re-enter a different phone. Not blocking (data-testid login-phone-input reappears after Change number, no token leak) but slightly poor UX.", "selector": "[data-testid=\"login-phone-input\"] not visible after failed non-customer verify", "priority": "LOW"},
+      {"component": "Login page demo section", "issue": "data-testid 'demo-customer' is present in DOM (card visible in screenshot with text 'Login as Customer / Opens Customer account') but Playwright's is_visible() returned False on initial check — likely the testID is attached to a non-hit-testable inner View. Consider moving testID to the outer Pressable/TouchableOpacity so is_visible() and clicks resolve deterministically.", "selector": "[data-testid=\"demo-customer\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_customer_app_backend.py",
+    "/app/test_reports/pytest/customer_app_backend.xml"
+  ],
+  "action_items": [
+    "(Optional/LOW) After finish() rejects a non-customer role in Customer/app/login.tsx, also reset the local OTP UI back to step 1 (phone entry) so the login-phone-input becomes visible again without requiring 'Change number' click.",
+    "(Optional/LOW) Move the demo-customer testID from an inner element to the outermost Pressable/TouchableOpacity so it is reliably visible/clickable via data-testid."
+  ],
+  "critical_code_review_comments": [
+    "AuthContext.refresh() correctly drops tokens whose /auth/me returns role != customer — verified: partner token is cleared and login remains.",
+    "CustomerDataContext polls every 8s — during initial home load, stats reflect real backend counts (total=6, completed=2, active=3, wallet ₹250, refunds ₹0) matching /api/bookings & /api/wallet output; badge count '3' matches active count.",
+    "OTP entry uses a hidden RN TextInput with 6 display boxes; boxes correctly show prefilled dev_otp 123456 as text content (not input value)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_customer_app_backend.py (new)"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "100% of acceptance criteria (13/13 assertions passed; 2 minor UX observations)"},
+  "test_credentials": "Customer 9000000004 (Priya Verma) OTP 123456; Partner 9000000003, Merchant 9000000002, Admin 9000000000 all OTP 123456 (blocked in Customer app).",
+  "seed_data_creation": "None — used existing demo seed users.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer app is the Expo web build on port 3001 managed by supervisor program 'customer_expo'. All RN testID attributes surface as data-testid on web. OTP boxes are Views — read via text_content, not input_value. Backend uses local http://localhost:8001. Session persists via localStorage 'azo_token' (persists after page.reload in same context). Role guard is enforced both by AuthContext.refresh() and finish() in login.tsx. Non-customer roles are rejected with toast 'Only Customers can sign in to the Customer App...' — verified working.",
+  "rca of the issue": "N/A — no functional bugs found. Two low-priority UX polish observations noted for main agent."
+}
