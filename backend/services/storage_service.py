@@ -42,12 +42,20 @@ _EXT_CT = {"svg": "image/svg+xml", "jpg": "image/jpeg", "jpeg": "image/jpeg",
            "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
 
 
-# ── Structured upload folders ────────────────────────────────────────────────
-# Every upload lands in a human-readable, structured path so files are easy to
-# locate on S3 (or on local disk). Examples:
-#   partners/<partnerId>-<name>/kyc/<uuid>.webp
-#   merchants/<merchantId>-<shop>/branding/<uuid>.webp
-#   jobs/<partnerId>-<name>/<serviceName>-<jobCode>/before/<uuid>.webp
+# ── Structured, enterprise upload taxonomy ───────────────────────────────────
+# Every upload lands in ONE deterministic, centralized path so files are easy to
+# find and an entity's files never fragment across folders. Folders are keyed on
+# STABLE IDs only (never a mutable name/slug) — so renaming a partner, merchant or
+# service can never create a second "duplicate" folder for the same record.
+# All paths sit under the configured root prefix (integrations.aws_folder, e.g.
+# "AzoApp/"). Layout:
+#   partners/<partnerId>/kyc/<uuid>.webp
+#   partners/<partnerId>/profile/<uuid>.webp
+#   merchants/<merchantId>/kyc|branding/<uuid>.webp
+#   jobs/<bookingId>/before|after/<uuid>.webp
+#   support/<userId>/<uuid>.webp
+#   media/<uuid>.webp                (generic CMS)
+#   audio/alerts/<uuid>.mp3
 def slugify(s, maxlen: int = 40) -> str:
     """URL/S3-safe lowercase slug. Empty → 'x'."""
     s = re.sub(r"[^A-Za-z0-9]+", "-", str(s or "")).strip("-").lower()
@@ -55,25 +63,24 @@ def slugify(s, maxlen: int = 40) -> str:
 
 
 def entity_folder(kind: str, ent: dict, *subs: str) -> str:
-    """Folder for a person/shop, e.g. entity_folder('partners', user, 'kyc').
-    → 'partners/<id>-<name-slug>/kyc'"""
+    """Deterministic folder for a person/shop keyed on its immutable id, e.g.
+    entity_folder('partners', user, 'kyc') → 'partners/<id>/kyc'.
+    Name is intentionally excluded so a rename can't fork a second folder."""
     ent = ent or {}
-    eid = str(ent.get("id") or "unknown")
-    name = slugify(ent.get("name") or ent.get("shop_name") or "")
-    parts = [slugify(kind), f"{eid}-{name}"] + [slugify(s) for s in subs if s]
+    eid = slugify(ent.get("id") or "unknown", maxlen=64)
+    parts = [slugify(kind), eid] + [slugify(s) for s in subs if s]
     return "/".join(parts)
 
 
 def job_folder(booking: dict, partner: dict = None, *subs: str) -> str:
-    """Folder for a job/booking's files.
-    → 'jobs/<partnerId>-<name>/<serviceName>-<jobCode>/<sub>'"""
+    """Deterministic folder for a job/booking's files keyed on the immutable
+    booking id → 'jobs/<bookingId>/<sub>'. All of a booking's proof photos stay
+    together even if the partner is reassigned or the service is renamed.
+    `partner` is accepted for backwards-compatible call sites but not used in the
+    path (it is not stable enough to key a folder on)."""
     b = booking or {}
-    partner = partner or {}
-    pid = str(partner.get("id") or b.get("partner_id") or "unassigned")
-    pname = slugify(partner.get("name") or b.get("partner_name") or "")
-    jname = slugify(b.get("service_name") or "job")
-    code = slugify(b.get("code") or b.get("id") or "")
-    parts = ["jobs", f"{pid}-{pname}", f"{jname}-{code}"] + [slugify(s) for s in subs if s]
+    bid = slugify(b.get("id") or b.get("code") or "unassigned", maxlen=64)
+    parts = ["jobs", bid] + [slugify(s) for s in subs if s]
     return "/".join(parts)
 
 
@@ -202,7 +209,7 @@ async def _put(name: str, data: bytes, mime: str, base_hint: str = "") -> str:
 
 
 async def save_image(raw: bytes, content_type: str, folder: str = "media",
-                     max_side: int = 1600, thumb: bool = True, filename: str = "",
+                     max_side: int = 1600, thumb: bool = False, filename: str = "",
                      base_hint: str = "") -> dict:
     content_type = _resolve_ct(content_type, filename, raw)
     if content_type not in ALLOWED:
@@ -219,18 +226,12 @@ async def save_image(raw: bytes, content_type: str, folder: str = "media",
     uid = uuid.uuid4().hex
     name = f"{folder}/{uid}.{ext}"
     url = await _put(name, data, mime, base_hint)
-    result = {"url": url, "size": len(data), "name": name}
-    if thumb and content_type != "image/gif":
-        try:
-            tdata, text, tmime = _compress(raw, content_type, 400, quality=70)
-            tname = f"{folder}/thumb_{uid}.{text}"
-            result["thumb_url"] = await _put(tname, tdata, tmime, base_hint)
-            result["thumb_name"] = tname
-        except Exception:  # noqa: BLE001 — thumbnail is best-effort
-            result["thumb_url"] = url
-    else:
-        result["thumb_url"] = url
-    return result
+    # NOTE: we deliberately do NOT write a separate "thumb_<uid>" object. That was a
+    # near-identical copy of the same image (just smaller) — it doubled the number of
+    # S3 objects/storage for zero functional gain. The stored image is already
+    # web-optimized (compressed WebP), so `thumb_url` simply points at the same URL.
+    # `thumb` is kept as a no-op arg for backwards compatibility with old call sites.
+    return {"url": url, "size": len(data), "name": name, "thumb_url": url}
 
 
 async def save_document(raw: bytes, content_type: str, filename: str = "",
