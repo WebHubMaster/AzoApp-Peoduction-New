@@ -106,6 +106,25 @@ async def join_waitlist(data: dict):
     return {"ok": True, "message": "Thanks! We'll notify you the moment we launch in your area."}
 
 
+# ---------- customer mobile app home (CMS) ----------
+@router.get("/app/home")
+async def app_home(city: str = ""):
+    from controllers import app_home_controller as ah
+    return await ah.public_home(city)
+
+
+@router.get("/admin/app-home")
+async def admin_app_home(admin=Depends(ADMIN)):
+    from controllers import app_home_controller as ah
+    return await ah.get_config()
+
+
+@router.put("/admin/app-home")
+async def admin_app_home_save(data: dict, admin=Depends(ADMIN)):
+    from controllers import app_home_controller as ah
+    return await ah.save_config(data)
+
+
 # ---------- admin: homepage sections ----------
 @router.get("/admin/homepage-sections")
 async def list_sections(admin=Depends(ADMIN)):
