@@ -109,3 +109,15 @@ Provide a working Expo preview URL + QR for Expo Go.
 - P1: ~~Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor)~~ DONE (iterations 128–131).
 - P1: ~~Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat)~~ DONE (iteration_132). All web customer NAV tabs are now ported.
 - P2: OnboardingTour, ScheduleAlerts, RescheduleRing, SearchingStatus polling, push notifications, brand logo dark/light from admin.
+
+---
+
+## Customer App Expo CI/CD (June 2026)
+Replicated the Partner/Merchant (`frontend/`) Expo EAS + GitHub Actions setup for the Customer app.
+
+- Created Expo project `@emergent_chandan/azoapp-customer` via `eas init` (projectId: `14a48255-07fc-4879-9d63-cab47ed22a0c`, owner `emergent_chandan` — same account as frontend, so a single `EXPO_TOKEN` secret serves both apps).
+- `Customer/app.json`: added `extra.eas.projectId` + `owner`.
+- `Customer/eas.json`: `production-apk` profile (apk buildType, channel `preview`, `EXPO_PUBLIC_BACKEND_URL=https://api.webhubmaster.shop` — same backend as frontend).
+- `.github/workflows/customer.yml`: triggers on push to `main` with `paths: Customer/**` (+ manual `workflow_dispatch`); runs `eas build --platform android --profile production-apk --non-interactive --no-wait` using `secrets.EXPO_TOKEN`.
+- `Customer/.eas/workflows/send-updates.yml`: EAS-side build workflow mirror of frontend.
+- Verified with `eas project:info` and `eas config` — profile, projectId, owner, backend URL, buildType all resolve correctly.

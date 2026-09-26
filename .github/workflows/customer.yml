@@ -1,0 +1,57 @@
+name: Build Customer Android APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Customer/**"
+
+  workflow_dispatch:
+
+jobs:
+  build-customer-android-apk:
+    name: Build Customer Android APK
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: Customer
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: Verify Expo project
+        run: |
+          echo "Current directory:"
+          pwd
+
+          echo "Project files:"
+          ls -la
+
+          echo "Checking Expo project:"
+          eas project:info
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Customer Android APK
+        run: |
+          eas build \
+            --platform android \
+            --profile production-apk \
+            --non-interactive \
+            --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

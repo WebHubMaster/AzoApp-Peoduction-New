@@ -3,7 +3,7 @@
 [1mINVOICE PREVIEW = PDF DOWNLOAD = PRINT FIX - COMPREHENSIVE TEST[0m
 [1m================================================================================
 [0m
-[94mBASE_URL: https://customer-auth-native.preview.emergentagent.com/api[0m
+[94mBASE_URL: https://customer-auto-deploy.preview.emergentagent.com/api[0m
 [94mTest Date: 2026-09-10 09:59:59[0m
 [1m
 ================================================================================[0m

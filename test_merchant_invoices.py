@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://customer-auth-native.preview.emergentagent.com/api"
+BASE_URL = "https://customer-auto-deploy.preview.emergentagent.com/api"
 
 # Test credentials
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals

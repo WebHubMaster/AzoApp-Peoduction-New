@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "app.azoapp.customer",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "AzoApp uses speech recognition for voice search.",
+        "NSMicrophoneUsageDescription": "AzoApp uses the microphone for voice search."
       }
     },
     "android": {
@@ -22,7 +24,10 @@
         "backgroundColor": "#0D47A1"
       },
       "permissions": [
-        "VIBRATE"
+        "VIBRATE",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -64,7 +69,11 @@
       "typedRoutes": false
     },
     "extra": {
-      "router": {}
-    }
+      "router": {},
+      "eas": {
+        "projectId": "14a48255-07fc-4879-9d63-cab47ed22a0c"
+      }
+    },
+    "owner": "emergent_chandan"
   }
 }
