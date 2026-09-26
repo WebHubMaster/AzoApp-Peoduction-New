@@ -45,7 +45,7 @@ export default function OrdersScreen() {
   const siteCfg: any = useSiteConfig();
   const focusCode = params.focus ? String(params.focus) : "";
   const [q, setQ] = useState(focusCode);
-  const [tab, setTab] = useState("all");
+  const [tab, setTab] = useState(focusCode ? "all" : "active");
   const [payment, setPayment] = useState("all");
   const [range, setRange] = useState<DateRange>(ALL_RANGE);
   const [sort, setSort] = useState("new");
@@ -115,7 +115,7 @@ export default function OrdersScreen() {
   };
   const actions: CardActions = {
     onRepeat: repeat, onCancel: setCancelT, onReview: setRev, onPay: pay, onPayAddl: setAddl, onSpare: spareAction, onRefresh: reload, onDetails: setDetails, onInvoice: setInvoice, onChat: setChat, onReschedule: setResched,
-    onTrack: (b) => router.push(`/(customer)/track/${b.id}` as any), respondResched, cancelResched, unreadFor, toast,
+    respondResched, cancelResched, unreadFor, toast,
   };
 
   return (

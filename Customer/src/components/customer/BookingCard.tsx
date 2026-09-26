@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Linking, Animated } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, Navigation, MessageCircle, FileText, Crown, Calendar, Circle } from "lucide-react-native";
+import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, MessageCircle, FileText, Crown, Calendar, Circle } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, ROSE, AMBER, useTheme, shadowBtn, shadowElev } from "../../theme";
 import { StatusChip } from "./ux";
 import { statusText, statusTone, DONE_STATES, bkDate } from "./nav";
@@ -208,7 +208,7 @@ export const Chip = ({ testID, icon: Icon, label, onPress, tone = "outline", dis
 export type CardActions = {
   onRepeat: (b: any) => void; onCancel: (b: any) => void; onReview: (b: any) => void; onPay: (b: any) => void; onPayAddl: (b: any) => void;
   onSpare: (b: any, partId: string, action: string) => void; onRefresh: () => void; onDetails: (b: any) => void; onInvoice: (b: any) => void; onChat: (b: any) => void;
-  onReschedule: (b: any) => void; onTrack: (b: any) => void; respondResched: (b: any, action: "accept" | "reject") => Promise<void>; cancelResched: (b: any) => Promise<void>;
+  onReschedule: (b: any) => void; respondResched: (b: any, action: "accept" | "reject") => Promise<void>; cancelResched: (b: any) => Promise<void>;
   unreadFor: (id: string) => number; toast: any;
 };
 
@@ -328,7 +328,6 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
         {b.status === "pending_payment" ? <Chip testID={`pay-${b.code}`} icon={Wallet} tone="green" onPress={() => a.onPay(b)} label={b.order_group_id ? "Pay Now · combined order" : `Pay ${fmt(b.pricing?.total)}`} /> : null}
         {assigned ? <Chip testID={`call-${b.code}`} icon={commLocked ? Lock : Phone} tone="primary" onPress={callPartner} disabled={commLocked} label="Call" /> : null}
         {assigned ? <Chip testID={`chat-${b.code}`} icon={commLocked ? Lock : MessageCircle} onPress={chatPartner} disabled={commLocked} label="Chat" right={!commLocked ? <UnreadPill count={unread} testID={`chat-unread-${b.code}`} /> : null} /> : null}
-        {assigned || b.status === "searching" ? <Chip testID={`track-${b.code}`} icon={Navigation} onPress={() => a.onTrack(b)} label="Track Live" /> : null}
         <Chip testID={`details-${b.code}`} icon={Info} onPress={() => a.onDetails(b)} label="View Details" />
         {canInvoice ? <Chip testID={`invoice-${b.code}`} icon={FileText} onPress={() => a.onInvoice(b)} label="Invoice" /> : null}
         {canRepeat ? <Chip testID={`repeat-${b.code}`} icon={RefreshCcw} onPress={() => a.onRepeat(b)} label="Book Again" /> : null}
