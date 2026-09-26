@@ -121,3 +121,12 @@ Replicated the Partner/Merchant (`frontend/`) Expo EAS + GitHub Actions setup fo
 - `.github/workflows/customer.yml`: triggers on push to `main` with `paths: Customer/**` (+ manual `workflow_dispatch`); runs `eas build --platform android --profile production-apk --non-interactive --no-wait` using `secrets.EXPO_TOKEN`.
 - `Customer/.eas/workflows/send-updates.yml`: EAS-side build workflow mirror of frontend.
 - Verified with `eas project:info` and `eas config` — profile, projectId, owner, backend URL, buildType all resolve correctly.
+
+## Customer Booking Card UI — Premium Refresh (June 2026)
+`Customer/src/components/customer/BookingCard.tsx` ka layout compact lag raha tha; spacing/typography premium banaya:
+- Card: radius 16→20, padding 16→18, gap between cards 12→16, added `shadowElev` depth.
+- Header: service icon 44→50 (radius 18 + shadowBtn), row gap 12→14.
+- Service name 16→17.5 weight 800 w/ tighter letter-spacing; meta row marginTop 4→6, gap 6→8.
+- Price 18→21 (letterSpacing -0.4); pay label 11→11.5 weight 700.
+- Action row gap 8→10, marginTop 12→14.
+- Logic untouched. Lint: 0 errors. Live screenshot skip — preview serves Partner app (3000), Customer app (3001) not publicly mapped.
