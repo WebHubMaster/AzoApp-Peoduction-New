@@ -72,6 +72,12 @@ Provide a working Expo preview URL + QR for Expo Go.
 - FIX: "VirtualizedLists should never be nested" — pages inside CustomerShell ScrollView must NOT use FlatList; orders/wallet/refunds/custom_jobs now use `PlainList`.
 - Verified: testing agent iteration_129 (backend 9/9, frontend 100%) + manual Rate / Reschedule request / Chat sheet flows.
 
+## My Profile · My Addresses — 2026-09-26 (latest)
+- `/(customer)/profile` = port of ProfileEditor (photo picker via expo-image-picker + expo-image-manipulator → 512px JPEG data URL <2MB, completion bar, fields gated by `/auth/config.profile_fields`, PUT `/auth/profile`, then `refresh()`) + DeleteAccount (CenterDialog → POST `/auth/delete-account`; logout if `status === "deleted"`).
+- `/(customer)/addresses` = port of AddressBook (GET `/auth/addresses`, POST/PUT `/auth/address`, DELETE, POST `/{id}/default`) with BottomSheet Add/Edit → `AddressForm` port (GPS detect via expo-location → `/geo/reverse`, OSM embed map (iframe on web / WebView native) only when lat/lng set, label chips, pincode serviceability `/geo/serviceability`, property type, wing/floor/flat, landmark/instructions — all gated by `address_config`).
+- New: `src/components/customer/{FormControls,AddressForm,ProfilePhotoPicker}.tsx` (PField/FInput/FSelect/DateField/Checkbox). `MiniCalendar` gained `initialView`.
+- Verified: testing agent iteration_131 (backend 8/8, frontend 100%).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
@@ -85,6 +91,6 @@ Provide a working Expo preview URL + QR for Expo Go.
 - P0: ~~My Bookings~~ DONE (iteration_129).
 - P0: Services page (`/services` w/ ?q ?category), Service detail (`/service/:id`), Booking cart (`/book`) + Checkout (guest booking, coupons azo_coupon, schedule picker, address, payment) — placeholders now.
 - P1: Membership page, Blog list/detail, About/Contact static pages; cart count in navbar (CartContext port).
-- P1: Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor).
+- P1: ~~Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor)~~ DONE (iterations 128–131).
 - P1: Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat).
 - P2: OnboardingTour, ScheduleAlerts, RescheduleRing, SearchingStatus polling, push notifications, brand logo dark/light from admin.

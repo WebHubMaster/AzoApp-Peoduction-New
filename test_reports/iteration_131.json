@@ -1,0 +1,46 @@
+{
+  "summary": "iter131 — Verified Customer Expo app new Profile and Addresses pages (ports of ProfileEditor + DeleteAccount and AddressBook + AddressForm from web CustomerDashboard). Backend: 8/8 pytest PASS. Frontend: all listed data-testid IDs render, gender/DOB bottom sheets open, delete-account dialog cancel path works, address form CRUD (create → set default → delete) works end-to-end with proper toasts and serviceability lookup.",
+  "backend_verified": {
+    "POST /api/auth/send-otp (+919000000004)": "200",
+    "POST /api/auth/verify-otp": "200 · customer JWT",
+    "GET /api/auth/config": "200 · profile_fields + address_config present",
+    "GET /api/auth/me": "200 · phone matches +919000000004",
+    "PUT /api/auth/profile": "200 · persisted via GET /api/auth/me (name/email/gender all round-tripped)",
+    "GET /api/auth/addresses": "200 · list[]",
+    "POST /api/auth/address": "200 · returns full user with new address appended in addresses[]",
+    "PUT /api/auth/address/{id}": "200 · line/pincode updates persisted",
+    "POST /api/auth/address/{id}/default": "200 · is_default flips true",
+    "DELETE /api/auth/address/{id}": "200 · address removed",
+    "GET /api/geo/serviceability?pincode=560001": "200"
+  },
+  "frontend_verified": {
+    "Profile page": "profile-page + page-title 'My Profile' render. profile-editor card with profile-photo avatar, profile-name, profile-phone (+919000000004), profile-completion% bar all present. All conditional profile fields per /api/auth/config visible: pf-name, pf-email, pf-gender, pf-dob, pf-altmobile, pf-language, pf-comm, pf-gst, pf-company. save-profile button rendered.",
+    "Gender sheet": "pf-gender opens pf-gender-sheet bottom sheet; pf-gender-opt-male option present and selectable.",
+    "DOB sheet": "pf-dob opens pf-dob-sheet with pf-dob-year-1990 chip present (calendar day cells not verified due to needing year selection first, but sheet + year chip confirm DateField renders).",
+    "Delete account": "danger-zone card renders with delete-account-btn. delete-account-dialog opens with both delete-cancel and delete-confirm; cancel closes dialog (confirm NOT clicked per instructions).",
+    "Addresses page": "address-book + page-title 'My Addresses' render. address-count shows '1 saved location'. add-address-btn opens address-dialog bottom sheet.",
+    "Address form": "gps-detect-btn, gps-required-hint visible; address-map is NOT rendered when lat/lng empty (as spec required). addr-label-home/office chips, addr-line, addr-pincode, addr-city, addr-property-type, addr-wing/floor/flat, addr-landmark, addr-instructions, addr-set-default checkbox, save-address-btn all render.",
+    "Validation": "Clicking save-address-btn with empty line/pincode surfaces 'address & pincode' error toast.",
+    "Serviceability": "After typing 6-digit pincode 560001, serviceability-status element appears.",
+    "CRUD flow": "Created TEST address (line 'TEST 789 UI Street', pincode 560001) → new address-card-<id> rendered, count went 1→2. edit-address-<id> opened Edit sheet. set-default-<id> → default-badge-<id> appeared. delete-address-<id> → card removed and 'Address removed' toast shown."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_profile_addresses.py",
+    "/app/test_reports/pytest/iter131.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "POST /api/auth/address returns the full user object (with addresses[] appended) rather than just the created address. Callers that need the new address id must scan addresses[] — Customer app uses a subsequent GET /api/auth/addresses reload which works, but returning the created address directly would be cleaner and save a round-trip.",
+    "profile.tsx save() computes 'completion' from photo/name/email/gender/dob but the backend GET /api/auth/me may not echo the 'photo' base64 back reliably; consider re-syncing completion from server state after refresh()."
+  ],
+  "updated_files": ["/app/backend/tests/test_profile_addresses.py"],
+  "success_rate": {"backend": "100% (8/8 pytest)", "frontend": "100% on functional acceptance IDs (profile fields, gender/DOB sheets, delete dialog cancel, address CRUD end-to-end)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (dev).",
+  "seed_data_creation": "None persistent. Created 1 TEST address during UI CRUD flow, then deleted it in-flow. Also cleaned 2 earlier TEST addresses from backend pytest and restored Priya's name to 'Priya Verma'. Note: pytest DID leave profile fields email='priya.test@example.com', gender='female', dob='1992-05-14' on demo user (name restored). Main agent may want to null these back if 'sensible defaults' means empty.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Profile and Addresses pages route as /profile and /addresses (Expo router strips the (customer) group). All testIDs match spec exactly. Address POST/PUT/DELETE work; POST returns full user (find new addr in addresses[]). Serviceability endpoint /api/geo/serviceability?pincode=<6digit> renders serviceability-status chip. Empty save on address form surfaces toast 'Please enter address & pincode'. Delete-account POST works but must NOT be executed against demo phone 9000000004 — only test cancel path.",
+  "rca of the issue": "N/A — no functional failures."
+}

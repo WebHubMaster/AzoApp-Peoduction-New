@@ -100,7 +100,7 @@ export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { v
         <View testID="serviceability-status" style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: svcChecking ? (isDark ? SLATE[800] : SLATE[100]) : svc?.serviceable ? EMERALD[50] : ROSE[50] }}>
           {svcChecking ? <><ActivityIndicator size="small" color={SLATE[500]} /><Text style={{ fontSize: 12, fontWeight: "600", color: SLATE[600] }}>Checking availability…</Text></>
             : svc?.serviceable ? <><CheckCircle2 size={16} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></>
-            : <View style={{ flex: 1, flexDirection: "row", gap: 6 }}><AlertTriangle size={16} color={ROSE[600]} /><Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: ROSE[600] }}>We don't serve this pincode yet, so this booking can't be placed here.{Array.isArray(svc?.serviced_cities) && svc.serviced_cities.length > 0 ? <Text> Currently serving: <Text style={{ fontWeight: "800" }}>{svc.serviced_cities.slice(0, 12).join(", ")}</Text>.</Text> : null}</Text></View>}
+            : <View style={{ flex: 1, flexDirection: "row", gap: 6 }}><AlertTriangle size={16} color={ROSE[600]} /><Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: ROSE[600] }}>We don&apos;t serve this pincode yet, so this booking can&apos;t be placed here.{Array.isArray(svc?.serviced_cities) && svc.serviced_cities.length > 0 ? <Text> Currently serving: <Text style={{ fontWeight: "800" }}>{svc.serviced_cities.slice(0, 12).join(", ")}</Text>.</Text> : null}</Text></View>}
         </View>
       ) : null}
 
