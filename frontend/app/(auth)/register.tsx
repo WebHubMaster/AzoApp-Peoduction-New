@@ -13,8 +13,8 @@ import { AUTH, Accent, AuthHeader, NeedHelpCard, NeedHelpLink, ROLE_ACCENT } fro
 import { OtpFlow, Role, homeFor, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
 
 const HERO: Record<Role, any> = {
-  partner: require("../../assets/hero-partner-arms.png"), // eslint-disable-line @typescript-eslint/no-require-imports
-  merchant: require("../../assets/hero-merchant-apron.png"), // eslint-disable-line @typescript-eslint/no-require-imports
+  partner: require("../../assets/hero-partner-arms.png"),
+  merchant: require("../../assets/hero-merchant-apron.png"),
 };
 const ROLES: { role: Role; bullets: string[]; popular?: boolean }[] = [
   { role: "partner", popular: true, bullets: ["Get service requests", "Manage your profile", "Earn more income"] },

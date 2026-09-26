@@ -11,8 +11,8 @@ import { useBrand } from "@/src/context/BrandContext";
 import { AUTH, BrandRow } from "@/src/components/auth/AuthUi";
 import { homeFor, LOGIN_ROLES } from "@/src/components/auth/OtpFlow";
 
-const HERO = require("../../assets/hero-pro.png"); // eslint-disable-line @typescript-eslint/no-require-imports
-const BG = require("../../assets/auth-welcome-bg.png"); // eslint-disable-line @typescript-eslint/no-require-imports
+const HERO = require("../../assets/hero-pro.png");
+const BG = require("../../assets/auth-welcome-bg.png");
 
 const FEATURES: { icon: MdiName; title: string; sub: string; bg: string; fg: string }[] = [
   { icon: "shield-check", title: "Verified", sub: "Professionals", bg: "#DCFCE7", fg: "#16A34A" },
