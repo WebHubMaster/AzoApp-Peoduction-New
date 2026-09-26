@@ -1,327 +1,218 @@
-/** Checkout — port of web_panel/src/pages/customer/Checkout.jsx (mobile): cart → schedule → your info → summary → confirm. Same APIs. */
+/** Checkout — 1:1 port of web Checkout.jsx: 6 steps, live cart-quote, coupon, guest OTP, address, payment, grouped idempotent order placement. */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, TextInput, ActivityIndicator } from "react-native";
-import { Image } from "expo-image";
+import { View, Text, Pressable, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ArrowLeft, ShoppingBag, CalendarClock, User, MapPin, ShieldCheck, Trash2, Minus, Plus, Check, Zap, Wallet, CreditCard, LocateFixed, Tag } from "lucide-react-native";
+import * as Location from "expo-location";
+import { ArrowLeft, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react-native";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, EMERALD, ROSE, AMBER } from "../../src/theme";
-import { fmt } from "../../src/lib/format";
 import { useAuth } from "../../src/context/AuthContext";
 import { useCart, lineEstimate, toReqItem } from "../../src/context/CartContext";
 import { useToast } from "../../src/components/Toast";
-import { storage } from "../../src/utils/storage";
-import { detectLocation } from "../../src/lib/location";
-import * as Location from "expo-location";
-
-const STEPS = [{ key: "services", label: "Services", Icon: ShoppingBag }, { key: "schedule", label: "Schedule", Icon: CalendarClock }, { key: "contact", label: "Your Info", Icon: User }, { key: "summary", label: "Summary", Icon: MapPin }, { key: "confirm", label: "Confirm", Icon: ShieldCheck }];
-const emptyAddress = () => ({ label: "Home", line: "", pincode: "", city: "", state: "", property_type: "Apartment", wing: "", floor: "", flat_no: "", landmark: "", instructions: "", lat: null as number | null, lng: null as number | null, is_default: false });
-const dateStr = (d: Date) => d.toISOString().slice(0, 10);
-const Row = ({ l, v, bold, color }: any) => <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 6 }}><Text style={{ fontSize: 14, color: SLATE[500] }}>{l}</Text><Text style={{ fontSize: 14, fontWeight: bold ? "800" : "600", color: color || SLATE[800] }}>{v}</Text></View>;
-const Field = ({ label, value, onChange, placeholder, testID, keyboardType }: any) => (
-  <View style={{ marginTop: 10 }}><Text style={{ fontSize: 12, fontWeight: "600", color: SLATE[600], marginBottom: 4 }}>{label}</Text>
-    <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} keyboardType={keyboardType} placeholderTextColor={SLATE[400]} style={{ height: 44, borderRadius: 10, borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 12, fontSize: 14, color: SLATE[900], backgroundColor: "#fff", outlineStyle: "none" } as any} /></View>
-);
+import { runPayment } from "../../src/lib/payments";
+import { fmt } from "../../src/lib/format";
+import { PRIMARY, SLATE, EMERALD } from "../../src/theme";
+import { emptyAddress } from "../../src/components/customer/AddressForm";
+import { STEPS, Stepper, StepServices, StepDetails, StepSchedule } from "../../src/components/site/CheckoutUi";
+import { StepContact, StepSummary, StepReview, SuccessScreen } from "../../src/components/site/CheckoutSteps";
 
 export default function Checkout() {
-  const insets = useSafeAreaInsets();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const toast = useToast();
   const { user, refresh } = useAuth();
-  const { items, addService, removeItem, setQty, clear, count, estimateTotal } = useCart();
+  const { items, addService, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, ready } = useCart();
+  const scrollRef = useRef<ScrollView>(null);
+  const [upsell, setUpsell] = useState<any>({ popular_addons: {}, frequently_together: [] });
+  const cartServiceIds = useMemo(() => items.map((it) => it.service_id).filter(Boolean).join(","), [items]);
+  useEffect(() => {
+    if (!cartServiceIds) { setUpsell({ popular_addons: {}, frequently_together: [] }); return; }
+    let alive = true;
+    api.get(`/catalog/upsell?service_ids=${encodeURIComponent(cartServiceIds)}`, { auth: false }).then((r: any) => { if (alive) setUpsell(r || { popular_addons: {}, frequently_together: [] }); }).catch(() => {});
+    return () => { alive = false; };
+  }, [cartServiceIds]);
+
   const [step, setStep] = useState(0);
-  const [schedule, setSchedule] = useState<"schedule" | "emergency">("schedule");
-  const [day, setDay] = useState(dateStr(new Date()));
-  const [slot, setSlot] = useState<string | null>(null);
-  const [slots, setSlots] = useState<any>({ slots: [], full_slots: [] });
+  const [maxReached, setMaxReached] = useState(0);
+  const [schedule, setSchedule] = useState("schedule");
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
   const [coupon, setCoupon] = useState("");
   const [applied, setApplied] = useState("");
   const [couponMsg, setCouponMsg] = useState<any>(null);
+  const [couponChecking, setCouponChecking] = useState(false);
+  const [quotes, setQuotes] = useState<Record<string, any>>({});
   const [cartPricing, setCartPricing] = useState<any>(null);
   const [addr, setAddr] = useState<any>(emptyAddress());
   const [selectedId, setSelectedId] = useState("new");
+  const [serviceable, setServiceable] = useState<any>(null);
+  const [cfg, setCfg] = useState<any>({ address_config: {} });
+  const [placing, setPlacing] = useState(false);
   const [payMethod, setPayMethod] = useState<"online" | "wallet">("online");
   const [walletBal, setWalletBal] = useState(0);
-  const [placing, setPlacing] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [placed, setPlaced] = useState<any>(null);
-  const [upsell, setUpsell] = useState<any>({ popular_addons: {}, frequently_together: [] });
-  const cartServiceIds = items.map((it) => it.service_id).filter(Boolean).join(",");
-  useEffect(() => {
-    if (!cartServiceIds) { setUpsell({ popular_addons: {}, frequently_together: [] }); return; }
-    api.get<any>(`/catalog/upsell?service_ids=${cartServiceIds}`, { auth: false }).then(setUpsell).catch(() => {});
-  }, [cartServiceIds]);
-  const [locating, setLocating] = useState(false);
   const nonceRef = useRef<string | null>(null);
+  const acfg = cfg.address_config || {};
+
+  useEffect(() => { api.get("/auth/config", { auth: false }).then(setCfg).catch(() => {}); }, []);
+  useEffect(() => { if (user) api.get("/wallet").then((r: any) => setWalletBal(r?.balance || 0)).catch(() => {}); else setWalletBal(0); }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const savedAddresses: any[] = user?.addresses || [];
-  const scheduledAt = schedule === "schedule" && slot ? `${day}T${slot}:00` : null;
-
-  useEffect(() => { storage.getItem("azo_coupon").then((c) => c && setCoupon(c)); }, []);
-  useEffect(() => { if (user) api.get<any>("/wallet").then((w) => setWalletBal(w?.balance || 0)).catch(() => {}); }, [user]);
-  useEffect(() => { if (savedAddresses.length && selectedId === "new" && !addr.line) { const d = savedAddresses.find((a) => a.is_default) || savedAddresses[0]; setSelectedId(d.id); setAddr({ ...emptyAddress(), ...d }); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { api.get<any>(`/bookings/slot-availability?date=${day}`, { auth: false }).then((r) => setSlots({ slots: r.slots || [], full_slots: r.full_slots || [] })).catch(() => {}); setSlot(null); }, [day]);
-
   useEffect(() => {
-    if (!items.length) { setCartPricing(null); return; }
+    if (savedAddresses.length && selectedId === "new" && !addr.line) { const def = savedAddresses.find((a) => a.is_default) || savedAddresses[0]; setSelectedId(def.id); setAddr({ ...emptyAddress(), ...def }); }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* live combined cart quote (debounced, retried, keeps last good pricing) */
+  useEffect(() => {
+    if (!items.length) { setQuotes({}); setCartPricing(null); return; }
     let cancelled = false;
     const payload = { schedule_type: schedule, ...(applied ? { coupon_code: applied } : {}), address: addr, items: items.map(toReqItem) };
     const attempt = async (n: number) => {
       try {
-        const r: any = await api.post("/bookings/cart-quote", payload);
+        const r: any = await api.post("/bookings/cart-quote", payload, { timeoutMs: 12000, auth: !!user });
         if (cancelled) return;
-        setCartPricing({ ...r.pricing, cart_service_total: r.cart_service_total });
+        const byId: Record<string, any> = {};
+        (r.lines || []).forEach((ln: any, i: number) => { const it = items[i]; if (it) byId[it.id] = { line_total: ln.line_total ?? ln.line_service_total, unit_total: ln.unit_total }; });
+        setQuotes(byId);
+        setCartPricing({ ...r.pricing, cart_service_total: r.cart_service_total, labour_total: r.labour_total || 0, category_charges: r.category_charges || [] });
         if (applied && r.coupon_applied === false) { setApplied(""); setCouponMsg({ ok: false, text: "Coupon no longer applies to this order (minimum order not met)" }); }
-      } catch { if (!cancelled && n < 4) setTimeout(() => attempt(n + 1), 600 * n); }
+      } catch { if (!cancelled && n < 4) setTimeout(() => { if (!cancelled) attempt(n + 1); }, 600 * n); }
     };
-    attempt(1);
-    return () => { cancelled = true; };
-  }, [items, schedule, applied, addr.pincode, addr.city]); // eslint-disable-line react-hooks/exhaustive-deps
+    const t = setTimeout(() => attempt(1), 200);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [items, schedule, applied, user?.id, addr.city, addr.pincode, addr.lat, addr.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const totals = cartPricing || {};
-  const displayTotal = cartPricing ? totals.total : estimateTotal;
+  const totals = useMemo(() => (cartPricing ? { ...cartPricing, ready: true } : { base: 0, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: 0, ready: false }), [cartPricing]);
+  const displayTotal = totals.ready && items.length ? totals.total : estimateTotal;
+  const lineTotal = useCallback((it: any) => { const p = quotes[it.id]; return p && p.line_total != null ? p.line_total : lineEstimate(it); }, [quotes]);
+  const go = (n: number) => { setStep(n); setMaxReached((m) => Math.max(m, n)); scrollRef.current?.scrollTo({ y: 0, animated: true }); };
+  const pickAddress = (aid: string) => { setSelectedId(aid); if (aid === "new") { setAddr(emptyAddress()); setServiceable(null); } else { const a = savedAddresses.find((x) => x.id === aid); if (a) setAddr({ ...emptyAddress(), ...a }); } };
 
   const applyCoupon = async () => {
-    if (!coupon || !items.length) return;
-    if (!user) { toast.info("Please sign in to apply a coupon"); router.push("/login"); return; }
-    try {
-      const d: any = await api.post("/bookings/validate-coupon", { code: coupon, items: items.map(toReqItem), schedule_type: schedule, address: addr });
-      setApplied(coupon); setCouponMsg({ ok: true, text: `${d.message} — applied to your order` });
-    } catch (e: any) { setApplied(""); setCouponMsg({ ok: false, text: e?.message || "Invalid coupon" }); }
+    if (!coupon || !items.length || couponChecking) return;
+    if (!user) { toast.info("Please verify your mobile (Your Info step) to apply a coupon"); return; }
+    const body = { code: coupon, items: items.map(toReqItem), schedule_type: schedule, address: addr };
+    setCouponChecking(true); setCouponMsg(null);
+    const attempt = async (n: number) => {
+      try { const d: any = await api.post("/bookings/validate-coupon", body, { timeoutMs: 12000 }); setApplied(coupon); setCouponMsg({ ok: true, text: `${d.message} — applied to your order` }); setCouponChecking(false); }
+      catch (e: any) { const noResp = !e?.status; if (noResp && n < 4) { setTimeout(() => attempt(n + 1), 600 * n); return; } setApplied(""); setCouponMsg({ ok: false, text: e?.message || (noResp ? "Network slow — please try again" : "Invalid coupon") }); setCouponChecking(false); }
+    };
+    attempt(1);
   };
-  const useGps = async () => {
-    setLocating(true);
+  const clearCoupon = () => { setCoupon(""); setApplied(""); setCouponMsg(null); setCouponChecking(false); };
+
+  const useCurrentLocation = async () => {
     try {
       const p = await Location.requestForegroundPermissionsAsync();
-      if (!p.granted) { toast.error("Location permission denied"); return; }
-      const pos = await Location.getCurrentPositionAsync({});
-      const rev: any = await api.get(`/geo/reverse?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`, { auth: false });
-      setAddr((a: any) => ({ ...a, lat: pos.coords.latitude, lng: pos.coords.longitude, line: a.line || rev.address || rev.display_name || "", pincode: rev.postcode || rev.pincode || a.pincode, city: rev.city || a.city, state: rev.state || a.state }));
-      toast.success("Location captured");
-    } catch { toast.error("Couldn't get your location"); } finally { setLocating(false); }
+      if (!p.granted) return toast.error("Location permission denied");
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const d: any = await api.get(`/geo/reverse?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`, { auth: false });
+      setAddr((a: any) => ({ ...a, city: d.city || a.city, state: d.state || a.state, pincode: d.pincode || a.pincode, line: a.line || d.line || "", lat: d.lat ?? pos.coords.latitude, lng: d.lng ?? pos.coords.longitude }));
+      toast.success("Location set — address auto-filled");
+    } catch { toast.error("Could not detect location"); }
   };
+
+  const needsGps = selectedId === "new" || savedAddresses.length === 0;
+  const addressValid = () => !!user && !!addr.line && !!addr.pincode && !(needsGps && (!addr.lat || !addr.lng)) && !(acfg.mandatory_landmark && acfg.landmark_instructions && !addr.landmark) && !(needsGps && serviceable && serviceable.serviceable === false);
+  const canNext = () => (step === 0 ? items.length > 0 : step === 2 ? schedule !== "schedule" || !!scheduledAt : step === 3 ? addressValid() : true);
   const next = () => {
     if (step === 0 && !items.length) return toast.error("Add at least one service");
-    if (step === 1 && schedule === "schedule" && !slot) return toast.error("Please pick a date & time slot");
-    if (step === 2) {
-      if (!user) { toast.info("Please sign in to continue"); router.push("/login"); return; }
+    if (step === 2 && schedule === "schedule" && !scheduledAt) return toast.error("Please pick a date & time slot");
+    if (step === 3) {
+      if (!user) return toast.error("Please verify your mobile to continue");
+      if (needsGps && (!addr.lat || !addr.lng)) return toast.error("Please set your location using \"Use my current location\"");
       if (!addr.line || !addr.pincode) return toast.error("Please enter your service address");
+      if (acfg.mandatory_landmark && acfg.landmark_instructions && !addr.landmark) return toast.error("Landmark is required");
+      if (needsGps && serviceable && serviceable.serviceable === false) return toast.error("Sorry, we don't service this location yet");
     }
-    setStep((s) => Math.min(STEPS.length - 1, s + 1));
+    if (step < STEPS.length - 1) go(step + 1);
   };
-  const back = () => { if (step > 0) setStep(step - 1); else if (router.canGoBack()) router.back(); else router.replace("/(site)"); };
+  const back = () => { if (step > 0) go(step - 1); else if (router.canGoBack()) router.back(); else router.replace("/(site)" as any); };
+
+  const postResilient = async (url: string, body: any, retries = 3, timeoutMs = 20000) => {
+    let last: any;
+    for (let n = 0; n <= retries; n++) {
+      try { return await api.post(url, body, { timeoutMs }); }
+      catch (e: any) { last = e; const retriable = !e?.status || (e.status >= 500 && e.status < 600); if (!retriable || n === retries) throw e; await new Promise((r) => setTimeout(r, 700 * (n + 1))); }
+    }
+    throw last;
+  };
 
   const placeOrder = async () => {
-    if (!user) return toast.error("Please sign in first");
+    if (!user) return toast.error("Please verify your mobile first");
     setPlacing(true);
     const groups: Record<string, any[]> = {};
     for (const it of items) { const k = it.category_id || it.category_name || "uncategorised"; (groups[k] ||= []).push(it); }
     const keys = Object.keys(groups);
+    setProgress({ done: 0, total: keys.length });
     if (!nonceRef.current) nonceRef.current = Math.random().toString(36).slice(2) + Date.now().toString(36);
     const nonce = nonceRef.current;
+    const created: any[] = []; let firstErr: string | null = null; let firstGroup = true;
     const cartItems = keys.flatMap((k) => groups[k].map(toReqItem));
-    const created: any[] = []; let firstErr: string | null = null; let first = true;
     for (const k of keys) {
       try {
-        const data: any = await api.post("/bookings/grouped", { items: groups[k].map(toReqItem), cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cartPricing?.cart_service_total ?? null, apply_visiting: first, apply_emergency: first, idempotency_key: `${nonce}:grp:${k}`, group_id: nonce });
-        first = false;
+        const data: any = await postResilient("/bookings/grouped", { items: groups[k].map(toReqItem), cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cartPricing?.cart_service_total ?? null, apply_visiting: firstGroup, apply_emergency: firstGroup, idempotency_key: `${nonce}:grp:${k}`, order_group_id: nonce });
+        firstGroup = false;
         created.push({ id: data.id, code: data.code || data.id, category: data.category_name || groups[k][0]?.category_name || "Services", total: data.pricing?.total ?? null });
+        setProgress((p) => ({ ...p, done: p.done + 1 }));
       } catch (e: any) { firstErr = firstErr || e?.message || "Booking failed. Please check My Bookings before retrying."; }
     }
     let paidAll = created.length > 0;
-    const pay = async (purpose: string, bookingId?: string, groupId?: string) => {
-      const order: any = await api.post("/payments/order", { purpose, booking_id: bookingId, group_id: groupId });
-      if (order.mock) { await api.post("/payments/mock", { purpose, booking_id: bookingId, group_id: groupId }); return true; }
-      toast.info("Online payment gateway is not available in the app yet — pay from My Bookings"); return false;
-    };
-    try {
-      if (created.length > 1) {
-        if (payMethod === "wallet") await api.post("/bookings/pay-wallet-group", { group_id: nonce }); else paidAll = await pay("booking_group", undefined, nonce);
-      } else for (const bk of created) {
-        if (payMethod === "wallet") await api.post(`/bookings/${bk.id}/pay-wallet`, {}); else paidAll = await pay("booking", bk.id);
+    if (created.length > 1) {
+      try {
+        if (payMethod === "wallet") { try { await postResilient("/bookings/pay-wallet-group", { group_id: nonce }, 2); } catch { for (const bk of created) { try { await postResilient(`/bookings/${bk.id}/pay-wallet`, {}, 2, 15000); } catch { paidAll = false; } } } }
+        else if (!(await runPayment({ purpose: "booking_group", groupId: nonce }, toast))) paidAll = false;
+      } catch { paidAll = false; }
+    } else {
+      for (const bk of created) {
+        try { if (payMethod === "wallet") await postResilient(`/bookings/${bk.id}/pay-wallet`, {}, 3, 15000); else if (!(await runPayment({ purpose: "booking", bookingId: bk.id }, toast))) paidAll = false; }
+        catch { paidAll = false; }
       }
-    } catch { paidAll = false; }
+    }
     if (selectedId === "new" && addr.line) { try { await api.post("/auth/address", { ...addr, label: addr.label || "Home" }); } catch {} }
     await refresh();
     setPlacing(false);
-    if (created.length) { nonceRef.current = null; clear(); setPlaced({ count: created.length, total: displayTotal, paid: paidAll, orders: created }); setStep(4); }
+    if (created.length) { nonceRef.current = null; clear(); setPlaced({ count: created.length, total: displayTotal, paid: paidAll, orders: created }); }
     else toast.error(firstErr || "Could not place your order");
   };
 
-  const days = useMemo(() => Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setDate(d.getDate() + i); return d; }), []);
-  const isToday = day === dateStr(new Date());
-  const nowHM = new Date().toTimeString().slice(0, 5);
-  const primaryBtn = { height: 50, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center" as const, justifyContent: "center" as const, flexDirection: "row" as const, gap: 6 };
+  if (placed) return <View style={{ flex: 1, backgroundColor: "#FAFAFA", paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace("/(customer)/orders" as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
+  if (ready && !items.length && step === 0) return (
+    <View testID="cart-empty" style={{ flex: 1, backgroundColor: "#FAFAFA", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={PRIMARY[700]} /></View>
+      <Text style={{ fontSize: 22, fontWeight: "700", color: SLATE[900] }}>Your booking is empty</Text>
+      <Text style={{ fontSize: 14, color: SLATE[500], marginTop: 8, textAlign: "center", maxWidth: 320 }}>Add one or more services to get started. You can book multiple services in a single order.</Text>
+      <Pressable testID="browse-services" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Browse services</Text><ArrowRight size={16} color="#fff" /></Pressable>
+      <Pressable testID="checkout-back" onPress={back} style={{ marginTop: 16 }}><Text style={{ color: SLATE[500], fontWeight: "600" }}>← Back</Text></Pressable>
+    </View>
+  );
 
+  const subtotal = items.reduce((s, it) => s + lineTotal(it), 0);
   return (
     <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} testID="checkout-page">
-      <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: "#fff", borderBottomWidth: 1, borderBottomColor: SLATE[200] }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable testID="checkout-back" onPress={back} style={{ height: 40, width: 40, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}><ArrowLeft size={18} color={SLATE[500]} /></Pressable>
-          <Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Book Services</Text>
-          <Text style={{ marginLeft: "auto", fontSize: 13, color: SLATE[500] }}>Step {step + 1} of {STEPS.length}</Text>
+      <View style={{ paddingTop: insets.top + 8, backgroundColor: "rgba(255,255,255,0.95)", borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)" }}>
+        <View style={{ height: 56, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={SLATE[500]} /></Pressable>
+          <View><Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Book your services</Text><Text testID="checkout-count" style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{count} item{count > 1 ? "s" : ""} in your order</Text></View>
         </View>
-        <View style={{ flexDirection: "row", gap: 6, marginTop: 12 }}>{STEPS.map((s, i) => <View key={s.key} testID={`step-${s.key}`} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= step ? PRIMARY[700] : SLATE[200] }} />)}</View>
-        <Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700], marginTop: 6 }}>{STEPS[step].label}</Text>
+        <View style={{ borderTopWidth: 1, borderTopColor: SLATE[100], paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} /></View>
       </View>
-
-      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
-        {step === 0 ? (
-          <View testID="step-cart">
-            {!items.length ? <View style={{ alignItems: "center", paddingVertical: 60 }}><ShoppingBag size={40} color={SLATE[300]} /><Text style={{ color: SLATE[500], marginTop: 12 }}>Your booking is empty.</Text><Pressable testID="browse-services" onPress={() => router.push("/(site)/services" as any)} style={{ ...primaryBtn, paddingHorizontal: 20, marginTop: 16 }}><Text style={{ color: "#fff", fontWeight: "700" }}>Browse services</Text></Pressable></View> : null}
-            {items.map((it) => (
-              <View key={it.id} testID={`cart-line-${it.service_id || it.id}`} style={{ flexDirection: "row", gap: 12, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 12, marginBottom: 12 }}>
-                {it.image ? <Image source={{ uri: it.image }} style={{ height: 72, width: 72, borderRadius: 12 }} contentFit="cover" /> : null}
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[700], textTransform: "uppercase", letterSpacing: 0.8 }}>{it.category_name}</Text>
-                  <Text style={{ fontWeight: "700", color: SLATE[900], fontSize: 16 }}>{it.name}</Text>
-                  <Text style={{ fontSize: 12, color: SLATE[500] }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? ` · ${it.tiers[it.tier_index].label}` : ""}{it.addons?.length ? ` · +${it.addons.length} add-on` : ""}</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8, gap: 10 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 10, borderWidth: 1, borderColor: SLATE[200], height: 34 }}>
-                      <Pressable testID={`cart-minus-${it.id}`} onPress={() => setQty(it.id, it.qty - 1)} style={{ paddingHorizontal: 10, height: "100%", justifyContent: "center" }}><Minus size={14} color={SLATE[500]} /></Pressable>
-                      <Text style={{ width: 24, textAlign: "center", fontWeight: "700" }}>{it.qty}</Text>
-                      <Pressable testID={`cart-plus-${it.id}`} onPress={() => setQty(it.id, it.qty + 1)} style={{ paddingHorizontal: 10, height: "100%", justifyContent: "center" }}><Plus size={14} color={SLATE[500]} /></Pressable>
-                    </View>
-                    <Text style={{ fontWeight: "800", color: SLATE[900], marginLeft: "auto" }}>{fmt(lineEstimate(it))}</Text>
-                    <Pressable testID={`cart-remove-${it.id}`} onPress={() => removeItem(it.id)}><Trash2 size={18} color={ROSE[500]} /></Pressable>
-                  </View>
-                </View>
-              </View>
-            ))}
-            {items.length && (upsell.frequently_together || []).filter((s: any) => !items.some((it) => it.service_id === s.id)).length ? (
-              <View testID="upsell-together" style={{ borderRadius: 18, borderWidth: 1, borderColor: AMBER[200], backgroundColor: "#FFFBEB", padding: 14, marginBottom: 14 }}>
-                <Text style={{ fontWeight: "700", color: SLATE[900], fontSize: 15, marginBottom: 12 }}>🎉 Frequently booked together</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                  {(upsell.frequently_together || []).filter((s: any) => !items.some((it) => it.service_id === s.id)).map((s: any) => (
-                    <View key={s.id} testID={`upsell-${s.id}`} style={{ width: 200, backgroundColor: "#fff", borderRadius: 14, borderWidth: 1, borderColor: SLATE[200], overflow: "hidden" }}>
-                      <Image source={{ uri: s.image }} style={{ height: 96, width: "100%" }} contentFit="cover" />
-                      <View style={{ padding: 10 }}>
-                        <Text numberOfLines={1} style={{ fontWeight: "600", color: SLATE[800], fontSize: 14 }}>{s.name}</Text>
-                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
-                          <Text style={{ fontWeight: "800", color: SLATE[900], fontSize: 16 }}>{fmt(s.discounted_price || s.base_price)}</Text>
-                          <Pressable testID={`upsell-add-${s.id}`} onPress={() => { addService(s); toast.success(`${s.name} added`); }} style={{ height: 32, paddingHorizontal: 14, borderRadius: 16, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={14} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Add</Text></Pressable>
-                        </View>
-                      </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            ) : null}
-            {items.length ? <Pressable testID="add-more" onPress={() => router.push("/(site)/services" as any)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 56, borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: PRIMARY[200], backgroundColor: "#fff" }}><Plus size={18} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 16 }}>Add more services</Text></Pressable> : null}
-          </View>
-        ) : null}
-
-        {step === 1 ? (
-          <View testID="step-schedule">
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              {[["schedule", "Schedule", "Pick a date & time", CalendarClock], ["emergency", "Emergency", "ASAP · extra fee applies", Zap]].map(([k, t, s, I]: any) => (
-                <Pressable key={k} testID={`schedule-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 16, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : SLATE[200], backgroundColor: schedule === k ? PRIMARY[50] : "#fff", padding: 14 }}>
-                  <I size={20} color={PRIMARY[700]} /><Text style={{ fontWeight: "700", color: SLATE[900], marginTop: 8 }}>{t}</Text><Text style={{ fontSize: 11, color: SLATE[500], marginTop: 2 }}>{s}</Text>
-                </Pressable>
-              ))}
-            </View>
-            {schedule === "schedule" ? (
-              <>
-                <Text style={{ fontWeight: "700", color: SLATE[900], marginTop: 20, marginBottom: 10 }}>Choose a date</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-                  {days.map((d) => { const ds = dateStr(d); const on = ds === day; return (
-                    <Pressable key={ds} testID={`day-${ds}`} onPress={() => setDay(ds)} style={{ width: 64, paddingVertical: 10, borderRadius: 14, alignItems: "center", borderWidth: 1, borderColor: on ? PRIMARY[700] : SLATE[200], backgroundColor: on ? PRIMARY[700] : "#fff" }}>
-                      <Text style={{ fontSize: 11, color: on ? "rgba(255,255,255,0.8)" : SLATE[500] }}>{d.toLocaleDateString("en-IN", { weekday: "short" })}</Text><Text style={{ fontSize: 18, fontWeight: "800", color: on ? "#fff" : SLATE[900] }}>{d.getDate()}</Text>
-                    </Pressable>); })}
-                </ScrollView>
-                <Text style={{ fontWeight: "700", color: SLATE[900], marginTop: 20, marginBottom: 10 }}>Choose a time slot</Text>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {slots.slots.map((t: string) => { const full = slots.full_slots.includes(t) || (isToday && t <= nowHM); const on = slot === t; return (
-                    <Pressable key={t} testID={`slot-${t}`} disabled={full} onPress={() => setSlot(t)} style={{ width: "23%", paddingVertical: 10, borderRadius: 10, alignItems: "center", borderWidth: 1, borderColor: on ? PRIMARY[700] : SLATE[200], backgroundColor: on ? PRIMARY[700] : full ? SLATE[100] : "#fff", opacity: full ? 0.5 : 1 }}>
-                      <Text style={{ fontSize: 12, fontWeight: "600", color: on ? "#fff" : SLATE[700] }}>{t}</Text>
-                    </Pressable>); })}
-                  {!slots.slots.length ? <Text style={{ color: SLATE[500] }}>No slots available for this date.</Text> : null}
-                </View>
-              </>
-            ) : <View style={{ marginTop: 16, padding: 14, borderRadius: 14, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200] }}><Text style={{ color: AMBER[700], fontSize: 13 }}>A professional will be assigned as soon as possible. Emergency fee {totals.emergency_fee ? fmt(totals.emergency_fee) : ""} applies.</Text></View>}
-          </View>
-        ) : null}
-
-        {step === 2 ? (
-          <View testID="step-contact">
-            {!user ? <View style={{ padding: 16, borderRadius: 16, backgroundColor: PRIMARY[50], borderWidth: 1, borderColor: PRIMARY[100], marginBottom: 12 }}><Text style={{ fontWeight: "700", color: SLATE[900] }}>Verify your mobile to continue</Text><Text style={{ fontSize: 13, color: SLATE[600], marginTop: 4 }}>Sign in with OTP — your booking stays saved.</Text><Pressable testID="checkout-login" onPress={() => router.push("/login")} style={{ ...primaryBtn, height: 44, marginTop: 12 }}><Text style={{ color: "#fff", fontWeight: "700" }}>Sign in / Sign up</Text></Pressable></View>
-              : <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><User size={18} color="#fff" /></View><View><Text style={{ fontWeight: "700", color: SLATE[900] }}>{user.name}</Text><Text style={{ fontSize: 12, color: SLATE[500] }}>{user.phone}</Text></View></View>}
-            {savedAddresses.length ? (
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 8 }}>
-                {savedAddresses.map((a) => <Pressable key={a.id} testID={`addr-${a.id}`} onPress={() => { setSelectedId(a.id); setAddr({ ...emptyAddress(), ...a }); }} style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderColor: selectedId === a.id ? PRIMARY[700] : SLATE[200], backgroundColor: selectedId === a.id ? PRIMARY[50] : "#fff", maxWidth: 200 }}><Text style={{ fontWeight: "700", color: SLATE[900] }}>{a.label || "Home"}</Text><Text numberOfLines={2} style={{ fontSize: 12, color: SLATE[500] }}>{a.line}, {a.city} {a.pincode}</Text></Pressable>)}
-                <Pressable testID="addr-new" onPress={() => { setSelectedId("new"); setAddr(emptyAddress()); }} style={{ padding: 12, borderRadius: 12, borderWidth: 1, borderColor: selectedId === "new" ? PRIMARY[700] : SLATE[200], backgroundColor: selectedId === "new" ? PRIMARY[50] : "#fff", justifyContent: "center" }}><Text style={{ fontWeight: "700", color: PRIMARY[700] }}>+ New address</Text></Pressable>
-              </ScrollView>
-            ) : null}
-            <Pressable testID="use-gps" onPress={useGps} style={{ flexDirection: "row", alignItems: "center", gap: 8, height: 44, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: PRIMARY[200], backgroundColor: "#fff", alignSelf: "flex-start" }}>{locating ? <ActivityIndicator size="small" color={PRIMARY[700]} /> : <LocateFixed size={16} color={PRIMARY[700]} />}<Text style={{ color: PRIMARY[700], fontWeight: "600" }}>Use my current location</Text></Pressable>
-            <Field label="Address (house / street / area)" testID="addr-line" value={addr.line} onChange={(v: string) => setAddr({ ...addr, line: v })} placeholder="Flat 4B, Green Park Apartments, MG Road" />
-            <View style={{ flexDirection: "row", gap: 10 }}>
-              <View style={{ flex: 1 }}><Field label="Pincode" testID="addr-pincode" keyboardType="number-pad" value={addr.pincode} onChange={(v: string) => setAddr({ ...addr, pincode: v })} placeholder="800001" /></View>
-              <View style={{ flex: 1 }}><Field label="City" testID="addr-city" value={addr.city} onChange={(v: string) => setAddr({ ...addr, city: v })} placeholder="Patna" /></View>
-            </View>
-            <Field label="Landmark (optional)" testID="addr-landmark" value={addr.landmark} onChange={(v: string) => setAddr({ ...addr, landmark: v })} placeholder="Near City Mall" />
-            <Field label="Instructions for the professional (optional)" testID="addr-instructions" value={addr.instructions} onChange={(v: string) => setAddr({ ...addr, instructions: v })} placeholder="Ring the bell twice" />
-          </View>
-        ) : null}
-
-        {step === 3 ? (
-          <View testID="step-summary">
-            <View style={{ backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 16 }}>
-              <Text style={{ fontWeight: "700", color: SLATE[900], marginBottom: 6 }}>Booking details</Text>
-              <Row l="Services" v={`${count} item${count > 1 ? "s" : ""}`} />
-              <Row l="When" v={schedule === "emergency" ? "Emergency · ASAP" : `${day} · ${slot}`} />
-              <Row l="Address" v={`${addr.line}, ${addr.city} ${addr.pincode}`.slice(0, 40)} />
-            </View>
-            <View style={{ backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 16, marginTop: 12 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Tag size={16} color={PRIMARY[700]} /><Text style={{ fontWeight: "700", color: SLATE[900] }}>Coupon</Text></View>
-              <View style={{ flexDirection: "row", gap: 8, marginTop: 10 }}>
-                <TextInput testID="coupon-input" value={coupon} onChangeText={(v) => setCoupon(v.toUpperCase())} placeholder="Enter code" autoCapitalize="characters" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 44, borderRadius: 10, borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 12, fontSize: 14, color: SLATE[900], outlineStyle: "none" } as any} />
-                <Pressable testID="coupon-apply" onPress={applyCoupon} style={{ height: 44, paddingHorizontal: 16, borderRadius: 10, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Apply</Text></Pressable>
-              </View>
-              {couponMsg ? <Text testID="coupon-msg" style={{ fontSize: 12, marginTop: 8, color: couponMsg.ok ? EMERALD[600] : ROSE[600] }}>{couponMsg.text}</Text> : null}
-            </View>
-            <View style={{ backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 16, marginTop: 12 }}>
-              <Text style={{ fontWeight: "700", color: SLATE[900] }}>Payment method</Text>
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-                {[["online", "Pay online", CreditCard, ""], ["wallet", "Wallet", Wallet, fmt(walletBal)]].map(([k, t, I, s]: any) => (
-                  <Pressable key={k} testID={`pay-${k}`} onPress={() => setPayMethod(k)} style={{ flex: 1, padding: 12, borderRadius: 12, borderWidth: 2, borderColor: payMethod === k ? PRIMARY[700] : SLATE[200], backgroundColor: payMethod === k ? PRIMARY[50] : "#fff" }}><I size={18} color={PRIMARY[700]} /><Text style={{ fontWeight: "700", color: SLATE[900], marginTop: 6 }}>{t}</Text>{s ? <Text style={{ fontSize: 11, color: SLATE[500] }}>Balance {s}</Text> : null}</Pressable>
-                ))}
-              </View>
-            </View>
-            <View style={{ backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 16, marginTop: 12 }} testID="price-breakdown">
-              <Text style={{ fontWeight: "700", color: SLATE[900] }}>Price details</Text>
-              {cartPricing ? <>
-                <Row l="Services" v={fmt(totals.base)} />
-                {totals.addons_total > 0 ? <Row l="Add-ons" v={fmt(totals.addons_total)} /> : null}
-                {totals.visiting_charge > 0 ? <Row l="Visiting charge" v={fmt(totals.visiting_charge)} /> : null}
-                {totals.emergency_fee > 0 ? <Row l="Emergency fee" v={fmt(totals.emergency_fee)} /> : null}
-                {totals.surge > 0 ? <Row l="Surge" v={fmt(totals.surge)} /> : null}
-                {totals.total_discount > 0 || totals.discount > 0 ? <Row l="Discount" v={`- ${fmt(totals.total_discount || totals.discount)}`} color={EMERALD[600]} /> : null}
-                {totals.gst > 0 ? <Row l={`GST (${totals.gst_pct}%)`} v={fmt(totals.gst)} /> : null}
-                <View style={{ height: 1, backgroundColor: SLATE[100], marginVertical: 10 }} />
-                <Row l="Total" v={fmt(totals.total)} bold />
-              </> : <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}><ActivityIndicator size="small" color={PRIMARY[700]} /><Text style={{ color: SLATE[500], fontSize: 13 }}>Calculating…</Text></View>}
-            </View>
-          </View>
-        ) : null}
-
-        {step === 4 && placed ? (
-          <View testID="step-confirm" style={{ alignItems: "center", paddingVertical: 30 }}>
-            <View style={{ height: 72, width: 72, borderRadius: 36, backgroundColor: EMERALD[500], alignItems: "center", justifyContent: "center" }}><Check size={36} color="#fff" /></View>
-            <Text style={{ fontSize: 24, fontWeight: "800", color: SLATE[900], marginTop: 16 }}>Booking confirmed!</Text>
-            <Text style={{ color: SLATE[500], marginTop: 6, textAlign: "center" }}>{placed.count} booking{placed.count > 1 ? "s" : ""} placed{placed.paid ? " · Paid" : " · Payment pending"}</Text>
-            <View style={{ width: "100%", marginTop: 20, gap: 8 }}>{placed.orders.map((o: any) => <View key={o.id} testID={`placed-${o.code}`} style={{ backgroundColor: "#fff", borderRadius: 14, borderWidth: 1, borderColor: SLATE[200], padding: 14, flexDirection: "row", justifyContent: "space-between" }}><View><Text style={{ fontWeight: "700", color: SLATE[900] }}>#{o.code}</Text><Text style={{ fontSize: 12, color: SLATE[500] }}>{o.category}</Text></View>{o.total != null ? <Text style={{ fontWeight: "800", color: SLATE[900] }}>{fmt(o.total)}</Text> : null}</View>)}</View>
-            <Pressable testID="view-bookings" onPress={() => router.replace("/(customer)/orders" as any)} style={{ ...primaryBtn, width: "100%", marginTop: 20 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>View my bookings</Text></Pressable>
-            <Pressable testID="back-home" onPress={() => router.replace("/(site)")} style={{ marginTop: 12, height: 44, justifyContent: "center" }}><Text style={{ color: PRIMARY[700], fontWeight: "600" }}>Back to home</Text></Pressable>
-          </View>
-        ) : null}
+      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
+        {step === 0 ? <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} together={upsell.frequently_together} addService={addService} /> : null}
+        {step === 1 ? <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} popularAddons={upsell.popular_addons} lineTotal={lineTotal} /> : null}
+        {step === 2 ? <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} /> : null}
+        {step === 3 ? <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} /> : null}
+        {step === 4 ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} /> : null}
+        {step === 5 ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} /> : null}
+        {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: PRIMARY[700] }}>Jump back to {STEPS[maxReached].label} →</Text></Pressable> : null}
       </ScrollView>
-
-      {step < 4 ? (
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], padding: 16, paddingBottom: insets.bottom + 16, flexDirection: "row", alignItems: "center", gap: 12, boxShadow: "0px -8px 24px rgba(15,23,42,0.06)" }}>
-          <View style={{ maxWidth: "45%" }}><Text style={{ fontSize: 11, color: SLATE[400] }}>{step === 0 ? "Services subtotal · taxes at checkout" : cartPricing ? "Total" : "Estimated total"}</Text><Text testID="checkout-total" style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(step === 0 ? estimateTotal : displayTotal)}</Text></View>
-          {step < 3 ? <Pressable testID="checkout-next" onPress={next} style={{ ...primaryBtn, flex: 1, marginLeft: "auto" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Continue</Text></Pressable>
-            : <Pressable testID="place-order" disabled={placing || !cartPricing} onPress={placeOrder} style={{ ...primaryBtn, flex: 1, marginLeft: "auto", backgroundColor: EMERALD[600], opacity: placing || !cartPricing ? 0.7 : 1 }}>{placing ? <ActivityIndicator color="#fff" /> : <><ShieldCheck size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{payMethod === "wallet" ? "Pay with wallet" : "Confirm & pay"}</Text></>}</Pressable>}
-        </View>
-      ) : null}
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: SLATE[400], fontWeight: "500" }}>{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(step >= 4 ? displayTotal : subtotal)}</Text></View>
+        {step < STEPS.length - 1 ? (
+          <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{step === 4 ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
+        ) : (
+          <Pressable testID="place-order" onPress={placeOrder} disabled={placing} style={({ pressed }) => ({ height: 48, paddingHorizontal: 20, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 6, opacity: placing ? 0.7 : 1 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placing ? `Placing ${progress.done}/${progress.total}…` : "Confirm & Place Order"}</Text><ShieldCheck size={16} color="#fff" /></Pressable>
+        )}
+      </View>
     </View>
   );
 }
