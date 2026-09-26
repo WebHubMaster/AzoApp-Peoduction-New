@@ -118,7 +118,7 @@ export default function ServicesPage() {
         )) : null}
       </ScrollView>
       {count > 0 ? (
-        <View style={{ position: "absolute", left: 16, right: 16, bottom: 80 + insets.bottom }}>
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: SLATE[200], boxShadow: "0px -6px 24px rgba(15,23,42,0.10)" } as any}>
           <Pressable testID="view-booking-bar" onPress={() => router.push("/(site)/book" as any)} style={({ pressed }) => ({ height: 56, borderRadius: 16, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, boxShadow: "0px 10px 30px rgba(13,71,161,0.3)" } as any)}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>{count}</Text></View><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>View your booking</Text></View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Checkout</Text><ChevronRight size={20} color="#fff" /></View>
