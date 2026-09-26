@@ -1,0 +1,41 @@
+{
+  "summary": "iter128 — Verified NEW Customer Expo screens /custom_jobs and /refunds (ports of MyCustomJobs + CustomJobWizard and RefundsView) plus regression on Android bundle + customer shell More sheet. ALL targeted acceptance criteria PASS. End-to-end Custom Job Request submission produced CJR-NRS2WN7L which is now visible in mcj-card list with Pending status; GET /api/custom-jobs/mine confirms server-side persistence. Refunds screen KPIs and card content exactly match GET /api/payments/refunds.",
+  "backend_verified": {
+    "POST /api/auth/verify-otp (+919000000004)": "200 · returns customer token + Priya Verma user.",
+    "GET /api/custom-jobs/meta": "200 · {min_budget:299, max_budget:500000}.",
+    "GET /api/custom-jobs/mine (customer)": "200 · initially [] → after submit contains new CJR-NRS2WN7L (work_name 'QA Gate Grill Repair', category AC Repair & Service, expected_budget 1500, pincode 800001, status pending).",
+    "POST /api/custom-jobs": "200 · returns {request_id: 'CJR-…'} with idempotency_key.",
+    "GET /api/catalog/categories": "200 · 6 active categories returned (used to render cjr-cat grid).",
+    "GET /api/geo/serviceability?pincode=800001": "200 · {serviceable:true, area:'Patna Central'} → cjr-area shows 'We serve Patna Central'.",
+    "GET /api/payments/refunds (customer)": "200 · 1 refund (Door Repair AZOYM3ZAX, processed, ₹329.41 100% refund, status_history 3 entries)."
+  },
+  "frontend_verified": {
+    "/custom_jobs (my-custom-jobs)": "Renders after demo-customer login. page-title 'My Custom Job Requests'. Initially mcj-empty visible (list empty). mcj-refresh, mcj-new, mcj-empty-new all present. Wizard flow: Step1 opens with Verified badge + prefilled name/phone (cjr-next enabled). Step2 cjr-cat-search filters ('AC' → 1 result); selecting cjr-cat-<id> enables Continue. Step3 cjr-work + cjr-desc gate Continue. Step4 cjr-budget + cjr-pincode 800001 → cjr-area 'We serve Patna Central'. Step5 review rows show Name/Mobile/Category/Work/Description/Budget/Pincode with Edit links. cjr-submit → cjr-success with cjr-request-id CJR-NRS2WN7L. cjr-done closes; mcj-card-CJR-NRS2WN7L now visible with mcj-status showing 'Pending' badge and ₹1,500 / 800001 / date metadata.",
+    "/custom_jobs logged-out": "Redirected to /login (customer area guard fires). ✅",
+    "/refunds (refunds-page)": "Renders after login. page-title 'Refunds'. KPIs: rf-total=1, rf-pending=0, rf-done=1, rf-amt=₹329 (matches backend: 1 processed refund, sum 329.41). refund-AZOYM3ZAX card shows 'Door Repair', 'Refund successful' green badge, method chip 'source', '#AZOYM3ZAX · Cancelled 25/9/2026, …', Reason: booked_by_mistake, ₹329.41 with '100% of ₹329.41', Info grid (Original / Refund % / Refund amount / Status Processed), Refund timeline with 3 rows (initiated/processing/processed) each carrying timestamp + note. rf-search 'ZZZZZZ' → refunds-nomatch. rf-tab-processed keeps card; rf-tab-failed → refunds-nomatch. rf-range-7 keeps card (cancelled_at within 1 day).",
+    "Customer shell More sheet (m-nav-more)": "Bottom nav testids present: m-nav-home/orders/orders-badge/wallet/invoices/more. Opening More sheet shows 'Custom Requests' and 'Refunds' tiles. Clicking Custom Requests navigates to /custom_jobs (verified URL change).",
+    "Android bundle": "GET /index.bundle?platform=android&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.bytecode=1&transform.routerRoot=app&unstable_transformProfile=hermes-stable → HTTP 200."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Wizard's cjr-next is a React Native <Pressable disabled={!canNext} style={{ opacity: canNext ? 1 : 0.4 }}>. On RN-web this does NOT set the HTML disabled attribute — Playwright's is_disabled() returns False even when logically disabled. Business-logic gating still works (Pressable's onPress is suppressed by RN when disabled=true), but automated 'assert cannot advance' checks must click and verify the step didn't change rather than relying on is_disabled(). Consider forwarding aria-disabled for better testability.",
+    "custom_jobs.tsx line 137 — okBy[5] is hard-coded true; final gate is enforced only by okBy[1..4] check inside submit(). Fine, but if step order changes this becomes fragile.",
+    "refunds.tsx useMemo dep array excludes pendingSet via eslint-disable — pendingSet is a stable const in scope, OK, but inlining or moving out of component would remove the need for the disable comment.",
+    "Two overlapping test IDs in Custom Requests wizard: cjr-cat-search (TextInput) and cjr-cat-<id> (Pressables) share the prefix 'cjr-cat-'. Selecting via [data-testid^=\"cjr-cat-\"] catches both — testers must exclude the search input. Consider renaming search input to cjr-catq-search or cjr-cat-query to avoid the collision."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (7/7 endpoints)", "frontend": "100% (all acceptance checks: custom_jobs list + wizard + submit, refunds KPIs + cards + filters, More sheet, logged-out redirect, Android bundle)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (demo-customer button).",
+  "seed_data_creation": "Created 1 new custom job request via wizard: CJR-NRS2WN7L (Priya Verma, AC Repair & Service category, work 'QA Gate Grill Repair', budget ₹1,500, pincode 800001, status pending). Remains in DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login only works from '/' via app-avatar → demo-customer. Direct navigation to /custom_jobs, /refunds, /orders when unauth redirects to /login (which has NO app-avatar button, only a phone form + separate 'Login as Customer' one-click tile). Wizard runs inside a RN <Modal>; TextInputs work with page.fill(). cjr-cat-search shares 'cjr-cat-' prefix with category tiles — use exact selector or exclude the input. New custom_jobs card testid pattern: mcj-card-<request_id>, status testid mcj-status-<request_id>. CJR-NRS2WN7L seed is present for future assertions.",
+  "rca of the issue": "N/A — no failures encountered."
+}

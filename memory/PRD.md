@@ -58,6 +58,11 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Verified: iteration_127 (orders/wallet/track 100%; push registration + in-app alerts) + manual on-my-way/arrived flow.
 - NOTE: create_file tool truncates very large files — write big files in chunks (create + search_replace markers).
 
+## Custom Requests · Refunds — 2026-09-26
+- `/(customer)/custom_jobs` = port of MyCustomJobs.jsx + CustomJobWizard.jsx (5-step bottom sheet: About You (OTP or prefilled when logged in) → Category → The Work → Budget & Area (serviceability) → Review → POST /custom-jobs; success screen w/ request id).
+- `/(customer)/refunds` = port of RefundsView (KPIs, search, date presets, tabs, cards, refund timeline). StatTile values auto-shrink.
+- Verified iteration_128 (100%). Remaining customer tabs: invoices, addresses, profile, referral, support, ai (placeholders).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
