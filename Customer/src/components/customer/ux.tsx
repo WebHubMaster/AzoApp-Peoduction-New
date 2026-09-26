@@ -243,9 +243,9 @@ export function BottomSheet({ open, onClose, title, children, footer, testID, ma
 /* Mini month calendar for Custom Range */
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-export function MiniCalendar({ from, to, onPick, minDate, maxDate, testID = "cal" }: { from?: Date | null; to?: Date | null; onPick: (d: Date) => void; minDate?: Date; maxDate?: Date; testID?: string }) {
+export function MiniCalendar({ from, to, onPick, minDate, maxDate, testID = "cal", initialView }: { from?: Date | null; to?: Date | null; onPick: (d: Date) => void; minDate?: Date; maxDate?: Date; testID?: string; initialView?: Date }) {
   const { c, isDark } = useTheme();
-  const base = from || new Date();
+  const base = initialView || from || new Date();
   const [view, setView] = useState(new Date(base.getFullYear(), base.getMonth(), 1));
   const cells: (Date | null)[] = [];
   for (let i = 0; i < view.getDay(); i++) cells.push(null);
