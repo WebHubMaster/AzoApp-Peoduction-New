@@ -15,7 +15,7 @@ export default function Home() {
     const route = NAV.find((n) => n.key === key)?.route || "/(customer)";
     router.push((code ? `${route}?focus=${encodeURIComponent(code)}` : route) as any);
   };
-  const openBooking = (b: any) => router.push((["searching", "assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) ? `/(customer)/track/${b.id}` : `/(customer)/orders?focus=${encodeURIComponent(b.code)}`) as any);
+  const openBooking = (b: any) => router.push(`/(customer)/orders?focus=${encodeURIComponent(b.code)}` as any);
 
   return (
     <HomeView
