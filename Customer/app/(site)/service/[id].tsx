@@ -9,6 +9,7 @@ import { api } from "../../../src/api/client";
 import { PRIMARY, SLATE, AMBER, EMERALD } from "../../../src/theme";
 import { fmt } from "../../../src/lib/format";
 import { useCart } from "../../../src/context/CartContext";
+import { RateCardBar } from "../../../src/components/site/RateCardBar";
 import { useToast } from "../../../src/components/Toast";
 import { stripHtml } from "../../../src/components/site/ui";
 
@@ -26,9 +27,11 @@ export default function ServiceDetail() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  const [galleryIdx, setGalleryIdx] = useState(0);
+  const gallery: string[] = svc ? [svc.image, ...(svc.gallery || [])].filter(Boolean) : [];
 
   useEffect(() => {
-    setSvc(null); setAddons([]); setQty(1); setAdded(false);
+    setSvc(null); setAddons([]); setQty(1); setAdded(false); setGalleryIdx(0);
     api.get<any>(`/catalog/services/${id}`, { auth: false }).then((d) => {
       setSvc(d);
       const ts = d.tiers || [];
@@ -66,7 +69,8 @@ export default function ServiceDetail() {
     <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} testID="service-detail">
       {Header}
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-        <Image source={{ uri: svc.image || svc.gallery?.[0] }} style={{ width: "100%", height: 220, borderRadius: 20, backgroundColor: SLATE[100] }} contentFit="cover" transition={200} />
+        <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 16, backgroundColor: SLATE[100] }} contentFit="cover" transition={200} />
+        {gallery.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 12 }}>{gallery.map((im: string, i: number) => <Pressable key={i} testID={`gallery-thumb-${i}`} onPress={() => setGalleryIdx(i)} style={{ height: 64, width: 96, borderRadius: 8, overflow: "hidden", borderWidth: 2, borderColor: i === galleryIdx ? PRIMARY[700] : "transparent" }}><Image source={{ uri: im }} style={{ width: "100%", height: "100%" }} contentFit="cover" /></Pressable>)}</ScrollView> : null}
         <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: "700", color: PRIMARY[700], marginTop: 20 }}>{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</Text>
         <Text testID="service-name" style={{ fontSize: 26, fontWeight: "800", color: SLATE[900], marginTop: 4, letterSpacing: -0.4 }}>{svc.name}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 8 }}>
@@ -81,6 +85,7 @@ export default function ServiceDetail() {
           {svc.tax_pct > 0 ? <Text testID="service-tax-note" style={{ fontSize: 12, color: SLATE[400], marginBottom: 5 }}>{svc.tax_inclusive ? "Incl. Est. Govt. Taxes" : "+ Est. Govt. Taxes"}</Text> : null}
         </View>
         {(svc.tags || []).length ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>{svc.tags.map((t: string) => <View key={t} style={{ backgroundColor: SLATE[100], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, color: SLATE[600] }}>{t}</Text></View>)}</View> : null}
+        <View style={{ marginTop: 16 }}><RateCardBar serviceId={svc.id} categoryId={svc.category_id} addable /></View>
 
         {(svc.tiers || []).length ? (
           <View style={{ marginTop: 24 }}>
@@ -95,6 +100,7 @@ export default function ServiceDetail() {
                     {t.badge ? <View style={{ position: "absolute", top: 8, left: 8, backgroundColor: PRIMARY[700], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{t.badge}</Text></View> : null}
                     <View style={{ padding: 12 }}>
                       <Text style={{ fontWeight: "600", color: SLATE[900] }}>{t.label}</Text>
+                      {Number(t.review_count) > 0 ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}><Star size={12} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 12, color: SLATE[500] }}>{t.rating} <Text style={{ color: SLATE[400] }}>({Number(t.review_count).toLocaleString("en-IN")})</Text></Text></View> : null}
                       {t.description ? <Text numberOfLines={1} style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{t.description}</Text> : null}
                       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4, marginTop: 4 }}><Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>{fmt(t.price)}</Text>{off > 0 ? <Text style={{ fontSize: 12, color: SLATE[400], textDecorationLine: "line-through", marginBottom: 2 }}>{fmt(t.original_price)}</Text> : null}</View>
                       {off > 0 ? <Text style={{ fontSize: 12, color: EMERALD[600], fontWeight: "600", marginTop: 2 }}>{off}% off</Text> : null}

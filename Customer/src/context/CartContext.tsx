@@ -1,6 +1,7 @@
 /** Port of web_panel/src/context/CartContext.jsx — same line shape, estimates and merge rules (persisted in AsyncStorage). */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { api } from "@/src/api/client";
 
 const KEY = "azo_cart_v1";
 const uid = () => Math.random().toString(36).slice(2, 10);
@@ -29,14 +30,16 @@ export const lineFromService = (svc: any, { tier_index = null, addons = [], qty 
 /** Cart item → API request line (cart-quote / validate-coupon / bookings). */
 export const toReqItem = (it: any) => (it.custom
   ? { custom: true, custom_name: it.custom_name, custom_price: it.custom_price, labour_charge: it.labour_charge || 0, category_id: it.category_id, category_name: it.category_name, qty: it.qty }
-  : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n: string) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id });
+  : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n: string) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id, category_name: it.category_name });
 
-interface CartCtx { items: any[]; addService: (svc: any, opts?: any) => any; removeItem: (id: string) => void; updateItem: (id: string, patch: any) => void; setQty: (id: string, qty: number) => void; setAddonQty: (id: string, name: string, qty: number) => void; clear: () => void; count: number; estimateTotal: number; ready: boolean }
+interface CartCtx { items: any[]; addService: (svc: any, opts?: any) => any; addCustom: (row: any) => any; minLabourCharge: number; removeItem: (id: string) => void; updateItem: (id: string, patch: any) => void; setQty: (id: string, qty: number) => void; setAddonQty: (id: string, name: string, qty: number) => void; clear: () => void; count: number; estimateTotal: number; ready: boolean }
 const Ctx = createContext<CartCtx | null>(null);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<any[]>([]);
   const [ready, setReady] = useState(false);
+  const [minLabour, setMinLabour] = useState(0);
+  useEffect(() => { api.get("/auth/config", { auth: false }).then((r: any) => setMinLabour(Number(r?.business?.min_labour_charge) || 0)).catch(() => {}); }, []);
   useEffect(() => { AsyncStorage.getItem(KEY).then((raw) => { try { if (raw) setItems(JSON.parse(raw)); } catch {} setReady(true); }).catch(() => setReady(true)); }, []);
   useEffect(() => { if (ready) AsyncStorage.setItem(KEY, JSON.stringify(items)).catch(() => {}); }, [items, ready]);
 
@@ -49,6 +52,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     });
     return line;
   }, []);
+  /* Rate-card ROW as a custom cart line (booked under its category); backend applies min labour authoritatively. */
+  const addCustom = useCallback((row: any) => {
+    const rowLabour = Number(row.labour_charge) || 0;
+    const price = (Number(row.service_charge) || 0) + rowLabour;
+    const line = { id: uid(), custom: true, service_id: null, name: row.description || "Rate-card service", custom_name: row.description || "Rate-card service", custom_price: price, category_id: row.category_id || "", category_name: row.category_name || "", ratecard_row_id: row.row_id || "", labour_charge: rowLabour, image: "", price_type: "fixed", tax_pct: 0, base_price: price, discounted_price: 0, tiers: [], addonsCatalog: [], tier_index: null, addons: [], addonQty: {}, qty: 1 };
+    setItems((prev) => { const idx = prev.findIndex((p) => p.custom && sigOf(p) === sigOf(line)); if (idx >= 0) { const next = [...prev]; next[idx] = { ...next[idx], qty: next[idx].qty + 1 }; return next; } return [...prev, line]; });
+    return line;
+  }, []);
   const removeItem = useCallback((id: string) => setItems((p) => p.filter((x) => x.id !== id)), []);
   const updateItem = useCallback((id: string, patch: any) => setItems((p) => p.map((x) => (x.id === id ? { ...x, ...patch } : x))), []);
   const setQty = useCallback((id: string, qty: number) => setItems((p) => p.map((x) => (x.id === id ? { ...x, qty: Math.max(1, qty) } : x))), []);
@@ -56,6 +67,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const clear = useCallback(() => setItems([]), []);
   const count = useMemo(() => items.reduce((s, x) => s + (x.qty || 1), 0), [items]);
   const estimateTotal = useMemo(() => items.reduce((s, x) => s + lineEstimate(x), 0), [items]);
-  return <Ctx.Provider value={{ items, addService, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, ready }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ items, addService, addCustom, minLabourCharge: minLabour, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, ready }}>{children}</Ctx.Provider>;
 };
 export const useCart = () => { const c = useContext(Ctx); if (!c) throw new Error("useCart outside CartProvider"); return c; };
