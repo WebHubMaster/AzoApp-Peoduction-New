@@ -1,0 +1,55 @@
+{
+  "summary": "iter132 — Verified Customer Expo app 4 new pages: Help & Support (list + new ticket + thread + close), Refer & Earn, AI Assistant (with session reuse), and Profile shortcuts. Backend pytest 9/9 PASS. Frontend end-to-end flows all pass including throwaway ticket create+message+close, referral code AZO0004 with copy toast + history rows, AI chat session_id echoed on second call, and profile shortcut navigation to addresses/orders.",
+  "backend_verified": {
+    "GET /api/support/meta": "200",
+    "GET /api/support/tickets": "200 list",
+    "POST /api/support/tickets": "200 · ticket TKT-1000xx created",
+    "GET /api/support/tickets/{id}": "200 · persisted after create",
+    "POST /api/support/tickets/{id}/messages": "200 · message persisted (verified via GET)",
+    "POST /api/support/tickets/{id}/typing": "200",
+    "POST /api/support/tickets/{id}/close": "200 · status flips to 'closed'",
+    "GET /api/growth/referral": "200 · code AZO0004 returned for demo customer",
+    "POST /api/referral/apply (invalid code ZZZZ9999)": "returns error/ok:false as expected",
+    "POST /api/ai/chat": "200 · returns session_id on first call, echoes provided session_id on second call"
+  },
+  "frontend_verified": {
+    "Support list": "support-center + page-title 'Help & Support' + support-count '2 tickets · …' + support-new-btn + support-list-search filter works. Seed ticket support-ticket-TKT-100001 visible.",
+    "New ticket validation": "Empty subject → toast 'Please enter a subject'. Empty message → toast 'Please describe your issue'.",
+    "New ticket create": "support-submit → POST /support/tickets → auto opens support-thread. New ticket code TKT-100004 shown in info panel (info-code).",
+    "Thread messaging": "support-reply-input + support-send-btn → message 'Follow-up UI test message' appears in list (own bubble). Info panel support-ticket-info + info-code render.",
+    "Close ticket": "support-thread-menu → support-close-btn → support-close-dialog → support-close-confirm → support-closed-note appears, composer (support-reply-input) hidden. support-thread-back returns to support-center.",
+    "Referral page": "referral-page renders; referral-code = 'AZO0004' (matches spec). StatTiles ref-invited (3), ref-joined (3), ref-earned (₹100), ref-pending (₹200) all present. Share card + all buttons render: referral-card-image, share-whatsapp, share-native, share-download, card-copy-code, card-copy-link, copy-referral, copy-referral-link, share-referral. copy-referral shows 'Referral code copied!' toast. apply-code-input auto-uppercases 'zzzz9999' → 'ZZZZ9999'. referral-history has 3 referral-row-* rows.",
+    "AI assistant": "ai-page + ai-chat + initial ai-msg-assistant greeting render. Sending 'Hello from UI test' produced ai-msg-user bubble and POST /api/ai/chat (body without session_id) returned session_id. Second message 'Second question?' sent with session_id in body — session id reused correctly (verified via network request body).",
+    "Profile shortcuts": "profile-shortcuts row renders. shortcut-addresses navigates to /addresses → address-book visible. shortcut-orders navigates to /orders → orders-page visible. shortcut-wallet button also visible."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SupportThread", "issue": "support-send-btn is NOT actually disabled (is_disabled()==false) when reply-input is empty — likely visually styled but missing HTMLButtonElement disabled prop. Spec says 'disabled when empty'.", "selector": "[data-testid='support-send-btn']", "priority": "LOW"},
+      {"component": "Referral apply", "issue": "apply-code-btn is NOT actually disabled (is_disabled()==false) when apply-code-input is empty — same styled-only disabled pattern. Spec says 'disabled when empty'.", "selector": "[data-testid='apply-code-btn']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter132_support_ref_ai.py",
+    "/app/test_reports/pytest/iter132.xml"
+  ],
+  "action_items": [
+    "(Optional) Set proper `disabled` attribute (not just styling) on support-send-btn and apply-code-btn so accessibility tools and Playwright's is_disabled() recognise the disabled state.",
+    "(Optional) Confirm that applying an invalid referral code shows a user-visible error toast on the Refer & Earn page — the network request went through but text scan didn't detect a clear 'Invalid code' message. Please inspect the toast text/copy manually."
+  ],
+  "critical_code_review_comments": [
+    "SupportThread should mark support-send-btn with proper `disabled` prop (RN Pressable `disabled={!text.trim()}`), not just a styled dim state.",
+    "Referral apply-code-btn should similarly be truly disabled when the input is empty.",
+    "AI Assistant provider is not configured (as noted in the request); reply is a fixed Hinglish 'not configured' message — expected, but consider surfacing this state as an info banner in the UI so users know the assistant is in stub mode."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter132_support_ref_ai.py"],
+  "success_rate": {"backend": "100% (9/9 pytest)", "frontend": "100% on functional acceptance IDs across all 4 pages; 2 low-priority disabled-prop misses noted."},
+  "test_credentials": "Customer +919000000004 OTP 123456 (dev, one-click demo-customer works).",
+  "seed_data_creation": "Created 1 throwaway support ticket TKT-100004 via UI (subject 'TEST_iter132 throwaway UI', category booking, priority low). Closed it via UI close flow as instructed. TKT-100001 was NOT closed. No other persistent data was created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 4 new customer pages (support, referral, ai, profile shortcuts) route correctly under Expo (customer) group as /support, /referral, /ai, /profile. Session cookies/tokens don't persist across separate browser_automation tool calls — do login (demo-customer) and all navigation in ONE script. AI chat provider not configured — assistant reply is stub 'AI assistant abhi configure nahi hua hai…', session_id still returned + reused. Support seed tickets: after iter132 there are now 2 tickets for demo user (TKT-100001 open seed + TKT-100004 closed throwaway from this run).",
+  "rca of the issue": "N/A — no functional failures."
+}
