@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://customer-auto-deploy.preview.emergentagent.com/api"
+BASE_URL = "https://mobile-customer-nav.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

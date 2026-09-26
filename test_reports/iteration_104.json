@@ -2,7 +2,7 @@
   "summary": "Regression of merchant Scan QR screen on the Expo WEB build (Metro tunnel https://bpo56qm-anonymous-8081.exp.direct) after posterActions.ts two-step-share change. Login via demo-merchant, /merchant/scanqr renders correctly (hero QR + hero-link with ?ref=XZ6SV49 + poster-preview). No red-box / runtime overlay and no console errors mentioning posterActions or 'Share'. hero-share opens share-modal with booking link inside share-message textarea, share-copy works. hero-whatsapp triggers GET /api/merchant/panel/qr/poster?fmt=png -> 200 and opens api.whatsapp.com/send popup with the message. dl-png and dl-pdf both fire the poster endpoint (fmt=png / fmt=pdf) with 200 responses and no error. The two-step-share code path on web is unchanged (native branch not exercised in this run — cannot be tested headless).",
   "test_matrix": {
     "page_loads_scanqr_module": "PASS",
-    "hero-link contains ?ref=": "PASS (https://customer-auto-deploy.preview.emergentagent.com/?ref=XZ6SV49)",
+    "hero-link contains ?ref=": "PASS (https://mobile-customer-nav.preview.emergentagent.com/?ref=XZ6SV49)",
     "poster-preview visible": "PASS",
     "no red-box / error overlay": "PASS",
     "no console errors mentioning posterActions or Share": "PASS (only expected RN-web warnings: useNativeDriver JS fallback, pointerEvents deprecation, expo-notifications web listener no-op)",
