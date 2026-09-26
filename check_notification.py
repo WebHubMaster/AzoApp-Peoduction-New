@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://mobile-customer-nav.preview.emergentagent.com/api"
+BASE_URL = "https://azoapp-login.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 
