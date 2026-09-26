@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Linking, Animated } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, Navigation, MessageCircle, FileText, Crown, Calendar, Circle } from "lucide-react-native";
-import { PRIMARY, SLATE, EMERALD, ROSE, AMBER, useTheme } from "../../theme";
+import { PRIMARY, SLATE, EMERALD, ROSE, AMBER, useTheme, shadowBtn, shadowElev } from "../../theme";
 import { StatusChip } from "./ux";
 import { statusText, statusTone, DONE_STATES, bkDate } from "./nav";
 import { fmt } from "../../lib/format";
@@ -245,20 +245,20 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
   const whiteSoft = isDark ? "rgba(15,23,42,0.4)" : "rgba(255,255,255,0.7)";
 
   return (
-    <View testID={`booking-card-${b.code}`} style={{ borderRadius: 16, borderWidth: focus ? 2 : 1, borderColor: focus ? PRIMARY[400] : c.border, backgroundColor: c.surface, padding: 16, marginBottom: 12 }}>
+    <View testID={`booking-card-${b.code}`} style={{ borderRadius: 20, borderWidth: focus ? 2 : 1, borderColor: focus ? PRIMARY[400] : c.border, backgroundColor: c.surface, padding: 18, marginBottom: 16, ...shadowElev }}>
       {/* Header */}
-      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, flex: 1, minWidth: 0 }}>
-          <View style={{ height: 44, width: 44, borderRadius: 16, backgroundColor: b.status === "cancelled" ? "#e11d48" : "#0D47A1", alignItems: "center", justifyContent: "center" }}>
-            {b.status === "cancelled" ? <X size={20} color="#fff" /> : DONE_STATES.includes(b.status) ? <CheckCircle2 size={20} color="#fff" /> : <Wrench size={20} color="#fff" />}
+      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 14, flex: 1, minWidth: 0 }}>
+          <View style={{ height: 50, width: 50, borderRadius: 18, backgroundColor: b.status === "cancelled" ? "#e11d48" : "#0D47A1", alignItems: "center", justifyContent: "center", ...shadowBtn }}>
+            {b.status === "cancelled" ? <X size={23} color="#fff" /> : DONE_STATES.includes(b.status) ? <CheckCircle2 size={23} color="#fff" /> : <Wrench size={23} color="#fff" />}
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <Text style={{ fontSize: 16, fontWeight: "600", color: c.text }}>{b.service_name}</Text>
+              <Text style={{ fontSize: 17.5, fontWeight: "800", color: c.text, letterSpacing: -0.3 }}>{b.service_name}</Text>
               <StatusChip testID={`booking-status-${b.code}`} label={statusText(b.status)} tone={statusTone(b.status)} />
               {b.payment_status ? <StatusChip label={b.payment_status} tone={b.payment_status === "paid" ? "green" : b.payment_status === "refunded" ? "violet" : "amber"} /> : null}
             </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
               <Pressable testID={`copy-id-${b.code}`} onPress={copyId} hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 12, color: SLATE[400] }}>#{b.code}</Text><Copy size={12} color={SLATE[400]} /></Pressable>
               <Text style={{ fontSize: 12, color: SLATE[400] }}>· {b.category_name}</Text>
               <Text style={{ fontSize: 12, color: SLATE[400] }}>· {fmtTs(bkDate(b))}</Text>
@@ -277,8 +277,8 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
           </View>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 18, fontWeight: "900", color: c.text }}>{fmt(b.pricing?.total)}</Text>
-          <Text style={{ fontSize: 11, fontWeight: "600", color: payColor }}>{payLabel}</Text>
+          <Text style={{ fontSize: 21, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>{fmt(b.pricing?.total)}</Text>
+          <Text style={{ fontSize: 11.5, fontWeight: "700", color: payColor, marginTop: 2 }}>{payLabel}</Text>
         </View>
       </View>
 
@@ -324,7 +324,7 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
       <PremiumTimeline b={b} open={tlOpen} onToggle={() => setTlOpen((o) => !o)} lastAt={lastAt} />
 
       {/* Contextual actions */}
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12, alignItems: "center" }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 14, alignItems: "center" }}>
         {b.status === "pending_payment" ? <Chip testID={`pay-${b.code}`} icon={Wallet} tone="green" onPress={() => a.onPay(b)} label={b.order_group_id ? "Pay Now · combined order" : `Pay ${fmt(b.pricing?.total)}`} /> : null}
         {assigned ? <Chip testID={`call-${b.code}`} icon={commLocked ? Lock : Phone} tone="primary" onPress={callPartner} disabled={commLocked} label="Call" /> : null}
         {assigned ? <Chip testID={`chat-${b.code}`} icon={commLocked ? Lock : MessageCircle} onPress={chatPartner} disabled={commLocked} label="Chat" right={!commLocked ? <UnreadPill count={unread} testID={`chat-unread-${b.code}`} /> : null} /> : null}
