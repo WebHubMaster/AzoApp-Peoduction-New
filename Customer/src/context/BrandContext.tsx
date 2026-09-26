@@ -9,11 +9,12 @@ export interface SiteBranding {
   logo_dark?: string;
 }
 export interface SiteConfig {
-  branding: SiteBranding & { footer_text?: string; phone?: string; email?: string };
+  branding: SiteBranding & { footer_text?: string; phone?: string; email?: string; email_logo?: string };
   theme: { primary: string; secondary: string; accent: string; default_mode?: string };
   stats?: Record<string, any>;
   apps?: Record<string, any>;
   seo?: Record<string, any>;
+  cancellation_reasons?: string[];
 }
 
 const DEFAULTS: SiteConfig = {
@@ -37,9 +38,11 @@ export function useSiteConfigQuery() {
           logo_light: mediaUrl(b.logo_light) || "",
           logo_dark: mediaUrl(b.logo_dark) || "",
           footer_text: b.footer_text, phone: b.phone, email: b.email,
+          email_logo: mediaUrl(b.email_logo) || "",
         },
         theme: { ...DEFAULTS.theme, ...(raw.theme || {}) },
         stats: raw.stats || {}, apps: raw.apps || {}, seo: raw.seo || {},
+        cancellation_reasons: raw.cancellation_reasons || [],
       } as SiteConfig;
     },
     staleTime: 5 * 60 * 1000,

@@ -1,6 +1,7 @@
 /** Refunds — port of RefundsView (CustomerDashboard.jsx): KPIs, search, date presets, tabs, cards with refund timeline. */
 import React, { useMemo, useState } from "react";
-import { View, Text, TextInput, Pressable, FlatList, ScrollView } from "react-native";
+import { PlainList } from "../../src/components/customer/ux";
+import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { Receipt, Clock, CheckCircle2, IndianRupee, Search } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { StatTile, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "../../src/components/customer/ux";
@@ -51,7 +52,7 @@ export default function RefundsScreen() {
 
   return (
     <View style={{ flex: 1 }} testID="refunds-page">
-      <FlatList data={filtered} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={6}
+      <PlainList data={filtered} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={6}
         ListEmptyComponent={loading && refunds.length === 0 ? <SkeletonList rows={3} /> : refunds.length === 0 ? <EmptyState icon={Receipt} title="No refunds yet" desc="No cancellations or refunds on your account." testID="refunds-empty" /> : <EmptyState icon={Receipt} title="No refunds match" desc="Adjust your filters." testID="refunds-nomatch" />}
         renderItem={({ item: r }) => (
           <View testID={`refund-${r.booking_code}`} style={{ borderRadius: 18, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", padding: 18, marginBottom: 12 }}>

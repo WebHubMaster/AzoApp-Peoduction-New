@@ -1,6 +1,7 @@
 /** Wallet — port of WalletView + WalletTopup (CustomerDashboard.jsx): balance, top-up, stats, transactions. */
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, TextInput, FlatList, ScrollView } from "react-native";
+import { PlainList } from "../../src/components/customer/ux";
+import { View, Text, Pressable, TextInput, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TrendingUp, IndianRupee, Receipt, Wallet, Search } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
@@ -82,7 +83,7 @@ export default function WalletScreen() {
 
   return (
     <View style={{ flex: 1 }} testID="wallet-page">
-      <FlatList data={filtered} keyExtractor={(t: any, i) => t.id || String(i)} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={8}
+      <PlainList data={filtered} keyExtractor={(t: any, i) => t.id || String(i)} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={8}
         ListEmptyComponent={txns.length === 0 ? <EmptyState icon={Wallet} title="No transactions yet" desc="Add money or make a booking to see activity here." testID="wallet-empty" /> : <EmptyState icon={Wallet} title="No transactions match" desc="Adjust your filters." testID="wallet-nomatch" />}
         renderItem={({ item: t }) => {
           const credit = t.type === "credit";

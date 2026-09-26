@@ -1,6 +1,7 @@
 /** Custom Requests — port of components/customer/MyCustomJobs.jsx + CustomJobWizard.jsx (mobile bottom sheet, 5 steps). */
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput, ScrollView, Modal, ActivityIndicator, FlatList } from "react-native";
+import { PlainList } from "../../src/components/customer/ux";
+import { View, Text, Pressable, TextInput, ScrollView, Modal, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -47,7 +48,7 @@ export default function CustomJobsScreen() {
   return (
     <View style={{ flex: 1 }} testID="my-custom-jobs">
       {loading ? <View style={{ padding: 16 }}>{header}<View style={{ paddingVertical: 80, alignItems: "center" }}><ActivityIndicator color={PRIMARY[600]} size="large" /></View></View> : (
-        <FlatList data={rows} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        <PlainList data={rows} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
           ListEmptyComponent={
             <View testID="mcj-empty" style={{ borderRadius: 24, borderWidth: 1, borderStyle: "dashed", borderColor: SLATE[300], padding: 36, alignItems: "center" }}>
               <View style={{ height: 64, width: 64, borderRadius: 18, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center", marginBottom: 16 }}><ClipboardList size={32} color={PRIMARY[500]} /></View>
