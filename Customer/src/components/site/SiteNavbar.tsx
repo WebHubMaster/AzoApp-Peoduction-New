@@ -8,7 +8,8 @@ import { MapPin, Search, ChevronDown, Menu, X, ShoppingBag, User, CheckCircle2, 
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
-import { PRIMARY, SLATE, EMERALD, ROSE } from "@/src/theme";
+import { useCart } from "@/src/context/CartContext";
+import { PRIMARY, SLATE, EMERALD, ROSE, useTheme } from "@/src/theme";
 import { useRawLocation, setLocationName, detectLocation } from "@/src/lib/location";
 import { ServiceSearch } from "@/src/components/site/ServiceSearch";
 
@@ -83,11 +84,12 @@ export default function SiteNavbar() {
   const router = useRouter();
   const { user } = useAuth();
   const { branding } = useSiteConfig();
+  const { count: cartCount } = useCart();
+  const { isDark } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const logo = branding.logo_light || branding.logo_dark;
+  const logo = (isDark ? branding.logo_dark || branding.logo_light : branding.logo_light || branding.logo_dark) || "";
   const account = () => router.push(user ? "/(customer)" : "/login");
-  const cartCount = 0;
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: "rgba(255,255,255,0.95)", borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)", zIndex: 50 }}>
       <View style={{ height: 64, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 }}>
@@ -130,8 +132,8 @@ const TABS = [
   { key: "home", label: "Home", icon: Home, to: "/(site)" },
   { key: "services", label: "Services", icon: LayoutGrid, to: "/(site)/services" },
   { key: "cart", label: "Booking", icon: ShoppingBag, to: "/(site)/book" },
-  { key: "bookings", label: "Orders", icon: CalendarCheck, to: "/(customer)" },
-  { key: "profile", label: "Profile", icon: User, to: "/(customer)" },
+  { key: "bookings", label: "Orders", icon: CalendarCheck, to: "/(customer)/orders" },
+  { key: "profile", label: "Profile", icon: User, to: "/(customer)/profile" },
 ];
 
 export function MobileBottomNav() {
@@ -139,11 +141,18 @@ export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+  const { count } = useCart();
   const go = (t: typeof TABS[number]) => {
-    if (["bookings", "profile"].includes(t.key)) { router.push(user ? "/(customer)" : "/login"); return; }
+    if (["bookings", "profile"].includes(t.key) && !user) { router.push("/login"); return; }
     router.push(t.to as any);
   };
-  const isActive = (t: typeof TABS[number]) => (t.key === "home" ? pathname === "/" || pathname === "/(site)" : t.key === "services" ? pathname.includes("/services") : t.key === "cart" ? pathname.includes("/book") : false);
+  const isActive = (t: typeof TABS[number]) =>
+    t.key === "home" ? pathname === "/" || pathname === "/(site)" || pathname === ""
+      : t.key === "services" ? pathname.includes("/services")
+        : t.key === "cart" ? pathname.includes("/book")
+          : t.key === "bookings" ? pathname.includes("/orders")
+            : t.key === "profile" ? pathname.includes("/profile")
+              : false;
   return (
     <View testID="mobile-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "rgba(255,255,255,0.95)", borderTopWidth: 1, borderTopColor: SLATE[200], flexDirection: "row", paddingBottom: insets.bottom }}>
       {TABS.map((t) => {
@@ -151,7 +160,14 @@ export function MobileBottomNav() {
         const color = act ? PRIMARY[700] : SLATE[400];
         return (
           <Pressable key={t.key} testID={`tab-${t.key}`} onPress={() => go(t)} style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 2, paddingVertical: 8, height: 64 }}>
-            <t.icon size={20} color={color} strokeWidth={act ? 2.3 : 1.7} />
+            <View>
+              <t.icon size={20} color={color} strokeWidth={act ? 2.3 : 1.7} />
+              {t.key === "cart" && count > 0 ? (
+                <View testID="tab-cart-count" style={{ position: "absolute", top: -8, right: -12, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{count}</Text>
+                </View>
+              ) : null}
+            </View>
             <Text style={{ fontSize: 10, fontWeight: "500", color }}>{t.label}</Text>
           </Pressable>
         );

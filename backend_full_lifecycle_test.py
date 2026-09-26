@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://customer-auto-deploy.preview.emergentagent.com/api"
+BASE_URL = "https://mobile-customer-nav.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

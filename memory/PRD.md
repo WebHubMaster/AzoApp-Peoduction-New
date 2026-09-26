@@ -130,3 +130,12 @@ Replicated the Partner/Merchant (`frontend/`) Expo EAS + GitHub Actions setup fo
 - Price 18→21 (letterSpacing -0.4); pay label 11→11.5 weight 700.
 - Action row gap 8→10, marginTop 12→14.
 - Logic untouched. Lint: 0 errors. Live screenshot skip — preview serves Partner app (3000), Customer app (3001) not publicly mapped.
+
+---
+
+## Update — 2026-06: Customer App public-site Top Nav & Bottom Menu = Web parity
+- **Goal:** Mobile Customer app ka public `(site)` area ka Top Nav aur Bottom Menu ko web customer panel (`web_panel`) jaisa exact banaya — same icons, design, border-radius, bg, aur same dynamic data via same backend APIs.
+- **Top Nav:** Home page (`app/(site)/index.tsx`) ka `AppHeader` + `AppSearchBar` (floating pill header) ko web-style `SiteNavbar` (port of `web_panel/.../SiteNavbar.jsx`) se replace kiya — logo + membership crown + search-icon popup (ServiceSearch) + cart (badge) + account/login + hamburger (Location, All Services, Membership).
+- **Bottom Menu:** `app/(site)/_layout.tsx` ka floating-pill `AppBottomNav` (Book Now FAB) ko web-style flat 5-tab `MobileBottomNav` se replace kiya — Home · Services · Booking(cart badge) · Orders · Profile (icons: Home, LayoutGrid, ShoppingBag, CalendarCheck, User), active=primary-700 / inactive=slate-400, white/95 bg + top border.
+- **Dynamic data fix:** `SiteNavbar` me `cartCount` pehle hardcoded `0` tha — ab `useCart()` se live count aata hai (navbar cart badge + bottom-nav Booking badge). Orders/Profile tabs auth-gated (`!user → /login`), theme-aware logo.
+- **Verification:** Code review (Customer app is not supervisor-managed in this pod — runs via Expo tunnel against production backend; no live screenshot/testing possible here).

@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://customer-auto-deploy.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://mobile-customer-nav.preview.emergentagent.com").rstrip("/")
 
 
 def _login(phone: str) -> str:
