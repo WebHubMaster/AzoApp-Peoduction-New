@@ -54,7 +54,8 @@ const RETRY_BASE_MS = 700;
 
 async function request<T = any>(path: string, opts: RequestOpts = {}, attempt = 0): Promise<T> {
   const { method = "GET", body, auth = true, timeoutMs = 45000 } = opts;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const isForm = typeof FormData !== "undefined" && body instanceof FormData;
+  const headers: Record<string, string> = isForm ? {} : { "Content-Type": "application/json" };
   if (auth) {
     const t = await getToken();
     if (t) headers.Authorization = `Bearer ${t}`;
@@ -66,7 +67,7 @@ async function request<T = any>(path: string, opts: RequestOpts = {}, attempt = 
     res = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
-      body: body != null ? JSON.stringify(body) : undefined,
+      body: body != null ? (isForm ? body : JSON.stringify(body)) : undefined,
       signal: controller.signal,
     });
   } catch {

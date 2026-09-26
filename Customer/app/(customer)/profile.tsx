@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { Plus, ShieldAlert } from "lucide-react-native";
+import { Plus, ShieldAlert, MapPin, Wallet, Package } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useToast } from "../../src/components/Toast";
@@ -80,6 +80,15 @@ export default function ProfileScreen() {
           <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Manage your personal details & preferences</Text>
         </View>
         <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
+      </View>
+
+      <View testID="profile-shortcuts" style={{ flexDirection: "row", gap: 12 }}>
+        {[["addresses", "Addresses", MapPin, "/(customer)/addresses"], ["wallet", "Wallet", Wallet, "/(customer)/wallet"], ["orders", "Bookings", Package, "/(customer)/orders"]].map(([k, label, Icon, route]: any) => (
+          <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>
+            <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={c.primaryText} /></View>
+            <Text style={{ fontSize: 12, fontWeight: "600", color: c.text }}>{label}</Text>
+          </Pressable>
+        ))}
       </View>
 
       <View testID="profile-editor" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, ...shadowElev }}>
