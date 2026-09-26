@@ -66,7 +66,7 @@ export default function ServicesPage() {
     return () => clearTimeout(t);
   }, [q]);
   const bookRateItem = (it: any) => { addCustom({ description: it.description, service_charge: it.service_charge, labour_charge: it.labour_charge, category_id: it.category_id, category_name: it.category_name, row_id: it.row_id }); toast.success(`Added "${it.description}" — taking you to checkout…`); router.push("/(site)/book" as any); };
-  const chip = (on: boolean) => ({ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 999, backgroundColor: on ? PRIMARY[700] : "#fff", borderWidth: 1, borderColor: on ? PRIMARY[700] : SLATE[200] });
+  const chip = (on: boolean) => ({ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, backgroundColor: on ? PRIMARY[700] : "#fff", borderWidth: 1, borderColor: on ? PRIMARY[700] : SLATE[200] });
 
   return (
     <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} testID="services-page">
