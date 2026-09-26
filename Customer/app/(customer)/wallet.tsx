@@ -58,12 +58,12 @@ export default function WalletScreen() {
       </LinearGradient>
       <View style={{ gap: 12, marginTop: 16 }}>
         <View style={{ flexDirection: "row", gap: 12 }}>
-          <StatTile testID="w-credits" label="Total Added" value={fmtC(credits)} icon={TrendingUp} tone="green" />
-          <StatTile testID="w-debits" label="Total Spent" value={fmtC(debits)} icon={IndianRupee} tone="rose" />
+          <StatTile testID="w-credits" label="Total Added" value={fmtC(Math.round(credits))} icon={TrendingUp} tone="green" />
+          <StatTile testID="w-debits" label="Total Spent" value={fmtC(Math.round(debits))} icon={IndianRupee} tone="rose" />
         </View>
         <View style={{ flexDirection: "row", gap: 12 }}>
           <StatTile testID="w-count" label="Transactions" value={txns.length} count icon={Receipt} tone="primary" />
-          <StatTile testID="w-bal" label="Balance" value={fmtC(wallet?.balance || 0)} icon={Wallet} tone="amber" />
+          <StatTile testID="w-bal" label="Balance" value={fmtC(Math.round(wallet?.balance || 0))} icon={Wallet} tone="amber" />
         </View>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", paddingHorizontal: 12, gap: 8, marginTop: 18 }}>

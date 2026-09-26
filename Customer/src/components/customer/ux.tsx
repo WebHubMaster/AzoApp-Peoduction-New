@@ -49,7 +49,7 @@ export function StatTile({ label, value, icon: Icon, tone = "primary", count, on
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.55, color: "rgba(255,255,255,0.75)" }}>{label}</Text>
-            <Text numberOfLines={1} style={{ marginTop: 6, fontWeight: "900", fontSize: 24, lineHeight: 30, color: "#fff" }}>{display}</Text>
+            <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 6, fontWeight: "900", fontSize: 24, lineHeight: 30, color: "#fff" }}>{display}</Text>
           </View>
           {Icon ? (
             <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>

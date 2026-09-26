@@ -105,7 +105,7 @@ export default function OrdersScreen() {
             <StatTile testID="kpi-cancelled" label="Cancelled" value={counts.cancelled} count icon={AlertTriangle} tone="rose" />
           </View>
           <View style={{ flexDirection: "row", gap: 12 }}>
-            <StatTile testID="kpi-spent" label="Total Spent" value={fmtC(spent)} icon={IndianRupee} tone="amber" />
+            <StatTile testID="kpi-spent" label="Total Spent" value={fmtC(Math.round(spent))} icon={IndianRupee} tone="amber" />
             <View style={{ flex: 1 }} />
           </View>
         </View>
