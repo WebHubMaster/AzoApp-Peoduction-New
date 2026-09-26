@@ -17,7 +17,7 @@ export default function AgentLayout() {
   return (
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} onLogout={async () => { await logout(); router.replace("/(auth)/login"); }} />}
+      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} onLogout={async () => { await logout(); router.replace("/(auth)/welcome"); }} />}
     >
       <Tabs.Screen name="index" options={{ title: "Home" }} />
       <Tabs.Screen name="map" options={{ title: "Map QR" }} />

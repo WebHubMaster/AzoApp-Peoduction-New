@@ -160,7 +160,7 @@ function ProfileChip() {
           <Pressable testID="edit-profile-button" onPress={() => { setOpen(false); setEdit(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 }}>
             <UserIcon size={16} color={colors.textSecondary} /><Text style={{ fontSize: 14, fontWeight: "600", color: colors.textSecondary }}>Edit Profile</Text>
           </Pressable>
-          <Pressable testID="logout-button" onPress={async () => { setOpen(false); await logout(); router.replace("/(auth)/login"); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 }}>
+          <Pressable testID="logout-button" onPress={async () => { setOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 }}>
             <LogOut size={16} color="#DC2626" /><Text style={{ fontSize: 14, fontWeight: "700", color: "#DC2626" }}>Logout</Text>
           </Pressable>
         </View>

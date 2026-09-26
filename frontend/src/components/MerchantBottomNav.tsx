@@ -140,7 +140,7 @@ export function MerchantBottomNav() {
                   );
                 })}
               </View>
-              <Pressable testID="more-logout" onPress={async () => { setMoreOpen(false); await logout(); router.replace("/(auth)/login"); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 16, backgroundColor: "#FEF2F2" }}>
+              <Pressable testID="more-logout" onPress={async () => { setMoreOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 16, backgroundColor: "#FEF2F2" }}>
                 <LogOut size={16} color="#DC2626" strokeWidth={2} />
                 <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 14 }}>Logout</Text>
               </Pressable>

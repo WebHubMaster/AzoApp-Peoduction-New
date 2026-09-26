@@ -54,7 +54,7 @@ export default function SplashGate() {
       const done = await storage.getItem(ONBOARD_DONE_KEY);
       if (done !== "1") { router.replace("/onboarding/intro"); return; }
       const showGate = await shouldShowPermissionGate();
-      router.replace(showGate ? "/onboarding/notifications" : "/(auth)/login");
+      router.replace(showGate ? "/onboarding/notifications" : "/(auth)/welcome");
     })();
   }, [booting, minElapsed, user]);
 
@@ -94,7 +94,7 @@ export default function SplashGate() {
             testID="unsupported-logout"
             onPress={async () => {
               await logout();
-              router.replace("/(auth)/login");
+              router.replace("/(auth)/welcome");
             }}
             style={{ backgroundColor: "#fff", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
           >

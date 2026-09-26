@@ -176,7 +176,7 @@ export default function PartnerRegistration() {
     setLocBusy(false);
   };
 
-  const doLogout = async () => { await logout(); router.replace("/(auth)/login"); };
+  const doLogout = async () => { await logout(); router.replace("/(auth)/welcome"); };
 
   if (loading) return <View style={{ flex: 1, backgroundColor: TW.slate50, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={P[600]} /></View>;
 
