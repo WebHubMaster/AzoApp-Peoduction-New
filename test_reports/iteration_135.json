@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only verification of 3 recent UI changes on the freshly-served Expo Web build at https://39bi06s-emergent_chandan-3001.exp.direct/services (mobile viewport 390x844). Tunnel is up (HTTP 200, title 'AzoApp Customer'). The services page renders and the latest bundle IS being served (verified by presence of new markup / testids and the new chip border-radius). However, the production backend api.webhubmaster.shop rejects the Expo tunnel origin with 'Disallowed CORS origin' on OPTIONS preflight, so /api/site/config, /api/catalog/categories, /api/catalog/services and /api/auth/config all fail. Result: page shows 'No services found', so no service cards / add buttons / view-booking-bar could be triggered, blocking tests 2, 3 and 4. Test 1 (chip shape) passes cleanly.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "OPTIONS https://api.webhubmaster.shop/api/*", "issue": "CORS preflight returns 400 'Disallowed CORS origin' for Origin https://39bi06s-emergent_chandan-3001.exp.direct. Backend CORS allowlist does not include the current Expo tunnel host, which prevents the customer web app from loading catalog/categories/services/config and blocks all data-dependent UI verification.", "priority": "CRITICAL"}
+    ],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Load All Services page", "issue": "All API calls blocked by CORS -> page renders shell + 'All' chip + 'No services found'. Cannot exercise Add flow, view-booking-bar, or Service Detail page.", "affected_selectors": ["[data-testid^=\"svc-\"]", "[data-testid^=\"add-\"]", "[data-testid=\"view-booking-bar\"]", "[data-testid=\"add-to-booking-mobile\"]", "[data-testid=\"go-checkout-mobile\"]", "[data-testid=\"item-total\"]"]}
+    ],
+    "design_issues": []
+  },
+  "verified_features": [
+    {"feature": "Web app loads (no white screen / fatal error)", "status": "PASS", "evidence": "Title 'AzoApp Customer'; services header 'All Services' + 'Browse and book verified home-service experts near you.' render; no pageerror; only CORS console errors."},
+    {"feature": "Category chips are square with small rounded corners (~12px, not pill)", "status": "PASS", "evidence": "[data-testid=\"services-cat-all\"] computed borderRadius = '12px', height = 36px, width = 49px. Clearly not a fully-rounded pill (would be ~18px for a 36px-tall pill)."},
+    {"feature": "Tapping Add makes view-booking-bar fixed at bottom", "status": "BLOCKED", "evidence": "No [data-testid^=\"add-\"] elements present because /api/catalog/services was blocked by CORS. Cannot trigger the bar."},
+    {"feature": "Service Detail: no 'add-to-booking-mobile', only 'go-checkout-mobile' + 'item-total'", "status": "BLOCKED", "evidence": "No [data-testid^=\"svc-\"] service cards rendered (CORS-blocked services list), so unable to navigate into a detail page."}
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "Add https://39bi06s-emergent_chandan-3001.exp.direct (and ideally *.exp.direct or the current tunnel host) to the CORS allowlist on api.webhubmaster.shop so the freshly-served Expo web build can actually load catalog data. Currently OPTIONS returns 400 'Disallowed CORS origin'.",
+    "After CORS is fixed, re-run tests 2/3/4 (Add -> fixed bottom bar; Service Detail should NOT contain add-to-booking-mobile, must contain go-checkout-mobile + item-total)."
+  ],
+  "critical_code_review_comments": [
+    "The customer web build depends on a hard-coded production backend that maintains its own CORS origin allowlist; every time the Expo tunnel URL rotates, the app becomes non-functional on web until the backend allowlist is updated. Consider (a) regex/allow *.exp.direct for dev, or (b) reading the tunnel origin from an env var and auto-registering, or (c) routing dev web through a same-origin proxy."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only run; backend CORS confirmed broken for this origin)", "frontend": "1/4 verifiable checks passed, 3/4 blocked by backend CORS (not an app-code bug)"},
+  "test_credentials": "Not needed (public pages).",
+  "seed_data_creation": "None.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "The Expo tunnel https://39bi06s-emergent_chandan-3001.exp.direct is live and serving the latest bundle (services-cat-all chip already has borderRadius: 12px, confirming new UI). The blocker is backend CORS: api.webhubmaster.shop returns HTTP 400 'Disallowed CORS origin' on OPTIONS from this tunnel Origin. Once the backend team whitelists the tunnel host, re-run: (1) reload /services, (2) confirm multiple services-cat-<id> chips also have borderRadius 12px, (3) click first [data-testid^=\"add-\"] and assert [data-testid=\"view-booking-bar\"] has computed position fixed/absolute with bottom near window.innerHeight and rectBottom == innerHeight, (4) click first [data-testid^=\"svc-\"], on detail page assert !document.querySelector('[data-testid=\"add-to-booking-mobile\"]') AND document.querySelector('[data-testid=\"go-checkout-mobile\"]') AND document.querySelector('[data-testid=\"item-total\"]').",
+  "rca of the issue": "Root cause of blocked verification: backend CORS allowlist on api.webhubmaster.shop does not include the currently-active Expo tunnel origin (https://39bi06s-emergent_chandan-3001.exp.direct). Reproduction: `curl -i -X OPTIONS 'https://api.webhubmaster.shop/api/catalog/services' -H 'Origin: https://39bi06s-emergent_chandan-3001.exp.direct' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: content-type'` -> HTTP/1.1 400 Bad Request, body 'Disallowed CORS origin'. Mitigation: append the tunnel host (or a *.exp.direct regex) to the backend CORS allowed_origins config and reload the service."
+}
