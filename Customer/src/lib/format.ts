@@ -29,3 +29,4 @@ export const onlyDigits = (v: string, max?: number) => {
 };
 export const onlyAlpha = (v: string) => (v || "").replace(/[^a-zA-Z\s.'-]/g, "");
 export const isPhone10 = (v: string) => /^[6-9]\d{9}$/.test((v || "").trim());
+export const isPincode6 = (v: string) => /^\d{6}$/.test((v || "").trim());
