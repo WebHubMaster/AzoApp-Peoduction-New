@@ -63,6 +63,15 @@ Provide a working Expo preview URL + QR for Expo Go.
 - `/(customer)/refunds` = port of RefundsView (KPIs, search, date presets, tabs, cards, refund timeline). StatTile values auto-shrink.
 - Verified iteration_128 (100%). Remaining customer tabs: invoices, addresses, profile, referral, support, ai (placeholders).
 
+## My Bookings full re-port — 2026-09-26 (latest)
+- `/(customer)/orders` re-created 1:1 from web `BookingsView`/`BookingCard` (CustomerDashboard.jsx 428–751, 1061–1693):
+  SectionHeader + "Booking" btn, 5 KPI tiles (2-col), SearchInput (clear ×) + FilterButton (badge) → FilterSheet (DateRangePicker presets + custom MiniCalendar, Payment status, Sort), SegTabs w/ counts, 10/page Paginator (mobile), EmptyStates.
+- Card: icon tile, status/payment chips, copy-id (expo-clipboard), items list, OtpBanner, CurrentStepCard, **ScheduledCard** (countdown, lock pills), reschedule-pending (accept/reject/withdraw), additional-work due/paid, PremiumTimeline (ping dot, 5 steps), action chips (Pay / Call / Chat+unread / Track Live / View Details / Invoice / Book Again / Rate / Request Reschedule / Cancel / rated), spare parts approve/reject.
+- Dialogs: CancelDialog (centered, cancellation-preview breakdown rows + reason buttons), ReviewDialog, AdditionalPayDialog (amber header), RescheduleDialog (**SchedulePicker** port: calendar + `/bookings/slot-availability` slots), BookingDetailsDrawer (DBlocks, ServiceBreakdown, WorkProof lightbox, PaymentSummary from `breakdown`, Cancellation & Refund), InvoiceDrawer (brand logo, breakdown w/ charges, totals, coupon note; Download/WhatsApp via `/invoices?booking_id` → `/invoices/{id}/share-link` public PDF URL), BookingChat (full-screen, 5s polling, quick replies, seen/typing posts; unread via `/bookings/chats/summary` 30s).
+- New files: `src/components/customer/{BookingDrawers,BookingChat,SchedulePicker,ServiceBreakdown}.tsx`; `ux.tsx` gained SearchInput/SegTabs/DateRangePicker/OptionMenu/FilterSheet/Paginator/BottomSheet/PlainList. BrandContext now exposes `cancellation_reasons` + `email_logo`.
+- FIX: "VirtualizedLists should never be nested" — pages inside CustomerShell ScrollView must NOT use FlatList; orders/wallet/refunds/custom_jobs now use `PlainList`.
+- Verified: testing agent iteration_129 (backend 9/9, frontend 100%) + manual Rate / Reschedule request / Chat sheet flows.
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
@@ -73,7 +82,7 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Metro runs in CI (no-watch) mode under supervisor: after ANY `yarn add`/node_modules change run `sudo supervisorctl restart customer_expo`, else Expo Go gets a 500 ENOENT bundle error (stale file map).
 
 ## Backlog (page-by-page, in web NAV order)
-- P0: My Bookings (`BookingsView` + BookingCard, cancel/review/pay/repeat dialogs) — `orders` tab (supports `?focus=CODE`).
+- P0: ~~My Bookings~~ DONE (iteration_129).
 - P0: Services page (`/services` w/ ?q ?category), Service detail (`/service/:id`), Booking cart (`/book`) + Checkout (guest booking, coupons azo_coupon, schedule picker, address, payment) — placeholders now.
 - P1: Membership page, Blog list/detail, About/Contact static pages; cart count in navbar (CartContext port).
 - P1: Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor).

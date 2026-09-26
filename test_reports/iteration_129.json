@@ -1,0 +1,45 @@
+{
+  "summary": "iter129 — Verified the re-created Customer Expo 'My Bookings' page (/(customer)/orders) as a 1:1 port of Web Panel BookingsView. All acceptance criteria PASS: page-title 'My Bookings', 'Booking' button, 5 KPI tiles, search, Filters, 6 tabs with correct counts, orders-list with 10 booking cards, action chips per status, cancel dialog with cancellation-preview breakdown, Booking Details drawer, Invoice drawer with service-breakdown+Download. NO 'VirtualizedLists should never be nested' console warning on orders/wallet/refunds/custom_jobs. Backend endpoints all return 200 with expected shape.",
+  "backend_verified": {
+    "POST /api/auth/send-otp (+919000000004)": "200 · {sent:true, dev_otp:'123456'}",
+    "POST /api/auth/verify-otp": "200 · returns customer JWT for Priya Verma",
+    "GET /api/bookings (customer)": "200 · list of 10 bookings across all statuses (searching, pending_payment, cancelled, arrived_customer, started, assigned, completed, paid)",
+    "GET /api/bookings/{id}/cancellation-preview (AZOW392EY searching/paid)": "200 · {cancellable:true, refund:379.56, refund_pct:100, service_refund, gst_refund, item_refunds[], reason}",
+    "GET /api/bookings/chats/summary": "200 · chats[] with enabled flags and counterpart_name",
+    "GET /api/bookings/slot-availability?date=2026-01-20": "200 · {capacity:3, slots[24], remaining{}}",
+    "GET /api/invoices?booking_id=AZOF3C0ED&page_size=1": "200 · items[] with invoice_number INV-2026-000004, line_items",
+    "GET /api/invoices/{id}/share-link": "200 · {id, sig, path:'/invoices/pub/…?s=…'}",
+    "GET /api/site/config": "200 · cancellation_reasons=['Booked by mistake','Found a better price elsewhere','Service no longer needed','Partner is taking too long','Scheduling / timing issue','Want to change the service or add-ons']"
+  },
+  "frontend_verified": {
+    "/(customer)/orders page structure": "page-title='My Bookings', book-new visible, 5 KPI tiles (kpi-total=10, kpi-active=6, kpi-completed=2, kpi-cancelled=2, kpi-spent=₹1.77K), bk-search, bk-filter-btn all present.",
+    "Tabs with counts": "bk-tab-all=All 10, active=Active 6, searching=Searching 1, ongoing=Ongoing 3, completed=Completed 2, cancelled=Cancelled 2. Active tab KPI (6) matches Active tab count (6). Clicking Active reduces card list to 6.",
+    "Search filter": "Typing 'AZOF3C0ED' filters list to exactly 1 card.",
+    "Sort Amount High→Low (bk-sort-m-amt_hi)": "Card order changes from [YM3ZAX,W392EY,XGJDP4,CNE77J,01D58E] to [67D878,F3C0ED,3B9237,01D58E,033F6C] — reorder confirmed.",
+    "Filters sheet (filter-sheet)": "Opens with Date range (bk-date-m-trigger), Payment status (bk-payment-trigger), Sort by (bk-sort-m-trigger), Clear All (filter-clear), Apply Filters (filter-apply). Date range sheet exposes preset-today, preset-last-7-days, preset-last-30-days, preset-this-year. Selecting 'This Year' updates trigger label to 'This Year'.",
+    "Booking card content": "copy-id-<CODE>, timeline-toggle-<CODE> (expands), booking-status-<CODE> ('Cancelled', 'Finding your partner', 'Completed' chips). Cancelled cards show 'Booking cancelled' bar.",
+    "Action chips per status": "completed AZOF3C0ED: details+invoice+repeat ✓; completed+paid AZO033F6C: details+invoice+repeat ✓; searching AZOW392EY: details+cancel+track ✓; assigned AZO7D3BB6: details+cancel+track+chat+call ✓; pending_payment AZOXGJDP4: pay+details ✓.",
+    "Cancel dialog (cancel-AZOW392EY)": "cancel-dialog + cancel-breakdown render; cancel-refund-amount='₹379.56'; 7 reason buttons present (booked-by-mistake, found-a-better-price-elsewhere, service-no-longer-needed, partner-is-taking-too-long, scheduling-timing-issue, want-to-change-the-service-or-add-ons, other); cancel-keep closes dialog; cancel-confirm rendered.",
+    "Booking Details drawer (details-AZOF3C0ED)": "details-sheet opens; sections 'SERVICE INFORMATION', 'BOOKING INFORMATION', 'PAYMENT SUMMARY', 'Total Booking Amount' all rendered. 'View Invoice' footer visible.",
+    "Invoice drawer (invoice-AZO033F6C)": "invoice-sheet opens with 'Tax Invoice · #AZO033F6C', service-breakdown, Grand Total ₹706.82, Paid Amount, Payment method 'UPI / WALLET', Payment status 'PAID', invoice-download-AZO033F6C button present.",
+    "VirtualizedLists warning check": "Zero occurrences on /orders, /wallet, /refunds, /custom_jobs (previously reported warning is FIXED)."
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "orders.tsx and BookingCard/BookingDialogs/BookingDrawers appear well modularised. No files >700 lines noted during scan (recommend confirming BookingCard/BookingDialogs sizes remain under threshold as more per-status branches accrue).",
+    "cancel-confirm is a React Native Pressable — on RN-web the HTML disabled attribute is not set even when logically disabled. Automated 'confirm should be disabled until reason picked' checks must click and assert no state change, not rely on is_disabled().",
+    "In this dataset AZOF3C0ED has status=completed but payment_status=pending — the completed branch of the action chips still renders details+invoice+repeat which matches web panel behaviour. Consider whether 'invoice' should be hidden until payment_status is paid to avoid 'Invoice is not generated yet' toasts.",
+    "Chat/Rate/Book-Again/Reschedule flows were not exercised in this run to avoid mutating booking state; they exist as testIDs (chat-<CODE>, review-<CODE>, repeat-<CODE>) and are visible on qualifying cards but functional validation of the network mutations is deferred to a follow-up run."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (9/9 endpoints)", "frontend": "100% on the tested acceptance set (page structure, KPIs, tabs+counts, search, sort, filter sheet + presets, cancel dialog with backend preview, details drawer, invoice drawer, VirtualizedLists warning fix)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (dev mode; login via home → app-avatar → demo-customer).",
+  "seed_data_creation": "None. Booking dataset used as-is (10 bookings pre-existing).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login only works reliably by opening '/' → app-avatar → demo-customer (there is no phone-form on the home; the /login route hosts the phone flow). Bookings testIDs follow patterns: booking-card-<CODE>, booking-status-<CODE>, copy-id-<CODE>, timeline-toggle-<CODE>, details-<CODE>, invoice-<CODE>, repeat-<CODE>, review-<CODE>, cancel-<CODE>, pay-<CODE>, track-<CODE>, chat-<CODE>, call-<CODE>. Dialogs are RN Modals (portals) so global querying works. Cancellation preview endpoint returns full refund (100%) when partner_was_assigned=false. Chat/Rate/Reschedule/Book-Again mutation flows still to be validated end-to-end.",
+  "rca of the issue": "N/A — no failures encountered."
+}
