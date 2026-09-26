@@ -5,8 +5,9 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight } from "lucide-react-native";
-import { PRIMARY, SLATE, ROSE, shadowBtn } from "../../theme";
+import { PRIMARY, SLATE, ROSE, shadowBtn, useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
+import { useSiteConfig } from "../../context/BrandContext";
 import { useToast } from "../Toast";
 import { useCity } from "../../lib/location";
 import { useNotifPermission, enableNotifications } from "../../lib/permissions";
@@ -24,6 +25,9 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   const toast = useToast();
   const city = useCity();
   const notif = useNotifPermission();
+  const { isDark } = useTheme();
+  const { branding: cfg } = useSiteConfig();
+  const brandLogo = (isDark ? cfg.logo_dark || cfg.logo_light : cfg.logo_light || cfg.logo_dark) || "";
   const [locOpen, setLocOpen] = useState(false);
   const initials = (user?.name || "").split(" ").map((s: string) => s[0]).join("").slice(0, 2).toUpperCase();
 
@@ -43,15 +47,15 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
     <View testID="app-header" style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: "#fff" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1, minWidth: 110 }}>
-          {branding?.logo ? (
-            <Image testID="app-logo-image" source={{ uri: branding.logo }} style={{ height: 44, width: 150 }} contentFit="contain" contentPosition="left" />
+          {brandLogo ? (
+            <Image testID="app-logo-image" source={{ uri: brandLogo }} style={{ height: 44, width: 150 }} contentFit="contain" contentPosition="left" />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <Text style={{ fontSize: 25, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.6 }}>{branding?.site_name || "AzoApp"}</Text>
+              <Text style={{ fontSize: 25, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.6 }}>{branding?.site_name || cfg.site_name || "AzoApp"}</Text>
               <HomeIcon size={22} color={PRIMARY[700]} strokeWidth={2.4} />
             </View>
           )}
-          {!branding?.logo && branding?.show_tagline !== false && branding?.tagline ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding.tagline}</Text> : null}
+          {!brandLogo && branding?.show_tagline !== false && (branding?.tagline || cfg.tagline) ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding?.tagline || cfg.tagline}</Text> : null}
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
           <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
