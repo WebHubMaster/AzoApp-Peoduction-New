@@ -78,12 +78,20 @@ Provide a working Expo preview URL + QR for Expo Go.
 - New: `src/components/customer/{FormControls,AddressForm,ProfilePhotoPicker}.tsx` (PField/FInput/FSelect/DateField/Checkbox). `MiniCalendar` gained `initialView`.
 - Verified: testing agent iteration_131 (backend 8/8, frontend 100%).
 
+## Help & Support · Refer & Earn · AI Assistant · Profile shortcuts — 2026-09-26 (latest)
+- `/(customer)/support` = port of SupportCenter.jsx: list (search, range/status/sort OptionMenus, 6s poll), NewTicket form (POST `/support/tickets`), `SupportThread` (3s poll, day separators, own/admin bubbles, attachments via expo-image-picker → multipart POST `/support/upload` (api client now supports FormData), typing ping, close ticket w/ CenterDialog, lightbox, info panel: details / attachments / other tickets). Helpers in `supportShared.tsx`.
+- `/(customer)/referral` = port of ReferralView + ReferralShareCard: hero (code, copy/share), 4 StatTiles, branded card rendered as View + react-native-view-shot (Share card via expo-sharing / RN Share; Save image → web anchor download / native expo-media-library lazily required), WhatsApp wa.me link, apply friend's code (`POST /referral/apply`), history, How it works. Data: `GET /growth/referral`.
+- `/(customer)/ai` = port of AiChat.jsx (session_id reuse, POST `/ai/chat`). Backend AI provider not configured → stub reply (expected).
+- Profile page gained `profile-shortcuts` (Addresses / Wallet / Bookings).
+- Metro now runs with `CI=1` (start-expo.sh) because inotify watcher limit (12288) was exceeded after new packages → **restart `customer_expo` after every code change**.
+- Verified: testing agent iteration_132 (backend 9/9, frontend 100%).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
 
 ## Learnings
-- Expo dev server runs WITHOUT CI=1 now (file watching works → hot reload). After installing new packages still run `sudo supervisorctl restart customer_expo`.
+- Expo dev server runs WITH CI=1 (no file watching — inotify limit). Run `sudo supervisorctl restart customer_expo` after ANY code change or package install.
 - Web panel dev server for admin UI testing: `cd /app/web_panel && PORT=3002 BROWSER=none REACT_APP_BACKEND_URL=http://localhost:8001 nohup yarn start &` (node_modules installed).
 - Metro runs in CI (no-watch) mode under supervisor: after ANY `yarn add`/node_modules change run `sudo supervisorctl restart customer_expo`, else Expo Go gets a 500 ENOENT bundle error (stale file map).
 
@@ -92,5 +100,5 @@ Provide a working Expo preview URL + QR for Expo Go.
 - P0: Services page (`/services` w/ ?q ?category), Service detail (`/service/:id`), Booking cart (`/book`) + Checkout (guest booking, coupons azo_coupon, schedule picker, address, payment) — placeholders now.
 - P1: Membership page, Blog list/detail, About/Contact static pages; cart count in navbar (CartContext port).
 - P1: ~~Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor)~~ DONE (iterations 128–131).
-- P1: Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat).
+- P1: ~~Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat)~~ DONE (iteration_132). All web customer NAV tabs are now ported.
 - P2: OnboardingTour, ScheduleAlerts, RescheduleRing, SearchingStatus polling, push notifications, brand logo dark/light from admin.
