@@ -20,7 +20,7 @@ import { BookingChat, useChatSummary } from "../../src/components/customer/Booki
 
 const SORTS = [{ value: "new", label: "Newest first" }, { value: "old", label: "Oldest first" }, { value: "amt_hi", label: "Amount: High → Low" }, { value: "amt_lo", label: "Amount: Low → High" }];
 const PAYMENTS = [{ value: "all", label: "All payments" }, { value: "paid", label: "Paid" }, { value: "pending", label: "Pending" }, { value: "refunded", label: "Refunded" }];
-const BK_TABS = [{ key: "all", label: "All" }, { key: "active", label: "Active" }, { key: "searching", label: "Searching" }, { key: "ongoing", label: "Ongoing" }, { key: "completed", label: "Completed" }, { key: "cancelled", label: "Cancelled" }];
+const BK_TABS = [{ key: "active", label: "Active" }, { key: "searching", label: "Searching" }, { key: "ongoing", label: "Ongoing" }, { key: "completed", label: "Completed" }, { key: "cancelled", label: "Cancelled" }, { key: "all", label: "All" }];
 const ONGOING = ["assigned", "arrived_shop", "arrived_customer", "started"];
 const matchTab = (b: any, tab: string) => {
   switch (tab) {
