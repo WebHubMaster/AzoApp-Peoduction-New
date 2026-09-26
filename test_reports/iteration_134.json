@@ -1,0 +1,25 @@
+{
+  "summary": "Attempted to verify Customer Expo web app UI changes (square category tabs, removed +Add on service detail, bottom-fixed booking bar) at the provided tunnel URL https://39bi06s-emergent_chandan-3001.exp.direct/services. The Expo tunnel endpoint is OFFLINE and returns an ngrok error page (ERR_NGROK_3200: 'The endpoint 39bi06s-emergent_chandan-3001.exp.direct is offline'). No UI verification could be performed because the app is not being served.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Expo tunnel / dev server", "issue": "Tunnel endpoint returns ERR_NGROK_3200 (offline). Cannot load the app at https://39bi06s-emergent_chandan-3001.exp.direct/services. Only the ngrok offline page is displayed. This blocks all UI verification (square chips, view-booking-bar, removed add-to-booking-mobile).", "selector": "n/a", "priority": "CRITICAL"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "The Expo dev server / tunnel is offline. Main agent must restart the Expo tunnel (expo start --tunnel) and confirm it is reachable, then re-request testing. The URL https://39bi06s-emergent_chandan-3001.exp.direct is returning ngrok's ERR_NGROK_3200 offline page.",
+    "Once the tunnel is live, re-run verification for: (1) borderRadius=12 on services-cat-all/services-cat-<id>, (2) view-booking-bar fixed at bottom after tapping svc-add, (3) absence of data-testid 'add-to-booking-mobile' on service detail page (only go-checkout-mobile should remain).",
+    "Consider verifying against the web served locally (e.g., expo web on port 3001 exposed via the standard REACT_APP_BACKEND_URL / internal preview) rather than an unstable ngrok tunnel."
+  ],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "0% (tunnel offline, could not load app)"},
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Tunnel at https://39bi06s-emergent_chandan-3001.exp.direct was offline (ERR_NGROK_3200). Once main agent restarts Expo tunnel, next agent should navigate to /services (mobile viewport 390x844), wait for large ~14MB bundle (use 90-120s timeout with networkidle), then: (a) computedStyle borderRadius of [data-testid='services-cat-all'] should be 12px; (b) click [data-testid^='svc-add-'] and assert [data-testid='view-booking-bar'] is fixed with bottom:0; (c) click a [data-testid^='svc-'] card, navigate to service detail, assert [data-testid='add-to-booking-mobile'] is NULL and [data-testid='go-checkout-mobile'] exists.",
+  "rca of the issue": "Root cause: The ngrok/exp.direct tunnel session for the Expo dev server is not active. ngrok returns ERR_NGROK_3200 when the tunneled process has stopped or the ngrok agent is not connected. The Expo dev server itself may or may not be running; regardless the public tunnel URL is unreachable, so no browser-based testing of the freshly-served code is possible. Mitigation: restart 'expo start --tunnel' (or the wrapper that opens the exp.direct tunnel) and confirm 200 response before retesting."
+}
