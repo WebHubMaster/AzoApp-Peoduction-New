@@ -37,11 +37,16 @@
       "expo-notifications",
       [
         "expo-location",
-        { "locationWhenInUsePermission": "AzoApp uses your location to show services available in your area." }
+        {
+          "locationWhenInUsePermission": "AzoApp uses your location to show services available in your area."
+        }
       ],
       [
         "expo-speech-recognition",
-        { "microphonePermission": "AzoApp uses the microphone for voice search.", "speechRecognitionPermission": "AzoApp uses speech recognition for voice search." }
+        {
+          "microphonePermission": "AzoApp uses the microphone for voice search.",
+          "speechRecognitionPermission": "AzoApp uses speech recognition for voice search."
+        }
       ],
       [
         "expo-splash-screen",
@@ -52,7 +57,8 @@
           "imageWidth": 240
         }
       ],
-      "expo-speech-recognition"
+      "expo-speech-recognition",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": false
