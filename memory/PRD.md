@@ -86,6 +86,13 @@ Provide a working Expo preview URL + QR for Expo Go.
 - Metro now runs with `CI=1` (start-expo.sh) because inotify watcher limit (12288) was exceeded after new packages → **restart `customer_expo` after every code change**.
 - Verified: testing agent iteration_132 (backend 9/9, frontend 100%).
 
+## Booking flow 1:1 re-port (Services · Service detail · Checkout · Guest booking) — 2026-09-26 (latest)
+- `/(site)/services` = web Services.jsx: grouped by category, ServiceCard (3:4 image, % OFF, quick Add→Added), rate-card search results (`/ratecards/search`, addCustom → /book), floating "View your booking" bar.
+- `/(site)/service/[id]` gained gallery thumbnails, tier rating/review count, `RateCardBar` (`/ratecards/by-service/{id}` → bottom sheet with groups/rows, Add + live qty stepper via `cart.addCustom`).
+- `/(site)/book` = full Checkout.jsx port: `CheckoutUi.tsx` (Stepper, Qty, SectionCard, PriceRows, Steps 1–3) + `CheckoutSteps.tsx` (Steps 4–6, SuccessScreen). Live `/bookings/cart-quote` (guest OK, debounced, retry, keeps last pricing), upsell (`/catalog/upsell`), coupon validate/remove, **guest booking via `OtpInline`** (send/verify/new-user signup, customer-only guard) at step "Your Info", saved addresses w/ Pinned badge + OSM map, new AddressForm + GPS, payment online(mock)/wallet, grouped idempotent `/bookings/grouped` per category + `pay-wallet-group`/`booking_group`, new address auto-saved, success screen w/ order-group summary.
+- CartContext: `addCustom`, `minLabourCharge` (from `/auth/config`), `toReqItem` includes category_name.
+- Verified: testing agent iteration_133 (backend 12/12, frontend 100%: guest single + multi-category orders, partner blocked, new-user signup, empty cart).
+
 ## Status
 - 2026-09-25: Page 1 (Login + Dashboard Home + common shell) DONE & VERIFIED by testing agent (iteration_118: backend 14/14, frontend 13/13).
   Fixed both `.env` files (were empty on this pod → backend crash-loop).
@@ -97,7 +104,7 @@ Provide a working Expo preview URL + QR for Expo Go.
 
 ## Backlog (page-by-page, in web NAV order)
 - P0: ~~My Bookings~~ DONE (iteration_129).
-- P0: Services page (`/services` w/ ?q ?category), Service detail (`/service/:id`), Booking cart (`/book`) + Checkout (guest booking, coupons azo_coupon, schedule picker, address, payment) — placeholders now.
+- P0: ~~Services page, Service detail, Booking cart + Checkout (guest booking, coupons, schedule picker, address, payment)~~ DONE 1:1 (iteration_133).
 - P1: Membership page, Blog list/detail, About/Contact static pages; cart count in navbar (CartContext port).
 - P1: ~~Wallet, My Invoices (InvoiceCenter), Refunds, Custom Requests (MyCustomJobs), My Addresses (AddressBook), My Profile (ProfileEditor)~~ DONE (iterations 128–131).
 - P1: ~~Refer & Earn (ReferralView), Help & Support (SupportCenter), AI Assistant (AiChat)~~ DONE (iteration_132). All web customer NAV tabs are now ported.

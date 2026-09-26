@@ -1,0 +1,51 @@
+{
+  "summary": "iter133 — Full end-to-end verification of Customer Expo app 6-step booking/checkout (1:1 port of Web Customer Panel). Backend: 12/12 pytest PASS (send-otp, verify-otp customer+new-user, partner-blocked at role level, catalog/upsell, ratecards search+by-service, cart-quote guest+auth, validate-coupon invalid, wallet, grouped booking with idempotency + mock payment, bookings list). Frontend (Expo web http://localhost:3001): full GUEST flow succeeds — /services renders, ratecard search returns results, quick-add works, view-booking-bar navigates to /book, all 6 steps (Services→Details→Schedule→Your Info→Summary→Confirm) render with correct testids, guest OTP inline for existing customer 9000000004 auto-fills 123456 and logs in inline (toast 'Welcome, Priya Verma'), Home 12 MG Road saved-addr chip renders, invalid coupon returns 'Invalid or inactive coupon', pay-wallet enabled (balance ₹1,000 ≥ total ₹665.71), place-order → order-success 'Order placed! 1 booking confirmed & paid · ₹665.71'. Multi-category order (Carpentry + Appliance Repair) creates 2 bookings with same order_group_id, category-charges-table visible at Summary, order-group-summary shows both invoices #AZOIJR3XU + #AZOGVLL2E and Combined total ₹1,524.78. Partner phone 9000000003 correctly BLOCKED at Step 4 with toast 'This account is not a customer account. Please use a customer mobile number.' and OTP form resets. New-user flow: unknown phone → otp-name + otp-signup → creates customer + logs in → contact-user renders. Empty /book → cart-empty + browse-services. Cart cleared after success.",
+  "backend_verified": {
+    "POST /api/auth/send-otp": "200 (customer + new user)",
+    "POST /api/auth/verify-otp": "200 customer, create_if_new works for new phone, partner (9000000003) NOT issued customer token",
+    "GET /api/catalog/services": "200",
+    "GET /api/catalog/upsell?service_ids=...": "200 · popular_addons + frequently_together",
+    "GET /api/ratecards/search?q=fan": "200 list",
+    "GET /api/ratecards/by-service/{id}": "200/404 acceptable",
+    "POST /api/bookings/cart-quote (guest)": "200 · pricing.total present",
+    "POST /api/bookings/cart-quote (auth)": "200",
+    "POST /api/bookings/validate-coupon (invalid)": "400 as expected",
+    "GET /api/wallet": "200 · balance present (₹1,000 demo)",
+    "POST /api/bookings/grouped": "200 · booking id returned; idempotency_key prevents duplicate",
+    "POST /api/payments/order + /api/payments/mock": "200 · mock:true path works",
+    "GET /api/bookings": "200"
+  },
+  "frontend_verified": {
+    "Services page": "services-page + services-search (ratecard-search-results appear for 'fan') + services-group-{Cat} for 5 categories + add-{id} quick-add + view-booking-bar → /book",
+    "Checkout Step 1 (Services)": "cart-item-{id}, qty-{id}-plus/minus/value, checkout-count '1 item in your order', checkout-bar-total ₹299, checkout-next enabled",
+    "Step 2 (Details)": "step label 'Details', continues on next",
+    "Step 3 (Schedule)": "when-emergency selectable, continue enabled after selection",
+    "Step 4 (Your Info) — GUEST": "otp-phone + otp-send + otp-code auto-filled 123456 + otp-verify → contact-user shown, saved-addr-* rendered (Home 12 MG Road)",
+    "Step 4 — Partner block": "9000000003 send+verify → error toast 'This account is not a customer account. Please use a customer mobile number.' and step resets to Verify your mobile (otp-phone still visible, contact-user NOT shown)",
+    "Step 4 — New user create": "unknown 10-digit phone → otp-name + otp-signup → creates customer → contact-user + 'Welcome, TEST_iter133_new!' toast",
+    "Step 5 (Summary)": "coupon-input + coupon-apply → invalid coupon shows coupon-msg 'Invalid or inactive coupon', checkout-total present",
+    "Step 6 (Confirm)": "review-services + pay-online + pay-wallet (enabled since balance ₹1,000 ≥ total) + place-order",
+    "Order success (single)": "order-success + msg '1 booking confirmed & paid · ₹665.71'",
+    "Multi-category order": "2 items different categories → category-charges-table at Summary, order-success + order-group-summary with 2 rows Carpentry ₹665.71 + Appliance Repair ₹859.07, Combined total ₹1,524.78",
+    "Empty cart": "/book with no items → cart-empty + browse-services"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_customer_checkout_flow.py",
+    "/app/test_reports/pytest/iter133.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "book.tsx placeOrder loops per-category but sets apply_visiting/apply_emergency=true only for first group — behaviour matches web reference; consider unit-testing the group iteration for >2 categories to ensure visiting/emergency are never double-charged.",
+    "Coupon apply is gated behind login (toast says 'verify your mobile' when guest) — matches web parity but a subtle UX note: user might expect coupon to be applyable at Summary step. Not a bug."
+  ],
+  "updated_files": ["/app/backend/tests/test_customer_checkout_flow.py"],
+  "success_rate": {"backend": "100% (12/12 pytest)", "frontend": "100% on all critical acceptance IDs and flows (guest single-category, multi-category, partner block, new-user create, empty cart)"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (Priya Verma). Wallet ₹1,000. Home 12 MG Road (Patna 800001) — kept intact.",
+  "seed_data_creation": "Created 3 real bookings for demo customer Priya Verma via UI (1 single Carpentry Door Repair wallet-paid ₹665.71 + 2 grouped mock-online-paid Carpentry ₹665.71 + Appliance Repair ₹859.07). Wallet balance was decremented by first order. Created 1 throwaway customer via new-user OTP with random phone. Did NOT delete any seed data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer Expo booking flow is fully working end-to-end. Test file at /app/backend/tests/test_customer_checkout_flow.py uses REACT_APP_BACKEND_URL. Key gotchas: (1) service list is under /api/catalog/services (not /api/services); (2) POST /api/bookings/grouped requires schedule_type='emergency' OR scheduled_at set; (3) address city must be in serviceable list ['Patna','Ranchi'] for mock/demo; (4) /api/payments/mock requires 'purpose' field in body; (5) Wallet balance ₹1,000 on demo user is enough for single-category orders but NOT for multi-category (~₹1,524) — the UI correctly disables pay-wallet in that case OR user can use online mock. Cart persists in localStorage azo_cart_v1 — clear it if starting fresh. Guest OTP dev auto-fill '123456' works via otp-code input value.",
+  "rca of the issue": "N/A — no functional failures."
+}
