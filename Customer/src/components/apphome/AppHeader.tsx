@@ -14,6 +14,7 @@ import { useVoiceSearch } from "../../lib/voice";
 import { api } from "../../api/client";
 import { fmt } from "../../lib/format";
 import { LocationSheet } from "./LocationSheet";
+import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 
 
 export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: number }) {
@@ -84,14 +85,35 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   const timer = useRef<any>(null);
   const submitRef = useRef(onSubmit);
   submitRef.current = onSubmit;
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [heard, setHeard] = useState("");
+  const heardRef = useRef("");
+  heardRef.current = heard;
+  const startedRef = useRef(false);
+  const finalizedRef = useRef(false);
 
   const onVoice = useCallback((text: string, final: boolean) => {
-    setQ(text);
+    setQ(text); setHeard(text);
     if (text) setOpen(true);
-    if (final && text.trim()) submitRef.current(text.trim());
+    if (final && text.trim()) { finalizedRef.current = true; submitRef.current(text.trim()); setVoiceOpen(false); }
   }, []);
   const voice = useVoiceSearch(onVoice);
-  useEffect(() => { if (voice.error) toast.error(voice.error); }, [voice.error]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (voice.listening) startedRef.current = true; }, [voice.listening]);
+  // When recognition ends without a final result, submit whatever was heard, then close.
+  useEffect(() => {
+    if (!voiceOpen || !startedRef.current || voice.listening) return;
+    if (voice.error) return; // keep the error visible until the user cancels
+    const t = setTimeout(() => {
+      if (!finalizedRef.current) { const h = heardRef.current.trim(); if (h) submitRef.current(h); }
+      setVoiceOpen(false);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [voice.listening, voiceOpen]); // eslint-disable-line react-hooks/exhaustive-deps
+  const startVoice = () => {
+    if (!voice.supported) { toast.error("Voice search needs the installed AzoApp build (not available in Expo Go)."); return; }
+    setHeard(""); finalizedRef.current = false; startedRef.current = false; setVoiceOpen(true); voice.start();
+  };
+  const cancelVoice = () => { finalizedRef.current = true; voice.stop(); setVoiceOpen(false); };
 
   useEffect(() => {
     const term = q.trim();
@@ -111,11 +133,10 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && onSubmit(q.trim())} returnKeyType="search"
           placeholder="Search for services (AC Repair, Cleaning…)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }}><X size={16} color={SLATE[400]} /></Pressable> : null}
-        <Pressable testID="app-voice-btn" onPress={voice.toggle} style={{ height: 36, width: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : PRIMARY[50] }}>
+        <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} style={{ height: 36, width: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : PRIMARY[50] }}>
           {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? PRIMARY[700] : SLATE[300]} />}
         </Pressable>
       </View>
-      {voice.listening ? <Text testID="app-voice-listening" style={{ fontSize: 11, color: ROSE[600], marginTop: 6, fontWeight: "600" }}>● Listening… speak now</Text> : null}
       {open && q.trim().length >= 2 ? (
         <View testID="app-search-results" style={{ position: "absolute", top: 58, left: 20, right: 20, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={PRIMARY[700]} style={{ margin: 12 }} /> : null}
@@ -136,6 +157,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
           </ScrollView>
         </View>
       ) : null}
+      <VoiceSearchOverlay visible={voiceOpen} heard={heard} error={voice.error} onCancel={cancelVoice} />
     </View>
   );
 }
