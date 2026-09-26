@@ -177,8 +177,7 @@ export default function ServiceDetail() {
       </ScrollView>
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View><Text style={{ fontSize: 11, color: SLATE[400] }}>Item total</Text><Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>{fmt(unitPrice * qty)}</Text></View>
-        <Pressable testID="add-to-booking-mobile" onPress={() => addToBooking(false)} style={{ marginLeft: "auto", height: 44, paddingHorizontal: 20, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600" }}>Add</Text></Pressable>
-        {count > 0 ? <Pressable testID="go-checkout-mobile" onPress={() => router.push("/(site)/book" as any)} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>Checkout ({count})</Text></Pressable> : null}
+        {count > 0 ? <Pressable testID="go-checkout-mobile" onPress={() => router.push("/(site)/book" as any)} style={{ marginLeft: "auto", height: 44, paddingHorizontal: 24, borderRadius: 12, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>Checkout ({count})</Text></Pressable> : null}
       </View>
     </View>
   );
