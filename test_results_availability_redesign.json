@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://customer-auth-native.preview.emergentagent.com",
+  "base_url": "https://customer-auto-deploy.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",
