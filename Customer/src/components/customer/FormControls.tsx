@@ -67,7 +67,7 @@ export function DateField({ value, onChange, placeholder = "Pick a date", fromYe
 }
 
 export function Checkbox({ checked, onChange, label, testID }: { checked: boolean; onChange: (v: boolean) => void; label: string; testID?: string }) {
-  const { c, isDark } = useTheme();
+  const { isDark } = useTheme();
   return (
     <Pressable testID={testID} onPress={() => onChange(!checked)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
       <View style={{ height: 18, width: 18, borderRadius: 4, borderWidth: 1.5, borderColor: checked ? PRIMARY[700] : (isDark ? SLATE[600] : SLATE[300]), backgroundColor: checked ? PRIMARY[700] : "transparent", alignItems: "center", justifyContent: "center" }}>{checked ? <Check size={12} color="#fff" strokeWidth={3} /> : null}</View>
