@@ -87,7 +87,9 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="index" />
               <Stack.Screen name="onboarding/intro" />
               <Stack.Screen name="onboarding/notifications" />
-              <Stack.Screen name="(auth)/login" />
+              <Stack.Screen name="(auth)/welcome" />
+              <Stack.Screen name="(auth)/login" options={{ animation: "slide_from_right" }} />
+              <Stack.Screen name="(auth)/register" options={{ animation: "slide_from_right" }} />
               <Stack.Screen name="(partner)" />
               <Stack.Screen name="(merchant)" />
               <Stack.Screen name="(agent)" />

@@ -65,7 +65,7 @@ export default function MerchantProfile() {
         </Card>
 
         <View style={{ marginTop: spacing.sm }}>
-          <Button title="Log out" variant="outline" icon="logout" testID="logout-button" onPress={async () => { await logout(); router.replace("/(auth)/login"); }} />
+          <Button title="Log out" variant="outline" icon="logout" testID="logout-button" onPress={async () => { await logout(); router.replace("/(auth)/welcome"); }} />
         </View>
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, textAlign: "center", marginTop: 4 }}>
           {brand.branding.site_name} Merchant · v1.0.0

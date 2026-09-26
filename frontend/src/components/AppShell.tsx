@@ -134,7 +134,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
               <Icon name="account-outline" size={16} color={colors.textSecondary} />
               <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "500" }}>Edit Profile</Text>
             </Pressable>
-            <Pressable testID="logout-button" onPress={async () => { setMenu(false); await logout(); router.replace("/(auth)/login"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
+            <Pressable testID="logout-button" onPress={async () => { setMenu(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
               <Icon name="logout" size={16} color="#DC2626" />
               <Text style={{ color: "#DC2626", fontSize: 14, fontWeight: "500" }}>Logout</Text>
             </Pressable>

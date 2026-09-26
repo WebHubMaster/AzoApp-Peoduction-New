@@ -140,7 +140,7 @@ export default function MerchantRegistration() {
     setLocating(false);
   };
 
-  const doLogout = async () => { await logout(); router.replace("/(auth)/login"); };
+  const doLogout = async () => { await logout(); router.replace("/(auth)/welcome"); };
 
   if (!loaded) return <View style={{ flex: 1, backgroundColor: TW.slate100, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={P[400]} /></View>;
 

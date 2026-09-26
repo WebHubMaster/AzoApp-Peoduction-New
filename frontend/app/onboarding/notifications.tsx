@@ -72,7 +72,7 @@ export default function PermissionsOnboarding() {
     return () => sub.remove();
   }, [load]);
 
-  const finish = useCallback(async () => { await markPrompted(); router.replace("/(auth)/login"); }, [router]);
+  const finish = useCallback(async () => { await markPrompted(); router.replace("/(auth)/welcome"); }, [router]);
 
   const runOne = useCallback(async (key: PermKey): Promise<PermState | null> => {
     try {

@@ -37,7 +37,7 @@ export default function PartnerLayout() {
     <JobRingOverlay />
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} badges={badges} hideTabs={["profile"]} hideBarRoutes={["partner/support/[id]"]} onLogout={async () => { await logout(); router.replace("/(auth)/login"); }} />}
+      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} badges={badges} hideTabs={["profile"]} hideBarRoutes={["partner/support/[id]"]} onLogout={async () => { await logout(); router.replace("/(auth)/welcome"); }} />}
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="jobs" options={{ title: "Job Request" }} />
