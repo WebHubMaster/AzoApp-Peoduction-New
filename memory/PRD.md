@@ -139,3 +139,13 @@ Replicated the Partner/Merchant (`frontend/`) Expo EAS + GitHub Actions setup fo
 - **Bottom Menu:** `app/(site)/_layout.tsx` ka floating-pill `AppBottomNav` (Book Now FAB) ko web-style flat 5-tab `MobileBottomNav` se replace kiya — Home · Services · Booking(cart badge) · Orders · Profile (icons: Home, LayoutGrid, ShoppingBag, CalendarCheck, User), active=primary-700 / inactive=slate-400, white/95 bg + top border.
 - **Dynamic data fix:** `SiteNavbar` me `cartCount` pehle hardcoded `0` tha — ab `useCart()` se live count aata hai (navbar cart badge + bottom-nav Booking badge). Orders/Profile tabs auth-gated (`!user → /login`), theme-aware logo.
 - **Verification:** Code review (Customer app is not supervisor-managed in this pod — runs via Expo tunnel against production backend; no live screenshot/testing possible here).
+
+---
+
+## Update — 2026-06: Partner/Merchant App (frontend/) — Auth redesign (Welcome → Login → Register)
+- **User request:** Mockup-based 3-screen auth flow, 100% same UI/font/theme/icons; dynamic logo from Admin → Branding; NO "Register as Agent", NO "Continue with Google", NO language pill, NO demo-login buttons; Get Started screen comes AFTER existing 3-slide intro.
+- **Flow:** index → onboarding/intro → onboarding/notifications → `/(auth)/welcome` (Get Started: hero + Log In / Create New Account) → `/(auth)/login` (Welcome Back, +91 mobile → Send OTP → 6-box verify; new number → toast + redirect to register) · `/(auth)/register` (Join pill, Partner (Popular) & Merchant role cards w/ bullets + hero, Need Help card → role-themed phone → OTP → name → create account; existing number logs in directly).
+- **Files:** `app/(auth)/{welcome,login,register}.tsx`, `src/components/auth/OtpFlow.tsx` (shared send/verify/name logic + `homeFor` + `LOGIN_ROLES` guard), `src/components/auth/AuthUi.tsx` (AUTH palette, ROLE_ACCENT, BrandRow dynamic logo, BackButton, NeedHelpLink/Card → tel:/mailto: from site config, SafeSecureCard). Assets: `auth-login-illustration.png`, `hero-partner-arms.png`, `hero-merchant-apron.png`, `auth-welcome-bg.png`.
+- All logout targets now `router.replace("/(auth)/welcome")`. `_layout.tsx` registers the 3 auth screens.
+- Pod fixes: recreated `/app/backend/.env` (was missing → crash loop) and `/app/frontend/.env` (`EXPO_PUBLIC_BACKEND_URL` = preview URL). Expo for frontend runs manually: `cd /app/frontend && yarn start` (port 3000, CI=1 → restart after code changes). Expo Go: `exp://mobile-customer-nav.preview.emergentagent.com` (QR: `/app/frontend/expo_partner_qr.png`).
+- Verified: testing agent iteration_136 — backend 8/8, frontend 10/10 (partner/merchant login, customer blocked, new-number → register, merchant signup, existing-number register → login, logout → welcome).

@@ -10,7 +10,7 @@ import { useBrand } from "@/src/context/BrandContext";
 import { AUTH, AuthHeader, LOGIN_ACCENT, NeedHelpLink, SafeSecureCard } from "@/src/components/auth/AuthUi";
 import { OtpFlow, homeFor, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
 
-const ILLUSTRATION = require("../../assets/auth-login-illustration.png"); // eslint-disable-line @typescript-eslint/no-require-imports
+const ILLUSTRATION = require("../../assets/auth-login-illustration.png");
 
 export default function Login() {
   const insets = useSafeAreaInsets();

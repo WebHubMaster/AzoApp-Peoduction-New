@@ -5,7 +5,7 @@ import { Image } from "expo-image";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { useBrand } from "@/src/context/BrandContext";
 
-const FALLBACK_LOGO = require("../../../assets/brand-logo.png"); // eslint-disable-line @typescript-eslint/no-require-imports
+const FALLBACK_LOGO = require("../../../assets/brand-logo.png");
 
 /* Mockup palette — shared by Welcome / Login / Register screens. */
 export const AUTH = {
