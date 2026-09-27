@@ -49,6 +49,7 @@ from routes.superadmin_routes import router as superadmin_router  # noqa: E402
 from routes.custom_job_routes import router as custom_job_router  # noqa: E402
 from routes.physical_qr_routes import router as physical_qr_router  # noqa: E402
 from routes.agent_routes import router as agent_router  # noqa: E402
+from routes.subscription_routes import router as subscription_router  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
 
 app = FastAPI(title="AzoApp API")
@@ -70,7 +71,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router]:
     api_router.include_router(r)
 
 app.include_router(api_router)
@@ -381,6 +382,24 @@ async def startup():
         asyncio.create_task(_partner_availability_sweep())
     except Exception as e:  # noqa: BLE001
         logger.warning("partner availability sweep not started: %s", e)
+
+    # Subscription finalize sweep: auto-finalize subscriptions whose period has
+    # ended and open a PENDING settlement for admin review. Runs on boot, then hourly.
+    async def _subscription_finalize_sweep():
+        from services import subscription_service as _subs
+        while True:
+            try:
+                n = await _subs.finalize_due_subscriptions()
+                if n:
+                    logger.info("subscriptions finalized: %s", n)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("subscription finalize sweep error: %s", e)
+            await asyncio.sleep(3600)  # hourly
+
+    try:
+        asyncio.create_task(_subscription_finalize_sweep())
+    except Exception as e:  # noqa: BLE001
+        logger.warning("subscription finalize sweep not started: %s", e)
 
     # One-time repair: legacy bookings with inline base64 job photos → real files/URLs.
     # Runs in the background so boot is not delayed; loops until nothing is left.

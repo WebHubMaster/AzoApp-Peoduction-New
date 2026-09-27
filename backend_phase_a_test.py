@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import pytz
 
 # Configuration
-BASE_URL = "https://azoapp-login.preview.emergentagent.com/api"
+BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

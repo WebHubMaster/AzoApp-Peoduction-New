@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://azoapp-login.preview.emergentagent.com/api"
+BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

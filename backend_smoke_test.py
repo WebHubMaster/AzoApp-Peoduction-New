@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 # Base URL
-BASE_URL = "https://azoapp-login.preview.emergentagent.com/api"
+BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
 
 # Test credentials (OTP = 123456 for all)
 CREDENTIALS = {

@@ -3,7 +3,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
   Percent, Tag, Bell, Send, Ticket, Image, FileText, HelpCircle, ShieldCheck, Sparkles,
   Activity, MapPin, ShieldAlert, Boxes, Truck, Megaphone, Crown, Gift, ScrollText, ShieldQuestion, KeyRound,
   Layers, Award, GraduationCap, Briefcase, TrendingUp, Receipt, Coins, Handshake, BadgePercent,
-  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone } from "lucide-react";
+  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone, Calendar } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
@@ -44,12 +44,14 @@ import AdminDashboardHome from "@/pages/admin/AdminDashboardHome";
 import PerformanceCenter from "@/pages/admin/PerformanceCenter";
 import CustomJobsAdmin from "@/pages/admin/CustomJobsAdmin";
 import QRConfig, { AgentPayouts } from "@/pages/admin/QRConfig";
+import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
 
 const NAV = [
   { group: "Overview", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
 
   { group: "Bookings", icon: ClipboardList, items: [
     { key: "bookings", label: "Bookings", icon: ClipboardList },
+    { key: "subscriptions", label: "Subscriptions", icon: Calendar },
   ] },
   { group: "Live Dispatch Feed", icon: Radio, items: [
     { key: "dispatch_feed", label: "Live Dispatch Feed", icon: Radio },
@@ -336,6 +338,7 @@ export default function AdminDashboard() {
       <>
       {active === "dashboard" && <AdminDashboardHome onOpenBooking={(b) => setBookingDetailId(b.id)} onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }} />}
       {active === "bookings" && <S.BookingsSection onOpen={(b) => setBookingDetailId(b.id)} tab={bookingsTab} onTabChange={setBookingsTab} />}
+      {active === "subscriptions" && <SubscriptionsAdmin />}
       {active === "payouts" && <S.PayoutsSection />}
       {active === "refunds" && <RefundsHub />}
       {active === "partners" && <PeopleList role="partner" onView={setViewUser} onCountsChanged={loadDots} />}

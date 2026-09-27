@@ -1,13 +1,14 @@
 /** Same NAV + status helpers as web_panel/src/pages/customer/CustomerDashboard.jsx */
-import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, Sparkles } from "lucide-react-native";
+import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, Sparkles, CalendarHeart } from "lucide-react-native";
 
-export type NavKey = "home" | "orders" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "profile" | "referral" | "support" | "ai";
+export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "profile" | "referral" | "support" | "ai";
 
 export interface NavItem { key: NavKey; label: string; short: string; icon: any; route: string }
 
 export const NAV: NavItem[] = [
   { key: "home", label: "Home", short: "Home", icon: Home, route: "/(customer)" },
   { key: "orders", label: "My Bookings", short: "Bookings", icon: Package, route: "/(customer)/orders" },
+  { key: "subscriptions", label: "Subscriptions", short: "Subscribe", icon: CalendarHeart, route: "/(customer)/subscriptions" },
   { key: "custom_jobs", label: "Custom Requests", short: "Custom", icon: Wrench, route: "/(customer)/custom_jobs" },
   { key: "refunds", label: "Refunds", short: "Refunds", icon: Receipt, route: "/(customer)/refunds" },
   { key: "invoices", label: "My Invoices", short: "Invoices", icon: FileText, route: "/(customer)/invoices" },

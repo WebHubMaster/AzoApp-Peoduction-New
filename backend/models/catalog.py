@@ -87,6 +87,11 @@ class ServiceCreate(BaseModel):
     cancelable: bool = True
     at_store: bool = False
     at_doorstep: bool = True
+    # Recurring subscription service (Maid/Cook/Nanny/Caretaker/Driver/Housekeeping...).
+    # When enabled, the customer picks a plan (daily/weekly/monthly/yearly), pays the
+    # FULL plan amount upfront, and the partner is settled from actual completed days.
+    is_subscription: bool = False
+    subscription_plans: List[dict] = []  # [{plan_type,label,price,duration_days,working_days,weekly_offs}]
     approval_status: str = "approved"   # approved | disapproved
     is_customizable: bool = False
     ai_diagnosis: bool = False

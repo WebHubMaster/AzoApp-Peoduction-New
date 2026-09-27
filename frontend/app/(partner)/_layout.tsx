@@ -18,8 +18,9 @@ export default function PartnerLayout() {
   const active = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active") });
   const badges = { jobs: jobs.data?.length || 0, active: active.data?.length || 0 };
 
-  const ROUTES: Record<string, string> = { availability: "/partner/availability", bankkyc: "/partner/payouts", earnings: "/partner/earnings", invoices: "/partner/invoices", incentives: "/partner/rewards", analytics: "/partner/analytics", starterkit: "/partner/starter-kit", onboarding: "/partner/verification", support: "/partner/support", permissions: "/partner/permissions" };
+  const ROUTES: Record<string, string> = { subscriptions: "/partner/subscriptions", availability: "/partner/availability", bankkyc: "/partner/payouts", earnings: "/partner/earnings", invoices: "/partner/invoices", incentives: "/partner/rewards", analytics: "/partner/analytics", starterkit: "/partner/starter-kit", onboarding: "/partner/verification", support: "/partner/support", permissions: "/partner/permissions" };
   const moreItems: MoreItem[] = ([
+    { key: "subscriptions", label: "Maid Subscriptions", icon: "calendar-heart", onPress: () => router.push("/partner/subscriptions") },
     { key: "availability", label: "My Availability", icon: "calendar-clock-outline", onPress: () => router.push("/partner/availability") },
     { key: "permissions", label: "Alerts & Permissions", icon: "bell-cog-outline", onPress: () => router.push("/partner/permissions") },
     { key: "bankkyc", label: "Bank & KYC", icon: "credit-card-outline", onPress: () => router.push("/partner/payouts") },
@@ -44,7 +45,7 @@ export default function PartnerLayout() {
       <Tabs.Screen name="active" options={{ title: "Active Job" }} />
       <Tabs.Screen name="wallet" options={{ title: "Wallet & Withdraw" }} />
       <Tabs.Screen name="booking/[id]" options={{ href: null }} />
-      {["analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]"].map((n) => (
+      {["subscriptions", "analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]"].map((n) => (
         <Tabs.Screen key={n} name={`partner/${n}`} options={{ href: null }} />
       ))}
     </Tabs>

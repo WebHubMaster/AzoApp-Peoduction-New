@@ -438,7 +438,52 @@ const blankSvc = {
   addons: [], tiers: [], highlights: [], faqs: [], rating: 4.8, review_count: 0,
   cancelable: true, at_store: false, at_doorstep: true, approval_status: "approved",
   is_featured: false, is_trending: false, show_on_home: true, status: "active", seo: {},
+  is_subscription: false, subscription_plans: [],
 };
+
+const WEEKDAYS = [["Mon", 0], ["Tue", 1], ["Wed", 2], ["Thu", 3], ["Fri", 4], ["Sat", 5], ["Sun", 6]];
+const DEFAULT_SUB_PLANS = () => [
+  { plan_type: "daily", label: "Daily", price: 0, duration_days: 1, working_days: 0, weekly_offs: [] },
+  { plan_type: "weekly", label: "Weekly", price: 0, duration_days: 7, working_days: 0, weekly_offs: [6] },
+  { plan_type: "monthly", label: "Monthly", price: 0, duration_days: 30, working_days: 26, weekly_offs: [6] },
+  { plan_type: "yearly", label: "Yearly", price: 0, duration_days: 365, working_days: 0, weekly_offs: [6] },
+];
+
+function SubscriptionPlanEditor({ plans, onChange }) {
+  const upd = (i, patch) => onChange(plans.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
+  const toggleOff = (i, wd) => {
+    const cur = plans[i].weekly_offs || [];
+    upd(i, { weekly_offs: cur.includes(wd) ? cur.filter((x) => x !== wd) : [...cur, wd] });
+  };
+  return (
+    <div className="mt-3 space-y-3" data-testid="sub-plan-editor">
+      {plans.map((p, i) => (
+        <div key={p.plan_type} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-bold text-slate-700 dark:text-slate-200 w-20 capitalize">{p.label || p.plan_type}</span>
+            <label className="text-xs text-slate-500">Price (₹)
+              <Input type="number" data-testid={`sub-price-${p.plan_type}`} value={p.price} onChange={(e) => upd(i, { price: Number(e.target.value) })} className="h-8 w-28 mt-1" />
+            </label>
+            <label className="text-xs text-slate-500">Duration (days)
+              <Input type="number" value={p.duration_days} onChange={(e) => upd(i, { duration_days: Number(e.target.value) })} className="h-8 w-24 mt-1" />
+            </label>
+            <label className="text-xs text-slate-500">Working days
+              <Input type="number" data-testid={`sub-wd-${p.plan_type}`} value={p.working_days} onChange={(e) => upd(i, { working_days: Number(e.target.value) })} className="h-8 w-24 mt-1" placeholder="auto" />
+            </label>
+          </div>
+          <div className="flex items-center gap-1 mt-2 flex-wrap">
+            <span className="text-xs text-slate-400 mr-1">Weekly off:</span>
+            {WEEKDAYS.map(([lbl, wd]) => (
+              <button type="button" key={wd} onClick={() => toggleOff(i, wd)}
+                className={`text-xs px-2 py-1 rounded-md border ${(p.weekly_offs || []).includes(wd) ? "bg-primary-600 text-white border-primary-600" : "border-slate-200 text-slate-500"}`}>{lbl}</button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <p className="text-xs text-slate-400">Leave "Working days" as 0 to auto-compute from duration minus weekly-offs. Commission &amp; tax are applied dynamically from Admin settings and snapshotted per subscription at booking time.</p>
+    </div>
+  );
+}
 
 /* ---- Premium stepper ---- */
 const WizardStepper = ({ step, setStep, done }) => (
@@ -909,6 +954,16 @@ export const ServiceWizard = () => {
                 <p className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1"><Tag className="h-4 w-4 text-primary-600" />Variants / Packs</p>
                 <p className="text-xs text-slate-400 mb-3">Urban-Company style — e.g. <b>1 AC / 2 ACs</b> or <b>Full legs / Full body</b>. Each variant can have its own image, price, rating &amp; &ldquo;Bestseller&rdquo; badge. Duplicate a variant to reuse it with minor changes.</p>
                 <VariantEditor tiers={f.tiers || []} onChange={(t) => setF({ ...f, tiers: t })} />
+              </div>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1"><Calendar className="h-4 w-4 text-primary-600" />Recurring Subscription Service</p>
+                    <p className="text-xs text-slate-400">Maid / Cook / Nanny etc. Customer pays the full plan upfront; the partner is settled from actual completed working days.</p>
+                  </div>
+                  <Switch data-testid="svc-is-subscription" checked={!!f.is_subscription} onCheckedChange={(v) => setF({ ...f, is_subscription: v, subscription_plans: v && (!f.subscription_plans || !f.subscription_plans.length) ? DEFAULT_SUB_PLANS() : (f.subscription_plans || []) })} />
+                </div>
+                {f.is_subscription && <SubscriptionPlanEditor plans={f.subscription_plans || []} onChange={(p) => setF({ ...f, subscription_plans: p })} />}
               </div>
             </Section>
           )}

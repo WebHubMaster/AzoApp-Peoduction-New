@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://azoapp-login.preview.emergentagent.com/api"
+BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test users
