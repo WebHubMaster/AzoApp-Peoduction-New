@@ -1,0 +1,47 @@
+{
+  "summary": "Verified duplicate-title + narrow-width bug fix on /partner?tab=subscriptions (web panel) and ran all listed regressions. All checks pass. Screenshots at /app/test_reports/partner_subs_maid_1920.png and /app/test_reports/partner_subs_detail_1920.png confirm single 'Maid Subscriptions' page title and full-width 3-column card grid.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_checks": {
+    "maid_partner_9000000020": {
+      "panel_header_H1_MaidSubscriptions_once": true,
+      "panel_subheader_ManageYourMaidSubscriptions_count": 1,
+      "old_internal_subheader_RecurringWorkAssignedToYou_count": 0,
+      "partner_subscriptions_root_bounds_at_1920x900": {"width": 1600, "left": 288, "right": 1888},
+      "cards_rendered": 3,
+      "grid_layout_full_width": true,
+      "detail_view_opens": true,
+      "customer_card_rows_present": ["Customer","Phone","Address","Work","Preferred time","Duration","Weekly off"],
+      "earnings_breakdown_card_present": true,
+      "daily_schedule_present": true,
+      "back_button_returns_to_list": true,
+      "sidebar_rewards_challenges_hidden": true,
+      "sidebar_maid_subscriptions_visible": true
+    },
+    "non_maid_partner_9000000003": {
+      "sidebar_rewards_challenges_visible": true,
+      "sidebar_maid_subscriptions_visible": true,
+      "subscriptions_page_loads_without_errors": true
+    },
+    "customer_9000000004": {
+      "account_tab_subscriptions_loads": true
+    }
+  },
+  "test_report_links": ["/app/test_reports/partner_subs_maid_1920.png", "/app/test_reports/partner_subs_detail_1920.png"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PartnerSubscriptions.jsx is clean (~226 lines). Panel header is authoritative source of the title; component starts with w-full and responsive grids (sm:grid-cols-2 xl:grid-cols-3) for cards and upcoming strip. Detail view uses lg:grid-cols-2 for cards and md:grid-cols-2 xl:grid-cols-3 for daily schedule.",
+    "'Upcoming work · next 7 days' strip is conditional on upcoming.length > 0 — in current seed data most schedules end today so the strip was not rendered during the list view test; this is expected behavior, not a bug."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "Maid partner 9000000020 / OTP 123456; Non-maid partner 9000000003 / OTP 123456; Customer 9000000004 / OTP 123456",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PartnerSubscriptions duplicate-header + full-width fix verified. Layout uses w-full container + responsive grids. Panel header comes from PartnerDashboard. Maid partners have 'incentives' (Rewards & Challenges) hidden by user.skills-includes-maid check; non-maid partners see all nav items."
+}

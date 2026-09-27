@@ -204,6 +204,7 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - `PartnerDashboard.jsx`: NAV gained "Maid Subscriptions" (CalendarHeart); render `active === "subscriptions"`; "Rewards & Challenges" NAV item HIDDEN when `user.skills` includes "maid" (parity with mobile _layout.tsx).
 - Verified via screenshots (Sunita web login): list + upcoming strip render, Rewards hidden in sidebar, customer/work details card, backdated Mark done → "Marked completed" toast, Completed 1, Earned ₹400, settlement ₹400.
 - Parity matrix now: Customer subscriptions (web ✓ / app ✓), Partner/maid subscriptions (web ✓ / app ✓), Admin subscriptions (web ✓).
+- FIX (user-reported): partner subscriptions page showed the title TWICE (panel header + component's own header) and was constrained to max-w-3xl. PartnerSubscriptions.jsx now has NO local header (panel header is the single title) and uses w-full + responsive grids (cards sm:2/xl:3 cols, detail cards lg:2 cols, schedule sm:2/xl:3 cols). Verified by testing agent iteration_139 (frontend 100%): single title, full-width 1600px grid at 1920px, maid sidebar hides Rewards, non-maid sees all, customer tab unaffected.
 
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).
