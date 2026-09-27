@@ -190,5 +190,13 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - `backend/seed_maid_partners.py`: 5 maid partners (+919000000020-24: Sunita Devi, Geeta Sharma, Lakshmi Bai, Anita Kumari, Meena Devi; skills maid+cleaning), activates Home Maid (image/description/highlights), deactivates TEST_* subscription services, seeds 2 attendance-history subs (monthly→Sunita: 6/25 done, earned ₹1,920, absent ₹320; weekly→Geeta: 5/6 done, earned ₹1,666.65). Idempotent (seed="maid_demo").
 - Verified E2E via screenshots: login → /services (Home Maid card) → plan picker → dialog → pay ₹10,000 → My Subscriptions (new sub SUBZXRGVG active, unassigned). Admin /partners lists all 5 maids; maid login (+919000000020) sees earned/max-allocation/absent.
 
+### Maid panel upgrades + full-cycle demos — 2026-09-27 (latest)
+- Partner app (frontend/): maid-focused changes —
+  - `(partner)/_layout.tsx`: "Rewards & Challenges" More-menu item HIDDEN when partner skills include "maid".
+  - `partner/subscriptions.tsx`: SubDetail gained "Customer & work details" card (customer, tappable phone, address, work, preferred time, duration, weekly off, notes); pending-banner for unmarked past days (backdated marking already allowed by API — UI surfaces it); list view gained "Upcoming work · next 7 days" strip.
+  - NEW `src/components/partner/home/MaidTasksCard.tsx` on partner home: Today/Missed/Upcoming tasks (next 7 days) with per-day ₹ + quick "Mark done" (past days markable). Rendered in `(partner)/index.tsx` after PriorityAction.
+- Demos verified via screenshots: Sunita login → home tasks card → backdated "Missed" day marked done (SUBSXENO3 earned ₹400) → sub detail customer card → More menu w/o Rewards. Admin web: SUBZXRGVG assigned Lakshmi Bai via drawer; SUBOI7PPF finalize→review→approve→pay (Sunita wallet ₹0→₹1,920, subscription_settlements record written); UI-only settle cycle retested on SUBHL09NP (paid ₹2,080).
+- Partner Expo runs manually on port 3005 for web screenshots (`cd /app/frontend && CI=1 npx expo start --port 3005`); web panel still on 3000.
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

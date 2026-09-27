@@ -11,7 +11,9 @@ import { useRealtime } from "@/src/context/RealtimeContext";
 export default function PartnerLayout() {
   const router = useRouter();
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth() as any;
+  // Maid partners get a work-focused menu — Rewards & Challenges is hidden for them.
+  const isMaid = (user?.skills || []).includes("maid");
 
   const { connected } = useRealtime();
   const jobs = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 15000 });
@@ -31,7 +33,7 @@ export default function PartnerLayout() {
     { key: "starterkit", label: "Starter Kit", icon: "package-variant-closed", onPress: () => router.push("/partner/starter-kit") },
     { key: "onboarding", label: "Profile & KYC", icon: "check-circle-outline", onPress: () => router.push("/partner/verification") },
     { key: "support", label: "Help & Support", icon: "lifebuoy", onPress: () => router.push("/partner/support") },
-  ] as MoreItem[]).map((it) => ({ ...it, active: pathname.startsWith(ROUTES[it.key]) }));
+  ] as MoreItem[]).filter((it) => !(isMaid && it.key === "incentives")).map((it) => ({ ...it, active: pathname.startsWith(ROUTES[it.key]) }));
 
   return (
     <>

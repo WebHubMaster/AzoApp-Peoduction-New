@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -12,6 +12,16 @@ import { useToast } from "@/src/components/Toast";
 
 const SLATE = "#94A3B8";
 const todayIso = () => new Date().toISOString().slice(0, 10);
+const plusDays = (n: number) => { const t = new Date(); t.setDate(t.getDate() + n); return t.toISOString().slice(0, 10); };
+const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Date.getDay()
+const WD_FULL = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]; // backend weekday(): Mon=0..Sun=6
+
+const dayLabel = (iso: string) => {
+  if (iso === todayIso()) return "Today";
+  if (iso === plusDays(1)) return "Tomorrow";
+  const d = new Date(iso + "T00:00:00");
+  return `${WD_SHORT[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`;
+};
 
 const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   scheduled: { label: "Scheduled", color: "#0659B2", bg: "#F0F7FE" },
@@ -46,7 +56,12 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
   });
 
   const schedule: any[] = s.schedule || [];
+  // Past scheduled days stay markable — the maid can mark yesterday's work later too.
   const canMark = (d: any) => s.status === "active" && d.status === "scheduled" && d.date <= todayIso();
+  const pendingDays = schedule.filter((d) => canMark(d) && d.date < todayIso());
+  const addr = s.address || {};
+  const addrText = [addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—";
+  const weeklyOffText = (s.weekly_offs || []).length ? (s.weekly_offs as number[]).map((d) => WD_FULL[d]).join(", ") : "None";
 
   return (
     <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}>
@@ -69,6 +84,21 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
         </View>
       </LinearGradient>
 
+      {/* Customer & work details — kiska kaam, kahan, kab tak, kya karna hai */}
+      <Surface testID="sub-customer-card" style={{ padding: 18, gap: 12 }}>
+        <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800" }}>Customer & work details</Text>
+        <KV k="Customer" v={s.customer_name || "—"} />
+        <KV k="Phone" v={s.customer_phone
+          ? <Pressable testID="sub-customer-call" onPress={() => Linking.openURL(`tel:${s.customer_phone}`)}><Text style={{ color: colors.primary, fontWeight: "700" }}>{s.customer_phone}</Text></Pressable>
+          : "—"} />
+        <KV k="Address" v={addrText} />
+        <KV k="Work" v={`${s.service_name || "Home Maid"}${s.category_name ? " · " + s.category_name : ""}`} />
+        <KV k="Preferred time" v={s.preferred_time || "—"} />
+        <KV k="Duration" v={`${shortDate(s.start_date)} – ${shortDate(s.end_date)}${s.duration_days ? ` · ${s.duration_days} days` : ""}`} />
+        <KV k="Weekly off" v={weeklyOffText} />
+        {s.notes ? <KV k="Notes" v={s.notes} /> : null}
+      </Surface>
+
       <Surface testID="sub-earning-card" style={{ padding: 18, gap: 12 }}>
         <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800" }}>Earnings breakdown</Text>
         <KV k="Maximum Partner Allocation" v={money(s.partner_allocation)} />
@@ -86,13 +116,18 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       {/* Daily history + mark complete */}
       <Surface style={{ padding: 18 }}>
         <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800", marginBottom: 12 }}>Daily schedule & earnings</Text>
+        {pendingDays.length > 0 ? (
+          <View testID="sub-pending-banner" style={{ backgroundColor: "#FFFBEB", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+            <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600" }}>{pendingDays.length} past day(s) not marked yet — aap neeche "Mark done" se baad me bhi mark kar sakti hain.</Text>
+          </View>
+        ) : null}
         <View style={{ gap: 8 }}>
           {schedule.map((d) => {
             const m = DAY_META[d.status] || DAY_META.scheduled;
             return (
               <View key={d.date} testID={`sub-day-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, padding: 10 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{shortDate(d.date)}</Text>
+                  <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{dayLabel(d.date)} · {shortDate(d.date)}</Text>
                   <View style={{ alignSelf: "flex-start", marginTop: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: m.bg }}>
                     <Text style={{ color: m.color, fontSize: 11, fontWeight: "700" }}>{m.label}</Text>
                   </View>
@@ -126,6 +161,15 @@ export default function MaidSubscriptions() {
   const open = subs.find((x) => x.id === openId);
   const reload = () => qc.invalidateQueries({ queryKey: ["maid-subs"] });
 
+  // Advance view — next 7 days of scheduled work across all active subscriptions.
+  const upcoming = subs
+    .filter((s) => s.status === "active")
+    .flatMap((s) => (s.schedule || [])
+      .filter((d: any) => d.status === "scheduled" && d.date >= todayIso() && d.date <= plusDays(7))
+      .map((d: any) => ({ subId: s.id, date: d.date, customer: s.customer_name, time: s.preferred_time || "" })))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 7);
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" panelTitle="Maid Subscriptions" />
@@ -138,6 +182,22 @@ export default function MaidSubscriptions() {
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
         >
+          {upcoming.length > 0 ? (
+            <Surface testID="maid-upcoming" style={{ padding: 16, gap: 10 }}>
+              <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800" }}>Upcoming work · next 7 days</Text>
+              {upcoming.map((t) => (
+                <Pressable key={`${t.subId}-${t.date}`} testID={`maid-task-${t.subId}-${t.date}`} onPress={() => setOpenId(t.subId)}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 10, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, paddingTop: 10 }}>
+                  <View style={{ borderRadius: 8, backgroundColor: t.date === todayIso() ? "#ECFDF5" : colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 4 }}>
+                    <Text style={{ color: t.date === todayIso() ? "#059669" : colors.primary, fontSize: 11, fontWeight: "800" }}>{dayLabel(t.date)}</Text>
+                  </View>
+                  <Text style={{ color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 }}>{t.customer}</Text>
+                  <Text style={{ color: SLATE, fontSize: 12 }}>{t.time || "—"}</Text>
+                </Pressable>
+              ))}
+            </Surface>
+          ) : null}
+
           {q.isLoading ? (
             <Surface style={{ padding: 24 }}><View style={{ height: 120, borderRadius: 12, backgroundColor: colors.surfaceSubtle }} /></Surface>
           ) : subs.length === 0 ? (

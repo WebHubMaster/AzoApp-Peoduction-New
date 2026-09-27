@@ -13,6 +13,7 @@ import { Icon, MdiName } from "@/src/components/Icon";
 import { AppShellHeader } from "@/src/components/AppShell";
 import { Skeleton } from "@/src/components/ui";
 import { MissedRingRecovery } from "@/src/components/partner/home/MissedRingRecovery";
+import { MaidTasksCard } from "@/src/components/partner/home/MaidTasksCard";
 import { PermissionBanner } from "@/src/components/PermissionBanner";
 import { ProPerks, OnboardingBanner } from "@/src/components/partner/home/HomeBanners";
 import { EarningsHero, RangeFilter } from "@/src/components/partner/home/EarningsHero";
@@ -151,6 +152,7 @@ export default function PartnerHome() {
           <>
             <HeaderCard user={user} kit={kit} online={online} connected={connected} onToggle={(v) => toggleOnline.mutate(v)} />
             <PriorityAction k={k} kycApproved={kycApproved} kit={kit} nav={nav} />
+            <MaidTasksCard />
             <EarningsHero k={k} chart={chart} filter={filter} setFilter={setFilter} updating={dash.isPlaceholderData} />
             <WalletCard wallet={wallet} nav={nav} />
             <KpiGrid k={k} nav={nav} />
