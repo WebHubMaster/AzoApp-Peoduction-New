@@ -198,5 +198,12 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - Demos verified via screenshots: Sunita login → home tasks card → backdated "Missed" day marked done (SUBSXENO3 earned ₹400) → sub detail customer card → More menu w/o Rewards. Admin web: SUBZXRGVG assigned Lakshmi Bai via drawer; SUBOI7PPF finalize→review→approve→pay (Sunita wallet ₹0→₹1,920, subscription_settlements record written); UI-only settle cycle retested on SUBHL09NP (paid ₹2,080).
 - Partner Expo runs manually on port 3005 for web screenshots (`cd /app/frontend && CI=1 npx expo start --port 3005`); web panel still on 3000.
 
+### Web ↔ App parity: Partner web panel gets Maid Subscriptions — 2026-09-27 (latest)
+- User asked full parity ("jo kaam app me hoga wo web me bhi & vice versa"). Web partner panel was MISSING the Maid Subscriptions screen that the mobile app had.
+- NEW `web_panel/src/pages/partner/PartnerSubscriptions.jsx`: 1:1 web port of mobile `partner/subscriptions.tsx` — assigned-subscriptions list, "Upcoming work · next 7 days" strip, detail view (hero working/completed/absent, Customer & work details card w/ tappable phone + address + duration + weekly-off + notes, Earnings breakdown, Daily schedule with backdated "Mark done" via POST /subscriptions/{id}/days/{date}/complete).
+- `PartnerDashboard.jsx`: NAV gained "Maid Subscriptions" (CalendarHeart); render `active === "subscriptions"`; "Rewards & Challenges" NAV item HIDDEN when `user.skills` includes "maid" (parity with mobile _layout.tsx).
+- Verified via screenshots (Sunita web login): list + upcoming strip render, Rewards hidden in sidebar, customer/work details card, backdated Mark done → "Marked completed" toast, Completed 1, Earned ₹400, settlement ₹400.
+- Parity matrix now: Customer subscriptions (web ✓ / app ✓), Partner/maid subscriptions (web ✓ / app ✓), Admin subscriptions (web ✓).
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

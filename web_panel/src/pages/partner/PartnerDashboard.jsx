@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import SchedulePicker from "@/components/site/SchedulePicker";
-import { Briefcase, Wallet, TrendingUp, Power, MapPin, Star, CheckCircle2, Navigation, ShieldCheck, Award, Gift, GraduationCap, CalendarClock, FileText, LineChart, Crown, Zap, BadgeCheck } from "lucide-react";
+import { Briefcase, Wallet, TrendingUp, Power, MapPin, Star, CheckCircle2, Navigation, ShieldCheck, Award, Gift, GraduationCap, CalendarClock, FileText, LineChart, Crown, Zap, BadgeCheck, CalendarHeart } from "lucide-react";
 import MerchantInvoices from "@/pages/merchant/finance/MerchantInvoices";
 import PremiumAnalytics from "@/components/PremiumAnalytics";
 import api, { fmt } from "@/lib/api";
@@ -18,6 +18,7 @@ import MissedRingRecovery from "@/components/partner/MissedRingRecovery";
 import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
 import { VerificationSection, SkillsSection, IncentivesSection, TrainingSection, AvailabilitySection } from "@/pages/partner/PartnerModule3";
 import { ChallengesRewards } from "@/pages/partner/ChallengesRewards";
+import PartnerSubscriptions from "@/pages/partner/PartnerSubscriptions";
 import { PartnerHome } from "@/pages/partner/PartnerHomeV2";
 import { LayoutDashboard, CreditCard } from "lucide-react";
 import { LifeBuoy } from "lucide-react";
@@ -47,6 +48,7 @@ const NAV = [
   { key: "home", label: "Dashboard", icon: LayoutDashboard },
   { key: "jobs", label: "Job Request", icon: Briefcase },
   { key: "active", label: "Active Job", icon: Navigation },
+  { key: "subscriptions", label: "Maid Subscriptions", icon: CalendarHeart },
   { key: "availability", label: "My Availability", icon: CalendarClock },
   { key: "wallet", label: "Wallet & Withdraw", icon: Wallet },
   { key: "bankkyc", label: "Bank & KYC", icon: CreditCard },
@@ -152,9 +154,14 @@ export default function PartnerDashboard() {
     );
   }
 
+  // Maid partners get a work-focused menu — hide "Rewards & Challenges" for them
+  // (parity with the mobile partner app).
+  const isMaid = (user?.skills || []).includes("maid");
+  const partnerNav = isMaid ? NAV.filter((n) => n.key !== "incentives") : NAV;
+
   return (
     <>
-    <PanelLayout title="Partner" nav={NAV} active={active} onNavigate={setActive}
+    <PanelLayout title="Partner" nav={partnerNav} active={active} onNavigate={setActive}
       appMode primaryTabs={PARTNER_TABS} badges={{ jobs: jobs.length, active: activeJobs.length }}>
       <OnboardingTour />
       <div className={`${active === "home" ? "hidden" : active === "invoices" ? "hidden" : "hidden lg:flex"} items-center justify-between mb-6`}>
@@ -289,6 +296,7 @@ export default function PartnerDashboard() {
       {active === "availability" && <AvailabilitySection />}
       {active === "wallet" && <PartnerWalletV2 onNavigate={setActive} />}
       {active === "incentives" && <ChallengesRewards />}
+      {active === "subscriptions" && <PartnerSubscriptions />}
       {active === "analytics" && <PremiumAnalytics role="partner" title="Earnings Analytics" />}
       {active === "invoices" && <MerchantInvoices role="partner" shopName={user?.name || "Partner"} title="My Invoices" subtitle="Booking, earnings, settlement & withdrawal documents" />}
       {active === "support" && <SupportCenter />}
