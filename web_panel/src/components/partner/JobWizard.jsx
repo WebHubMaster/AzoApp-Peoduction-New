@@ -109,7 +109,7 @@ function DetailsStep({ b }) {
         <Title icon={ClipboardList}>Job basics</Title>
         <div className="grid grid-cols-2 gap-2">
           <KV label="Service" value={b.service_name} /><KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Schedule" value={b.scheduled_at ? fmtDT(b.scheduled_at) : "Now"} /><KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
+          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} /><KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
         </div>
         {items.length > 0 && (
           <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800">

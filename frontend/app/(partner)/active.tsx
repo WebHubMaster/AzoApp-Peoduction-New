@@ -306,7 +306,7 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
   const [secs, setSecs] = useState(Number.isFinite(s.seconds_to_start) ? s.seconds_to_start : 0);
   useEffect(() => { setSecs(Number.isFinite(s.seconds_to_start) ? s.seconds_to_start : 0); }, [s.seconds_to_start]);
   useEffect(() => { const t = setInterval(() => setSecs((v: number) => v - 1), 1000); return () => clearInterval(t); }, []);
-  if (!s.is_scheduled) return null;
+  if (!s.is_scheduled && !s.is_instant) return null;
   const locked = !!s.comm_locked;
   const started = s.phase === "active";
   const due = s.phase === "due";
@@ -323,7 +323,7 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
           <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent, alignItems: "center", justifyContent: "center" }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: accent, fontSize: 10.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>Scheduled Service</Text>
+            <Text style={{ color: accent, fontSize: 10.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{s.is_instant ? "Instant Service · Booked" : "Scheduled Service"}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="calendar-outline" size={13} color={colors.textMuted} /><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{s.scheduled_date}</Text></View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="clock-outline" size={13} color={colors.textMuted} /><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{s.scheduled_time}</Text></View>
@@ -469,7 +469,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
 
   const sched = b.schedule || {};
   const commLocked = !!sched.comm_locked;
-  const showSchedule = sched.is_scheduled && !["completed", "paid", "cancelled"].includes(status);
+  const showSchedule = !["completed", "paid", "cancelled"].includes(status);
   const pendingReq = b.reschedule_request && b.reschedule_request.status === "pending" ? b.reschedule_request : null;
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
   const canRequestResched = !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(status);

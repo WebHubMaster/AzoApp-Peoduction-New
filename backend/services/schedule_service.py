@@ -169,6 +169,7 @@ def schedule_state(booking):
 
     state = {
         "is_scheduled": is_scheduled,
+        "is_instant": not is_scheduled,
         "schedule_type": schedule_type,
         "scheduled_at": raw,
         "scheduled_at_utc": sched_utc.isoformat() if sched_utc else None,
@@ -187,6 +188,27 @@ def schedule_state(booking):
         "phase": "normal",
     }
     if not is_scheduled:
+        # Instant ("Now") booking → show the booking time as the job timing,
+        # everything is unlocked and the job is ready to start right away.
+        booked = None
+        for key in ("accepted_at", "created_at"):
+            try:
+                booked = datetime.fromisoformat(str(booking.get(key) or "").replace("Z", "+00:00"))
+                break
+            except ValueError:
+                continue
+        if booked is not None:
+            if booked.tzinfo is None:
+                booked = booked.replace(tzinfo=timezone.utc)
+            local = booked.astimezone(APP_TZ)
+            state["scheduled_date"] = _fmt_date(local)
+            state["scheduled_time"] = _fmt_time(local)
+            state["scheduled_label"] = f"Now · booked {_fmt_date(local)} at {_fmt_time(local)}"
+        else:
+            state["scheduled_label"] = "Now (instant)"
+        state["seconds_to_start"] = -1
+        state["seconds_to_unlock"] = -1
+        state["phase"] = "active" if status == "started" else (status if status in _UNLOCKED_STATUSES else "due")
         return state
 
     local = sched_utc.astimezone(APP_TZ)

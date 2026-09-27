@@ -194,7 +194,7 @@ function DetailsStep({ b }: { b: any }) {
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           <KV label="Service" value={b.service_name} />
           <KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Schedule" value={b.scheduled_at ? fmtDT(b.scheduled_at) : "Now"} />
+          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} />
           <KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
         </View>
         {items.length ? (

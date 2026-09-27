@@ -364,7 +364,7 @@ const ActiveJob = ({ b, onUpdate }) => {
   const pendingReq = b.reschedule_request && b.reschedule_request.status === "pending" ? b.reschedule_request : null;
   const iRequested = pendingReq && pendingReq.requested_by_role === "partner";
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
-  const showSchedule = sched.is_scheduled && !["completed", "paid", "cancelled"].includes(b.status);
+  const showSchedule = !["completed", "paid", "cancelled"].includes(b.status);
   const canRequestResched = !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(b.status);
   const requestResched = async () => {
     if (!reschedVal) return toast.error("Pick a new date & time");

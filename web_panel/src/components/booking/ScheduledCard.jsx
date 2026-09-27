@@ -36,7 +36,7 @@ export function fmtCountdown(total) {
 export default function ScheduledCard({ schedule, role = "customer", compact = false }) {
   const s = schedule || {};
   const secs = useCountdown(s.seconds_to_start);
-  if (!s.is_scheduled) return null;
+  if (!s.is_scheduled && !s.is_instant) return null;
 
   const locked = !!s.comm_locked;
   const started = s.phase === "active";
@@ -64,7 +64,7 @@ export default function ScheduledCard({ schedule, role = "customer", compact = f
           </span>
           <div>
             <p className={`text-[10.5px] font-extrabold uppercase tracking-wider ${locked ? "text-primary-700 dark:text-primary-300" : "text-emerald-700 dark:text-emerald-300"}`}>
-              Scheduled Service
+              {s.is_instant ? "Instant Service · Booked" : "Scheduled Service"}
             </p>
             <p className="text-sm font-black text-slate-900 dark:text-white leading-tight flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 opacity-70" /> {s.scheduled_date}</span>
