@@ -1,9 +1,10 @@
 /** Partner (maid) Subscriptions — web panel parity with the mobile app screen.
  * Assigned recurring subscriptions, upcoming-work strip, and a detail view with
  * customer & work details, earnings breakdown and a daily schedule where the maid
- * can Mark done (past scheduled days stay markable → backdated marking). */
+ * can Mark done (past scheduled days stay markable → backdated marking).
+ * NOTE: the panel header (title) is rendered by PartnerDashboard — no local header. */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { CalendarHeart, ArrowLeft, Phone, MapPin, Clock, CheckCircle2 } from "lucide-react";
+import { CalendarHeart, ArrowLeft, Phone, MapPin } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { EmptyState, SkeletonList, StatusChip } from "@/components/customer/ux";
 import { toast } from "sonner";
@@ -59,7 +60,7 @@ function SubDetail({ sub, onBack, reload }) {
 
   const set = s.settlement || {};
   return (
-    <div className="max-w-3xl space-y-4" data-testid="partner-sub-detail">
+    <div className="w-full space-y-4" data-testid="partner-sub-detail">
       <button onClick={onBack} data-testid="partner-sub-back" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary-700 hover:text-primary-800">
         <ArrowLeft className="h-4 w-4" /> All subscriptions
       </button>
@@ -69,49 +70,51 @@ function SubDetail({ sub, onBack, reload }) {
         <p className="text-[11px] uppercase tracking-widest text-primary-200 font-bold">{s.plan_label || s.plan_type} {s.category_name || "Maid"} Subscription</p>
         <h2 className="text-2xl font-extrabold mt-1">{s.customer_name}</h2>
         <p className="text-sm text-primary-200 mt-0.5">{s.start_date} → {s.end_date} · {s.code}</p>
-        <div className="grid grid-cols-3 gap-3 mt-5">
+        <div className="grid grid-cols-3 gap-3 mt-5 max-w-xl">
           {[["Working", s.working_days], ["Completed", s.completed_days], ["Absent", s.absent_days]].map(([k, v]) => (
             <div key={k} className="rounded-xl bg-white/10 p-3"><p className="text-[10px] uppercase text-primary-200">{k}</p><p className="text-xl font-extrabold mt-0.5">{v ?? 0}</p></div>
           ))}
         </div>
       </div>
 
-      {/* Customer & work details */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5" data-testid="partner-sub-customer-card">
-        <p className="font-bold text-slate-900">Customer & work details</p>
-        {[
-          ["Customer", s.customer_name || "—"],
-          ["Phone", s.customer_phone ? <a href={`tel:${s.customer_phone}`} className="inline-flex items-center gap-1 text-primary-700 font-semibold"><Phone className="h-3.5 w-3.5" />{s.customer_phone}</a> : "—"],
-          ["Address", <span className="inline-flex items-start gap-1"><MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />{addrText}</span>],
-          ["Work", `${s.service_name || "Home Maid"}${s.category_name ? " · " + s.category_name : ""}`],
-          ["Preferred time", s.preferred_time || "—"],
-          ["Duration", `${s.start_date} → ${s.end_date}${s.duration_days ? ` · ${s.duration_days} days` : ""}`],
-          ["Weekly off", weeklyOffText],
-          ...(s.notes ? [["Notes", s.notes]] : []),
-        ].map(([k, v]) => (
-          <div key={k} className="flex justify-between gap-4 text-sm border-t border-slate-50 pt-2 first:border-0 first:pt-0">
-            <span className="text-slate-500">{k}</span>
-            <span className="text-slate-800 font-medium text-right">{v}</span>
-          </div>
-        ))}
-      </div>
+      <div className="grid lg:grid-cols-2 gap-4 items-start">
+        {/* Customer & work details */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5" data-testid="partner-sub-customer-card">
+          <p className="font-bold text-slate-900">Customer & work details</p>
+          {[
+            ["Customer", s.customer_name || "—"],
+            ["Phone", s.customer_phone ? <a href={`tel:${s.customer_phone}`} className="inline-flex items-center gap-1 text-primary-700 font-semibold"><Phone className="h-3.5 w-3.5" />{s.customer_phone}</a> : "—"],
+            ["Address", <span className="inline-flex items-start gap-1"><MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5 shrink-0" />{addrText}</span>],
+            ["Work", `${s.service_name || "Home Maid"}${s.category_name ? " · " + s.category_name : ""}`],
+            ["Preferred time", s.preferred_time || "—"],
+            ["Duration", `${s.start_date} → ${s.end_date}${s.duration_days ? ` · ${s.duration_days} days` : ""}`],
+            ["Weekly off", weeklyOffText],
+            ...(s.notes ? [["Notes", s.notes]] : []),
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-4 text-sm border-t border-slate-50 pt-2 first:border-0 first:pt-0">
+              <span className="text-slate-500">{k}</span>
+              <span className="text-slate-800 font-medium text-right">{v}</span>
+            </div>
+          ))}
+        </div>
 
-      {/* Earnings breakdown */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5" data-testid="partner-sub-earning-card">
-        <p className="font-bold text-slate-900">Earnings breakdown</p>
-        {[
-          ["Maximum Partner Allocation", fmt(s.partner_allocation), "text-slate-800"],
-          ["Per-day earning", fmt(s.per_day_earning), "text-slate-800"],
-          ["Earned so far", fmt(s.accrued_earning), "text-emerald-600 font-bold"],
-          ["Absent Adjustment (to platform)", "−" + fmt(s.absent_adjustment), "text-rose-600"],
-        ].map(([k, v, c]) => (
-          <div key={k} className="flex justify-between text-sm"><span className="text-slate-500">{k}</span><span className={c}>{v}</span></div>
-        ))}
-        <div className="flex justify-between items-center border-t border-slate-100 pt-2.5">
-          <span className="text-slate-500 text-sm">Settlement</span>
-          <div className="flex items-center gap-2">
-            <StatusChip label={(set.status && set.status !== "none") ? set.status : (s.status === "active" ? "active" : "pending")} tone={setTone((set.status && set.status !== "none") ? set.status : s.status)} />
-            <span className="font-extrabold text-primary-700">{fmt(set.amount ?? s.settlement_amount)}</span>
+        {/* Earnings breakdown */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2.5" data-testid="partner-sub-earning-card">
+          <p className="font-bold text-slate-900">Earnings breakdown</p>
+          {[
+            ["Maximum Partner Allocation", fmt(s.partner_allocation), "text-slate-800"],
+            ["Per-day earning", fmt(s.per_day_earning), "text-slate-800"],
+            ["Earned so far", fmt(s.accrued_earning), "text-emerald-600 font-bold"],
+            ["Absent Adjustment (to platform)", "−" + fmt(s.absent_adjustment), "text-rose-600"],
+          ].map(([k, v, c]) => (
+            <div key={k} className="flex justify-between text-sm"><span className="text-slate-500">{k}</span><span className={c}>{v}</span></div>
+          ))}
+          <div className="flex justify-between items-center border-t border-slate-100 pt-2.5">
+            <span className="text-slate-500 text-sm">Settlement</span>
+            <div className="flex items-center gap-2">
+              <StatusChip label={(set.status && set.status !== "none") ? set.status : (s.status === "active" ? "active" : "pending")} tone={setTone((set.status && set.status !== "none") ? set.status : s.status)} />
+              <span className="font-extrabold text-primary-700">{fmt(set.amount ?? s.settlement_amount)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -124,7 +127,7 @@ function SubDetail({ sub, onBack, reload }) {
             <p className="text-xs text-amber-700 font-medium">{pendingDays.length} past day(s) not marked yet — neeche "Mark done" se aap baad me bhi mark kar sakti hain.</p>
           </div>
         )}
-        <div className="space-y-1.5 max-h-96 overflow-y-auto">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-1.5 max-h-96 overflow-y-auto pr-1">
           {schedule.map((d) => {
             const [lbl, tone] = DAY_META[d.status] || DAY_META.scheduled;
             return (
@@ -173,21 +176,14 @@ export default function PartnerSubscriptions() {
   if (open) return <SubDetail sub={open} onBack={() => setOpenId(null)} reload={load} />;
 
   return (
-    <div className="max-w-3xl space-y-4" data-testid="partner-subscriptions">
-      <div>
-        <h2 className="font-heading font-extrabold text-xl text-slate-900 flex items-center gap-2">
-          <CalendarHeart className="h-5 w-5 text-primary-700" /> Maid Subscriptions
-        </h2>
-        <p className="text-xs text-slate-500 mt-0.5">Recurring work assigned to you — mark each working day done to earn.</p>
-      </div>
-
+    <div className="w-full space-y-4" data-testid="partner-subscriptions">
       {upcoming.length > 0 && (
         <div className="bg-white rounded-2xl border border-slate-200 p-4" data-testid="partner-upcoming">
           <p className="font-bold text-slate-900 mb-2">Upcoming work · next 7 days</p>
-          <div className="divide-y divide-slate-50">
+          <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-6 divide-y-0">
             {upcoming.map((t) => (
               <button key={`${t.subId}-${t.date}`} data-testid={`partner-task-${t.subId}-${t.date}`} onClick={() => setOpenId(t.subId)}
-                className="w-full flex items-center gap-3 py-2 text-left hover:bg-slate-50 rounded-lg px-1">
+                className="w-full flex items-center gap-3 py-2 text-left hover:bg-slate-50 rounded-lg px-2">
                 <span className={`text-[11px] font-bold px-2 py-1 rounded-lg ${t.date === todayIso() ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-primary-700"}`}>{dayLabel(t.date)}</span>
                 <span className="flex-1 text-sm font-medium text-slate-800">{t.customer}</span>
                 <span className="text-xs text-slate-400">{t.time || "—"} · {fmt(t.earning)}/day</span>
@@ -200,7 +196,7 @@ export default function PartnerSubscriptions() {
       {loading ? <SkeletonList rows={3} /> : subs.length === 0 ? (
         <EmptyState icon={CalendarHeart} title="No subscriptions yet" desc="Recurring maid subscriptions assigned to you will appear here." testId="partner-subscriptions-empty" />
       ) : (
-        <div className="space-y-3">
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
           {subs.map((s) => {
             const set = s.settlement || {};
             const st = (set.status && set.status !== "none") ? set.status : s.status;
