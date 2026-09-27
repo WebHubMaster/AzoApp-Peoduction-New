@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, ChevronLeft, ChevronRight, Camera, ImageOff } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Camera, ImageOff, PlayCircle, MapPin } from "lucide-react";
 
 /**
  * Shared work-proof (before/after photo) viewer used by Customer, Partner & Admin
@@ -9,6 +9,7 @@ import { X, ChevronLeft, ChevronRight, Camera, ImageOff } from "lucide-react";
  */
 
 const norm = (x) => (typeof x === "string" ? x : (x?.url || x?.image || ""));
+export const isVideoUrl = (u) => /\.(mp4|mov|webm|3gp|mkv)(\?|$)/i.test(u || "");
 
 export function Lightbox({ images, index, title, onClose, onNav }) {
   const list = useMemo(() => (images || []).map(norm).filter(Boolean), [images]);
@@ -42,8 +43,13 @@ export function Lightbox({ images, index, title, onClose, onNav }) {
             className="absolute left-2 sm:left-4 z-10 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white grid place-items-center disabled:opacity-30 transition">
             <ChevronLeft className="h-5 w-5" /></button>
         )}
-        <img src={list[i]} alt={title || "Work photo"} data-testid="lightbox-image"
-          className="max-h-full max-w-full object-contain rounded-lg shadow-2xl select-none" draggable={false} />
+        {isVideoUrl(list[i]) ? (
+          <video key={list[i]} src={list[i]} controls autoPlay playsInline data-testid="lightbox-video"
+            className="max-h-full max-w-full object-contain rounded-lg shadow-2xl" />
+        ) : (
+          <img src={list[i]} alt={title || "Work photo"} data-testid="lightbox-image"
+            className="max-h-full max-w-full object-contain rounded-lg shadow-2xl select-none" draggable={false} />
+        )}
         {list.length > 1 && (
           <button onClick={() => onNav?.(Math.min(i + 1, list.length - 1))} disabled={i === list.length - 1} data-testid="lightbox-next"
             className="absolute right-2 sm:right-4 z-10 h-10 w-10 rounded-full bg-white/10 hover:bg-white/20 text-white grid place-items-center disabled:opacity-30 transition">
@@ -67,7 +73,9 @@ export function PhotoGrid({ images, title, testid }) {
           <button key={idx} type="button" onClick={() => setOpen(idx)}
             data-testid={testid ? `${testid}-img-${idx}` : undefined}
             className="h-16 w-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:ring-2 hover:ring-primary-400 transition cursor-zoom-in">
-            <img src={u} alt="" className="h-full w-full object-cover" loading="lazy" />
+            {isVideoUrl(u)
+              ? <span className="h-full w-full grid place-items-center bg-slate-900 text-white" data-testid="proof-video-thumb"><PlayCircle className="h-7 w-7" /></span>
+              : <img src={u} alt="" className="h-full w-full object-cover" loading="lazy" />}
           </button>
         ))}
       </div>
@@ -82,7 +90,7 @@ function ProofBlock({ label, imgs, testid }) {
     <div>
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1.5">
         <Camera className="h-3 w-3" /> {label}
-        <span className="normal-case font-semibold text-emerald-600">{imgs.length} photo{imgs.length > 1 ? "s" : ""}</span>
+        <span className="normal-case font-semibold text-emerald-600">{imgs.length} file{imgs.length > 1 ? "s" : ""}</span>
       </p>
       {imgs.length
         ? <PhotoGrid images={imgs} title={label} testid={testid} />
@@ -92,12 +100,35 @@ function ProofBlock({ label, imgs, testid }) {
 }
 
 /** Before/After work-proof section (read-only) for customer & admin panels. */
-export default function WorkProofSection({ evidence, compact = false }) {
+export function CheckinProof({ checkin }) {
+  const [open, setOpen] = useState(false);
+  if (!checkin?.selfie_url) return null;
+  return (
+    <div data-testid="checkin-proof" className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-2.5">
+      <button type="button" onClick={() => setOpen(true)} className="h-16 w-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-zoom-in">
+        <img src={checkin.selfie_url} alt="Partner selfie" className="h-full w-full object-cover" />
+      </button>
+      <div className="min-w-0 text-xs">
+        <p className="font-bold text-slate-700 dark:text-slate-200">Partner check-in selfie</p>
+        <p className="text-slate-500">{checkin.at ? new Date(checkin.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</p>
+        {checkin.lat != null && (
+          <a href={`https://www.google.com/maps?q=${checkin.lat},${checkin.lng}`} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-1 font-semibold ${checkin.far ? "text-amber-600" : "text-emerald-600"}`}>
+            <MapPin className="h-3 w-3" /> {checkin.distance_km != null ? `~${checkin.distance_km} km from address` : "Live location"}{checkin.far ? " · far" : ""}
+          </a>
+        )}
+      </div>
+      {open && <Lightbox images={[checkin.selfie_url]} index={0} title="Check-in selfie" onClose={() => setOpen(false)} onNav={() => {}} />}
+    </div>
+  );
+}
+
+export default function WorkProofSection({ evidence, compact = false, checkin = null }) {
   const before = (evidence?.before || []).map(norm).filter(Boolean);
   const after = (evidence?.after || []).map(norm).filter(Boolean);
-  if (!before.length && !after.length) return null;
+  if (!before.length && !after.length && !checkin?.selfie_url) return null;
   return (
     <div className={compact ? "space-y-3" : "rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-3"} data-testid="work-proof-section">
+      <CheckinProof checkin={checkin} />
       <ProofBlock label="Before Work" imgs={before} testid="proof-before" />
       <ProofBlock label="After Work" imgs={after} testid="proof-after" />
     </div>

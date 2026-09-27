@@ -1,19 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Pressable, Linking, Modal, TextInput, ScrollView, Alert, Platform, RefreshControl } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, Pressable, Linking, Modal, ScrollView, Alert, Platform, RefreshControl } from "react-native";
 import { CalendarSlotPicker } from "@/src/components/CalendarSlotPicker";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
-import * as Location from "expo-location";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
-import { api, mediaUrl } from "@/src/api/client";
+import { api } from "@/src/api/client";
 import { AppShellHeader, StatusBadge } from "@/src/components/AppShell";
 import { Button } from "@/src/components/ui";
-import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@/src/components/reg/Photo";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
@@ -445,100 +441,23 @@ function JobStepper({ status }: { status: string }) {
   );
 }
 
-/* ── OtpBoxes (4 boxes) ── */
-function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; onChange: (v: string) => void; len?: number; testID?: string }) {
-  const { colors } = useTheme();
-  const refs = useRef<(TextInput | null)[]>([]);
-  const digits = Array.from({ length: len }, (_, i) => (value || "")[i] || "");
-  const setAt = (i: number, d: string) => {
-    const arr = (value || "").padEnd(len, " ").split("");
-    arr[i] = d || " ";
-    onChange(arr.join("").replace(/ /g, "").slice(0, len));
-    if (d && refs.current[i + 1]) refs.current[i + 1]?.focus();
-  };
-  return (
-    <View style={{ flexDirection: "row", gap: 8 }} testID={testID || "otp-boxes"}>
-      {digits.map((d, i) => (
-        <TextInput
-          key={i}
-          ref={(el) => { refs.current[i] = el; }}
-          testID={`otp-box-${i}`}
-          value={d}
-          keyboardType="number-pad"
-          maxLength={1}
-          onChangeText={(t) => setAt(i, t.replace(/\D/g, "").slice(-1))}
-          onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && refs.current[i - 1]) refs.current[i - 1]?.focus(); }}
-          style={{ width: 48, height: 48, borderRadius: 12, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 20, fontWeight: "700", color: colors.text }}
-        />
-      ))}
-    </View>
-  );
-}
-
-/* ── PhotoBlock ── */
-function PhotoBlock({ title, items, onAdd, onRemove, uploading, testID }: { title: string; items: string[]; onAdd: () => void; onRemove: (u: string) => void; uploading: boolean; testID: string }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "700" }}>{title}</Text>
-        <View style={{ backgroundColor: items.length ? "#D1FAE5" : colors.surfaceSubtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-          <Text style={{ color: items.length ? "#047857" : colors.textMuted, fontSize: 11, fontWeight: "700" }}>{Math.min(items.length, 3)}/3 photos{items.length ? " ✓" : ""}</Text>
-        </View>
-      </View>
-      {items.length > 0 ? (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
-          {items.map((u, i) => (
-            <View key={u} style={{ width: "31%", aspectRatio: 1, borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: colors.border }}>
-              <Image source={{ uri: mediaUrl(u) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={u} transition={120} />
-              <Pressable testID={`${testID}-remove-${i}`} onPress={() => onRemove(u)} disabled={uploading} style={{ position: "absolute", top: 4, right: 4, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center" }}>
-                <Icon name="close" size={13} color="#fff" />
-              </Pressable>
-            </View>
-          ))}
-        </View>
-      ) : null}
-      <Pressable testID={testID} onPress={onAdd} disabled={uploading} style={{ marginTop: 12, height: 44, borderRadius: 12, borderWidth: 2, borderStyle: "dashed", borderColor: "#CBD5E1", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: uploading ? 0.6 : 1 }}>
-        <Icon name="camera-outline" size={16} color={colors.textSecondary} />
-        <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>{uploading ? "Uploading…" : items.length ? "Add more photos" : `Add ${title.split(" ")[0]} Photos`}</Text>
-      </Pressable>
-      <Text style={{ color: SLATE400, fontSize: 11, marginTop: 6, textAlign: "center" }}>Live camera only · gallery upload is not allowed</Text>
-    </View>
-  );
-}
-
 /* ── ActiveJob (web ActiveJob) ── */
 function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const { colors } = useTheme();
   const toast = useToast();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [otp, setOtp] = useState("");
-  const [busy, setBusy] = useState<string | null>(null);
-  const [rcOpen, setRcOpen] = useState(false);
   const [now, setNow] = useState(Date.now());
+  const [busy, setBusy] = useState<string | null>(null);
 
   const status = b.status as string;
   const arrived = ["arrived_shop", "arrived_customer"].includes(status);
   const inProgress = status === "started";
-  const before: string[] = b.evidence?.before || [];
-  const after: string[] = b.evidence?.after || [];
-  const demoOtp = (b.demo_otps || {}) as { start?: string; completion?: string };
   const a = b.address || {};
   const det = (b.eligible_detail || {})[b.partner_id] || {};
   const schedLabel = b.scheduled_at ? fmtDT(b.scheduled_at) : "Now";
   const last4 = String(b.customer_phone || "").replace(/\D/g, "").slice(-4);
   const maskedPhone = last4 ? `+91 XXXXX X${last4}` : "";
-
-  // Additional work (web parity: booking.additional + rate card /additional flow)
-  const addl = b.additional || null;
-  const addlPending = !!addl && num(addl.total) > 0 && addl.status !== "paid";
-  const rcQ = useQuery({
-    queryKey: ["ratecard", b.category_id],
-    queryFn: () => api.get<any>(`/ratecards/by-category/${b.category_id}`),
-    enabled: !!b.category_id && (inProgress || status === "arrived_customer"),
-  });
-  const rcCard = rcQ.data && (rcQ.data.groups || []).length ? rcQ.data : null;
 
   // Unread chat badge — server-side read receipts (synced with web).
   const unseen = useChatUnread(b.id);
@@ -556,45 +475,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const canRequestResched = sched.is_scheduled && !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(status);
   const [reschedOpen, setReschedOpen] = useState(false);
   const [reschedDate, setReschedDate] = useState<Date | null>(null);
-  const watchRef = useRef<Location.LocationSubscription | null>(null);
 
-  const capture = async (stage: "before" | "after") => {
-    // LIVE CAMERA ONLY — gallery selection is not allowed for job proof photos.
-    let perm = await ImagePicker.getCameraPermissionsAsync();
-    if (!perm.granted && perm.canAskAgain) perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      toast.error("Camera access is required to capture live job photos. Please allow camera permission.");
-      if (!perm.canAskAgain) Linking.openSettings();
-      return;
-    }
-    setBusy(`photo-${stage}`);
-    try {
-      // Delay works around an Android race where the camera UI fails to launch right after a grant.
-      await new Promise((r) => setTimeout(r, 250));
-      // No base64: the frame is shrunk on-device and streamed as a multipart FILE. The
-      // server stores it in S3/disk and keeps only the URL in the booking (never inline data).
-      const res = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.back });
-      if (res.canceled || !res.assets?.[0]?.uri) return;
-      const asset = res.assets[0];
-      const sizeMsg = oversizeMessage(assetSizeBytes(asset), "camera");
-      if (sizeMsg) { toast.error(sizeMsg); return; }
-      const small = await shrinkForUpload(asset, 1600, 0.75);
-      await uploadAsset(`/bookings/${b.id}/evidence`, "evidence", small, { stage });
-      toast.success(`${stage === "before" ? "Before" : "After"} photo captured ✓`);
-      onUpdate();
-    } catch (e: any) { toast.error(e?.detail || e?.message || "Upload failed, please retake"); }
-    finally { setBusy(null); }
-  };
-  const removePhoto = async (stage: "before" | "after", url: string) => {
-    try { await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url }); toast.success("Photo removed — you can capture a new one"); onUpdate(); }
-    catch (e: any) { toast.error(e?.detail || "Could not remove photo"); }
-  };
-  const step = async (path: string, label: string) => {
-    setBusy(path);
-    try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); onUpdate(); }
-    catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
-    finally { setBusy(null); }
-  };
+  const openWizard = () => router.push({ pathname: "/(partner)/partner/job/[id]", params: { id: b.id } } as any);
   const reject = () => {
     Alert.alert("Reject this job?", "It will be sent back to admin for re-assignment.", [
       { text: "Cancel", style: "cancel" },
@@ -603,23 +485,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
         catch (e: any) { toast.error(e?.detail || "Failed to reject"); }
       } },
     ]);
-  };
-  const addAdditionalRow = async (row: any) => {
-    const part = num(row.service_charge);
-    const labour = num(row.labour_charge);
-    if (part <= 0 && labour <= 0) { toast.error("This item has no charge to add"); return; }
-    try {
-      await api.post(`/bookings/${b.id}/additional`, { items: [{
-        description: row.description, part_charge: part, labour_charge: labour,
-        warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id,
-      }] });
-      toast.success(`Added "${row.description}" — ask customer to pay`);
-      onUpdate();
-    } catch (e: any) { toast.error(e?.detail || "Failed to add"); }
-  };
-  const removeAdditional = async (itemId: string) => {
-    try { await api.del(`/bookings/${b.id}/additional/${itemId}`); toast.success("Removed"); onUpdate(); }
-    catch (e: any) { toast.error(e?.detail || "Failed"); }
   };
   const requestResched = async () => {
     if (!reschedDate) return toast.error("Pick a new date & time");
@@ -640,7 +505,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
     try { await api.post(`/bookings/${b.id}/reschedule/cancel`, {}); toast.success("Reschedule request withdrawn"); onUpdate(); }
     catch (e: any) { toast.error(e?.detail || "Could not withdraw"); }
   };
-  useEffect(() => () => { watchRef.current?.remove(); }, []);
 
   const dest = a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""} ${a.pincode || ""}`);
   const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
@@ -670,8 +534,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
       )}
 
       <View style={{ padding: 20, gap: 16 }} testID={`active-job-${b.code}`}>
-        {/* Header */}
-        <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+        {/* Header (tap → job wizard) */}
+        <Pressable testID={`job-card-${b.code}`} onPress={openWizard} style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
             <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
             <View style={{ flex: 1 }}>
@@ -680,7 +544,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
             </View>
           </View>
           <StatusBadge status={status} />
-        </View>
+        </Pressable>
 
         {/* Customer location */}
         <View style={{ flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 14, paddingVertical: 12 }}>
@@ -694,14 +558,6 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
         <JobStepper status={status} />
 
         {showSchedule ? <ScheduledCard schedule={sched} role="partner" /> : null}
-
-        {/* Demo OTP hint (demo partner only) */}
-        {demoOtp.start || demoOtp.completion ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.infoSubtle, borderRadius: 12, padding: 12 }}>
-            <Icon name="information-outline" size={16} color={colors.info} />
-            <Text style={{ color: colors.info, fontSize: 12, fontWeight: "700", flex: 1 }}>Demo — Start OTP {demoOtp.start} · Completion OTP {demoOtp.completion}</Text>
-          </View>
-        ) : null}
 
         {/* Reschedule pending */}
         {pendingReq ? (
@@ -779,56 +635,12 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
           <Collapse title="Job timeline" icon="clock-outline" testID={`timeline-collapse-${b.code}`}><TimelineList items={b.timeline} color={colors.secondary} /></Collapse>
         ) : null}
 
-        {/* BEFORE work + verify & start */}
-        {status === "assigned" || arrived ? (
-          <>
-            {commLocked ? (
-              <View style={{ borderRadius: 12, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="lock-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Before Work locked</Text></View>
-                <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>Before-work photo unlocks 30 minutes before {sched.scheduled_time || "the scheduled time"}</Text>
-              </View>
-            ) : (
-              <PhotoBlock title="Before Work" items={before} onAdd={() => capture("before")} onRemove={(u) => removePhoto("before", u)} uploading={busy === "photo-before"} testID={`before-ev-${b.code}`} />
-            )}
-            {commLocked ? (
-              <View testID={`start-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="lock-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Start Work locked</Text></View>
-                <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>You can start this scheduled job 30 minutes before {sched.scheduled_time} on {sched.scheduled_date}. The customer's Start OTP becomes visible then too.</Text>
-              </View>
-            ) : (
-              <View style={{ borderRadius: 12, borderWidth: 2, borderColor: "#DBEAFE", backgroundColor: "rgba(239,246,255,0.4)", padding: 16 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="shield-check-outline" size={14} color={colors.primary} /><Text style={{ color: colors.primary, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Customer verification</Text></View>
-                <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4, marginBottom: 12 }}>Ask the customer for their <Text style={{ fontWeight: "700" }}>Start OTP</Text> to begin the job.</Text>
-                <OtpBoxes value={otp} onChange={setOtp} />
-                <Pressable testID={`start-otp-${b.code}`} disabled={otp.length < 4 || busy === "start-otp"} onPress={() => step("start-otp", "Job started ✓")} style={{ marginTop: 12, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: otp.length < 4 ? 0.5 : 1 }}>
-                  <Icon name="check-circle-outline" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>{busy === "start-otp" ? "Verifying…" : "Verify & Start Job"}</Text>
-                </Pressable>
-              </View>
-            )}
-          </>
-        ) : null}
-
-        {/* AFTER work + complete */}
-        {inProgress ? (
-          <>
-            <PhotoBlock title="After Work" items={after} onAdd={() => capture("after")} onRemove={(u) => removePhoto("after", u)} uploading={busy === "photo-after"} testID={`after-ev-${b.code}`} />
-            {addlPending ? (
-              <View testID={`complete-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", paddingHorizontal: 16, paddingVertical: 12 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="alert-outline" size={16} color="#B45309" /><Text style={{ color: "#92400E", fontSize: 14, fontWeight: "800" }}>Additional payment pending</Text></View>
-                <Text style={{ color: "#B45309", fontSize: 12.5, marginTop: 4 }}>Additional work ka <Text style={{ fontWeight: "700" }}>payment order pehle customer se complete karwayein</Text>, uske baad hi OTP se kaam complete hoga.</Text>
-              </View>
-            ) : (
-              <View style={{ borderRadius: 12, borderWidth: 2, borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.4)", padding: 16 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="check-circle-outline" size={14} color="#047857" /><Text style={{ color: "#047857", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Complete the job</Text></View>
-                <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4, marginBottom: 12 }}>Enter the customer's <Text style={{ fontWeight: "700" }}>Completion OTP</Text> to finish & credit your earnings.</Text>
-                <OtpBoxes value={otp} onChange={setOtp} />
-                <Pressable testID={`complete-otp-${b.code}`} disabled={otp.length < 4 || busy === "complete"} onPress={() => step("complete", "Job completed! Earnings credited 🎉")} style={{ marginTop: 12, height: 44, borderRadius: 12, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: otp.length < 4 ? 0.5 : 1 }}>
-                  <Icon name="check-circle-outline" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>{busy === "complete" ? "Completing…" : "Complete Job"}</Text>
-                </Pressable>
-              </View>
-            )}
-          </>
-        ) : null}
+        {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
+        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 14, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+          <Icon name={inProgress ? "check-decagram-outline" : b.checkin ? "play-circle-outline" : "camera-account"} size={20} color="#fff" />
+          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
+          <Icon name="chevron-right" size={20} color="#fff" />
+        </Pressable>
 
         {/* Secondary actions */}
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
@@ -840,55 +652,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
           ) : null}
         </View>
 
-        {/* Additional work — rate-card flow (web ActiveJob parity) */}
-        {inProgress || status === "arrived_customer" ? (
-          <View testID={`additional-section-${b.code}`} style={{ borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, paddingTop: 16 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="wrench-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Additional work</Text></View>
-              {addl && num(addl.total) > 0 ? (
-                <View style={{ backgroundColor: addl.status === "paid" ? "#D1FAE5" : "#FEF3C7", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
-                  <Text style={{ color: addl.status === "paid" ? "#047857" : "#B45309", fontSize: 11, fontWeight: "700" }}>{addl.status === "paid" ? "Paid" : "Payment pending"}</Text>
-                </View>
-              ) : null}
-            </View>
-            <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 17 }}>If any extra parts or labour were used, add them from the category rate card. <Text style={{ color: "#B45309", fontWeight: "700" }}>Collect the payment for additional work from the customer first, then complete the job.</Text></Text>
-
-            {addl && (addl.items || []).length > 0 ? (
-              <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 8, padding: 12, gap: 6, marginBottom: 12 }}>
-                {addl.items.map((it: any) => (
-                  <View key={it.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <Text style={{ color: colors.textSecondary, fontSize: 13, flex: 1 }}>{it.description}<Text style={{ color: SLATE400 }}> · part {fmt(it.part_charge)}{num(it.labour_charge) > 0 ? ` + labour ${fmt(it.labour_charge)}` : ""}</Text></Text>
-                    {addl.status !== "paid" ? (
-                      <Pressable testID={`addl-remove-${it.id}`} onPress={() => removeAdditional(it.id)} hitSlop={8}><Icon name="trash-can-outline" size={16} color="#EF4444" /></Pressable>
-                    ) : null}
-                  </View>
-                ))}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Parts (no commission)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.parts_total)}</Text></View>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Labour (commission applies)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.labour_total)}</Text></View>
-                {num(addl.gst) > 0 ? <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Est. Govt. Taxes</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.gst)}</Text></View> : null}
-                <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>Additional total</Text><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{fmt(addl.total)}</Text></View>
-                {addl.status === "paid" ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingTop: 2 }}><Icon name="check-circle-outline" size={14} color="#047857" /><Text style={{ color: "#047857", fontSize: 12, fontWeight: "600" }}>Customer paid — you can complete the job now</Text></View>
-                ) : (
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingTop: 2 }}><Icon name="alert-outline" size={14} color="#B45309" /><Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600" }}>Waiting for customer to pay the additional amount</Text></View>
-                )}
-              </View>
-            ) : null}
-
-            {addl?.status !== "paid" ? (
-              rcCard ? (
-                <Pressable testID={`add-additional-${b.code}`} onPress={() => setRcOpen(true)} style={{ alignSelf: "flex-start", height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: "#93C5FD", flexDirection: "row", alignItems: "center", gap: 4 }}>
-                  <Icon name="plus" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "600", fontSize: 13 }}>Add from rate card</Text>
-                </Pressable>
-              ) : (
-                <Text style={{ color: SLATE400, fontSize: 12 }}>No rate card configured for this category — additional work unavailable.</Text>
-              )
-            ) : null}
-          </View>
-        ) : null}
       </View>
-
-      {rcCard ? <RateCardSheet open={rcOpen} onClose={() => setRcOpen(false)} card={rcCard} onAdd={addAdditionalRow} /> : null}
 
       <Modal visible={reschedOpen} transparent animationType="slide" onRequestClose={() => setReschedOpen(false)}>
         <KeyboardProvider>
@@ -920,89 +684,3 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   );
 }
 
-/* ── RateCardSheet — RN mirror of web RateCardModal (add extra work from category rate card) ── */
-function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose: () => void; card: any; onAdd: (row: any) => void }) {
-  const { colors } = useTheme();
-  const insets = useSafeAreaInsets();
-  const [q, setQ] = useState("");
-  const [added, setAdded] = useState<Set<string>>(new Set());
-  const accent = card?.accent_color || "#0D47A1";
-  const groups: any[] = card?.groups || [];
-  const filtered = !q.trim() ? groups : groups.map((g) => ({
-    ...g,
-    rows: (g.rows || []).filter((r: any) =>
-      (r.description || "").toLowerCase().includes(q.trim().toLowerCase()) ||
-      (r.warranty || "").toLowerCase().includes(q.trim().toLowerCase()) ||
-      String(r.service_charge || "").includes(q.trim())),
-  })).filter((g) => g.rows.length > 0);
-  const handleAdd = (r: any) => { onAdd(r); setAdded((prev) => new Set(prev).add(r.id)); };
-  return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardProvider>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "88%", paddingBottom: insets.bottom + 12 }}>
-          <View style={{ height: 6, backgroundColor: accent }} />
-          <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-            <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap", flex: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: `${accent}1A`, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}>
-                  <Icon name="star-four-points-outline" size={13} color={accent} /><Text style={{ color: accent, fontSize: 12, fontWeight: "800" }}>{card?.brand_label || "AzoCover"}</Text>
-                </View>
-                <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "500" }}>{card?.category_name}</Text></View>
-              </View>
-              <Pressable onPress={onClose} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={18} color={colors.textMuted} /></Pressable>
-            </View>
-            <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800", marginTop: 10 }}>{card?.title || "Standard rate card"}</Text>
-            {card?.subtitle ? <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 2 }}>{card.subtitle}</Text> : null}
-            <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, height: 44, marginTop: 12 }}>
-              <Icon name="magnify" size={18} color={SLATE400} />
-              <TextInput testID="ratecard-search" value={q} onChangeText={setQ} placeholder="Search a repair, part or price…" placeholderTextColor={SLATE400} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 14 }} />
-            </View>
-          </View>
-          <ScrollView contentContainerStyle={{ padding: 16, gap: 12 }} keyboardShouldPersistTaps="handled">
-            {filtered.length === 0 ? (
-              <View style={{ alignItems: "center", paddingVertical: 48 }}><Icon name="magnify" size={32} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 14, marginTop: 10 }}>No items match “{q}”.</Text></View>
-            ) : filtered.map((g) => (
-              <View key={g.id} style={{ borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 12, borderLeftWidth: 3, borderLeftColor: accent }}>
-                  <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${accent}1A`, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={16} color={accent} /></View>
-                  <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", flex: 1 }}>{g.name || "Services"}</Text>
-                  <View style={{ backgroundColor: `${accent}1A`, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: accent, fontSize: 11, fontWeight: "700" }}>{(g.rows || []).length}</Text></View>
-                </View>
-                {(g.rows || []).map((r: any) => {
-                  const sc = num(r.service_charge);
-                  const isAdded = added.has(r.id);
-                  return (
-                    <View key={r.id} style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontSize: 14 }}>{r.description}</Text>
-                        {r.warranty ? (
-                          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: "flex-start", marginTop: 6, backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-                            <Icon name="shield-check-outline" size={11} color="#047857" /><Text style={{ color: "#047857", fontSize: 10.5, fontWeight: "600" }}>{r.warranty} warranty</Text>
-                          </View>
-                        ) : null}
-                        <Pressable testID={`ratecard-add-${r.id}`} onPress={() => handleAdd(r)} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: isAdded ? EMERALD : accent }}>
-                          <Icon name={isAdded ? "check" : "plus"} size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{isAdded ? "Added · add again" : "Add"}</Text>
-                        </Pressable>
-                      </View>
-                      <View style={{ alignItems: "flex-end" }}>
-                        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{fmt(sc)}</Text>
-                        {num(r.labour_charge) > 0 ? <Text style={{ color: SLATE400, fontSize: 11, marginTop: 2 }}>+ {fmt(r.labour_charge)} labour</Text> : null}
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            ))}
-          </ScrollView>
-          <View style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 }} testID="ratecard-footer">
-            <Text style={{ color: added.size > 0 ? "#047857" : colors.textMuted, fontSize: 13, fontWeight: "600", flex: 1 }}>{added.size > 0 ? `${added.size} item${added.size > 1 ? "s" : ""} added — customer will be asked to pay` : "Tap Add on any item to add it as extra work"}</Text>
-            <Pressable testID="ratecard-done" onPress={onClose} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: accent }}><Icon name="check" size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Done</Text></Pressable>
-          </View>
-        </View>
-      </KeyboardAvoidingView>
-      </KeyboardProvider>
-    </Modal>
-  );
-}

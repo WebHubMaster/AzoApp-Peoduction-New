@@ -1,6 +1,8 @@
 import random
 import string
 import os
+import re
+from pathlib import Path
 from fastapi import HTTPException
 from pymongo.errors import DuplicateKeyError
 from config.database import db, now_iso, get_settings
@@ -2769,6 +2771,8 @@ async def verify_start_otp(partner, booking_id, otp):
                             detail="Work can start 30 minutes before the scheduled time.")
     if not (b.get("evidence", {}).get("before") or []):
         raise HTTPException(status_code=400, detail="Please upload 'before' work photos before starting.")
+    if not b.get("checkin"):
+        raise HTTPException(status_code=400, detail="Please complete the selfie check-in first.")
     if b["otps"]["start"] != otp:
         raise HTTPException(status_code=400, detail="Invalid customer start OTP")
     out = await _advance(booking_id, "started")
@@ -2815,6 +2819,10 @@ async def upload_evidence(partner, booking_id, req):
                             detail="Before-work photo unlocks 30 minutes before your scheduled time.")
     urls = await _materialize_evidence(b, partner, req.stage, req.images or [])
     if urls:
+        have = len((b.get("evidence") or {}).get(req.stage) or [])
+        if have + len(urls) > MAX_EVIDENCE_FILES:
+            raise HTTPException(status_code=400,
+                                detail=f"Maximum {MAX_EVIDENCE_FILES} files allowed for {req.stage} work proof.")
         await db.bookings.update_one(
             {"id": booking_id}, {"$push": {f"evidence.{req.stage}": {"$each": urls}}})
     out = await _get_booking(booking_id)
@@ -2823,9 +2831,9 @@ async def upload_evidence(partner, booking_id, req):
 
 
 async def upload_evidence_file(partner, booking_id, stage, raw, content_type):
-    """Camera-captured work proof (before/after). Saves the image via storage_service
-    and appends its URL to the booking's evidence.{stage}. Camera-only capture is
-    enforced on the client; this just persists the captured frame."""
+    """Camera-captured work proof (before/after) — photo OR short video. Saves the
+    file via storage_service and appends its URL to the booking's evidence.{stage}.
+    Camera-only capture is enforced on the client; this just persists the file."""
     from services import storage_service
     if stage not in ("before", "after"):
         raise HTTPException(status_code=400, detail="stage must be 'before' or 'after'")
@@ -2834,15 +2842,109 @@ async def upload_evidence_file(partner, booking_id, stage, raw, content_type):
     if stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
                             detail="Before-work photo unlocks 30 minutes before your scheduled time.")
+    _assert_evidence_room(b, stage)
+    ct = (content_type or "").split(";")[0].strip().lower()
     try:
-        res = await storage_service.save_image(raw, content_type or "image/jpeg",
-                                               folder=storage_service.job_folder(b, partner, stage), max_side=1600)
+        if ct.startswith("video/"):
+            res = await storage_service.save_video(raw, ct, folder=storage_service.job_folder(b, partner, stage))
+        else:
+            res = await storage_service.save_image(raw, content_type or "image/jpeg",
+                                                   folder=storage_service.job_folder(b, partner, stage), max_side=1600)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     url = res["url"]
     await db.bookings.update_one(
         {"id": booking_id}, {"$push": {f"evidence.{stage}": url}})
-    return {"ok": True, "stage": stage, "url": url}
+    return {"ok": True, "stage": stage, "url": url, "kind": res.get("kind", "image")}
+
+
+MAX_EVIDENCE_FILES = 5
+_CHUNK_DIR = Path("/tmp/azo_evidence_chunks")
+
+
+def _assert_evidence_room(b: dict, stage: str):
+    if len((b.get("evidence") or {}).get(stage) or []) >= MAX_EVIDENCE_FILES:
+        raise HTTPException(status_code=400,
+                            detail=f"Maximum {MAX_EVIDENCE_FILES} files allowed for {stage} work proof.")
+
+
+async def upload_evidence_chunk(partner, booking_id, payload: dict):
+    """Chunked video upload (base64 JSON parts, ~2MB each) so 25MB recordings pass
+    through proxy body limits. Chunks are staged on disk and assembled on the last part."""
+    import base64 as _b64
+    import shutil
+    from services import storage_service
+    stage = payload.get("stage") or ""
+    upload_id = re.sub(r"[^a-zA-Z0-9_-]", "", str(payload.get("upload_id") or ""))[:64]
+    try:
+        index = int(payload.get("index")); total = int(payload.get("total"))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="index/total required")
+    if stage not in ("before", "after"):
+        raise HTTPException(status_code=400, detail="stage must be 'before' or 'after'")
+    if not upload_id or total < 1 or total > 40 or index < 0 or index >= total:
+        raise HTTPException(status_code=400, detail="Invalid chunk parameters")
+    b = await _partner_owns(partner, booking_id)
+    if stage == "before" and schedule_state(b).get("comm_locked"):
+        raise HTTPException(status_code=423,
+                            detail="Before-work proof unlocks 30 minutes before your scheduled time.")
+    _assert_evidence_room(b, stage)
+    try:
+        raw = _b64.b64decode(str(payload.get("data") or ""), validate=False)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid chunk data")
+    d = _CHUNK_DIR / f"{partner['id']}_{upload_id}"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{index:04d}").write_bytes(raw)
+    received = len(list(d.glob("[0-9]*")))
+    if received < total:
+        return {"ok": True, "done": False, "received": received, "total": total}
+    data = b"".join((d / f"{i:04d}").read_bytes() for i in range(total))
+    shutil.rmtree(d, ignore_errors=True)
+    try:
+        res = await storage_service.save_video(data, payload.get("content_type") or "video/mp4",
+                                               folder=storage_service.job_folder(b, partner, stage))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    await db.bookings.update_one({"id": booking_id}, {"$push": {f"evidence.{stage}": res["url"]}})
+    return {"ok": True, "done": True, "stage": stage, "url": res["url"], "kind": "video"}
+
+
+async def checkin_job(partner, booking_id, raw, content_type, lat, lng):
+    """Wizard step: partner selfie + live GPS at the customer's door. Stores the selfie,
+    the coordinates and the distance to the booking address (admin visibility) and
+    marks the job Arrived. Distance is informational only — never blocks."""
+    from services import storage_service
+    b = await _partner_owns(partner, booking_id)
+    if b["status"] not in ("assigned", "arrived_shop", "arrived_customer"):
+        raise HTTPException(status_code=400, detail="Check-in is only allowed before the job starts")
+    if schedule_state(b).get("comm_locked"):
+        raise HTTPException(status_code=423, detail="Check-in opens 30 minutes before the scheduled time.")
+    if not raw:
+        raise HTTPException(status_code=400, detail="Selfie photo is required")
+    try:
+        res = await storage_service.save_image(raw, content_type or "image/jpeg",
+                                               folder=storage_service.job_folder(b, partner, "checkin"), max_side=1200)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    a = b.get("address") or {}
+    dist = None
+    if lat is not None and lng is not None and a.get("lat") and a.get("lng"):
+        dist = round(_haversine_km(float(lat), float(lng), float(a["lat"]), float(a["lng"])), 2)
+    checkin = {"selfie_url": res["url"], "lat": lat, "lng": lng, "distance_km": dist,
+               "far": bool(dist is not None and dist > 0.5), "at": now_iso()}
+    await db.bookings.update_one({"id": booking_id}, {"$set": {"checkin": checkin, "updated_at": now_iso()}})
+    if lat is not None and lng is not None:
+        try:
+            await update_location(partner, booking_id, float(lat), float(lng))
+        except Exception:  # noqa: BLE001
+            pass
+    if b["status"] in ("assigned", "arrived_shop"):
+        out = await _advance(booking_id, "arrived_customer")
+    else:
+        out = await _get_booking(booking_id)
+    out["otps"] = {}
+    return _slim_partner_job(out, partner["id"])
 
 
 async def remove_evidence(partner, booking_id, stage, url):

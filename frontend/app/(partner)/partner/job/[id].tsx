@@ -1,0 +1,421 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Linking } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
+import { useTheme } from "@/src/theme";
+import { api, mediaUrl } from "@/src/api/client";
+import { StatusBadge } from "@/src/components/AppShell";
+import { Icon, MdiName } from "@/src/components/Icon";
+import { fmt } from "@/src/lib/format";
+import { useToast } from "@/src/components/Toast";
+import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@/src/components/reg/Photo";
+import { OtpBoxes, ProofGrid, captureProofPhoto, captureProofVideo, ensureCamera } from "@/src/components/partner/JobProof";
+import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
+
+const EMERALD = "#059669";
+const SLATE400 = "#94A3B8";
+const num = (v: any) => Number(v || 0);
+const fmtDT = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
+const fmtShort = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
+const haversineKm = (a: number, b: number, c: number, d: number) => { const R = 6371, dLat = ((c - a) * Math.PI) / 180, dLng = ((d - b) * Math.PI) / 180; const x = Math.sin(dLat / 2) ** 2 + Math.cos((a * Math.PI) / 180) * Math.cos((c * Math.PI) / 180) * Math.sin(dLng / 2) ** 2; return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x)); };
+
+const STEPS: { key: string; label: string; icon: MdiName }[] = [
+  { key: "details", label: "Details", icon: "clipboard-text-outline" },
+  { key: "checkin", label: "Check-in", icon: "camera-account" },
+  { key: "start", label: "Start", icon: "play-circle-outline" },
+  { key: "complete", label: "Complete", icon: "check-decagram-outline" },
+];
+
+/** Which wizard step the booking is really at (server truth). */
+function phaseOf(b: any): number {
+  if (!b) return 0;
+  if (["completed", "paid"].includes(b.status)) return 4;
+  if (b.status === "started") return 3;
+  if (b.checkin) return 2;
+  return 1;
+}
+
+export default function PartnerJobWizard() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const q = useQuery({ queryKey: ["partner-booking", id], queryFn: () => api.get<any>(`/bookings/partner/job/${id}`), enabled: !!id, refetchInterval: 10000 });
+  const b = q.data;
+  const phase = phaseOf(b);
+  const [step, setStep] = useState(0);
+  const [otp, setOtp] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
+
+  // Server moved forward (OTP verified / completed) → wizard follows.
+  useEffect(() => { if (step > 0 && phase > step) setStep(phase); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const refresh = () => { q.refetch(); ["partner-active", "partner-joblist", "partner-wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); };
+  const goBack = () => (router.canGoBack() ? router.back() : router.replace("/(partner)/active" as any));
+
+  if (q.isLoading || !b) {
+    return <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={colors.primary} /></View>;
+  }
+
+  const before: string[] = b.evidence?.before || [];
+  const after: string[] = b.evidence?.after || [];
+  const sched = b.schedule || {};
+  const commLocked = !!sched.comm_locked;
+  const addl = b.additional || null;
+  const addlPending = !!addl && num(addl.total) > 0 && addl.status !== "paid";
+  const demoOtp = (b.demo_otps || {}) as { start?: string; completion?: string };
+
+  const proof = async (stage: "before" | "after", kind: "photo" | "video") => {
+    setBusy(`${stage}-${kind}`); setProgress(0);
+    try {
+      const ok = kind === "photo" ? await captureProofPhoto(b.id, stage, toast) : await captureProofVideo(b.id, stage, toast, setProgress);
+      if (ok) { toast.success(`${kind === "photo" ? "Photo" : "Video"} added ✓`); refresh(); }
+    } catch (e: any) { toast.error(e?.detail || e?.message || "Upload failed, please retry"); }
+    finally { setBusy(null); setProgress(0); }
+  };
+  const removeProof = async (stage: "before" | "after", url: string) => {
+    try { await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url }); toast.success("Removed"); refresh(); }
+    catch (e: any) { toast.error(e?.detail || "Could not remove"); }
+  };
+  const verify = async (path: "start-otp" | "complete", label: string) => {
+    setBusy(path);
+    try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); refresh(); }
+    catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
+    finally { setBusy(null); }
+  };
+
+  const cur = Math.min(step, 3);
+  const primary = colors.primary;
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }} testID="job-wizard">
+      {/* Header */}
+      <LinearGradient colors={[primary, "#1976D2"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingTop: insets.top + 8, paddingBottom: 16, paddingHorizontal: 16 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Pressable testID="wizard-back" onPress={goBack} hitSlop={10} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: "rgba(255,255,255,0.16)", alignItems: "center", justifyContent: "center" }}><Icon name="arrow-left" size={20} color="#fff" /></Pressable>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }} numberOfLines={1}>{b.service_name}</Text>
+            <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 11.5, fontFamily: "monospace" }}>#{b.code}</Text>
+          </View>
+          <StatusBadge status={b.status} />
+        </View>
+        {/* Step indicator */}
+        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 16 }} testID="wizard-steps">
+          {STEPS.map((s, i) => {
+            const done = i < cur || phase === 4; const active = i === cur && phase !== 4;
+            return (
+              <View key={s.key} style={{ flex: 1, alignItems: "center" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
+                  <View style={{ flex: 1, height: 2, backgroundColor: i === 0 ? "transparent" : done || active ? "#fff" : "rgba(255,255,255,0.3)" }} />
+                  <View testID={`wizard-step-${s.key}${active ? "-active" : done ? "-done" : ""}`} style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: done ? "#fff" : active ? "#fff" : "rgba(255,255,255,0.22)", alignItems: "center", justifyContent: "center", borderWidth: active ? 3 : 0, borderColor: "rgba(255,255,255,0.45)" }}>
+                    {done ? <Icon name="check" size={15} color={primary} /> : <Icon name={s.icon} size={15} color={active ? primary : "#fff"} />}
+                  </View>
+                  <View style={{ flex: 1, height: 2, backgroundColor: i === STEPS.length - 1 ? "transparent" : done ? "#fff" : "rgba(255,255,255,0.3)" }} />
+                </View>
+                <Text style={{ color: active ? "#fff" : "rgba(255,255,255,0.7)", fontSize: 10.5, fontWeight: active ? "800" : "600", marginTop: 5 }}>{s.label}</Text>
+              </View>
+            );
+          })}
+        </View>
+      </LinearGradient>
+
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        {phase === 4 ? <DoneStep b={b} /> :
+          step === 0 ? <DetailsStep b={b} /> :
+          step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
+          step === 2 ? (
+            <StartStep b={b} before={before} locked={commLocked} demoOtp={demoOtp.start} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("before", "photo")} onVideo={() => proof("before", "video")} onRemove={(u) => removeProof("before", u)} />
+          ) : (
+            <WorkStep b={b} after={after} addlPending={addlPending} demoOtp={demoOtp.completion} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("after", "photo")} onVideo={() => proof("after", "video")} onRemove={(u) => removeProof("after", u)} onUpdate={refresh} />
+          )}
+      </ScrollView>
+
+      {/* Bottom CTA bar (replaces the hidden tab bar) */}
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
+        {phase === 4 ? (
+          <Cta testID="wizard-finish" label="Back to Active Jobs" icon="arrow-left" color={EMERALD} onPress={() => router.replace("/(partner)/active" as any)} />
+        ) : step === 0 ? (
+          <Cta testID="wizard-continue" label={phase >= 3 ? "Continue to Complete Job" : phase >= 2 ? "Continue to Start Job" : "Continue"} icon="arrow-right" color={primary} onPress={() => setStep(phase)} />
+        ) : step === 1 ? (
+          phase >= 2 ? <Cta testID="wizard-next" label="Continue to Start Job" icon="arrow-right" color={primary} onPress={() => setStep(2)} /> : <Text style={{ color: colors.textMuted, fontSize: 12.5, textAlign: "center" }}>Take your selfie & share live location above, then tap <Text style={{ fontWeight: "800" }}>Check-in & Continue</Text>.</Text>
+        ) : step === 2 ? (
+          <Cta testID={`start-otp-${b.code}`} label={busy === "start-otp" ? "Verifying…" : "Verify OTP & Start Job"} icon="play-circle-outline" color={primary} disabled={commLocked || before.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("start-otp", "Job started ✓")} />
+        ) : (
+          <Cta testID={`complete-otp-${b.code}`} label={busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : "Verify OTP & Complete Job"} icon="check-decagram-outline" color={EMERALD} disabled={addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", "Job completed! Earnings credited 🎉")} />
+        )}
+      </View>
+    </View>
+  );
+}
+
+function Cta({ label, icon, color, onPress, disabled, testID }: { label: string; icon: MdiName; color: string; onPress: () => void; disabled?: boolean; testID: string }) {
+  return (
+    <Pressable testID={testID} disabled={disabled} onPress={onPress} style={({ pressed }) => ({ height: 54, borderRadius: 16, backgroundColor: color, opacity: disabled ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+      <Icon name={icon} size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function Card({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
+  const { colors } = useTheme();
+  return <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 18, borderWidth: 1, borderColor: colors.border, padding: 16 }, style]}>{children}</View>;
+}
+function SectionTitle({ icon, title }: { icon: MdiName; title: string }) {
+  const { colors } = useTheme();
+  return <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 }}><Icon name={icon} size={15} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</Text></View>;
+}
+function KV({ label, value }: { label: string; value?: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, minWidth: "45%", borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
+      <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text>
+      <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "700", marginTop: 3 }}>{value || "—"}</Text>
+    </View>
+  );
+}
+
+/* ── Step 1: Details ── */
+function DetailsStep({ b }: { b: any }) {
+  const { colors } = useTheme();
+  const a = b.address || {};
+  const items: any[] = b.breakdown?.service_items || [];
+  return (
+    <>
+      <Card testID="wizard-details">
+        <SectionTitle icon="clipboard-text-outline" title="Job basics" />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <KV label="Service" value={b.service_name} />
+          <KV label="Job ID" value={`#${b.code}`} />
+          <KV label="Schedule" value={b.scheduled_at ? fmtDT(b.scheduled_at) : "Now"} />
+          <KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
+        </View>
+        {items.length ? (
+          <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
+            {items.map((it, i) => (
+              <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border }}>
+                <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{it.name || it.service_name || "Service"}{num(it.qty) > 1 ? ` × ${it.qty}` : ""}</Text>
+                <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{fmt(it.amount ?? it.price ?? 0)}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+      </Card>
+      <Card testID="wizard-customer">
+        <SectionTitle icon="account-outline" title="Customer details" />
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{b.customer_name || "Customer"}</Text>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
+          <Icon name="map-marker-outline" size={16} color={colors.secondary} />
+          <Text style={{ color: colors.textSecondary, fontSize: 13.5, lineHeight: 19, flex: 1 }}>{a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</Text>
+        </View>
+        {b.notes ? <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 8 }}>Note: {b.notes}</Text> : null}
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+          {b.customer_phone ? <Pressable testID="wizard-call" onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#A7F3D0", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "700" }}>Call</Text></Pressable> : null}
+          <Pressable testID="wizard-navigate" onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`)}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="navigation-variant-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Navigate</Text></Pressable>
+        </View>
+      </Card>
+      {(b.timeline || []).length ? (
+        <Card testID="wizard-timeline">
+          <SectionTitle icon="clock-outline" title="Job timeline" />
+          <View style={{ borderLeftWidth: 1, borderLeftColor: colors.border, marginLeft: 6, gap: 12, paddingTop: 2 }}>
+            {b.timeline.map((t: any, i: number) => (
+              <View key={i} style={{ marginLeft: 16 }}>
+                <View style={{ position: "absolute", left: -23, top: 2, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.secondary, borderWidth: 3, borderColor: colors.primarySubtle }} />
+                <Text style={{ color: colors.textSecondary, fontSize: 12.5, fontWeight: "600", textTransform: "capitalize" }}>{String(t.status || "").replace(/_/g, " ")}</Text>
+                <Text style={{ color: SLATE400, fontSize: 11 }}>{fmtShort(t.at)}</Text>
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
+    </>
+  );
+}
+
+/* ── Step 2: Selfie + live location check-in ── */
+function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
+  const { colors } = useTheme();
+  const toast = useToast();
+  const [selfie, setSelfie] = useState<ImagePicker.ImagePickerAsset | null>(null);
+  const [loc, setLoc] = useState<{ lat: number; lng: number; acc?: number | null } | null>(null);
+  const [locBusy, setLocBusy] = useState(false);
+  const [sending, setSending] = useState(false);
+  const a = b.address || {};
+  const done = !!b.checkin;
+  const locked = !!b.schedule?.comm_locked;
+  const dist = useMemo(() => (loc && a.lat && a.lng ? haversineKm(loc.lat, loc.lng, Number(a.lat), Number(a.lng)) : null), [loc, a.lat, a.lng]);
+
+  const getLocation = async () => {
+    setLocBusy(true);
+    try {
+      let p = await Location.getForegroundPermissionsAsync();
+      if (!p.granted && p.canAskAgain) p = await Location.requestForegroundPermissionsAsync();
+      if (!p.granted) { toast.error("Location permission is required for check-in."); if (!p.canAskAgain) Linking.openSettings(); return; }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy });
+    } catch { toast.error("Couldn't get your location. Check GPS and try again."); }
+    finally { setLocBusy(false); }
+  };
+  useEffect(() => { if (!done) getLocation(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const takeSelfie = async () => {
+    if (!(await ensureCamera(toast))) return;
+    await new Promise((r) => setTimeout(r, 250));
+    const res = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.front });
+    if (res.canceled || !res.assets?.[0]?.uri) return;
+    const msg = oversizeMessage(assetSizeBytes(res.assets[0]), "camera");
+    if (msg) { toast.error(msg); return; }
+    setSelfie(res.assets[0]);
+  };
+  const submit = async () => {
+    if (!selfie || !loc) return;
+    setSending(true);
+    try {
+      const small = await shrinkForUpload(selfie, 1200, 0.75);
+      await uploadAsset(`/bookings/${b.id}/checkin`, "checkin", small, { lat: String(loc.lat), lng: String(loc.lng) });
+      toast.success("Checked in ✓ — you're marked Arrived");
+      onDone();
+    } catch (e: any) { toast.error(e?.detail || e?.message || "Check-in failed, please retry"); }
+    finally { setSending(false); }
+  };
+
+  if (done) {
+    const c = b.checkin;
+    return (
+      <Card testID="wizard-checkin-done">
+        <SectionTitle icon="check-circle-outline" title="Checked in" />
+        <View style={{ flexDirection: "row", gap: 14 }}>
+          <Image source={{ uri: mediaUrl(c.selfie_url) }} style={{ width: 96, height: 120, borderRadius: 14 }} contentFit="cover" />
+          <View style={{ flex: 1, justifyContent: "center", gap: 6 }}>
+            <Text style={{ color: "#047857", fontSize: 15, fontWeight: "800" }}>Selfie & location recorded</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12.5 }}>{fmtDT(c.at)}</Text>
+            {c.distance_km != null ? <Text style={{ color: c.far ? "#B45309" : colors.textMuted, fontSize: 12.5, fontWeight: "600" }}>~{c.distance_km} km from customer address</Text> : null}
+          </View>
+        </View>
+      </Card>
+    );
+  }
+  return (
+    <>
+      <Card testID="wizard-checkin">
+        <SectionTitle icon="camera-account" title="Step 1 · Live selfie" />
+        <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 12 }}>Take a clear selfie at the customer's door. Front camera only — this is shared with the customer & admin for safety.</Text>
+        <Pressable testID="wizard-selfie-btn" onPress={takeSelfie} style={{ alignSelf: "center", width: 160, height: 200, borderRadius: 20, borderWidth: 2, borderStyle: selfie ? "solid" : "dashed", borderColor: selfie ? EMERALD : "#93C5FD", backgroundColor: selfie ? "transparent" : "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          {selfie ? <Image source={{ uri: selfie.uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : (
+            <><Icon name="camera-front-variant" size={36} color={colors.primary} /><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700", marginTop: 8 }}>Take selfie</Text></>
+          )}
+        </Pressable>
+        {selfie ? <Pressable testID="wizard-selfie-retake" onPress={takeSelfie} style={{ alignSelf: "center", marginTop: 8 }}><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>Retake</Text></Pressable> : null}
+      </Card>
+      <Card testID="wizard-location">
+        <SectionTitle icon="crosshairs-gps" title="Step 2 · Live location" />
+        {loc ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center" }}><Icon name="map-marker-check-outline" size={20} color="#047857" /></View>
+            <View style={{ flex: 1 }}>
+              <Text testID="wizard-location-ok" style={{ color: colors.text, fontSize: 13.5, fontWeight: "700" }}>Location captured</Text>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>{loc.lat.toFixed(5)}, {loc.lng.toFixed(5)}{loc.acc ? ` · ±${Math.round(loc.acc)} m` : ""}</Text>
+              {dist != null ? <Text style={{ color: dist > 0.5 ? "#B45309" : "#047857", fontSize: 12, fontWeight: "700", marginTop: 2 }}>{dist > 0.5 ? `You appear ~${dist.toFixed(1)} km from the customer's address` : "You're at the customer's location ✓"}</Text> : null}
+            </View>
+            <Pressable testID="wizard-location-refresh" onPress={getLocation} hitSlop={8}><Icon name="refresh" size={20} color={colors.textMuted} /></Pressable>
+          </View>
+        ) : (
+          <Pressable testID="wizard-location-btn" onPress={getLocation} disabled={locBusy} style={{ height: 46, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+            {locBusy ? <ActivityIndicator size="small" color={colors.primary} /> : <Icon name="crosshairs-gps" size={18} color={colors.primary} />}<Text style={{ color: colors.primary, fontWeight: "700" }}>{locBusy ? "Getting location…" : "Share live location"}</Text>
+          </Pressable>
+        )}
+      </Card>
+      {locked ? (
+        <View style={{ borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
+      ) : null}
+      <Pressable testID="wizard-checkin-submit" disabled={!selfie || !loc || sending || locked} onPress={submit} style={{ height: 54, borderRadius: 16, backgroundColor: colors.primary, opacity: !selfie || !loc || sending || locked ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+        {sending ? <ActivityIndicator color="#fff" /> : <Icon name="check-circle-outline" size={20} color="#fff" />}<Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{sending ? "Checking in…" : "Check-in & Continue"}</Text>
+      </Pressable>
+    </>
+  );
+}
+
+/* ── Step 3: Before proof + Start OTP ── */
+function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove }: any) {
+  const { colors } = useTheme();
+  return (
+    <>
+      {locked ? (
+        <View testID={`start-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="lock-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Start Work locked</Text></View>
+          <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>You can start this job 30 minutes before {b.schedule?.scheduled_time} on {b.schedule?.scheduled_date}.</Text>
+        </View>
+      ) : null}
+      <Card testID="wizard-before-proof">
+        <SectionTitle icon="camera-outline" title="Before work proof" />
+        <ProofGrid items={before} onPhoto={onPhoto} onVideo={onVideo} onRemove={onRemove} busy={!!busy && String(busy).startsWith("before")} progress={progress} testID={`before-ev-${b.code}`} locked={locked} />
+      </Card>
+      <Card testID="wizard-start-otp" style={{ borderColor: "#DBEAFE", backgroundColor: "rgba(239,246,255,0.5)" }}>
+        <SectionTitle icon="shield-check-outline" title="Customer verification" />
+        <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 14 }}>Ask the customer for their <Text style={{ fontWeight: "800" }}>Start OTP</Text> to begin the job.</Text>
+        <OtpBoxes value={otp} onChange={setOtp} />
+        {demoOtp ? <Text testID="demo-start-otp" style={{ color: colors.info, fontSize: 12, fontWeight: "700", textAlign: "center", marginTop: 10 }}>Demo · Start OTP {demoOtp}</Text> : null}
+        {before.length === 0 ? <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 10 }}>Add at least one before-work photo/video to enable Start.</Text> : null}
+      </Card>
+    </>
+  );
+}
+
+/* ── Step 4: Work in progress → after proof + Complete OTP ── */
+function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove, onUpdate }: any) {
+  const { colors } = useTheme();
+  const [now, setNow] = useState(() => Date.now());
+  const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  const es = startedAt ? Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000)) : 0;
+  const elapsed = `${String(Math.floor(es / 3600)).padStart(2, "0")}:${String(Math.floor((es % 3600) / 60)).padStart(2, "0")}:${String(es % 60).padStart(2, "0")}`;
+  return (
+    <>
+      <LinearGradient colors={["#F59E0B", "#F97316"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 16, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#fff" }} />
+        <View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text><Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5 }}>{startedAt ? `Started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text></View>
+        <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>{elapsed}</Text>
+      </LinearGradient>
+      <Card testID="wizard-after-proof">
+        <SectionTitle icon="camera-outline" title="After work proof" />
+        <ProofGrid items={after} onPhoto={onPhoto} onVideo={onVideo} onRemove={onRemove} busy={!!busy && String(busy).startsWith("after")} progress={progress} testID={`after-ev-${b.code}`} />
+      </Card>
+      <AdditionalWork b={b} onUpdate={onUpdate} />
+      {addlPending ? (
+        <View testID={`complete-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", paddingHorizontal: 16, paddingVertical: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="alert-outline" size={16} color="#B45309" /><Text style={{ color: "#92400E", fontSize: 14, fontWeight: "800" }}>Additional payment pending</Text></View>
+          <Text style={{ color: "#B45309", fontSize: 12.5, marginTop: 4 }}>Customer must pay the additional work first — then complete with OTP.</Text>
+        </View>
+      ) : (
+        <Card testID="wizard-complete-otp" style={{ borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.5)" }}>
+          <SectionTitle icon="check-circle-outline" title="Complete the job" />
+          <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 14 }}>Enter the customer's <Text style={{ fontWeight: "800" }}>Completion OTP</Text> to finish & credit your earnings.</Text>
+          <OtpBoxes value={otp} onChange={setOtp} />
+          {demoOtp ? <Text testID="demo-complete-otp" style={{ color: colors.info, fontSize: 12, fontWeight: "700", textAlign: "center", marginTop: 10 }}>Demo · Completion OTP {demoOtp}</Text> : null}
+          {after.length === 0 ? <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 10 }}>Add at least one after-work photo/video to enable Complete.</Text> : null}
+        </Card>
+      )}
+    </>
+  );
+}
+
+/* ── Done ── */
+function DoneStep({ b }: { b: any }) {
+  const { colors } = useTheme();
+  const earning = b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning ?? null;
+  return (
+    <Card testID="wizard-done" style={{ alignItems: "center", paddingVertical: 32 }}>
+      <View style={{ width: 84, height: 84, borderRadius: 42, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center" }}><Icon name="check-decagram" size={44} color={EMERALD} /></View>
+      <Text style={{ color: colors.text, fontSize: 22, fontWeight: "900", marginTop: 16 }}>Job completed!</Text>
+      <Text style={{ color: colors.textMuted, fontSize: 13.5, marginTop: 6, textAlign: "center" }}>{b.service_name} · #{b.code}</Text>
+      {earning != null ? <View style={{ marginTop: 18, borderRadius: 14, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text style={{ color: "#047857", fontSize: 26, fontWeight: "900" }}>{fmt(earning)}</Text></View> : null}
+    </Card>
+  );
+}

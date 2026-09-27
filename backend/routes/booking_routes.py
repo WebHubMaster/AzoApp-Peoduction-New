@@ -199,6 +199,22 @@ async def evidence_upload(booking_id: str, stage: str = Form(...),
     return await c.upload_evidence_file(user, booking_id, stage, raw, file.content_type)
 
 
+@router.post("/{booking_id}/evidence/chunk")
+async def evidence_chunk(booking_id: str, payload: dict = Body(...),
+                         user=Depends(require_role("partner"))):
+    """Chunked (base64 JSON) work-proof VIDEO upload; assembled on the last chunk."""
+    return await c.upload_evidence_chunk(user, booking_id, payload or {})
+
+
+@router.post("/{booking_id}/checkin/upload")
+async def checkin(booking_id: str, file: UploadFile = File(...),
+                  lat: float = Form(None), lng: float = Form(None),
+                  user=Depends(require_role("partner"))):
+    """Wizard step 2: live selfie + GPS check-in at the customer's door → Arrived."""
+    raw = await file.read()
+    return await c.checkin_job(user, booking_id, raw, file.content_type, lat, lng)
+
+
 @router.post("/{booking_id}/evidence/remove")
 async def evidence_remove(booking_id: str, payload: dict = Body(...),
                           user=Depends(require_role("partner"))):

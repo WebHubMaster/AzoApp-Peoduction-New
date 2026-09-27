@@ -41,6 +41,30 @@ MAX_BYTES = 12 * 1024 * 1024  # 12MB raw upload cap
 _EXT_CT = {"svg": "image/svg+xml", "jpg": "image/jpeg", "jpeg": "image/jpeg",
            "png": "image/png", "gif": "image/gif", "webp": "image/webp"}
 
+VIDEO_ALLOWED = {"video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm",
+                 "video/3gpp": "3gp", "video/x-matroska": "mkv"}
+MAX_VIDEO_BYTES = 25 * 1024 * 1024  # 25MB per work-proof video (~30s)
+
+
+def is_video_url(u: str) -> bool:
+    return bool(re.search(r"\.(mp4|mov|webm|3gp|mkv)(\?|$)", (u or "").lower()))
+
+
+async def save_video(raw: bytes, content_type: str, folder: str = "media", base_hint: str = "") -> dict:
+    """Store a camera-recorded work-proof video as-is (no transcoding)."""
+    ct = (content_type or "").split(";")[0].strip().lower()
+    ext = VIDEO_ALLOWED.get(ct)
+    if not ext:
+        raise ValueError("Unsupported video type. Use MP4, MOV or WebM.")
+    if len(raw) > MAX_VIDEO_BYTES:
+        raise ValueError("Video too large (max 25MB / ~30 seconds).")
+    if len(raw) < 1024:
+        raise ValueError("Video is empty or corrupted, please record again.")
+    uid = uuid.uuid4().hex
+    name = f"{folder}/{uid}.{ext}"
+    url = await _put(name, raw, ct, base_hint)
+    return {"url": url, "size": len(raw), "name": name, "kind": "video"}
+
 
 # ── Structured, enterprise upload taxonomy ───────────────────────────────────
 # Every upload lands in ONE deterministic, centralized path so files are easy to

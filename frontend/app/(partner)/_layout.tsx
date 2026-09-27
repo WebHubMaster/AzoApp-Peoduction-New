@@ -40,14 +40,14 @@ export default function PartnerLayout() {
     <JobRingOverlay />
     <Tabs
       screenOptions={{ headerShown: false }}
-      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} badges={badges} hideTabs={["profile"]} hideBarRoutes={["partner/support/[id]"]} onLogout={async () => { await logout(); router.replace("/(auth)/welcome"); }} />}
+      tabBar={(props) => <AppTabBar {...props} moreItems={moreItems} badges={badges} hideTabs={["profile"]} hideBarRoutes={["partner/support/[id]", "partner/job/[id]"]} onLogout={async () => { await logout(); router.replace("/(auth)/welcome"); }} />}
     >
       <Tabs.Screen name="index" options={{ title: "Dashboard" }} />
       <Tabs.Screen name="jobs" options={{ title: "Job Request" }} />
       <Tabs.Screen name="active" options={{ title: "Active Job" }} />
       <Tabs.Screen name="wallet" options={{ title: "Wallet & Withdraw" }} />
       <Tabs.Screen name="booking/[id]" options={{ href: null }} />
-      {["subscriptions", "analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]"].map((n) => (
+      {["subscriptions", "analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]", "job/[id]"].map((n) => (
         <Tabs.Screen key={n} name={`partner/${n}`} options={{ href: null }} />
       ))}
     </Tabs>

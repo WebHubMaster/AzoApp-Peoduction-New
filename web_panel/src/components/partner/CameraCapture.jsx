@@ -6,13 +6,13 @@ import { Camera, X, RefreshCw, Check, RotateCcw, Loader2 } from "lucide-react";
  * Opens the device camera via getUserMedia, lets the user snap a frame, preview it,
  * and confirm. onCapture receives a JPEG File. Rear camera preferred on mobile.
  */
-export default function CameraCapture({ open, title = "Capture photo", onClose, onCapture, uploading }) {
+export default function CameraCapture({ open, title = "Capture photo", onClose, onCapture, uploading, initialFacing = "environment" }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
   const [shot, setShot] = useState(null); // { blob, url }
-  const [facing, setFacing] = useState("environment");
+  const [facing, setFacing] = useState(initialFacing);
 
   const stop = useCallback(() => {
     if (streamRef.current) {

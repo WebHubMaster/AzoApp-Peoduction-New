@@ -23,7 +23,7 @@ import { PartnerHome } from "@/pages/partner/PartnerHomeV2";
 import { LayoutDashboard, CreditCard } from "lucide-react";
 import { LifeBuoy } from "lucide-react";
 import SupportCenter from "@/components/SupportCenter";
-import CameraCapture from "@/components/partner/CameraCapture";
+import JobWizard from "@/components/partner/JobWizard";
 import BookingChat from "@/components/booking/BookingChat";
 import { useChatUnread, UnreadPill } from "@/context/ChatContext";
 import ScheduledCard from "@/components/booking/ScheduledCard";
@@ -33,7 +33,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { RateCardModal } from "@/components/RateCardModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Wrench, AlertTriangle, Trash2, Package } from "lucide-react";
 import PartnerStarterKit from "@/pages/partner/PartnerStarterKit";
@@ -310,12 +309,8 @@ export default function PartnerDashboard() {
 }
 
 const ActiveJob = ({ b, onUpdate }) => {
-  const [otp, setOtp] = useState("");
-  const [rcCard, setRcCard] = useState(null);
-  const [rcOpen, setRcOpen] = useState(false);
-  const addl = b.additional || null;
-  const addlPending = addl && (addl.total || 0) > 0 && addl.status !== "paid";
   const [chatOpen, setChatOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
   const chatUnread = useChatUnread(b.id);
   const [showResched, setShowResched] = useState(false);
   const [reschedVal, setReschedVal] = useState("");
@@ -326,66 +321,10 @@ const ActiveJob = ({ b, onUpdate }) => {
     const id = setInterval(() => setNowTs(Date.now()), 1000);
     return () => clearInterval(id);
   }, [b.status]);
-  useEffect(() => {
-    if (!b.category_id) return;
-    api.get(`/ratecards/by-category/${b.category_id}`).then((r) => { if (r.data && (r.data.groups || []).length) setRcCard(r.data); }).catch(() => {});
-  }, [b.category_id]);
-  const addAdditionalRow = async (row) => {
-    const part = Number(row.service_charge) || 0;
-    const labour = Number(row.labour_charge) || 0;
-    if (part <= 0 && labour <= 0) return toast.error("This item has no charge to add");
-    try {
-      await api.post(`/bookings/${b.id}/additional`, { items: [{
-        description: row.description, part_charge: part, labour_charge: labour,
-        warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id,
-      }] });
-      toast.success(`Added "${row.description}" — ask customer to pay`);
-      onUpdate();
-    } catch (e) { toast.error(e?.response?.data?.detail || "Failed to add"); }
-  };
-  const removeAdditional = async (itemId) => {
-    try { await api.delete(`/bookings/${b.id}/additional/${itemId}`); toast.success("Removed"); onUpdate(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Failed"); }
-  };
-  const step = async (path, label) => {
-    try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); onUpdate(); }
-    catch (e) { toast.error(e?.response?.data?.detail || "Invalid OTP"); }
-  };
   const reject = async () => {
     if (!window.confirm("Reject this job? It will be sent back to admin for re-assignment.")) return;
     try { await api.post(`/bookings/${b.id}/reject`, { reason: "" }); toast.success("Job rejected"); onUpdate(); }
     catch (e) { toast.error(e?.response?.data?.detail || "Failed to reject"); }
-  };
-  const [camStage, setCamStage] = useState(null); // 'before' | 'after' | null
-  const [camUploading, setCamUploading] = useState(false);
-  const captureProof = async (file) => {
-    setCamUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("stage", camStage);
-      fd.append("file", file);
-      await api.post(`/bookings/${b.id}/evidence/upload`, fd, { headers: { "Content-Type": "multipart/form-data" } });
-      toast.success(`${camStage === "before" ? "Before" : "After"} photo captured ✓`);
-      setCamStage(null);
-      onUpdate();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Upload failed, please retake");
-    } finally {
-      setCamUploading(false);
-    }
-  };
-  const [removingUrl, setRemovingUrl] = useState(null);
-  const removeProof = async (stage, url) => {
-    setRemovingUrl(url);
-    try {
-      await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url });
-      toast.success("Photo removed — you can capture a new one");
-      onUpdate();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not remove photo");
-    } finally {
-      setRemovingUrl(null);
-    }
   };
   const [sharing, setSharing] = useState(false);
   const shareLocation = () => {
@@ -484,8 +423,8 @@ const ActiveJob = ({ b, onUpdate }) => {
       )}
 
       <div className="p-5 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3">
+        {/* Header (click → job wizard) */}
+        <button type="button" data-testid={`job-card-${b.code}`} onClick={() => setWizardOpen(true)} className="w-full flex items-start justify-between gap-3 text-left rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
           <div className="flex items-start gap-3 min-w-0">
             <span className="h-11 w-11 rounded-2xl grid place-items-center text-white shrink-0" style={{ background: "#0D47A1" }}><Wrench className="h-5 w-5" /></span>
             <div className="min-w-0">
@@ -494,7 +433,7 @@ const ActiveJob = ({ b, onUpdate }) => {
             </div>
           </div>
           <StatusBadge status={b.status} />
-        </div>
+        </button>
 
         {/* Customer location (no map) */}
         <div className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 px-3.5 py-3">
@@ -598,47 +537,13 @@ const ActiveJob = ({ b, onUpdate }) => {
           </Collapse>
         )}
 
-        {/* BEFORE work + verify & start */}
-        {(b.status === "assigned" || arrived) && (
-          <>
-            <PhotoBlock title="Before Work" items={b.evidence?.before} onAdd={() => setCamStage("before")} onRemove={(url) => removeProof("before", url)} removingUrl={removingUrl} uploading={camUploading && camStage === "before"} locked={commLocked} lockedText={`Before-work photo unlocks 30 minutes before ${sched.scheduled_time || "the scheduled time"}`} testid={`before-ev-${b.code}`} />
-            {commLocked ? (
-              <div data-testid={`start-locked-${b.code}`} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> Start Work locked</p>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1">You can start this scheduled job 30 minutes before {sched.scheduled_time} on {sched.scheduled_date}. The customer&apos;s Start OTP becomes visible then too.</p>
-              </div>
-            ) : (
-              <div className="rounded-xl border-2 border-primary-100 dark:border-primary-900/40 bg-primary-50/40 dark:bg-primary-900/10 p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-primary-700 dark:text-primary-300 flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5" /> Customer verification</p>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1 mb-3">Ask the customer for their <b>Start OTP</b> to begin the job.</p>
-                <OtpBoxes value={otp} onChange={setOtp} len={4} />
-                <Button data-testid={`start-otp-${b.code}`} onClick={() => step("start-otp", "Job started ✓")} disabled={otp.length < 4}
-                  className="w-full mt-3 h-11 rounded-xl bg-primary-700 hover:bg-primary-800 font-semibold disabled:opacity-50"><CheckCircle2 className="h-4 w-4 mr-1.5" /> Verify &amp; Start Job</Button>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* AFTER work + complete */}
-        {inProgress && (
-          <>
-            <PhotoBlock title="After Work" items={b.evidence?.after} onAdd={() => setCamStage("after")} onRemove={(url) => removeProof("after", url)} removingUrl={removingUrl} uploading={camUploading && camStage === "after"} testid={`after-ev-${b.code}`} />
-            {addlPending ? (
-              <div className="rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-900/20 px-4 py-3" data-testid={`complete-locked-${b.code}`}>
-                <p className="text-sm font-extrabold text-amber-800 dark:text-amber-300 flex items-center gap-1.5"><AlertTriangle className="h-4 w-4" /> Additional payment pending</p>
-                <p className="text-[12.5px] text-amber-700 dark:text-amber-400 mt-1">Additional work ka <b>payment order pehle customer se complete karwayein</b>, uske baad hi OTP se kaam complete hoga.</p>
-              </div>
-            ) : (
-              <div className="rounded-xl border-2 border-emerald-100 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-900/10 p-4">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5" /> Complete the job</p>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1 mb-3">Enter the customer&apos;s <b>Completion OTP</b> to finish &amp; credit your earnings.</p>
-                <OtpBoxes value={otp} onChange={setOtp} len={4} />
-                <Button data-testid={`complete-otp-${b.code}`} onClick={() => step("complete", "Job completed! Earnings credited 🎉")} disabled={otp.length < 4}
-                  className="w-full mt-3 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 font-semibold disabled:opacity-50"><CheckCircle2 className="h-4 w-4 mr-1.5" /> Complete Job</Button>
-              </div>
-            )}
-          </>
-        )}
+        {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
+        <button type="button" data-testid={`open-job-${b.code}`} onClick={() => setWizardOpen(true)}
+          className={`w-full h-12 rounded-xl text-white font-extrabold flex items-center justify-center gap-2 shadow-sm azo-press ${inProgress ? "bg-emerald-600 hover:bg-emerald-700" : "bg-primary-600 hover:bg-primary-700"}`}>
+          {inProgress ? <CheckCircle2 className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
+          {inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}
+          <ChevronDown className="h-5 w-5 -rotate-90" />
+        </button>
 
         {/* Secondary actions */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -675,62 +580,9 @@ const ActiveJob = ({ b, onUpdate }) => {
 
         {/* Controlled chat sheet (no duplicate action bar) */}
         <BookingChat booking={b} role="partner" open={chatOpen} onOpenChange={setChatOpen} hideBar />
+        {wizardOpen && <JobWizard booking={b} onClose={() => { setWizardOpen(false); onUpdate(); }} onUpdate={onUpdate} />}
 
-      {(b.status === "started" || b.status === "arrived_customer") && (
-        <div className="mt-4 border-t border-slate-100 pt-4" data-testid={`additional-section-${b.code}`}>
-          <div className="flex items-center justify-between mb-1.5">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1"><Wrench className="h-3.5 w-3.5" /> Additional work</p>
-            {addl && (addl.total || 0) > 0 && (
-              <Badge className={`${addl.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"} border-0 capitalize`}>
-                {addl.status === "paid" ? "Paid" : "Payment pending"}
-              </Badge>
-            )}
-          </div>
-          <p className="text-[12px] text-slate-500 mb-3">
-            If any extra parts or labour were used, add them from the category rate card. <b className="text-amber-700">Collect the payment for additional work from the customer first, then complete the job.</b>
-          </p>
-
-          {addl && (addl.items || []).length > 0 && (
-            <div className="space-y-1.5 mb-3 bg-slate-50 rounded-lg p-3">
-              {addl.items.map((it) => (
-                <div key={it.id} className="flex items-center justify-between text-sm">
-                  <span className="text-slate-700">{it.description}
-                    <span className="text-slate-400"> · part {fmt(it.part_charge)}{it.labour_charge > 0 ? ` + labour ${fmt(it.labour_charge)}` : ""}</span>
-                  </span>
-                  {addl.status !== "paid" && (
-                    <button data-testid={`addl-remove-${it.id}`} onClick={() => removeAdditional(it.id)} className="text-red-500 hover:text-red-700 ml-2 shrink-0"><Trash2 className="h-4 w-4" /></button>
-                  )}
-                </div>
-              ))}
-              <div className="flex justify-between text-xs text-slate-500 pt-1.5 border-t border-slate-200"><span>Parts (no commission)</span><span>{fmt(addl.parts_total)}</span></div>
-              <div className="flex justify-between text-xs text-slate-500"><span>Labour (commission applies)</span><span>{fmt(addl.labour_total)}</span></div>
-              {addl.gst > 0 && <div className="flex justify-between text-xs text-slate-500"><span>Est. Govt. Taxes</span><span>{fmt(addl.gst)}</span></div>}
-              <div className="flex justify-between text-sm font-extrabold text-slate-900 pt-1 border-t border-slate-200"><span>Additional total</span><span>{fmt(addl.total)}</span></div>
-              {addl.status === "paid"
-                ? <p className="text-[12px] text-emerald-700 font-semibold flex items-center gap-1 pt-1"><CheckCircle2 className="h-3.5 w-3.5" /> Customer paid — you can complete the job now</p>
-                : <p className="text-[12px] text-amber-700 font-semibold flex items-center gap-1 pt-1"><AlertTriangle className="h-3.5 w-3.5" /> Waiting for customer to pay the additional amount</p>}
-            </div>
-          )}
-
-          {addl?.status !== "paid" && (
-            rcCard
-              ? <Button size="sm" variant="outline" data-testid={`add-additional-${b.code}`} onClick={() => setRcOpen(true)} className="border-primary-300 text-primary-700"><Plus className="h-4 w-4 mr-1" /> Add from rate card</Button>
-              : <p className="text-[12px] text-slate-400">No rate card configured for this category — additional work unavailable.</p>
-          )}
-        </div>
-      )}
       </div>
-      <AnimatePresence>
-        {rcOpen && rcCard && <RateCardModal card={rcCard} onClose={() => setRcOpen(false)} onAdd={(row) => addAdditionalRow(row)} />}
-      </AnimatePresence>
-      <CameraCapture
-        key={camStage || "cam-closed"}
-        open={!!camStage}
-        title={camStage === "before" ? "Capture BEFORE-work photo" : "Capture AFTER-work photo"}
-        uploading={camUploading}
-        onClose={() => { if (!camUploading) setCamStage(null); }}
-        onCapture={captureProof}
-      />
     </div>
   );
 };
@@ -864,66 +716,6 @@ function InfoItem({ icon: Icon, label, value }) {
     <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3">
       <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">{Icon && <Icon className="h-3 w-3" />}{label}</p>
       <p className="text-[13.5px] font-semibold text-slate-800 dark:text-slate-100 mt-0.5 truncate">{value || "—"}</p>
-    </div>
-  );
-}
-
-function OtpBoxes({ value, onChange, len = 4 }) {
-  const refs = useRef([]);
-  const digits = Array.from({ length: len }, (_, i) => (value || "")[i] || "");
-  const setAt = (i, d) => {
-    const arr = (value || "").split("");
-    arr[i] = d;
-    onChange(arr.join("").slice(0, len));
-    if (d && refs.current[i + 1]) refs.current[i + 1].focus();
-  };
-  return (
-    <div className="flex gap-2" data-testid="otp-boxes">
-      {digits.map((d, i) => (
-        <input key={i} ref={(el) => (refs.current[i] = el)} inputMode="numeric" maxLength={1} value={d}
-          onChange={(e) => setAt(i, e.target.value.replace(/\D/g, "").slice(-1))}
-          onKeyDown={(e) => { if (e.key === "Backspace" && !d && refs.current[i - 1]) refs.current[i - 1].focus(); }}
-          className="h-12 w-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-xl font-bold text-slate-900 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900 outline-none transition" />
-      ))}
-    </div>
-  );
-}
-
-function PhotoBlock({ title, items, onAdd, onRemove, removingUrl, uploading, locked, lockedText, testid }) {
-  const arr = items || [];
-  if (locked) {
-    return (
-      <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-4" data-testid={`${testid}-locked`}>
-        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><Lock className="h-3.5 w-3.5" /> {title} locked</p>
-        <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1">{lockedText || "Unlocks 30 minutes before the scheduled time."}</p>
-      </div>
-    );
-  }
-  return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 p-3.5">
-      <div className="flex items-center justify-between">
-        <p className="text-[13px] font-bold text-slate-700 dark:text-slate-200">{title}</p>
-        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${arr.length ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{Math.min(arr.length, 3)}/3 photos{arr.length ? " ✓" : ""}</span>
-      </div>
-      {arr.length > 0 && (
-        <div className="mt-2.5 grid grid-cols-3 gap-2" data-testid={`${testid}-grid`}>
-          {arr.map((url, i) => (
-            <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 group">
-              <img src={url.startsWith("http") ? url : `${(process.env.REACT_APP_BACKEND_URL || "").replace(/\/$/, "")}${url}`} alt={`${title} ${i + 1}`} className="h-full w-full object-cover" />
-              {onRemove && (
-                <button type="button" data-testid={`${testid}-remove-${i}`} onClick={() => onRemove(url)} disabled={removingUrl === url}
-                  className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/60 hover:bg-red-600 text-white flex items-center justify-center text-xs font-bold shadow disabled:opacity-50 transition" aria-label="Remove photo">
-                  {removingUrl === url ? <span className="h-3 w-3 border-2 border-white/70 border-t-transparent rounded-full animate-spin" /> : "\u2715"}
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <button type="button" data-testid={testid} onClick={onAdd} disabled={uploading}
-        className="mt-3 w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-semibold text-sm flex items-center justify-center gap-2 hover:border-primary-400 hover:text-primary-700 disabled:opacity-60 transition">
-        <Camera className="h-4 w-4" /> {uploading ? "Uploading…" : arr.length ? "Add more photos" : `Add ${title.split(" ")[0]} Photos`}
-      </button>
     </div>
   );
 }

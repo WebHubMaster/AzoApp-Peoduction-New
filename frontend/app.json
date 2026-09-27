@@ -13,6 +13,7 @@
       "bundleIdentifier": "app.azoapp.partner",
       "infoPlist": {
         "NSCameraUsageDescription": "Capture KYC documents and job photos",
+        "NSMicrophoneUsageDescription": "Record short work-proof videos for your jobs",
         "NSPhotoLibraryUsageDescription": "Upload documents and job proof photos",
         "NSLocationWhenInUseUsageDescription": "Detect your shop and service address",
         "ITSAppUsesNonExemptEncryption": false,
@@ -76,7 +77,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Upload documents and job proof photos",
-          "cameraPermission": "Capture KYC documents and live job photos"
+          "cameraPermission": "Capture KYC documents and live job photos",
+          "microphonePermission": "Record short work-proof videos for your jobs"
         }
       ],
       "expo-audio",
