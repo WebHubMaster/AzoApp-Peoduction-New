@@ -2,7 +2,7 @@
  * Monthly/Yearly), choose start date + time + address, pay the full amount upfront and
  * activate. Also shows the customer's existing subscriptions. */
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ScrollView, TextInput } from "react-native";
 import { CalendarHeart, CheckCircle2, MapPin, Clock } from "lucide-react-native";
 import { api } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";

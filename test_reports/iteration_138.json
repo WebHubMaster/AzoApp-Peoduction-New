@@ -1,0 +1,24 @@
+{
+  "summary": "Backend-only verification of new Subscription (recurring booking) module. Wrote pytest suite at /app/backend/tests/test_subscription_module.py with 12 test functions covering: admin catalog service creation with is_subscription+subscription_plans, plan preview financials, subscription creation with schedule + immutable snapshot (commission/tax/allocation/per_day_earning), snapshot immutability after admin PUT /api/admin/settings commission change, mock upfront payment activation, admin partners list + assign, partner day complete + weekly_off rejection + non-assigned 403, admin maid_absent/customer_cancel (neutral)/weekly_off protection/replacement_completed accrual, full 10000/26/20% money reconciliation (accrued=24*per_day ~7384.62, absent_adjustment=2*per_day ~615.38, sum=8000 partner_allocation), finalize -> pending -> pay-before-approve rejected -> review -> approve -> pay credits partner wallet by exact settlement amount, listing endpoints (mine, partner/mine, admin/all, admin/stats), and regression non-subscription catalog create. All 12/12 passed in 12.2s.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "test_report_links": [
+    "/app/backend/tests/test_subscription_module.py",
+    "/app/test_reports/pytest/subscription_module.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "subscription_service.plan_preview uses _parse_ref() (today) to count working_days when plan.working_days is falsy; if the customer picks a start_date whose week alignment differs from today, the previewed per_day_earning can drift from the actual booking. Preview is decoupled from create (create counts working_days from the schedule built with the actual start_date), so numbers on the review screen may not exactly match the created subscription for auto-computed working_days. Explicit plan.working_days (as used in tests) avoids this. Consider taking start_date into preview or documenting the caveat.",
+    "controllers/subscription_controller._set_day allows overriding an already-completed day back to any other status (e.g., completed -> maid_absent) because allowed_from is only enforced on the partner path. Consider guarding against silently changing days already marked completed/absent via admin to keep the audit trail intact (or explicitly document it as an admin override).",
+    "pay_settlement is idempotent for the assigned partner (short-circuits if settlement.status==paid) but the replacement-earnings loop runs BEFORE that gate on the first call only; if a caller ever hits pay twice concurrently there is a minor race window. In practice guarded by admin approve->pay flow.",
+    "SettingsUpdate model does not include `payment` config field; unrelated to this module but note that some settings paths use nested dicts. Not a blocker."
+  ],
+  "updated_files": ["/app/backend/tests/test_subscription_module.py"],
+  "success_rate": { "backend": "100%", "frontend": "N/A (skipped as requested)" },
+  "test_credentials": "OTP demo login: admin +919000000000, customer +919000000004, partner +919000000003, otp 123456. /app/memory/test_credentials.md is missing.",
+  "seed_data_creation": "Each test creates its own TEST_-prefixed catalog service (via /api/catalog/services) and subscription. No global seed added; MongoDB retains TEST_ records.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Subscription module is fully green on backend. If revisiting: (a) /app/memory/test_credentials.md still missing, using known demo phones; (b) reset commission back to 20 between test runs since some tests write it to 50 mid-run then restore; (c) tests rely on customer having/adding an address at /api/profile/addresses or first address in /auth/me.addresses; (d) partner user +919000000003 must be role=partner status=active (already the case in seeded env).",
+  "rca of the issue": "N/A - no failures."
+}

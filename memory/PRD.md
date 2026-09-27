@@ -149,3 +149,40 @@ Replicated the Partner/Merchant (`frontend/`) Expo EAS + GitHub Actions setup fo
 - All logout targets now `router.replace("/(auth)/welcome")`. `_layout.tsx` registers the 3 auth screens.
 - Pod fixes: recreated `/app/backend/.env` (was missing → crash loop) and `/app/frontend/.env` (`EXPO_PUBLIC_BACKEND_URL` = preview URL). Expo for frontend runs manually: `cd /app/frontend && yarn start` (port 3000, CI=1 → restart after code changes). Expo Go: `exp://mobile-customer-nav.preview.emergentagent.com` (QR: `/app/frontend/expo_partner_qr.png`).
 - Verified: testing agent iteration_136 — backend 8/8, frontend 10/10 (partner/merchant login, customer blocked, new-number → register, merchant signup, existing-number register → login, logout → welcome).
+
+---
+
+## Subscription-based Recurring Booking Module (added 2026-09-27)
+
+### What it does
+Recurring subscription bookings for the **Maid** category (architecture is generic → reusable for Cook, Nanny, Babysitter, Caretaker, Driver, Housekeeping). Customer pays the FULL plan amount UPFRONT; the partner (maid) is settled only from ACTUAL completed working days. Absent days' allocated earning is retained by the platform.
+
+### Financial model (decimal-safe via services/money)
+- commission_amount = price × commission_pct  (dynamic; from settings.commission.subscription_commission_pct, else platform_pct)
+- tax_amount = price × tax_pct (service.tax_pct)
+- partner_allocation = price − commission_amount − tax_amount  (MAX maid earning)
+- per_day_earning = partner_allocation / working_days
+- All the above + working_days are **SNAPSHOTTED** on the subscription at booking time → future admin rate changes never affect active/past subscriptions.
+- Daily accrual: completed→maid earns per_day; maid_absent→per_day to platform (absent_adjustment); weekly_off→no earning/no deduction; customer_cancel→neutral; replacement_completed→replacement maid earns, original does not (no duplicate per date).
+
+### Flow
+Customer selects plan (Daily/Weekly/Monthly/Yearly) → pays full upfront → subscription activates → daily schedule generated → maid marks each working day completed (or admin overrides absent/customer_cancel/replacement) → period ends → auto-finalize (hourly sweep) or admin Finalize → settlement pending → admin review → approve → pay (credits maid wallet + records subscription_settlements + transaction).
+
+### Backend (all mounted under /api/subscriptions)
+- models/subscription.py, services/subscription_service.py, controllers/subscription_controller.py, routes/subscription_routes.py
+- ServiceCreate extended with is_subscription + subscription_plans (models/catalog.py)
+- Startup sweep `_subscription_finalize_sweep` (hourly) in server.py
+- Collections: subscriptions, subscription_settlements
+- Key endpoints: GET plans/{service_id}; POST "" (create); GET mine; POST {id}/pay/{order|verify|mock}; GET partner/mine; POST {id}/days/{date}/complete; admin: GET admin/stats, admin/all, admin/{id}/partners; POST admin/{id}/assign, admin/{id}/days/{date}, admin/{id}/finalize, admin/{id}/settlement
+
+### Frontend
+- Admin web (web_panel): SubscriptionsAdmin.jsx (list + stats + detail drawer: assign maid, day overrides, finalize + review/approve/pay). Service wizard (adminSectionsPro.jsx) got a "Recurring Subscription Service" toggle + per-plan editor (price, duration, working days, weekly-offs).
+- Customer app (/app/Customer): app/(customer)/subscriptions.tsx (browse plans, pick plan/date/time/address, pay upfront, My Subscriptions). Nav item added.
+- Partner app (/app/frontend): app/(partner)/partner/subscriptions.tsx (assigned subscriptions, summary matching spec, daily schedule + Mark done, earnings). Nav "Maid Subscriptions" added.
+
+### Status
+Backend: fully tested (testing agent 12/12, 100%). Admin web UI verified via screenshot (₹10,000/26/20% reconciliation → earned ₹7,384.56, absent adj ₹615.38). Customer & Partner Expo screens implemented (compile OK); deep e2e mobile screenshotting deferred.
+Payment is MOCKED (no live gateway configured) via /pay/mock.
+
+### Env note
+backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).
