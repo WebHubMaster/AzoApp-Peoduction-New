@@ -612,8 +612,8 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
       {appMode && (
         <>
           {/* Mobile app-style bottom tab bar */}
-          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 pointer-events-none" data-testid="app-bottom-nav">
-            <div className="pointer-events-auto mx-auto max-w-md glass rounded-[28px] border border-white/50 dark:border-slate-700/60 shadow-float grid grid-cols-5 px-1.5 py-1">
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_24px_rgba(15,23,42,0.08)] pb-[env(safe-area-inset-bottom)]" data-testid="app-bottom-nav">
+            <div className="w-full grid grid-cols-5 px-1.5 py-1">
               {primaryTabs.map((k) => flat[k]).filter(Boolean).map((it) => {
                 const Icon = it.icon || Folder;
                 const on = active === it.key;

@@ -63,32 +63,29 @@ export function AppTabBar({
 
   return (
     <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, pointerEvents: "box-none" }}>
-      <View style={{ paddingHorizontal: 12, paddingBottom: insets.bottom + 8, paddingTop: 8, pointerEvents: "box-none" }}>
+      <View style={{ pointerEvents: "box-none" }}>
         <View
           testID="app-bottom-nav"
           style={{
-            alignSelf: "center",
             width: "100%",
-            maxWidth: 448,
-            borderRadius: 28,
-            boxShadow: "0px 10px 30px -10px rgba(15,23,42,0.35), 0px 4px 12px -6px rgba(15,23,42,0.2)",
+            boxShadow: "0px -4px 24px rgba(15,23,42,0.10)",
             elevation: 12,
           }}
         >
-          {/* Frosted-glass pill — heavier blur + near-opaque fill so scrolling page content behind the bar is NOT visible through it */}
+          {/* Fixed, full-width docked bar (same as the customer app) — flat top edge, no rounded pill */}
           <BlurView
             intensity={90}
             tint={mode === "dark" ? "dark" : "light"}
             experimentalBlurMethod="dimezisBlurView"
             style={{
               flexDirection: "row",
-              borderRadius: 28,
               overflow: "hidden",
-              borderWidth: 1,
-              borderColor: mode === "dark" ? "rgba(51,65,85,0.6)" : "rgba(255,255,255,0.5)",
-              backgroundColor: mode === "dark" ? "rgba(15,23,42,0.94)" : "rgba(255,255,255,0.96)",
+              borderTopWidth: 1,
+              borderTopColor: mode === "dark" ? "rgba(51,65,85,0.6)" : "#E2E8F0",
+              backgroundColor: mode === "dark" ? "rgba(15,23,42,0.96)" : "rgba(255,255,255,0.97)",
               paddingHorizontal: 6,
-              paddingVertical: 4,
+              paddingTop: 4,
+              paddingBottom: insets.bottom + 4,
             }}
           >
             {routes.map((r) => {

@@ -243,5 +243,9 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - Dev helper: `python3 /app/backend/dev_reset_job.py <booking_id>` resets a job to assigned (clears checkin/evidence) to replay the wizard. Demo job: AZOAF1BBB (ba936117-834f-40a2-a19c-65d3d4628050), partner Raj Kumar, demo OTPs 1234/1234.
 - Verified: testing agent iteration_142 — backend pytest 11/11 (gates, checkin, chunk video, 5-cap, remove, start/complete, 403), web-panel + Expo-web wizard flows + admin checkin-proof. Reschedule + demo_otps + /api/panel verified via curl/screenshots afterwards.
 
+- 2026-09-27 fix (user: "job ka timing nahi dikh raha"): `schedule_state()` now returns `is_instant` + scheduled_date/time (booking time from accepted_at/created_at, APP_TZ) + label "Now · booked <date> at <time>" + phase due/active for instant bookings. Partner ScheduledCard (mobile + web) renders for instant jobs too, titled "Instant Service · Booked", countdown "now". Wizard Details KV "Job timing" uses schedule.scheduled_label. Customer-side cards still gated by is_scheduled (unchanged). Verified: testing agent iteration_143 (backend + Expo-web + /api/panel mobile & desktop, no overflow).
+
+- 2026-09-27 UI: Partner/Merchant/Agent bottom tab bar is now FIXED full-width & flat (top border, no rounded pill / side margins) like the customer app — `frontend/src/components/AppTabBar.tsx` (BlurView, paddingBottom insets+4) and web `PanelLayout.jsx` appMode nav (`fixed bottom-0 inset-x-0 bg-white/95 border-t`). Icons/labels/active gradient unchanged. Verified via screenshots (Expo-web + /api/panel).
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

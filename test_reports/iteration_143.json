@@ -1,0 +1,47 @@
+{
+  "summary": "Regression for AzoApp Partner Active Job timing card (bug 'Job ka timing nahi dikh raha'). Backend schedule_state now returns is_instant=true with scheduled_date/scheduled_time/scheduled_label ('Now · booked …') and phase due/active for instant bookings; both the Expo web (:3000 root) and the built web panel (/api/panel/) render the green scheduled-card titled 'INSTANT SERVICE · BOOKED' for instant jobs. All checks pass on mobile 390x844 and desktop 1280x800. No horizontal overflow. Customer side regression clean (no console errors).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_instant_schedule_card.py",
+    "/app/test_reports/pytest/instant_schedule_card.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "schedule_service.schedule_state (backend/services/schedule_service.py) correctly branches on schedule_type; instant returns unlock_at=null so reminder cron won't fire (as expected).",
+    "scheduled_label for instant uses 'Now · booked <date> at <time>'; matches both Expo (active.tsx) and web panel (ScheduledCard.jsx) title logic."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_instant_schedule_card.py"
+  ],
+  "success_rate": {"backend": "100% (2 pass, 1 skip)", "frontend": "100%"},
+  "test_credentials": "Partner +919000000003 OTP 123456; Customer +919000000004 OTP 123456. localStorage key azo_token.",
+  "seed_data_creation": "None. Booking AZOAF1BBB (ba936117-...) already in 'assigned' state (instant). AZOCD5927 also instant/assigned.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "verification_details": {
+    "backend": {
+      "GET /api/bookings/partner/active": "200, both active jobs (AZOCD5927, AZOAF1BBB) have schedule.is_instant=true, is_scheduled=false, comm_locked=false, otp_hidden=false, unlock_at=null, phase='due', scheduled_date='27 Sep 2026', scheduled_time='02:33 PM', scheduled_label starts 'Now · booked'.",
+      "GET /api/bookings/partner/job/ba936117-834f-40a2-a19c-65d3d4628050": "200, same schedule shape confirmed.",
+      "scheduled_regression": "Skipped — no scheduled-type booking present in partner active list. Backend code path visually reviewed in schedule_service.py (lines 214-241): comm_locked/otp_hidden set when now < (scheduled_at - 30min)."
+    },
+    "frontend_expo_web_mobile_390x844": {
+      "route": "/active with localStorage.azo_token set",
+      "scheduled_card_count": 2,
+      "card_text": "INSTANT SERVICE · BOOKED / 27 Sep 2026 / 02:33 PM / READY TO START now / Call, Chat, Navigation & Start Work are now available.",
+      "horizontal_overflow": "false (scrollWidth == clientWidth == 390)",
+      "open_job_AZOAF1BBB": "clicked; wizard Details step shows 'JOB TIMING: Now · booked 27 Sep 2026 at 02:33 PM'"
+    },
+    "frontend_web_panel_390x844_and_1280x800": {
+      "route": "/api/panel/partner?tab=active",
+      "scheduled_card_count": 2,
+      "card_text_sample": "Instant Service · Booked / 27 Sep 2026 / 02:33 PM / Ready to start now / Call, Chat, Navigation & Start Work are now available.",
+      "testids_present": ["scheduled-card", "scheduled-countdown", "reschedule-AZOAF1BBB", "reject-AZOAF1BBB", "open-job-AZOAF1BBB"],
+      "horizontal_overflow_390": "false",
+      "horizontal_overflow_1280": "false",
+      "wizard_job_timing": "'JOB TIMING: Now · booked 27 Sep 2026 at 02:33 PM' visible in Details step"
+    },
+    "customer_regression": "GET /api/panel/customer with customer token loads landing page; no JS console errors."
+  },
+  "context_for_next_testing_agent": "The two active instant bookings in DB right now: AZOCD5927 (Switchboard Repair) and AZOAF1BBB (AC Gas Refill). If regressing scheduled path, create a booking via customer +919000000004 with schedule_type='schedule' and future scheduled_at > 30 min. Booking AZOAF1BBB was left in 'assigned' state (no reset script invoked). Test file: /app/backend/tests/test_instant_schedule_card.py."
+}
