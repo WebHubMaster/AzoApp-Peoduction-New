@@ -210,8 +210,8 @@ async def _activate(sub):
     sub = await db.subscriptions.find_one({"id": sub["id"]}, {"_id": 0})
     try:
         await _ensure_payment_invoice(sub)
-    except Exception:
-        pass  # invoice can be generated lazily from the invoice endpoint
+    except Exception as e:
+        print(f"[subscriptions] invoice generation failed for {sub.get('code')}: {e}")  # lazy retry via invoice endpoint
     return sub
 
 

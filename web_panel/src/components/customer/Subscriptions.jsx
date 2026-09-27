@@ -207,10 +207,12 @@ function SubCard({ s }) {
   const copyId = () => { navigator.clipboard?.writeText(s.code || ""); toast.success("Subscription ID copied"); };
   const downloadInvoice = async () => {
     setInvBusy(true);
+    // Pre-open the tab so popup blockers don't kill window.open after the await.
+    const win = window.open("about:blank", "_blank");
     try {
       const { data } = await api.get(`/subscriptions/${s.id}/invoice`);
-      window.open(`${API}${data.path}`, "_blank");
-    } catch (e) { toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
+      if (win) win.location.href = `${API}${data.path}`;
+    } catch (e) { win?.close(); toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
   };
   const viewSchedule = () => { setOpen(true); setTimeout(() => calRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120); };
 

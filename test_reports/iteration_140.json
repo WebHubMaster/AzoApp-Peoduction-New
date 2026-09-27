@@ -1,0 +1,58 @@
+{
+  "summary": "Full retest of iteration 140 (customer subscriptions premium redesign + new subscription invoice endpoint). Backend pytest 6/6 passed. Frontend: My Subscriptions cards render FULL-WIDTH (1592px = content root width) at 1920px viewport, with all new data-testids present (my-subscriptions, my-sub-{id}, my-sub-status/copy/overview/progress/details-btn/schedule-btn/invoice-btn/expanded/calendar/day/payment/maid). Expanded 'View Details' section correctly renders Service Calendar with day cells + legend (Completed/Absent/Weekly off/Upcoming/Cancelled), Payment & subscription details (Paid upfront, Commission snapshot 20% (\u20b9100), Tax snapshot 0%, Partner max allocation, Per-day earning, Weekly off, Subscription status), and Maid details card (name + tappable phone +919000000020 + service time + full address). Copy-ID works. Download-Invoice button calls GET /api/subscriptions/{id}/invoice (200) and window.open receives the correctly signed public URL /api/invoices/pub/{invoice_id}?s={32-hex-sig}. Regression: /services lists Home Maid; /account?tab=orders and ?tab=wallet load without errors. Partner regression already verified in iteration_139.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/account?tab=subscriptions", "issues": ["'Turn on alerts' toast at bottom-right can overlap the third action row on the last card in the list (matches note from main agent). Not blocking due to dismiss button; consider auto-dismiss or lifting z-index of card buttons."]}
+    ]
+  },
+  "verified_checks": {
+    "backend_invoice_endpoint": {
+      "GET_/api/subscriptions/{id}/invoice_status": 200,
+      "signed_path_shape": "/invoices/pub/<invoice_id>?s=<32-hex>",
+      "idempotent_same_invoice_id": true,
+      "public_pdf_fetch_status": 200,
+      "public_pdf_content_type_pdf": true,
+      "customer_invoices_list_contains_Subscription_Payment": true,
+      "partner_token_on_other_customer_sub_denied": "400/403",
+      "lazy_generation_older_paid_sub": true
+    },
+    "customer_web_subscriptions_redesign": {
+      "root_data_testid_my-subscriptions_visible": true,
+      "root_width_at_1920px": 1592,
+      "cards_rendered": 10,
+      "first_card_width_matches_root": true,
+      "per_card_testids_present": ["overview","progress","details-btn","schedule-btn","invoice-btn","copy","status"],
+      "expanded_view_shows": ["calendar","payment","maid","day cells"],
+      "invoice_button_opens_signed_pdf_url": true,
+      "invoice_api_status_for_paid_active_approved": "200 all"
+    },
+    "regressions": {
+      "services_list_page_loads": true,
+      "account_tab_orders_loads_no_errors": true,
+      "account_tab_wallet_loads_no_errors": true
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_subscription_invoice.py",
+    "/app/test_reports/pytest/iter140_invoice.xml",
+    "/app/test_reports/iter140_subs_list.png",
+    "/app/test_reports/iter140_subs_expanded.png",
+    "/app/test_reports/iter140_expanded.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "web_panel/src/components/customer/Subscriptions.jsx downloadInvoice() awaits the API then calls window.open. In stricter popup-blocker environments (some Chromium builds, Safari) window.open after an await can be blocked because the user-gesture chain is broken. Playwright's chromium DID open the popup here, but consider pre-opening a blank tab before await (const win=window.open('about:blank','_blank'); win.location=... after fetch) as a hardening measure.",
+    "backend/controllers/subscription_controller.py::_activate silently swallows invoice generation errors ('except Exception: pass'). Lazy generation covers this, but log the exception for observability.",
+    "backend/controllers/subscription_controller.py::get_invoice uses _sub_for_customer which returns 403 for partners even if assigned; this is intentional per spec (invoice belongs to customer) and matches auth test expectations."
+  ],
+  "updated_files": ["/app/backend/tests/test_subscription_invoice.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% of listed checks"},
+  "test_credentials": "Customer +919000000004 / OTP 123456 (one-click 'Login as Customer' button on /login), Maid +919000000020 / OTP 123456",
+  "seed_data_creation": "None (used existing seed subs; multiple paid subs including SUBSXENO3, SUB445IQ2, SUBZXRGVG, SUBOI7PPF).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend needs manual restart if curl hangs (watchfiles hot-reload). All new data-testids match the spec exactly. Customer invoices list uses field 'txn_label' (not 'kind_label') — used that in the pytest assertion. Invoice public URL format is /api/invoices/pub/{invoice_id}?s={32-hex}."
+}
