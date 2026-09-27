@@ -42,11 +42,12 @@ export default function Welcome() {
 
   // Composition scales with screen width while preserving the reference layout.
   const S = Math.max(0.84, Math.min(1.12, width / 390));
-  const heroH = Math.round(Math.max(348, Math.min(height * 0.48, 408 * S)));
-  const personH = Math.round(heroH - 14);
-  const personW = Math.round(personH * (620 / 983));
-  const blobW = Math.round(250 * S);
-  const houseW = Math.round(214 * S);
+  const heroH = Math.round(Math.max(360, Math.min(height * 0.5, 420 * S)));
+  const personH = Math.round(heroH - 6);
+  const personW = Math.round(personH * (457 / 1205));
+  const discD = Math.round(personW * 2.35);
+  const blobW = Math.round(230 * S);
+  const houseW = Math.round(180 * S);
   const leavesW = width;
   const leavesH = Math.round(width * (113 / 226));
 
@@ -80,22 +81,38 @@ export default function Welcome() {
 
         {/* ---------- Hero ---------- */}
         <View style={{ height: heroH, marginTop: 4 }}>
-          <Image source={BLOB} style={{ position: "absolute", right: -30, top: -8, width: blobW, height: Math.round(blobW * (129 / 231)), opacity: 0.95, pointerEvents: "none" }} contentFit="contain" />
-          <Image source={HOUSE} style={{ position: "absolute", left: 12, bottom: 30, width: houseW, height: Math.round(houseW * (246 / 254)), pointerEvents: "none" }} contentFit="contain" contentPosition="bottom" />
-          <Image testID="welcome-hero" source={PERSON} style={{ position: "absolute", right: -26, bottom: -4, width: personW, height: personH, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom right" />
+          <Image source={BLOB} style={{ position: "absolute", right: -34, top: -6, width: blobW, height: Math.round(blobW * (129 / 231)), opacity: 0.9, pointerEvents: "none" }} contentFit="contain" />
 
-          <View style={{ paddingLeft: 22, paddingTop: 6, width: Math.min(width - 90, 280), zIndex: 6 }}>
-            <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(25 * S), lineHeight: Math.round(30 * S), fontWeight: "800", letterSpacing: -0.7 }}>Reliable Services{"\n"}at Your Door Step</Text>
-            <Text style={{ color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 11, width: 208, fontWeight: "500" }}>Book trusted professionals, local shops and service providers near you.</Text>
+          {/* designed circular stage so the professional sits on a surface (premium, not floating) */}
+          <LinearGradient
+            colors={["#DCEBFC", "#CFE3FB", "#BFD8F8"]}
+            start={{ x: 0.2, y: 0 }} end={{ x: 0.9, y: 1 }}
+            style={{ position: "absolute", right: -discD * 0.22, bottom: -discD * 0.42, width: discD, height: discD, borderRadius: discD / 2, pointerEvents: "none" }}
+          />
+          <View style={{ position: "absolute", right: -discD * 0.14, bottom: -discD * 0.34, width: discD * 0.82, height: discD * 0.82, borderRadius: discD, borderWidth: 2, borderColor: "rgba(255,255,255,0.55)", pointerEvents: "none" }} />
+
+          <Image source={HOUSE} style={{ position: "absolute", left: 14, bottom: 26, width: houseW, height: Math.round(houseW * (246 / 254)), opacity: 0.96, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom" />
+
+          {/* soft ground shadow under the person */}
+          <View style={{ position: "absolute", right: 4, bottom: 4, width: personW * 0.92, height: 16, borderRadius: 12, backgroundColor: "rgba(10,30,99,0.14)", transform: [{ scaleX: 1.25 }], pointerEvents: "none" }} />
+          <Image testID="welcome-hero" source={PERSON} style={{ position: "absolute", right: 6, bottom: 6, width: personW, height: personH, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom center" />
+
+          <View style={{ paddingLeft: 22, paddingTop: 10, width: Math.min(width - 96, 268), zIndex: 6 }}>
+            <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "rgba(20,97,201,0.10)", paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, marginBottom: 12 }}>
+              <Icon name="star-four-points" size={12} color="#1461C9" />
+              <Text style={{ color: "#1461C9", fontSize: 10.5, fontWeight: "800", letterSpacing: 0.2 }}>TRUSTED BY THOUSANDS</Text>
+            </View>
+            <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(26 * S), lineHeight: Math.round(31 * S), fontWeight: "800", letterSpacing: -0.7 }}>Reliable Services{"\n"}at Your Door Step</Text>
+            <Text style={{ color: C.muted, fontSize: 13, lineHeight: 19, marginTop: 11, width: 202, fontWeight: "500" }}>Book trusted professionals, local shops and service providers near you.</Text>
           </View>
 
-          <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 13, rowGap: 12, paddingLeft: 22, marginTop: 22, width: 250, zIndex: 6 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", columnGap: 8, rowGap: 8, paddingLeft: 22, marginTop: 20, width: 240, zIndex: 6 }}>
             {FEATURES.map((f) => (
-              <View key={f.title} style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-                <View style={{ width: 27, height: 27, borderRadius: 14, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={15} color={f.fg} /></View>
+              <View key={f.title} style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: "rgba(255,255,255,0.72)", borderWidth: 1, borderColor: "rgba(227,233,245,0.9)", paddingLeft: 5, paddingRight: 11, paddingVertical: 5, borderRadius: 22 }}>
+                <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={14} color={f.fg} /></View>
                 <View>
-                  <Text style={{ color: "#243356", fontSize: 11, fontWeight: "800", lineHeight: 13 }}>{f.title}</Text>
-                  <Text style={{ color: "#7A8398", fontSize: 10, fontWeight: "500", lineHeight: 13 }}>{f.sub}</Text>
+                  <Text style={{ color: "#243356", fontSize: 10.5, fontWeight: "800", lineHeight: 13 }}>{f.title}</Text>
+                  <Text style={{ color: "#7A8398", fontSize: 9.5, fontWeight: "500", lineHeight: 12 }}>{f.sub}</Text>
                 </View>
               </View>
             ))}

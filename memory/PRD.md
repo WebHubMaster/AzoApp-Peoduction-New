@@ -214,6 +214,11 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - Customer web + mobile: amber "Today's service OTP: XXXX — share with your maid" banner on active cards (my-sub-otp-{id}); in_progress added to calendar DAY_META.
 - Verified: testing agent iteration_141 — backend pytest 8/8 (wrong OTP, complete-before-start, future block, 403, photo→https URL, accrual, backdated regression, admin absent regression) + web smoke (OTP banner). NOTE: on Sundays (Home Maid weekly_off) no natural "today" scheduled day exists — tests DB-patch the day.
 
+### Partner/Merchant Welcome screen — premium redesign — 2026-09-27 (latest)
+- User: welcome hero image low-quality + make UI more premium/arranged. Shared screen `frontend/app/(auth)/welcome.tsx` serves both partner & merchant (role chosen at register).
+- Regenerated hero character (Gemini high-quality) → rembg u2netp cutout → clean transparent PNG `frontend/assets/welcome-person.png` (457×1205, replaces the old low-res 620×983). Old backup moved to /app/.tmp_assets (out of bundle).
+- Hero recomposed: person aspect ratio fixed (457/1205); added a designed circular gradient "stage" disc + white ring behind the professional (no longer floating) + soft ground shadow; added a "TRUSTED BY THOUSANDS" pill above the title; feature items turned into neat white rounded pills. tsc clean; verified via expo-web screenshot (crisp image, arranged premium layout).
+
 ### Web ↔ App parity: Partner web panel gets Maid Subscriptions — 2026-09-27 (latest)
 - User asked full parity ("jo kaam app me hoga wo web me bhi & vice versa"). Web partner panel was MISSING the Maid Subscriptions screen that the mobile app had.
 - NEW `web_panel/src/pages/partner/PartnerSubscriptions.jsx`: 1:1 web port of mobile `partner/subscriptions.tsx` — assigned-subscriptions list, "Upcoming work · next 7 days" strip, detail view (hero working/completed/absent, Customer & work details card w/ tappable phone + address + duration + weekly-off + notes, Earnings breakdown, Daily schedule with backdated "Mark done" via POST /subscriptions/{id}/days/{date}/complete).
