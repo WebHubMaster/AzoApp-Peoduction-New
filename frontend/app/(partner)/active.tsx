@@ -472,7 +472,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const showSchedule = sched.is_scheduled && !["completed", "paid", "cancelled"].includes(status);
   const pendingReq = b.reschedule_request && b.reschedule_request.status === "pending" ? b.reschedule_request : null;
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
-  const canRequestResched = sched.is_scheduled && !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(status);
+  const canRequestResched = !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(status);
   const [reschedOpen, setReschedOpen] = useState(false);
   const [reschedDate, setReschedDate] = useState<Date | null>(null);
 
@@ -663,7 +663,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
               <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "700" }}>Request reschedule</Text>
               <Pressable onPress={() => setReschedOpen(false)} hitSlop={8}><Icon name="close" size={18} color={SLATE400} /></Pressable>
             </View>
-            <Text style={{ color: colors.textMuted, fontSize: 12.5 }}>Current: <Text style={{ fontWeight: "700" }}>{sched.scheduled_date} · {sched.scheduled_time}</Text>. The booking time changes only after the customer accepts.</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12.5 }}>Current: <Text style={{ fontWeight: "700" }}>{sched.is_scheduled ? `${sched.scheduled_date} · ${sched.scheduled_time}` : "Now (instant)"}</Text>. The booking time changes only after the customer accepts.</Text>
             <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <CalendarSlotPicker
                 value={reschedDate}

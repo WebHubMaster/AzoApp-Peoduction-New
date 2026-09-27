@@ -60,7 +60,7 @@ function App() {
         <ChatProvider>
         <SiteConfigProvider>
         <CartProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={process.env.PUBLIC_URL || "/"}>
           <MaintenanceBanner />
           <MerchantRefCatcher />
           <Suspense fallback={<RouteFallback />}>

@@ -936,8 +936,6 @@ async def request_reschedule(user, booking_id, scheduled_at):
     role = _party_role(user, b)
     if role is None:
         raise HTTPException(status_code=403, detail="Not your booking")
-    if (b.get("schedule_type") or "").lower() != "schedule" or not b.get("scheduled_at"):
-        raise HTTPException(status_code=400, detail="This booking is not a scheduled booking")
     if not b.get("partner_id"):
         raise HTTPException(status_code=400, detail="A partner must be assigned before rescheduling")
     if b.get("status") not in _RESCHEDULE_STATES:
@@ -961,7 +959,8 @@ async def request_reschedule(user, booking_id, scheduled_at):
     new_at = str(scheduled_at)
     if new_at == old_at:
         raise HTTPException(status_code=400, detail="Pick a different date or time")
-    old_f = format_scheduled(old_at) or {}
+    # Instant ("Now") bookings can also be moved to a slot — they become scheduled on accept.
+    old_f = (format_scheduled(old_at) or {}) if old_at else {"date": "Now", "time": "ASAP", "label": "Now (instant)"}
     new_f = format_scheduled(new_at) or {}
     req = {
         "id": new_id(),
@@ -1053,7 +1052,7 @@ async def respond_reschedule(user, booking_id, action):
         resolved = {**req, "status": "accepted", "resolved_at": now_iso(), "resolved_by_id": user["id"]}
         res = await db.bookings.update_one(
             {"id": booking_id, "reschedule_request.id": req_id, "reschedule_request.status": "pending"},
-            {"$set": {"scheduled_at": new_at, "reschedule_request": None, "updated_at": now_iso()},
+            {"$set": {"scheduled_at": new_at, "schedule_type": "schedule", "reschedule_request": None, "updated_at": now_iso()},
              "$unset": {"scheduled_reminder_sent_at": ""},
              "$push": {"reschedule_history": resolved,
                        "timeline": {"status": "reschedule_accepted", "at": now_iso(),
@@ -2325,7 +2324,9 @@ async def partner_job_detail(partner, booking_id):
     """View a job's details before accepting (must be in the partner's feed)."""
     b = await _get_booking(booking_id)
     if b.get("partner_id") == partner["id"] or partner["id"] in b.get("eligible_partner_ids", []):
+        b["demo_otps"] = (b.get("otps") or {}) if (partner.get("is_demo") and b.get("partner_id") == partner["id"]) else {}
         b.pop("otps", None)
+        _slim_partner_job(b, partner["id"])
         st = schedule_state(b)
         b["schedule"] = st
         if st.get("comm_locked"):

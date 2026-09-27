@@ -365,8 +365,7 @@ const ActiveJob = ({ b, onUpdate }) => {
   const iRequested = pendingReq && pendingReq.requested_by_role === "partner";
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
   const showSchedule = sched.is_scheduled && !["completed", "paid", "cancelled"].includes(b.status);
-  const canRequestResched = sched.is_scheduled && !pendingReq
-    && ["assigned", "arrived_shop", "arrived_customer"].includes(b.status);
+  const canRequestResched = !pendingReq && ["assigned", "arrived_shop", "arrived_customer"].includes(b.status);
   const requestResched = async () => {
     if (!reschedVal) return toast.error("Pick a new date & time");
     setReschedBusy(true);
@@ -569,7 +568,7 @@ const ActiveJob = ({ b, onUpdate }) => {
                 <h3 className="font-heading font-bold text-slate-900 dark:text-white">Request reschedule</h3>
                 <button onClick={() => setShowResched(false)} className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><XIcon className="h-4 w-4" /></button>
               </div>
-              <p className="text-[12.5px] text-slate-500 dark:text-slate-400">Current: <b>{sched.scheduled_date} · {sched.scheduled_time}</b>. The booking time changes only after the customer accepts.</p>
+              <p className="text-[12.5px] text-slate-500 dark:text-slate-400">Current: <b>{sched.is_scheduled ? `${sched.scheduled_date} · ${sched.scheduled_time}` : "Now (instant)"}</b>. The booking time changes only after the customer accepts.</p>
               <label className="block mt-3 mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">Pick a new date &amp; time slot</label>
               <SchedulePicker value={reschedVal || null} onChange={setReschedVal} />
               <Button data-testid={`reschedule-confirm-${b.code}`} disabled={reschedBusy || !reschedVal} onClick={requestResched}

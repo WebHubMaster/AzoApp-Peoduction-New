@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 142 — Partner Job Wizard flow (backend + web-panel + Expo mobile + admin). Backend pytest 11/11 PASS covering: partner OTP login, partner/active listing has AZOAF1BBB, /start-otp gated by before-photos AND selfie check-in (correct error strings), /checkin/upload multipart returns arrived_customer with selfie_url (https), lat, lng, distance_km (1.88 km 'far'), at; partner/job/{id} returns checkin; non-owner partner (+919000000020) checkin -> 403; chunked video upload (3 parts, base64 JSON) returns done:false with received counts and finally done:true+url .mp4+kind video, GET url -> 200 video/mp4; invalid chunk (index>=total) -> 400; 5-file cap: 6th /evidence/upload AND 6th /evidence/chunk both -> 400 'Maximum 5 files allowed for before work proof.'; /evidence/remove pulls a URL and count drops; start-otp wrong -> 400 'Invalid customer start OTP', correct + before-photo + checkin -> started, complete without after-evidence -> 400, after-photo + otp 1234 -> completed; checkin after 'started' -> 400 'Check-in is only allowed before the job starts.'. Frontend web-panel (:3002): Active card AZOAF1BBB has all 6 testids (job-card, navigate, call-cust, chat-cust, reject, open-job) and NO otp-boxes/before-ev on card; open-job opens job-wizard overlay with wizard-details+customer+timeline+continue+back; Continue goes to Check-in step with wizard-selfie-btn, wizard-location, wizard-location-btn, wizard-checkin-submit (disabled). wizard-back closes the wizard. With booking already checked-in via API, Continue jumps to Start step with before-ev-AZOAF1BBB grid + photo+video buttons + count '0/5', otp-box-0..3, start-otp-AZOAF1BBB (disabled until proof+4-digit). After API-uploading 1 before photo and typing 1234 the Start button enables, tapping it moves to Complete step showing elapsed-AZOAF1BBB, after-ev-AZOAF1BBB (+ photo/count), additional-section-AZOAF1BBB, wizard-complete-otp. Expo mobile (:3000, /active) also shows all 6 card testids (incl. reject when status=assigned), NO otp-boxes/before-ev on card, bottom tab bar visible on /active (Dashboard, Job Request, Active Job, Wallet/More). open-job routes to /partner/job/{id}, job-wizard visible, wizard-details/customer/timeline present, bottom tab bar hidden on the wizard route. Continue -> Start step shows the same before-ev grid, otp boxes, start-otp button. Admin panel (:3002 /admin -> Bookings -> Arrived Customer -> AZOAF1BBB detail page): [data-testid=checkin-proof] renders with selfie thumbnail + '~1.88 km from address · far'. Video work-proof shows [data-testid=proof-video-thumb]. Booking reset to 'assigned' at teardown so main agent can demo from scratch.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Partner Job Wizard – demo OTP hint", "issue": "GET /api/bookings/partner/job/{id} does not populate booking.demo_otps for demo partners, so the Expo wizard's [data-testid=demo-start-otp] / demo-complete-otp helper never renders even though Raj Kumar (+919000000003) has is_demo=true. Only /partner/active sets demo_otps. The wizard reads b.demo_otps from detail response.", "affected_selectors": ["demo-start-otp", "demo-complete-otp"]}
+    ],
+    "design_issues": []
+  },
+  "verified_checks": {
+    "backend_pytest_11_of_11": true,
+    "checkin_multipart_returns_https_selfie_and_distance_km": true,
+    "chunked_video_mp4_end_to_end_and_400_on_invalid": true,
+    "five_file_cap_and_remove": true,
+    "start_otp_gates": ["before photos", "selfie check-in", "invalid OTP"],
+    "checkin_after_started_400": true,
+    "non_owner_checkin_403": true,
+    "web_panel_card_testids": true,
+    "web_panel_wizard_all_steps": true,
+    "expo_card_testids_and_wizard_hides_tabbar": true,
+    "admin_booking_detail_checkin_proof_and_video_thumb": true
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter142_job_wizard.py",
+    "/app/test_reports/pytest/iter142_wizard.xml",
+    "/app/test_reports/iter142_web_active.png",
+    "/app/test_reports/iter142_web_wizard_checkin.png",
+    "/app/test_reports/iter142_web_start_step.png",
+    "/app/test_reports/iter142_web_complete_step.png",
+    "/app/test_reports/iter142_expo_active.png",
+    "/app/test_reports/iter142_expo_wizard_details.png",
+    "/app/test_reports/iter142_expo_start_step.png",
+    "/app/test_reports/iter142_admin_workproof2.png"
+  ],
+  "action_items": [
+    "Optional: include demo_otps in partner_job_detail response (mirror partner_active_jobs) so demo-start-otp / demo-complete-otp helper text renders inside the mobile wizard for demo partners; today the wizard hides them because the detail endpoint strips otps completely.",
+    "Nice-to-have: on Expo mobile, wizard-back currently navigates to '/' (dashboard) instead of '/active'; spec says 'wizard-back returns to /active'. Consider router.push('/active') on back."
+  ],
+  "critical_code_review_comments": [
+    "booking_controller.checkin_job accepts any content_type and forwards to storage_service.save_image — good; but ensures lat/lng are floats before haversine. Consider validating lat in [-90,90] and lng in [-180,180] before persist to prevent absurd distance values in admin UI.",
+    "upload_evidence_chunk stages chunks under /tmp/azo_evidence_chunks/{partner_id}_{upload_id} — no TTL cleanup for orphan/incomplete uploads (e.g. user abandons). A small janitor (age > 1h) would prevent disk bloat.",
+    "MAX_EVIDENCE_FILES=5 enforced on both upload paths and chunked path — good. remove_evidence uses $pull which is idempotent even for video urls.",
+    "verify_start_otp checks before-photos BEFORE checkin — spec expects either error is acceptable. Consider inverting so the more actionable (selfie) message shows first when both are missing.",
+    "partner_job_detail strips b.otps but never sets demo_otps — inconsistent with partner_active_jobs and breaks the mobile wizard's demo helper (see integration_issue)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter142_job_wizard.py"],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "wizard + admin proof surfaces verified end-to-end; live camera/geo skipped by spec"},
+  "test_credentials": "Partner Raj Kumar +919000000003 OTP 123456 (is_demo=true); Non-owner maid +919000000020 OTP 123456; Admin +919000000000 OTP 123456.",
+  "seed_data_creation": "None. Reused booking ba936117-834f-40a2-a19c-65d3d4628050 (code AZOAF1BBB). dev_reset_job.py called before each destructive test AND at teardown to leave the booking in 'assigned' state for demo.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Booking is left in status='assigned' (evidence & checkin cleared). Backend tests must be run with pytest option -o 'addopts=' to disable xdist parallelism because the tests share one booking id (parallel workers cause phantom failures via dev_reset_job races). Web panel and Expo bundles are already served on :3002 and :3000 respectively — do NOT restart. Camera & geolocation cannot be exercised in Playwright headless; the wizard exposes them behind wizard-selfie-btn / wizard-location-btn and the check-in submit remains disabled until both permissions are granted — validated by driving state via /api/bookings/{id}/checkin/upload directly.",
+  "rca of the issue": "N/A — no functional bugs found. Only one minor integration nit: partner_job_detail omits demo_otps so the wizard's demo-start-otp / demo-complete-otp helper labels never appear on the mobile wizard for demo accounts. Root cause: async def partner_job_detail() in /app/backend/controllers/booking_controller.py pops b['otps'] but never rebuilds b['demo_otps'] the way partner_active_jobs does at line 2297. Mitigation: after `b.pop('otps', None)`, add `b['demo_otps'] = (raw_otps if partner.get('is_demo') else {})`."
+}

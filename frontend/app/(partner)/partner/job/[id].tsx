@@ -59,7 +59,7 @@ export default function PartnerJobWizard() {
   useEffect(() => { if (step > 0 && phase > step) setStep(phase); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = () => { q.refetch(); ["partner-active", "partner-joblist", "partner-wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); };
-  const goBack = () => (router.canGoBack() ? router.back() : router.replace("/(partner)/active" as any));
+  const goBack = () => router.replace("/(partner)/active" as any);
 
   if (q.isLoading || !b) {
     return <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={colors.primary} /></View>;

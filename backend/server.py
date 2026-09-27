@@ -2,7 +2,8 @@ import os
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
 ROOT_DIR = Path(__file__).parent
@@ -75,6 +76,29 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
     api_router.include_router(r)
 
 app.include_router(api_router)
+
+# Built web panel (Admin / Customer / Partner) served under /api/panel so it is
+# reachable through the same ingress as the API. Build: cd web_panel &&
+# PUBLIC_URL=/api/panel yarn build. SPA fallback → index.html.
+_PANEL_DIR = Path(__file__).parent.parent / "web_panel" / "build"
+
+
+@app.get("/api/panel", include_in_schema=False)
+@app.get("/api/panel/{path:path}", include_in_schema=False)
+async def serve_web_panel(path: str = ""):
+    index = _PANEL_DIR / "index.html"
+    if not index.is_file():
+        raise HTTPException(status_code=404, detail="Web panel is not built. Run `yarn build` in /app/web_panel.")
+    rel = (path or "").lstrip("/")
+    full = (_PANEL_DIR / rel).resolve() if rel else index
+    try:
+        full.relative_to(_PANEL_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if rel and full.is_file():
+        cache = "public, max-age=31536000, immutable" if rel.startswith("static/") else "no-cache"
+        return FileResponse(str(full), headers={"Cache-Control": cache})
+    return FileResponse(str(index), headers={"Cache-Control": "no-cache"})
 
 app.add_middleware(
     CORSMiddleware,
