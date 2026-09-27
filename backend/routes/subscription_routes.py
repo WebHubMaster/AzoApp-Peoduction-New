@@ -43,6 +43,11 @@ async def pay_mock(subscription_id: str, user=Depends(CUSTOMER)):
     return await c.pay_mock(user, subscription_id)
 
 
+@router.get("/{subscription_id}/invoice")
+async def get_invoice(subscription_id: str, user=Depends(ANY)):
+    return await c.get_invoice(user, subscription_id)
+
+
 # ---------------- PARTNER (maid) ----------------
 @router.get("/partner/mine")
 async def partner_list(user=Depends(PARTNER)):

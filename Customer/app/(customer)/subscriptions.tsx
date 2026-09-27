@@ -1,16 +1,27 @@
 /** Customer Subscriptions — browse recurring (Maid) services, pick a plan (Daily/Weekly/
  * Monthly/Yearly), choose start date + time + address, pay the full amount upfront and
- * activate. Also shows the customer's existing subscriptions. */
+ * activate. Premium full-width subscription cards with progress bar, attendance calendar,
+ * payment snapshot, maid details and invoice download — parity with the web panel. */
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput } from "react-native";
-import { CalendarHeart, CheckCircle2, MapPin, Clock } from "lucide-react-native";
-import { api } from "../../src/api/client";
+import { View, Text, Pressable, ScrollView, TextInput, Linking } from "react-native";
+import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
+import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, useTheme } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
 
+const ROSE = "#F43F5E";
 const money = (n: any) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const todayPlus = (d: number) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
+
+const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
+  completed: { label: "Completed", color: "#059669", bg: "#ECFDF5" },
+  replacement_completed: { label: "Replacement", color: "#0D9488", bg: "#F0FDFA" },
+  maid_absent: { label: "Maid absent", color: ROSE, bg: "#FFF1F2" },
+  customer_cancel: { label: "Cancelled by you", color: "#D97706", bg: "#FFFBEB" },
+  weekly_off: { label: "Weekly off", color: "#64748B", bg: "#F1F5F9" },
+  scheduled: { label: "Upcoming", color: "#0659B2", bg: "#F0F7FE" },
+};
 
 function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => void; onDone: () => void }) {
   const { c } = useTheme();
@@ -119,22 +130,179 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
   );
 }
 
+/* ------------------------------------------------------- subscription card -- */
+function OverviewChip({ icon: Icon, label, value, color, bg }: any) {
+  const { c } = useTheme();
+  return (
+    <View style={{ flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: c.border, borderRadius: 14, padding: 10, backgroundColor: c.surface }}>
+      <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
+        <Icon size={16} color={color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: SLATE[400], fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</Text>
+        <Text style={{ color: c.text, fontSize: 14, fontWeight: "800", marginTop: 1 }}>{value}</Text>
+      </View>
+    </View>
+  );
+}
+
 function SubCard({ s }: { s: any }) {
   const { c } = useTheme();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [invBusy, setInvBusy] = useState(false);
   const set = s.settlement || {};
+  const status = (set.status && set.status !== "none") ? set.status : (s.status || "");
+  const active = status === "active";
+  const wd = s.working_days || 0;
+  const done = s.completed_days || 0;
+  const absent = s.absent_days || 0;
+  const pct = wd ? Math.min(100, Math.round((done / wd) * 100)) : 0;
+  const absentPct = wd ? Math.min(100 - pct, Math.round((absent / wd) * 100)) : 0;
+  const schedule: any[] = s.schedule || [];
+  const addr = s.address || {};
+
+  const downloadInvoice = async () => {
+    setInvBusy(true);
+    try {
+      const r = await api.get<any>(`/subscriptions/${s.id}/invoice`);
+      Linking.openURL(`${API_BASE}${r.path}`).catch(() => toast.error("Could not open invoice"));
+    } catch (e: any) { toast.error(e?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
+  };
+
   return (
-    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 16, padding: 14, backgroundColor: c.surface, gap: 8 }}>
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{s.plan_label} · {s.service_name}</Text>
-        <Text style={{ color: s.status === "active" ? EMERALD[600] : PRIMARY[700], fontWeight: "700", fontSize: 12, textTransform: "capitalize" }}>{(set.status && set.status !== "none") ? set.status : s.status.replace("_", " ")}</Text>
+    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 20, backgroundColor: c.surface, overflow: "hidden" }}>
+      {/* header */}
+      <View style={{ padding: 14, gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center" }}>
+            <CalendarHeart size={20} color={PRIMARY[700]} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.service_name}</Text>
+            <Text style={{ color: c.textMuted, fontSize: 11, marginTop: 1 }}>{s.plan_label} Subscription · {s.code}</Text>
+          </View>
+          <View style={{ borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: active ? EMERALD[50] : PRIMARY[50] }}>
+            <Text style={{ color: active ? EMERALD[700] : PRIMARY[700], fontWeight: "700", fontSize: 11, textTransform: "capitalize" }}>{status.replace(/_/g, " ")}</Text>
+          </View>
+        </View>
+        <Text style={{ color: c.textMuted, fontSize: 12 }}>{s.start_date} → {s.end_date}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <User size={13} color={SLATE[400]} />
+          <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "800", color: c.text }}>{s.partner_name || "Assigning soon"}</Text>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</Text>
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
+          <Text style={{ color: SLATE[400], fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
+          <Text style={{ color: c.text, fontWeight: "800", fontSize: 20 }}>{money(s.price)}</Text>
+        </View>
       </View>
-      <Text style={{ color: c.textMuted, fontSize: 12 }}>{s.start_date} → {s.end_date} · {s.code}</Text>
-      <View style={{ flexDirection: "row", gap: 10, borderTopWidth: 1, borderTopColor: c.borderSoft, paddingTop: 8 }}>
-        {[["Paid", money(s.price)], ["Completed", `${s.completed_days || 0}/${s.working_days}`], ["Maid earned", money(s.accrued_earning)]].map(([k, v]) => (
-          <View key={String(k)} style={{ flex: 1 }}><Text style={{ color: SLATE[400], fontSize: 10, textTransform: "uppercase" }}>{k}</Text><Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{v}</Text></View>
-        ))}
+
+      {/* overview chips */}
+      <View style={{ paddingHorizontal: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <OverviewChip icon={IndianRupee} label="Customer Paid" value={money(s.price)} color={PRIMARY[700]} bg={PRIMARY[50]} />
+        <OverviewChip icon={Calendar} label="Working Days" value={String(wd)} color="#0659B2" bg="#F0F7FE" />
+        <OverviewChip icon={CheckCircle2} label="Completed" value={String(done)} color="#059669" bg="#ECFDF5" />
+        <OverviewChip icon={XCircle} label="Absent" value={String(absent)} color={ROSE} bg="#FFF1F2" />
       </View>
-      {s.partner_name ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "700" }}>{s.partner_name}</Text></Text> : <Text style={{ color: SLATE[400], fontSize: 12 }}>Maid will be assigned soon.</Text>}
+
+      {/* progress */}
+      <View style={{ paddingHorizontal: 14, paddingVertical: 12 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 6 }}>
+          <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700" }}>Service progress</Text>
+          <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700" }}>{done} / {wd} completed</Text>
+        </View>
+        <View testID={`my-sub-progress-${s.id}`} style={{ height: 9, borderRadius: 999, backgroundColor: c.border, overflow: "hidden", flexDirection: "row" }}>
+          <View style={{ width: `${pct}%`, backgroundColor: "#059669" }} />
+          <View style={{ width: `${absentPct}%`, backgroundColor: "#FB7185" }} />
+        </View>
+      </View>
+
+      {/* actions */}
+      <View style={{ paddingHorizontal: 14, paddingBottom: 14, flexDirection: "row", gap: 8 }}>
+        <Pressable testID={`my-sub-details-btn-${s.id}`} onPress={() => setOpen(!open)}
+          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: PRIMARY[200], backgroundColor: PRIMARY[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 13 }}>{open ? "Hide Details" : "View Details"}</Text>
+          <ChevronDown size={15} color={PRIMARY[700]} style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }} />
+        </Pressable>
+        <Pressable testID={`my-sub-invoice-btn-${s.id}`} disabled={invBusy} onPress={downloadInvoice}
+          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <Download size={15} color={c.textMuted} />
+          <Text style={{ color: c.textMuted, fontWeight: "700", fontSize: 13 }}>{invBusy ? "Preparing…" : "Invoice"}</Text>
+        </Pressable>
+      </View>
+
+      {/* expanded */}
+      {open ? (
+        <View testID={`my-sub-expanded-${s.id}`} style={{ borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.bg, padding: 14, gap: 12 }}>
+          {/* service calendar */}
+          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12 }}>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 14, marginBottom: 10 }}>Service calendar</Text>
+            <View style={{ gap: 6 }}>
+              {schedule.map((d) => {
+                const m = DAY_META[d.status] || DAY_META.scheduled;
+                const dt = new Date(d.date + "T00:00:00");
+                return (
+                  <View key={d.date} testID={`my-sub-day-${s.id}-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: m.bg, paddingHorizontal: 10, paddingVertical: 8 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: m.color, fontWeight: "800", fontSize: 12 }}>{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} · {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dt.getDay()]}</Text>
+                      <Text style={{ color: m.color, fontSize: 11, opacity: 0.85 }}>{m.label}</Text>
+                    </View>
+                    {d.status !== "weekly_off" ? <Text style={{ color: m.color, fontWeight: "800", fontSize: 12 }}>{d.earning > 0 ? "+" + money(d.earning) : "—"}</Text> : null}
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* payment snapshot */}
+          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Payment & subscription details</Text>
+            {[
+              ["Paid upfront", money(s.price)],
+              ["Commission snapshot", `${s.commission_pct}% (${money(s.commission_amount)})`],
+              ["Tax snapshot", `${s.tax_pct}% (${money(s.tax_amount)})`],
+              ["Partner maximum allocation", money(s.partner_allocation)],
+              ["Per-day earning", money(s.per_day_earning)],
+              ["Weekly off", (s.weekly_offs || []).length ? (s.weekly_offs as number[]).map((d) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][d]).join(", ") : "None"],
+              ["Subscription status", status.replace(/_/g, " ")],
+            ].map(([k, v]) => (
+              <View key={String(k)} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+                <Text style={{ color: c.textMuted, fontSize: 12 }}>{k}</Text>
+                <Text style={{ color: c.text, fontSize: 12, fontWeight: "700", textTransform: "capitalize" }}>{v}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* maid details */}
+          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Maid details</Text>
+            {s.partner_name ? (
+              <>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid</Text>
+                  <Text style={{ color: c.text, fontSize: 12, fontWeight: "800" }}>{s.partner_name}</Text>
+                </View>
+                {s.partner_phone ? (
+                  <Pressable testID={`my-sub-call-${s.id}`} onPress={() => Linking.openURL(`tel:${s.partner_phone}`)} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                    <Text style={{ color: c.textMuted, fontSize: 12 }}>Phone</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Phone size={12} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontSize: 12, fontWeight: "700" }}>{s.partner_phone}</Text></View>
+                  </Pressable>
+                ) : null}
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <Text style={{ color: c.textMuted, fontSize: 12 }}>Service time</Text>
+                  <Text style={{ color: c.text, fontSize: 12, fontWeight: "700" }}>{s.preferred_time || "—"}</Text>
+                </View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 10 }}>
+                  <Text style={{ color: c.textMuted, fontSize: 12 }}>Address</Text>
+                  <Text style={{ color: c.text, fontSize: 12, fontWeight: "600", flex: 1, textAlign: "right" }}>{[addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—"}</Text>
+                </View>
+              </>
+            ) : (
+              <Text style={{ color: SLATE[400], fontSize: 12 }}>A verified maid will be assigned to your subscription shortly.</Text>
+            )}
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -193,7 +361,7 @@ export default function SubscriptionsScreen() {
           mine.length === 0 ? (
             <EmptyState icon={Clock} title="No subscriptions yet" desc="Book a plan from Browse Plans to get started." />
           ) : (
-            <View style={{ gap: 12 }}>{mine.map((s) => <SubCard key={s.id} s={s} />)}</View>
+            <View style={{ gap: 14 }}>{mine.map((s) => <SubCard key={s.id} s={s} />)}</View>
           )
         )}
       </ScrollView>

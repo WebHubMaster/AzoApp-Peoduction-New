@@ -409,6 +409,7 @@ _TXN_KIND_LABEL = {
     "adjustment": ("Adjustment", "settled"),
     "cancellation": ("Cancellation", "charged"),
     "earning": ("Earnings", "credited"),
+    "subscription_payment": ("Subscription Payment", "paid"),
 }
 
 # Booking-linked & internal ledger movements that must NOT spawn a standalone

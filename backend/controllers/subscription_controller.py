@@ -3,12 +3,15 @@ admin assign/override/settlement. Reuses the existing payment_service + partner
 wallet so nothing new is duplicated."""
 from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException
+import hmac, hashlib
 
 from config.database import db, now_iso, get_settings
+from middleware.auth import SECRET
 from models.user import new_id
 from models.subscription import PLAN_DEFAULT_DURATION, DAY_STATUSES
 from services import money, payment_service
 from services import subscription_service as svc
+from services import invoice_service as inv_svc
 from services.gateway_resolver import GatewayConfigError
 
 
@@ -173,6 +176,30 @@ async def pay_order(user, subscription_id):
     return {"mock": False, **order}
 
 
+def _invoice_share_sig(invoice_id: str) -> str:
+    return hmac.new(SECRET.encode(), f"invoice-share:{invoice_id}".encode(), hashlib.sha256).hexdigest()[:32]
+
+
+async def _ensure_payment_invoice(sub):
+    """Record the upfront subscription payment in the shared transactions ledger and
+    generate its invoice via the existing invoice pipeline (idempotent per txn)."""
+    txn = await db.transactions.find_one({"kind": "subscription_payment", "ref_id": sub["id"]}, {"_id": 0})
+    if not txn:
+        txn = {
+            "id": new_id(), "user_id": sub["customer_id"], "type": "debit",
+            "kind": "subscription_payment", "amount": money.money(sub.get("price") or 0),
+            "method": "Online" if sub.get("pay_gateway") else "Mock",
+            "note": f"{sub.get('service_name')} · {sub.get('plan_label')} Subscription ({sub.get('code')})",
+            "ref_id": sub["id"], "created_at": sub.get("paid_at") or now_iso(),
+        }
+        await db.transactions.insert_one(dict(txn))
+        txn.pop("_id", None)
+    inv = await inv_svc.ensure_transaction_invoice(txn)
+    if inv:
+        await db.subscriptions.update_one({"id": sub["id"]}, {"$set": {"invoice_id": inv["id"]}})
+    return inv
+
+
 async def _activate(sub):
     """Mark paid + activate. Schedule already generated at create time."""
     await db.subscriptions.update_one(
@@ -180,7 +207,12 @@ async def _activate(sub):
         {"$set": {"payment_status": "paid", "status": "active", "paid_at": now_iso(),
                   "updated_at": now_iso()},
          "$push": {"timeline": {"status": "active", "at": now_iso()}}})
-    return await db.subscriptions.find_one({"id": sub["id"]}, {"_id": 0})
+    sub = await db.subscriptions.find_one({"id": sub["id"]}, {"_id": 0})
+    try:
+        await _ensure_payment_invoice(sub)
+    except Exception:
+        pass  # invoice can be generated lazily from the invoice endpoint
+    return sub
 
 
 async def pay_verify(user, subscription_id, data):
@@ -203,6 +235,21 @@ async def pay_mock(user, subscription_id):
     if await payment_service.is_configured():
         raise HTTPException(status_code=400, detail="Live payments enabled — use the payment gateway")
     return await _activate(sub)
+
+
+async def get_invoice(user, subscription_id):
+    """Shareable public invoice link for the upfront subscription payment (lazy-generates
+    for subscriptions paid before invoice support existed)."""
+    sub = await _sub_for_customer(user, subscription_id)
+    if sub.get("payment_status") != "paid":
+        raise HTTPException(status_code=400, detail="Subscription is not paid yet")
+    inv_id = sub.get("invoice_id")
+    if not inv_id:
+        inv = await _ensure_payment_invoice(sub)
+        inv_id = (inv or {}).get("id")
+    if not inv_id:
+        raise HTTPException(status_code=404, detail="Invoice not available")
+    return {"invoice_id": inv_id, "path": f"/invoices/pub/{inv_id}?s={_invoice_share_sig(inv_id)}"}
 
 
 # ---------------- PARTNER (maid) ----------------

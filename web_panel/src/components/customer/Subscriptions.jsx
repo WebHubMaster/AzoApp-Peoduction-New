@@ -1,10 +1,12 @@
 /** Customer subscription UI (web panel) — recurring (Maid) services.
  * SubscriptionPlansPanel: plan picker + upfront full payment dialog (mock gateway
- * path when no live gateway is configured). MySubscriptions: the dashboard tab. */
+ * path when no live gateway is configured).
+ * MySubscriptions: premium full-width subscription cards — overview stat cards,
+ * service progress, attendance calendar, payment snapshot, maid details, invoice. */
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarHeart, CheckCircle2, MapPin, ShieldCheck, Clock, Plus } from "lucide-react";
-import api, { fmt } from "@/lib/api";
+import { CalendarHeart, CheckCircle2, MapPin, ShieldCheck, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
+import api, { fmt, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,16 +15,18 @@ import { StatusChip, EmptyState, SkeletonList } from "./ux";
 import { toast } from "sonner";
 
 const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const todayPlus = (d) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
 
-const DAY_DOT = {
-  completed: "bg-emerald-500", replacement_completed: "bg-teal-500", maid_absent: "bg-rose-500",
-  customer_cancel: "bg-amber-400", weekly_off: "bg-slate-300", scheduled: "bg-blue-400",
+const DAY_META = {
+  completed: { label: "Completed", chip: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
+  replacement_completed: { label: "Replacement served", chip: "bg-teal-50 text-teal-700 border-teal-200", dot: "bg-teal-500" },
+  maid_absent: { label: "Maid absent", chip: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-500" },
+  customer_cancel: { label: "Cancelled by you", chip: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
+  weekly_off: { label: "Weekly off", chip: "bg-slate-50 text-slate-500 border-slate-200", dot: "bg-slate-300" },
+  scheduled: { label: "Upcoming", chip: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-400" },
 };
-const DAY_LABEL = {
-  completed: "Completed", replacement_completed: "Replacement served", maid_absent: "Maid absent",
-  customer_cancel: "Cancelled by you", weekly_off: "Weekly off", scheduled: "Scheduled",
-};
+const STATUS_TONE = { active: "green", paid: "green", completed: "blue", approved: "blue", pending: "amber", pending_payment: "amber", review: "violet", cancelled: "rose" };
 
 /* ------------------------------------------------ plan picker + booking ---- */
 export function SubscriptionPlansPanel({ svc }) {
@@ -162,54 +166,167 @@ export function SubscriptionPlansPanel({ svc }) {
   );
 }
 
-/* ------------------------------------------------------- my subscription card ---- */
+/* ------------------------------------------------------- shared bits ------- */
+function OverviewCard({ icon: Icon, label, value, tone }) {
+  return (
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 flex items-center gap-3">
+      <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${tone.bg}`}><Icon className={`h-5 w-5 ${tone.fg}`} /></div>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">{label}</p>
+        <p className={`text-base font-extrabold truncate ${tone.val || "text-slate-900"}`}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
+function DetailRow({ k, v, strong }) {
+  return (
+    <div className="flex justify-between gap-4 text-sm py-1.5 border-b border-slate-50 last:border-0">
+      <span className="text-slate-500">{k}</span>
+      <span className={`text-right ${strong ? "font-extrabold text-slate-900" : "font-medium text-slate-800"}`}>{v}</span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------- subscription card -- */
 function SubCard({ s }) {
+  const [open, setOpen] = useState(false);
+  const [invBusy, setInvBusy] = useState(false);
+  const calRef = React.useRef(null);
   const set = s.settlement || {};
   const status = (set.status && set.status !== "none") ? set.status : (s.status || "");
-  const tone = { active: "green", paid: "green", completed: "blue", approved: "blue", pending: "amber", pending_payment: "amber", review: "violet", cancelled: "rose" }[status] || "slate";
+  const tone = STATUS_TONE[status] || "slate";
+  const wd = s.working_days || 0;
+  const done = s.completed_days || 0;
+  const absent = s.absent_days || 0;
+  const pct = wd ? Math.min(100, Math.round((done / wd) * 100)) : 0;
+  const absentPct = wd ? Math.min(100 - pct, Math.round((absent / wd) * 100)) : 0;
+  const schedule = s.schedule || [];
+  const addr = s.address || {};
+
+  const copyId = () => { navigator.clipboard?.writeText(s.code || ""); toast.success("Subscription ID copied"); };
+  const downloadInvoice = async () => {
+    setInvBusy(true);
+    try {
+      const { data } = await api.get(`/subscriptions/${s.id}/invoice`);
+      window.open(`${API}${data.path}`, "_blank");
+    } catch (e) { toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
+  };
+  const viewSchedule = () => { setOpen(true); setTimeout(() => calRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120); };
+
   return (
-    <div data-testid={`my-sub-${s.id}`} className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-bold text-slate-900">{s.service_name} · {s.plan_label}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{s.start_date} → {s.end_date} · {s.code}</p>
+    <div data-testid={`my-sub-${s.id}`} className="w-full bg-white border border-slate-200/80 rounded-3xl shadow-[0_1px_3px_rgba(13,71,161,0.07)] overflow-hidden">
+      {/* header */}
+      <div className="p-5 sm:p-6 flex flex-wrap items-start gap-4">
+        <div className="h-12 w-12 rounded-2xl bg-primary-50 text-primary-700 flex items-center justify-center shrink-0"><CalendarHeart className="h-6 w-6" /></div>
+        <div className="flex-1 min-w-56">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-heading font-extrabold text-lg text-slate-900">{s.service_name}</h3>
+            <span className="text-[11px] font-bold text-primary-700 bg-primary-50 border border-primary-100 px-2 py-0.5 rounded-md">{s.plan_label} Subscription</span>
+            <StatusChip label={status.replace(/_/g, " ")} tone={tone} testId={`my-sub-status-${s.id}`} />
+          </div>
+          <p className="text-sm text-slate-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
+            <Calendar className="h-3.5 w-3.5 text-slate-400" /> {s.start_date} → {s.end_date}
+            <span className="text-slate-300">·</span>
+            <button onClick={copyId} data-testid={`my-sub-copy-${s.id}`} className="inline-flex items-center gap-1 text-slate-500 hover:text-primary-700 font-medium">ID: {s.code} <Copy className="h-3 w-3" /></button>
+          </p>
+          <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
+            <UserIcon className="h-3.5 w-3.5 text-slate-400" /> Maid: <span className="font-bold text-slate-800">{s.partner_name || "Assigning soon"}</span>
+            {s.preferred_time ? <span className="text-slate-400">· Service time {s.preferred_time}</span> : null}
+          </p>
         </div>
-        <StatusChip label={status.replace(/_/g, " ")} tone={tone} testId={`my-sub-status-${s.id}`} />
+        <div className="text-right shrink-0">
+          <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Paid upfront</p>
+          <p className="font-heading font-extrabold text-2xl text-slate-900">{fmt(s.price)}</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-slate-100">
-        {[
-          ["Paid upfront", fmt(s.price)],
-          ["Days completed", `${s.completed_days || 0}/${s.working_days || 0}`],
-          ["Maid earned", fmt(s.accrued_earning || 0)],
-          ["Absent (kept by platform)", fmt(s.absent_adjustment || 0)],
-        ].map(([k, v]) => (
-          <div key={k}>
-            <p className="text-[10px] uppercase tracking-wide text-slate-400">{k}</p>
-            <p className="text-sm font-bold text-slate-900 mt-0.5">{v}</p>
-          </div>
-        ))}
+      {/* overview stat cards */}
+      <div className="px-5 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid={`my-sub-overview-${s.id}`}>
+        <OverviewCard icon={IndianRupee} label="Customer Paid" value={fmt(s.price)} tone={{ bg: "bg-primary-50", fg: "text-primary-700" }} />
+        <OverviewCard icon={Calendar} label="Working Days" value={wd} tone={{ bg: "bg-blue-50", fg: "text-blue-600" }} />
+        <OverviewCard icon={CheckCircle2} label="Completed" value={done} tone={{ bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-700" }} />
+        <OverviewCard icon={XCircle} label="Absent" value={absent} tone={{ bg: "bg-rose-50", fg: "text-rose-500", val: absent ? "text-rose-600" : "text-slate-900" }} />
       </div>
 
-      <p className="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
-        <Clock className="h-3.5 w-3.5 text-slate-400" />
-        {s.partner_name ? <>Maid: <span className="font-bold text-slate-800">{s.partner_name}</span>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</> : "Maid will be assigned soon."}
-      </p>
+      {/* progress */}
+      <div className="px-5 sm:px-6 py-5">
+        <div className="flex justify-between text-xs font-semibold text-slate-500 mb-1.5">
+          <span>Service progress</span><span>{done} / {wd} completed</span>
+        </div>
+        <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden flex" data-testid={`my-sub-progress-${s.id}`}>
+          <div className="bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+          <div className="bg-rose-400 transition-all" style={{ width: `${absentPct}%` }} />
+        </div>
+      </div>
 
-      {(s.schedule || []).length > 0 && (
-        <div className="mt-3">
-          <div className="flex flex-wrap gap-1" data-testid={`my-sub-schedule-${s.id}`}>
-            {s.schedule.map((d) => (
-              <span key={d.date} title={`${d.date} · ${DAY_LABEL[d.status] || d.status}`}
-                className={`h-2.5 w-2.5 rounded-full ${DAY_DOT[d.status] || "bg-slate-200"}`} />
-            ))}
+      {/* actions */}
+      <div className="px-5 sm:px-6 pb-5 flex flex-wrap gap-2">
+        <Button variant="outline" size="sm" data-testid={`my-sub-details-btn-${s.id}`} onClick={() => setOpen(!open)} className="border-primary-200 text-primary-700 hover:bg-primary-50">
+          View Details <ChevronDown className={`h-4 w-4 ml-1 transition-transform ${open ? "rotate-180" : ""}`} />
+        </Button>
+        <Button variant="outline" size="sm" data-testid={`my-sub-schedule-btn-${s.id}`} onClick={viewSchedule} className="border-slate-200 text-slate-600 hover:bg-slate-50">
+          <Calendar className="h-4 w-4 mr-1" /> View Schedule
+        </Button>
+        <Button variant="outline" size="sm" data-testid={`my-sub-invoice-btn-${s.id}`} disabled={invBusy} onClick={downloadInvoice} className="border-slate-200 text-slate-600 hover:bg-slate-50">
+          <Download className="h-4 w-4 mr-1" /> {invBusy ? "Preparing…" : "Download Invoice"}
+        </Button>
+      </div>
+
+      {/* expanded details */}
+      {open && (
+        <div className="border-t border-slate-100 bg-slate-50/60 p-5 sm:p-6 grid lg:grid-cols-2 gap-4" data-testid={`my-sub-expanded-${s.id}`}>
+          {/* service calendar */}
+          <div ref={calRef} className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 lg:col-span-2" data-testid={`my-sub-calendar-${s.id}`}>
+            <p className="font-bold text-slate-900 mb-3">Service calendar</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 max-h-96 overflow-y-auto pr-1">
+              {schedule.map((d) => {
+                const m = DAY_META[d.status] || DAY_META.scheduled;
+                const dt = new Date(d.date + "T00:00:00");
+                return (
+                  <div key={d.date} data-testid={`my-sub-day-${s.id}-${d.date}`} className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${m.chip}`}>
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${m.dot}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold">{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} · {WD_SHORT[dt.getDay()]}</p>
+                      <p className="text-[11px] opacity-80">{m.label}</p>
+                    </div>
+                    {d.status !== "weekly_off" && <span className="text-xs font-bold">{d.earning > 0 ? "+" + fmt(d.earning) : "—"}</span>}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+              {[["completed", "Completed"], ["maid_absent", "Absent"], ["weekly_off", "Weekly off"], ["scheduled", "Upcoming"], ["customer_cancel", "Cancelled"]].map(([k, lbl]) => (
+                <span key={k} className="flex items-center gap-1.5 text-[11px] text-slate-500"><span className={`h-2 w-2 rounded-full ${DAY_META[k].dot}`} />{lbl}</span>
+              ))}
+            </div>
           </div>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
-            {[["completed", "Done"], ["maid_absent", "Absent"], ["weekly_off", "Off"], ["scheduled", "Upcoming"]].map(([k, lbl]) => (
-              <span key={k} className="flex items-center gap-1 text-[10px] text-slate-400">
-                <span className={`h-2 w-2 rounded-full ${DAY_DOT[k]}`} />{lbl}
-              </span>
-            ))}
+
+          {/* payment & subscription details */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5" data-testid={`my-sub-payment-${s.id}`}>
+            <p className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Receipt className="h-4 w-4 text-primary-700" /> Payment & subscription details</p>
+            <DetailRow k="Paid upfront" v={fmt(s.price)} strong />
+            <DetailRow k="Commission snapshot" v={`${s.commission_pct}% (${fmt(s.commission_amount)})`} />
+            <DetailRow k="Tax snapshot" v={`${s.tax_pct}% (${fmt(s.tax_amount)})`} />
+            <DetailRow k="Partner maximum allocation" v={fmt(s.partner_allocation)} />
+            <DetailRow k="Per-day earning" v={fmt(s.per_day_earning)} />
+            <DetailRow k="Weekly off" v={(s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD[d]).join(", ") : "None"} />
+            <DetailRow k="Subscription status" v={<StatusChip label={status.replace(/_/g, " ")} tone={tone} />} />
+          </div>
+
+          {/* maid details */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5" data-testid={`my-sub-maid-${s.id}`}>
+            <p className="font-bold text-slate-900 mb-2 flex items-center gap-2"><UserIcon className="h-4 w-4 text-primary-700" /> Maid details</p>
+            {s.partner_name ? (
+              <>
+                <DetailRow k="Maid" v={s.partner_name} strong />
+                {s.partner_phone ? <DetailRow k="Phone" v={<a href={`tel:${s.partner_phone}`} className="inline-flex items-center gap-1 text-primary-700 font-semibold"><Phone className="h-3.5 w-3.5" />{s.partner_phone}</a>} /> : null}
+                <DetailRow k="Service time" v={s.preferred_time || "—"} />
+                <DetailRow k="Address" v={[addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—"} />
+              </>
+            ) : (
+              <p className="text-sm text-slate-400">A verified maid will be assigned to your subscription shortly.</p>
+            )}
           </div>
         </div>
       )}
@@ -229,8 +346,8 @@ export function MySubscriptions() {
   useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, [load]);
 
   return (
-    <div data-testid="my-subscriptions" className="max-w-3xl space-y-4">
-      <div className="flex items-center justify-between">
+    <div data-testid="my-subscriptions" className="w-full space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="font-heading font-extrabold text-xl text-slate-900 flex items-center gap-2">
             <CalendarHeart className="h-5 w-5 text-primary-700" /> My Subscriptions
@@ -246,7 +363,7 @@ export function MySubscriptions() {
         <EmptyState icon={CalendarHeart} title="No subscriptions yet" desc="Book a Daily / Weekly / Monthly / Yearly maid plan to get started."
           actionLabel="Browse services" onAction={() => navigate("/services")} testId="my-subscriptions-empty" />
       ) : (
-        <div className="space-y-3">{subs.map((s) => <SubCard key={s.id} s={s} />)}</div>
+        <div className="space-y-4">{subs.map((s) => <SubCard key={s.id} s={s} />)}</div>
       )}
     </div>
   );
