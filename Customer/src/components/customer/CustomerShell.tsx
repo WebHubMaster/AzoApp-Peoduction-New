@@ -96,24 +96,15 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
           const badge = badges[n.key] || 0;
           const color = on ? (isDark ? PRIMARY[300] : PRIMARY[700]) : SLATE[400];
           return (
-            <Pressable key={n.key} testID={`m-nav-${n.key}`} onPress={() => go(n)} style={({ pressed }) => ({ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 2, paddingVertical: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-              <View style={{ height: 32, width: 48, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: on ? (isDark ? "rgba(7,52,115,0.40)" : PRIMARY[100]) : "transparent" }}>
-                <n.icon size={20} color={color} />
-                {badge > 0 ? (
-                  <View testID={`m-nav-${n.key}-badge`} style={{ position: "absolute", top: -2, right: 4, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#fff", fontSize: 9, fontWeight: "700" }}>{badge}</Text>
-                  </View>
-                ) : null}
-              </View>
+            <Pressable key={n.key} testID={`m-nav-${n.key}`} onPress={() => go(n)} style={({ pressed }) => ({ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+              <NavIcon on={on} icon={n.icon} badge={badge} testID={`m-nav-${n.key}-badge`} />
               <Text style={{ fontSize: 10, fontWeight: "700", color }}>{n.short || n.label}</Text>
             </Pressable>
           );
         })}
-        <Pressable testID="m-nav-more" onPress={() => setMoreOpen(true)} style={{ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 2, paddingVertical: 8 }}>
-          <View style={{ height: 32, width: 48, alignItems: "center", justifyContent: "center" }}>
-            <MoreHorizontal size={20} color={moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : SLATE[400]} />
-          </View>
-          <Text style={{ fontSize: 10, fontWeight: "700", color: moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : SLATE[400] }}>More</Text>
+        <Pressable testID="m-nav-more" onPress={() => setMoreOpen(true)} style={({ pressed }) => ({ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+          <NavIcon on={moreOpen || moreNav.some((n) => n.key === active)} icon={MoreHorizontal} />
+          <Text style={{ fontSize: 10, fontWeight: "700", color: moreOpen || moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : SLATE[400] }}>More</Text>
         </Pressable>
       </View>
 
@@ -143,5 +134,25 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
         </View>
       </Modal>
     </View>
+  );
+}
+
+/** Web PanelLayout parity: active tab = 36px rounded-2xl blue gradient with white icon + soft glow; inactive = grey outline icon. */
+function NavIcon({ on, icon: IconCmp, badge = 0, testID }: { on: boolean; icon: any; badge?: number; testID?: string }) {
+  const inner = (
+    <>
+      <IconCmp size={18} color={on ? "#fff" : SLATE[400]} strokeWidth={2} />
+      {badge > 0 ? (
+        <View testID={testID} style={{ position: "absolute", top: -4, right: -4, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#fff" }}>
+          <Text style={{ color: "#fff", fontSize: 9, fontWeight: "700" }}>{badge > 9 ? "9+" : badge}</Text>
+        </View>
+      ) : null}
+    </>
+  );
+  if (!on) return <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}>{inner}</View>;
+  return (
+    <LinearGradient colors={[PRIMARY[600], PRIMARY[500]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 14, alignItems: "center", justifyContent: "center", transform: [{ scale: 1.05 }], boxShadow: "0px 4px 12px rgba(37,99,235,0.40)" } as any}>
+      {inner}
+    </LinearGradient>
   );
 }

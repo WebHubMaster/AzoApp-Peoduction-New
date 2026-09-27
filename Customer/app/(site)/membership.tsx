@@ -98,7 +98,7 @@ export default function MembershipPage() {
         <Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Membership</Text>
         <Pressable testID="membership-account" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ marginLeft: "auto", height: 36, paddingHorizontal: 14, borderRadius: 12, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 13 }}>{user ? "My Account" : "Sign In"}</Text></Pressable>
       </View>
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 110 }}>
         <View style={{ paddingHorizontal: 24, paddingTop: 36, paddingBottom: 20, alignItems: "center" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: AMBER[50], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}><Sparkles size={14} color={AMBER[600]} /><Text style={{ fontSize: 11, fontWeight: "700", color: AMBER[600], letterSpacing: 1, textTransform: "uppercase" }}>AzoApp Membership</Text></View>
           <Text style={{ fontSize: 30, fontWeight: "900", color: SLATE[900], marginTop: 16, textAlign: "center", letterSpacing: -0.6 }}>Save more on every booking</Text>

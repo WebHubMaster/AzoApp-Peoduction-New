@@ -48,7 +48,7 @@ export default function CategoryServices() {
           numColumns={2}
           keyExtractor={(s) => s.id}
           columnWrapperStyle={{ gap: 14, paddingHorizontal: 20 }}
-          contentContainerStyle={{ paddingVertical: 20, gap: 14, paddingBottom: 40 }}
+          contentContainerStyle={{ paddingVertical: 20, gap: 14, paddingBottom: 110 }}
           initialNumToRender={PAGE}
           onEndReachedThreshold={0.5}
           onEndReached={() => setCount((c) => Math.min(all.length, c + PAGE))}

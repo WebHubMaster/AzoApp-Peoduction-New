@@ -29,7 +29,7 @@ export default function OffersPage() {
         <Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Offers & Savings</Text>
       </View>
       {q.isLoading ? <ActivityIndicator color={PRIMARY[700]} style={{ marginTop: 40 }} /> : (
-        <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 32 }}>
+        <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 110 }}>
           {offers.map((o) => (
             <LinearGradient key={o.id} colors={[PRIMARY[600], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 18, padding: 16 }} testID={`offers-offer-${o.id}`}>
               <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: "600" }}>{o.title}</Text>

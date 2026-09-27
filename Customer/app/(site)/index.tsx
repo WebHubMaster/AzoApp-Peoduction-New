@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, FlatList, RefreshControl, Pressable } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../../src/api/client";
 import { PRIMARY, SLATE } from "../../src/theme";
@@ -22,6 +23,7 @@ export default function AppHome() {
   const { data, loading, error, refetch, refreshing } = useAppHome(city);
   const navigate = useNavigate();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [sheetCat, setSheetCat] = useState<any>(null);
   const [visibleCount, setVisibleCount] = useState(3);
   const listRef = useRef<FlatList>(null);
@@ -53,6 +55,8 @@ export default function AppHome() {
     return out;
   }, [data, navigate, router]);
 
+  // Progressive render: first 3 blocks instantly, then the rest — so the page always scrolls to the very bottom.
+  useEffect(() => { if (!blocks.length) return; const t = setTimeout(() => setVisibleCount(blocks.length), 700); return () => clearTimeout(t); }, [blocks.length]);
   const shown = blocks.slice(0, visibleCount);
 
   return (
@@ -82,7 +86,7 @@ export default function AppHome() {
           onEndReachedThreshold={0.6}
           onEndReached={() => setVisibleCount((c) => Math.min(blocks.length, c + 2))}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => refetch()} tintColor={PRIMARY[700]} />}
-          contentContainerStyle={{ paddingTop: 6, paddingBottom: 36 }}
+          contentContainerStyle={{ paddingTop: 6, paddingBottom: 64 + insets.bottom + 28 }}
           keyboardShouldPersistTaps="handled"
           ListFooterComponent={visibleCount < blocks.length ? <View style={{ padding: 16 }}><Sk style={{ height: 120 }} /></View> : null}
         />
