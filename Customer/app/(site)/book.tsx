@@ -1,6 +1,7 @@
 /** Checkout — 1:1 port of web Checkout.jsx: 6 steps, live cart-quote, coupon, guest OTP, address, payment, grouped idempotent order placement. */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Location from "expo-location";
@@ -196,7 +197,7 @@ export default function Checkout() {
         </View>
         <View style={{ borderTopWidth: 1, borderTopColor: SLATE[100], paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} /></View>
       </View>
-      <ScrollView ref={scrollRef} contentContainerStyle={{ padding: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView ref={scrollRef as any} bottomOffset={120} contentContainerStyle={{ padding: 16, paddingBottom: 160 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {step === 0 ? <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} together={upsell.frequently_together} addService={addService} /> : null}
         {step === 1 ? <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} popularAddons={upsell.popular_addons} lineTotal={lineTotal} /> : null}
         {step === 2 ? <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} /> : null}
@@ -204,7 +205,7 @@ export default function Checkout() {
         {step === 4 ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} /> : null}
         {step === 5 ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} /> : null}
         {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: PRIMARY[700] }}>Jump back to {STEPS[maxReached].label} →</Text></Pressable> : null}
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: SLATE[400], fontWeight: "500" }}>{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(step >= 4 ? displayTotal : subtotal)}</Text></View>
         {step < STEPS.length - 1 ? (
