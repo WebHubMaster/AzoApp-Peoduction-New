@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from controllers import subscription_controller as c
 from models.subscription import (SubscriptionCreate, SubscriptionPayVerify,
                                   AssignPartnerRequest, DayMarkRequest,
-                                  SettlementActionRequest)
+                                  SettlementActionRequest, StartDayRequest, CompleteDayRequest)
 from middleware.auth import require_role
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -54,9 +54,15 @@ async def partner_list(user=Depends(PARTNER)):
     return await c.partner_list(user)
 
 
+@router.post("/{subscription_id}/days/{day_date}/start")
+async def partner_start_day(subscription_id: str, day_date: str, req: StartDayRequest, user=Depends(PARTNER)):
+    return await c.partner_start_day(user, subscription_id, day_date, req.otp)
+
+
 @router.post("/{subscription_id}/days/{day_date}/complete")
-async def partner_complete_day(subscription_id: str, day_date: str, user=Depends(PARTNER)):
-    return await c.partner_mark_completed(user, subscription_id, day_date)
+async def partner_complete_day(subscription_id: str, day_date: str, req: CompleteDayRequest = None, user=Depends(PARTNER)):
+    return await c.partner_mark_completed(user, subscription_id, day_date,
+                                          note=(req.note if req else ""), photo=(req.photo if req else None))
 
 
 # ---------------- ADMIN ----------------

@@ -21,6 +21,7 @@ const todayPlus = (d) => { const t = new Date(); t.setDate(t.getDate() + d); ret
 const DAY_META = {
   completed: { label: "Completed", chip: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
   replacement_completed: { label: "Replacement served", chip: "bg-teal-50 text-teal-700 border-teal-200", dot: "bg-teal-500" },
+  in_progress: { label: "In progress", chip: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
   maid_absent: { label: "Maid absent", chip: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-500" },
   customer_cancel: { label: "Cancelled by you", chip: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
   weekly_off: { label: "Weekly off", chip: "bg-slate-50 text-slate-500 border-slate-200", dot: "bg-slate-300" },
@@ -202,6 +203,7 @@ function SubCard({ s }) {
   const pct = wd ? Math.min(100, Math.round((done / wd) * 100)) : 0;
   const absentPct = wd ? Math.min(100 - pct, Math.round((absent / wd) * 100)) : 0;
   const schedule = s.schedule || [];
+  const todayDay = schedule.find((d) => d.date === todayPlus(0) && (d.status === "scheduled" || d.status === "in_progress"));
   const addr = s.address || {};
 
   const copyId = () => { navigator.clipboard?.writeText(s.code || ""); toast.success("Subscription ID copied"); };
@@ -236,6 +238,11 @@ function SubCard({ s }) {
             <UserIcon className="h-3.5 w-3.5 text-slate-400" /> Maid: <span className="font-bold text-slate-800">{s.partner_name || "Assigning soon"}</span>
             {s.preferred_time ? <span className="text-slate-400">· Service time {s.preferred_time}</span> : null}
           </p>
+          {status === "active" && todayDay?.otp ? (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-700" data-testid={`my-sub-otp-${s.id}`}>
+              <ShieldCheck className="h-3.5 w-3.5" /> Today's service OTP: <span className="tracking-[0.2em] font-extrabold">{todayDay.otp}</span> — share with your maid to start the service
+            </p>
+          ) : null}
         </div>
         <div className="text-right shrink-0">
           <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Paid upfront</p>

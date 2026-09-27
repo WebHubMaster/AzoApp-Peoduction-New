@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Linking } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Linking, Modal, TextInput, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,6 +25,7 @@ const dayLabel = (iso: string) => {
 
 const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   scheduled: { label: "Scheduled", color: "#0659B2", bg: "#F0F7FE" },
+  in_progress: { label: "In progress", color: "#B45309", bg: "#FFFBEB" },
   completed: { label: "Completed", color: "#059669", bg: "#ECFDF5" },
   replacement_completed: { label: "Replacement", color: "#7C3AED", bg: "#F5F3FF" },
   maid_absent: { label: "Maid Absent", color: "#F43F5E", bg: "#FFF1F2" },
@@ -49,16 +50,39 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
   const qc = useQueryClient();
   const s = sub;
 
+  const [otpFor, setOtpFor] = useState<string | null>(null);
+  const [otp, setOtp] = useState("");
+  const [completeFor, setCompleteFor] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [note, setNote] = useState("");
+
+  const done = (msg: string) => { toast.success(msg); qc.invalidateQueries({ queryKey: ["maid-subs"] }); reload(); };
+  const start = useMutation({
+    mutationFn: ({ date, code }: { date: string; code: string }) => api.post(`/subscriptions/${s.id}/days/${date}/start`, { otp: code }),
+    onSuccess: () => { setOtpFor(null); setOtp(""); done("Service started"); },
+    onError: (e: any) => toast.error(e?.detail || "Could not start service"),
+  });
   const complete = useMutation({
-    mutationFn: (date: string) => api.post(`/subscriptions/${s.id}/days/${date}/complete`),
-    onSuccess: () => { toast.success("Marked completed"); qc.invalidateQueries({ queryKey: ["maid-subs"] }); reload(); },
+    mutationFn: ({ date, note: n, photo: p }: { date: string; note: string; photo: string | null }) =>
+      api.post(`/subscriptions/${s.id}/days/${date}/complete`, { note: n, photo: p }),
+    onSuccess: () => { setCompleteFor(null); setPhoto(null); setNote(""); done("Marked completed"); },
     onError: (e: any) => toast.error(e?.detail || "Could not mark completed"),
   });
 
+  const pickPhoto = async () => {
+    try {
+      const ImagePicker = await import("expo-image-picker");
+      const r = await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.4, mediaTypes: ["images"] });
+      const asset = r.assets?.[0];
+      if (!r.canceled && asset?.base64) setPhoto(`data:image/jpeg;base64,${asset.base64}`);
+    } catch { toast.error("Could not pick photo"); }
+  };
+
   const schedule: any[] = s.schedule || [];
-  // Past scheduled days stay markable — the maid can mark yesterday's work later too.
-  const canMark = (d: any) => s.status === "active" && d.status === "scheduled" && d.date <= todayIso();
-  const pendingDays = schedule.filter((d) => canMark(d) && d.date < todayIso());
+  const canMarkPast = (d: any) => s.status === "active" && d.status === "scheduled" && d.date < todayIso();
+  const canStart = (d: any) => s.status === "active" && d.status === "scheduled" && d.date === todayIso();
+  const canComplete = (d: any) => s.status === "active" && d.status === "in_progress";
+  const pendingDays = schedule.filter((d) => canMarkPast(d));
   const addr = s.address || {};
   const addrText = [addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—";
   const weeklyOffText = (s.weekly_offs || []).length ? (s.weekly_offs as number[]).map((d) => WD_FULL[d]).join(", ") : "None";
@@ -113,7 +137,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
         </View>
       </Surface>
 
-      {/* Daily history + mark complete */}
+      {/* Daily history + service session flow */}
       <Surface style={{ padding: 18 }}>
         <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800", marginBottom: 12 }}>Daily schedule & earnings</Text>
         {pendingDays.length > 0 ? (
@@ -131,9 +155,21 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
                   <View style={{ alignSelf: "flex-start", marginTop: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: m.bg }}>
                     <Text style={{ color: m.color, fontSize: 11, fontWeight: "700" }}>{m.label}</Text>
                   </View>
+                  {d.proof_photo ? <Text style={{ color: SLATE, fontSize: 10, marginTop: 3 }}>Photo proof attached</Text> : null}
                 </View>
-                {canMark(d) ? (
-                  <Pressable testID={`sub-complete-${d.date}`} disabled={complete.isPending} onPress={() => complete.mutate(d.date)} style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+                {canComplete(d) ? (
+                  <Pressable testID={`sub-complete-${d.date}`} disabled={complete.isPending} onPress={() => { setCompleteFor(d.date); setPhoto(null); setNote(""); }}
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Complete</Text>
+                  </Pressable>
+                ) : canStart(d) ? (
+                  <Pressable testID={`sub-start-${d.date}`} disabled={start.isPending} onPress={() => { setOtpFor(d.date); setOtp(""); }}
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Start</Text>
+                  </Pressable>
+                ) : canMarkPast(d) ? (
+                  <Pressable testID={`sub-markdone-${d.date}`} disabled={complete.isPending} onPress={() => complete.mutate({ date: d.date, note: "", photo: null })}
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Mark done</Text>
                   </Pressable>
                 ) : (
@@ -146,6 +182,55 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
           })}
         </View>
       </Surface>
+
+      {/* Start Service — customer OTP */}
+      <Modal visible={!!otpFor} transparent animationType="fade" onRequestClose={() => setOtpFor(null)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Start Service</Text>
+            <Text style={{ color: SLATE, fontSize: 12, marginTop: 4 }}>Customer se aaj ka 4-digit service OTP lein.</Text>
+            <TextInput testID="sub-otp-input" value={otp} onChangeText={setOtp} keyboardType="number-pad" maxLength={4} placeholder="••••" placeholderTextColor={SLATE}
+              style={{ marginTop: 14, height: 52, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12, textAlign: "center", fontSize: 22, fontWeight: "800", letterSpacing: 8, color: colors.text }} />
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+              <Pressable testID="sub-otp-cancel" onPress={() => setOtpFor(null)} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: SLATE, fontWeight: "700" }}>Cancel</Text>
+              </Pressable>
+              <Pressable testID="sub-otp-confirm" disabled={otp.length !== 4 || start.isPending} onPress={() => otpFor && start.mutate({ date: otpFor, code: otp })}
+                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: otp.length !== 4 ? 0.5 : 1 }}>
+                <Text style={{ color: "#fff", fontWeight: "700" }}>{start.isPending ? "…" : "Start Service"}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Complete Service — optional photo proof */}
+      <Modal visible={!!completeFor} transparent animationType="fade" onRequestClose={() => setCompleteFor(null)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Complete Service</Text>
+            <Text style={{ color: SLATE, fontSize: 12, marginTop: 4 }}>Kaam khatam karke complete mark karein. Photo proof optional hai.</Text>
+            {photo ? (
+              <Image source={{ uri: photo }} style={{ height: 140, borderRadius: 12, marginTop: 12 }} resizeMode="cover" />
+            ) : null}
+            <Pressable testID="sub-photo-pick" onPress={pickPhoto} style={{ marginTop: 12, height: 42, borderRadius: 12, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
+              <Icon name="camera-outline" size={16} color={colors.primary} />
+              <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>{photo ? "Change photo" : "Add photo proof"}</Text>
+            </Pressable>
+            <TextInput testID="sub-complete-note" value={note} onChangeText={setNote} placeholder="Note (optional)" placeholderTextColor={SLATE}
+              style={{ marginTop: 10, height: 42, borderWidth: 1, borderColor: colors.surfaceSubtle, borderRadius: 12, paddingHorizontal: 12, color: colors.text }} />
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+              <Pressable testID="sub-complete-cancel" onPress={() => setCompleteFor(null)} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: SLATE, fontWeight: "700" }}>Cancel</Text>
+              </Pressable>
+              <Pressable testID="sub-complete-confirm" disabled={complete.isPending} onPress={() => completeFor && complete.mutate({ date: completeFor, note, photo })}
+                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#fff", fontWeight: "700" }}>{complete.isPending ? "…" : "Mark Completed"}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }

@@ -1,10 +1,8 @@
 /** Partner (maid) Subscriptions — web panel parity with the mobile app screen.
- * Assigned recurring subscriptions, upcoming-work strip, and a detail view with
- * customer & work details, earnings breakdown and a daily schedule where the maid
- * can Mark done (past scheduled days stay markable → backdated marking).
- * NOTE: the panel header (title) is rendered by PartnerDashboard — no local header. */
+ * Service-session flow: today = Start (customer OTP) → in_progress → Complete
+ * (optional photo proof); past days = direct Mark done (backdated). */
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { CalendarHeart, ArrowLeft, Phone, MapPin } from "lucide-react";
+import { CalendarHeart, ArrowLeft, Phone, MapPin, Camera, Play, CheckCircle2 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { EmptyState, SkeletonList, StatusChip } from "@/components/customer/ux";
 import { toast } from "sonner";
@@ -22,6 +20,7 @@ const dayLabel = (iso) => {
 
 const DAY_META = {
   scheduled: ["Scheduled", "bg-blue-50 text-blue-700"],
+  in_progress: ["In progress", "bg-amber-50 text-amber-700"],
   completed: ["Completed", "bg-emerald-50 text-emerald-700"],
   replacement_completed: ["Replacement", "bg-violet-50 text-violet-700"],
   maid_absent: ["Maid Absent", "bg-rose-50 text-rose-700"],
@@ -41,21 +40,44 @@ function StatCol({ label, value, tone = "text-slate-900" }) {
 
 function SubDetail({ sub, onBack, reload }) {
   const [busy, setBusy] = useState("");
+  const [startFor, setStartFor] = useState("");
+  const [otpVal, setOtpVal] = useState("");
+  const [completeFor, setCompleteFor] = useState("");
+  const [photoData, setPhotoData] = useState(null);
   const s = sub;
   const schedule = s.schedule || [];
-  const canMark = (d) => s.status === "active" && d.status === "scheduled" && d.date <= todayIso();
-  const pendingDays = schedule.filter((d) => canMark(d) && d.date < todayIso());
+  const canStart = (d) => s.status === "active" && d.status === "scheduled" && d.date === todayIso();
+  const canComplete = (d) => s.status === "active" && d.status === "in_progress";
+  const canMarkPast = (d) => s.status === "active" && d.status === "scheduled" && d.date < todayIso();
+  const pendingDays = schedule.filter((d) => canMarkPast(d));
   const addr = s.address || {};
   const addrText = [addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—";
   const weeklyOffText = (s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD_FULL[d]).join(", ") : "None";
 
-  const markDone = async (date) => {
-    setBusy(date);
+  const startDay = async (date) => {
+    setBusy("start-" + date);
     try {
-      await api.post(`/subscriptions/${s.id}/days/${date}/complete`);
+      await api.post(`/subscriptions/${s.id}/days/${date}/start`, { otp: otpVal.trim() });
+      toast.success("Service started");
+      setStartFor(""); setOtpVal("");
+      reload();
+    } catch (e) { toast.error(e?.response?.data?.detail || "Could not start service"); } finally { setBusy(""); }
+  };
+  const completeDay = async (date, photo = null) => {
+    setBusy("done-" + date);
+    try {
+      await api.post(`/subscriptions/${s.id}/days/${date}/complete`, photo ? { photo } : {});
       toast.success("Marked completed");
+      setCompleteFor(""); setPhotoData(null);
       reload();
     } catch (e) { toast.error(e?.response?.data?.detail || "Could not mark completed"); } finally { setBusy(""); }
+  };
+  const onPhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => setPhotoData(r.result);
+    r.readAsDataURL(f);
   };
 
   const set = s.settlement || {};
@@ -119,7 +141,7 @@ function SubDetail({ sub, onBack, reload }) {
         </div>
       </div>
 
-      {/* Daily schedule */}
+      {/* Daily schedule + service session flow */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <p className="font-bold text-slate-900 mb-3">Daily schedule & earnings</p>
         {pendingDays.length > 0 && (
@@ -131,18 +153,57 @@ function SubDetail({ sub, onBack, reload }) {
           {schedule.map((d) => {
             const [lbl, tone] = DAY_META[d.status] || DAY_META.scheduled;
             return (
-              <div key={d.date} data-testid={`partner-sub-day-${d.date}`} className="flex items-center gap-2 border border-slate-100 rounded-lg p-2.5">
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-700">{dayLabel(d.date)} · {d.date}</p>
-                  <span className={`inline-block mt-1 text-[11px] px-2 py-0.5 rounded ${tone}`}>{lbl}</span>
+              <div key={d.date} data-testid={`partner-sub-day-${d.date}`} className="border border-slate-100 rounded-lg p-2.5 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-700">{dayLabel(d.date)} · {d.date}</p>
+                    <span className={`inline-block mt-1 text-[11px] px-2 py-0.5 rounded ${tone}`}>{lbl}</span>
+                    {d.proof_photo && <a href={d.proof_photo} target="_blank" rel="noreferrer" className="block text-[10px] text-primary-700 font-semibold mt-1">Photo proof ✓</a>}
+                  </div>
+                  {!canStart(d) && !canComplete(d) && !canMarkPast(d) && (
+                    <span className={`text-sm font-bold ${d.earning > 0 ? "text-emerald-600" : "text-slate-400"}`}>{d.status === "weekly_off" ? "—" : (d.earning > 0 ? "+" + fmt(d.earning) : fmt(0))}</span>
+                  )}
                 </div>
-                {canMark(d) ? (
-                  <button data-testid={`partner-sub-complete-${d.date}`} disabled={busy === d.date} onClick={() => markDone(d.date)}
-                    className="h-8 px-3 rounded-lg bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold disabled:opacity-50">
-                    {busy === d.date ? "…" : "Mark done"}
+                {canStart(d) && startFor !== d.date && (
+                  <button data-testid={`partner-sub-start-${d.date}`} onClick={() => { setStartFor(d.date); setOtpVal(""); }}
+                    className="w-full h-8 rounded-lg bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
+                    <Play className="h-3.5 w-3.5" /> Start Service
                   </button>
-                ) : (
-                  <span className={`text-sm font-bold ${d.earning > 0 ? "text-emerald-600" : "text-slate-400"}`}>{d.status === "weekly_off" ? "—" : (d.earning > 0 ? "+" + fmt(d.earning) : fmt(0))}</span>
+                )}
+                {canStart(d) && startFor === d.date && (
+                  <div className="flex gap-1.5" data-testid={`partner-sub-otp-row-${d.date}`}>
+                    <input data-testid={`partner-sub-otp-input-${d.date}`} value={otpVal} onChange={(e) => setOtpVal(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      placeholder="Customer OTP" inputMode="numeric"
+                      className="flex-1 h-8 px-2 rounded-lg border border-primary-300 text-sm font-bold tracking-widest text-center outline-none focus:ring-2 focus:ring-primary-200" />
+                    <button data-testid={`partner-sub-otp-confirm-${d.date}`} disabled={otpVal.length !== 4 || busy} onClick={() => startDay(d.date)}
+                      className="h-8 px-3 rounded-lg bg-primary-700 text-white text-xs font-semibold disabled:opacity-50">
+                      {busy ? "…" : "Start"}
+                    </button>
+                  </div>
+                )}
+                {canComplete(d) && completeFor !== d.date && (
+                  <button data-testid={`partner-sub-complete-${d.date}`} onClick={() => { setCompleteFor(d.date); setPhotoData(null); }}
+                    className="w-full h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Complete Service
+                  </button>
+                )}
+                {canComplete(d) && completeFor === d.date && (
+                  <div className="space-y-1.5" data-testid={`partner-sub-proof-row-${d.date}`}>
+                    <label className="w-full h-8 rounded-lg border border-dashed border-primary-400 text-primary-700 text-xs font-semibold inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                      <Camera className="h-3.5 w-3.5" /> {photoData ? "Photo attached ✓" : "Add photo proof (optional)"}
+                      <input data-testid={`partner-sub-photo-${d.date}`} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
+                    </label>
+                    <button data-testid={`partner-sub-confirm-${d.date}`} disabled={busy} onClick={() => completeDay(d.date, photoData)}
+                      className="w-full h-8 rounded-lg bg-emerald-600 text-white text-xs font-semibold disabled:opacity-50">
+                      {busy ? "…" : "Mark Completed"}
+                    </button>
+                  </div>
+                )}
+                {canMarkPast(d) && (
+                  <button data-testid={`partner-sub-markdone-${d.date}`} disabled={busy === "done-" + d.date} onClick={() => completeDay(d.date)}
+                    className="w-full h-8 rounded-lg bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold disabled:opacity-50">
+                    {busy === "done-" + d.date ? "…" : "Mark done"}
+                  </button>
                 )}
               </div>
             );

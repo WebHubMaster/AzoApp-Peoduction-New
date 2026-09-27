@@ -75,7 +75,11 @@ export function MaidTasksCard() {
               <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{t.customer}</Text>
               <Text style={{ color: "#94A3B8", fontSize: 11 }}>{t.code}{t.time ? ` · ${t.time}` : ""} · {money(t.earning)}/day</Text>
             </View>
-            {markable ? (
+            {t.date === todayIso() ? (
+              <Pressable testID={`maid-task-start-${t.subId}-${t.date}`} onPress={() => router.push("/partner/subscriptions" as any)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Start service</Text>
+              </Pressable>
+            ) : markable ? (
               <Pressable testID={`maid-task-done-${t.subId}-${t.date}`} disabled={complete.isPending} onPress={() => complete.mutate(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Mark done</Text>
               </Pressable>

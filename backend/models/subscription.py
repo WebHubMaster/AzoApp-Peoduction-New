@@ -16,6 +16,7 @@ PLAN_DEFAULT_DURATION = {"daily": 1, "weekly": 7, "monthly": 30, "yearly": 365}
 
 DAY_STATUSES = [
     "scheduled",            # upcoming working day (not yet served)
+    "in_progress",          # maid started the service (customer OTP verified) — not yet completed
     "completed",            # maid completed the service that day  -> maid earns per-day
     "maid_absent",          # maid absent            -> per-day goes to platform (absent adjustment)
     "customer_cancel",      # customer cancelled / no-show that day -> neutral (existing refund policy)
@@ -53,6 +54,15 @@ class DayMarkRequest(BaseModel):
     status: str                          # any of DAY_STATUSES (except scheduled)
     replacement_partner_id: Optional[str] = None
     note: str = ""
+
+
+class StartDayRequest(BaseModel):
+    otp: str                             # customer shares this with the maid on arrival
+
+
+class CompleteDayRequest(BaseModel):
+    note: str = ""
+    photo: Optional[str] = None          # base64 data URL — materialized to storage, never stored raw
 
 
 class SettlementActionRequest(BaseModel):

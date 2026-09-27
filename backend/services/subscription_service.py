@@ -80,24 +80,51 @@ def _plan_offs(plan: dict, override):
 
 def build_schedule(start: date, duration_days: int, weekly_offs: list) -> list:
     """Generate one entry per calendar day; a day whose weekday is in weekly_offs is
-    an agreed off (no earning), everything else is a working day."""
+    an agreed off (no earning), everything else is a working day. Each working day
+    carries a 4-digit start OTP that the customer shares with the maid on arrival
+    (service-session flow: start → in_progress → complete)."""
     offs = set(weekly_offs or [])
     schedule = []
     for i in range(int(duration_days or 1)):
         d = start + timedelta(days=i)
         wd = d.weekday()
+        off = wd in offs
         schedule.append({
             "date": d.isoformat(),
             "weekday": wd,
-            "status": "weekly_off" if wd in offs else "scheduled",
+            "status": "weekly_off" if off else "scheduled",
             "earning": 0.0,
             "served_by": None,           # partner id credited for this day
             "replacement_partner_id": None,
             "note": "",
             "marked_by": None,
             "marked_at": None,
+            "otp": None if off else f"{random.randint(1000, 9999)}",
+            "started_at": None,
+            "completed_at": None,
+            "proof_photo": None,
         })
     return schedule
+
+
+async def ensure_day_otps(sub: dict) -> dict:
+    """Backfill start OTPs on subscriptions created before the service-session flow."""
+    schedule = sub.get("schedule") or []
+    changed = False
+    for d in schedule:
+        if d.get("status") in ("scheduled", "in_progress") and not d.get("otp"):
+            d["otp"] = f"{random.randint(1000, 9999)}"
+            changed = True
+    if changed:
+        await db.subscriptions.update_one({"id": sub["id"]}, {"$set": {"schedule": schedule}})
+    return sub
+
+
+def strip_otps_for_partner(sub: dict) -> dict:
+    """Start OTPs belong to the customer — never expose them to the partner app."""
+    s = dict(sub)
+    s["schedule"] = [{k: v for k, v in d.items() if k != "otp"} for d in (sub.get("schedule") or [])]
+    return s
 
 
 def compute_financials(gross: float, commission_pct: float, tax_pct: float, working_days: int) -> dict:

@@ -9,7 +9,7 @@ from config.database import db, now_iso, get_settings
 from middleware.auth import SECRET
 from models.user import new_id
 from models.subscription import PLAN_DEFAULT_DURATION, DAY_STATUSES
-from services import money, payment_service
+from services import money, payment_service, storage_service
 from services import subscription_service as svc
 from services import invoice_service as inv_svc
 from services.gateway_resolver import GatewayConfigError
@@ -138,7 +138,7 @@ async def _sub_for_customer(user, subscription_id):
 async def list_mine(user):
     rows = await db.subscriptions.find(
         {"customer_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
-    return rows
+    return [await svc.ensure_day_otps(r) for r in rows]
 
 
 async def get_one(user, subscription_id):
@@ -149,9 +149,9 @@ async def get_one(user, subscription_id):
     if role == "admin":
         return sub
     if role == "customer" and sub.get("customer_id") == user["id"]:
-        return sub
+        return await svc.ensure_day_otps(sub)
     if role == "partner" and sub.get("partner_id") == user["id"]:
-        return sub
+        return svc.strip_otps_for_partner(sub)
     raise HTTPException(status_code=403, detail="Not allowed")
 
 
@@ -257,10 +257,12 @@ async def partner_list(user):
     rows = await db.subscriptions.find(
         {"partner_id": user["id"], "status": {"$in": ["active", "completed"]}},
         {"_id": 0}).sort("created_at", -1).to_list(200)
-    return rows
+    return [svc.strip_otps_for_partner(r) for r in rows]
 
 
-async def partner_mark_completed(user, subscription_id, day_date, note=""):
+async def partner_start_day(user, subscription_id, day_date, otp):
+    """Start Service — customer shares the day's OTP with the maid on arrival.
+    Moves the day scheduled → in_progress (no earning until completed)."""
     sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
     if not sub:
         raise HTTPException(status_code=404, detail="Subscription not found")
@@ -268,9 +270,55 @@ async def partner_mark_completed(user, subscription_id, day_date, note=""):
         raise HTTPException(status_code=403, detail="This subscription is not assigned to you")
     if sub.get("status") != "active":
         raise HTTPException(status_code=400, detail="Subscription is not active")
-    return await _set_day(subscription_id, day_date, "completed",
-                          served_by=user["id"], marked_by=user["id"], note=note,
-                          allowed_from=("scheduled",))
+    if day_date > datetime.now(timezone.utc).date().isoformat():
+        raise HTTPException(status_code=400, detail="This service day has not arrived yet")
+    day = next((d for d in (sub.get("schedule") or []) if d.get("date") == day_date), None)
+    if not day:
+        raise HTTPException(status_code=404, detail="No scheduled day for that date")
+    if day.get("status") != "scheduled":
+        raise HTTPException(status_code=400, detail=f"Day already marked as {day.get('status')}")
+    if not otp or str(day.get("otp")) != str(otp).strip():
+        raise HTTPException(status_code=400, detail="Invalid customer start OTP")
+    await _set_day(subscription_id, day_date, "in_progress", marked_by=user["id"], allowed_from=("scheduled",))
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    for d in sub["schedule"]:
+        if d["date"] == day_date:
+            d["started_at"] = now_iso()
+    await db.subscriptions.update_one({"id": subscription_id}, {"$set": {"schedule": sub["schedule"], "updated_at": now_iso()}})
+    return svc.strip_otps_for_partner(sub)
+
+
+async def partner_mark_completed(user, subscription_id, day_date, note="", photo=None):
+    """Complete Service — today's day must be started first (customer OTP verified);
+    past days can be marked directly (backdated). Optional photo proof goes to storage."""
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    if sub.get("partner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="This subscription is not assigned to you")
+    if sub.get("status") != "active":
+        raise HTTPException(status_code=400, detail="Subscription is not active")
+    today = datetime.now(timezone.utc).date().isoformat()
+    if day_date > today:
+        raise HTTPException(status_code=400, detail="Cannot complete a future service day")
+    photo_url = None
+    if photo:
+        try:
+            photo_url = await storage_service.materialize_data_url(photo.strip(), f"subscriptions/{subscription_id}", max_side=1280)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+    allowed = ("in_progress",) if day_date == today else ("scheduled", "in_progress")
+    await _set_day(subscription_id, day_date, "completed",
+                   served_by=user["id"], marked_by=user["id"], note=note,
+                   allowed_from=allowed)
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    for d in sub["schedule"]:
+        if d["date"] == day_date:
+            d["completed_at"] = now_iso()
+            if photo_url:
+                d["proof_photo"] = photo_url
+    await db.subscriptions.update_one({"id": subscription_id}, {"$set": {"schedule": sub["schedule"], "updated_at": now_iso()}})
+    return svc.strip_otps_for_partner(sub)
 
 
 async def _set_day(subscription_id, day_date, status, served_by=None,

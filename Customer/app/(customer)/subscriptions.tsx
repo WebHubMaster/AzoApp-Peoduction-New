@@ -17,6 +17,7 @@ const todayPlus = (d: number) => { const t = new Date(); t.setDate(t.getDate() +
 const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   completed: { label: "Completed", color: "#059669", bg: "#ECFDF5" },
   replacement_completed: { label: "Replacement", color: "#0D9488", bg: "#F0FDFA" },
+  in_progress: { label: "In progress", color: "#B45309", bg: "#FFFBEB" },
   maid_absent: { label: "Maid absent", color: ROSE, bg: "#FFF1F2" },
   customer_cancel: { label: "Cancelled by you", color: "#D97706", bg: "#FFFBEB" },
   weekly_off: { label: "Weekly off", color: "#64748B", bg: "#F1F5F9" },
@@ -160,6 +161,7 @@ function SubCard({ s }: { s: any }) {
   const pct = wd ? Math.min(100, Math.round((done / wd) * 100)) : 0;
   const absentPct = wd ? Math.min(100 - pct, Math.round((absent / wd) * 100)) : 0;
   const schedule: any[] = s.schedule || [];
+  const todayDay = schedule.find((d: any) => d.date === todayPlus(0) && (d.status === "scheduled" || d.status === "in_progress"));
   const addr = s.address || {};
 
   const downloadInvoice = async () => {
@@ -191,6 +193,11 @@ function SubCard({ s }: { s: any }) {
           <User size={13} color={SLATE[400]} />
           <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "800", color: c.text }}>{s.partner_name || "Assigning soon"}</Text>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</Text>
         </View>
+        {active && todayDay?.otp ? (
+          <View testID={`my-sub-otp-${s.id}`} style={{ borderRadius: 10, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 10, paddingVertical: 7 }}>
+            <Text style={{ color: "#B45309", fontSize: 11, fontWeight: "700" }}>Today's service OTP: <Text style={{ fontWeight: "800", letterSpacing: 2 }}>{todayDay.otp}</Text> — share with your maid to start the service</Text>
+          </View>
+        ) : null}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
           <Text style={{ color: SLATE[400], fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
           <Text style={{ color: c.text, fontWeight: "800", fontSize: 20 }}>{money(s.price)}</Text>
