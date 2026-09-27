@@ -277,7 +277,7 @@ async def partner_start_day(user, subscription_id, day_date, otp):
         raise HTTPException(status_code=404, detail="No scheduled day for that date")
     if day.get("status") != "scheduled":
         raise HTTPException(status_code=400, detail=f"Day already marked as {day.get('status')}")
-    if not otp or str(day.get("otp")) != str(otp).strip():
+    if not otp or not day.get("otp") or not hmac.compare_digest(str(day.get("otp")), str(otp).strip()):
         raise HTTPException(status_code=400, detail="Invalid customer start OTP")
     await _set_day(subscription_id, day_date, "in_progress", marked_by=user["id"], allowed_from=("scheduled",))
     sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
@@ -303,6 +303,8 @@ async def partner_mark_completed(user, subscription_id, day_date, note="", photo
         raise HTTPException(status_code=400, detail="Cannot complete a future service day")
     photo_url = None
     if photo:
+        if len(photo) > 8_000_000:  # ~6 MB image as base64
+            raise HTTPException(status_code=400, detail="Photo is too large")
         try:
             photo_url = await storage_service.materialize_data_url(photo.strip(), f"subscriptions/{subscription_id}", max_side=1280)
         except ValueError as e:

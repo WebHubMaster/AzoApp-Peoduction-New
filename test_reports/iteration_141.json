@@ -1,0 +1,45 @@
+{
+  "summary": "Iteration 141 — Service Session Flow. Independent backend verification via pytest (8/8 PASS): OTP visibility for customer + OTP strip for partner on assigned sub; wrong OTP -> 400 'Invalid customer start OTP'; complete-before-start -> 400 'Day already marked as scheduled'; start with correct OTP -> in_progress + started_at stamped; complete with base64 png photo -> completed + proof_photo is https URL under /media/file/subscriptions/ + accrued_earning increases; future-day start/complete -> 400 'This service day has not arrived yet'; unassigned partner (Raj Kumar) -> 403 'This subscription is not assigned to you'; regressions: backdated complete without OTP still works (past scheduled day), admin /admin/{id}/days/{date} maid_absent still works. Customer web UI smoke: /account?tab=subscriptions renders, [data-testid=my-subscriptions] present, amber OTP banner [data-testid^=my-sub-otp-] appears on the active daily sub we created (\"Today's service OTP: 4085 — share with your maid to start the service\"). Note: real system date is 2026-09-27 (Sunday UTC) which is weekly_off for Home Maid; test fixture patches today's day to 'scheduled' in MongoDB to exercise the live start flow.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "verified_checks": {
+    "backend_session_flow": {
+      "customer_sees_4digit_otp_on_scheduled_days": true,
+      "partner_mine_strips_otp_field": true,
+      "start_wrong_otp_400": true,
+      "start_correct_otp_moves_to_in_progress_with_started_at": true,
+      "complete_before_start_400_today": true,
+      "complete_with_photo_stores_https_media_file_subscriptions_url": true,
+      "accrued_earning_grows_by_per_day": true,
+      "future_day_start_400": true,
+      "future_day_complete_400": true,
+      "unassigned_partner_403": true,
+      "backdated_complete_without_otp_still_works": true,
+      "admin_mark_maid_absent_still_works": true
+    },
+    "customer_web_ui": {
+      "subscriptions_page_loads": true,
+      "my-subscriptions_root_present": true,
+      "my-sub-otp_banner_visible_on_active_daily_sub_today": true,
+      "banner_shows_4digit_otp": "4085"
+    }
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter141_session_flow.py",
+    "/app/test_reports/pytest/iter141_session.xml",
+    "/app/test_reports/iter141_customer_subs.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/controllers/subscription_controller.py::partner_start_day compares day.otp using str() equality — resilient to number/string OTPs. Consider constant-time compare (hmac.compare_digest) for hardening against timing attacks, though impact is minor for 4-digit OTPs behind rate-limited endpoints.",
+    "partner_mark_completed accepts photo up to whatever storage_service.materialize_data_url allows (max_side=1280). No explicit size cap on the incoming base64 payload before decode — a malicious/oversized data URL could burden the request. Consider a request-body size limit or a length check before materialize.",
+    "SUB* short codes referenced in the review request (SUBZXRGVG, SUBOI7PPF, SUB445IQ2) are stored as 'code' on the subscription doc, but the API returns the internal UUID as 'id'. Downstream tests/tooling that key off SUB* will silently skip; confirming this is intentional and documented would help."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter141_session_flow.py"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "smoke OK (customer subs + OTP banner)"},
+  "test_credentials": "Customer +919000000004, Admin +919000000000, Maid Anita +919000000023, Maid Lakshmi +919000000022, Maid Sunita +919000000020, Non-maid partner Raj +919000000003 — OTP 123456 for all.",
+  "seed_data_creation": "Created 3 fresh daily Home Maid subs for Priya (paid mock, assigned Anita) to exercise the destructive start/complete/backdated/admin-absent flows. Today's schedule day was DB-patched from 'weekly_off' -> 'scheduled' (with a known OTP) because system date 2026-09-27 falls on Home Maid's Sunday weekly-off. Fresh subs are visible in the customer's My Subscriptions list.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend hot-reload occasionally stalls after edits ('Waiting for connections to close') — run `sudo supervisorctl restart backend` when curl hangs at 000/timeout. Home Maid service has Sunday weekly_off; on Sundays UTC the 'today' scheduled day won't exist naturally, so fixtures must inject/patch it (see test_iter141_session_flow.py fresh_daily_sub fixture). Partner /subscriptions/partner/mine returns internal UUID id (not the SUB* short code)."
+}
