@@ -184,5 +184,11 @@ Customer selects plan (Daily/Weekly/Monthly/Yearly) → pays full upfront → su
 Backend: fully tested (testing agent 12/12, 100%). Admin web UI verified via screenshot (₹10,000/26/20% reconciliation → earned ₹7,384.56, absent adj ₹615.38). Customer & Partner Expo screens implemented (compile OK); deep e2e mobile screenshotting deferred.
 Payment is MOCKED (no live gateway configured) via /pay/mock.
 
+### Customer WEB panel UI + dummy maids — 2026-09-27
+- NEW `web_panel/src/components/customer/Subscriptions.jsx`: `SubscriptionPlansPanel` (plan picker + booking dialog: start date/time/address → POST /subscriptions → /pay/mock → /account?tab=subscriptions) + `MySubscriptions` (cards w/ paid-upfront, days completed, maid earned, absent adj, maid name, schedule dot-strip + legend).
+- `ServiceDetail.jsx`: subscription services render SubscriptionPlansPanel (replaces add-to-cart card), "Recurring Subscription" badge, mobile add-bar hidden. `CustomerDashboard.jsx`: NAV "Subscriptions" tab (CalendarHeart icon).
+- `backend/seed_maid_partners.py`: 5 maid partners (+919000000020-24: Sunita Devi, Geeta Sharma, Lakshmi Bai, Anita Kumari, Meena Devi; skills maid+cleaning), activates Home Maid (image/description/highlights), deactivates TEST_* subscription services, seeds 2 attendance-history subs (monthly→Sunita: 6/25 done, earned ₹1,920, absent ₹320; weekly→Geeta: 5/6 done, earned ₹1,666.65). Idempotent (seed="maid_demo").
+- Verified E2E via screenshots: login → /services (Home Maid card) → plan picker → dialog → pay ₹10,000 → My Subscriptions (new sub SUBZXRGVG active, unassigned). Admin /partners lists all 5 maids; maid login (+919000000020) sees earned/max-allocation/absent.
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

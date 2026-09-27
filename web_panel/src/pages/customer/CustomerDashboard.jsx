@@ -6,7 +6,7 @@ import {
   Home, Wallet, Gift, Sparkles, Package, Star, MapPin, Plus, Navigation, User as UserIcon,
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
-  Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock,
+  Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
 } from "lucide-react";
 import api, { fmt, fmtC } from "@/lib/api";
 import { shareInvoicePdf, shareFilePdf } from "@/lib/invoiceShare";
@@ -19,6 +19,7 @@ import { useSiteConfig } from "@/context/SiteConfigContext";
 import CustomerShell from "@/components/customer/CustomerShell";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 import MyCustomJobs from "@/components/customer/MyCustomJobs";
+import { MySubscriptions } from "@/components/customer/Subscriptions";
 import InvoiceCenter from "@/components/invoices/InvoiceCenter";
 import { AiChat } from "@/components/AiChat";
 import SupportCenter from "@/components/SupportCenter";
@@ -52,6 +53,7 @@ import {
 const NAV = [
   { key: "home", label: "Home", short: "Home", icon: Home },
   { key: "orders", label: "My Bookings", short: "Bookings", icon: Package },
+  { key: "subscriptions", label: "Subscriptions", short: "Plans", icon: CalendarHeart },
   { key: "custom_jobs", label: "Custom Requests", short: "Custom", icon: Wrench },
   { key: "refunds", label: "Refunds", short: "Refunds", icon: Receipt },
   { key: "invoices", label: "My Invoices", short: "Invoices", icon: FileText },
@@ -192,6 +194,7 @@ export default function CustomerDashboard() {
       )}
 
       {active === "refunds" && <RefundsView refunds={refunds} loading={loading} />}
+      {active === "subscriptions" && <MySubscriptions />}
       {active === "custom_jobs" && <MyCustomJobs />}
       {active === "wallet" && <WalletView wallet={wallet} user={user} onReload={load} />}
       {active === "referral" && <ReferralView user={user} bookings={bookings} />}

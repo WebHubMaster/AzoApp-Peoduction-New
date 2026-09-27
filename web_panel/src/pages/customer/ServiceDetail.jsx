@@ -8,6 +8,7 @@ import BrandLogo from "@/components/site/BrandLogo";
 import { Button } from "@/components/ui/button";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import RateCardBar from "@/components/RateCardModal";
+import { SubscriptionPlansPanel } from "@/components/customer/Subscriptions";
 import SmartImage from "@/components/site/SmartImage";
 import { DetailSkeleton } from "@/components/site/Skeletons";
 import Seo, { serviceJsonLd, breadcrumbJsonLd } from "@/components/Seo";
@@ -93,6 +94,7 @@ export default function ServiceDetail() {
         <div className="lg:col-span-3">
           <ServiceGallery svc={svc} />
           <p className="text-xs uppercase tracking-wider font-bold text-primary-700 mt-6">{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</p>
+          {svc.is_subscription && <span data-testid="subscription-badge" className="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">Recurring Subscription · Pay upfront</span>}
           <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-slate-900 mt-1">{svc.name}</h1>
           <div className="flex items-center gap-3 mt-2 text-sm text-slate-500">
             <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {svc.rating}</span>
@@ -191,7 +193,7 @@ export default function ServiceDetail() {
 
         {/* Add-to-booking card */}
         <div className="lg:col-span-2">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 sticky top-24">
+          {svc.is_subscription ? <SubscriptionPlansPanel svc={svc} /> : <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 sticky top-24">
             <h3 className="font-heading font-bold text-xl text-slate-900">Add to your booking</h3>
             <p className="text-xs text-slate-500 mt-1">Select options, then add this service. You can add more services before checkout.</p>
 
@@ -231,16 +233,16 @@ export default function ServiceDetail() {
               <div className="h-9 w-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5" /></div>
               <div><p className="text-sm font-bold text-emerald-800">100% Secure &amp; Refundable</p><p className="text-[11px] text-emerald-700">Pay safely at checkout · easy cancellations</p></div>
             </div>
-          </motion.div>
+          </motion.div>}
         </div>
       </div>
 
       {/* Mobile sticky add bar */}
-      <div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-3 flex items-center gap-3">
+      {!svc.is_subscription && (<div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-3 flex items-center gap-3">
         <div><p className="text-[11px] text-slate-400">Item total</p><p className="font-heading font-extrabold text-lg text-slate-900 leading-none">{fmt(unitPrice * qty)}</p></div>
         <Button data-testid="add-to-booking-mobile" onClick={() => addToBooking(false)} className="ml-auto h-11 px-5 bg-primary-700 hover:bg-primary-800"><Plus className="h-4 w-4 mr-1" /> Add</Button>
         {count > 0 && <Button data-testid="go-checkout-mobile" onClick={() => navigate("/book")} className="h-11 px-4 bg-emerald-600 hover:bg-emerald-700">Checkout ({count})</Button>}
-      </div>
+      </div>)}
 
       <MobileBottomNav />
     </div>
