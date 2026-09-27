@@ -22,12 +22,16 @@ import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
 const OTP_LEN = 6;
 const ROLE_BLOCKED = "Only Customers can sign in to the Customer App. Partners & Merchants please use their own app.";
 const HERO = require("../assets/login-hero.webp");
-const HERO_RATIO = 0.60; // width / height of the cutout
+const HERO_RATIO = 449 / 596; // reference crop (girl + blue disc), sits flush to the right edge
+const NAVY = "#000A35";
+const BLUE = "#0572EE";
+const BTN = "#1160C2";
+const CHIP_BG = "#E6F3FE";
 
 function PrimaryBtn({ label, onPress, busy, disabled, icon, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; icon?: boolean; testID: string }) {
   return (
     <Pressable testID={testID} onPress={onPress} disabled={busy || disabled}
-      style={({ pressed }) => ({ height: 54, borderRadius: 14, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[600], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: disabled && !busy ? 0.5 : 1, boxShadow: "0px 8px 20px rgba(18,88,183,0.28)" } as any)}>
+      style={({ pressed }) => ({ height: 54, borderRadius: 14, backgroundColor: pressed ? "#0D4E9F" : BTN, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: disabled && !busy ? 0.5 : 1 } as any)}>
       {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>{label}</Text>{icon ? <ArrowRight size={18} color="#fff" strokeWidth={2.4} /> : null}</>}
     </Pressable>
   );
@@ -45,11 +49,11 @@ function IndiaFlag() {
 
 function Chip({ icon, title, sub, dark }: { icon: React.ReactNode; title: string; sub: string; dark: boolean }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}>
-      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: dark ? "rgba(30,41,59,0.9)" : "#fff", alignItems: "center", justifyContent: "center", boxShadow: "0px 2px 8px rgba(15,23,42,0.08)" } as any}>{icon}</View>
-      <View style={{ flex: 1 }}>
-        <Text numberOfLines={1} style={{ fontSize: 11, fontWeight: "800", color: dark ? "#F8FAFC" : SLATE[800] }}>{title}</Text>
-        <Text numberOfLines={1} style={{ fontSize: 10.5, color: dark ? SLATE[400] : SLATE[500] }}>{sub}</Text>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
+      <View>
+        <Text style={{ fontSize: 11.5, lineHeight: 14, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "500" }}>{title}</Text>
+        <Text style={{ fontSize: 11.5, lineHeight: 14, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "500" }}>{sub}</Text>
       </View>
     </View>
   );
@@ -162,21 +166,22 @@ export default function Login() {
 
   const bg = isDark ? "#0B1220" : "#F5F8FD";
   const cardBg = isDark ? "#111A2E" : "#fff";
-  const heading = isDark ? "#F8FAFC" : "#0B1C4A";
+  const heading = isDark ? "#F8FAFC" : NAVY;
   const muted = isDark ? SLATE[400] : SLATE[500];
   const inputBorder = isDark ? "#243350" : SLATE[200];
   const inputBg = isDark ? "#0F172A" : "#fff";
   const inputText = isDark ? "#F1F5F9" : SLATE[900];
-  const heroH = Math.min(230, Math.round(width * 0.62));
-  const heroW = Math.round(heroH * HERO_RATIO);
+  const S = Math.min(width, 430) / 390;
+  const heroW = Math.round(171 * S);
+  const heroH = Math.round(heroW / HERO_RATIO);
   const inputStyle = { height: 50, borderRadius: 12, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingHorizontal: 14, fontSize: 15, color: inputText } as const;
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      {/* soft background discs */}
-      <View pointerEvents="none" style={{ position: "absolute", right: -width * 0.25, top: insets.top + 110, width: width * 0.75, height: width * 0.75, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.20)" : "#DCE9FB" }} />
-      <View pointerEvents="none" style={{ position: "absolute", left: -width * 0.3, bottom: -width * 0.35, width: width * 0.9, height: width * 0.9, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.12)" : "#E8F0FC" }} />
+      {/* soft bottom waves (reference) */}
+      <View pointerEvents="none" style={{ position: "absolute", left: -width * 0.35, bottom: -width * 0.55, width: width * 1.1, height: width * 0.9, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.14)" : "#E9F3FE" }} />
+      <View pointerEvents="none" style={{ position: "absolute", right: -width * 0.4, bottom: -width * 0.6, width: width * 1.1, height: width * 0.85, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.10)" : "#EEF6FE" }} />
 
       <KeyboardAwareScrollView bottomOffset={80} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32, paddingHorizontal: 18 }}>
@@ -186,53 +191,51 @@ export default function Login() {
           <ArrowLeft size={18} color={heading} strokeWidth={2.4} />
         </Pressable>
 
-        {/* Brand (dynamic from admin) */}
-        <View testID="brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 18 }}>
-          {logo ? (
-            <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ height: 44, width: Math.min(220, width * 0.6) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
-          ) : (
-            <>
-              <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><Zap size={24} color="#fff" strokeWidth={2.4} /></View>
-              <View>
-                <Text style={{ fontWeight: "900", fontSize: 24, color: heading, letterSpacing: -0.5 }}>{siteName}</Text>
-                <Text style={{ fontSize: 11.5, color: muted, marginTop: -1 }}>{tagline}</Text>
-              </View>
-            </>
-          )}
-        </View>
+        {/* Hero: brand · title · subtitle · chips (left) — reference girl + disc flush right */}
+        <View style={{ marginTop: 10, minHeight: heroH + Math.round(34 * S) }}>
+          <Image testID="login-hero" source={HERO} style={{ position: "absolute", right: -18, top: Math.round(34 * S), width: heroW + 18, height: heroH, zIndex: 0 }} contentFit="contain" contentPosition="top right" transition={0} priority="high" />
 
-        {/* Hero */}
-        <View style={{ flexDirection: "row", marginTop: 26, minHeight: heroH }}>
-          <View style={{ flex: 1, paddingRight: 6, zIndex: 2 }}>
-            <Text testID="login-title" style={{ fontWeight: "900", fontSize: 32, lineHeight: 38, color: heading, letterSpacing: -0.8 }}>Sign In to</Text>
-            <Text style={{ fontWeight: "900", fontSize: 32, lineHeight: 38, color: PRIMARY[500], letterSpacing: -0.8 }}>{siteName}</Text>
-            <Text style={{ color: muted, marginTop: 10, fontSize: 14, lineHeight: 20 }}>Login with your mobile number and get quick access to all services.</Text>
+          {/* Brand (dynamic from admin) */}
+          <View testID="brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+            {logo ? (
+              <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ height: 42, width: Math.min(200, width * 0.5) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
+            ) : (
+              <>
+                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: BLUE, alignItems: "center", justifyContent: "center" }}><Zap size={22} color="#fff" strokeWidth={2.4} /></View>
+                <View>
+                  <Text style={{ fontWeight: "800", fontSize: 24, color: "#0B3A8F", letterSpacing: -0.4 }}>{siteName}</Text>
+                  <Text style={{ fontSize: 11.5, color: SLATE[500], marginTop: -2 }}>{tagline}</Text>
+                </View>
+              </>
+            )}
           </View>
-          <View style={{ width: heroW, alignItems: "flex-end", justifyContent: "flex-end" }}>
-            <Image testID="login-hero" source={HERO} style={{ width: heroW + 10, height: heroH, marginRight: -18 }} contentFit="contain" contentPosition="bottom right" transition={0} priority="high" />
-          </View>
-        </View>
 
-        {/* Feature chips */}
-        <View testID="login-features" style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-          <Chip dark={isDark} icon={<ShieldCheck size={15} color={PRIMARY[600]} strokeWidth={2.4} />} title="Safe &" sub="Secure" />
-          <Chip dark={isDark} icon={<Zap size={15} color={PRIMARY[600]} strokeWidth={2.4} />} title="Fast" sub="Login" />
-          <Chip dark={isDark} icon={<Users size={15} color={PRIMARY[600]} strokeWidth={2.4} />} title="Trusted" sub="Platform" />
+          <View style={{ width: width - 36 - heroW + 44, marginTop: 30 }}>
+            <Text testID="login-title" style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: heading, letterSpacing: -1 }}>Sign In to</Text>
+            <Text style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: BLUE, letterSpacing: -1 }}>{siteName}</Text>
+            <Text style={{ color: isDark ? SLATE[400] : "#66748F", marginTop: 12, fontSize: 13.5, lineHeight: 19 }}>Login with your mobile number and get quick access to all services.</Text>
+          </View>
+
+          <View testID="login-features" style={{ flexDirection: "row", gap: 16, marginTop: 22, zIndex: 5, position: "relative" }}>
+            <Chip dark={isDark} icon={<ShieldCheck size={16} color={BLUE} strokeWidth={2.4} />} title="Safe &" sub="Secure" />
+            <Chip dark={isDark} icon={<Zap size={16} color={BLUE} strokeWidth={2.4} fill={BLUE} />} title="Fast" sub="Login" />
+            <Chip dark={isDark} icon={<Users size={16} color={BLUE} strokeWidth={2.4} />} title="Trusted" sub="Platform" />
+          </View>
         </View>
 
         {/* Card */}
-        <View testID="login-card" style={{ marginTop: 18, padding: 18, borderRadius: 24, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", boxShadow: "0px 14px 36px rgba(15,23,42,0.10)" } as any}>
+        <View testID="login-card" style={{ marginTop: 8, padding: 18, paddingTop: 22, borderRadius: 24, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", boxShadow: "0px 14px 36px rgba(15,23,42,0.10)" } as any}>
           {cfg?.auth_config?.mobile_otp === false ? (
             <Text testID="otp-disabled-note" style={{ fontSize: 14, color: muted, textAlign: "center", paddingVertical: 8 }}>Mobile OTP login is currently disabled. Please use another method below.</Text>
           ) : (
             <View testID="otp-login">
               {step === 1 ? (
                 <View style={{ gap: 14 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "800", color: heading }}>Mobile Number</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 14, borderWidth: 1.5, borderColor: inputBorder, backgroundColor: inputBg, paddingLeft: 14 }}>
+                  <Text style={{ fontSize: 16, fontWeight: "800", color: heading }}>Mobile Number</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 14, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingLeft: 14 }}>
                     <IndiaFlag />
                     <Text style={{ marginLeft: 8, fontSize: 15, fontWeight: "700", color: inputText }}>+91</Text>
-                    <ChevronDown size={16} color={muted} style={{ marginLeft: 4 }} />
+                    <ChevronDown size={16} color={heading} style={{ marginLeft: 6 }} />
                     <View style={{ width: 1, height: 26, backgroundColor: inputBorder, marginHorizontal: 12 }} />
                     <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter 10-digit mobile number" placeholderTextColor={SLATE[400]}
                       keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
@@ -240,8 +243,8 @@ export default function Login() {
                   </View>
                   <PrimaryBtn testID="send-otp-button" label="Send OTP" icon onPress={send} busy={busy === "send"} />
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <Lock size={13} color={SLATE[400]} />
-                    <Text style={{ fontSize: 11.5, color: SLATE[400] }}>We&apos;ll take you to the right panel based on your number.</Text>
+                    <Lock size={14} color={SLATE[500]} />
+                    <Text style={{ fontSize: 12, color: SLATE[500] }}>We&apos;ll take you to the right panel based on your number.</Text>
                   </View>
                 </View>
               ) : null}
