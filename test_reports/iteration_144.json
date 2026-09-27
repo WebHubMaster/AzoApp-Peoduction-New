@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only verification of Customer Expo-web guest OTP flow + two UI fixes (home scroll, customer bottom nav gradient). 5 of 6 checks fully PASS; 1 real bug found in phone paste normalization; wrong-OTP path could not be exercised in dev because the send-OTP endpoint returns dev_otp which is auto-verified within milliseconds (not a functional bug, but the negative path is not user-reachable in dev).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "OtpInline.tsx (otp-phone TextInput)",
+        "issue": "Paste of '+91 98765 43210' does NOT normalize to '9876543210'. The TextInput has maxLength={10}; the browser truncates the pasted value to the first 10 characters ('+91 98765 ') BEFORE onChangeText fires, so tenDigits() only receives 7 digits and phone becomes '9198765'. The last-10-digits logic on line 19 of OtpInline.tsx is defeated by the maxLength attribute. Fix: remove maxLength from the TextInput and instead clamp inside onChangeText (already done), OR raise maxLength to ~16 so full pasted E.164 strings survive to the handler.",
+        "selector": "[data-testid=\"otp-phone\"]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix OtpInline phone paste normalization: remove or raise maxLength on the otp-phone TextInput so the tenDigits(v).slice(-10) logic can actually receive pasted '+91 xxxxx xxxxx' style inputs.",
+    "(Optional) In dev, consider delaying auto-verify by ~500ms or NOT auto-filling from dev_otp so QA can exercise the wrong-OTP error path via UI. Currently /auth/send-otp returns dev_otp which is stored into state and immediately verified by the length===6 useEffect, leaving no window for a manual wrong entry."
+  ],
+  "critical_code_review_comments": [
+    "OtpInline.tsx line 69: maxLength={10} conflicts with the intent stated in the comment on line 18 ('Keep the LAST 10 digits so pasted +91… still resolves'). Either drop maxLength or bump it to accept the full pasted string.",
+    "OtpInline.tsx line 39: setOtp(String(d.dev_otp)) triggers auto-verify via the useEffect on line 61. This is intentional for happy path, but blocks negative-path testing in dev."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "83% (5/6 scenarios verified; T2 wrong-OTP not user-reachable in dev, T3 paste failed)"},
+  "test_credentials": "Dev OTP 123456; existing customer +919000000004 (Priya Verma); guest 9000000778 auto-registered as 'Guest Tester' during this run.",
+  "seed_data_creation": "New customer accounts auto-created in DB during OTP verify: +919000000778 (Guest Tester) and +919000000779 (New User).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "T1 (guest 9000000778 register+login on checkout, azo_token set, /api/auth/me returns role=customer): PASS. T2 (wrong OTP 111111 shows otp-error): NOT TESTABLE via UI in dev mode — /auth/send-otp returns dev_otp='123456', OtpInline autofills state.otp and useEffect auto-verifies before any manual override can land; contact-user appears immediately. T3 paste '+91 98765 43210' → expected '9876543210' but got '9198765' due to maxLength=10 truncating raw value before onChangeText normalization. T3 invalid '12345' → otp-error 'Enter a valid 10-digit mobile number': PASS. T4 existing +919000000004 auto-logs-in as 'Priya Verma': PASS. T5 home page scroll: 'Offers & Savings' section fully visible at rectBottom=575, navTop=779, aboveNav=true — PASS. T6 customer bottom nav on /orders (m-bottom-nav): active tab (m-nav-home after tap) shows linear-gradient(135deg, rgb(18,88,183), rgb(22,102,211)) with borderRadius 14px and ~37.8x37.8 icon container; inactive tabs have no bg and grey svg stroke (#94A3B8) — PASS. More sheet opens on m-nav-more tap — PASS. Note: on the /orders route the 'Bookings' tab testid was not found ([data-testid=m-nav-bookings] returned null); tabs discovered were m-nav-home, m-nav-wallet, m-nav-more — verify the Bookings tab testid naming in CustomerShell.",
+  "rca of the issue": "T3 paste bug RCA: OtpInline.tsx line 69 sets maxLength={10} on <TextInput testID=\"otp-phone\">. In web, this maps to HTMLInputElement.maxLength=10; browser truncates any pasted text to 10 raw characters BEFORE dispatching input events. onChangeText then receives '+91 98765 ' (with spaces), and tenDigits('+91 98765 ') filters non-digits yielding '9198765'. Reproduction: on /book Step 4 Your Info, focus the phone input and paste '+91 98765 43210' → observed value '9198765' (expected '9876543210'). Mitigation: remove the maxLength prop (already handled inside onChangeText via slice(-10)) OR set maxLength={16} so the E.164 form survives to the handler."
+}

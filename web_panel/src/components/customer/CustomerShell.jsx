@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Menu, Bell, Moon, Sun, LogOut, ChevronLeft, ChevronRight, Search, MapPin,
-  MoreHorizontal, X, Sparkles, Settings, CheckCheck, Home,
+  MoreHorizontal, X, Settings, CheckCheck, Home,
 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -105,7 +105,6 @@ function AvatarMenu({ user, onNavigate }) {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem data-testid="menu-profile" onClick={() => onNavigate("profile")}><Settings className="h-4 w-4 mr-2" /> My Profile</DropdownMenuItem>
-        <DropdownMenuItem data-testid="menu-ai" onClick={() => onNavigate("ai")}><Sparkles className="h-4 w-4 mr-2" /> AI Assistant</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem data-testid="menu-logout" onClick={logout} className="text-rose-600 focus:text-rose-600"><LogOut className="h-4 w-4 mr-2" /> Logout</DropdownMenuItem>
       </DropdownMenuContent>

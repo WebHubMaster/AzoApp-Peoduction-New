@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { jsPDF } from "jspdf";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, Wallet, Gift, Sparkles, Package, Star, MapPin, Plus, Navigation, User as UserIcon,
+  Home, Wallet, Gift, Package, Star, MapPin, Plus, Navigation, User as UserIcon,
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
   Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
@@ -21,7 +21,6 @@ import OnboardingTour from "@/components/tour/OnboardingTour";
 import MyCustomJobs from "@/components/customer/MyCustomJobs";
 import { MySubscriptions } from "@/components/customer/Subscriptions";
 import InvoiceCenter from "@/components/invoices/InvoiceCenter";
-import { AiChat } from "@/components/AiChat";
 import SupportCenter from "@/components/SupportCenter";
 import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
@@ -62,7 +61,6 @@ const NAV = [
   { key: "profile", label: "My Profile", short: "Profile", icon: UserIcon },
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy },
-  { key: "ai", label: "AI Assistant", short: "AI", icon: Sparkles },
 ];
 
 const ACTIVE_STATES = ["pending", "pending_payment", "searching", "assigned", "arrived_shop", "arrived_customer", "started"];
@@ -202,7 +200,6 @@ export default function CustomerDashboard() {
       {active === "addresses" && <div><SectionHeader title="My Addresses" sub="Saved locations for faster checkout" onNew={() => navigate("/services")} /><AddressBook cfg={cfg.address_config || {}} onSaved={refresh} /></div>}
       {active === "invoices" && <InvoiceCenter role="customer" title="My Invoices" subtitle="View & download invoices for your bookings and payments." />}
       {active === "support" && <SupportCenter />}
-      {active === "ai" && <div><SectionHeader title="AI Assistant" sub="Ask about services, bookings, invoices & more" onNew={() => navigate("/services")} /><div className="max-w-3xl"><AiChat role="customer" /></div></div>}
     </CustomerShell>
   );
 }

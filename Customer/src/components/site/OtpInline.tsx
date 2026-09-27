@@ -66,7 +66,7 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
         <Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[500], textTransform: "uppercase", letterSpacing: 0.6 }}>Mobile number</Text>
         <View style={{ flexDirection: "row", alignItems: "center", ...input, paddingHorizontal: 0 }}>
           <Text style={{ paddingHorizontal: 14, fontSize: 15, fontWeight: "700", color: SLATE[600], borderRightWidth: 1, borderRightColor: SLATE[200], height: 46, lineHeight: 46 }}>+91</Text>
-          <TextInput testID="otp-phone" value={phone} onChangeText={(v) => setPhone(tenDigits(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" maxLength={10} onSubmitEditing={send} placeholder="10-digit mobile number" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 46, paddingHorizontal: 12, fontSize: 15, color: SLATE[900], outlineStyle: "none" } as any} />
+          <TextInput testID="otp-phone" value={phone} onChangeText={(v) => setPhone(tenDigits(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" maxLength={16} onSubmitEditing={send} placeholder="10-digit mobile number" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 46, paddingHorizontal: 12, fontSize: 15, color: SLATE[900], outlineStyle: "none" } as any} />
         </View>
         <Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[500], textTransform: "uppercase", letterSpacing: 0.6 }}>Your name <Text style={{ color: SLATE[400], fontWeight: "500", textTransform: "none" }}>(optional)</Text></Text>
         <TextInput testID="otp-name" value={name} onChangeText={setName} autoComplete="name" textContentType="name" placeholder="Full name" placeholderTextColor={SLATE[400]} style={input} />

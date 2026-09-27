@@ -1,7 +1,7 @@
 /** Same NAV + status helpers as web_panel/src/pages/customer/CustomerDashboard.jsx */
-import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, Sparkles, CalendarHeart } from "lucide-react-native";
+import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, CalendarHeart } from "lucide-react-native";
 
-export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "profile" | "referral" | "support" | "ai";
+export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "profile" | "referral" | "support";
 
 export interface NavItem { key: NavKey; label: string; short: string; icon: any; route: string }
 
@@ -17,7 +17,6 @@ export const NAV: NavItem[] = [
   { key: "profile", label: "My Profile", short: "Profile", icon: User, route: "/(customer)/profile" },
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift, route: "/(customer)/referral" },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy, route: "/(customer)/support" },
-  { key: "ai", label: "AI Assistant", short: "AI", icon: Sparkles, route: "/(customer)/ai" },
 ];
 
 export const MOBILE_PRIMARY: NavKey[] = ["home", "orders", "wallet", "invoices"];
