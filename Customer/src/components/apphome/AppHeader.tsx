@@ -131,18 +131,19 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   }, [q]);
 
   return (
-    <View style={{ paddingHorizontal: 20, paddingBottom: 18, backgroundColor: "#fff", zIndex: 20 }}>
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 18, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200], paddingHorizontal: 16, gap: 10 }}>
-        <Search size={20} color={SLATE[500]} />
+    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: "#fff", zIndex: 20 }}>
+      {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 27, backgroundColor: "#fff", borderWidth: 1, borderColor: SLATE[100], paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+        <Search size={22} color={SLATE[800]} strokeWidth={2.4} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && onSubmit(q.trim())} returnKeyType="search"
-          placeholder="Search for services (AC Repair, Cleaning…)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
-        {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }}><X size={16} color={SLATE[400]} /></Pressable> : null}
-        <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} style={{ height: 36, width: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : PRIMARY[50] }}>
-          {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? PRIMARY[700] : SLATE[300]} />}
+          placeholder="Search for services (e.g. AC Repair, Cleaning, Salon)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14.5, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
+        {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={SLATE[400]} /></Pressable> : null}
+        <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
+          {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : SLATE[300]} strokeWidth={2.2} />}
         </Pressable>
       </View>
       {open && q.trim().length >= 2 ? (
-        <View testID="app-search-results" style={{ position: "absolute", top: 58, left: 20, right: 20, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
+        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={PRIMARY[700]} style={{ margin: 12 }} /> : null}
           <ScrollView keyboardShouldPersistTaps="handled">
             {(results || []).slice(0, 8).map((s) => (

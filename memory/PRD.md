@@ -247,5 +247,9 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 
 - 2026-09-27 UI: Partner/Merchant/Agent bottom tab bar is now FIXED full-width & flat (top border, no rounded pill / side margins) like the customer app — `frontend/src/components/AppTabBar.tsx` (BlurView, paddingBottom insets+4) and web `PanelLayout.jsx` appMode nav (`fixed bottom-0 inset-x-0 bg-white/95 border-t`). Icons/labels/active gradient unchanged. Verified via screenshots (Expo-web + /api/panel).
 
+- 2026-09-27 UI fix: ScheduledCard header no longer wraps "Ready to start / now" under the date — right column `shrink-0`/`flexShrink:0`, left `min-w-0 flex-1`, title shortened to "Instant Service"; date/time wrap inside the left block on narrow screens (web `ScheduledCard.jsx` + mobile `active.tsx`). Web panel rebuilt.
+
+- 2026-09-27 Customer app HOME (logged-out `(site)/index.tsx`): navbar search button removed (`SiteNavbar hideSearch` prop) and the existing-but-unused `AppSearchBar` (AppHeader.tsx) now sits right below the navbar as a white pill (search icon · "Search for services (e.g. AC Repair, Cleaning, Salon)" · navy mic). Typeahead GET /catalog/services?q= dropdown → service page / "See all results" → /(site)/services?q=; mic opens the YouTube-style `VoiceSearchOverlay` (Web Speech API on web, expo-speech-recognition on native builds; not in Expo Go) and submits the transcript to the same search. Verified via screenshots on Expo-web :3001 (bar, results, overlay). Only the customer app changed.
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

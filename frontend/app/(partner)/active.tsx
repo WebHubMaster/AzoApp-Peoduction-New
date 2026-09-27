@@ -320,18 +320,18 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
   return (
     <View testID="scheduled-card" style={{ borderRadius: 16, borderWidth: 2, borderColor: locked ? colors.primarySubtle : "#A7F3D0", backgroundColor: locked ? "rgba(239,246,255,0.6)" : "#ECFDF5", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent, alignItems: "center", justifyContent: "center" }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: accent, fontSize: 10.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{s.is_instant ? "Instant Service · Booked" : "Scheduled Service"}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
+          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent, alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={{ color: accent, fontSize: 10.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{s.is_instant ? "Instant Service" : "Scheduled Service"}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="calendar-outline" size={13} color={colors.textMuted} /><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{s.scheduled_date}</Text></View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="clock-outline" size={13} color={colors.textMuted} /><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{s.scheduled_time}</Text></View>
             </View>
           </View>
         </View>
-        <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ color: SLATE400, fontSize: 10.5, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{started ? "In progress" : due ? "Ready to start" : "Starts in"}</Text>
+        <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
+          <Text numberOfLines={1} style={{ color: SLATE400, fontSize: 10.5, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{started ? "In progress" : due ? "Ready to start" : "Starts in"}</Text>
           <Text testID="scheduled-countdown" style={{ color: accent, fontSize: 18, fontWeight: "900", fontVariant: ["tabular-nums"] }}>{started ? "—" : fmtCountdown(secs)}</Text>
         </View>
       </View>

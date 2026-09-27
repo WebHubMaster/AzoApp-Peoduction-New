@@ -10,6 +10,7 @@ import { useAppHome } from "../../src/lib/appHome";
 import { useNavigate } from "../../src/lib/navigate";
 import { requestStartupPermissions } from "../../src/lib/permissions";
 import SiteNavbar from "../../src/components/site/SiteNavbar";
+import { AppSearchBar } from "../../src/components/apphome/AppHeader";
 import { HeroSlider, CategoriesGrid, OfferBanner, QuickFeatures, ServicesRow, WhyChoose, SalonSection, OffersRow, CustomBanner } from "../../src/components/apphome/Blocks";
 import { CategoryServicesSheet } from "../../src/components/site/HomeSections";
 import { Sk } from "../../src/components/site/ui";
@@ -56,7 +57,8 @@ export default function AppHome() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#fff" }} testID="landing-page">
-      <SiteNavbar />
+      <SiteNavbar hideSearch />
+      <AppSearchBar onSubmit={(q) => router.push(`/(site)/services?q=${encodeURIComponent(q)}` as any)} />
       {loading ? (
         <View style={{ padding: 20, gap: 18 }} testID="app-home-skeleton">
           <Sk style={{ height: 280, borderRadius: 24 }} />

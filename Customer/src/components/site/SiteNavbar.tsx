@@ -79,7 +79,7 @@ export function LocationButton({ testID = "nav-location" }: { testID?: string })
   );
 }
 
-export default function SiteNavbar() {
+export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolean } = {}) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuth();
@@ -100,7 +100,7 @@ export default function SiteNavbar() {
         </Pressable>
         <View style={{ flex: 1 }} />
         <Pressable testID="nav-membership-mobile" onPress={() => router.push("/(site)/membership")} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 36, height: 36 }} contentFit="contain" /></Pressable>
-        <Pressable testID="nav-search-mobile" onPress={() => setSearchOpen(true)} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}><Search size={20} color={SLATE[700]} /></Pressable>
+        {hideSearch ? null : <Pressable testID="nav-search-mobile" onPress={() => setSearchOpen(true)} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}><Search size={20} color={SLATE[700]} /></Pressable>}
         <Pressable testID="nav-cart" onPress={() => router.push("/(site)/book")} style={{ width: 40, height: 40, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}>
           <ShoppingBag size={20} color={SLATE[700]} />
           {cartCount > 0 ? <View style={{ position: "absolute", top: -6, right: -6, height: 20, minWidth: 20, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{cartCount}</Text></View> : null}

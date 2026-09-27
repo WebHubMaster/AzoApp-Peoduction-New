@@ -57,23 +57,23 @@ export default function ScheduledCard({ schedule, role = "customer", compact = f
           ? "border-primary-200 bg-gradient-to-br from-primary-50 to-sky-50 dark:from-primary-900/25 dark:to-sky-900/15"
           : "border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/25 dark:to-teal-900/15"
       }`}>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className={`grid h-9 w-9 place-items-center rounded-xl text-white ${locked ? "bg-primary-600" : "bg-emerald-600"}`}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white ${locked ? "bg-primary-600" : "bg-emerald-600"}`}>
             <Calendar className="h-4.5 w-4.5" />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className={`text-[10.5px] font-extrabold uppercase tracking-wider ${locked ? "text-primary-700 dark:text-primary-300" : "text-emerald-700 dark:text-emerald-300"}`}>
-              {s.is_instant ? "Instant Service · Booked" : "Scheduled Service"}
+              {s.is_instant ? "Instant Service" : "Scheduled Service"}
             </p>
-            <p className="text-sm font-black text-slate-900 dark:text-white leading-tight flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1"><Calendar className="h-3.5 w-3.5 opacity-70" /> {s.scheduled_date}</span>
-              <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5 opacity-70" /> {s.scheduled_time}</span>
+            <p className="text-sm font-black text-slate-900 dark:text-white leading-tight flex items-center gap-x-2 gap-y-0.5 flex-wrap">
+              <span className="inline-flex items-center gap-1 whitespace-nowrap"><Calendar className="h-3.5 w-3.5 opacity-70" /> {s.scheduled_date}</span>
+              <span className="inline-flex items-center gap-1 whitespace-nowrap"><Clock className="h-3.5 w-3.5 opacity-70" /> {s.scheduled_time}</span>
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="text-right shrink-0">
+          <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">
             {started ? "In progress" : due ? "Ready to start" : "Starts in"}
           </p>
           <p data-testid="scheduled-countdown" className={`font-black tabular-nums text-lg leading-tight ${locked ? "text-primary-700 dark:text-primary-200" : "text-emerald-700 dark:text-emerald-200"}`}>
