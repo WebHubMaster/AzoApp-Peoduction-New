@@ -58,7 +58,7 @@ export default function Welcome() {
       <StatusBar style="dark" />
       <LinearGradient colors={["#E9F2FD", "#EFF6FD", "#F4F9FE"]} locations={[0, 0.45, 1]} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
       {/* soft greenery peeking at the very bottom corners (behind the card) */}
-      <Image source={LEAVES} style={{ position: "absolute", left: 0, right: 0, bottom: 0, width: leavesW, height: leavesH }} contentFit="cover" contentPosition="bottom" pointerEvents="none" />
+      <Image source={LEAVES} style={{ position: "absolute", left: 0, right: 0, bottom: 0, width: leavesW, height: leavesH, pointerEvents: "none" }} contentFit="cover" contentPosition="bottom" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} showsVerticalScrollIndicator={false} bounces={false}>
         {/* ---------- Header ---------- */}
@@ -80,9 +80,9 @@ export default function Welcome() {
 
         {/* ---------- Hero ---------- */}
         <View style={{ height: heroH, marginTop: 4 }}>
-          <Image source={BLOB} pointerEvents="none" style={{ position: "absolute", right: -30, top: -8, width: blobW, height: Math.round(blobW * (129 / 231)), opacity: 0.95 }} contentFit="contain" />
-          <Image source={HOUSE} pointerEvents="none" style={{ position: "absolute", left: 12, bottom: 30, width: houseW, height: Math.round(houseW * (246 / 254)) }} contentFit="contain" contentPosition="bottom" />
-          <Image testID="welcome-hero" source={PERSON} pointerEvents="none" style={{ position: "absolute", right: -26, bottom: -4, width: personW, height: personH }} contentFit="contain" contentPosition="bottom right" />
+          <Image source={BLOB} style={{ position: "absolute", right: -30, top: -8, width: blobW, height: Math.round(blobW * (129 / 231)), opacity: 0.95, pointerEvents: "none" }} contentFit="contain" />
+          <Image source={HOUSE} style={{ position: "absolute", left: 12, bottom: 30, width: houseW, height: Math.round(houseW * (246 / 254)), pointerEvents: "none" }} contentFit="contain" contentPosition="bottom" />
+          <Image testID="welcome-hero" source={PERSON} style={{ position: "absolute", right: -26, bottom: -4, width: personW, height: personH, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom right" />
 
           <View style={{ paddingLeft: 22, paddingTop: 6, width: Math.min(width - 90, 280), zIndex: 6 }}>
             <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(25 * S), lineHeight: Math.round(30 * S), fontWeight: "800", letterSpacing: -0.7 }}>Reliable Services{"\n"}at Your Door Step</Text>
