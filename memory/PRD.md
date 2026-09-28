@@ -64,3 +64,25 @@ Files changed:
 
 - P2: Circle-style story avatars variant (round bubbles) as an admin layout choice.
 - P2: Turn recurring subscriptions on for Cook/Nanny/Driver/Housekeeping.
+
+---
+
+## Update — 2026-06 (UI/UX bug batch 1)
+
+### Partner App (frontend/)
+- [DONE] Register screen "Register as Partner/Merchant" avatars replaced with photorealistic humans wearing a #0D47A1 polo with the AzoApp logo (assets/hero-partner-arms.png, hero-merchant-apron.png; AI-generated + transparent-bg cutout).
+- [DONE] Job-Complete wizard "Take selfie" made reliable — wrapped in try/catch, explicit mediaTypes, front-camera fallback (app/(partner)/partner/job/[id].tsx).
+
+### Customer App (Customer/)
+- [DONE] Globe icon added to Customer-panel header → opens the front site home (CustomerShell.tsx).
+- [DONE] Service cards: "Add" → "Book Now" everywhere; outlined (border, no fill) buttons; consistent sizing (services.tsx, category/[id].tsx; Blocks.tsx already outlined).
+- [DONE] Home search box: square (5px radius), larger font (16), single line (AppHeader.tsx).
+- [DONE] Front "Profile" tab now opens Customer-panel home instead of the profile page (SiteNavbar.tsx).
+- [DONE] Booking tabs (Active/Searching/…) now square (5px radius) via SegTabs (ux.tsx).
+- [DONE] Saved profile photo now shows in the top-nav avatar (AppHeader.tsx).
+
+### Remaining backlog (not started this session)
+Partner: #1 welcome scroll fit, #2 login/signup font-size consistency, #5 keyboard slide-up, #6 dark mode (Rewards, My Availability, Starter Kit).
+Customer: #1 booking flow mobile→OTP→(name if new), #2 10-digit input trimming, #3 multi-gateway test/live payments, #7 admin Primary color → whole app, #9 keyboard slide-up, #10 full dark-mode pass, #11 Wallet scratch cards → "Reward & Cashback" screen, #12 View-Invoice preview + Download/Print. Overall: increase base font size app-wide.
+
+NOTE: Only the Partner app runs in the preview (supervisor). Customer-app changes are code-level and were not visually verified in-preview.

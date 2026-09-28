@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
+BASE_URL = "https://customer-app-flow.preview.emergentagent.com/api"
 ADMIN = "+919000000000"
 OTP = "123456"
 

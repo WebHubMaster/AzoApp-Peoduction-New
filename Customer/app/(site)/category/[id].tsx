@@ -68,7 +68,7 @@ export default function CategoryServices() {
                 </View>
               </Pressable>
               <View style={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: 12 }}>
-                <Pressable testID={`category-book-${index}`} onPress={() => navigate(`/service/${s.id}?book=1`)} style={{ height: 36, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>Book Now</Text></Pressable>
+                <Pressable testID={`category-book-${index}`} onPress={() => navigate(`/service/${s.id}?book=1`)} style={{ height: 36, borderRadius: 10, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700] }}>Book Now</Text></Pressable>
               </View>
             </View>
           )}

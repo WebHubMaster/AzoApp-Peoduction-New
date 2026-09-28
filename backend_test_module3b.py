@@ -10,7 +10,7 @@ from typing import Dict, Any
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
+BASE_URL = "https://customer-app-flow.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 PARTNER2_PHONE = "+919000000005"

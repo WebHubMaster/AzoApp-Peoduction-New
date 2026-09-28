@@ -4,9 +4,10 @@ import { View, Text, Pressable, TextInput, ScrollView, ActivityIndicator, Platfo
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight, History } from "lucide-react-native";
+import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight, History, Globe } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PRIMARY, SLATE, ROSE, shadowBtn, useTheme } from "../../theme";
+import { mediaUrl } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteConfig } from "../../context/BrandContext";
 import { useToast } from "../Toast";
@@ -70,8 +71,8 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
           {(unread > 0 || notif === "undetermined") && notif !== "denied" ? <View testID="app-bell-dot" style={{ position: "absolute", top: 5, right: 7, height: 8, width: 8, borderRadius: 4, backgroundColor: ROSE[500], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
           {notif === "denied" ? <View testID="app-bell-muted" style={{ position: "absolute", top: 4, right: 5, height: 9, width: 9, borderRadius: 5, backgroundColor: SLATE[400], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
         </Pressable>
-        <Pressable testID="app-avatar" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", ...shadowBtn }}>
-          {user ? <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>{initials || "U"}</Text> : <User size={22} color="#fff" />}
+        <Pressable testID="app-avatar" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", overflow: "hidden", ...shadowBtn }}>
+          {user?.photo ? <Image testID="app-avatar-img" source={{ uri: mediaUrl(user.photo) }} style={{ width: 40, height: 40 }} contentFit="cover" cachePolicy="memory-disk" /> : user ? <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>{initials || "U"}</Text> : <User size={22} color="#fff" />}
         </Pressable>
       </View>
 
@@ -148,10 +149,10 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: "#fff", zIndex: 20 }}>
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 27, backgroundColor: "#fff", borderWidth: 1, borderColor: SLATE[100], paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: "#fff", borderWidth: 1, borderColor: SLATE[100], paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
         <Search size={22} color={SLATE[800]} strokeWidth={2.4} />
-        <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search"
-          placeholder="Search for services (e.g. AC Repair, Cleaning, Salon)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14.5, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
+        <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search" numberOfLines={1} multiline={false}
+          placeholder="Search for services" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 16, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={SLATE[400]} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
           {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : SLATE[300]} strokeWidth={2.2} />}

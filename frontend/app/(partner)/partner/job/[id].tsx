@@ -304,13 +304,23 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
   useEffect(() => { if (!done) getLocation(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const takeSelfie = async () => {
-    if (!(await ensureCamera(toast))) return;
-    await new Promise((r) => setTimeout(r, 250));
-    const res = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.front });
-    if (res.canceled || !res.assets?.[0]?.uri) return;
-    const msg = oversizeMessage(assetSizeBytes(res.assets[0]), "camera");
-    if (msg) { toast.error(msg); return; }
-    setSelfie(res.assets[0]);
+    try {
+      if (!(await ensureCamera(toast))) return;
+      await new Promise((r) => setTimeout(r, 250));
+      let res;
+      try {
+        res = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.front });
+      } catch {
+        // Some devices reject the front-camera hint — retry with the default camera.
+        res = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.7, base64: false, exif: false });
+      }
+      if (res.canceled || !res.assets?.[0]?.uri) return;
+      const msg = oversizeMessage(assetSizeBytes(res.assets[0]), "camera");
+      if (msg) { toast.error(msg); return; }
+      setSelfie(res.assets[0]);
+    } catch (e: any) {
+      toast.error(e?.detail || e?.message || "Couldn't open the camera. Please try again.");
+    }
   };
   const submit = async () => {
     if (!selfie || !loc) return;

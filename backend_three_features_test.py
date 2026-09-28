@@ -18,7 +18,7 @@ import random
 import string
 
 # Base URL from environment
-BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
+BASE_URL = "https://customer-app-flow.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

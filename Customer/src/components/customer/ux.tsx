@@ -165,7 +165,7 @@ export function SegTabs({ tabs, value, onChange, counts = {}, testID = "tab" }: 
         const on = value === t.key;
         return (
           <Pressable key={t.key} testID={`${testID}-${t.key}`} onPress={() => onChange(t.key)}
-            style={({ pressed }) => ({ height: 36, paddingHorizontal: 14, borderRadius: 999, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? PRIMARY[700] : c.surface, borderWidth: on ? 0 : 1, borderColor: isDark ? SLATE[700] : SLATE[200], transform: [{ scale: pressed ? 0.97 : 1 }], ...(on ? shadowBtn : {}) })}>
+            style={({ pressed }) => ({ height: 36, paddingHorizontal: 14, borderRadius: 5, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? PRIMARY[700] : c.surface, borderWidth: on ? 0 : 1, borderColor: isDark ? SLATE[700] : SLATE[200], transform: [{ scale: pressed ? 0.97 : 1 }], ...(on ? shadowBtn : {}) })}>
             <Text style={{ fontSize: 14, fontWeight: "600", color: on ? "#fff" : (isDark ? SLATE[300] : SLATE[600]) }}>{t.label}</Text>
             {counts[t.key] != null ? <Text style={{ fontSize: 11, color: on ? "rgba(255,255,255,0.8)" : SLATE[400] }}>{counts[t.key]}</Text> : null}
           </Pressable>

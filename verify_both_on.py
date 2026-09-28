@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
+BASE_URL = "https://customer-app-flow.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

@@ -15,13 +15,9 @@ import { Sk } from "../../src/components/site/ui";
 
 function ServiceCard({ s, w }: { s: any; w: number }) {
   const router = useRouter();
-  const toast = useToast();
-  const { addService } = useCart();
-  const [added, setAdded] = useState(false);
   const disc = s.discounted_price > 0 && s.discounted_price < s.base_price;
   const price = disc ? s.discounted_price : s.base_price;
   const off = disc ? Math.round((1 - s.discounted_price / s.base_price) * 100) : 0;
-  const quickAdd = () => { addService(s, {}); setAdded(true); toast.success(`${s.name} added`); setTimeout(() => setAdded(false), 1500); };
   return (
     <Pressable testID={`svc-${s.id}`} onPress={() => router.push(`/(site)/service/${s.id}` as any)} style={{ width: w, borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", overflow: "hidden" }}>
       <View style={{ width: "100%", aspectRatio: 3 / 4, backgroundColor: SLATE[100] }}>
@@ -31,12 +27,10 @@ function ServiceCard({ s, w }: { s: any; w: number }) {
       <View style={{ padding: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Star size={14} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 12, fontWeight: "600", color: SLATE[600] }}>{s.rating || "4.8"}</Text><Clock size={14} color={SLATE[400]} style={{ marginLeft: 4 }} /><Text style={{ fontSize: 12, color: SLATE[400] }}>{s.duration_min}m</Text></View>
         <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "600", color: SLATE[900], marginTop: 4, lineHeight: 18, minHeight: 36 }}>{s.name}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4, flex: 1 }}><Text style={{ fontSize: 16, fontWeight: "800", color: SLATE[900] }}>{fmt(price)}</Text>{off > 0 ? <Text style={{ fontSize: 11, color: SLATE[400], textDecorationLine: "line-through", marginBottom: 2 }}>{fmt(s.base_price)}</Text> : null}</View>
-          <Pressable testID={`add-${s.id}`} onPress={quickAdd} style={{ height: 32, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: added ? EMERALD[500] : PRIMARY[300], backgroundColor: added ? EMERALD[500] : "#fff", flexDirection: "row", alignItems: "center", gap: 4 }}>
-            {added ? <Check size={14} color="#fff" /> : <Plus size={14} color={PRIMARY[700]} />}<Text style={{ fontSize: 12, fontWeight: "700", color: added ? "#fff" : PRIMARY[700] }}>{added ? "Added" : "Add"}</Text>
-          </Pressable>
-        </View>
+        <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 4, marginTop: 12 }}><Text style={{ fontSize: 16, fontWeight: "800", color: SLATE[900] }}>{fmt(price)}</Text>{off > 0 ? <Text style={{ fontSize: 11, color: SLATE[400], textDecorationLine: "line-through", marginBottom: 2 }}>{fmt(s.base_price)}</Text> : null}</View>
+        <Pressable testID={`book-${s.id}`} onPress={() => router.push(`/(site)/service/${s.id}?book=1` as any)} style={{ marginTop: 10, height: 36, borderRadius: 10, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}>
+          <Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[700] }}>Book Now</Text>
+        </Pressable>
       </View>
     </Pressable>
   );

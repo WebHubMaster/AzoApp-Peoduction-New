@@ -133,7 +133,7 @@ const TABS = [
   { key: "services", label: "Services", icon: LayoutGrid, to: "/(site)/services" },
   { key: "cart", label: "Booking", icon: ShoppingBag, to: "/(site)/book" },
   { key: "bookings", label: "Orders", icon: CalendarCheck, to: "/(customer)/orders" },
-  { key: "profile", label: "Profile", icon: User, to: "/(customer)/profile" },
+  { key: "profile", label: "Profile", icon: User, to: "/(customer)" },
 ];
 
 export function MobileBottomNav() {

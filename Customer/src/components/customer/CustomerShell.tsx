@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, usePathname } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { MapPin, Moon, Sun, MoreHorizontal, LogOut } from "lucide-react-native";
+import { MapPin, Moon, Sun, MoreHorizontal, LogOut, Globe } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
 import { useTheme, PRIMARY, SLATE, ROSE } from "@/src/theme";
@@ -79,6 +79,9 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               <Text testID="header-location" numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: isDark ? "#fff" : SLATE[800], lineHeight: 18 }}>{location}</Text>
             </View>
           )}
+          <Pressable testID="m-goto-site" onPress={() => router.replace("/(site)")} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+            <Globe size={20} color={isDark ? PRIMARY[300] : PRIMARY[700]} />
+          </Pressable>
           <NotificationBell />
           <ThemeToggle />
         </View>
