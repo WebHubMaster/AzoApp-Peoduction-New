@@ -1,0 +1,22 @@
+{
+  "summary": "E2E test of AzoApp Live Partner Tracking + Inline Video Playback features across backend, customer web, partner web, customer mobile (Expo :3001), partner mobile (Expo :3000). All 5 scenarios PASS. Backend GET /bookings/{id}/track returns trackable=true with partner_location/customer_location/eta_text; partner POST /bookings/{id}/location returns 200 and subsequent /track works. UI: OSM iframe renders with openstreetmap.org src, ETA text 'Professional has arrived', partner name Raj Kumar visible. Video playback: proof-video-thumb → lightbox-video (<video> tag with src https://www.w3schools.com/html/mov_bbb.mp4) on customer web; before-ev-AZOAF1BBB-play-0 → video-player-modal with <video>/inline-video on both partner web (backdrop-close works) and partner mobile (video-player-close works); proof-before-img-0 → lightbox-video on customer mobile (lightbox-close works). No new tab/popup opens in any flow (pages count stayed at 1 through all clicks).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_live_tracking.py"],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_live_tracking.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "100% (4/4 UIs)"},
+  "test_credentials": "Customer +919000000004 OTP 123456; Partner +919000000003 OTP 123456; Booking AZOAF1BBB id ba936117-834f-40a2-a19c-65d3d4628050",
+  "seed_data_creation": "None. Did not modify booking/evidence/checkin as instructed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer web bookings drawer requires typing AZOAF1BBB into the input with placeholder 'Search service, booking ID, partner…' (NOT the top-nav 'Search bookings, invoices, services…') to filter to a single card. Customer web route is /api/panel/account (Protected role=customer). Customer mobile bookings page has data-testid 'details-AZOAF1BBB' to open the Booking Drawer. Partner mobile & web wizard testids: open-job-AZOAF1BBB → wizard-continue → before-ev-AZOAF1BBB-play-0 → video-player-modal (with inline-video on mobile / <video> on web) → video-player-close or backdrop-click closes. OpenStreetMap iframe renders in headless (src verified even if tiles blocked).",
+  "verification_details": {
+    "backend": {"track_endpoint": true, "post_location_200": true, "track_after_update": true},
+    "customer_web": {"live_tracking_heading": true, "iframe_osm": true, "eta_text": "Professional has arrived", "partner_name": "Raj Kumar", "proof_video_thumb": true, "lightbox_video_tag": "VIDEO", "lightbox_video_src": "https://www.w3schools.com/html/mov_bbb.mp4", "no_new_tab": true},
+    "partner_web": {"open_job": true, "wizard_continue": true, "play_btn": true, "video_player_modal": true, "video_tag": true, "backdrop_close": true, "no_new_tab": true},
+    "partner_mobile": {"open_job": true, "wizard_continue": true, "play_btn": true, "video_player_modal": true, "inline_video_tag": "VIDEO", "video_player_close_works": true, "no_new_tab": true},
+    "customer_mobile": {"details_drawer_open": true, "live_track": true, "live_track_eta": "Professional has arrived", "live_track_map_iframe_osm": true, "proof_before_img_0": true, "lightbox_video_tag": "VIDEO", "lightbox_video_src": "https://www.w3schools.com/html/mov_bbb.mp4", "lightbox_close_works": true}
+  }
+}

@@ -27,16 +27,18 @@ function OsmMap({ p, c }: { p: { lat: number; lng: number } | null; c: { lat: nu
 
 export function LiveTrackCard({ booking }: { booking: any }) {
   const [data, setData] = useState<any>(null);
+  const bookingId = booking?.id;
+  const bookingStatus = booking?.status;
   const poll = useCallback(async () => {
-    if (!booking?.id) return;
-    try { setData(await api.get<any>(`/bookings/${booking.id}/track`)); } catch { /* keep last */ }
-  }, [booking?.id]);
+    if (!bookingId) return;
+    try { setData(await api.get<any>(`/bookings/${bookingId}/track`)); } catch { /* keep last */ }
+  }, [bookingId]);
   useEffect(() => {
-    if (!ENROUTE.includes(booking?.status)) return undefined;
+    if (!ENROUTE.includes(bookingStatus)) return undefined;
     poll();
     const iv = setInterval(poll, 15000);
     return () => clearInterval(iv);
-  }, [poll, booking?.status]);
+  }, [poll, bookingStatus]);
   if (!ENROUTE.includes(booking?.status)) return null;
   const p = data?.partner_location?.lat != null ? data.partner_location : null;
   const c = data?.customer_location?.lat != null ? data.customer_location : null;
