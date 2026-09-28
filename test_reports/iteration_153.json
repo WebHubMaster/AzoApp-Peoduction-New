@@ -1,0 +1,26 @@
+{
+  "summary": "Verified (1) Customer web dark-mode across all requested screens, (2) light-mode regression, and (3) backend Razorpay/payments plumbing. Dark mode enabled via localStorage.setItem('azo_theme','dark') + reload. Programmatically audited every screen for oversized light backgrounds (brightness>220, w>=80, h>=30, visible in viewport) and dark-on-dark text (bg avg brightness<90 AND text avg brightness<90). Screens audited under dark mode: / (landing), /services, /service/<id> (service-detail), /login, /book (checkout empty state), and post-login customer panel routes /wallet, /orders, /invoices, /rewards, /profile, /custom_jobs, /refunds, /support, /subscriptions, /referral, /addresses. ZERO offending light cards and ZERO dark-on-dark text nodes were detected on any screen. Visual screenshots confirm: dark navy body, dark cards, high-contrast (white/near-white) text, colored accent tiles (blue/green/orange/red) all readable. Light-mode regression: after localStorage.removeItem('azo_theme') and full navigation the landing page renders with the original white/light theme (white cards, dark text) — no regression. Backend: POST /api/auth/send-otp {phone:'+919000000004',role:'customer'} => {sent:true, dev_otp:'123456'}. POST /api/auth/verify-otp {phone,otp:'123456',role:'customer'} => 200 with valid JWT + user Priya Verma. POST /api/payments/order with the customer token returns {mock:true, amount:100.0, purpose:'wallet_topup'} — confirming gateway_resolver falls back to mock when Razorpay is disabled in Integration Center (matches the requirement). Customer login flow end-to-end was already validated in iteration 152 and re-confirmed today via backend.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "All dark-mode screens (cosmetic only, non-visible)", "issues": ["The react-native-web root <View> (class r-bottom-1p0dtai r-position-u8s1d, 100vw x 100vh, zIndex:0) still has default background rgb(242,242,242). It is fully covered by dark child views on every screen and is NOT visible to users, but for defense-in-depth the ThemeProvider could set the RN Web SafeAreaProvider / root View background to TC.bgApp in dark mode."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_153.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "gateway_resolver correctly returns mock when Razorpay creds are absent — POST /api/payments/order responds {mock:true} for customer token as expected.",
+    "Theme tokens (TC.*) are effectively applied across landing, services, service-detail, checkout, login, and every customer panel route — no light-card leakage detected via computed-style audit.",
+    "Minor polish (non-blocking): consider styling the RN Web root SafeAreaProvider container to TC.bgApp so an edge-case with rubber-band scroll on iOS/webkit wouldn't reveal the default 242 grey. Not user-visible today."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% — /api/payments/order returns mock as required, OTP send/verify work", "frontend": "100% — 15 screens audited in dark mode with zero light-card or dark-on-dark findings; light mode regression clean"},
+  "test_credentials": "Customer +919000000004 OTP 123456 (Priya Verma). All auth via /api/auth/send-otp and /api/auth/verify-otp.",
+  "seed_data_creation": "None. Reused seeded customer Priya Verma.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Dark mode is enabled by localStorage.setItem('azo_theme','dark') THEN a reload — the ThemeProvider reads localStorage once at boot so a soft SPA nav after setting azo_theme won't apply the theme; always page.reload after toggling. In-app toggle: data-testid='theme-toggle' in the customer panel header (sun/moon icon). All customer panel routes are absolute (/wallet, /orders, /invoices, /rewards, /profile, /custom_jobs, /refunds, /support, /subscriptions, /referral, /addresses) and gated by AsyncStorage azo_token — the /login flow with 9000000004 / 123456 seeds it. Backend payment mock: POST /api/payments/order requires purpose in body (booking|wallet_topup|...); for smoke test use purpose='wallet_topup' to avoid needing a real booking_id.",
+  "rca of the issue": "N/A — no bug found. Requested dark-mode coverage is complete and Razorpay/payments plumbing behaves per spec ({mock:true} while gateway disabled)."
+}
