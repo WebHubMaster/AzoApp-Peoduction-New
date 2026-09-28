@@ -1,6 +1,6 @@
 /** Inline guest OTP verify inside Checkout "Your Info" — number (+ optional name) → OTP → auto-registered customer
  *  (same as the web guest flow: verified number = customer account, booking continues on the same screen). */
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { api } from "../../api/client";
 import { useAuth, isCustomer } from "../../context/AuthContext";
@@ -8,8 +8,8 @@ import { useToast } from "../Toast";
 import { PRIMARY, SLATE, ROSE } from "../../theme";
 
 const input = { height: 48, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", fontSize: 15, color: SLATE[900], outlineStyle: "none" } as any;
-const Btn = ({ label, onPress, busy, testID }: { label: string; onPress: () => void; busy?: boolean; testID: string }) => (
-  <Pressable testID={testID} onPress={onPress} disabled={busy} style={({ pressed }) => ({ height: 48, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.7 : 1 })}>
+const Btn = ({ label, onPress, busy, disabled, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; testID: string }) => (
+  <Pressable testID={testID} onPress={onPress} disabled={busy || disabled} style={({ pressed }) => ({ height: 48, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.7 : disabled ? 0.5 : 1 })}>
     {busy ? <ActivityIndicator color="#fff" size="small" /> : null}
     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{busy ? "Please wait…" : label}</Text>
   </Pressable>
@@ -25,7 +25,6 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
   const [phone, setPhone] = useState(""); const [name, setName] = useState(""); const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
   const otpRef = useRef<TextInput>(null);
-  const autoRef = useRef("");
   const normalized = () => `+91${tenDigits(phone)}`;
   const fail = (m: string) => { setErr(m); toast.error(m); };
 
@@ -58,7 +57,6 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
     setBusy(false);
   };
   // Auto-verify once all digits are typed (or auto-filled from SMS).
-  useEffect(() => { if (step === 2 && otp.length === OTP_LEN && !busy && autoRef.current !== otp) { autoRef.current = otp; verify(otp); } }, [otp, step]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View testID="otp-inline" style={{ gap: 12 }}>
@@ -74,8 +72,21 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
       </> : null}
       {step === 2 ? <>
         <Text style={{ fontSize: 13, color: SLATE[500] }}>OTP sent to <Text style={{ fontWeight: "700", color: SLATE[800] }}>{normalized()}</Text> · <Text testID="otp-change" onPress={() => { setStep(1); setOtp(""); setErr(""); }} style={{ color: PRIMARY[700], fontWeight: "600" }}>Change</Text></Text>
-        <TextInput ref={otpRef} testID="otp-code" value={otp} onChangeText={(v) => setOtp(v.replace(/\D/g, "").slice(0, OTP_LEN))} keyboardType="number-pad" autoComplete="sms-otp" textContentType="oneTimeCode" maxLength={OTP_LEN} onSubmitEditing={() => verify()} placeholder="Enter OTP" placeholderTextColor={SLATE[400]} style={{ ...input, letterSpacing: 8, fontWeight: "800", textAlign: "center", fontSize: 18 }} />
-        <Btn testID="otp-verify" label="Verify & continue" onPress={() => verify()} busy={busy} />
+        <Pressable testID="otp-boxes" onPress={() => otpRef.current?.focus()}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+            {Array.from({ length: OTP_LEN }).map((_, i) => {
+              const focused = i === Math.min(otp.length, OTP_LEN - 1);
+              return (
+                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 50, borderRadius: 12, borderWidth: 2, borderColor: focused ? PRIMARY[600] : SLATE[200], backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 20, fontWeight: "800", color: SLATE[800] }}>{otp[i] || ""}</Text>
+                </View>
+              );
+            })}
+          </View>
+          <TextInput ref={otpRef} testID="otp-code" value={otp} onChangeText={(v) => setOtp(v.replace(/\D/g, "").slice(0, OTP_LEN))} keyboardType="number-pad" autoComplete="sms-otp" textContentType="oneTimeCode" maxLength={OTP_LEN} caretHidden onSubmitEditing={() => verify()}
+            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
+        </Pressable>
+        <Btn testID="otp-verify" label="Verify OTP & continue" onPress={() => verify()} busy={busy} disabled={otp.length < OTP_LEN} />
         <Pressable testID="otp-resend" onPress={send} disabled={busy} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 13, color: PRIMARY[700], fontWeight: "600" }}>Resend OTP</Text></Pressable>
       </> : null}
       {err ? <Text testID="otp-error" style={{ fontSize: 13, color: ROSE[600], fontWeight: "600" }}>{err}</Text> : null}

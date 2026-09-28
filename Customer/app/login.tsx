@@ -11,12 +11,12 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Zap, ShieldCheck, ArrowRight, RotateCw, Sparkles, Users, Lock, ChevronDown } from "lucide-react-native";
+import { ArrowLeft, Zap, ShieldCheck, ArrowRight, RotateCw, Users, Lock, ChevronDown } from "lucide-react-native";
 import { api } from "@/src/api/client";
 import { useAuth, isCustomer, AppUser } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
-import { PRIMARY, SLATE, EMERALD, AMBER, useTheme } from "@/src/theme";
+import { PRIMARY, SLATE, EMERALD, useTheme } from "@/src/theme";
 import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
 
 const OTP_LEN = 6;
@@ -49,11 +49,11 @@ function IndiaFlag() {
 
 function Chip({ icon, title, sub, dark }: { icon: React.ReactNode; title: string; sub: string; dark: boolean }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
+      <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
       <View>
-        <Text style={{ fontSize: 11.5, lineHeight: 14, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "500" }}>{title}</Text>
-        <Text style={{ fontSize: 11.5, lineHeight: 14, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "500" }}>{sub}</Text>
+        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "600" }}>{title}</Text>
+        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "600" }}>{sub}</Text>
       </View>
     </View>
   );
@@ -77,7 +77,6 @@ export default function Login() {
   const [routing, setRouting] = useState(false);
   const otpRef = useRef<TextInput>(null);
 
-  const { data: demo } = useQuery({ queryKey: ["demo-status"], queryFn: () => api.get<any>("/auth/demo-status", { auth: false }) });
   const { data: cfg } = useQuery({ queryKey: ["auth-config"], queryFn: () => api.get<any>("/auth/config", { auth: false }) });
   const [em, setEm] = useState({ email: "", password: "", name: "" });
 
@@ -147,17 +146,6 @@ export default function Login() {
     setBusy("");
   };
 
-  const quickLogin = async (acc: any) => {
-    setBusy(acc.phone);
-    try {
-      await api.post("/auth/send-otp", { phone: acc.phone }, { auth: false });
-      const data = await api.post<any>("/auth/verify-otp", { phone: acc.phone, otp: acc.otp }, { auth: false });
-      await finish(data, `Demo login: ${data.user.name}`);
-    } catch (e: any) { toast.error(e?.detail || "Demo login failed"); }
-    setBusy("");
-  };
-
-  const demoCustomer = (demo?.accounts || []).find((a: any) => a.role === "customer");
   const showLoader = booting || loading || routing || !!user;
   const siteName = branding.site_name || "AzoApp";
   const tagline = branding.tagline || "Service at Your Doorstep";
@@ -210,16 +198,16 @@ export default function Login() {
             )}
           </View>
 
-          <View style={{ width: width - 36 - heroW + 44, marginTop: 30 }}>
+          <View style={{ width: width - 36 - heroW + 14, marginTop: 30 }}>
             <Text testID="login-title" style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: heading, letterSpacing: -1 }}>Sign In to</Text>
             <Text style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: BLUE, letterSpacing: -1 }}>{siteName}</Text>
             <Text style={{ color: isDark ? SLATE[400] : "#66748F", marginTop: 12, fontSize: 13.5, lineHeight: 19 }}>Login with your mobile number and get quick access to all services.</Text>
           </View>
 
-          <View testID="login-features" style={{ flexDirection: "row", gap: 16, marginTop: 22, zIndex: 5, position: "relative" }}>
-            <Chip dark={isDark} icon={<ShieldCheck size={16} color={BLUE} strokeWidth={2.4} />} title="Safe &" sub="Secure" />
-            <Chip dark={isDark} icon={<Zap size={16} color={BLUE} strokeWidth={2.4} fill={BLUE} />} title="Fast" sub="Login" />
-            <Chip dark={isDark} icon={<Users size={16} color={BLUE} strokeWidth={2.4} />} title="Trusted" sub="Platform" />
+          <View testID="login-features" style={{ flexDirection: "row", gap: 10, marginTop: 22, zIndex: 5, position: "relative", width: Math.min(width - 36, width - heroW + 30), justifyContent: "space-between" }}>
+            <Chip dark={isDark} icon={<ShieldCheck size={14} color={BLUE} strokeWidth={2.4} />} title="Safe &" sub="Secure" />
+            <Chip dark={isDark} icon={<Zap size={14} color={BLUE} strokeWidth={2.4} fill={BLUE} />} title="Fast" sub="Login" />
+            <Chip dark={isDark} icon={<Users size={14} color={BLUE} strokeWidth={2.4} />} title="Trusted" sub="Platform" />
           </View>
         </View>
 
@@ -237,14 +225,14 @@ export default function Login() {
                     <Text style={{ marginLeft: 8, fontSize: 15, fontWeight: "700", color: inputText }}>+91</Text>
                     <ChevronDown size={16} color={heading} style={{ marginLeft: 6 }} />
                     <View style={{ width: 1, height: 26, backgroundColor: inputBorder, marginHorizontal: 12 }} />
-                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter 10-digit mobile number" placeholderTextColor={SLATE[400]}
+                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={SLATE[400]} numberOfLines={1} multiline={false}
                       keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
-                      style={{ flex: 1, height: 52, fontSize: 15, color: inputText, paddingRight: 12, outlineStyle: "none" } as any} />
+                      style={{ flex: 1, height: 52, fontSize: 14.5, color: inputText, paddingRight: 10, outlineStyle: "none" } as any} />
                   </View>
                   <PrimaryBtn testID="send-otp-button" label="Send OTP" icon onPress={send} busy={busy === "send"} />
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
                     <Lock size={14} color={SLATE[500]} />
-                    <Text style={{ fontSize: 12, color: SLATE[500] }}>We&apos;ll take you to the right panel based on your number.</Text>
+                    <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 11.5, color: SLATE[500], flexShrink: 1 }}>We&apos;ll take you to the right panel based on your number.</Text>
                   </View>
                 </View>
               ) : null}
@@ -312,24 +300,6 @@ export default function Login() {
           </View>
         ) : null}
 
-        {demo?.demo_mode && demoCustomer ? (
-          <View testID="demo-accounts" style={{ marginTop: 18 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 }}>
-              <Sparkles size={15} color={AMBER[500]} />
-              <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, fontWeight: "800", color: muted }}>One-click demo login · OTP 123456</Text>
-            </View>
-            <Pressable testID="demo-customer" onPress={() => quickLogin(demoCustomer)} disabled={busy === demoCustomer.phone}
-              style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 18, borderWidth: 1, borderColor: pressed ? AMBER[500] : AMBER[200], backgroundColor: pressed ? AMBER[50] : cardBg, opacity: busy === demoCustomer.phone ? 0.5 : 1 })}>
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: AMBER[100], alignItems: "center", justifyContent: "center" }}>
-                {busy === demoCustomer.phone ? <ActivityIndicator size="small" color={AMBER[700]} /> : <Users size={20} color={AMBER[700]} strokeWidth={1.8} />}
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={{ fontWeight: "700", fontSize: 14, color: heading }}>Login as Customer</Text>
-                <Text numberOfLines={1} style={{ fontSize: 11, color: muted }}>Opens Customer account</Text>
-              </View>
-            </Pressable>
-          </View>
-        ) : null}
       </KeyboardAwareScrollView>
 
       {showLoader ? (

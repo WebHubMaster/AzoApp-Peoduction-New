@@ -1,6 +1,7 @@
 /** Support ticket thread — port of web SupportCenter.jsx `Thread` (mobile: conversation + info panel below). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
+import { useKeyboardState } from "react-native-keyboard-controller";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { ArrowLeft, ShieldCheck, MoreVertical, X, Send, Paperclip, CheckCircle2, Check, CheckCheck, Hash, Tag, AlertCircle, CalendarDays, Clock, FileText } from "lucide-react-native";
@@ -32,6 +33,10 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const { height: winH } = useWindowDimensions();
+  const kbH = useKeyboardState((k) => (k.isVisible ? k.height : 0));
+  // Keyboard open → shrink the chat panel so the composer stays above the keyboard.
+  const panelH = kbH > 0 ? Math.max(240, Math.min(520, winH - kbH - 190)) : 520;
   const lastTypingSent = useRef(0);
   const closed = t.status === "closed";
 
@@ -81,7 +86,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
   return (
     <View testID="support-thread" style={{ gap: 16 }}>
-      <View style={{ ...panel, height: 520 }}>
+      <View style={{ ...panel, height: panelH }}>
         {/* header */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
           <Pressable testID="support-thread-back" onPress={onBack} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={16} color={c.text} /></Pressable>
