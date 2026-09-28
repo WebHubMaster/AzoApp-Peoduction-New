@@ -50,5 +50,17 @@ Files changed:
   test browser; real browsers/devices play H.264 and the onError fallback covers the rest.)
 
 ## Backlog / Next
+
+### 2026-06 — Customer app: signup + Book Now flow (testing_agent iter 152)
+- Root cause of "signup nahi ho raha": the backend was down because all `.env` files were
+  missing on the pod — restored them, backend healthy, OTP signup/login verified working
+  end-to-end (new number -> OTP 123456 -> name step -> account created & logged in; existing
+  number logs straight in).
+- Book Now fix: category card 'Book Now' (testID `category-book-N`) now opens the service
+  detail with `?book=1` which **auto-adds** the service to the booking (once, `autoAddRef`
+  guard) and shows checkout immediately — no second 'Add to Booking' tap. Card body tap
+  (`category-open-N`) still opens detail without adding. Files: `Customer/app/(site)/category/[id].tsx`,
+  `Customer/app/(site)/service/[id].tsx`. Verified 5/5 flows pass incl. checkout reaches /book.
+
 - P2: Circle-style story avatars variant (round bubbles) as an admin layout choice.
 - P2: Turn recurring subscriptions on for Cook/Nanny/Driver/Housekeeping.

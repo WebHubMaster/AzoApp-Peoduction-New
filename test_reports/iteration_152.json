@@ -1,0 +1,24 @@
+{
+  "summary": "Verified the two user-reported Customer app bugs at mobile 430x900 on the preview URL. (1) SIGNUP end-to-end works: entered fresh 10-digit phone 9876551206 -> Send OTP (dev OTP 123456 auto-filled + toast) -> Verify OTP -> otp-name-step appeared -> entered 'Test User' -> Continue -> logged in and routed to customer home ('Good morning, Test' greeting shown, tab-bar visible). (2) LOGIN existing user works: cleared local storage, re-entered same 9876551206 -> Send OTP -> auto OTP 123456 -> Verify -> logged straight into customer area, NO otp-name-step. (3) BOOK NOW auto-add fix works: opened /(site)/category/{AC Repair id} (category-page present) -> tapped category-book-0 -> navigated to /service/{id}?book=1, service-detail rendered, cart-count badge shows '1', success toast 'AC Gas Refill added — review & checkout' shown, and both go-checkout and go-checkout-mobile visible without needing to tap add-to-booking. (4) CHECKOUT: tapped go-checkout-mobile -> navigated to /book (booking/checkout screen) showing the added service (AC Gas Refill, qty 1, ₹2,499, Step 1 of 6, Continue button). (5) REGRESSION: tapping category-open-0 (card body) navigates to /service/{id} WITHOUT ?book=1, cart-count badge NOT rendered (empty cart preserved), add-to-booking button still present and functional. All acceptance criteria met.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "login.tsx verify() sends create_if_new:false first and treats data.new_user as the trigger to show step 3 — clean and correct.",
+    "service/[id].tsx uses autoAddRef guard to add the service exactly once when ?book=1 is present — prevents double-add on re-renders.",
+    "category-book-N routes with ?book=1 while category-open-N routes plainly — clear separation between browse and add-to-cart intents."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% — 5/5 acceptance flows pass"},
+  "test_credentials": "OTP dev mode: any 10-digit number, OTP is auto-filled with 123456. New signup used 9876551206 in this run.",
+  "seed_data_creation": "Created one customer via OTP signup: name='Test User', phone=+919876551206.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Both reported bugs are fixed and verified end-to-end. Key testIDs used: send-otp-button, verify-otp-button, otp-name-step, login-name-input, continue-signup-button, category-page, category-book-0, category-open-0, service-detail, cart-count, go-checkout, go-checkout-mobile, add-to-booking. Category IDs live at GET /api/app/home under sections[key=='categories'].data. AC Repair id used: 805e3364-53cb-4b2d-9956-55e30e215508.",
+  "rca of the issue": "Fix confirmed by code+runtime: (a) login.tsx verify() posts create_if_new:false and re-posts with create_if_new:true after the user enters a name — correctly separating LOGIN vs SIGNUP paths, matching backend verify_otp semantics. (b) category/[id].tsx category-book-N passes ?book=1 to the detail route; service/[id].tsx reads that param and calls addService() behind an autoAddRef guard, sets 'added', and reveals go-checkout / go-checkout-mobile — eliminating the previous double-tap requirement while preserving the plain-open regression path."
+}
