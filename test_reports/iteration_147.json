@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend-only regression test for 3 AzoApp features: (1) Customer Selfie / Partner Check-in block on customer web + customer mobile, (2) Recent Searches on customer mobile home, (3) Active Job Card polish on partner mobile + partner web. All 5 scenarios PASSED with data-testid selectors resolving, correct text ('arrived', '~2.2 km'), amber far-styling, selfie thumbnail tap opens/closes fullscreen modal, recent searches AsyncStorage persistence/add/remove/clear/hide-while-typing, status-pill-AZOAF1BBB rendering with #code chip and ₹ amount, header click opens job-wizard, and no horizontal overflow at 390px or 1280px viewports.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CustomerDashboard.jsx is 1825 lines - exceeds 700 line guideline; consider splitting BookingsView / HomeView / drawers into separate modules for maintainability."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Customer +919000000004 OTP 123456; Partner +919000000003 OTP 123456; Booking AZOAF1BBB with checkin (2.2km, far=true)",
+  "seed_data_creation": "Recent searches entries 'clean', 'repair', 'salon', 'plumb' were added and cleared as part of test flow (localStorage azo_recent_searches_v1).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Customer web bookings drawer trigger: use filter input with placeholder 'Search service, booking ID, partner…' to narrow to a single AZOAF1BBB card before clicking 'View Details' (the top global search does NOT filter the list). Partner mobile status-pill exists at [data-testid=status-pill-AZOAF1BBB] with text 'arrived customer' (CSS-capitalized to 'Arrived Customer'). Partner mobile buttons use testIDs call-cust-{code}, chat-cust-{code}, reject-{code} (not call-{code}); reject may be hidden after arrival state — expected. Customer web checkin-proof shows 'Partner check-in selfie' rather than literal 'arrived' text; that keyword lives in the parent Status row (statusText mapping). Customer mobile partner-checkin text: 'Raj Kumar arrived · Selfie verified · {when} · ~2.2 km from your address · View arrival location'.",
+  "verification_details": {
+    "customer_web": {"checkin_proof_present": true, "selfie_img": true, "amber_far_class": true, "text": "Partner check-in selfie · 28 Sept · ~2.2 km from address · far", "map_href": "https://www.google.com/maps?q=25.6093,85.1235", "lightbox_open_on_tap": true},
+    "customer_mobile": {"partner_checkin": true, "partner_checkin_selfie": true, "partner_checkin_map": true, "text_has_arrived": true, "text_has_2.2": true, "fullscreen_modal_open_close": true},
+    "recent_searches": {"initial_hidden": true, "submit_navigates_to_services_q": true, "chip_visible_after_back": true, "chip_click_navigates": true, "remove_hides_when_empty": true, "clear_hides_block": true, "hidden_while_typing_2_chars": true},
+    "partner_mobile": {"status_pill": true, "pill_text": "arrived customer", "job_card_code_chip": true, "amount_rendered": true, "card_click_opens_partner_job": true, "no_horizontal_overflow": true, "buttons": {"open-job": true, "navigate": true, "call-cust": true, "chat-cust": true, "reschedule": true, "reject": "hidden after arrival — expected"}},
+    "partner_web": {"390": {"status_pill": true, "code_chip": true, "amount": true, "no_overflow": true, "header_opens_wizard": true}, "1280": {"status_pill": true, "code_chip": true, "amount": true, "no_overflow": true, "header_opens_wizard": true}}
+  }
+}
