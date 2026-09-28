@@ -16,7 +16,7 @@ import { stripHtml } from "../../../src/components/site/ui";
 const PRICE_LABEL: Record<string, string> = { per_hour: "/ hr", per_person: "/ person", per_sqft: "/ sq ft" };
 
 export default function ServiceDetail() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, book } = useLocalSearchParams<{ id: string; book?: string }>();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const toast = useToast();
@@ -28,6 +28,7 @@ export default function ServiceDetail() {
   const [added, setAdded] = useState(false);
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
   const [galleryIdx, setGalleryIdx] = useState(0);
+  const autoAddRef = React.useRef<string | null>(null);
   const gallery: string[] = svc ? [svc.image, ...(svc.gallery || [])].filter(Boolean) : [];
 
   useEffect(() => {
@@ -51,6 +52,17 @@ export default function ServiceDetail() {
     setAdded(true);
     if (goCheckout) router.push("/(site)/book" as any); else toast.success(`${svc.name} added to your booking`);
   };
+
+  // "Book Now" from a category/home card (?book=1) → add to booking immediately and
+  // keep the customer on the detail so they can review options, then checkout. Runs once per service.
+  useEffect(() => {
+    if (svc && book === "1" && autoAddRef.current !== String(id)) {
+      autoAddRef.current = String(id);
+      addService(svc, { tier_index: tier, addons: [], qty: 1 });
+      setAdded(true);
+      toast.success(`${svc.name} added — review & checkout`);
+    }
+  }, [svc, book, id, tier]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const Header = (
     <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, height: insets.top + 64, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.6)", backgroundColor: "#fff" }}>

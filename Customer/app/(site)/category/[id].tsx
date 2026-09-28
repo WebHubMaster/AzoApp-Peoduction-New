@@ -55,18 +55,22 @@ export default function CategoryServices() {
           ListEmptyComponent={<Text testID="category-empty" style={{ textAlign: "center", color: SLATE[500], marginTop: 40 }}>No services in this category yet.</Text>}
           ListFooterComponent={count < all.length ? <View testID="category-loading-more" style={{ paddingVertical: 16, alignItems: "center" }}><ActivityIndicator color={PRIMARY[700]} /></View> : null}
           renderItem={({ item: s, index }) => (
-            <Pressable testID={`category-svc-${index}`} onPress={() => navigate(`/service/${s.id}`)} style={{ width: cardW, backgroundColor: "#fff", borderRadius: 18, borderWidth: 1, borderColor: SLATE[200], overflow: "hidden" }}>
-              <Image source={{ uri: s.image }} style={{ height: 120, width: "100%", backgroundColor: SLATE[100] }} contentFit="cover" transition={200} />
-              <View style={{ padding: 12 }}>
-                <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "700", color: SLATE[800], lineHeight: 18, minHeight: 36 }}>{s.name}</Text>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><Star size={12} color={AMBER[500]} fill={AMBER[500]} /><Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[700] }}>{Number(s.rating || 0).toFixed(1)}</Text></View>
-                  {s.duration_min ? <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><Clock size={12} color={SLATE[400]} /><Text style={{ fontSize: 11, color: SLATE[500] }}>{s.duration_min} min</Text></View> : null}
+            <View testID={`category-svc-${index}`} style={{ width: cardW, backgroundColor: "#fff", borderRadius: 18, borderWidth: 1, borderColor: SLATE[200], overflow: "hidden" }}>
+              <Pressable testID={`category-open-${index}`} onPress={() => navigate(`/service/${s.id}`)}>
+                <Image source={{ uri: s.image }} style={{ height: 120, width: "100%", backgroundColor: SLATE[100] }} contentFit="cover" transition={200} />
+                <View style={{ paddingHorizontal: 12, paddingTop: 12 }}>
+                  <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "700", color: SLATE[800], lineHeight: 18, minHeight: 36 }}>{s.name}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><Star size={12} color={AMBER[500]} fill={AMBER[500]} /><Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[700] }}>{Number(s.rating || 0).toFixed(1)}</Text></View>
+                    {s.duration_min ? <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}><Clock size={12} color={SLATE[400]} /><Text style={{ fontSize: 11, color: SLATE[500] }}>{s.duration_min} min</Text></View> : null}
+                  </View>
+                  <Text style={{ fontSize: 12, color: SLATE[500], marginTop: 6 }}>From <Text style={{ fontSize: 15, fontWeight: "800", color: SLATE[900] }}>{fmt(s.base_price)}</Text></Text>
                 </View>
-                <Text style={{ fontSize: 12, color: SLATE[500], marginTop: 6 }}>From <Text style={{ fontSize: 15, fontWeight: "800", color: SLATE[900] }}>{fmt(s.base_price)}</Text></Text>
-                <View style={{ marginTop: 12, height: 36, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>Book Now</Text></View>
+              </Pressable>
+              <View style={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: 12 }}>
+                <Pressable testID={`category-book-${index}`} onPress={() => navigate(`/service/${s.id}?book=1`)} style={{ height: 36, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: "#fff" }}>Book Now</Text></Pressable>
               </View>
-            </Pressable>
+            </View>
           )}
         />
       )}
