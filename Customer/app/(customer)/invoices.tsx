@@ -6,6 +6,7 @@ import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard, Printer } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
+import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
 import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, Paginator, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger } from "../../src/components/customer/ux";
@@ -76,8 +77,8 @@ export default function InvoicesScreen() {
     setDownloading((m) => ({ ...m, [inv.id]: true }));
     toast.info("Downloading invoice PDF… please wait a moment.");
     try {
-      await Linking.openURL(await publicUrl(inv, "pdf", true));
-      toast.success("Invoice download started.");
+      await downloadInvoicePdf(inv);
+      toast.success("Invoice ready — choose a PDF app to view or save.");
     } catch {
       toast.error("Invoice could not be downloaded");
     } finally {

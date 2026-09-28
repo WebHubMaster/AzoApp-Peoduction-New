@@ -9,6 +9,7 @@ import { api, API_BASE, mediaUrl } from "../../api/client";
 import { useSiteConfig } from "../../context/BrandContext";
 import { fmt } from "../../lib/format";
 import { statusText } from "./nav";
+import { downloadInvoicePdf } from "../../lib/invoiceActions";
 import { fmtTs } from "./BookingCard";
 import { DrawerShell, Btn } from "./BookingDialogs";
 import { ServiceBreakdown } from "./ServiceBreakdown";
@@ -197,7 +198,16 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
     const s: any = await api.get(`/invoices/${inv.id}/share-link`);
     return `${API_BASE}${s.path}${download ? "&download=1" : ""}`;
   };
-  const downloadInvoice = async () => { setBusy(true); try { await Linking.openURL(await publicPdf(true)); toast.success("Invoice opened"); } catch (e: any) { toast.error(e?.message || "Could not generate PDF"); } finally { setBusy(false); } };
+  const downloadInvoice = async () => {
+    setBusy(true);
+    try {
+      const list: any = await api.get(`/invoices?booking_id=${b.id}&page_size=1`);
+      const inv = (list?.items || list || [])[0];
+      if (!inv?.id) throw new Error("Invoice is not generated yet");
+      await downloadInvoicePdf(inv);
+      toast.success("Invoice ready — choose a PDF app to view or save.");
+    } catch (e: any) { toast.error(e?.message || "Could not generate PDF"); } finally { setBusy(false); }
+  };
   const shareOnWhatsApp = async () => {
     setSharing(true);
     try {
