@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { View, Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { KeyboardProvider } from "react-native-keyboard-controller";
+import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
@@ -11,7 +11,7 @@ setupNotificationHandler();
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
-import { ThemeProvider } from "@/src/theme";
+import { ThemeProvider, TC } from "@/src/theme";
 import { CartProvider } from "../src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
@@ -29,9 +29,9 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
   render() {
     if (this.state.error) {
       return (
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: "#fff" }}>
-          <Text style={{ color: "#0F172A", fontSize: 18, fontWeight: "800", marginBottom: 8 }}>Something went wrong</Text>
-          <Text style={{ color: "#64748B", textAlign: "center" }}>{String(this.state.error?.message || this.state.error)}</Text>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: TC.surface }}>
+          <Text style={{ color: TC.text, fontSize: 18, fontWeight: "800", marginBottom: 8 }}>Something went wrong</Text>
+          <Text style={{ color: TC.textMuted, textAlign: "center" }}>{String(this.state.error?.message || this.state.error)}</Text>
         </View>
       );
     }
@@ -49,12 +49,12 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
         <AuthProvider><CartProvider>
           <ToastProvider>
             <PaymentWebViewHost />
-            <PushTapBridge /><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+            <PushTapBridge /><KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(site)" />
               <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
               <Stack.Screen name="(customer)" />
-            </Stack>
+            </Stack></KeyboardAvoidingView>
           </ToastProvider>
         </CartProvider></AuthProvider>
       </BrandProvider>

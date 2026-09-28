@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** BookingDetailsDrawer + InvoiceDrawer + WorkProof — ports from CustomerDashboard.jsx / WorkProof.jsx. */
 import React, { useState } from "react";
 import { View, Text, Pressable, Modal, Linking } from "react-native";
@@ -23,7 +24,7 @@ export const DBlock = ({ icon: Icon, title, children }: { icon?: any; title: str
   const { c } = useTheme();
   return (
     <View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}>{Icon ? <Icon size={14} color={SLATE[400]} /> : null}<Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, fontWeight: "700", color: SLATE[400] }}>{title}</Text></View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}>{Icon ? <Icon size={14} color={TC.textFaint} /> : null}<Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, fontWeight: "700", color: TC.textFaint }}>{title}</Text></View>
       <View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>{children}</View>
     </View>
   );
@@ -39,7 +40,7 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
   return (
     <View testID={testID}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 12, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : SLATE[100], borderWidth: 1, borderColor: c.border }}>{isVideoUrl(u) ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}><PlayCircle size={24} color="#fff" /></View> : <Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" />}</Pressable>)}
+        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 12, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderWidth: 1, borderColor: c.border }}>{isVideoUrl(u) ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}><PlayCircle size={24} color="#fff" /></View> : <Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" />}</Pressable>)}
       </View>
       <Modal visible={open >= 0} transparent animationType="fade" onRequestClose={() => setOpen(-1)}>
         <View testID="workproof-lightbox" style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)" }}>
@@ -62,8 +63,8 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
 function ProofBlock({ label, imgs, testID }: { label: string; imgs: string[]; testID: string }) {
   return (
     <View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}><Camera size={12} color={SLATE[400]} /><Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400] }}>{label}</Text><Text style={{ fontSize: 11, fontWeight: "600", color: EMERALD[600] }}>{imgs.length} photo{imgs.length > 1 ? "s" : ""}</Text></View>
-      {imgs.length ? <PhotoGrid images={imgs} title={label} testID={testID} /> : <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><ImageOff size={14} color={SLATE[400]} /><Text style={{ fontSize: 12, color: SLATE[400] }}>No photos</Text></View>}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}><Camera size={12} color={TC.textFaint} /><Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>{label}</Text><Text style={{ fontSize: 11, fontWeight: "600", color: EMERALD[600] }}>{imgs.length} photo{imgs.length > 1 ? "s" : ""}</Text></View>
+      {imgs.length ? <PhotoGrid images={imgs} title={label} testID={testID} /> : <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><ImageOff size={14} color={TC.textFaint} /><Text style={{ fontSize: 12, color: TC.textFaint }}>No photos</Text></View>}
     </View>
   );
 }
@@ -80,12 +81,12 @@ export function PartnerCheckin({ checkin, partnerName }: { checkin: any; partner
         <Image source={{ uri: url }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
       </Pressable>
       <View style={{ flex: 1, gap: 3 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><ShieldCheck size={14} color={far ? "#B45309" : EMERALD[700]} /><Text style={{ fontSize: 13.5, fontWeight: "800", color: SLATE[800] }}>{partnerName || "Your partner"} arrived</Text></View>
-        {when ? <Text style={{ fontSize: 12, color: SLATE[500] }}>Selfie verified · {when}</Text> : null}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><ShieldCheck size={14} color={far ? "#B45309" : EMERALD[700]} /><Text style={{ fontSize: 13.5, fontWeight: "800", color: TC.text }}>{partnerName || "Your partner"} arrived</Text></View>
+        {when ? <Text style={{ fontSize: 12, color: TC.textMuted }}>Selfie verified · {when}</Text> : null}
         {checkin.distance_km != null ? <Text style={{ fontSize: 12, color: far ? "#B45309" : EMERALD[700], fontWeight: "600" }}>{far ? `~${checkin.distance_km} km from your address` : `Within ${checkin.distance_km <= 0.05 ? "50 m" : `${Math.round(checkin.distance_km * 1000)} m`} of your address`}</Text> : null}
         {checkin.lat != null ? (
           <Pressable testID="partner-checkin-map" onPress={() => Linking.openURL(`https://www.google.com/maps?q=${checkin.lat},${checkin.lng}`)} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-            <Navigation size={12} color={PRIMARY[700]} /><Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700] }}>View arrival location</Text>
+            <Navigation size={12} color={TC.primaryText} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>View arrival location</Text>
           </Pressable>
         ) : null}
       </View>
@@ -158,13 +159,13 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
       {b.partner_name ? (
         <DBlock icon={User} title="Partner Information">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: isDark ? "rgba(7,52,115,0.3)" : PRIMARY[50], alignItems: "center", justifyContent: "center" }}><User size={20} color={PRIMARY[700]} /></View>
-            <View><Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{b.partner_name}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>{b.category_name}</Text></View>
+            <View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: isDark ? "rgba(7,52,115,0.3)" : PRIMARY[50], alignItems: "center", justifyContent: "center" }}><User size={20} color={TC.primaryText} /></View>
+            <View><Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{b.partner_name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{b.category_name}</Text></View>
           </View>
         </DBlock>
       ) : null}
       <DBlock icon={CreditCard} title="Payment Summary"><PaymentSummary b={b} /></DBlock>
-      {addr.line || addr.city ? <DBlock icon={MapPin} title="Service Address"><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : SLATE[700] }}>{addr.line}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>{[addr.city, addr.state, addr.pincode].filter(Boolean).join(", ")}</Text></DBlock> : null}
+      {addr.line || addr.city ? <DBlock icon={MapPin} title="Service Address"><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : TC.text2 }}>{addr.line}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{[addr.city, addr.state, addr.pincode].filter(Boolean).join(", ")}</Text></DBlock> : null}
       {b.status === "cancelled" ? (
         <DBlock icon={AlertTriangle} title="Cancellation & Refund">
           <DRow k="Status" v="Cancelled" />
@@ -214,7 +215,7 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
       </View>}>
       <View style={{ alignItems: "center", paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
         {logoUrl ? <Image testID="invoice-logo" source={{ uri: logoUrl }} style={{ height: 40, width: 160 }} contentFit="contain" /> : <Text style={{ fontSize: 20, fontWeight: "900", color: "#0D47A1" }}>{brandName}</Text>}
-        <Text style={{ fontSize: 12, color: SLATE[400], marginTop: 4 }}>Tax Invoice · #{b.code}</Text>
+        <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 4 }}>Tax Invoice · #{b.code}</Text>
       </View>
       <View style={{ gap: 8 }}><DRow k="Service" v={b.service_name} strong /><DRow k="Partner" v={b.partner_name || "—"} /><DRow k="Date" v={fmtTs(b.created_at)} /></View>
       <ServiceBreakdown booking={b} title="Services" showCharges />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, Platform } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import * as ImagePicker from "expo-image-picker";
 import { oversizeMessage, assetSizeBytes, toSmallDataUrl } from "@/src/components/reg/Photo";
 import { Image } from "expo-image";
@@ -207,7 +208,7 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
 
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={onClose} />
           <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>

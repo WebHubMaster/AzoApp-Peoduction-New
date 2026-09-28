@@ -5,7 +5,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE } from "../../src/theme";
+import { PRIMARY, SLATE, TC, useTheme } from "../../src/theme";
 import { useCity } from "../../src/lib/location";
 import { useAppHome } from "../../src/lib/appHome";
 import { useNavigate } from "../../src/lib/navigate";
@@ -20,6 +20,7 @@ import { Sk } from "../../src/components/site/ui";
 let permissionsAsked = false;
 
 export default function AppHome() {
+  useTheme();
   const city = useCity();
   const { data, loading, error, refetch, refreshing } = useAppHome(city);
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export default function AppHome() {
   const shown = blocks.slice(0, visibleCount);
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff" }} testID="landing-page">
+    <View style={{ flex: 1, backgroundColor: TC.surface }} testID="landing-page">
       <SiteNavbar hideSearch />
       <AppSearchBar onSubmit={(q) => router.push(`/(site)/services?q=${encodeURIComponent(q)}` as any)} />
       {loading ? (
@@ -73,7 +74,7 @@ export default function AppHome() {
         </View>
       ) : error ? (
         <View style={{ padding: 24, alignItems: "center", gap: 10 }} testID="app-home-error">
-          <Text style={{ fontSize: 14, color: SLATE[600], textAlign: "center" }}>Couldn't load the home page. Check your connection.</Text>
+          <Text style={{ fontSize: 14, color: TC.textMuted, textAlign: "center" }}>Couldn't load the home page. Check your connection.</Text>
           <Pressable onPress={() => refetch()} style={{ backgroundColor: PRIMARY[700], borderRadius: 10, paddingHorizontal: 16, height: 38, justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Retry</Text></Pressable>
         </View>
       ) : (

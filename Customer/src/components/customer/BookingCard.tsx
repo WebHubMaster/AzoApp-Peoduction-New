@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** BookingCard + OtpBanner + CurrentStepCard + ScheduledCard + PremiumTimeline — 1:1 port of CustomerDashboard.jsx (mobile view). */
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Linking, Animated } from "react-native";
@@ -59,7 +60,7 @@ export function OtpBanner({ kind, code, bcode }: { kind: "start" | "complete"; c
     <View testID={`otp-banner-${kind}-${bcode}`} style={{ marginTop: 12, borderRadius: 16, padding: 16, borderWidth: 2, borderColor: col[300], backgroundColor: start ? PRIMARY[50] : EMERALD[50], alignItems: "center", gap: 8 }}>
       <Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, color: col[700], textAlign: "center" }}>{start ? "Share this OTP to START work" : "Share this OTP to COMPLETE work"}</Text>
       <Text testID={`otp-code-${bcode}-${kind}`} style={{ fontSize: 36, fontWeight: "900", letterSpacing: 10, color: col[700], lineHeight: 44 }}>{code}</Text>
-      <Text style={{ fontSize: 12, color: SLATE[500], textAlign: "center" }}>Tell your partner this code only when {start ? "they arrive & begin" : "the work is done"}.</Text>
+      <Text style={{ fontSize: 12, color: TC.textMuted, textAlign: "center" }}>Tell your partner this code only when {start ? "they arrive & begin" : "the work is done"}.</Text>
     </View>
   );
 }
@@ -76,11 +77,11 @@ export function CurrentStepCard({ b }: { b: any }) {
   return (
     <View testID={`current-step-${b.code}`} style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[200], backgroundColor: isDark ? "rgba(7,52,115,0.15)" : "rgba(235,243,254,0.7)", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: isDark ? SLATE[800] : "#fff", alignItems: "center", justifyContent: "center" }}><User size={20} color={PRIMARY[700]} /></View>
+        <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: isDark ? SLATE[800] : TC.surface, alignItems: "center", justifyContent: "center" }}><User size={20} color={TC.primaryText} /></View>
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ fontSize: 14, fontWeight: "700", color: isDark ? PRIMARY[200] : PRIMARY[800] }}>{m.t}</Text>
-          <Text numberOfLines={1} style={{ fontSize: 12, color: isDark ? SLATE[300] : SLATE[600], marginTop: 2 }}>{b.partner_name || "Assigning…"}{b.category_name ? ` · ${b.category_name}` : ""}{b.partner_premium ? "  " : ""}{b.partner_premium ? <Text style={{ color: AMBER[600] }}><Crown size={11} color={AMBER[600]} /> Pro</Text> : null}</Text>
-          {m.eta ? <Text style={{ fontSize: 11, color: SLATE[500], marginTop: 2 }}>Estimated arrival <Text style={{ fontWeight: "700", color: isDark ? SLATE[200] : SLATE[700] }}>{m.eta}</Text></Text> : null}
+          <Text numberOfLines={1} style={{ fontSize: 12, color: isDark ? SLATE[300] : TC.textMuted, marginTop: 2 }}>{b.partner_name || "Assigning…"}{b.category_name ? ` · ${b.category_name}` : ""}{b.partner_premium ? "  " : ""}{b.partner_premium ? <Text style={{ color: AMBER[600] }}><Crown size={11} color={AMBER[600]} /> Pro</Text> : null}</Text>
+          {m.eta ? <Text style={{ fontSize: 11, color: TC.textMuted, marginTop: 2 }}>Estimated arrival <Text style={{ fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{m.eta}</Text></Text> : null}
         </View>
       </View>
     </View>
@@ -122,7 +123,7 @@ export function ScheduledCard({ schedule }: { schedule: any }) {
           </View>
         </View>
         <View style={{ alignItems: "flex-end" }}>
-          <Text style={{ fontSize: 10.5, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400] }}>{started ? "In progress" : due ? "Ready to start" : "Starts in"}</Text>
+          <Text style={{ fontSize: 10.5, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>{started ? "In progress" : due ? "Ready to start" : "Starts in"}</Text>
           <Text testID="scheduled-countdown" style={{ fontSize: 18, fontWeight: "900", color: isDark ? col[200] : col[700] }}>{started ? "—" : fmtCountdown(secs)}</Text>
         </View>
       </View>
@@ -130,9 +131,9 @@ export function ScheduledCard({ schedule }: { schedule: any }) {
         {locked ? (
           <>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-              {items.map((l) => <View key={l} style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: isDark ? "rgba(15,23,42,0.4)" : "rgba(255,255,255,0.7)", borderWidth: 1, borderColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], paddingHorizontal: 10, paddingVertical: 4 }}><Lock size={12} color={SLATE[500]} /><Text style={{ fontSize: 11.5, fontWeight: "600", color: SLATE[500] }}>{l}</Text></View>)}
+              {items.map((l) => <View key={l} style={{ flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 999, backgroundColor: isDark ? "rgba(15,23,42,0.4)" : "rgba(255,255,255,0.7)", borderWidth: 1, borderColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], paddingHorizontal: 10, paddingVertical: 4 }}><Lock size={12} color={TC.textMuted} /><Text style={{ fontSize: 11.5, fontWeight: "600", color: TC.textMuted }}>{l}</Text></View>)}
             </View>
-            <Text style={{ fontSize: 12, color: SLATE[500], marginTop: 8 }}>Available 30 minutes before the scheduled time.</Text>
+            <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 8 }}>Available 30 minutes before the scheduled time.</Text>
           </>
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><CheckCircle2 size={16} color={EMERALD[700]} /><Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>Call, Chat & your Start OTP are now available.</Text></View>
@@ -160,7 +161,7 @@ export function PremiumTimeline({ b, open, onToggle, lastAt }: { b: any; open: b
         <PingDot color={done ? EMERALD[500] : PRIMARY[600]} done={done} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: c.text }}>{done ? "Work Completed" : current?.title}</Text>
-          <Text style={{ fontSize: 11, color: SLATE[400], marginTop: 1 }}>{current?.desc}{lastAt ? ` · Updated ${relTime(lastAt)}` : ""}</Text>
+          <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 1 }}>{current?.desc}{lastAt ? ` · Updated ${relTime(lastAt)}` : ""}</Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
           <Text style={{ fontSize: 12, fontWeight: "600", color: PRIMARY[600] }}>{open ? "Hide" : "View Timeline"}</Text>
@@ -175,12 +176,12 @@ export function PremiumTimeline({ b, open, onToggle, lastAt }: { b: any; open: b
               <View key={s.key} style={{ flexDirection: "row", gap: 12, paddingBottom: isLast ? 0 : 16, position: "relative" }}>
                 {!isLast ? <View style={{ position: "absolute", left: 11, top: 24, bottom: 0, width: 2, backgroundColor: s.state === "completed" ? EMERALD[400] : (isDark ? SLATE[700] : SLATE[200]) }} /> : null}
                 <View style={{ height: 24, width: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", zIndex: 1, backgroundColor: s.state === "completed" ? EMERALD[500] : s.state === "current" ? PRIMARY[600] : (isDark ? SLATE[800] : SLATE[100]), borderWidth: s.state === "current" ? 4 : 0, borderColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100] }}>
-                  {s.state === "completed" ? <CheckCircle2 size={14} color="#fff" /> : s.state === "current" ? <View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: "#fff" }} /> : <Circle size={12} color={SLATE[300]} />}
+                  {s.state === "completed" ? <CheckCircle2 size={14} color="#fff" /> : s.state === "current" ? <View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: TC.surface }} /> : <Circle size={12} color={TC.textFaint} />}
                 </View>
                 <View style={{ flex: 1, marginTop: -2 }}>
                   <Text style={{ fontSize: 14, fontWeight: "600", color: s.state === "upcoming" ? SLATE[400] : c.text }}>{s.title}</Text>
-                  <Text style={{ fontSize: 11, color: SLATE[400] }}>{s.desc}</Text>
-                  {s.at ? <Text style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{fmtTs(s.at)}</Text> : null}
+                  <Text style={{ fontSize: 11, color: TC.textFaint }}>{s.desc}</Text>
+                  {s.at ? <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{fmtTs(s.at)}</Text> : null}
                 </View>
               </View>
             );
@@ -259,17 +260,17 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
               {b.payment_status ? <StatusChip label={b.payment_status} tone={b.payment_status === "paid" ? "green" : b.payment_status === "refunded" ? "violet" : "amber"} /> : null}
             </View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-              <Pressable testID={`copy-id-${b.code}`} onPress={copyId} hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 12, color: SLATE[400] }}>#{b.code}</Text><Copy size={12} color={SLATE[400]} /></Pressable>
-              <Text style={{ fontSize: 12, color: SLATE[400] }}>· {b.category_name}</Text>
-              <Text style={{ fontSize: 12, color: SLATE[400] }}>· {fmtTs(bkDate(b))}</Text>
+              <Pressable testID={`copy-id-${b.code}`} onPress={copyId} hitSlop={6} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 12, color: TC.textFaint }}>#{b.code}</Text><Copy size={12} color={TC.textFaint} /></Pressable>
+              <Text style={{ fontSize: 12, color: TC.textFaint }}>· {b.category_name}</Text>
+              <Text style={{ fontSize: 12, color: TC.textFaint }}>· {fmtTs(bkDate(b))}</Text>
               {b.booking_type === "merchant" ? <Text style={{ fontSize: 12, color: PRIMARY[600] }}>· via {b.merchant_name}</Text> : null}
             </View>
             {(b.items || []).length > 1 ? (
               <View testID={`items-${b.code}`} style={{ marginTop: 8, borderRadius: 12, backgroundColor: softBg, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 12, paddingVertical: 8, gap: 4 }}>
                 {b.items.map((it: any, i: number) => (
                   <View key={i} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                    <Text numberOfLines={1} style={{ fontSize: 12.5, color: isDark ? SLATE[300] : SLATE[600], flex: 1 }}>{i + 1}. {it.service_name || it.name || it.custom_name}{(it.qty || 1) > 1 ? ` × ${it.qty}` : ""}</Text>
-                    <Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? SLATE[200] : SLATE[700] }}>{fmt(it.price ?? it.total ?? it.custom_price ?? 0)}</Text>
+                    <Text numberOfLines={1} style={{ fontSize: 12.5, color: isDark ? SLATE[300] : TC.textMuted, flex: 1 }}>{i + 1}. {it.service_name || it.name || it.custom_name}{(it.qty || 1) > 1 ? ` × ${it.qty}` : ""}</Text>
+                    <Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2 }}>{fmt(it.price ?? it.total ?? it.custom_price ?? 0)}</Text>
                   </View>
                 ))}
               </View>
@@ -291,7 +292,7 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
         <View testID={`reschedule-pending-${b.code}`} style={{ marginTop: 12, borderRadius: 16, borderWidth: 2, borderColor: AMBER[300], backgroundColor: amberSoft, padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Clock size={16} color={AMBER[700]} /><Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, color: isDark ? AMBER[300] : AMBER[700] }}>Reschedule request · pending</Text></View>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-            <View style={{ flex: 1, borderRadius: 12, backgroundColor: whiteSoft, padding: 10 }}><Text style={{ fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400] }}>Current schedule</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : SLATE[700] }}>{pendingReq.old_date}</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : SLATE[700] }}>{pendingReq.old_time}</Text></View>
+            <View style={{ flex: 1, borderRadius: 12, backgroundColor: whiteSoft, padding: 10 }}><Text style={{ fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>Current schedule</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{pendingReq.old_date}</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{pendingReq.old_time}</Text></View>
             <View style={{ flex: 1, borderRadius: 12, backgroundColor: whiteSoft, padding: 10, borderWidth: 1, borderColor: AMBER[200] }}><Text style={{ fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: AMBER[500] }}>New request</Text><Text style={{ fontSize: 13, fontWeight: "900", color: isDark ? AMBER[300] : AMBER[700] }}>{pendingReq.new_date}</Text><Text style={{ fontSize: 13, fontWeight: "900", color: isDark ? AMBER[300] : AMBER[700] }}>{pendingReq.new_time}</Text></View>
           </View>
           {theyRequested ? (
@@ -313,8 +314,8 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><AlertTriangle size={16} color={AMBER[700]} /><Text style={{ fontSize: 14, fontWeight: "800", color: isDark ? AMBER[300] : "#92400E" }}>Additional work payment pending</Text></View>
           <Text style={{ fontSize: 12.5, color: isDark ? AMBER[200] : AMBER[700], marginTop: 4 }}>Your partner added extra work/parts. Please complete this payment — the job finishes only after the additional payment.</Text>
           <View style={{ marginTop: 10, backgroundColor: whiteSoft, borderRadius: 8, padding: 10, gap: 4 }}>
-            {(b.additional.items || []).map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 12.5, color: isDark ? SLATE[200] : SLATE[700], flex: 1 }}>{it.description}{it.labour_charge > 0 ? " (+ labour)" : ""}</Text><Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? SLATE[200] : SLATE[700] }}>{fmt((Number(it.part_charge) || 0) + (Number(it.labour_charge) || 0))}</Text></View>)}
-            <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: isDark ? SLATE[700] : SLATE[200], paddingTop: 4 }}><Text style={{ fontSize: 14, fontWeight: "800", color: c.text }}>Additional total</Text><Text style={{ fontSize: 14, fontWeight: "800", color: c.text }}>{fmt(b.additional.total)}</Text></View>
+            {(b.additional.items || []).map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 12.5, color: isDark ? SLATE[200] : TC.text2, flex: 1 }}>{it.description}{it.labour_charge > 0 ? " (+ labour)" : ""}</Text><Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2 }}>{fmt((Number(it.part_charge) || 0) + (Number(it.labour_charge) || 0))}</Text></View>)}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: isDark ? SLATE[700] : TC.border, paddingTop: 4 }}><Text style={{ fontSize: 14, fontWeight: "800", color: c.text }}>Additional total</Text><Text style={{ fontSize: 14, fontWeight: "800", color: c.text }}>{fmt(b.additional.total)}</Text></View>
           </View>
           <Pressable testID={`pay-addl-${b.code}`} onPress={() => a.onPayAddl(b)} style={{ marginTop: 12, height: 40, borderRadius: 8, backgroundColor: AMBER[600], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Pay {fmt(b.additional.total)} for additional work</Text></Pressable>
         </View>
@@ -342,8 +343,8 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
           <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: c.primaryText, marginBottom: 8 }}>Spare parts requested</Text>
           <View style={{ gap: 8 }}>
             {b.spare_parts.map((sp: any) => (
-              <View key={sp.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: isDark ? SLATE[800] : SLATE[50], borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, gap: 8 }}>
-                <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>{sp.name} × {sp.quantity}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>{fmt(sp.total)}{sp.notes ? ` · ${sp.notes}` : ""}</Text></View>
+              <View key={sp.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: isDark ? SLATE[800] : TC.bg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, gap: 8 }}>
+                <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>{sp.name} × {sp.quantity}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{fmt(sp.total)}{sp.notes ? ` · ${sp.notes}` : ""}</Text></View>
                 {sp.status === "pending" ? (
                   <View style={{ flexDirection: "row", gap: 4 }}>
                     <Pressable testID={`spare-approve-${sp.id}`} onPress={() => a.onSpare(b, sp.id, "approve")} style={{ height: 28, paddingHorizontal: 8, borderRadius: 6, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>Approve</Text></Pressable>

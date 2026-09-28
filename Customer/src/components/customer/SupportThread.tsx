@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Support ticket thread — port of web SupportCenter.jsx `Thread` (mobile: conversation + info panel below). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
@@ -15,7 +16,7 @@ const InfoRow = ({ icon: Icon, label, value, testID }: { icon: any; label: strin
   const { c } = useTheme();
   return (
     <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingVertical: 6 }}>
-      <Icon size={16} color={SLATE[400]} style={{ marginTop: 1 }} /><Text style={{ fontSize: 12, color: SLATE[500], width: 96 }}>{label}</Text>
+      <Icon size={16} color={TC.textFaint} style={{ marginTop: 1 }} /><Text style={{ fontSize: 12, color: TC.textMuted, width: 96 }}>{label}</Text>
       {typeof value === "string" || !value ? <Text testID={testID} style={{ fontSize: 12, fontWeight: "500", color: c.text, flex: 1 }}>{value || "—"}</Text> : <View style={{ flex: 1 }}>{value}</View>}
     </View>
   );
@@ -82,7 +83,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const allAttachments = (t.messages || []).flatMap((m: any) => m.attachments || []);
   const others = (tickets || []).filter((x) => x.id !== ticket.id);
   const panel = { borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
-  const sec = { fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 0.8, color: SLATE[400], fontWeight: "700" as const, marginBottom: 8 };
+  const sec = { fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 0.8, color: TC.textFaint, fontWeight: "700" as const, marginBottom: 8 };
 
   return (
     <View testID="support-thread" style={{ gap: 16 }}>
@@ -92,8 +93,8 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
           <Pressable testID="support-thread-back" onPress={onBack} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={16} color={c.text} /></Pressable>
           <View style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color={c.primaryText} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: c.text }}><Text style={{ fontSize: 12, color: SLATE[400], fontFamily: "monospace" }}>{t.code}</Text>  {t.subject}</Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ fontSize: 11, color: SLATE[400] }}>Updated {ago(t.updated_at)}</Text><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 11, color: EMERALD[500] }}>Live</Text></View>
+            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: c.text }}><Text style={{ fontSize: 12, color: TC.textFaint, fontFamily: "monospace" }}>{t.code}</Text>  {t.subject}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ fontSize: 11, color: TC.textFaint }}>Updated {ago(t.updated_at)}</Text><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 11, color: EMERALD[500] }}>Live</Text></View>
           </View>
           <Badge testID="thread-status" style={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
           {!closed ? <Pressable testID="support-thread-menu" onPress={() => setMenuOpen((v) => !v)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><MoreVertical size={16} color={c.text} /></Pressable> : null}
@@ -111,18 +112,18 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
             const mine = m.sender_id === myId; const isAdmin = m.sender_role === "admin";
             return (
               <View key={m.id} style={{ gap: 8 }}>
-                {sep ? <View style={{ alignItems: "center", marginVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: SLATE[400], backgroundColor: isDark ? SLATE[800] : "rgba(226,232,240,0.7)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{sep}</Text></View> : null}
-                {m.system ? <View style={{ alignItems: "center" }}><Text style={{ fontSize: 11, color: SLATE[400], backgroundColor: isDark ? SLATE[800] : SLATE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{m.text}</Text></View> : (
+                {sep ? <View style={{ alignItems: "center", marginVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : "rgba(226,232,240,0.7)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{sep}</Text></View> : null}
+                {m.system ? <View style={{ alignItems: "center" }}><Text style={{ fontSize: 11, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{m.text}</Text></View> : (
                   <View testID={`support-msg-${m.id}`} style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, justifyContent: mine ? "flex-end" : "flex-start" }}>
                     {!mine ? <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={14} color={c.primaryText} /></View> : null}
                     <View style={{ maxWidth: "76%", gap: 4, alignItems: mine ? "flex-end" : "flex-start" }}>
-                      {!mine ? <Text style={{ fontSize: 11, fontWeight: "600", color: SLATE[500], paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
+                      {!mine ? <Text style={{ fontSize: 11, fontWeight: "600", color: TC.textMuted, paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
                       {(m.attachments || []).length > 0 ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{m.attachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View> : null}
                       {m.text ? (
                         <View style={{ borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD[500] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.borderSoft }}>
                           <Text style={{ fontSize: 14, color: mine ? "#fff" : (isDark ? SLATE[100] : SLATE[700]) }}>{m.text}</Text>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, justifyContent: mine ? "flex-end" : "flex-start" }}>
-                            <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.8)" : SLATE[400] }}>{timeStr(m.at)}</Text>
+                            <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.8)" : TC.textFaint }}>{timeStr(m.at)}</Text>
                             {mine ? (t.unread_admin === 0 ? <CheckCheck size={12} color="rgba(255,255,255,0.8)" /> : <Check size={12} color="rgba(255,255,255,0.8)" />) : null}
                           </View>
                         </View>
@@ -145,7 +146,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
         {/* composer */}
         {closed ? (
           <View testID="support-closed-note" style={{ paddingHorizontal: 16, paddingVertical: 16, borderTopWidth: 1, borderTopColor: c.borderSoft, backgroundColor: c.bg, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            <CheckCircle2 size={16} color={EMERALD[500]} /><Text style={{ fontSize: 14, color: SLATE[500], flex: 1 }}>This ticket is closed. Please raise a new ticket for further help.</Text>
+            <CheckCircle2 size={16} color={EMERALD[500]} /><Text style={{ fontSize: 14, color: TC.textMuted, flex: 1 }}>This ticket is closed. Please raise a new ticket for further help.</Text>
           </View>
         ) : (
           <View style={{ borderTopWidth: 1, borderTopColor: c.borderSoft, padding: 12, gap: 8 }}>
@@ -159,9 +160,9 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
                 ))}
               </View>
             ) : null}
-            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], padding: 8 }}>
-              <Pressable testID="support-attach-btn" onPress={pickFiles} disabled={uploading} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" }}>{uploading ? <ActivityIndicator size="small" color={SLATE[500]} /> : <Paperclip size={16} color={SLATE[500]} />}</Pressable>
-              <TextInput testID="support-reply-input" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={SLATE[400]} multiline style={{ flex: 1, fontSize: 14, color: c.text, paddingHorizontal: 4, paddingVertical: 8, maxHeight: 112, outlineStyle: "none" } as any} />
+            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, padding: 8 }}>
+              <Pressable testID="support-attach-btn" onPress={pickFiles} disabled={uploading} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" }}>{uploading ? <ActivityIndicator size="small" color={TC.textMuted} /> : <Paperclip size={16} color={TC.textMuted} />}</Pressable>
+              <TextInput testID="support-reply-input" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={TC.textFaint} multiline style={{ flex: 1, fontSize: 14, color: c.text, paddingHorizontal: 4, paddingVertical: 8, maxHeight: 112, outlineStyle: "none" } as any} />
               <Pressable testID="support-send-btn" onPress={send} disabled={sending || (!text.trim() && pending.length === 0)} style={({ pressed }) => ({ height: 36, paddingHorizontal: 16, borderRadius: 8, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 4, opacity: sending || (!text.trim() && pending.length === 0) ? 0.5 : 1 })}>
                 {sending ? <ActivityIndicator size="small" color="#fff" /> : <><Send size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Send</Text></>}
               </Pressable>
@@ -184,11 +185,11 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
         </View>
         <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
           <Text style={sec}>Attachments · {allAttachments.length}</Text>
-          {allAttachments.length === 0 ? <Text style={{ fontSize: 12, color: SLATE[400] }}>No attachments yet — use the clip icon to add screenshots.</Text> : <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{allAttachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View>}
+          {allAttachments.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>No attachments yet — use the clip icon to add screenshots.</Text> : <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{allAttachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View>}
         </View>
         <View style={{ padding: 16 }}>
           <Text style={sec}>Your other tickets · {others.length}</Text>
-          {others.length === 0 ? <Text style={{ fontSize: 12, color: SLATE[400] }}>This is your only ticket.</Text> : (
+          {others.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>This is your only ticket.</Text> : (
             <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 10, paddingVertical: 6 }}><Text numberOfLines={1} style={{ fontSize: 12, color: c.text, flex: 1 }}>{p.subject}</Text><Badge style={STATUS_STYLE[p.status]}>{STATUS_LABEL[p.status]}</Badge></View>)}</View>
           )}
         </View>

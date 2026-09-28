@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Shared helpers for Support Center (port of web SupportCenter.jsx constants). */
 import React from "react";
 import { View, Text, Pressable, Platform, Linking } from "react-native";
@@ -41,12 +42,12 @@ export const Badge = ({ style, children, testID }: { style?: { bg: string; fg: s
 export function AttachmentView({ a, onOpen }: { a: any; onOpen?: (url: string) => void }) {
   if (a.kind === "pdf") {
     return (
-      <Pressable onPress={() => Linking.openURL(a.url)} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }}>
-        <FileText size={16} color="#EF4444" /><Text numberOfLines={1} style={{ fontSize: 12, color: SLATE[700] }}>{a.name || "Document.pdf"}</Text>
+      <Pressable onPress={() => Linking.openURL(a.url)} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }}>
+        <FileText size={16} color="#EF4444" /><Text numberOfLines={1} style={{ fontSize: 12, color: TC.text2 }}>{a.name || "Document.pdf"}</Text>
       </Pressable>
     );
   }
-  return <Pressable onPress={() => onOpen?.(a.url)} style={{ borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: SLATE[200] }}><Image source={{ uri: a.thumb_url || a.url }} style={{ height: 96, width: 96 }} contentFit="cover" /></Pressable>;
+  return <Pressable onPress={() => onOpen?.(a.url)} style={{ borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: TC.border }}><Image source={{ uri: a.thumb_url || a.url }} style={{ height: 96, width: 96 }} contentFit="cover" /></Pressable>;
 }
 
 /* Build a multipart body for POST /support/upload from an expo-image-picker asset. */

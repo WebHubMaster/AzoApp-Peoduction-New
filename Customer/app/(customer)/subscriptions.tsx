@@ -7,7 +7,7 @@ import { View, Text, Pressable, ScrollView, TextInput, Linking } from "react-nat
 import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
-import { PRIMARY, SLATE, EMERALD, useTheme } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, AMBER, useTheme, TC } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
 
 const ROSE = "#F43F5E";
@@ -20,7 +20,7 @@ const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   in_progress: { label: "In progress", color: "#B45309", bg: "#FFFBEB" },
   maid_absent: { label: "Maid absent", color: ROSE, bg: "#FFF1F2" },
   customer_cancel: { label: "Cancelled by you", color: "#D97706", bg: "#FFFBEB" },
-  weekly_off: { label: "Weekly off", color: "#64748B", bg: "#F1F5F9" },
+  weekly_off: { label: "Weekly off", color: TC.textMuted, bg: "#F1F5F9" },
   scheduled: { label: "Upcoming", color: "#0659B2", bg: "#F0F7FE" },
 };
 
@@ -81,10 +81,10 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
                 style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 14, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
-                  <Text style={{ color: PRIMARY[700], fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
+                  <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
                 </View>
                 <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 4 }}>{p.working_days} working days · {p.duration_days}-day period</Text>
-                {on ? <CheckCircle2 size={16} color={PRIMARY[700]} style={{ position: "absolute", top: 12, right: 12 }} /> : null}
+                {on ? <CheckCircle2 size={16} color={TC.primaryText} style={{ position: "absolute", top: 12, right: 12 }} /> : null}
               </Pressable>
             );
           })}
@@ -94,26 +94,26 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
         <View style={{ flexDirection: "row", gap: 8 }}>
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Start date</Text>
-            <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={SLATE[400]}
+            <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={TC.textFaint}
               style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 12, paddingHorizontal: 12, color: c.text }} />
           </View>
           <View style={{ width: 120 }}>
             <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Time</Text>
-            <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={SLATE[400]}
+            <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={TC.textFaint}
               style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 12, paddingHorizontal: 12, color: c.text }} />
           </View>
         </View>
 
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Service address</Text>
         {addresses.length === 0 ? (
-          <Text style={{ color: SLATE[400], fontSize: 13 }}>No saved address. Please add one from My Addresses.</Text>
+          <Text style={{ color: TC.textFaint, fontSize: 13 }}>No saved address. Please add one from My Addresses.</Text>
         ) : (
           <View style={{ gap: 8 }}>
             {addresses.map((a) => {
               const on = a.id === addrId;
               return (
                 <Pressable key={a.id} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 12, padding: 10 }}>
-                  <MapPin size={16} color={PRIMARY[700]} />
+                  <MapPin size={16} color={TC.primaryText} />
                   <Text style={{ color: c.text, fontSize: 13, flex: 1 }}>{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</Text>
                 </Pressable>
               );
@@ -140,7 +140,7 @@ function OverviewChip({ icon: Icon, label, value, color, bg }: any) {
         <Icon size={16} color={color} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: SLATE[400], fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</Text>
+        <Text style={{ color: TC.textFaint, fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{label}</Text>
         <Text style={{ color: c.text, fontSize: 14, fontWeight: "800", marginTop: 1 }}>{value}</Text>
       </View>
     </View>
@@ -177,8 +177,8 @@ function SubCard({ s }: { s: any }) {
       {/* header */}
       <View style={{ padding: 14, gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center" }}>
-            <CalendarHeart size={20} color={PRIMARY[700]} />
+          <View style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+            <CalendarHeart size={20} color={TC.primaryText} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.service_name}</Text>
@@ -190,23 +190,23 @@ function SubCard({ s }: { s: any }) {
         </View>
         <Text style={{ color: c.textMuted, fontSize: 12 }}>{s.start_date} → {s.end_date}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-          <User size={13} color={SLATE[400]} />
+          <User size={13} color={TC.textFaint} />
           <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "800", color: c.text }}>{s.partner_name || "Assigning soon"}</Text>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</Text>
         </View>
         {active && todayDay?.otp ? (
-          <View testID={`my-sub-otp-${s.id}`} style={{ borderRadius: 10, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 10, paddingVertical: 7 }}>
+          <View testID={`my-sub-otp-${s.id}`} style={{ borderRadius: 10, backgroundColor: AMBER[50], borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 10, paddingVertical: 7 }}>
             <Text style={{ color: "#B45309", fontSize: 11, fontWeight: "700" }}>Today's service OTP: <Text style={{ fontWeight: "800", letterSpacing: 2 }}>{todayDay.otp}</Text> — share with your maid to start the service</Text>
           </View>
         ) : null}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
-          <Text style={{ color: SLATE[400], fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
+          <Text style={{ color: TC.textFaint, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
           <Text style={{ color: c.text, fontWeight: "800", fontSize: 20 }}>{money(s.price)}</Text>
         </View>
       </View>
 
       {/* overview chips */}
       <View style={{ paddingHorizontal: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <OverviewChip icon={IndianRupee} label="Customer Paid" value={money(s.price)} color={PRIMARY[700]} bg={PRIMARY[50]} />
+        <OverviewChip icon={IndianRupee} label="Customer Paid" value={money(s.price)} color={TC.primaryText} bg={PRIMARY[50]} />
         <OverviewChip icon={Calendar} label="Working Days" value={String(wd)} color="#0659B2" bg="#F0F7FE" />
         <OverviewChip icon={CheckCircle2} label="Completed" value={String(done)} color="#059669" bg="#ECFDF5" />
         <OverviewChip icon={XCircle} label="Absent" value={String(absent)} color={ROSE} bg="#FFF1F2" />
@@ -227,9 +227,9 @@ function SubCard({ s }: { s: any }) {
       {/* actions */}
       <View style={{ paddingHorizontal: 14, paddingBottom: 14, flexDirection: "row", gap: 8 }}>
         <Pressable testID={`my-sub-details-btn-${s.id}`} onPress={() => setOpen(!open)}
-          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: PRIMARY[200], backgroundColor: PRIMARY[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
-          <Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 13 }}>{open ? "Hide Details" : "View Details"}</Text>
-          <ChevronDown size={15} color={PRIMARY[700]} style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }} />
+          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: PRIMARY[200], backgroundColor: TC.primarySoft, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>{open ? "Hide Details" : "View Details"}</Text>
+          <ChevronDown size={15} color={TC.primaryText} style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }} />
         </Pressable>
         <Pressable testID={`my-sub-invoice-btn-${s.id}`} disabled={invBusy} onPress={downloadInvoice}
           style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
@@ -292,7 +292,7 @@ function SubCard({ s }: { s: any }) {
                 {s.partner_phone ? (
                   <Pressable testID={`my-sub-call-${s.id}`} onPress={() => Linking.openURL(`tel:${s.partner_phone}`)} style={{ flexDirection: "row", justifyContent: "space-between" }}>
                     <Text style={{ color: c.textMuted, fontSize: 12 }}>Phone</Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Phone size={12} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontSize: 12, fontWeight: "700" }}>{s.partner_phone}</Text></View>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Phone size={12} color={TC.primaryText} /><Text style={{ color: TC.primaryText, fontSize: 12, fontWeight: "700" }}>{s.partner_phone}</Text></View>
                   </Pressable>
                 ) : null}
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -305,7 +305,7 @@ function SubCard({ s }: { s: any }) {
                 </View>
               </>
             ) : (
-              <Text style={{ color: SLATE[400], fontSize: 12 }}>A verified maid will be assigned to your subscription shortly.</Text>
+              <Text style={{ color: TC.textFaint, fontSize: 12 }}>A verified maid will be assigned to your subscription shortly.</Text>
             )}
           </View>
         </View>
@@ -339,7 +339,7 @@ export default function SubscriptionsScreen() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <CalendarHeart size={22} color={PRIMARY[700]} />
+          <CalendarHeart size={22} color={TC.primaryText} />
           <Text style={{ color: c.text, fontSize: 20, fontWeight: "800" }}>Subscriptions</Text>
         </View>
         <SegTabs tabs={[{ key: "browse", label: "Browse Plans" }, { key: "mine", label: "My Subscriptions" }]} value={tab} onChange={setTab} counts={{ mine: mine.length }} />
@@ -356,8 +356,8 @@ export default function SubscriptionsScreen() {
                       <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.name}</Text>
                       <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>{s.category_name} · {(s.subscription_plans || []).length} plans</Text>
                     </View>
-                    <View style={{ backgroundColor: PRIMARY[50], borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
-                      <Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 13 }}>Choose plan</Text>
+                    <View style={{ backgroundColor: TC.primarySoft, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
+                      <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>Choose plan</Text>
                     </View>
                   </View>
                 </Pressable>

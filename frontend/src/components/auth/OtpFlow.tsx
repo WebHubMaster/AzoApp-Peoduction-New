@@ -6,7 +6,7 @@ import { Icon } from "@/src/components/Icon";
 import { api } from "@/src/api/client";
 import { useAuth, AppUser } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
-import { AUTH, Accent } from "./AuthUi";
+import { AUTH, FS, Accent } from "./AuthUi";
 
 export type Role = "partner" | "merchant";
 export type Step = "phone" | "otp" | "name";
@@ -23,7 +23,7 @@ function GradButton({ title, icon, busy, onPress, grad, testID }: { title: strin
   return (
     <Pressable testID={testID} onPress={onPress} disabled={busy} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}>
       <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: busy ? 0.7 : 1 }}>
-        {busy ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: 17, fontWeight: "800" }}>{title}</Text><Icon name={icon} size={22} color="#fff" /></>}
+        {busy ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: FS.label, fontWeight: "800" }}>{title}</Text><Icon name={icon} size={22} color="#fff" /></>}
       </LinearGradient>
     </Pressable>
   );
@@ -102,7 +102,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   };
 
   const ac = accent;
-  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: 16, color: AUTH.ink } as const;
+  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: FS.input, color: AUTH.ink } as const;
 
   if (step === "phone") {
     return (
@@ -110,11 +110,11 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <Icon name="cellphone" size={22} color={AUTH.ink} />
-            <Text style={{ color: AUTH.ink, fontSize: 17, fontWeight: "800" }}>Mobile Number</Text>
+            <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Mobile Number</Text>
           </View>
           <View testID="country-code-pill" style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: AUTH.line, backgroundColor: "#fff" }}>
             <View style={{ width: 22, height: 15, borderRadius: 2, overflow: "hidden" }}><View style={{ flex: 1, backgroundColor: "#FF9933" }} /><View style={{ flex: 1, backgroundColor: "#fff" }} /><View style={{ flex: 1, backgroundColor: "#138808" }} /></View>
-            <Text style={{ color: AUTH.ink, fontSize: 15, fontWeight: "700" }}>+91</Text>
+            <Text style={{ color: AUTH.ink, fontSize: FS.subtitle, fontWeight: "700" }}>+91</Text>
             <Icon name="chevron-down" size={18} color={AUTH.muted} />
           </View>
         </View>
@@ -122,7 +122,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
           style={[inputStyle, { borderColor: phone.length === 10 ? ac.main : AUTH.line, letterSpacing: 0.5, fontWeight: "600" }]} />
         <GradButton testID="send-otp-btn" title="Send OTP" icon="arrow-right" busy={busy === "send"} onPress={sendOtp} grad={ac.grad} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center" }}>
-          <Icon name="lock-outline" size={14} color="#94A3B8" /><Text style={{ color: "#94A3B8", fontSize: 12 }}>Only Partner & Merchant numbers can sign in here</Text>
+          <Icon name="lock-outline" size={14} color="#94A3B8" /><Text style={{ color: "#94A3B8", fontSize: FS.tiny }}>Only Partner & Merchant numbers can sign in here</Text>
         </View>
       </View>
     );
@@ -133,9 +133,9 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
       <View testID="otp-step-otp" style={{ gap: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Icon name="message-text-lock-outline" size={22} color={AUTH.ink} />
-          <Text style={{ color: AUTH.ink, fontSize: 17, fontWeight: "800" }}>Verify OTP</Text>
+          <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Verify OTP</Text>
         </View>
-        <Text style={{ color: AUTH.muted, fontSize: 14 }}>Enter the 6-digit code sent to <Text style={{ fontWeight: "800", color: AUTH.ink }}>+91 {phone}</Text></Text>
+        <Text style={{ color: AUTH.muted, fontSize: FS.subtitle }}>Enter the 6-digit code sent to <Text style={{ fontWeight: "800", color: AUTH.ink }}>+91 {phone}</Text></Text>
         <Pressable onPress={() => otpRef.current?.focus()}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
             {Array.from({ length: 6 }).map((_, i) => {
@@ -151,10 +151,10 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
         </Pressable>
         <GradButton testID="verify-otp-btn" title={mode === "login" ? "Verify & Log In" : "Verify & Continue"} icon="check" busy={busy === "verify"} onPress={verifyOtp} grad={ac.grad} />
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 14 }}>
-          {resendIn > 0 ? <Text testID="resend-timer" style={{ color: "#94A3B8", fontSize: 13, fontWeight: "600" }}>Resend OTP in 0:{String(resendIn).padStart(2, "0")}</Text>
-            : <Pressable testID="resend-otp" onPress={() => { if (!busy) sendOtp(); }} hitSlop={8}><Text style={{ color: ac.dark, fontSize: 13, fontWeight: "800" }}>{busy === "send" ? "Resending…" : "Resend OTP"}</Text></Pressable>}
+          {resendIn > 0 ? <Text testID="resend-timer" style={{ color: "#94A3B8", fontSize: FS.small, fontWeight: "600" }}>Resend OTP in 0:{String(resendIn).padStart(2, "0")}</Text>
+            : <Pressable testID="resend-otp" onPress={() => { if (!busy) sendOtp(); }} hitSlop={8}><Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "800" }}>{busy === "send" ? "Resending…" : "Resend OTP"}</Text></Pressable>}
           <Text style={{ color: "#CBD5E1" }}>•</Text>
-          <Pressable testID="otp-change-number" onPress={() => { setStep("phone"); setOtp(""); }} hitSlop={8}><Text style={{ color: ac.dark, fontSize: 13, fontWeight: "700" }}>Change number</Text></Pressable>
+          <Pressable testID="otp-change-number" onPress={() => { setStep("phone"); setOtp(""); }} hitSlop={8}><Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700" }}>Change number</Text></Pressable>
         </View>
       </View>
     );
@@ -164,11 +164,11 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
     <View testID="otp-step-name" style={{ gap: 14 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: ac.border }}>
         <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={20} color="#fff" /></View>
-        <Text style={{ color: ac.dark, fontSize: 13.5, fontWeight: "700", flex: 1 }}>Mobile verified · creating your {cap(role || "")} account</Text>
+        <Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700", flex: 1 }}>Mobile verified · creating your {cap(role || "")} account</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Icon name="account-outline" size={22} color={AUTH.ink} />
-        <Text style={{ color: AUTH.ink, fontSize: 17, fontWeight: "800" }}>Your Name</Text>
+        <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Your Name</Text>
       </View>
       <TextInput testID="login-name-input" value={name} onChangeText={setName} placeholder="Enter your full name" placeholderTextColor="#94A3B8" autoFocus onSubmitEditing={submitName} style={[inputStyle, { borderColor: name.trim() ? ac.main : AUTH.line, fontWeight: "600" }]} />
       <GradButton testID="continue-signup-btn" title={`Create ${cap(role || "")} Account`} icon="arrow-right" busy={busy === "name"} onPress={submitName} grad={ac.grad} />

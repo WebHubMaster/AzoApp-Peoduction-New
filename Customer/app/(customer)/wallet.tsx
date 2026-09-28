@@ -8,7 +8,7 @@ import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useToast } from "../../src/components/Toast";
 import { fmt, fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
-import { PRIMARY, SLATE, EMERALD, ROSE, useTheme } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "../../src/theme";
 import { StatTile, EmptyState, SearchInput, OptionMenu, DateRangePicker, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
 import { ScratchCardsPanel } from "../../src/components/customer/ScratchCards";
 
@@ -24,11 +24,11 @@ function WalletTopup({ onDone, toast }: { onDone: () => void; toast: any }) {
   return (
     <View style={{ marginTop: 16 }}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
-        {[100, 250, 500, 1000].map((v) => { const on = Number(amt) === v; return <Pressable key={v} testID={`topup-preset-${v}`} onPress={() => setAmt(String(v))} style={({ pressed }) => ({ height: 32, paddingHorizontal: 12, borderRadius: 8, backgroundColor: on ? "#fff" : "rgba(255,255,255,0.2)", justifyContent: "center", transform: [{ scale: pressed ? 0.96 : 1 }] })}><Text style={{ fontSize: 14, fontWeight: "700", color: on ? PRIMARY[700] : "#fff" }}>₹{v}</Text></Pressable>; })}
+        {[100, 250, 500, 1000].map((v) => { const on = Number(amt) === v; return <Pressable key={v} testID={`topup-preset-${v}`} onPress={() => setAmt(String(v))} style={({ pressed }) => ({ height: 32, paddingHorizontal: 12, borderRadius: 8, backgroundColor: on ? "#fff" : "rgba(255,255,255,0.2)", justifyContent: "center", transform: [{ scale: pressed ? 0.96 : 1 }] })}><Text style={{ fontSize: 14, fontWeight: "700", color: on ? PRIMARY[700] : TC.surface }}>₹{v}</Text></Pressable>; })}
       </View>
       <View style={{ flexDirection: "row", gap: 8 }}>
         <TextInput testID="topup-amount" value={amt} onChangeText={(v) => setAmt(v.replace(/[^0-9]/g, ""))} keyboardType="numeric" placeholder="Amount" placeholderTextColor="rgba(255,255,255,0.6)" style={{ width: 112, height: 40, borderRadius: 8, borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", paddingHorizontal: 12, fontSize: 14, outlineStyle: "none" } as any} />
-        <Pressable testID="topup-btn" disabled={busy || !Number(amt)} onPress={add} style={{ flex: 1, height: 40, borderRadius: 8, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", opacity: busy || !Number(amt) ? 0.6 : 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: PRIMARY[700] }}>{busy ? "Processing…" : "Add Money"}</Text></Pressable>
+        <Pressable testID="topup-btn" disabled={busy || !Number(amt)} onPress={add} style={{ flex: 1, height: 40, borderRadius: 8, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center", opacity: busy || !Number(amt) ? 0.6 : 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{busy ? "Processing…" : "Add Money"}</Text></Pressable>
       </View>
     </View>
   );
@@ -89,7 +89,7 @@ export default function WalletScreen() {
                 <View style={{ height: 40, width: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: credit ? (isDark ? "rgba(6,78,59,0.3)" : EMERALD[50]) : (isDark ? "rgba(136,19,55,0.3)" : ROSE[50]) }}>{credit ? <TrendingUp size={20} color={EMERALD[600]} /> : <IndianRupee size={20} color={ROSE[600]} />}</View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "600", color: c.text, textTransform: "capitalize" }}>{(t.kind || "").replace(/_/g, " ")}</Text>
-                  <Text numberOfLines={1} style={{ fontSize: 12, color: SLATE[400] }}>{t.note} · {fmtTs(t.created_at)}</Text>
+                  <Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{t.note} · {fmtTs(t.created_at)}</Text>
                 </View>
               </View>
               <Text style={{ fontSize: 15, fontWeight: "700", color: credit ? EMERALD[600] : (isDark ? SLATE[200] : SLATE[700]) }}>{credit ? "+" : "-"}{fmt(t.amount)}</Text>

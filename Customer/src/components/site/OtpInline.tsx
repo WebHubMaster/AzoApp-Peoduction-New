@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Inline guest OTP verify inside Checkout "Your Info" — mobile → OTP → (name only if NEW user) → auto-registered customer.
  *  Existing numbers log straight in; brand-new numbers are asked for a name before the account is created. */
 import React, { useRef, useState } from "react";
@@ -8,7 +9,7 @@ import { useToast } from "../Toast";
 import { PRIMARY, SLATE, ROSE } from "../../theme";
 import { onlyDigits, onlyAlpha } from "../../lib/format";
 
-const input = { height: 50, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", fontSize: 16, color: SLATE[900], outlineStyle: "none" } as any;
+const input = { height: 50, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.input; }, fontSize: 16, get color() { return TC.text; }, outlineStyle: "none" } as any;
 const Btn = ({ label, onPress, busy, disabled, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; testID: string }) => (
   <Pressable testID={testID} onPress={onPress} disabled={busy || disabled} style={({ pressed }) => ({ height: 50, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.7 : disabled ? 0.5 : 1 })}>
     {busy ? <ActivityIndicator color="#fff" size="small" /> : null}
@@ -85,22 +86,22 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
   return (
     <View testID="otp-inline" style={{ gap: 12 }}>
       {step === 1 ? <>
-        <Text style={{ fontSize: 13, fontWeight: "700", color: SLATE[500], textTransform: "uppercase", letterSpacing: 0.6 }}>Mobile number</Text>
+        <Text style={{ fontSize: 13, fontWeight: "700", color: TC.textMuted, textTransform: "uppercase", letterSpacing: 0.6 }}>Mobile number</Text>
         <View style={{ flexDirection: "row", alignItems: "center", ...input, paddingHorizontal: 0 }}>
-          <Text style={{ paddingHorizontal: 14, fontSize: 16, fontWeight: "700", color: SLATE[600], borderRightWidth: 1, borderRightColor: SLATE[200], height: 48, lineHeight: 48 }}>+91</Text>
-          <TextInput testID="otp-phone" value={phone} onChangeText={(v) => setPhone(tenDigits(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" maxLength={10} numberOfLines={1} onSubmitEditing={send} placeholder="10-digit mobile number" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 48, paddingHorizontal: 12, fontSize: 16, color: SLATE[900], outlineStyle: "none" } as any} />
+          <Text style={{ paddingHorizontal: 14, fontSize: 16, fontWeight: "700", color: TC.textMuted, borderRightWidth: 1, borderRightColor: TC.border, height: 48, lineHeight: 48 }}>+91</Text>
+          <TextInput testID="otp-phone" value={phone} onChangeText={(v) => setPhone(tenDigits(v))} keyboardType="phone-pad" autoComplete="tel" textContentType="telephoneNumber" maxLength={10} numberOfLines={1} onSubmitEditing={send} placeholder="10-digit mobile number" placeholderTextColor={TC.textFaint} style={{ flex: 1, height: 48, paddingHorizontal: 12, fontSize: 16, color: TC.text, outlineStyle: "none" } as any} />
         </View>
         <Btn testID="otp-send" label="Send OTP" onPress={send} busy={busy} />
       </> : null}
       {step === 2 ? <>
-        <Text style={{ fontSize: 14, color: SLATE[500] }}>OTP sent to <Text style={{ fontWeight: "700", color: SLATE[800] }}>{normalized()}</Text> · <Text testID="otp-change" onPress={() => { setStep(1); setOtp(""); setErr(""); }} style={{ color: PRIMARY[700], fontWeight: "600" }}>Change</Text></Text>
+        <Text style={{ fontSize: 14, color: TC.textMuted }}>OTP sent to <Text style={{ fontWeight: "700", color: TC.text }}>{normalized()}</Text> · <Text testID="otp-change" onPress={() => { setStep(1); setOtp(""); setErr(""); }} style={{ color: TC.primaryText, fontWeight: "600" }}>Change</Text></Text>
         <Pressable testID="otp-boxes" onPress={() => otpRef.current?.focus()}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
             {Array.from({ length: OTP_LEN }).map((_, i) => {
               const focused = i === Math.min(otp.length, OTP_LEN - 1);
               return (
-                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 12, borderWidth: 2, borderColor: focused ? PRIMARY[600] : SLATE[200], backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
-                  <Text style={{ fontSize: 20, fontWeight: "800", color: SLATE[800] }}>{otp[i] || ""}</Text>
+                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 12, borderWidth: 2, borderColor: focused ? PRIMARY[600] : TC.border, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{otp[i] || ""}</Text>
                 </View>
               );
             })}
@@ -109,14 +110,14 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
             style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
         </Pressable>
         <Btn testID="otp-verify" label="Verify OTP & continue" onPress={() => verify()} busy={busy} disabled={otp.length < OTP_LEN} />
-        <Pressable testID="otp-resend" onPress={send} disabled={busy} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 14, color: PRIMARY[700], fontWeight: "600" }}>Resend OTP</Text></Pressable>
+        <Pressable testID="otp-resend" onPress={send} disabled={busy} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 14, color: TC.primaryText, fontWeight: "600" }}>Resend OTP</Text></Pressable>
       </> : null}
       {step === 3 ? <>
-        <Text style={{ fontSize: 14, fontWeight: "700", color: SLATE[800] }}>Welcome! What&apos;s your name?</Text>
-        <Text style={{ fontSize: 13, color: SLATE[500] }}>We&apos;ll create your account so you can track this and future bookings.</Text>
-        <TextInput testID="otp-name" value={name} onChangeText={(v) => setName(onlyAlpha(v))} autoFocus autoComplete="name" textContentType="name" placeholder="Your full name" placeholderTextColor={SLATE[400]} onSubmitEditing={continueSignup} style={input} />
+        <Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>Welcome! What&apos;s your name?</Text>
+        <Text style={{ fontSize: 13, color: TC.textMuted }}>We&apos;ll create your account so you can track this and future bookings.</Text>
+        <TextInput testID="otp-name" value={name} onChangeText={(v) => setName(onlyAlpha(v))} autoFocus autoComplete="name" textContentType="name" placeholder="Your full name" placeholderTextColor={TC.textFaint} onSubmitEditing={continueSignup} style={input} />
         <Btn testID="otp-continue-signup" label="Continue" onPress={continueSignup} busy={busy} />
-        <Pressable testID="otp-change-2" onPress={() => { setStep(1); setOtp(""); setName(""); setErr(""); }} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 13, color: PRIMARY[700], fontWeight: "600" }}>← Change number</Text></Pressable>
+        <Pressable testID="otp-change-2" onPress={() => { setStep(1); setOtp(""); setName(""); setErr(""); }} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 13, color: TC.primaryText, fontWeight: "600" }}>← Change number</Text></Pressable>
       </> : null}
       {err ? <Text testID="otp-error" style={{ fontSize: 13, color: ROSE[600], fontWeight: "600" }}>{err}</Text> : null}
     </View>

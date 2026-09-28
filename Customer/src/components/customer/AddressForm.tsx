@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Port of web_panel AddressForm.jsx + AddressMap fallback (OSM embed). Feature blocks gated by admin address_config. */
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, ActivityIndicator, Platform } from "react-native";
@@ -18,7 +19,7 @@ export const emptyAddress = () => ({
   lat: null as number | null, lng: null as number | null, is_default: false,
 });
 
-const Lbl = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400] }}>{children}</Text>;
+const Lbl = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>{children}</Text>;
 
 function AddressMap({ lat, lng }: { lat: any; lng: any }) {
   const { isDark } = useTheme();
@@ -26,7 +27,7 @@ function AddressMap({ lat, lng }: { lat: any; lng: any }) {
   const la = Number(lat), ln = Number(lng);
   if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${ln - 0.008}%2C${la - 0.008}%2C${ln + 0.008}%2C${la + 0.008}&layer=mapnik&marker=${la}%2C${ln}`;
-  const box = { height: 176, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], overflow: "hidden" as const };
+  const box = { height: 176, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, overflow: "hidden" as const };
   if (Platform.OS === "web") return <View testID="address-map" style={box}>{React.createElement("iframe", { title: "address-map", src, style: { width: "100%", height: "100%", border: 0 } })}</View>;
   return <View testID="address-map" style={box}><WebView source={{ uri: src }} style={{ flex: 1 }} /></View>;
 }
@@ -76,17 +77,17 @@ export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { v
   return (
     <View testID="address-form" style={{ gap: 12 }}>
       <Pressable testID="gps-detect-btn" onPress={detect} disabled={locating} style={{ height: 44, borderRadius: 8, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: locating ? 0.6 : 1, borderColor: hasPoint ? EMERALD[300] : PRIMARY[300], backgroundColor: hasPoint ? EMERALD[50] : PRIMARY[50] }}>
-        {locating ? <ActivityIndicator size="small" color={PRIMARY[700]} /> : hasPoint ? <CheckCircle2 size={16} color={EMERALD[700]} /> : <Navigation size={16} color={PRIMARY[700]} />}
+        {locating ? <ActivityIndicator size="small" color={TC.primaryText} /> : hasPoint ? <CheckCircle2 size={16} color={EMERALD[700]} /> : <Navigation size={16} color={TC.primaryText} />}
         <Text style={{ fontSize: 14, fontWeight: "600", color: hasPoint ? EMERALD[700] : PRIMARY[700] }}>{locating ? "Detecting location…" : hasPoint ? "Location set — tap to update" : "Use my current location"}</Text>
       </Pressable>
-      {!hasPoint ? <View testID="gps-required-hint" style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: -6 }}><AlertCircle size={12} color={AMBER[500]} /><Text style={{ fontSize: 11, color: SLATE[400] }}>Required — we auto-fill your city & pincode from your location.</Text></View> : null}
+      {!hasPoint ? <View testID="gps-required-hint" style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: -6 }}><AlertCircle size={12} color={AMBER[500]} /><Text style={{ fontSize: 11, color: TC.textFaint }}>Required — we auto-fill your city & pincode from your location.</Text></View> : null}
 
       <AddressMap lat={value.lat} lng={value.lng} />
 
       <View>
         <Lbl>Address Label</Lbl>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-          {LABELS.map((l) => <Pressable key={l} testID={`addr-label-${l.toLowerCase()}`} onPress={() => set("label", l)} style={pin(value.label === l)}><Text style={{ fontSize: 12, fontWeight: "500", color: value.label === l ? c.primaryText : SLATE[500] }}>{l}</Text></Pressable>)}
+          {LABELS.map((l) => <Pressable key={l} testID={`addr-label-${l.toLowerCase()}`} onPress={() => set("label", l)} style={pin(value.label === l)}><Text style={{ fontSize: 12, fontWeight: "500", color: value.label === l ? c.primaryText : TC.textMuted }}>{l}</Text></Pressable>)}
         </View>
       </View>
 
@@ -98,7 +99,7 @@ export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { v
 
       {String(value.pincode || "").length === 6 && (svcChecking || svc) ? (
         <View testID="serviceability-status" style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: svcChecking ? (isDark ? SLATE[800] : SLATE[100]) : svc?.serviceable ? EMERALD[50] : ROSE[50] }}>
-          {svcChecking ? <><ActivityIndicator size="small" color={SLATE[500]} /><Text style={{ fontSize: 12, fontWeight: "600", color: SLATE[600] }}>Checking availability…</Text></>
+          {svcChecking ? <><ActivityIndicator size="small" color={TC.textMuted} /><Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>Checking availability…</Text></>
             : svc?.serviceable ? <><CheckCircle2 size={16} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></>
             : <View style={{ flex: 1, flexDirection: "row", gap: 6 }}><AlertTriangle size={16} color={ROSE[600]} /><Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: ROSE[600] }}>We don&apos;t serve this pincode yet, so this booking can&apos;t be placed here.{Array.isArray(svc?.serviced_cities) && svc.serviced_cities.length > 0 ? <Text> Currently serving: <Text style={{ fontWeight: "800" }}>{svc.serviced_cities.slice(0, 12).join(", ")}</Text>.</Text> : null}</Text></View>}
         </View>

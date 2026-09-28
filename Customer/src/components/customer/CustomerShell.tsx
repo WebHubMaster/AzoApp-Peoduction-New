@@ -11,7 +11,7 @@ import { Image } from "expo-image";
 import { MapPin, Moon, Sun, MoreHorizontal, LogOut, Globe } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
-import { useTheme, PRIMARY, SLATE, ROSE } from "@/src/theme";
+import { useTheme, PRIMARY, SLATE, ROSE, TC } from "@/src/theme";
 import { NAV, MOBILE_PRIMARY, NavKey, NavItem } from "@/src/components/customer/nav";
 import { NotificationBell } from "@/src/components/customer/NotificationBell";
 
@@ -30,7 +30,7 @@ function ThemeToggle() {
   const { isDark, toggle, c } = useTheme();
   return (
     <Pressable testID="theme-toggle" onPress={toggle} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-      {isDark ? <Sun size={20} color="#FCD34D" /> : <Moon size={20} color={SLATE[600]} />}
+      {isDark ? <Sun size={20} color="#FCD34D" /> : <Moon size={20} color={TC.textMuted} />}
     </Pressable>
   );
 }
@@ -76,7 +76,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                 <MapPin size={12} color={PRIMARY[600]} /><Text style={{ fontSize: 11, color: c.textFaint }}>Deliver to</Text>
               </View>
-              <Text testID="header-location" numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: isDark ? "#fff" : SLATE[800], lineHeight: 18 }}>{location}</Text>
+              <Text testID="header-location" numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: isDark ? "#fff" : TC.text, lineHeight: 18 }}>{location}</Text>
             </View>
           )}
           <Pressable testID="m-goto-site" onPress={() => router.replace("/(site)")} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
@@ -107,7 +107,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
         })}
         <Pressable testID="m-nav-more" onPress={() => setMoreOpen(true)} style={({ pressed }) => ({ flex: 1, height: 64, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
           <NavIcon on={moreOpen || moreNav.some((n) => n.key === active)} icon={MoreHorizontal} />
-          <Text style={{ fontSize: 10, fontWeight: "700", color: moreOpen || moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : SLATE[400] }}>More</Text>
+          <Text style={{ fontSize: 10, fontWeight: "700", color: moreOpen || moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : TC.textFaint }}>More</Text>
         </Pressable>
       </View>
 
@@ -126,7 +126,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
                   <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: isDark ? "rgba(7,52,115,0.40)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}>
                     <n.icon size={20} color={c.primaryText} />
                   </View>
-                  <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: isDark ? SLATE[200] : SLATE[700] }}>{n.label}</Text>
+                  <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: isDark ? SLATE[200] : TC.text2 }}>{n.label}</Text>
                 </Pressable>
               );
             })}
@@ -144,7 +144,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
 function NavIcon({ on, icon: IconCmp, badge = 0, testID }: { on: boolean; icon: any; badge?: number; testID?: string }) {
   const inner = (
     <>
-      <IconCmp size={18} color={on ? "#fff" : SLATE[400]} strokeWidth={2} />
+      <IconCmp size={18} color={on ? "#fff" : TC.textFaint} strokeWidth={2} />
       {badge > 0 ? (
         <View testID={testID} style={{ position: "absolute", top: -4, right: -4, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#fff" }}>
           <Text style={{ color: "#fff", fontSize: 9, fontWeight: "700" }}>{badge > 9 ? "9+" : badge}</Text>

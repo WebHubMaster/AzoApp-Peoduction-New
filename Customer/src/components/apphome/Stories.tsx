@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Video "stories" — Instagram-style tappable story cards on the home screen.
  * Cards come from an admin custom section (type "stories") via GET /app/home.
  * Tapping a card opens a full-screen viewer that plays the short video (WebView). */
@@ -31,8 +32,8 @@ export function StoriesRow({ sec, onOpen }: { sec: any; onOpen: (index: number) 
                 <Image source={{ uri: s.avatar }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
               </View>
             ) : (
-              <View style={{ position: "absolute", top: 8, left: 8, height: 30, width: 30, borderRadius: 15, backgroundColor: "rgba(255,255,255,0.9)", alignItems: "center", justifyContent: "center" }}>
-                <Play size={14} color={PRIMARY[700]} fill={PRIMARY[700]} />
+              <View style={{ position: "absolute", top: 8, left: 8, height: 30, width: 30, borderRadius: 15, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
+                <Play size={14} color={TC.primaryText} fill={PRIMARY[700]} />
               </View>
             )}
             <Text numberOfLines={2} style={{ position: "absolute", left: 10, right: 10, bottom: 10, color: "#fff", fontSize: 12.5, fontWeight: "800", letterSpacing: -0.2, lineHeight: 16 }}>{s.title}</Text>
@@ -69,14 +70,14 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
         <View style={{ position: "absolute", top: 52, left: 12, right: 12, flexDirection: "row", gap: 5 }}>
           {stories.map((_, i) => (
             <View key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.3)", overflow: "hidden" }}>
-              <View style={{ height: "100%", width: i < idx ? "100%" : i === idx ? `${Math.round(progress * 100)}%` : "0%", backgroundColor: "#fff" }} />
+              <View style={{ height: "100%", width: i < idx ? "100%" : i === idx ? `${Math.round(progress * 100)}%` : "0%", backgroundColor: TC.surface }} />
             </View>
           ))}
         </View>
 
         {/* header: avatar + title + mute + close */}
         <View style={{ position: "absolute", top: 66, left: 14, right: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
-          {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 18, borderWidth: 2, borderColor: "#fff" }} contentFit="cover" /> : null}
+          {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 18, borderWidth: 2, borderColor: TC.surface }} contentFit="cover" /> : null}
           <Text numberOfLines={1} style={{ flex: 1, color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.title}</Text>
           <Pressable testID="story-mute" onPress={() => setMuted((m) => !m)} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
             {muted ? <VolumeX size={18} color="#fff" /> : <Volume2 size={18} color="#fff" />}

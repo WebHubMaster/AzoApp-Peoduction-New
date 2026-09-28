@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Port of web_panel/src/components/booking/ServiceBreakdown.jsx — renders the server `breakdown` (single source of truth). */
 import React from "react";
 import { View, Text } from "react-native";
@@ -53,7 +54,7 @@ export function ServiceBreakdown({ booking, title = "Service breakdown", showCha
     <View testID="service-breakdown" style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, overflow: "hidden" }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 8, backgroundColor: soft, borderBottomWidth: 1, borderBottomColor: line }}>
         <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: c.textMuted }}>{showCount ? `${title} (${list.length})` : title}</Text>
-        <Text style={{ fontSize: 10, fontWeight: "600", color: SLATE[400] }}>Excl. taxes</Text>
+        <Text style={{ fontSize: 10, fontWeight: "600", color: TC.textFaint }}>Excl. taxes</Text>
       </View>
       {list.map((it, i) => {
         const name = it.name || it.service_name || it.custom_name || "Service";
@@ -65,8 +66,8 @@ export function ServiceBreakdown({ booking, title = "Service breakdown", showCha
           <View key={i} testID={`svc-line-${i}`} style={{ paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: i < list.length - 1 ? 1 : 0, borderBottomColor: line }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: c.text }}><Text style={{ color: SLATE[400] }}>{i + 1}. </Text>{name}{qty > 1 ? <Text style={{ color: c.primaryText, fontWeight: "700" }}> × {qty}</Text> : null}</Text>
-                {qty > 1 || it.tier_label ? <Text style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{qty > 1 ? `${fmt(rate)} × ${qty}` : ""}{it.tier_label ? `${qty > 1 ? " · " : ""}${it.tier_label}` : ""}</Text> : null}
+                <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: c.text }}><Text style={{ color: TC.textFaint }}>{i + 1}. </Text>{name}{qty > 1 ? <Text style={{ color: c.primaryText, fontWeight: "700" }}> × {qty}</Text> : null}</Text>
+                {qty > 1 || it.tier_label ? <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{qty > 1 ? `${fmt(rate)} × ${qty}` : ""}{it.tier_label ? `${qty > 1 ? " · " : ""}${it.tier_label}` : ""}</Text> : null}
               </View>
               <Text style={{ fontSize: 13, fontWeight: "700", color: c.text }}>{fmt(amount)}</Text>
             </View>
@@ -81,9 +82,9 @@ export function ServiceBreakdown({ booking, title = "Service breakdown", showCha
                     <View key={ai} testID={`svc-line-${i}-addon-${ai}`}>
                       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                         <Text numberOfLines={1} style={{ fontSize: 12, color: c.textMuted, flex: 1 }}>+ {an}{aq > 1 ? <Text style={{ color: c.primaryText, fontWeight: "600" }}> × {aq}</Text> : null}</Text>
-                        {aAmt ? <Text style={{ fontSize: 12, fontWeight: "500", color: isDark ? SLATE[300] : SLATE[600] }}>{fmt(aAmt)}</Text> : null}
+                        {aAmt ? <Text style={{ fontSize: 12, fontWeight: "500", color: isDark ? SLATE[300] : TC.textMuted }}>{fmt(aAmt)}</Text> : null}
                       </View>
-                      {aq > 1 && ar > 0 ? <Text style={{ fontSize: 10.5, color: SLATE[400], paddingLeft: 14 }}>{fmt(ar)} × {aq}</Text> : null}
+                      {aq > 1 && ar > 0 ? <Text style={{ fontSize: 10.5, color: TC.textFaint, paddingLeft: 14 }}>{fmt(ar)} × {aq}</Text> : null}
                     </View>
                   );
                 })}
@@ -93,12 +94,12 @@ export function ServiceBreakdown({ booking, title = "Service breakdown", showCha
         );
       })}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 8, backgroundColor: soft, borderTopWidth: 1, borderTopColor: line }}>
-        <Text style={{ fontSize: 12, fontWeight: "700", color: isDark ? SLATE[200] : SLATE[700] }}>Services total (excl. taxes)</Text>
+        <Text style={{ fontSize: 12, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>Services total (excl. taxes)</Text>
         <Text testID="services-subtotal" style={{ fontSize: 13, fontWeight: "800", color: c.text }}>{fmt(servicesSubtotal)}</Text>
       </View>
       {showCharges && charges.length > 0 ? (
         <View testID="service-charges" style={{ paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: line, gap: 4 }}>
-          {charges.map((x: any, ci: number) => <View key={ci} style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 12, color: c.textMuted }}>{x.label}</Text><Text style={{ fontSize: 12, fontWeight: "500", color: isDark ? SLATE[200] : SLATE[700] }}>{fmt(x.amount)}</Text></View>)}
+          {charges.map((x: any, ci: number) => <View key={ci} style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 12, color: c.textMuted }}>{x.label}</Text><Text style={{ fontSize: 12, fontWeight: "500", color: isDark ? SLATE[200] : TC.text2 }}>{fmt(x.amount)}</Text></View>)}
         </View>
       ) : null}
       {showCharges ? (

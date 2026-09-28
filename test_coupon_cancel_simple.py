@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://customer-app-flow.preview.emergentagent.com/api"
+BASE = "https://keyboard-input-flow.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

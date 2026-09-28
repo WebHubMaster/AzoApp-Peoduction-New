@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Home screen blocks — all content comes from GET /app/home (admin CMS + live catalog). */
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, useWindowDimensions, FlatList } from "react-native";
@@ -12,15 +13,15 @@ import { storage } from "../../utils/storage";
 import { useToast } from "../Toast";
 
 type Nav = (to: string) => void;
-const card = { backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200] } as const;
+const card = { get backgroundColor() { return TC.surface; }, borderRadius: 16, borderWidth: 1, get borderColor() { return TC.border; } };
 
 export function BlockTitle({ icon, title, onSeeAll, right, testID }: { icon?: string; title: string; onSeeAll?: () => void; right?: React.ReactNode; testID?: string }) {
   return (
     <View testID={testID} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginBottom: 14, gap: 10 }}>
       {icon ? <LucideByName name={icon} size={18} color={icon === "flame" ? ORANGE[500] : icon === "map-pin" ? ROSE[500] : icon === "badge-percent" ? AMBER[500] : PRIMARY[700]} strokeWidth={2.2} /> : null}
-      <Text style={{ fontSize: 19, fontWeight: "800", color: SLATE[900], flex: 1, letterSpacing: -0.3 }}>{title}</Text>
+      <Text style={{ fontSize: 19, fontWeight: "800", color: TC.text, flex: 1, letterSpacing: -0.3 }}>{title}</Text>
       {right}
-      {onSeeAll ? <Pressable onPress={onSeeAll} style={{ flexDirection: "row", alignItems: "center", gap: 2 }}><Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[700] }}>See all</Text><ArrowRight size={14} color={PRIMARY[700]} /></Pressable> : null}
+      {onSeeAll ? <Pressable onPress={onSeeAll} style={{ flexDirection: "row", alignItems: "center", gap: 2 }}><Text style={{ fontSize: 13, fontWeight: "700", color: TC.primaryText }}>See all</Text><ArrowRight size={14} color={TC.primaryText} /></Pressable> : null}
     </View>
   );
 }
@@ -56,7 +57,7 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
                 <Text testID="hero-title" style={{ fontSize: 19, fontWeight: "800", color: s.text_color || "#fff", marginTop: 6, lineHeight: 25, letterSpacing: -0.3 }}>{[s.title, s.highlight].filter(Boolean).join(" ")}</Text>
                 {s.cta_label ? <View testID={`hero-cta-${index}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 14 }}><Text style={{ fontSize: 14, fontWeight: "700", color: s.text_color || "#fff" }}>{s.cta_label}</Text><ArrowRight size={16} color={s.text_color || "#fff"} /></View> : null}
               </View>
-              {s.rating_value ? <View testID="hero-rating" style={{ position: "absolute", top: 12, right: 12, backgroundColor: "rgba(255,255,255,0.92)", borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 3 }}><Text style={{ fontSize: 12, fontWeight: "800", color: SLATE[900] }}>{s.rating_value}</Text><Star size={11} color={AMBER[500]} fill={AMBER[500]} /></View> : null}
+              {s.rating_value ? <View testID="hero-rating" style={{ position: "absolute", top: 12, right: 12, backgroundColor: TC.surface, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 3 }}><Text style={{ fontSize: 12, fontWeight: "800", color: TC.text }}>{s.rating_value}</Text><Star size={11} color={AMBER[500]} fill={AMBER[500]} /></View> : null}
             </Pressable>
           </View>
         )} />
@@ -67,7 +68,7 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
 
 const Dots = ({ n, i }: { n: number; i: number }) => (
   <View style={{ flexDirection: "row", justifyContent: "center", gap: 5, marginTop: 8 }}>
-    {Array.from({ length: n }).map((_, k) => <View key={k} style={{ height: 6, width: k === i ? 16 : 6, borderRadius: 3, backgroundColor: k === i ? PRIMARY[700] : SLATE[300] }} />)}
+    {Array.from({ length: n }).map((_, k) => <View key={k} style={{ height: 6, width: k === i ? 16 : 6, borderRadius: 3, backgroundColor: k === i ? PRIMARY[700] : TC.border }} />)}
   </View>
 );
 
@@ -85,12 +86,12 @@ export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any
     <View testID="app-categories" style={{ marginBottom: 24, paddingHorizontal: 20, flexDirection: "row", flexWrap: "wrap", gap }}>
       {tiles.map((c: any) => (
         <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={{ width: tileW, alignItems: "center" }}>
-          <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 18, backgroundColor: SLATE[100], alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-            {c.more ? <Grip size={34} color={SLATE[800]} strokeWidth={2.2} />
+          <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 18, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            {c.more ? <Grip size={34} color={TC.text} strokeWidth={2.2} />
               : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} />
-              : c.icon ? <LucideByName name={c.icon} size={40} color={PRIMARY[700]} strokeWidth={1.6} /> : <Sparkles size={34} color={PRIMARY[700]} />}
+              : c.icon ? <LucideByName name={c.icon} size={40} color={TC.primaryText} strokeWidth={1.6} /> : <Sparkles size={34} color={TC.primaryText} />}
           </View>
-          <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "500", color: SLATE[800], textAlign: "center", marginTop: 10, lineHeight: 19, paddingHorizontal: 2 }}>{c.name}</Text>
+          <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "500", color: TC.text, textAlign: "center", marginTop: 10, lineHeight: 19, paddingHorizontal: 2 }}>{c.name}</Text>
         </Pressable>
       ))}
     </View>
@@ -112,13 +113,13 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
         {label ? <View style={{ position: "absolute", right: 14, top: 40, backgroundColor: ROSE[500], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 8, alignItems: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 14 }}>{label.split(" ")[0]}</Text><Text style={{ color: "#fff", fontWeight: "700", fontSize: 9 }}>{label.split(" ").slice(1).join(" ") || "OFF"}</Text></View> : null}
         <View style={{ padding: 20, width: "62%" }}>
           {cfg.eyebrow ? <View style={{ alignSelf: "flex-start", backgroundColor: ORANGE[500], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{cfg.eyebrow}</Text></View> : null}
-          <Text style={{ fontSize: 22, fontWeight: "900", color: SLATE[900], marginTop: 12, lineHeight: 27, letterSpacing: -0.4 }}>
+          <Text style={{ fontSize: 22, fontWeight: "900", color: TC.text, marginTop: 12, lineHeight: 27, letterSpacing: -0.4 }}>
             {label ? <>Get Up to <Text style={{ color: ROSE[600] }}>{label}</Text></> : (off.title || cfg.title)}
           </Text>
-          <Text numberOfLines={2} style={{ fontSize: 15, fontWeight: "600", color: SLATE[700], marginTop: 2 }}>{label ? (off.subtitle || off.description || `on ${off.title || "Your First Booking"}`) : (off.subtitle || off.description || "")}</Text>
+          <Text numberOfLines={2} style={{ fontSize: 15, fontWeight: "600", color: TC.text2, marginTop: 2 }}>{label ? (off.subtitle || off.description || `on ${off.title || "Your First Booking"}`) : (off.subtitle || off.description || "")}</Text>
           {code ? (
-            <Pressable testID="app-offer-copy" onPress={copy} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14, alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: AMBER[200] }}>
-              <Text style={{ fontSize: 12, color: SLATE[500], fontWeight: "600" }}>Use Code</Text><Text style={{ fontSize: 16, fontWeight: "800", color: SLATE[900] }}>{code}</Text><Copy size={15} color={SLATE[500]} />
+            <Pressable testID="app-offer-copy" onPress={copy} style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14, alignSelf: "flex-start", backgroundColor: TC.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, borderWidth: 1, borderColor: AMBER[200] }}>
+              <Text style={{ fontSize: 12, color: TC.textMuted, fontWeight: "600" }}>Use Code</Text><Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{code}</Text><Copy size={15} color={TC.textMuted} />
             </Pressable>
           ) : null}
           <Pressable testID="app-offer-cta" onPress={() => navigate(cfg.cta_link || "/services")} style={{ marginTop: 16, alignSelf: "flex-start", backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 20, height: 44, flexDirection: "row", alignItems: "center", gap: 8, ...shadowBtn }}>
@@ -137,8 +138,8 @@ export function QuickFeatures({ items, navigate }: { items: any[]; navigate: Nav
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, marginBottom: 28 }} testID="app-quick-features">
       {items.map((q) => (
         <Pressable key={q.id} testID={`app-qf-${q.id}`} onPress={() => navigate(q.link || "/services")} style={{ ...card, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, width: 190, borderRadius: 18 }}>
-          <View style={{ height: 44, width: 44, borderRadius: 12, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center" }}><LucideByName name={q.icon} size={21} color={PRIMARY[700]} strokeWidth={2} /></View>
-          <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: SLATE[800] }}>{q.title}</Text><Text numberOfLines={1} style={{ fontSize: 11, color: SLATE[500], marginTop: 2 }}>{q.sub}</Text></View>
+          <View style={{ height: 44, width: 44, borderRadius: 12, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}><LucideByName name={q.icon} size={21} color={TC.primaryText} strokeWidth={2} /></View>
+          <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: TC.text }}>{q.title}</Text><Text numberOfLines={1} style={{ fontSize: 11, color: TC.textMuted, marginTop: 2 }}>{q.sub}</Text></View>
         </Pressable>
       ))}
     </ScrollView>
@@ -150,16 +151,16 @@ export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate
   const count = compactNum(s.rating_count || s.booking_count);
   return (
     <Pressable testID={testID} onPress={() => navigate(`/service/${s.id}`)} style={{ ...card, width: compact ? 150 : 164, overflow: "hidden", borderRadius: 18 }}>
-      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 116, width: "100%", backgroundColor: SLATE[100] }} contentFit="cover" transition={200} />
+      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 116, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
       <View style={{ padding: 12 }}>
-        <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: SLATE[800] }}>{s.name}</Text>
+        <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>{s.name}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>
-          <Star size={12} color={AMBER[500]} fill={AMBER[500]} /><Text style={{ fontSize: 12, fontWeight: "700", color: SLATE[700] }}>{Number(s.rating || 0).toFixed(1)}</Text>{count ? <Text style={{ fontSize: 11, color: SLATE[400] }}>({count})</Text> : null}
+          <Star size={12} color={AMBER[500]} fill={AMBER[500]} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.text2 }}>{Number(s.rating || 0).toFixed(1)}</Text>{count ? <Text style={{ fontSize: 11, color: TC.textFaint }}>({count})</Text> : null}
         </View>
-        <Text style={{ fontSize: 12, color: SLATE[500], marginTop: 5 }}>From <Text style={{ fontSize: 15, fontWeight: "800", color: SLATE[900] }}>{fmt(s.base_price)}</Text></Text>
+        <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 5 }}>From <Text style={{ fontSize: 15, fontWeight: "800", color: TC.text }}>{fmt(s.base_price)}</Text></Text>
         {(
           <Pressable testID={`${testID}-book`} onPress={() => navigate(`/service/${s.id}`)} style={{ marginTop: 12, height: 36, borderRadius: 10, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700] }}>Book Now</Text>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Book Now</Text>
           </Pressable>
         )}
       </View>
@@ -185,13 +186,13 @@ export function WhyChoose({ data }: { data: any }) {
   return (
     <View testID="app-why-choose" style={{ marginHorizontal: 20, marginBottom: 30 }}>
       <LinearGradient colors={[PRIMARY[50], "#EEF5FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: PRIMARY[100], padding: 20 }}>
-        <Text style={{ fontSize: 19, fontWeight: "900", color: SLATE[900], letterSpacing: -0.3 }}>{data?.title}</Text>
-        {data?.side_text ? <Text style={{ fontSize: 13, color: SLATE[600], marginTop: 4 }}>{data.side_text}</Text> : null}
+        <Text style={{ fontSize: 19, fontWeight: "900", color: TC.text, letterSpacing: -0.3 }}>{data?.title}</Text>
+        {data?.side_text ? <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 4 }}>{data.side_text}</Text> : null}
         <View style={{ flexDirection: "row", marginTop: 18 }}>
           {items.map((it: any, i: number) => (
             <View key={i} style={{ flex: 1, alignItems: "center" }}>
-              <View style={{ height: 46, width: 46, borderRadius: 23, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", ...shadowBtn }}><LucideByName name={it.icon} size={21} color={PRIMARY[700]} strokeWidth={2} /></View>
-              <Text numberOfLines={3} style={{ fontSize: 10, fontWeight: "600", color: SLATE[700], textAlign: "center", marginTop: 8, lineHeight: 12.5, letterSpacing: -0.2 }}>{it.title}</Text>
+              <View style={{ height: 46, width: 46, borderRadius: 23, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center", ...shadowBtn }}><LucideByName name={it.icon} size={21} color={TC.primaryText} strokeWidth={2} /></View>
+              <Text numberOfLines={3} style={{ fontSize: 10, fontWeight: "600", color: TC.text2, textAlign: "center", marginTop: 8, lineHeight: 12.5, letterSpacing: -0.2 }}>{it.title}</Text>
             </View>
           ))}
         </View>
@@ -211,13 +212,13 @@ export function SalonSection({ sec, navigate }: { sec: any; navigate: Nav }) {
     <View testID="app-salon" style={{ marginBottom: 30 }}>
       <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate(cur?.category_id ? `/services?category=${cur.category_id}` : "/services")}
         right={<View style={{ flexDirection: "row", gap: 6 }}>{tabs.map((tab: any, i: number) => (
-          <Pressable key={i} testID={`app-salon-tab-${i}`} onPress={() => setT(i)} style={{ height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: i === t ? VIOLET[500] : "#fff", borderWidth: 1, borderColor: i === t ? VIOLET[500] : SLATE[200], justifyContent: "center" }}>
-            <Text style={{ fontSize: 11, fontWeight: "700", color: i === t ? "#fff" : SLATE[600] }}>{tab.label}</Text>
+          <Pressable key={i} testID={`app-salon-tab-${i}`} onPress={() => setT(i)} style={{ height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: i === t ? VIOLET[500] : TC.surface, borderWidth: 1, borderColor: i === t ? VIOLET[500] : TC.border, justifyContent: "center" }}>
+            <Text style={{ fontSize: 11, fontWeight: "700", color: i === t ? "#fff" : TC.textMuted }}>{tab.label}</Text>
           </Pressable>
         ))}</View>} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
         {(cur?.data || []).map((s: any, i: number) => <ServiceTile key={s.id} s={s} navigate={navigate} compact testID={`app-salon-svc-${i}`} />)}
-        {!cur?.data?.length ? <Text style={{ fontSize: 12, color: SLATE[500] }}>No services yet in this category.</Text> : null}
+        {!cur?.data?.length ? <Text style={{ fontSize: 12, color: TC.textMuted }}>No services yet in this category.</Text> : null}
       </ScrollView>
     </View>
   );

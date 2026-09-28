@@ -1,6 +1,8 @@
+import { TC } from "@/src/theme";
 /** Booking dialogs — ports of CancelDialog, ReviewDialog, AdditionalPayDialog, RescheduleDrawer + DrawerShell (CustomerDashboard.jsx). */
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView, TextInput, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, ScrollView, TextInput, Platform } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X, Star, AlertTriangle, Wallet, Wrench } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, AMBER, useTheme } from "../../theme";
@@ -22,7 +24,7 @@ export function DrawerShell({ open, onClose, title, children, footer, testID }: 
         <View testID={testID} style={{ flex: 1, backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
             <Text style={{ fontSize: 17, fontWeight: "700", color: c.text }}>{title}</Text>
-            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? SLATE[800] : SLATE[100] }}><X size={20} color={SLATE[400]} /></Pressable>
+            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt }}><X size={20} color={TC.textFaint} /></Pressable>
           </View>
           <ScrollView contentContainerStyle={{ padding: 20, gap: 20, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
           {footer ? <View style={{ padding: 16, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.borderSoft }}>{footer}</View> : null}
@@ -37,7 +39,7 @@ export function CenterDialog({ open, onClose, children, testID }: { open: boolea
   const { c } = useTheme();
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.6)", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }} onPress={onClose} />
           <View testID={testID} style={{ width: "100%", maxWidth: 448, maxHeight: "92%", backgroundColor: c.surface, borderRadius: 16, overflow: "hidden" }}>
@@ -54,7 +56,7 @@ export const Btn = ({ label, onPress, tone = "primary", disabled, testID, icon: 
   const bg = tone === "red" ? "#DC2626" : tone === "amber" ? AMBER[600] : tone === "outline" ? c.surface : PRIMARY[700];
   const fg = tone === "outline" ? c.text : "#fff";
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={disabled} style={({ pressed }) => [{ height: 40, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: bg, borderWidth: tone === "outline" ? 1 : 0, borderColor: isDark ? SLATE[700] : SLATE[200], opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }, style]}>
+    <Pressable testID={testID} onPress={onPress} disabled={disabled} style={({ pressed }) => [{ height: 40, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: bg, borderWidth: tone === "outline" ? 1 : 0, borderColor: isDark ? SLATE[700] : TC.border, opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }, style]}>
       {Icon ? <Icon size={16} color={fg} /> : null}<Text style={{ color: fg, fontWeight: "600", fontSize: 14 }}>{label}</Text>
     </Pressable>
   );
@@ -82,8 +84,8 @@ export function CancelDialog({ booking, reasons, onClose, onConfirm }: { booking
   return (
     <CenterDialog open={!!booking} onClose={onClose} testID="cancel-dialog">
       <Title t={`Cancel booking #${booking.code}?`} d="Review your refund breakdown, then tell us why you're cancelling." />
-      <View testID="cancel-breakdown" style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : SLATE[50], padding: 14 }}>
-        {pv ? <Text style={{ fontSize: 12, color: SLATE[400], textAlign: "center", paddingVertical: 8 }}>Calculating your refund…</Text> : null}
+      <View testID="cancel-breakdown" style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, padding: 14 }}>
+        {pv ? <Text style={{ fontSize: 12, color: TC.textFaint, textAlign: "center", paddingVertical: 8 }}>Calculating your refund…</Text> : null}
         {!pv && preview ? (
           <View style={{ gap: 6 }}>
             <View style={{ borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 4, backgroundColor: assigned ? (isDark ? "rgba(120,53,15,0.2)" : AMBER[50]) : (isDark ? "rgba(6,78,59,0.2)" : EMERALD[50]) }}>
@@ -93,13 +95,13 @@ export function CancelDialog({ booking, reasons, onClose, onConfirm }: { booking
             {assigned ? <><Row k={`Service refund (${preview.refund_pct || 0}% of ${fmt(preview.service_amount)})`} v={fmt(preview.service_refund)} /><Row k={`Est. Govt. Taxes refund (${preview.refund_pct || 0}% of ${fmt(preview.tax)})`} v={fmt(preview.gst_refund)} /></> : null}
             {Number(preview.retained_from_you) > 0 ? <Row k="Cancellation charge" v={`- ${fmt(preview.retained_from_you)}`} muted /> : null}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 8, marginTop: 4, borderTopWidth: 1, borderTopColor: c.border }}>
-              <Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? SLATE[200] : SLATE[700] }}>You'll get back</Text>
+              <Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2 }}>You'll get back</Text>
               <Text testID="cancel-refund-amount" style={{ fontSize: 16, fontWeight: "800", color: isDark ? EMERALD[400] : EMERALD[600] }}>{fmt(preview.refund)}</Text>
             </View>
             {(preview.item_refunds || []).length > 1 ? <View style={{ paddingTop: 8, marginTop: 4, borderTopWidth: 1, borderStyle: "dashed", borderTopColor: c.border, gap: 4 }}>{preview.item_refunds.map((it: any, i: number) => <Row key={i} k={`${it.service_name}${it.qty > 1 ? ` ×${it.qty}` : ""}`} v={fmt(it.refund)} small />)}</View> : null}
           </View>
         ) : null}
-        {!pv && !preview ? <Text style={{ fontSize: 12, color: SLATE[400], textAlign: "center", paddingVertical: 8 }}>A refund applies as per our cancellation policy.</Text> : null}
+        {!pv && !preview ? <Text style={{ fontSize: 12, color: TC.textFaint, textAlign: "center", paddingVertical: 8 }}>A refund applies as per our cancellation policy.</Text> : null}
       </View>
       <View style={{ gap: 8 }}>
         {list.map((r) => {
@@ -110,7 +112,7 @@ export function CancelDialog({ booking, reasons, onClose, onConfirm }: { booking
             </Pressable>
           );
         })}
-        {reason === "Other" ? <TextInput autoFocus testID="cancel-reason-other-input" value={other} onChangeText={setOther} placeholder="Tell us a bit more…" placeholderTextColor={SLATE[400]} style={{ height: 40, borderRadius: 8, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, marginTop: 4 }} /> : null}
+        {reason === "Other" ? <TextInput autoFocus testID="cancel-reason-other-input" value={other} onChangeText={setOther} placeholder="Tell us a bit more…" placeholderTextColor={TC.textFaint} style={{ height: 40, borderRadius: 8, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, marginTop: 4 }} /> : null}
       </View>
       <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 8, paddingTop: 4 }}>
         <Btn label="Keep booking" tone="outline" onPress={onClose} testID="cancel-keep" />
@@ -129,9 +131,9 @@ export function ReviewDialog({ booking, onClose, onSubmit }: { booking: any; onC
     <CenterDialog open={!!booking} onClose={onClose} testID="review-dialog">
       <Title t="Rate your service" d={`How was your experience${booking.partner_name ? ` with ${booking.partner_name}` : ""}?`} />
       <View style={{ flexDirection: "row", justifyContent: "center", gap: 4, marginVertical: 8 }}>
-        {[1, 2, 3, 4, 5].map((n) => <Pressable key={n} testID={`star-${n}`} onPress={() => setStars(n)} style={({ pressed }) => ({ transform: [{ scale: pressed ? 1.1 : 1 }] })}><Star size={36} color={n <= stars ? AMBER[400] : SLATE[300]} fill={n <= stars ? AMBER[400] : "transparent"} /></Pressable>)}
+        {[1, 2, 3, 4, 5].map((n) => <Pressable key={n} testID={`star-${n}`} onPress={() => setStars(n)} style={({ pressed }) => ({ transform: [{ scale: pressed ? 1.1 : 1 }] })}><Star size={36} color={n <= stars ? AMBER[400] : TC.border} fill={n <= stars ? AMBER[400] : "transparent"} /></Pressable>)}
       </View>
-      <TextInput testID="review-comment" value={cmt} onChangeText={setCmt} placeholder="Add a comment (optional)" placeholderTextColor={SLATE[400]} style={{ height: 40, borderRadius: 8, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text }} />
+      <TextInput testID="review-comment" value={cmt} onChangeText={setCmt} placeholder="Add a comment (optional)" placeholderTextColor={TC.textFaint} style={{ height: 40, borderRadius: 8, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text }} />
       <Btn testID="submit-review" label={busy ? "Submitting…" : "Submit Review"} disabled={busy} onPress={async () => { setBusy(true); try { await onSubmit(booking, stars, cmt); } finally { setBusy(false); } }} style={{ marginTop: 4 }} />
     </CenterDialog>
   );
@@ -154,14 +156,14 @@ export function AdditionalPayDialog({ booking, onClose, onPay, walletBalance }: 
             <Text style={{ fontSize: 12.5, color: AMBER[50], marginTop: 2 }}>Complete this payment so the partner can finish the job.</Text>
           </View>
           <View style={{ padding: 20 }}>
-            <View style={{ gap: 6, backgroundColor: isDark ? SLATE[800] : SLATE[50], borderRadius: 12, padding: 12 }}>
-              {(a.items || []).map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : SLATE[700], flex: 1 }}>{it.description}</Text><Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? SLATE[200] : SLATE[700] }}>{fmt((Number(it.part_charge) || 0) + (Number(it.labour_charge) || 0))}</Text></View>)}
+            <View style={{ gap: 6, backgroundColor: isDark ? SLATE[800] : TC.bg, borderRadius: 12, padding: 12 }}>
+              {(a.items || []).map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : TC.text2, flex: 1 }}>{it.description}</Text><Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2 }}>{fmt((Number(it.part_charge) || 0) + (Number(it.labour_charge) || 0))}</Text></View>)}
               <View style={{ flexDirection: "row", justifyContent: "space-between", paddingTop: 6, borderTopWidth: 1, borderTopColor: c.border }}><Text style={{ fontSize: 16, fontWeight: "800", color: c.text }}>Total payable</Text><Text style={{ fontSize: 16, fontWeight: "800", color: c.text }}>{fmt(a.total)}</Text></View>
             </View>
             <View style={{ marginTop: 16, gap: 8 }}>
               <Btn testID="addl-pay-online" tone="amber" disabled={busy} onPress={() => run("online")} label={busy ? "Processing…" : `Pay ${fmt(a.total)} now`} />
               <Btn testID="addl-pay-wallet" tone="outline" icon={Wallet} disabled={busy || !canWallet} onPress={() => run("wallet")} label={canWallet ? `Pay from Wallet (${fmt(walletBalance)})` : "Insufficient wallet balance"} />
-              <Pressable onPress={onClose} style={{ paddingVertical: 8, alignItems: "center" }}><Text style={{ fontSize: 14, color: SLATE[500] }}>Cancel</Text></Pressable>
+              <Pressable onPress={onClose} style={{ paddingVertical: 8, alignItems: "center" }}><Text style={{ fontSize: 14, color: TC.textMuted }}>Cancel</Text></Pressable>
             </View>
           </View>
         </View>
@@ -188,7 +190,7 @@ export function RescheduleDialog({ booking, onClose, onDone, toast }: { booking:
       footer={<Btn testID={`reschedule-confirm-${booking.code}`} label={busy ? "Sending…" : "Send reschedule request"} disabled={busy} onPress={save} style={{ height: 44, borderRadius: 12 }} />}>
       <View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: "#0D47A1", alignItems: "center", justifyContent: "center" }}><Wrench size={20} color="#fff" /></View>
-        <View style={{ flex: 1, minWidth: 0 }}><Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{booking.service_name}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>#{booking.code}{booking.scheduled_at ? ` · currently ${fmtTs(booking.scheduled_at)}` : ""}</Text></View>
+        <View style={{ flex: 1, minWidth: 0 }}><Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{booking.service_name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>#{booking.code}{booking.scheduled_at ? ` · currently ${fmtTs(booking.scheduled_at)}` : ""}</Text></View>
       </View>
       <Text style={{ fontSize: 12.5, color: c.textMuted }}>Pick a new time slot below. Your booking stays on its current time until your <Text style={{ fontWeight: "700" }}>partner accepts</Text> the change.</Text>
       <SchedulePicker value={val} onChange={setVal} />

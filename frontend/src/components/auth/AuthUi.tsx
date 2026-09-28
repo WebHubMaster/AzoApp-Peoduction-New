@@ -20,6 +20,8 @@ export const AUTH = {
   line: "#E2E8F0",
   card: "0px 10px 30px rgba(15,23,42,0.08)",
 };
+/* One font scale shared by Welcome / Login / Register so every screen reads the same. */
+export const FS = { title: 28, subtitle: 15, label: 17, input: 16, button: 17, buttonSub: 13, small: 13, tiny: 12 };
 
 export type Accent = { main: string; dark: string; soft: string; border: string; grad: readonly [string, string]; icon: MdiName; label: string; sub: string };
 export const ROLE_ACCENT: Record<"partner" | "merchant", Accent> = {
@@ -70,7 +72,7 @@ export function NeedHelpLink() {
   return (
     <Pressable testID="need-help-link" onPress={open} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
       <Icon name="headset" size={18} color={AUTH.ink} />
-      <Text style={{ color: AUTH.ink, fontSize: 14, fontWeight: "600" }}>Need Help?</Text>
+      <Text style={{ color: AUTH.ink, fontSize: FS.small, fontWeight: "600" }}>Need Help?</Text>
     </Pressable>
   );
 }
@@ -90,8 +92,8 @@ export function InfoCard({ icon, iconBg, iconColor, title, sub, onPress, chevron
     <Pressable testID={testID} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 20, backgroundColor: bg, borderWidth: 1, borderColor: border, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}>
       <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: iconBg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={iconColor} /></View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: AUTH.ink, fontSize: 16, fontWeight: "800" }}>{title}</Text>
-        <Text style={{ color: AUTH.muted, fontSize: 13, lineHeight: 18, marginTop: 2 }}>{sub}</Text>
+        <Text style={{ color: AUTH.ink, fontSize: FS.input, fontWeight: "800" }}>{title}</Text>
+        <Text style={{ color: AUTH.muted, fontSize: FS.small, lineHeight: 18, marginTop: 2 }}>{sub}</Text>
       </View>
       {chevron ? <Icon name="chevron-right" size={22} color="#94A3B8" /> : null}
     </Pressable>

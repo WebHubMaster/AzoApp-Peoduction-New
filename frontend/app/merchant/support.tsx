@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, Alert, ActivityIndicator, useWindowDimensions, KeyboardAvoidingView } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, Alert, ActivityIndicator, useWindowDimensions } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LifeBuoy, Plus, Send, Paperclip, X, ArrowLeft, FileText, CheckCircle2, ShieldCheck, Search, Inbox, MoreVertical, Hash, CalendarDays, Clock, Check, CheckCheck, Tag, AlertCircle } from "lucide-react-native";
@@ -329,7 +330,7 @@ export default function MerchantSupport({ title = "Help & Support" }: { title?: 
   const newBtn = (testID: string) => <Btn testID={testID} label="New Ticket" icon={<Plus size={16} color="#fff" />} onPress={() => setView("new")} bg={EMERALD600} pressedBg={EMERALD700} style={{ alignSelf: "flex-start" }} />;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: colors.background }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: colors.background }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadList} tintColor={P[700]} colors={[P[700]]} />} testID="support-center">
         {/* Page header (MerchantDashboard.jsx) */}

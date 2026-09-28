@@ -7,7 +7,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, useTheme, shadowBtn, shadowElev } from "../../src/theme";
+import { PRIMARY, SLATE, useTheme, shadowBtn, shadowElev, TC } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton } from "../../src/components/customer/ux";
 import { Checkbox } from "../../src/components/customer/FormControls";
 import { AddressForm, emptyAddress } from "../../src/components/customer/AddressForm";
@@ -66,13 +66,13 @@ export default function AddressesScreen() {
                 {a.is_default ? <View testID={`default-badge-${a.id}`} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: c.primarySoft }}><Text style={{ fontSize: 10, fontWeight: "600", color: c.primaryText }}>Default</Text></View> : null}
               </View>
               <View style={{ flexDirection: "row", gap: 4 }}>
-                <Pressable testID={`edit-address-${a.id}`} onPress={() => openEdit(a)} hitSlop={8} style={{ padding: 4 }}><Pencil size={16} color={SLATE[400]} /></Pressable>
-                <Pressable testID={`delete-address-${a.id}`} onPress={() => del(a.id)} hitSlop={8} style={{ padding: 4 }}><Trash2 size={16} color={SLATE[400]} /></Pressable>
+                <Pressable testID={`edit-address-${a.id}`} onPress={() => openEdit(a)} hitSlop={8} style={{ padding: 4 }}><Pencil size={16} color={TC.textFaint} /></Pressable>
+                <Pressable testID={`delete-address-${a.id}`} onPress={() => del(a.id)} hitSlop={8} style={{ padding: 4 }}><Trash2 size={16} color={TC.textFaint} /></Pressable>
               </View>
             </View>
-            <Text style={{ fontSize: 14, color: isDark ? SLATE[300] : SLATE[600], marginTop: 4 }}>{a.line}</Text>
-            <Text style={{ fontSize: 12, color: SLATE[400], marginTop: 2 }}>{[a.city, a.pincode].filter(Boolean).join(" · ")}{a.property_type ? ` · ${a.property_type}` : ""}</Text>
-            {a.landmark ? <Text style={{ fontSize: 12, color: SLATE[400] }}>Landmark: {a.landmark}</Text> : null}
+            <Text style={{ fontSize: 14, color: isDark ? SLATE[300] : TC.textMuted, marginTop: 4 }}>{a.line}</Text>
+            <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 2 }}>{[a.city, a.pincode].filter(Boolean).join(" · ")}{a.property_type ? ` · ${a.property_type}` : ""}</Text>
+            {a.landmark ? <Text style={{ fontSize: 12, color: TC.textFaint }}>Landmark: {a.landmark}</Text> : null}
             {!a.is_default ? <Pressable testID={`set-default-${a.id}`} onPress={() => setDefault(a.id)} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4 }}><Star size={12} color={c.primaryText} /><Text style={{ fontSize: 12, color: c.primaryText }}>Set as default</Text></Pressable> : null}
           </View>
         ))}

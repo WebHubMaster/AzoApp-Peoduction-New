@@ -4,13 +4,13 @@ import { View, Text, Pressable } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Home, ClipboardList, Plus, Crown, User } from "lucide-react-native";
-import { PRIMARY, SLATE, useTheme } from "../../theme";
+import { PRIMARY, SLATE, useTheme, TC } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 
 const Tab = ({ testID, Icon, label, active, onPress }: any) => (
   <Pressable testID={testID} onPress={onPress} style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
-    <Icon size={23} color={active ? PRIMARY[700] : SLATE[400]} />
-    <Text style={{ fontSize: 11, fontWeight: active ? "700" : "500", color: active ? PRIMARY[700] : SLATE[500], marginTop: 4 }}>{label}</Text>
+    <Icon size={23} color={active ? PRIMARY[700] : TC.textFaint} />
+    <Text style={{ fontSize: 11, fontWeight: active ? "700" : "500", color: active ? PRIMARY[700] : TC.textMuted, marginTop: 4 }}>{label}</Text>
   </Pressable>
 );
 
@@ -34,7 +34,7 @@ export function AppBottomNav() {
           <Pressable testID="bn-book-now" onPress={() => router.push("/(site)/services" as any)} style={{ height: 60, width: 60, borderRadius: 30, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", marginTop: -28, borderWidth: 4, borderColor: "#fff", boxShadow: "0px 6px 16px rgba(13,71,161,0.35)" }}>
             <Plus size={26} color="#fff" strokeWidth={2.5} />
           </Pressable>
-          <Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[700], marginTop: 4 }}>Book Now</Text>
+          <Text style={{ fontSize: 11, fontWeight: "700", color: TC.primaryText, marginTop: 4 }}>Book Now</Text>
         </View>
         <Tab testID="bn-membership" Icon={Crown} label="Membership" active={path.includes("/membership")} onPress={() => router.push("/(site)/membership" as any)} />
         <Tab testID="bn-account" Icon={User} label="Account" active={path.startsWith("/(customer)") && !path.includes("/orders")} onPress={() => go("/(customer)", true)} />

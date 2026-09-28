@@ -3,9 +3,10 @@ import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
-import { PRIMARY } from "@/src/theme";
+import { PRIMARY, TC, useTheme } from "@/src/theme";
 
 export default function Gate() {
+  useTheme();
   const router = useRouter();
   const { booting } = useAuth();
   useEffect(() => {
@@ -13,8 +14,8 @@ export default function Gate() {
     router.replace("/(site)");
   }, [booting]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
-    <View testID="login-auth-loader" style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
-      <ActivityIndicator size="large" color={PRIMARY[700]} />
+    <View testID="login-auth-loader" style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: TC.surface }}>
+      <ActivityIndicator size="large" color={TC.primaryText} />
     </View>
   );
 }

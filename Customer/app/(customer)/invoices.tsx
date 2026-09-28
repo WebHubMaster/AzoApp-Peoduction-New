@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard, Printer } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
-import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
 import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, Paginator, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger } from "../../src/components/customer/ux";
 import { DrawerShell, Btn } from "../../src/components/customer/BookingDialogs";
 
@@ -31,14 +31,14 @@ function KpiCard({ icon: Icon, tone, label, value, sub, testID }: any) {
   return (
     <View testID={testID} style={{ width: "47.5%", flexGrow: 1, borderRadius: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16 }}>
       <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: t.bg, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={t.fg} /></View>
-      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400], marginTop: 12 }}>{label}</Text>
+      <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginTop: 12 }}>{label}</Text>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 24, fontWeight: "800", color: c.text, marginTop: 2 }}>{value}</Text>
-      {sub ? <Text style={{ fontSize: 12, color: SLATE[400], marginTop: 4 }}>{sub}</Text> : null}
+      {sub ? <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 4 }}>{sub}</Text> : null}
     </View>
   );
 }
 const KV = ({ k, v, strong, mono }: { k: string; v: any; strong?: boolean; mono?: boolean }) => { const { c, isDark } = useTheme(); return <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}><Text style={{ fontSize: 14, color: c.textMuted }}>{k}</Text><Text style={{ fontSize: 14, fontWeight: strong ? "700" : "500", color: strong ? c.text : (isDark ? SLATE[200] : SLATE[700]), fontFamily: mono ? "monospace" : undefined, textAlign: "right", flexShrink: 1 }}>{v}</Text></View>; };
-const Section = ({ icon: Icon, title, children }: any) => { const { c } = useTheme(); return <View><View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Icon size={14} color={SLATE[400]} /><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6, color: SLATE[400] }}>{title}</Text></View><View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14 }}>{children}</View></View>; };
+const Section = ({ icon: Icon, title, children }: any) => { const { c } = useTheme(); return <View><View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Icon size={14} color={TC.textFaint} /><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6, color: TC.textFaint }}>{title}</Text></View><View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14 }}>{children}</View></View>; };
 
 function DatePick({ value, onChange, placeholder, testID }: { value: string; onChange: (v: string) => void; placeholder: string; testID: string }) {
   const [open, setOpen] = useState(false);
@@ -100,7 +100,7 @@ export default function InvoicesScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
         {DATE_PRESETS.map(([k, l]) => { const on = range === k; return <Pressable key={k} testID={`invoice-range-${k}`} onPress={() => setRange(k)} style={{ height: 36, paddingHorizontal: 14, borderRadius: 12, backgroundColor: on ? PRIMARY[700] : (isDark ? SLATE[800] : SLATE[100]), justifyContent: "center", ...(on ? shadowBtn : {}) }}><Text style={{ fontSize: 12, fontWeight: "600", color: on ? "#fff" : (isDark ? SLATE[300] : SLATE[600]) }}>{l}</Text></Pressable>; })}
       </ScrollView>
-      {range === "custom" ? <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}><DatePick value={dateFrom} onChange={setDateFrom} placeholder="From" testID="invoice-date-from" /><Text style={{ color: SLATE[400] }}>to</Text><DatePick value={dateTo} onChange={setDateTo} placeholder="To" testID="invoice-date-to" /></View> : null}
+      {range === "custom" ? <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}><DatePick value={dateFrom} onChange={setDateFrom} placeholder="From" testID="invoice-date-from" /><Text style={{ color: TC.textFaint }}>to</Text><DatePick value={dateTo} onChange={setDateTo} placeholder="To" testID="invoice-date-to" /></View> : null}
 
       {loading && !data ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Shimmer key={i} style={{ height: 120, borderRadius: 16, width: "47%", flexGrow: 1 }} />)}</View> : (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -114,7 +114,7 @@ export default function InvoicesScreen() {
 
       {loading ? <SkeletonList rows={4} /> : error ? (
         <View testID="invoice-error" style={{ borderRadius: 16, borderWidth: 1, borderColor: ROSE[200], backgroundColor: c.surface, padding: 40, alignItems: "center" }}>
-          <AlertTriangle size={36} color={ROSE[400]} /><Text style={{ marginTop: 12, fontSize: 15, fontWeight: "600", color: c.text }}>Unable to load invoices</Text><Text style={{ fontSize: 14, color: SLATE[400], marginTop: 4 }}>Something went wrong. Please try again.</Text>
+          <AlertTriangle size={36} color={ROSE[400]} /><Text style={{ marginTop: 12, fontSize: 15, fontWeight: "600", color: c.text }}>Unable to load invoices</Text><Text style={{ fontSize: 14, color: TC.textFaint, marginTop: 4 }}>Something went wrong. Please try again.</Text>
           <Btn tone="outline" label="Try Again" onPress={load} testID="invoice-retry" style={{ marginTop: 16 }} />
         </View>
       ) : items.length === 0 ? (
@@ -127,7 +127,7 @@ export default function InvoicesScreen() {
             <Pressable key={inv.id} testID={`invoice-card-${inv.invoice_number}`} onPress={() => openDrawer(inv)} style={{ borderRadius: 16, borderWidth: 1, borderColor: c.borderSoft, padding: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{inv.invoice_number}</Text><StatusBadge status={inv.payment_status} /></View>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6, gap: 8 }}>
-                <View style={{ flex: 1 }}><Text style={{ fontSize: 12, color: c.textMuted }}>{TYPE_LABEL[inv.invoice_type] || inv.invoice_type} · {inv.customer_snapshot?.name || inv.booking_code || "—"}</Text><Text style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{shortDate(inv.issue_date)}</Text></View>
+                <View style={{ flex: 1 }}><Text style={{ fontSize: 12, color: c.textMuted }}>{TYPE_LABEL[inv.invoice_type] || inv.invoice_type} · {inv.customer_snapshot?.name || inv.booking_code || "—"}</Text><Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{shortDate(inv.issue_date)}</Text></View>
                 <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>{money(inv.display_amount ?? inv.total_amount, inv.currency)}</Text>
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
@@ -140,30 +140,30 @@ export default function InvoicesScreen() {
           <Paginator page={data.page || page} pageSize={PAGE_SIZE} total={data.total || items.length} onPage={setPage} testID="invoice-pager" />
         </View>
       )}
-      {items.length > 0 ? <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: -8 }}><ArrowUpDown size={14} color={SLATE[400]} /><OptionMenu value={sort} options={SORTS} onChange={setSort} title="Sort by" testID="invoice-sort" /></View> : null}
+      {items.length > 0 ? <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: -8 }}><ArrowUpDown size={14} color={TC.textFaint} /><OptionMenu value={sort} options={SORTS} onChange={setSort} title="Sort by" testID="invoice-sort" /></View> : null}
 
       <FilterSheet open={showFilters} onClose={() => setShowFilters(false)} onClear={resetFilters} onApply={() => setShowFilters(false)} title="Filters">
         <View><FilterLabel>Invoice Type</FilterLabel><View style={{ alignSelf: "flex-start" }}><OptionMenu value={type} options={TYPES} onChange={setType} icon={Layers} title="Invoice Type" testID="invoice-type-filter" /></View></View>
         <View><FilterLabel>Payment Status</FilterLabel><View style={{ alignSelf: "flex-start" }}><OptionMenu value={payStatus} options={PAY_STATUS} onChange={setPayStatus} icon={CreditCard} title="Payment Status" testID="invoice-paystatus-filter" /></View></View>
         <View style={{ flexDirection: "row", gap: 12 }}>
-          <View style={{ flex: 1 }}><FilterLabel>Min Amount</FilterLabel><TextInput testID="invoice-min-amount" value={minAmount} onChangeText={(v) => setMinAmount(v.replace(/[^0-9.]/g, ""))} keyboardType="numeric" placeholder="0" placeholderTextColor={SLATE[400]} style={inputStyle} /></View>
-          <View style={{ flex: 1 }}><FilterLabel>Max Amount</FilterLabel><TextInput testID="invoice-max-amount" value={maxAmount} onChangeText={(v) => setMaxAmount(v.replace(/[^0-9.]/g, ""))} keyboardType="numeric" placeholder="Any" placeholderTextColor={SLATE[400]} style={inputStyle} /></View>
+          <View style={{ flex: 1 }}><FilterLabel>Min Amount</FilterLabel><TextInput testID="invoice-min-amount" value={minAmount} onChangeText={(v) => setMinAmount(v.replace(/[^0-9.]/g, ""))} keyboardType="numeric" placeholder="0" placeholderTextColor={TC.textFaint} style={inputStyle} /></View>
+          <View style={{ flex: 1 }}><FilterLabel>Max Amount</FilterLabel><TextInput testID="invoice-max-amount" value={maxAmount} onChangeText={(v) => setMaxAmount(v.replace(/[^0-9.]/g, ""))} keyboardType="numeric" placeholder="Any" placeholderTextColor={TC.textFaint} style={inputStyle} /></View>
         </View>
       </FilterSheet>
 
       <DrawerShell open={!!d} onClose={() => { setDrawerInv(null); setDrawerFull(null); }} title={d?.invoice_number || "Invoice"} testID="invoice-detail-drawer"
         footer={d ? <View style={{ flexDirection: "row", gap: 8 }}><Btn tone="outline" icon={Download} label="Download" onPress={() => downloadById(d)} testID="drawer-download" style={{ flex: 1, height: 44, borderRadius: 12 }} /><Btn icon={Eye} label="View Invoice" onPress={() => openPreview(d)} testID="drawer-view-full" style={{ flex: 1, height: 44, borderRadius: 12 }} /></View> : null}>
         {d ? <>
-          <View style={{ borderRadius: 16, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : SLATE[50], flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <View><Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: SLATE[400] }}>{d.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</Text><Text style={{ fontSize: 24, fontWeight: "800", color: c.text }}>{money(d.invoice_type === "cancellation" ? (d.original_amount ?? d.total_amount) : d.total_amount, d.currency)}</Text></View>
+          <View style={{ borderRadius: 16, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View><Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: TC.textFaint }}>{d.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</Text><Text style={{ fontSize: 24, fontWeight: "800", color: c.text }}>{money(d.invoice_type === "cancellation" ? (d.original_amount ?? d.total_amount) : d.total_amount, d.currency)}</Text></View>
             <StatusBadge status={d.payment_status} />
           </View>
           <Section icon={User} title="Customer"><KV k="Name" v={d.customer_snapshot?.name || "—"} /><KV k="Mobile" v={d.customer_snapshot?.phone || d.customer_snapshot?.mobile || "—"} />{d.customer_snapshot?.email ? <KV k="Email" v={d.customer_snapshot.email} /> : null}</Section>
           <Section icon={CalendarDays} title="Booking / Reference"><KV k="Type" v={(d.invoice_type || "").replace(/^\w/, (x: string) => x.toUpperCase())} />{d.booking_code ? <KV k="Booking ID" v={d.booking_code} mono /> : null}{d.service_name ? <KV k="Service" v={d.service_name} /> : null}{d.transaction_id ? <KV k="Reference" v={String(d.transaction_id).slice(0, 12)} mono /> : null}<KV k="Date" v={shortDate(d.issue_date)} /></Section>
           <Section icon={Wallet} title="Payment summary">
             {(bd?.service_items || []).length > 0 ? <View testID="drawer-service-items" style={{ paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.borderSoft, gap: 6 }}>
-              {bd.service_items.map((it: any, i: number) => <View key={i}><View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 14, color: isDark ? SLATE[300] : SLATE[700], flex: 1 }}>{it.name}{Number(it.qty) > 1 ? ` ×${it.qty}` : ""}</Text><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>{money(it.amount, d.currency)}</Text></View>{(it.addons || []).map((a: any, ai: number) => <View key={ai} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, paddingLeft: 12 }}><Text style={{ fontSize: 12.5, color: c.textMuted, flex: 1 }}>↳ {a.name}{Number(a.qty) > 1 ? ` ×${a.qty}` : ""}</Text><Text style={{ fontSize: 12.5, color: isDark ? SLATE[300] : SLATE[600] }}>{money(a.amount, d.currency)}</Text></View>)}</View>)}
-              {(bd.additional_charges || []).filter((x: any) => Number(x.amount) > 0).map((x: any) => <View key={x.key} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 14, color: c.textMuted }}>{x.label}</Text><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : SLATE[700] }}>{money(x.amount, d.currency)}</Text></View>)}
+              {bd.service_items.map((it: any, i: number) => <View key={i}><View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 14, color: isDark ? SLATE[300] : TC.text2, flex: 1 }}>{it.name}{Number(it.qty) > 1 ? ` ×${it.qty}` : ""}</Text><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>{money(it.amount, d.currency)}</Text></View>{(it.addons || []).map((a: any, ai: number) => <View key={ai} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12, paddingLeft: 12 }}><Text style={{ fontSize: 12.5, color: c.textMuted, flex: 1 }}>↳ {a.name}{Number(a.qty) > 1 ? ` ×${a.qty}` : ""}</Text><Text style={{ fontSize: 12.5, color: isDark ? SLATE[300] : TC.textMuted }}>{money(a.amount, d.currency)}</Text></View>)}</View>)}
+              {(bd.additional_charges || []).filter((x: any) => Number(x.amount) > 0).map((x: any) => <View key={x.key} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 14, color: c.textMuted }}>{x.label}</Text><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : TC.text2 }}>{money(x.amount, d.currency)}</Text></View>)}
             </View> : null}
             {bd ? <>{bd.subtotal != null ? <KV k="Subtotal" v={money(bd.subtotal, d.currency)} /> : null}{Number(bd.discount) > 0 ? <KV k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={"−" + money(bd.discount, d.currency)} /> : null}{Number(bd.tax) > 0 ? <><KV k="Taxable Amount" v={money(bd.taxable, d.currency)} /><KV k="Est. Govt. Taxes" v={money(bd.tax, d.currency)} /></> : null}</>
               : <>{d.subtotal != null ? <KV k="Subtotal" v={money(d.subtotal, d.currency)} /> : null}{Number(d.visiting_charge) > 0 ? <KV k="Visiting Charge" v={money(d.visiting_charge, d.currency)} /> : null}{Number(d.fees) - Number(d.visiting_charge || 0) > 0.001 ? <KV k="Platform / Service Fees" v={money(Number(d.fees) - Number(d.visiting_charge || 0), d.currency)} /> : null}{d.discount ? <KV k="Discount" v={"−" + money(d.discount, d.currency)} /> : null}{d.tax ? <><KV k="Taxable Amount" v={money(d.taxable ?? (Number(d.subtotal || 0) + Math.max(0, Number(d.fees || 0) - Number(d.visiting_charge || 0))), d.currency)} /><KV k="Est. Govt. Taxes" v={money(d.tax, d.currency)} /></> : null}</>}
@@ -187,7 +187,7 @@ export default function InvoicesScreen() {
             <Pressable testID="invoice-download-pdf" onPress={() => downloadById(preview)} style={{ height: 36, width: 36, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Download size={16} color="#fff" /></Pressable>
             <Pressable testID="invoice-close-btn" onPress={() => setPreview(null)} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.text} /></Pressable>
           </View>
-          {preview?.url ? <WebView source={{ uri: preview.url }} style={{ flex: 1, backgroundColor: isDark ? SLATE[950] : SLATE[100] }} /> : null}
+          {preview?.url ? <WebView source={{ uri: preview.url }} style={{ flex: 1, backgroundColor: isDark ? SLATE[950] : TC.surfaceAlt }} /> : null}
         </View>
       </Modal>
 
@@ -198,7 +198,7 @@ export default function InvoicesScreen() {
       </BottomSheet>
       <BottomSheet open={!!emailFor} onClose={() => setEmailFor(null)} title="Email invoice" testID="invoice-email-sheet" footer={<Btn label={emailBusy ? "Sending…" : "Send"} disabled={emailBusy} onPress={sendEmail} testID="invoice-email-send" style={{ height: 44, borderRadius: 12 }} />}>
         <Text style={{ fontSize: 14, color: c.textMuted }}>Send this invoice to which email?</Text>
-        <TextInput testID="invoice-email-input" value={emailTo} onChangeText={setEmailTo} autoCapitalize="none" keyboardType="email-address" placeholder="name@example.com" placeholderTextColor={SLATE[400]} style={inputStyle} />
+        <TextInput testID="invoice-email-input" value={emailTo} onChangeText={setEmailTo} autoCapitalize="none" keyboardType="email-address" placeholder="name@example.com" placeholderTextColor={TC.textFaint} style={inputStyle} />
       </BottomSheet>
     </View>
   );

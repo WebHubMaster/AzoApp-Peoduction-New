@@ -7,7 +7,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, ROSE, useTheme, shadowBtn, shadowElev } from "../../src/theme";
+import { PRIMARY, SLATE, ROSE, useTheme, shadowBtn, shadowElev, TC } from "../../src/theme";
 import { PrimaryButton } from "../../src/components/customer/ux";
 import { PField, FInput, FSelect, DateField, onlyDigits } from "../../src/components/customer/FormControls";
 import { ProfilePhotoPicker } from "../../src/components/customer/ProfilePhotoPicker";
@@ -96,10 +96,10 @@ export default function ProfileScreen() {
           <ProfilePhotoPicker value={f.photo} onChange={(d) => set("photo", d)} size={80} testID="profile-photo" />
           <View style={{ flex: 1 }}>
             <Text testID="profile-name" style={{ fontWeight: "700", fontSize: 18, color: c.text }}>{f.name || "Your name"}</Text>
-            <Text testID="profile-phone" style={{ fontSize: 14, color: SLATE[400] }}>{user?.phone}</Text>
+            <Text testID="profile-phone" style={{ fontSize: 14, color: TC.textFaint }}>{user?.phone}</Text>
             <View style={{ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <View style={{ height: 6, width: 128, borderRadius: 3, backgroundColor: isDark ? SLATE[800] : SLATE[100], overflow: "hidden" }}><View style={{ height: "100%", width: `${completion}%`, backgroundColor: PRIMARY[600] }} /></View>
-              <Text testID="profile-completion" style={{ fontSize: 12, fontWeight: "600", color: SLATE[500] }}>{completion}% complete</Text>
+              <View style={{ height: 6, width: 128, borderRadius: 3, backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, overflow: "hidden" }}><View style={{ height: "100%", width: `${completion}%`, backgroundColor: PRIMARY[600] }} /></View>
+              <Text testID="profile-completion" style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>{completion}% complete</Text>
             </View>
           </View>
         </View>

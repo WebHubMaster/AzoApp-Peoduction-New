@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** PaymentWebViewHost — renders the active gateway's checkout inside a full-screen
  *  WebView modal and resolves runPayment()'s promise. Handles all gateway shapes the
  *  backend returns from POST /payments/order:
@@ -124,10 +125,10 @@ export function PaymentWebViewHost() {
 
   return (
     <Modal visible transparent={false} animationType="slide" onRequestClose={() => close(false)}>
-      <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, height: 52, borderBottomWidth: 1, borderBottomColor: "#E2E8F0" }}>
-          <Text style={{ fontSize: 16, fontWeight: "800", color: "#0F172A" }}>Secure Payment</Text>
-          <Pressable testID="pay-close" onPress={() => close(false)} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: "#F1F5F9" }}>
+      <View style={{ flex: 1, backgroundColor: TC.surface, paddingTop: insets.top }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, height: 52, borderBottomWidth: 1, borderBottomColor: TC.border }}>
+          <Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>Secure Payment</Text>
+          <Pressable testID="pay-close" onPress={() => close(false)} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: TC.surfaceAlt }}>
             <X size={20} color="#0F172A" />
           </Pressable>
         </View>

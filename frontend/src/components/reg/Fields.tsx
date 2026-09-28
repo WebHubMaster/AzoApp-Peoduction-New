@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, TextInputProps, KeyboardAvoidingView } from "react-native";
+import { View, Text, Pressable, TextInput, Modal, ScrollView, ActivityIndicator, TextInputProps } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets, SafeAreaProvider } from "react-native-safe-area-context";
 import { Search, X, Check, ChevronDown, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, ShieldCheck, Clock, LucideIcon } from "lucide-react-native";
 import { TW, T, usePal } from "./tokens";

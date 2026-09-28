@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Port of web_panel/src/components/site/SchedulePicker.jsx — calendar + admin slot grid (/bookings/slot-availability). */
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
@@ -71,7 +72,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
   }, [fullSlots]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navBtn = (dis: boolean, onPress: () => void, Icon: any, id: string) => (
-    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.3 : 1 }}><Icon size={16} color={SLATE[500]} /></Pressable>
+    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.3 : 1 }}><Icon size={16} color={TC.textMuted} /></Pressable>
   );
   return (
     <View testID="schedule-picker" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16 }}>
@@ -80,7 +81,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
         <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>
         {navBtn(!canNext, () => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1)), ChevronRight, "cal-next")}
       </View>
-      <View style={{ flexDirection: "row", marginBottom: 4 }}>{DOW.map((d, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: SLATE[400], paddingVertical: 4 }}>{d}</Text>)}</View>
+      <View style={{ flexDirection: "row", marginBottom: 4 }}>{DOW.map((d, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: TC.textFaint, paddingVertical: 4 }}>{d}</Text>)}</View>
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
         {days.map((d, i) => {
           if (!d) return <View key={i} style={{ width: `${100 / 7}%`, height: 40 }} />;
@@ -99,15 +100,15 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
       </View>
 
       <View style={{ marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: c.borderSoft }}>
-        <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400], marginBottom: 8 }}>Select a time slot</Text>
-        {!dateStr ? <Text style={{ fontSize: 14, color: SLATE[400] }}>Pick a date first.</Text> : null}
+        <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>Select a time slot</Text>
+        {!dateStr ? <Text style={{ fontSize: 14, color: TC.textFaint }}>Pick a date first.</Text> : null}
         {noSlotsForSel ? (
           <View testID="no-slots-notice" style={{ borderRadius: 12, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 12, flexDirection: "row", gap: 12 }}>
             <CalendarX2 size={20} color={AMBER[600]} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 14, fontWeight: "600", color: "#78350F" }}>No time slots available for {dateStr === iso(today) ? "today" : prettyDate(dateStr!)}.</Text>
               <Text style={{ fontSize: 12, color: AMBER[700], marginTop: 2 }}>{dateStr === iso(today) ? "Today's slots are over — please book for the next day." : "This day is fully booked. Please choose another day."}</Text>
-              <Pressable testID="book-next-day" onPress={goNextDay} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 }}><Text style={{ fontSize: 14, fontWeight: "600", color: PRIMARY[700] }}>Book next day</Text><ArrowRight size={16} color={PRIMARY[700]} /></Pressable>
+              <Pressable testID="book-next-day" onPress={goNextDay} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.primaryText }}>Book next day</Text><ArrowRight size={16} color={TC.primaryText} /></Pressable>
             </View>
           </View>
         ) : null}

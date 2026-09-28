@@ -1,3 +1,4 @@
+import { TC } from "@/src/theme";
 /** Port of web ProfilePhotoPicker: pick → square crop → compress (<2 MB) → onChange(dataUrl). */
 import React, { useState } from "react";
 import { View, Pressable, ActivityIndicator } from "react-native";
@@ -32,8 +33,8 @@ export function ProfilePhotoPicker({ value, onChange, disabled = false, size = 8
   };
   return (
     <View style={{ width: size, height: size }}>
-      <View testID={testID} style={{ width: size, height: size, borderRadius: size / 2, overflow: "hidden", backgroundColor: c.primarySoft, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}>
-        {value ? <Image source={{ uri: value }} style={{ width: size, height: size }} contentFit="cover" /> : <UserIcon size={size * 0.4} color={PRIMARY[700]} />}
+      <View testID={testID} style={{ width: size, height: size, borderRadius: size / 2, overflow: "hidden", backgroundColor: c.primarySoft, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}>
+        {value ? <Image source={{ uri: value }} style={{ width: size, height: size }} contentFit="cover" /> : <UserIcon size={size * 0.4} color={TC.primaryText} />}
       </View>
       {!disabled ? (
         <Pressable testID={`${testID}-label`} onPress={pick} disabled={busy} style={({ pressed }) => ({ position: "absolute", bottom: -4, right: -4, height: 32, width: 32, borderRadius: 16, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", boxShadow: "0px 2px 6px rgba(0,0,0,0.2)" } as any)}>

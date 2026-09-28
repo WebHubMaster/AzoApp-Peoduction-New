@@ -10,7 +10,7 @@ import { useAuth } from "../../src/context/AuthContext";
 import { useToast } from "../../src/components/Toast";
 import { api, API_BASE } from "../../src/api/client";
 import { fmt, fmtC } from "../../src/lib/format";
-import { PRIMARY, SLATE, EMERALD, useTheme, shadowElev } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, useTheme, shadowElev, TC } from "../../src/theme";
 import { StatTile, StatusChip, EmptyState, SkeletonList } from "../../src/components/customer/ux";
 import { FInput } from "../../src/components/customer/FormControls";
 
@@ -19,7 +19,7 @@ const shareText = ({ code, reward, discount, link }: any) => `🎁 Get ₹${disc
 const whatsappUrl = (text: string) => `https://wa.me/?text=${encodeURIComponent(text)}`;
 
 const WhiteBtn = ({ label, icon: Icon, onPress, testID, ghost }: any) => (
-  <Pressable testID={testID} onPress={onPress} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ghost ? "rgba(255,255,255,0.2)" : "#fff" }}>
+  <Pressable testID={testID} onPress={onPress} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ghost ? "rgba(255,255,255,0.2)" : TC.surface }}>
     <Icon size={16} color={ghost ? "#fff" : PRIMARY[700]} /><Text style={{ fontSize: 14, fontWeight: "600", color: ghost ? "#fff" : PRIMARY[700] }}>{label}</Text>
   </Pressable>
 );
@@ -40,7 +40,7 @@ function ReferralCard({ code, reward, discount, card }: any) {
       </View>
       <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 10, marginTop: 14 }}>Your friend gets ₹{discount} OFF their first booking</Text>
       <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 10, marginTop: 3 }}>You earn ₹{reward} when they complete it</Text>
-      <View style={{ position: "absolute", bottom: 16, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 999, backgroundColor: "#fff" }}><Text style={{ color: bg, fontWeight: "800", fontSize: 12 }}>{card?.cta_text || "Book Now & Save"}</Text></View>
+      <View style={{ position: "absolute", bottom: 16, paddingHorizontal: 20, paddingVertical: 8, borderRadius: 999, backgroundColor: TC.surface }}><Text style={{ color: bg, fontWeight: "800", fontSize: 12 }}>{card?.cta_text || "Book Now & Save"}</Text></View>
     </View>
   );
 }
@@ -66,11 +66,11 @@ function ReferralShareCard({ code, reward, discount, link, card, copy }: any) {
     if (!perm.granted) return toast.error("Photo library permission denied");
     await MediaLibrary.saveToLibraryAsync(uri); toast.success("Card image saved to gallery");
   };
-  const outline = { height: 44, borderRadius: 16, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, flex: 1 };
-  const outlineT = { fontSize: 14, fontWeight: "600" as const, color: isDark ? SLATE[200] : SLATE[700] };
+  const outline = { height: 44, borderRadius: 16, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, flex: 1 };
+  const outlineT = { fontSize: 14, fontWeight: "600" as const, color: isDark ? SLATE[200] : TC.text2 };
   return (
     <View testID="referral-share-card" style={{ borderRadius: 24, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
-      <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400], marginBottom: 12 }}>Your shareable card</Text>
+      <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 12 }}>Your shareable card</Text>
       <View style={{ alignItems: "center" }}>
         <ViewShot ref={shotRef} options={{ format: "png", quality: 1, result: Platform.OS === "web" ? "data-uri" : "tmpfile" }}><ReferralCard code={code} reward={reward} discount={discount} card={card} /></ViewShot>
       </View>
@@ -174,12 +174,12 @@ export default function ReferralScreen() {
                   <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Text style={{ fontWeight: "700", color: c.primaryText }}>{(h.name || "F")[0]}</Text></View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text numberOfLines={1} style={{ fontWeight: "600", fontSize: 14, color: c.text }}>{h.name}</Text>
-                    <Text style={{ fontSize: 12, color: SLATE[400] }}>{h.date ? new Date(h.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""}</Text>
+                    <Text style={{ fontSize: 12, color: TC.textFaint }}>{h.date ? new Date(h.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : ""}</Text>
                   </View>
                 </View>
                 <View style={{ alignItems: "flex-end", gap: 4 }}>
                   <StatusChip tone={h.payment_status === "paid" ? "green" : "amber"} label={h.status === "first_booking" ? "Completed" : "Joined"} />
-                  <Text style={{ fontWeight: "700", fontSize: 14, color: h.payment_status === "paid" ? EMERALD[600] : SLATE[400] }}>{h.payment_status === "paid" ? "+" : ""}{fmt(h.reward)}</Text>
+                  <Text style={{ fontWeight: "700", fontSize: 14, color: h.payment_status === "paid" ? EMERALD[600] : TC.textFaint }}>{h.payment_status === "paid" ? "+" : ""}{fmt(h.reward)}</Text>
                 </View>
               </View>
             ))}

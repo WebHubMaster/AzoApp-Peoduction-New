@@ -1,6 +1,8 @@
+import { TC } from "@/src/theme";
 /** Port of web_panel/src/components/booking/BookingChat.jsx — customer ↔ partner thread (polling instead of SSE). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView, TextInput, Linking, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, ScrollView, TextInput, Linking, Platform } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { MessageCircle, Phone, Send, Check, CheckCheck, X } from "lucide-react-native";
@@ -70,7 +72,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
   const bg = isDark ? SLATE[950] : SLATE[50];
   return (
     <Modal visible={open} animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: c.surface }}>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: c.surface }}>
         <View testID={`chat-sheet-${booking?.code}`} style={{ flex: 1, paddingTop: insets.top }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
             <View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
@@ -79,20 +81,20 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text numberOfLines={1} style={{ fontSize: 16, fontWeight: "600", color: c.text }}>{partner?.name || "Your partner"}</Text>
               {typing ? <Text testID="chat-typing" style={{ fontSize: 12, color: c.primaryText, fontStyle: "italic" }}>typing…</Text>
-                : <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: chat?.counterpart_online ? EMERALD[500] : SLATE[300] }} /><Text numberOfLines={1} style={{ fontSize: 12, color: EMERALD[600] }}>{chat?.counterpart_online ? "Online" : "On the way"} · {booking?.service_name}</Text></View>}
+                : <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: chat?.counterpart_online ? EMERALD[500] : TC.border }} /><Text numberOfLines={1} style={{ fontSize: 12, color: EMERALD[600] }}>{chat?.counterpart_online ? "Online" : "On the way"} · {booking?.service_name}</Text></View>}
             </View>
             {partner?.phone ? <Pressable onPress={call} style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: isDark ? "rgba(6,78,59,0.3)" : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Phone size={16} color={EMERALD[600]} /></Pressable> : null}
-            <Pressable testID="chat-close" onPress={onClose} hitSlop={8} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}><X size={20} color={SLATE[400]} /></Pressable>
+            <Pressable testID="chat-close" onPress={onClose} hitSlop={8} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}><X size={20} color={TC.textFaint} /></Pressable>
           </View>
 
           <ScrollView ref={scrollRef} testID="chat-messages" style={{ flex: 1, backgroundColor: bg }} contentContainerStyle={{ padding: 16, gap: 8 }}>
             {!enabled ? (
               <View style={{ alignItems: "center", marginTop: 40, paddingHorizontal: 24 }}>
-                <MessageCircle size={32} color={SLATE[300]} />
-                <Text style={{ fontSize: 14, color: SLATE[400], textAlign: "center", marginTop: 8 }}>{chat?.comm_locked ? "Chat unlocks 30 minutes before your scheduled time." : "Chat opens once your booking is paid and a partner is on the way."}</Text>
+                <MessageCircle size={32} color={TC.textFaint} />
+                <Text style={{ fontSize: 14, color: TC.textFaint, textAlign: "center", marginTop: 8 }}>{chat?.comm_locked ? "Chat unlocks 30 minutes before your scheduled time." : "Chat opens once your booking is paid and a partner is on the way."}</Text>
               </View>
             ) : null}
-            {enabled && !(chat.messages || []).length ? <Text style={{ textAlign: "center", fontSize: 14, color: SLATE[400], marginTop: 40 }}>No messages yet. Say hello 👋</Text> : null}
+            {enabled && !(chat.messages || []).length ? <Text style={{ textAlign: "center", fontSize: 14, color: TC.textFaint, marginTop: 40 }}>No messages yet. Say hello 👋</Text> : null}
             {enabled ? (chat.messages || []).map((m: any) => {
               const mine = m.sender_id === chat.me;
               return (
@@ -100,7 +102,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
                   <View style={{ maxWidth: "80%", borderRadius: 16, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? PRIMARY[700] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.border }}>
                     <Text style={{ fontSize: 14, color: mine ? "#fff" : c.text }}>{m.text}</Text>
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 2 }}>
-                      <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.7)" : SLATE[400] }}>{new Date(m.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</Text>
+                      <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.7)" : TC.textFaint }}>{new Date(m.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</Text>
                       {mine ? <Ticks status={m.status} /> : null}
                     </View>
                   </View>
@@ -116,7 +118,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
           ) : null}
           {enabled ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 12, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderTopColor: c.borderSoft }}>
-              <TextInput testID="chat-input" value={text} onChangeText={onType} onSubmitEditing={() => send()} placeholder="Type a message…" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, backgroundColor: c.surface, outlineStyle: "none" } as any} />
+              <TextInput testID="chat-input" value={text} onChangeText={onType} onSubmitEditing={() => send()} placeholder="Type a message…" placeholderTextColor={TC.textFaint} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, backgroundColor: c.surface, outlineStyle: "none" } as any} />
               <Pressable testID="chat-send" disabled={sending || !text.trim()} onPress={() => send()} style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sending || !text.trim() ? 0.5 : 1 }}><Send size={16} color="#fff" /></Pressable>
             </View>
           ) : null}

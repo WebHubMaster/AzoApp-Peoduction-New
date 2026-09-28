@@ -12,12 +12,13 @@ import { useCart, lineEstimate, toReqItem } from "../../src/context/CartContext"
 import { useToast } from "../../src/components/Toast";
 import { runPayment } from "../../src/lib/payments";
 import { fmt } from "../../src/lib/format";
-import { PRIMARY, SLATE, EMERALD } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, TC, useTheme } from "../../src/theme";
 import { emptyAddress } from "../../src/components/customer/AddressForm";
 import { STEPS, Stepper, StepServices, StepDetails, StepSchedule } from "../../src/components/site/CheckoutUi";
 import { StepContact, StepSummary, StepReview, SuccessScreen } from "../../src/components/site/CheckoutSteps";
 
 export default function Checkout() {
+  useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const toast = useToast();
@@ -176,26 +177,26 @@ export default function Checkout() {
     else toast.error(firstErr || "Could not place your order");
   };
 
-  if (placed) return <View style={{ flex: 1, backgroundColor: "#FAFAFA", paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace("/(customer)/orders" as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
+  if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace("/(customer)/orders" as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (ready && !items.length && step === 0) return (
-    <View testID="cart-empty" style={{ flex: 1, backgroundColor: "#FAFAFA", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={PRIMARY[700]} /></View>
-      <Text style={{ fontSize: 22, fontWeight: "700", color: SLATE[900] }}>Your booking is empty</Text>
-      <Text style={{ fontSize: 14, color: SLATE[500], marginTop: 8, textAlign: "center", maxWidth: 320 }}>Add one or more services to get started. You can book multiple services in a single order.</Text>
+    <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
+      <Text style={{ fontSize: 22, fontWeight: "700", color: TC.text }}>Your booking is empty</Text>
+      <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 320 }}>Add one or more services to get started. You can book multiple services in a single order.</Text>
       <Pressable testID="browse-services" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Browse services</Text><ArrowRight size={16} color="#fff" /></Pressable>
-      <Pressable testID="checkout-back" onPress={back} style={{ marginTop: 16 }}><Text style={{ color: SLATE[500], fontWeight: "600" }}>← Back</Text></Pressable>
+      <Pressable testID="checkout-back" onPress={back} style={{ marginTop: 16 }}><Text style={{ color: TC.textMuted, fontWeight: "600" }}>← Back</Text></Pressable>
     </View>
   );
 
   const subtotal = items.reduce((s, it) => s + lineTotal(it), 0);
   return (
-    <View style={{ flex: 1, backgroundColor: "#FAFAFA" }} testID="checkout-page">
-      <View style={{ paddingTop: insets.top + 8, backgroundColor: "rgba(255,255,255,0.95)", borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)" }}>
+    <View style={{ flex: 1, backgroundColor: TC.bg }} testID="checkout-page">
+      <View style={{ paddingTop: insets.top + 8, backgroundColor: TC.surface, borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)" }}>
         <View style={{ height: 56, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: SLATE[200], alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={SLATE[500]} /></Pressable>
-          <View><Text style={{ fontSize: 18, fontWeight: "800", color: SLATE[900] }}>Book your services</Text><Text testID="checkout-count" style={{ fontSize: 11, color: SLATE[400], marginTop: 2 }}>{count} item{count > 1 ? "s" : ""} in your order</Text></View>
+          <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={TC.textMuted} /></Pressable>
+          <View><Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>Book your services</Text><Text testID="checkout-count" style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{count} item{count > 1 ? "s" : ""} in your order</Text></View>
         </View>
-        <View style={{ borderTopWidth: 1, borderTopColor: SLATE[100], paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} /></View>
+        <View style={{ borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} /></View>
       </View>
       <KeyboardAwareScrollView ref={scrollRef as any} bottomOffset={120} contentContainerStyle={{ padding: 16, paddingBottom: 160 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         {step === 0 ? <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} together={upsell.frequently_together} addService={addService} /> : null}
@@ -204,10 +205,10 @@ export default function Checkout() {
         {step === 3 ? <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} /> : null}
         {step === 4 ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} /> : null}
         {step === 5 ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} /> : null}
-        {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: PRIMARY[700] }}>Jump back to {STEPS[maxReached].label} →</Text></Pressable> : null}
+        {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.primaryText }}>Jump back to {STEPS[maxReached].label} →</Text></Pressable> : null}
       </KeyboardAwareScrollView>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: SLATE[200], paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: SLATE[400], fontWeight: "500" }}>{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: SLATE[900] }}>{fmt(step >= 4 ? displayTotal : subtotal)}</Text></View>
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(step >= 4 ? displayTotal : subtotal)}</Text></View>
         {step < STEPS.length - 1 ? (
           <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{step === 4 ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
         ) : (

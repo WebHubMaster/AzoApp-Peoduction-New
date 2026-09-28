@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight, History, Globe } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { PRIMARY, SLATE, ROSE, shadowBtn, useTheme } from "../../theme";
+import { PRIMARY, SLATE, ROSE, shadowBtn, useTheme, TC } from "../../theme";
 import { mediaUrl } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteConfig } from "../../context/BrandContext";
@@ -53,23 +53,23 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
             <Image testID="app-logo-image" source={{ uri: brandLogo }} style={{ height: 44, width: 150 }} contentFit="contain" contentPosition="left" />
           ) : (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <Text style={{ fontSize: 25, fontWeight: "900", color: PRIMARY[700], letterSpacing: -0.6 }}>{branding?.site_name || cfg.site_name || "AzoApp"}</Text>
-              <HomeIcon size={22} color={PRIMARY[700]} strokeWidth={2.4} />
+              <Text style={{ fontSize: 25, fontWeight: "900", color: TC.primaryText, letterSpacing: -0.6 }}>{branding?.site_name || cfg.site_name || "AzoApp"}</Text>
+              <HomeIcon size={22} color={TC.primaryText} strokeWidth={2.4} />
             </View>
           )}
-          {!brandLogo && branding?.show_tagline !== false && (branding?.tagline || cfg.tagline) ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding?.tagline || cfg.tagline}</Text> : null}
+          {!brandLogo && branding?.show_tagline !== false && (branding?.tagline || cfg.tagline) ? <Text testID="app-tagline" style={{ fontSize: 11, color: TC.textMuted, marginTop: 0 }} numberOfLines={1}>{branding?.tagline || cfg.tagline}</Text> : null}
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: isDark ? c.surfaceAlt : PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
+          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: isDark ? c.surfaceAlt : TC.primarySoft, borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
             <MapPin size={16} color={isDark ? PRIMARY[300] : PRIMARY[700]} />
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: c.text, flexShrink: 1 }}>{city || "Set location"}</Text>
             <ChevronDown size={14} color={c.textMuted} />
           </Pressable>
         </View>
         <Pressable testID="app-bell" onPress={onBell} style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center" }}>
-          {notif === "denied" ? <BellOff size={24} color={SLATE[400]} /> : <Bell size={24} color={c.text} />}
-          {(unread > 0 || notif === "undetermined") && notif !== "denied" ? <View testID="app-bell-dot" style={{ position: "absolute", top: 5, right: 7, height: 8, width: 8, borderRadius: 4, backgroundColor: ROSE[500], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
-          {notif === "denied" ? <View testID="app-bell-muted" style={{ position: "absolute", top: 4, right: 5, height: 9, width: 9, borderRadius: 5, backgroundColor: SLATE[400], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
+          {notif === "denied" ? <BellOff size={24} color={TC.textFaint} /> : <Bell size={24} color={c.text} />}
+          {(unread > 0 || notif === "undetermined") && notif !== "denied" ? <View testID="app-bell-dot" style={{ position: "absolute", top: 5, right: 7, height: 8, width: 8, borderRadius: 4, backgroundColor: ROSE[500], borderWidth: 1.5, borderColor: TC.surface }} /> : null}
+          {notif === "denied" ? <View testID="app-bell-muted" style={{ position: "absolute", top: 4, right: 5, height: 9, width: 9, borderRadius: 5, backgroundColor: TC.textFaint, borderWidth: 1.5, borderColor: TC.surface }} /> : null}
         </Pressable>
         <Pressable testID="app-avatar" onPress={() => router.push(user ? "/(customer)" : "/login")} style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", overflow: "hidden", ...shadowBtn }}>
           {user?.photo ? <Image testID="app-avatar-img" source={{ uri: mediaUrl(user.photo) }} style={{ width: 40, height: 40 }} contentFit="cover" cachePolicy="memory-disk" /> : user ? <Text style={{ color: "#fff", fontWeight: "800", fontSize: 14 }}>{initials || "U"}</Text> : <User size={22} color="#fff" />}
@@ -150,46 +150,46 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: c.surface, zIndex: 20 }}>
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: isDark ? c.surfaceAlt : "#fff", borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: isDark ? c.surfaceAlt : TC.surface, borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
         <Search size={22} color={c.text} strokeWidth={2.4} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search" numberOfLines={1} multiline={false}
-          placeholder="Search for services" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 16, color: c.text, height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
-        {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={SLATE[400]} /></Pressable> : null}
+          placeholder="Search for services" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 16, color: c.text, height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
+        {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={TC.textFaint} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
-          {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : SLATE[300]} strokeWidth={2.2} />}
+          {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : TC.border} strokeWidth={2.2} />}
         </Pressable>
       </View>
       {recent.length > 0 && q.trim().length < 2 ? (
         <View testID="recent-searches" style={{ marginTop: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><History size={13} color={SLATE[400]} /><Text style={{ fontSize: 11, fontWeight: "700", color: SLATE[400], textTransform: "uppercase", letterSpacing: 0.6 }}>Recent searches</Text></View>
-            <Pressable testID="recent-clear" onPress={clearRecent} hitSlop={8}><Text style={{ fontSize: 11.5, fontWeight: "700", color: PRIMARY[700] }}>Clear</Text></Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><History size={13} color={TC.textFaint} /><Text style={{ fontSize: 11, fontWeight: "700", color: TC.textFaint, textTransform: "uppercase", letterSpacing: 0.6 }}>Recent searches</Text></View>
+            <Pressable testID="recent-clear" onPress={clearRecent} hitSlop={8}><Text style={{ fontSize: 11.5, fontWeight: "700", color: TC.primaryText }}>Clear</Text></Pressable>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
             {recent.map((term) => (
-              <View key={term} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingLeft: 12, paddingRight: 8, borderRadius: 17, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200] }}>
-                <Pressable testID={`recent-${term.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => { setQ(term); setOpen(false); submit(term); }} hitSlop={6}><Text style={{ fontSize: 13, fontWeight: "600", color: SLATE[700] }}>{term}</Text></Pressable>
-                <Pressable onPress={() => forget(term)} hitSlop={8} testID={`recent-remove-${term.replace(/\s+/g, "-").toLowerCase()}`}><X size={13} color={SLATE[400]} /></Pressable>
+              <View key={term} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingLeft: 12, paddingRight: 8, borderRadius: 17, backgroundColor: TC.bg, borderWidth: 1, borderColor: TC.border }}>
+                <Pressable testID={`recent-${term.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => { setQ(term); setOpen(false); submit(term); }} hitSlop={6}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.text2 }}>{term}</Text></Pressable>
+                <Pressable onPress={() => forget(term)} hitSlop={8} testID={`recent-remove-${term.replace(/\s+/g, "-").toLowerCase()}`}><X size={13} color={TC.textFaint} /></Pressable>
               </View>
             ))}
           </ScrollView>
         </View>
       ) : null}
       {open && q.trim().length >= 2 ? (
-        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
-          {loading && !results ? <ActivityIndicator color={PRIMARY[700]} style={{ margin: 12 }} /> : null}
+        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: TC.surface, borderRadius: 16, borderWidth: 1, borderColor: TC.border, padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
+          {loading && !results ? <ActivityIndicator color={TC.primaryText} style={{ margin: 12 }} /> : null}
           <ScrollView keyboardShouldPersistTaps="handled">
             {(results || []).slice(0, 8).map((s) => (
               <Pressable key={s.id} testID={`app-search-result-${s.id}`} onPress={() => { setOpen(false); setQ(""); router.push(`/(site)/service/${s.id}` as any); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderRadius: 12 }}>
-                <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: PRIMARY[50], alignItems: "center", justifyContent: "center" }}><HomeIcon size={16} color={PRIMARY[700]} /></View>
-                <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: SLATE[800] }}>{s.name}</Text><Text style={{ fontSize: 11, color: SLATE[400] }}>{s.category_name}</Text></View>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[700] }}>{fmt(s.base_price)}</Text>
+                <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}><HomeIcon size={16} color={TC.primaryText} /></View>
+                <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: TC.text }}>{s.name}</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>{s.category_name}</Text></View>
+                <Text style={{ fontSize: 13, fontWeight: "700", color: TC.primaryText }}>{fmt(s.base_price)}</Text>
               </Pressable>
             ))}
-            {results && results.length === 0 ? <Text style={{ fontSize: 13, color: SLATE[500], padding: 12 }}>No services match “{q}”.</Text> : null}
+            {results && results.length === 0 ? <Text style={{ fontSize: 13, color: TC.textMuted, padding: 12 }}>No services match “{q}”.</Text> : null}
             {results && results.length > 0 ? (
               <Pressable testID="app-search-all" onPress={() => { setOpen(false); submit(q.trim()); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: 10 }}>
-                <Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[700] }}>See all results</Text><ArrowRight size={14} color={PRIMARY[700]} />
+                <Text style={{ fontSize: 13, fontWeight: "700", color: TC.primaryText }}>See all results</Text><ArrowRight size={14} color={TC.primaryText} />
               </Pressable>
             ) : null}
           </ScrollView>

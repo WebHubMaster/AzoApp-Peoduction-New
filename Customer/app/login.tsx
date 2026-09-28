@@ -16,7 +16,7 @@ import { api } from "@/src/api/client";
 import { useAuth, isCustomer, AppUser } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
-import { PRIMARY, SLATE, EMERALD, useTheme } from "@/src/theme";
+import { PRIMARY, SLATE, EMERALD, useTheme, TC } from "@/src/theme";
 import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
 
 const OTP_LEN = 6;
@@ -41,7 +41,7 @@ function IndiaFlag() {
   return (
     <View style={{ width: 22, height: 15, borderRadius: 2, overflow: "hidden", borderWidth: 0.5, borderColor: "rgba(0,0,0,0.08)" }}>
       <View style={{ flex: 1, backgroundColor: "#FF9933" }} />
-      <View style={{ flex: 1, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" }}><View style={{ width: 4, height: 4, borderRadius: 2, borderWidth: 1, borderColor: "#000080" }} /></View>
+      <View style={{ flex: 1, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}><View style={{ width: 4, height: 4, borderRadius: 2, borderWidth: 1, borderColor: "#000080" }} /></View>
       <View style={{ flex: 1, backgroundColor: "#138808" }} />
     </View>
   );
@@ -52,8 +52,8 @@ function Chip({ icon, title, sub, dark }: { icon: React.ReactNode; title: string
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
       <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
       <View>
-        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "600" }}>{title}</Text>
-        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : SLATE[600], fontWeight: "600" }}>{sub}</Text>
+        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{title}</Text>
+        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{sub}</Text>
       </View>
     </View>
   );
@@ -192,7 +192,7 @@ export default function Login() {
                 <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: BLUE, alignItems: "center", justifyContent: "center" }}><Zap size={22} color="#fff" strokeWidth={2.4} /></View>
                 <View>
                   <Text style={{ fontWeight: "800", fontSize: 24, color: "#0B3A8F", letterSpacing: -0.4 }}>{siteName}</Text>
-                  <Text style={{ fontSize: 11.5, color: SLATE[500], marginTop: -2 }}>{tagline}</Text>
+                  <Text style={{ fontSize: 11.5, color: TC.textMuted, marginTop: -2 }}>{tagline}</Text>
                 </View>
               </>
             )}
@@ -225,14 +225,14 @@ export default function Login() {
                     <Text style={{ marginLeft: 8, fontSize: 15, fontWeight: "700", color: inputText }}>+91</Text>
                     <ChevronDown size={16} color={heading} style={{ marginLeft: 6 }} />
                     <View style={{ width: 1, height: 26, backgroundColor: inputBorder, marginHorizontal: 12 }} />
-                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={SLATE[400]} numberOfLines={1} multiline={false}
+                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={TC.textFaint} numberOfLines={1} multiline={false}
                       keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
                       style={{ flex: 1, height: 52, fontSize: 14.5, color: inputText, paddingRight: 10, outlineStyle: "none" } as any} />
                   </View>
                   <PrimaryBtn testID="send-otp-button" label="Send OTP" icon onPress={send} busy={busy === "send"} />
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <Lock size={14} color={SLATE[500]} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 11.5, color: SLATE[500], flexShrink: 1 }}>We&apos;ll take you to the right panel based on your number.</Text>
+                    <Lock size={14} color={TC.textMuted} />
+                    <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 11.5, color: TC.textMuted, flexShrink: 1 }}>We&apos;ll take you to the right panel based on your number.</Text>
                   </View>
                 </View>
               ) : null}
@@ -264,8 +264,8 @@ export default function Login() {
                     <Pressable testID="change-number" onPress={() => { setOtp(""); setStep(1); }}><Text style={{ fontSize: 12.5, color: muted }}>← Change number</Text></Pressable>
                     {cooldown > 0 ? (
                       <View testID="resend-countdown" style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <RotateCw size={14} color={SLATE[300]} />
-                        <Text style={{ fontSize: 12.5, color: SLATE[400] }}>Resend in <Text style={{ fontWeight: "700", color: muted }}>{fmtTime(cooldown)}</Text></Text>
+                        <RotateCw size={14} color={TC.textFaint} />
+                        <Text style={{ fontSize: 12.5, color: TC.textFaint }}>Resend in <Text style={{ fontWeight: "700", color: muted }}>{fmtTime(cooldown)}</Text></Text>
                       </View>
                     ) : (
                       <Pressable testID="resend-otp-button" disabled={!!busy} onPress={send} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
@@ -281,7 +281,7 @@ export default function Login() {
                 <View testID="otp-name-step" style={{ gap: 14 }}>
                   <Text style={{ fontSize: 14, fontWeight: "800", color: heading }}>Your Name</Text>
                   <Text style={{ fontSize: 13, color: muted }}>Welcome! Please tell us your name to continue.</Text>
-                  <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={SLATE[400]} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
+                  <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={TC.textFaint} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
                   <PrimaryBtn testID="continue-signup-button" label="Continue" icon onPress={continueSignup} busy={busy === "signup"} />
                   <Pressable testID="name-change-number" onPress={() => setStep(1)}><Text style={{ fontSize: 12.5, color: muted }}>← Change number</Text></Pressable>
                 </View>
@@ -293,9 +293,9 @@ export default function Login() {
         {cfg?.auth_config?.email_login ? (
           <View testID="email-login" style={{ marginTop: 14, padding: 18, borderRadius: 20, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", backgroundColor: cardBg, gap: 10 }}>
             <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, fontWeight: "800", color: PRIMARY[600] }}>Email Login</Text>
-            <TextInput testID="email-input" style={inputStyle} placeholder="Email" placeholderTextColor={SLATE[400]} autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
-            <TextInput testID="email-name" style={inputStyle} placeholder="Name (new users)" placeholderTextColor={SLATE[400]} value={em.name} onChangeText={(v) => setEm({ ...em, name: v })} />
-            <TextInput testID="email-pass" style={inputStyle} placeholder="Password" placeholderTextColor={SLATE[400]} secureTextEntry value={em.password} onChangeText={(v) => setEm({ ...em, password: v })} />
+            <TextInput testID="email-input" style={inputStyle} placeholder="Email" placeholderTextColor={TC.textFaint} autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
+            <TextInput testID="email-name" style={inputStyle} placeholder="Name (new users)" placeholderTextColor={TC.textFaint} value={em.name} onChangeText={(v) => setEm({ ...em, name: v })} />
+            <TextInput testID="email-pass" style={inputStyle} placeholder="Password" placeholderTextColor={TC.textFaint} secureTextEntry value={em.password} onChangeText={(v) => setEm({ ...em, password: v })} />
             <PrimaryBtn testID="email-login-btn" label="Continue with Email" onPress={emailLogin} busy={busy === "email"} />
           </View>
         ) : null}

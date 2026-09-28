@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { KeyboardProvider } from "react-native-keyboard-controller";
+import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
@@ -83,6 +83,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
           <ChatProvider>
           <ChatNotifier />
           <ToastProvider>
+            <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
             <Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="onboarding/intro" />
@@ -95,6 +96,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="(agent)" />
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
+            </KeyboardAvoidingView>
             <OfflineGate />
           </ToastProvider>
           </ChatProvider>

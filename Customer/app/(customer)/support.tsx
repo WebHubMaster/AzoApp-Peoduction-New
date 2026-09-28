@@ -5,7 +5,7 @@ import { LifeBuoy, Plus, ArrowLeft, Inbox, CalendarRange, Filter, ArrowUpDown } 
 import { useAuth } from "../../src/context/AuthContext";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, EMERALD, useTheme, shadowBtn } from "../../src/theme";
+import { PRIMARY, SLATE, EMERALD, useTheme, shadowBtn, TC } from "../../src/theme";
 import { SearchInput, OptionMenu, PrimaryButton } from "../../src/components/customer/ux";
 import { FInput, FSelect } from "../../src/components/customer/FormControls";
 import { SupportThread } from "../../src/components/customer/SupportThread";
@@ -24,7 +24,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
   const { c } = useTheme();
   const toast = useToast();
   const [subject, setSubject] = useState(""); const [category, setCategory] = useState("other"); const [priority, setPriority] = useState("medium"); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
-  const lbl = { fontSize: 12, fontWeight: "600" as const, color: SLATE[500], marginBottom: 4 };
+  const lbl = { fontSize: 12, fontWeight: "600" as const, color: TC.textMuted, marginBottom: 4 };
   const submit = async () => {
     if (!subject.trim()) return toast.error("Please enter a subject");
     if (!message.trim()) return toast.error("Please describe your issue");
@@ -35,7 +35,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
   };
   return (
     <View testID="support-new-form" style={{ gap: 16 }}>
-      <Pressable testID="support-new-back" onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><ArrowLeft size={16} color={SLATE[500]} /><Text style={{ fontSize: 14, color: SLATE[500] }}>Back</Text></Pressable>
+      <Pressable testID="support-new-back" onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><ArrowLeft size={16} color={TC.textMuted} /><Text style={{ fontSize: 14, color: TC.textMuted }}>Back</Text></Pressable>
       <View style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20, gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={20} color={PRIMARY[600]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Raise a new ticket</Text></View>
         <View><Text style={lbl}>Subject *</Text><FInput testID="support-subject" value={subject} onChange={setSubject} placeholder="Briefly, what's the issue?" /></View>
@@ -45,7 +45,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
         </View>
         <View><Text style={lbl}>Describe your issue *</Text><FInput testID="support-message" multiline value={message} onChange={setMessage} placeholder="Tell us what happened…" style={{ minHeight: 120 }} /></View>
         <PrimaryButton testID="support-submit" label="Submit ticket" onPress={submit} busy={busy} />
-        <Text style={{ fontSize: 11, color: SLATE[400], textAlign: "center" }}>You can attach screenshots inside the ticket chat after creating it.</Text>
+        <Text style={{ fontSize: 11, color: TC.textFaint, textAlign: "center" }}>You can attach screenshots inside the ticket chat after creating it.</Text>
       </View>
     </View>
   );
@@ -97,8 +97,8 @@ export default function SupportScreen() {
 
       {loading ? <View style={{ paddingVertical: 64, alignItems: "center" }}><ActivityIndicator size="small" color={PRIMARY[500]} /></View>
         : rows.length === 0 ? (
-          <View testID="support-empty" style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : SLATE[300], padding: 48, alignItems: "center" }}>
-            <Inbox size={40} color={SLATE[300]} /><Text style={{ fontSize: 15, fontWeight: "500", color: SLATE[500], marginTop: 12 }}>No tickets found</Text><Text style={{ fontSize: 14, color: SLATE[400], marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
+          <View testID="support-empty" style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 48, alignItems: "center" }}>
+            <Inbox size={40} color={TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "500", color: TC.textMuted, marginTop: 12 }}>No tickets found</Text><Text style={{ fontSize: 14, color: TC.textFaint, marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
             <GreenBtn testID="support-empty-new" label="New Ticket" onPress={() => setView("new")} />
           </View>
         ) : (
@@ -106,11 +106,11 @@ export default function SupportScreen() {
             {rows.map((tk, i) => (
               <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)} style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: i === rows.length - 1 ? 0 : 1, borderBottomColor: c.borderSoft, backgroundColor: pressed ? c.bg : "transparent" })}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>{tk.unread_user > 0 ? <View testID={`support-unread-${tk.code}`} style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: "#EF4444" }} /> : null}<Text style={{ fontSize: 12, color: SLATE[500], fontFamily: "monospace" }}>{tk.code}</Text></View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>{tk.unread_user > 0 ? <View testID={`support-unread-${tk.code}`} style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: "#EF4444" }} /> : null}<Text style={{ fontSize: 12, color: TC.textMuted, fontFamily: "monospace" }}>{tk.code}</Text></View>
                   <View style={{ flexDirection: "row", gap: 6 }}><Badge style={PRIORITY_STYLE[tk.priority]}>{tk.priority}</Badge><Badge style={STATUS_STYLE[tk.status]}>{STATUS_LABEL[tk.status]}</Badge></View>
                 </View>
                 <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: c.text }}>{tk.subject}</Text>
-                <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 12, color: SLATE[500], textTransform: "capitalize" }}>{tk.category}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>{ago(tk.created_at)}</Text></View>
+                <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 12, color: TC.textMuted, textTransform: "capitalize" }}>{tk.category}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{ago(tk.created_at)}</Text></View>
               </Pressable>
             ))}
           </View>

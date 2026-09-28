@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Inbox, Search, X, Calendar as CalIcon, ChevronLeft, ChevronRight, ArrowUpDown, Check, SlidersHorizontal } from "lucide-react-native";
-import { PRIMARY, SLATE, EMERALD, AMBER, ROSE, VIOLET, INDIGO, ORANGE, BLUE, useTheme, shadowElev, shadowBtn } from "@/src/theme";
+import { PRIMARY, SLATE, EMERALD, AMBER, ROSE, VIOLET, INDIGO, ORANGE, BLUE, useTheme, shadowElev, shadowBtn, TC } from "@/src/theme";
 import type { Tone } from "@/src/components/customer/nav";
 
 /* ---------------------------------------------------------- useCountUp --- */
@@ -88,7 +88,7 @@ export function EmptyState({ icon: Icon = Inbox, title, desc, actionLabel, onAct
 }) {
   const { c, isDark } = useTheme();
   return (
-    <View testID={testID} style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : SLATE[200],
+    <View testID={testID} style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border,
       backgroundColor: isDark ? "rgba(15,23,42,0.40)" : "rgba(255,255,255,0.60)", padding: 40, alignItems: "center" }}>
       <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
         <Icon size={28} color={c.primaryText} strokeWidth={1.6} />
@@ -147,11 +147,11 @@ export function StatSkeleton({ n = 4 }: { n?: number }) {
 export function SearchInput({ value, onChange, placeholder = "Search…", testID, style }: { value: string; onChange: (v: string) => void; placeholder?: string; testID?: string; style?: any }) {
   const { c, isDark } = useTheme();
   return (
-    <View style={[{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], backgroundColor: c.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10, gap: 8 }, style]}>
-      <Search size={16} color={SLATE[400]} />
-      <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={SLATE[400]}
+    <View style={[{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10, gap: 8 }, style]}>
+      <Search size={16} color={TC.textFaint} />
+      <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={TC.textFaint}
         style={{ flex: 1, fontSize: 14, color: c.text, height: 38, paddingVertical: 0, outlineStyle: "none" } as any} />
-      {value ? <Pressable testID={testID ? `${testID}-clear` : undefined} onPress={() => onChange("")} hitSlop={8}><X size={16} color={SLATE[400]} /></Pressable> : null}
+      {value ? <Pressable testID={testID ? `${testID}-clear` : undefined} onPress={() => onChange("")} hitSlop={8}><X size={16} color={TC.textFaint} /></Pressable> : null}
     </View>
   );
 }
@@ -165,9 +165,9 @@ export function SegTabs({ tabs, value, onChange, counts = {}, testID = "tab" }: 
         const on = value === t.key;
         return (
           <Pressable key={t.key} testID={`${testID}-${t.key}`} onPress={() => onChange(t.key)}
-            style={({ pressed }) => ({ height: 36, paddingHorizontal: 14, borderRadius: 5, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? PRIMARY[700] : c.surface, borderWidth: on ? 0 : 1, borderColor: isDark ? SLATE[700] : SLATE[200], transform: [{ scale: pressed ? 0.97 : 1 }], ...(on ? shadowBtn : {}) })}>
+            style={({ pressed }) => ({ height: 36, paddingHorizontal: 14, borderRadius: 5, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? PRIMARY[700] : c.surface, borderWidth: on ? 0 : 1, borderColor: isDark ? SLATE[700] : TC.border, transform: [{ scale: pressed ? 0.97 : 1 }], ...(on ? shadowBtn : {}) })}>
             <Text style={{ fontSize: 14, fontWeight: "600", color: on ? "#fff" : (isDark ? SLATE[300] : SLATE[600]) }}>{t.label}</Text>
-            {counts[t.key] != null ? <Text style={{ fontSize: 11, color: on ? "rgba(255,255,255,0.8)" : SLATE[400] }}>{counts[t.key]}</Text> : null}
+            {counts[t.key] != null ? <Text style={{ fontSize: 11, color: on ? "rgba(255,255,255,0.8)" : TC.textFaint }}>{counts[t.key]}</Text> : null}
           </Pressable>
         );
       })}
@@ -212,9 +212,9 @@ const rangeLabel = (r: DateRange) => {
 export function PillTrigger({ icon: Icon, label, onPress, testID, badge }: { icon: any; label: string; onPress: () => void; testID?: string; badge?: number }) {
   const { c, isDark } = useTheme();
   return (
-    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], backgroundColor: c.surface, flexDirection: "row", alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
       <Icon size={16} color={PRIMARY[600]} />
-      <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: isDark ? SLATE[200] : SLATE[700], maxWidth: 140 }}>{label}</Text>
+      <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: isDark ? SLATE[200] : TC.text2, maxWidth: 140 }}>{label}</Text>
       {badge ? <View style={{ height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{badge}</Text></View> : null}
     </Pressable>
   );
@@ -228,12 +228,12 @@ export function BottomSheet({ open, onClose, title, children, footer, testID, ma
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View testID={testID} style={{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: isDark ? SLATE[800] : SLATE[100] }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: isDark ? SLATE[800] : TC.surfaceAlt }}>
             <Text style={{ fontSize: 18, fontWeight: "600", color: c.text }}>{title}</Text>
-            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><X size={18} color={SLATE[400]} /></Pressable>
+            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textFaint} /></Pressable>
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
-          {footer ? <View style={{ padding: 12, borderTopWidth: 1, borderTopColor: isDark ? SLATE[800] : SLATE[100] }}>{footer}</View> : null}
+          {footer ? <View style={{ padding: 12, borderTopWidth: 1, borderTopColor: isDark ? SLATE[800] : TC.surfaceAlt }}>{footer}</View> : null}
         </View>
       </View>
     </Modal>
@@ -257,11 +257,11 @@ export function MiniCalendar({ from, to, onPick, minDate, maxDate, testID = "cal
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <Pressable testID={`${testID}-prev`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}><ChevronLeft size={16} color={SLATE[500]} /></Pressable>
+        <Pressable testID={`${testID}-prev`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronLeft size={16} color={TC.textMuted} /></Pressable>
         <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>
-        <Pressable testID={`${testID}-next`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}><ChevronRight size={16} color={SLATE[500]} /></Pressable>
+        <Pressable testID={`${testID}-next`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronRight size={16} color={TC.textMuted} /></Pressable>
       </View>
-      <View style={{ flexDirection: "row" }}>{DOW.map((d, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: SLATE[400], paddingVertical: 4 }}>{d}</Text>)}</View>
+      <View style={{ flexDirection: "row" }}>{DOW.map((d, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: TC.textFaint, paddingVertical: 4 }}>{d}</Text>)}</View>
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
         {cells.map((d, i) => {
           if (!d) return <View key={i} style={{ width: `${100 / 7}%`, height: 38 }} />;
@@ -302,9 +302,9 @@ export function DateRangePicker({ value, onChange, testID = "date-range" }: { va
         </ScrollView>
         <MiniCalendar from={sel.from} to={sel.to} onPick={pick} testID={`${testID}-cal`} />
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-          <Pressable onPress={clear} testID={`${testID}-clear`}><Text style={{ fontSize: 14, color: SLATE[500] }}>Clear</Text></Pressable>
+          <Pressable onPress={clear} testID={`${testID}-clear`}><Text style={{ fontSize: 14, color: TC.textMuted }}>Clear</Text></Pressable>
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable onPress={() => setOpen(false)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "500", color: c.text }}>Cancel</Text></Pressable>
+            <Pressable onPress={() => setOpen(false)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "500", color: c.text }}>Cancel</Text></Pressable>
             <Pressable testID={`${testID}-apply`} disabled={!sel.from} onPress={applyCustom} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sel.from ? 1 : 0.5 }}><Text style={{ fontSize: 13, fontWeight: "500", color: "#fff" }}>Apply</Text></Pressable>
           </View>
         </View>
@@ -347,14 +347,14 @@ export function FilterSheet({ open, onClose, onClear, onApply, children, title =
   return (
     <BottomSheet open={open} onClose={onClose} title={title} testID="filter-sheet"
       footer={<View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable testID="filter-clear" onPress={onClear} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>Clear All</Text></Pressable>
+        <Pressable testID="filter-clear" onPress={onClear} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>Clear All</Text></Pressable>
         <Pressable testID="filter-apply" onPress={onApply} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: "#fff" }}>Apply Filters</Text></Pressable>
       </View>}>
       {children}
     </BottomSheet>
   );
 }
-export const FilterLabel = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: SLATE[400], marginBottom: 8 }}>{children}</Text>;
+export const FilterLabel = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>{children}</Text>;
 
 /* --------------------------------------------------------- Paginator (mobile) --- */
 export function Paginator({ page, pageSize, total, onPage, testID = "paginator" }: { page: number; pageSize: number; total: number; onPage: (p: number) => void; testID?: string }) {
@@ -363,11 +363,11 @@ export function Paginator({ page, pageSize, total, onPage, testID = "paginator" 
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const from = (page - 1) * pageSize + 1; const to = Math.min(total, page * pageSize);
   const nav = (dis: boolean, onPress: () => void, Icon: any, id: string) => (
-    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center", opacity: dis ? 0.4 : 1 }}><Icon size={16} color={c.text} /></Pressable>
+    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.4 : 1 }}><Icon size={16} color={c.text} /></Pressable>
   );
   return (
     <View testID={`${testID}-mobile`} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-      <Text style={{ fontSize: 12, color: SLATE[500] }}>{from}–{to} of {total}</Text>
+      <Text style={{ fontSize: 12, color: TC.textMuted }}>{from}–{to} of {total}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
         {nav(page <= 1, () => onPage(page - 1), ChevronLeft, `${testID}-prev`)}
         <Text style={{ fontSize: 14, fontWeight: "600", color: c.text, paddingHorizontal: 8 }}>{page} / {pages}</Text>
@@ -384,7 +384,7 @@ export function PrimaryButton({ label, onPress, icon: Icon, disabled, busy, test
   return (
     <Pressable testID={testID} onPress={onPress} disabled={disabled || busy}
       style={({ pressed }) => [{ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, opacity: disabled ? 0.5 : 1 }, style]}>
-      {busy ? <Shimmer style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: "#fff" }} /> : (
+      {busy ? <Shimmer style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: TC.surface }} /> : (
         <>
           <Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>{label}</Text>
           {Icon ? <Icon size={16} color="#fff" /> : null}

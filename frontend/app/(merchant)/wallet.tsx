@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, KeyboardAvoidingView } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -364,7 +365,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID="withdraw-flow">
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID="withdraw-flow">
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={{ maxHeight: "92%", backgroundColor: card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24 }}>

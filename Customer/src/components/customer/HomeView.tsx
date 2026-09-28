@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 import { MapPin, Plus, Package, Wallet, LifeBuoy, CheckCircle2, Clock, Receipt, ChevronRight, Zap, Star, Gift, Navigation } from "lucide-react-native";
 import { fmt, fmtC } from "@/src/lib/format";
 import { mediaUrl } from "@/src/api/client";
-import { useTheme, PRIMARY, SLATE, AMBER, ORANGE, shadowElev, shadowBtn } from "@/src/theme";
+import { useTheme, PRIMARY, SLATE, AMBER, ORANGE, shadowElev, shadowBtn, TC } from "@/src/theme";
 import { StatTile, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "@/src/components/customer/ux";
 import { ACTIVE_STATES, DONE_STATES, statusText, statusTone, bkDate, NavKey } from "@/src/components/customer/nav";
 
@@ -60,20 +60,20 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
           <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 4, fontSize: 14 }}>What service do you need today?</Text>
 
           <View style={{ marginTop: 16, position: "relative", zIndex: 20 }}>
-            <TextInput testID="home-search" value={q} onChangeText={setQ} placeholder="Search AC repair, electrician, cleaning…" placeholderTextColor={SLATE[400]}
-              style={{ height: 48, paddingLeft: 20, paddingRight: 128, borderRadius: 16, backgroundColor: "#fff", color: SLATE[800], fontSize: 14, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }} />
+            <TextInput testID="home-search" value={q} onChangeText={setQ} placeholder="Search AC repair, electrician, cleaning…" placeholderTextColor={TC.textFaint}
+              style={{ height: 48, paddingLeft: 20, paddingRight: 128, borderRadius: 16, backgroundColor: TC.surface, color: TC.text, fontSize: 14, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }} />
             <Pressable testID="home-book-cta" onPress={onBook} style={({ pressed }) => ({ position: "absolute", right: 6, top: 6, height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 })}>
               <Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>Book</Text>
             </Pressable>
             {svcMatches.length > 0 ? (
-              <View testID="home-search-results" style={{ position: "absolute", top: 56, left: 0, right: 0, borderRadius: 16, backgroundColor: "#fff", overflow: "hidden", boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", zIndex: 30 }}>
+              <View testID="home-search-results" style={{ position: "absolute", top: 56, left: 0, right: 0, borderRadius: 16, backgroundColor: TC.surface, overflow: "hidden", boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", zIndex: 30 }}>
                 {svcMatches.map((s) => (
-                  <Pressable key={s.id} testID={`home-search-${s.id}`} onPress={() => onService(s.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, backgroundColor: pressed ? SLATE[50] : "#fff" })}>
+                  <Pressable key={s.id} testID={`home-search-${s.id}`} onPress={() => onService(s.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, backgroundColor: pressed ? SLATE[50] : TC.surface })}>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
-                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Zap size={16} color={PRIMARY[700]} /></View>
-                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: SLATE[800] }}>{s.name}</Text><Text style={{ fontSize: 12, color: SLATE[400] }}>{s.category_name}</Text></View>
+                      <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Zap size={16} color={TC.primaryText} /></View>
+                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{s.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{s.category_name}</Text></View>
                     </View>
-                    <Text style={{ fontSize: 14, fontWeight: "700", color: PRIMARY[700] }}>{fmt(s.base_price)}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{fmt(s.base_price)}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -123,7 +123,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
               <View style={{ width: 56, height: 56, borderRadius: 16, overflow: "hidden", backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
                 {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: 56, height: 56 }} contentFit="cover" /> : <Zap size={24} color={PRIMARY[600]} />}
               </View>
-              <Text numberOfLines={2} style={{ marginTop: 8, fontSize: 12, fontWeight: "600", color: isDark ? SLATE[200] : SLATE[700], textAlign: "center", lineHeight: 15 }}>{cat.name}</Text>
+              <Text numberOfLines={2} style={{ marginTop: 8, fontSize: 12, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2, textAlign: "center", lineHeight: 15 }}>{cat.name}</Text>
             </Pressable>
           ))}
         </View>
@@ -160,7 +160,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
         <Gift size={32} color="#fff" />
         <Text testID="home-refer-title" style={{ color: "#fff", fontWeight: "900", fontSize: 20, marginTop: 8 }}>Refer & Earn ₹{referral?.reward_amount || 100}</Text>
         <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, marginTop: 2 }}>Invite friends — you both earn on their first booking.</Text>
-        <Pressable testID="home-invite-friends" onPress={() => onNavigate("referral")} style={({ pressed }) => ({ marginTop: 12, alignSelf: "flex-start", height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? "rgba(255,255,255,0.9)" : "#fff", justifyContent: "center" })}>
+        <Pressable testID="home-invite-friends" onPress={() => onNavigate("referral")} style={({ pressed }) => ({ marginTop: 12, alignSelf: "flex-start", height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? "rgba(255,255,255,0.9)" : TC.surface, justifyContent: "center" })}>
           <Text style={{ color: ORANGE[600], fontWeight: "700", fontSize: 14 }}>Invite friends</Text>
         </Pressable>
       </LinearGradient>
@@ -183,7 +183,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
                 </View>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
                   <Text style={{ fontSize: 12, color: c.textFaint }}>#{b.code} · {new Date(bkDate(b)).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</Text>
-                  <Text style={{ fontWeight: "700", fontSize: 16, color: isDark ? "#fff" : SLATE[800] }}>{fmt(b.pricing?.total)}</Text>
+                  <Text style={{ fontWeight: "700", fontSize: 16, color: isDark ? "#fff" : TC.text }}>{fmt(b.pricing?.total)}</Text>
                 </View>
               </Pressable>
             ))}
@@ -219,7 +219,7 @@ export function LiveBookingCard({ b, onOpen }: { b: any; onOpen: () => void }) {
         <View style={{ height: "100%", width: `${pct}%`, borderRadius: 999, backgroundColor: PRIMARY[600] }} />
       </View>
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 6 }}>
-        {["Searching", "Assigned", "Arrived", "Started", "Done"].map((s, i) => <Text key={s} style={{ fontSize: 10, fontWeight: "600", color: i <= idx ? c.primaryText : SLATE[400] }}>{s}</Text>)}
+        {["Searching", "Assigned", "Arrived", "Started", "Done"].map((s, i) => <Text key={s} style={{ fontSize: 10, fontWeight: "600", color: i <= idx ? c.primaryText : TC.textFaint }}>{s}</Text>)}
       </View>
       <Pressable testID="track-booking" onPress={onOpen} style={({ pressed }) => ({ marginTop: 16, height: 40, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, ...shadowBtn })}>
         <Navigation size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>Track Booking</Text>
