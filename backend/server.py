@@ -51,6 +51,7 @@ from routes.custom_job_routes import router as custom_job_router  # noqa: E402
 from routes.physical_qr_routes import router as physical_qr_router  # noqa: E402
 from routes.agent_routes import router as agent_router  # noqa: E402
 from routes.subscription_routes import router as subscription_router  # noqa: E402
+from routes.legal_routes import router as legal_router  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
 
 app = FastAPI(title="AzoApp API")
@@ -72,7 +73,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router, subscription_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router]:
     api_router.include_router(r)
 
 app.include_router(api_router)
@@ -97,6 +98,30 @@ async def serve_web_panel(path: str = ""):
         raise HTTPException(status_code=400, detail="Invalid path")
     if rel and full.is_file():
         cache = "public, max-age=31536000, immutable" if rel.startswith("static/") else "no-cache"
+        return FileResponse(str(full), headers={"Cache-Control": cache})
+    return FileResponse(str(index), headers={"Cache-Control": "no-cache"})
+
+
+# Customer app (Expo web static export) served under /api/customer so the mobile
+# Customer app's WEB build is reachable via the same ingress. Build: cd Customer &&
+# npx expo export -p web (app.json experiments.baseUrl="/api/customer"). SPA fallback.
+_CUSTOMER_DIR = Path(__file__).parent.parent / "Customer" / "dist"
+
+
+@app.get("/api/customer", include_in_schema=False)
+@app.get("/api/customer/{path:path}", include_in_schema=False)
+async def serve_customer_web(path: str = ""):
+    index = _CUSTOMER_DIR / "index.html"
+    if not index.is_file():
+        raise HTTPException(status_code=404, detail="Customer web is not built. Run `npx expo export -p web` in /app/Customer.")
+    rel = (path or "").lstrip("/")
+    full = (_CUSTOMER_DIR / rel).resolve() if rel else index
+    try:
+        full.relative_to(_CUSTOMER_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if rel and full.is_file():
+        cache = "public, max-age=31536000, immutable" if rel.startswith("_expo/") or rel.startswith("assets/") else "no-cache"
         return FileResponse(str(full), headers={"Cache-Control": cache})
     return FileResponse(str(index), headers={"Cache-Control": "no-cache"})
 

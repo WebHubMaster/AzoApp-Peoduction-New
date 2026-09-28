@@ -9,7 +9,7 @@ Multi-app on-demand home-services platform (like UrbanClap), 4 parts:
 
 Auth: mobile-OTP only (demo mode → OTP `123456`). Branding/theme/gateways admin-driven (Integration Center + Branding & Theme). Nothing hardcoded — always from admin config.
 
-Preview URL / backend base: https://31fec3ec-c8cd-4ab8-98e6-0f99711c37f0.preview.emergentagent.com
+Preview URL / backend base: https://customer-app-web-1.preview.emergentagent.com
 
 ## Session log
 
@@ -97,3 +97,24 @@ NOTE: the "A" on the character's shirt in the Partner welcome hero is BAKED INTO
 - Customer app: `_layout` passes `theme.primary` → `applyBrandPrimary()` regenerates PRIMARY scale in place.
 - Partner app: `theme.ts palette(brand.primary)` builds all shades from admin color.
 Fixed one hardcode: Partner dark `primarySubtle` rgba now derived from `P[500]` (was fixed #0659B2).
+
+---
+## Update — June 2026: Customer App & Web 8-point fixes
+Existing AzoApp codebase (Customer Expo app `/app/Customer`, Partner/Merchant Expo app `/app/frontend`, FastAPI `/app/backend`, web_panel).
+
+### Implemented
+1. **Site header order** (`Customer/.../site/SiteNavbar.tsx`): logo → membership (→ subscriptions) → location icon (opens location/pincode picker) → cart → profile. Removed hamburger + separate search icon.
+2. **Search placeholder** single-line (`HomeView.tsx` `home-search`: numberOfLines=1, multiline=false, shorter text).
+3. **Wizard re-add/re-toast** fixed (`service/[id].tsx`): after `?book=1` auto-add, `router.setParams({book:"0"})` so returning never re-adds/re-toasts.
+4. **OTP resend 60s timer** everywhere (Customer `login.tsx`, `OtpInline.tsx`; Partner `OtpFlow.tsx`, `OtpLogin.tsx`) + backend default cooldown 30→60 (`auth_service.py`).
+5. **Profile photo in top nav** (`CustomerShell.tsx` Avatar now uses `mediaUrl(user.photo)`).
+6. **Wallet scratch cards**: hidden when none in Wallet (`ScratchCardsPanel hideWhenEmpty`); full list stays on Reward & Cashback screen.
+7. **Invoice preview** (`invoices.tsx` + backend): new public `GET /api/invoices/pub/{id}/html` renders the full invoice HTML inline in the WebView (no forced auto-download). Verified end-to-end.
+8. **Terms & Privacy consent** required checkbox on account create for Customer + Partner + Merchant; opens `GET /api/legal/{terms|privacy}` in an in-app WebView (`LegalConsent` components + `backend/routes/legal_routes.py`).
+
+### Env note
+All `.env` files were lost in this pod and were regenerated: `backend/.env` (MONGO_URL, DB_NAME=azoapp, APP_URL), `Customer/.env`, `frontend/.env` (EXPO_PUBLIC_BACKEND_URL=https://customer-app-web-1.preview.emergentagent.com). DB reseeded on startup; invoices seeded for testing.
+
+### Verified
+- Backend: `/api/legal/terms|privacy` → 200; invoice HTML preview renders real invoice; OTP send/verify OK. Partner web bundles cleanly (3822 modules, 0 errors).
+- Not visually verifiable in this env: Expo RN-Web UI renders blank under the screenshot tool (10s load-timeout vs heavy bundle); Customer app deps not installed / not supervisor-served.

@@ -18,6 +18,7 @@ import { useSiteConfig } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, useTheme, TC } from "@/src/theme";
 import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
+import { LegalConsent } from "@/src/components/site/LegalConsent";
 
 const OTP_LEN = 6;
 const ROLE_BLOCKED = "Only Customers can sign in to the Customer App. Partners & Merchants please use their own app.";
@@ -73,6 +74,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState("");
+  const [accepted, setAccepted] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [routing, setRouting] = useState(false);
   const otpRef = useRef<TextInput>(null);
@@ -106,12 +108,12 @@ export default function Login() {
       const data = await api.post<any>("/auth/send-otp", { phone: normalized() }, { auth: false });
       if (data.sent === false) {
         toast.error(data.message || "Could not send the OTP right now. Please try again.");
-        if (data.retry_after) setCooldown(Number(data.retry_after) || 30);
+        if (data.retry_after) setCooldown(Number(data.retry_after) || 60);
         setBusy(""); return;
       }
       if (data.dev_otp) { toast.success(`OTP sent · Dev OTP: ${data.dev_otp}`); setOtp(String(data.dev_otp)); }
       else { toast.success(data.message || "OTP sent to your mobile"); setOtp(""); }
-      setCooldown(30);
+      setCooldown(60);
       setStep(2);
       setTimeout(() => otpRef.current?.focus(), 250);
     } catch (e: any) { toast.error(e?.detail || "Failed to send OTP"); }
@@ -131,6 +133,7 @@ export default function Login() {
 
   const continueSignup = async () => {
     if (!name.trim()) return toast.error("Please enter your name");
+    if (!accepted) return toast.error("Please accept the Terms & Conditions and Privacy Policy to continue");
     setBusy("signup");
     try {
       const data = await api.post<any>("/auth/verify-otp", { phone: normalized(), otp, name, create_if_new: true }, { auth: false });
@@ -282,7 +285,8 @@ export default function Login() {
                   <Text style={{ fontSize: 14, fontWeight: "800", color: heading }}>Your Name</Text>
                   <Text style={{ fontSize: 13, color: muted }}>Welcome! Please tell us your name to continue.</Text>
                   <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={TC.textFaint} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
-                  <PrimaryBtn testID="continue-signup-button" label="Continue" icon onPress={continueSignup} busy={busy === "signup"} />
+                  <LegalConsent checked={accepted} onChange={setAccepted} testID="signup-legal" />
+                  <PrimaryBtn testID="continue-signup-button" label="Continue" icon onPress={continueSignup} busy={busy === "signup"} disabled={!accepted} />
                   <Pressable testID="name-change-number" onPress={() => setStep(1)}><Text style={{ fontSize: 12.5, color: muted }}>← Change number</Text></Pressable>
                 </View>
               ) : null}

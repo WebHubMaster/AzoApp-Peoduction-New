@@ -24,7 +24,7 @@ def _otp_limits(settings: dict) -> dict:
     """Admin-tunable OTP abuse limits (Integration Center). Sensible defaults."""
     g = settings.get("integrations", {}) or {}
     return {
-        "cooldown": int(g.get("otp_resend_cooldown_sec", 30) or 30),      # min gap between sends
+        "cooldown": int(g.get("otp_resend_cooldown_sec", 60) or 60),      # min gap between sends
         "max_sends": int(g.get("otp_max_sends_per_window", 5) or 5),      # sends per window
         "window": int(g.get("otp_send_window_sec", 3600) or 3600),        # rolling window
         "max_attempts": int(g.get("otp_max_verify_attempts", 5) or 5),    # wrong tries per OTP

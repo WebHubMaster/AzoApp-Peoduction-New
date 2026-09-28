@@ -266,9 +266,22 @@ async def invoice_public_page(invoice_id: str, request: Request, s: str = Query(
     </div>
     <div class="foot">This is a computer-generated invoice · {number}</div>
   </div>
-  <iframe id="auto" style="display:none" src="{pdf_download}"></iframe>
 </body></html>"""
     return HTMLResponse(content=html)
+
+
+@router.get("/pub/{invoice_id}/html", response_class=HTMLResponse)
+async def invoice_public_html(invoice_id: str, s: str = Query(default="")):
+    """PUBLIC, no-login FULL invoice rendered as standalone HTML (no PDF iframe, no
+    auto-download). This renders reliably inside an in-app WebView so the customer
+    sees a proper invoice PREVIEW. Gated by the same unguessable HMAC signature."""
+    if not s or not hmac.compare_digest(s, _share_sig(invoice_id)):
+        raise HTTPException(404, "Invoice not found")
+    inv = await inv_svc.get_invoice_public(invoice_id)
+    if inv is None:
+        raise HTTPException(404, "Invoice not found")
+    from services.invoice_html_service import build_invoice_html
+    return HTMLResponse(content=build_invoice_html(inv))
 
 
 @router.post("/render/pdf")

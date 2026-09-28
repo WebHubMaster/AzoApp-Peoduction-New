@@ -6,6 +6,7 @@ import { useToast } from "@/src/components/Toast";
 import { Icon } from "@/src/components/Icon";
 import { onlyDigits, onlyAlpha, isPhone10, normalizePhone } from "@/src/lib/validation";
 import { AuthInput, AuthButton, TextLink } from "./AuthKit";
+import { LegalConsent } from "./LegalConsent";
 import { TW } from "@/src/components/partner/home/tw";
 
 export type Role = "partner" | "merchant";
@@ -26,6 +27,7 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [accepted, setAccepted] = useState(false);
   const [focused, setFocused] = useState(-1);
   const boxRefs = useRef<(TextInput | null)[]>([]);
 
@@ -58,12 +60,12 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
       const data = await api.post<any>("/auth/send-otp", { phone: normalizePhone(phone) }, { auth: false });
       if (data.sent === false) {
         toast.error(data.message || "Could not send the OTP right now. Please try again.");
-        if (data.retry_after) setCooldown(Number(data.retry_after) || 30);
+        if (data.retry_after) setCooldown(Number(data.retry_after) || 60);
         setBusy(false); return;
       }
       if (data.dev_otp) { toast.success(`OTP sent · Dev OTP: ${data.dev_otp}`); setOtp(String(data.dev_otp)); }
       else { toast.success(data.message || "OTP sent to your mobile"); setOtp(""); }
-      setCooldown(30);
+      setCooldown(60);
       setStep(2);
       setTimeout(() => boxRefs.current[0]?.focus(), 80);
     } catch (e: any) { toast.error(e?.detail || "Failed to send OTP"); }
@@ -86,6 +88,7 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
   const continueSignup = async () => {
     if (!name.trim()) return toast.error("Please enter your name");
     if (!registerRole) return setStep(4);
+    if (!accepted) return toast.error("Please accept the Terms & Conditions and Privacy Policy to continue");
     setBusy(true);
     try {
       const data = await api.post<any>("/auth/verify-otp", { phone: normalizePhone(phone), otp, name: name.trim(), create_if_new: true, role: registerRole }, { auth: false });
@@ -138,6 +141,7 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
         <View testID="otp-name-step" style={{ gap: 12 }}>
           <Text style={{ color: TW.slate500, fontSize: 14 }}>Welcome! Please tell us your name to continue.</Text>
           <AuthInput testID="login-name-input" placeholder="Your full name" autoFocus value={name} onChangeText={(t) => setName(onlyAlpha(t))} onSubmitEditing={continueSignup} returnKeyType="done" />
+          {registerRole ? <LegalConsent checked={accepted} onChange={setAccepted} accent={P[600]} testID="register-legal" /> : null}
           <AuthButton testID="continue-signup-button" title="Continue" icon="arrow-right" onPress={continueSignup} busy={busy} />
           <TextLink title="← Change number" onPress={() => setStep(1)} />
         </View>

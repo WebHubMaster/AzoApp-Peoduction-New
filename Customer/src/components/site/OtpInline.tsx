@@ -1,13 +1,14 @@
 import { TC } from "@/src/theme";
 /** Inline guest OTP verify inside Checkout "Your Info" — mobile → OTP → (name only if NEW user) → auto-registered customer.
  *  Existing numbers log straight in; brand-new numbers are asked for a name before the account is created. */
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { api } from "../../api/client";
 import { useAuth, isCustomer } from "../../context/AuthContext";
 import { useToast } from "../Toast";
 import { PRIMARY, SLATE, ROSE } from "../../theme";
 import { onlyDigits, onlyAlpha } from "../../lib/format";
+import { LegalConsent } from "./LegalConsent";
 
 const input = { height: 50, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.input; }, fontSize: 16, get color() { return TC.text; }, outlineStyle: "none" } as any;
 const Btn = ({ label, onPress, busy, disabled, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; testID: string }) => (
@@ -32,9 +33,12 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [phone, setPhone] = useState(""); const [name, setName] = useState(""); const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [cooldown, setCooldown] = useState(0); const [accepted, setAccepted] = useState(false);
   const otpRef = useRef<TextInput>(null);
   const normalized = () => `+91${tenDigits(phone)}`;
   const fail = (m: string) => { setErr(m); toast.error(m); };
+  useEffect(() => { if (cooldown <= 0) return; const t = setTimeout(() => setCooldown((c) => c - 1), 1000); return () => clearTimeout(t); }, [cooldown]);
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   const send = async () => {
     setErr("");
@@ -42,8 +46,8 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
     setBusy(true);
     try {
       const d: any = await api.post("/auth/send-otp", { phone: normalized() }, { auth: false });
-      if (d?.sent === false) { fail(d.message || "Could not send OTP"); }
-      else { setOtp(d?.dev_otp ? String(d.dev_otp) : ""); toast.success(d?.dev_otp ? `OTP sent · Dev OTP: ${d.dev_otp}` : (d?.message || "OTP sent to your mobile")); setStep(2); setTimeout(() => otpRef.current?.focus(), 150); }
+      if (d?.sent === false) { if (d.retry_after) setCooldown(Number(d.retry_after) || 60); fail(d.message || "Could not send OTP"); }
+      else { setOtp(d?.dev_otp ? String(d.dev_otp) : ""); toast.success(d?.dev_otp ? `OTP sent · Dev OTP: ${d.dev_otp}` : (d?.message || "OTP sent to your mobile")); setCooldown(60); setStep(2); setTimeout(() => otpRef.current?.focus(), 150); }
     } catch (e: any) { fail(e?.message || "Failed to send OTP. Check your connection and try again."); }
     setBusy(false);
   };
@@ -75,6 +79,7 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
   const continueSignup = async () => {
     setErr("");
     if (!name.trim()) return fail("Please enter your name");
+    if (!accepted) return fail("Please accept the Terms & Conditions and Privacy Policy to continue");
     setBusy(true);
     try {
       const d: any = await api.post("/auth/verify-otp", { phone: normalized(), otp: otp.trim(), name: name.trim(), create_if_new: true }, { auth: false });
@@ -110,13 +115,20 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
             style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
         </Pressable>
         <Btn testID="otp-verify" label="Verify OTP & continue" onPress={() => verify()} busy={busy} disabled={otp.length < OTP_LEN} />
-        <Pressable testID="otp-resend" onPress={send} disabled={busy} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 14, color: TC.primaryText, fontWeight: "600" }}>Resend OTP</Text></Pressable>
+        {cooldown > 0 ? (
+          <View testID="otp-resend-countdown" style={{ alignSelf: "center", paddingVertical: 4, flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text style={{ fontSize: 14, color: TC.textFaint }}>Resend OTP in <Text style={{ fontWeight: "700", color: TC.textMuted }}>{fmtTime(cooldown)}</Text></Text>
+          </View>
+        ) : (
+          <Pressable testID="otp-resend" onPress={send} disabled={busy} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 14, color: TC.primaryText, fontWeight: "600" }}>Resend OTP</Text></Pressable>
+        )}
       </> : null}
       {step === 3 ? <>
         <Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>Welcome! What&apos;s your name?</Text>
         <Text style={{ fontSize: 13, color: TC.textMuted }}>We&apos;ll create your account so you can track this and future bookings.</Text>
         <TextInput testID="otp-name" value={name} onChangeText={(v) => setName(onlyAlpha(v))} autoFocus autoComplete="name" textContentType="name" placeholder="Your full name" placeholderTextColor={TC.textFaint} onSubmitEditing={continueSignup} style={input} />
-        <Btn testID="otp-continue-signup" label="Continue" onPress={continueSignup} busy={busy} />
+        <LegalConsent checked={accepted} onChange={setAccepted} testID="otp-legal" />
+        <Btn testID="otp-continue-signup" label="Continue" onPress={continueSignup} busy={busy} disabled={!accepted} />
         <Pressable testID="otp-change-2" onPress={() => { setStep(1); setOtp(""); setName(""); setErr(""); }} style={{ alignSelf: "center", paddingVertical: 4 }}><Text style={{ fontSize: 13, color: TC.primaryText, fontWeight: "600" }}>← Change number</Text></Pressable>
       </> : null}
       {err ? <Text testID="otp-error" style={{ fontSize: 13, color: ROSE[600], fontWeight: "600" }}>{err}</Text> : null}

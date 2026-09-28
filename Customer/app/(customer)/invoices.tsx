@@ -65,10 +65,10 @@ export default function InvoicesScreen() {
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
   useEffect(() => { setPage(1); }, [range, type, payStatus, sort, minAmount, maxAmount, dateFrom, dateTo, search]);
 
-  const publicUrl = async (inv: any, kind: "pdf" | "page", download = false) => { const s: any = await api.get(`/invoices/${inv.id}/share-link`); return kind === "pdf" ? `${API_BASE}${s.path}${download ? "&download=1" : ""}` : `${API_BASE}/invoices/pub/${inv.id}/page?s=${s.sig}`; };
+  const publicUrl = async (inv: any, kind: "pdf" | "page" | "html", download = false) => { const s: any = await api.get(`/invoices/${inv.id}/share-link`); return kind === "pdf" ? `${API_BASE}${s.path}${download ? "&download=1" : ""}` : `${API_BASE}/invoices/pub/${inv.id}/${kind}?s=${s.sig}`; };
   const downloadById = async (inv: any) => { try { await Linking.openURL(await publicUrl(inv, "pdf", true)); toast.success("Invoice downloaded successfully"); } catch { toast.error("Invoice could not be downloaded"); } };
   const openDrawer = (inv: any) => { setDrawerInv(inv); setDrawerFull(null); api.get(`/invoices/${inv.id}`).then(setDrawerFull).catch(() => {}); };
-  const openPreview = async (inv: any) => { setDrawerInv(null); try { setPreview({ ...inv, url: await publicUrl(inv, "page") }); } catch { toast.error("Invoice could not be loaded. Please try again."); } };
+  const openPreview = async (inv: any) => { setDrawerInv(null); try { setPreview({ ...inv, url: await publicUrl(inv, "html") }); } catch { toast.error("Invoice could not be loaded. Please try again."); } };
   const shareInvoice = async (inv: any, channel: "whatsapp" | "copy") => {
     const text = `Invoice ${inv.invoice_number} · ${money(inv.total_amount, inv.currency)} · ${(inv.payment_status || "").toUpperCase()} — AzoApp`;
     if (channel === "copy") { await Clipboard.setStringAsync(text); toast.success("Invoice details copied"); return; }

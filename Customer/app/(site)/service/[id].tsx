@@ -62,6 +62,9 @@ export default function ServiceDetail() {
       addService(svc, { tier_index: tier, addons: [], qty: 1 });
       setAdded(true);
       toast.success(`${svc.name} added — review & checkout`);
+      // Clear the ?book=1 flag so returning to this screen (e.g. back from the
+      // checkout wizard) never re-adds the service or re-shows the toast.
+      router.setParams({ book: "0" });
     }
   }, [svc, book, id, tier]); // eslint-disable-line react-hooks/exhaustive-deps
 

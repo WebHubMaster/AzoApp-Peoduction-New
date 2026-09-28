@@ -7,6 +7,7 @@ import { api } from "@/src/api/client";
 import { useAuth, AppUser } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { AUTH, FS, Accent } from "./AuthUi";
+import { LegalConsent } from "./LegalConsent";
 
 export type Role = "partner" | "merchant";
 export type Step = "phone" | "otp" | "name";
@@ -45,6 +46,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   const [name, setName] = useState("");
   const [busy, setBusy] = useState("");
   const [resendIn, setResendIn] = useState(0);
+  const [accepted, setAccepted] = useState(false);
   const otpRef = useRef<TextInput>(null);
   const setStep = (s: Step) => { setStepRaw(s); onStepChange?.(s); };
 
@@ -70,7 +72,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
       if (data?.sent === false) { toast.error(data.message || "Could not send the OTP right now"); setBusy(""); return; }
       if (data?.dev_otp) { toast.success(`OTP sent · Dev OTP: ${data.dev_otp}`); setOtp(String(data.dev_otp)); } else toast.success("OTP sent to your mobile");
       setStep("otp");
-      setResendIn(30);
+      setResendIn(60);
       setTimeout(() => otpRef.current?.focus(), 250);
     } catch (e: any) { toast.error(e?.detail || "Could not send OTP"); }
     setBusy("");
@@ -93,6 +95,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
 
   const submitName = async () => {
     if (!name.trim()) return toast.error("Please enter your name");
+    if (!accepted) return toast.error("Please accept the Terms & Conditions and Privacy Policy to continue");
     setBusy("name");
     try {
       const data = await api.post<any>("/auth/verify-otp", { phone: `+91${phone.trim()}`, otp: otp.trim(), name: name.trim(), create_if_new: true, role }, { auth: false });
@@ -171,6 +174,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
         <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Your Name</Text>
       </View>
       <TextInput testID="login-name-input" value={name} onChangeText={setName} placeholder="Enter your full name" placeholderTextColor="#94A3B8" autoFocus onSubmitEditing={submitName} style={[inputStyle, { borderColor: name.trim() ? ac.main : AUTH.line, fontWeight: "600" }]} />
+      <LegalConsent checked={accepted} onChange={setAccepted} accent={ac.main} testID="register-legal" />
       <GradButton testID="continue-signup-btn" title={`Create ${cap(role || "")} Account`} icon="arrow-right" busy={busy === "name"} onPress={submitName} grad={ac.grad} />
     </View>
   );

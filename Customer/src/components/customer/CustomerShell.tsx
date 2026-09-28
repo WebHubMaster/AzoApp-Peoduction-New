@@ -13,11 +13,12 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
 import { useTheme, PRIMARY, SLATE, ROSE, TC } from "@/src/theme";
 import { NAV, MOBILE_PRIMARY, NavKey, NavItem } from "@/src/components/customer/nav";
+import { mediaUrl } from "@/src/api/client";
 import { NotificationBell } from "@/src/components/customer/NotificationBell";
 
 export function Avatar({ user, size = 36 }: { user: any; size?: number }) {
   const initials = (user?.name || "U").split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
-  if (user?.photo) return <Image source={{ uri: user.photo }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: "rgba(255,255,255,0.7)" }} contentFit="cover" />;
+  if (user?.photo) return <Image source={{ uri: mediaUrl(user.photo) }} style={{ width: size, height: size, borderRadius: size / 2, borderWidth: 2, borderColor: "rgba(255,255,255,0.7)" }} contentFit="cover" cachePolicy="memory-disk" />;
   return (
     <LinearGradient colors={[PRIMARY[500], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
       style={{ width: size, height: size, borderRadius: size / 2, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "rgba(255,255,255,0.7)" }}>

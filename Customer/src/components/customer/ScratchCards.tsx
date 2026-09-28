@@ -74,7 +74,7 @@ function ScratchModal({ card, onClose, onDone, toast }: { card: any; onClose: ()
   );
 }
 
-export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly }: { onClaimed?: () => void; toast: any; onViewAll?: () => void; gridOnly?: boolean }) {
+export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly, hideWhenEmpty }: { onClaimed?: () => void; toast: any; onViewAll?: () => void; gridOnly?: boolean; hideWhenEmpty?: boolean }) {
   const { c, isDark } = useTheme();
   const [data, setData] = useState<any>({ cards: [], summary: {} });
   const [loading, setLoading] = useState(true);
@@ -83,6 +83,9 @@ export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly }: { o
   const load = useCallback(() => { setLoading(true); api.get<any>("/growth/scratch-cards").then((r) => setData(r || { cards: [] })).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => { load(); }, [load]);
   const cards: any[] = data.cards || []; const summary = data.summary || {};
+  // Wallet embeds this panel with hideWhenEmpty — when there are no scratch cards
+  // we render nothing there (the full "Reward & Cashback" screen still lists all).
+  if (!loading && cards.length === 0 && hideWhenEmpty) return null;
   if (!loading && cards.length === 0) {
     return (
       <View testID="scratch-empty" style={{ borderRadius: 24, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 24, alignItems: "center", marginBottom: 20 }}>

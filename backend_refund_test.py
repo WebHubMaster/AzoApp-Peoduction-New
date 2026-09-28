@@ -9,7 +9,7 @@ import sys
 from typing import Dict, List, Optional
 
 # Configuration
-BASE_URL = "https://azo-services.preview.emergentagent.com/api"
+BASE_URL = "https://customer-app-web-1.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

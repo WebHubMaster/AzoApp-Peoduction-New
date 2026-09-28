@@ -60,7 +60,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
           <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 4, fontSize: 14 }}>What service do you need today?</Text>
 
           <View style={{ marginTop: 16, position: "relative", zIndex: 20 }}>
-            <TextInput testID="home-search" value={q} onChangeText={setQ} placeholder="Search AC repair, electrician, cleaning…" placeholderTextColor={TC.textFaint}
+            <TextInput testID="home-search" value={q} onChangeText={setQ} numberOfLines={1} multiline={false} placeholder="Search services…" placeholderTextColor={TC.textFaint}
               style={{ height: 48, paddingLeft: 20, paddingRight: 128, borderRadius: 16, backgroundColor: TC.surface, color: TC.text, fontSize: 14, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }} />
             <Pressable testID="home-book-cta" onPress={onBook} style={({ pressed }) => ({ position: "absolute", right: 6, top: 6, height: 36, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 })}>
               <Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>Book</Text>
