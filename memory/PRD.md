@@ -257,5 +257,7 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 
 - 2026-09-28 Welcome (partner/merchant app) fit-to-screen: no scroll on short Android screens — vertical scale `V = clamp(avail/800, 0.72, 1)` shrinks header/hero/features/card/button spacing; `heroH` = whatever remains after header + estimated card + footer (min 280). Verified 360×640 + 390×844: no overflowing scroller, footer visible.
 
+- 2026-09-28 Wizard/login fixes (testing agent iteration_145 all pass): partner login OTP Verify button no longer hidden under keyboard (KeyboardAwareScrollView bottomOffset 230); wizard scroll is KeyboardAwareScrollView (bottomOffset 240) so OTP boxes stay above keyboard; VIDEO chunk upload 700KB base64 parts + retry (mobile JobProof.tsx, web JobWizard.jsx), backend total ≤120 parts; Details step = full job info (category/status/timing/booked on/value/payment/check-in) + customer card + collapsible Job timeline (default closed; `wizard-timeline-toggle`/`-list`) on mobile + web.
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).
