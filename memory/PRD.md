@@ -1,66 +1,57 @@
 # AzoApp — Home Services Platform (PRD / working notes)
 
 ## Overview
-Multi-app on-demand home-services platform (like UrbanClap), imported from another account.
-- `/app/frontend` — Partner + Merchant app (Expo / React Native, expo-router). Preview: https://keyboard-fix-suite.preview.emergentagent.com
-- `/app/Customer` — Customer app (Expo / React Native).
-- `/app/backend` — FastAPI + MongoDB (`azoapp` db). ~150 iterations of history.
-- `/app/web_panel` — Admin + Customer web panel (CRA/craco).
+Multi-app on-demand home-services platform (like UrbanClap), 4 parts:
+- `/app/frontend` — Partner + Merchant app (Expo / React Native, expo-router). **Served on port 3000 (preview URL).**
+- `/app/Customer` — Customer app (Expo / React Native). Not served in preview.
+- `/app/backend` — FastAPI + MongoDB (`azoapp` db). Served on 8001, `/api` prefix.
+- `/app/web_panel` — Admin + Customer web panel (CRA/craco). Not served in preview.
 
-Auth: mobile-OTP (demo mode → OTP `123456`). Branding/theme/gateways are admin-driven (Integration Center + Branding & Theme).
+Auth: mobile-OTP only (demo mode → OTP `123456`). Branding/theme/gateways admin-driven (Integration Center + Branding & Theme). Nothing hardcoded — always from admin config.
+
+Preview URL / backend base: https://31fec3ec-c8cd-4ab8-98e6-0f99711c37f0.preview.emergentagent.com
 
 ## Session log
 
-### 2026-06 (current session) — Partner app first
-**CRITICAL environment fix**
-- `backend/.env` was MISSING (import lost it) → backend crashed on `KeyError: 'MONGO_URL'`; nothing ran.
-  Recreated `backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS=*,
-  CACHE/FCM encryption keys). Backend now boots + seeds.
-- Added `frontend/.env` → `EXPO_PUBLIC_BACKEND_URL=<preview origin>` so the Expo web preview talks to the
-  local backend SAME-ORIGIN (no CORS). Native EAS builds are unaffected (eas.json pins the prod backend).
+### 2026-06 (current session) — Environment restore + core-flow verification
+**CRITICAL environment restore (was fully down)**
+- ALL `.env` files were MISSING on import → backend crashed (`KeyError: MONGO_URL`), nothing ran.
+- Recreated: `backend/.env` (MONGO_URL, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS=*, valid Fernet CACHE_ENCRYPTION_KEY + FCM_CONFIG_ENCRYPTION_KEY), `frontend/.env` + `Customer/.env` (EXPO_PUBLIC_BACKEND_URL=preview), `web_panel/.env` (REACT_APP_BACKEND_URL=preview).
+- Backend now boots + seeds; `GET /api/` → ok. Partner app serves on :3000 (HTTP 200).
 
-**Dark mode (app-wide) — FIXED & verified**
-- Root cause: `src/theme.ts` ThemeProvider initialised `override` from `forcedMode` once and never re-synced.
-  `forcedMode` (admin default_mode) arrives late (after /site/config), so dark mode applied inconsistently
-  (some screens light, some dark — the user's "dark mode not working" complaint).
-- Fix: useEffect syncs `override` to `forcedMode` (gated by a `userPinned` ref so manual toggle wins),
-  persist manual choice to storage (`azo_theme_override`) + hydrate on mount, and toggle reads latest via a
-  ref (fixes first-click no-op). Verified via headless-chrome harness + testing_agent: dashboard, Rewards &
-  Challenges, My Availability, Starter Kit all render dark uniformly; first click flips; survives reload.
+**Verified working (curl, backend)**
+- B1 booking/login OTP flow: send-otp → verify-otp(create_if_new=false) → brand-new number returns `{new_user:true}` → then name → verify(create_if_new=true) creates account. Confirmed in code for both Customer app (`login.tsx`, `OtpInline.tsx`) and web (`OtpLogin.jsx`).
+- B2 phone 10-digit lock: `onlyDigits(v,10)` / `tenDigits()` + maxLength=10 in all phone inputs (app + web). Already implemented.
+- B3 payment gateway per-mode: `gateway_resolver.py` + `payment_service.py` fully implement active-gateway + test/live mode resolution (no test/live mixing, no silent fallback). Verified: enabling Razorpay TEST with keys makes `/payments/order` attempt the Razorpay test gateway (not mock); enabling guard blocks activation unless active mode configured. **User just needs to save valid test/live keys in Integration Center.** Currently no gateway configured → mock path.
 
-**Verified already-done items (Partner)**
-- Welcome screen: one-screen fit, dynamic admin logo, realistic man in navy polo w/ AzoApp logo, consistent FS font scale.
-- Login/Register: OTP flow works end-to-end (send-otp demo → verify-otp → dashboard). Phone input capped at 10 digits.
+## Findings — most backlog items appear ALREADY implemented (prior batches 1–3)
+B1, B2, B3 confirmed. Others need per-screen audit on the (unserved) Customer app/web_panel.
 
-## Verification tooling
-- Screenshot tool times out on the ~16MB Expo web bundle. Use headless chrome:
-  `/app/scripts/pshot.js` (login + capture partner screens) and `pshot_dark.js` (dark toggle/persistence),
-  run with `node` after `npm i puppeteer-core` in /tmp. RN `testID` → DOM `data-testid`.
+## Backlog (from problem statement)
+### Partner app (`/app/frontend`) — served/testable
+- [P1] A1 Job-Complete selfie capture (needs device camera).
+- [P1] A2 keyboard slide-up on typing screens (KeyboardProvider wired; audit per-screen).
+- [P2] A3 dark-mode accent cards (starter-kit item image bg, streak-freeze).
 
-## Backlog (from user; Partner → Customer → common)
-### Partner app
-- [DONE] Welcome/login/signup scroll-fit + consistent font + character/logo dynamic.
-- [DONE] Dark mode across Reward&Challenge / My Availability / Starter Kit (+ everywhere).
-- [P1] Job Complete wizard: selfie capture not opening (was working) — device/camera; needs device verify.
-- [P1] Keyboard slide-up: input rises above keyboard on every typing screen (KeyboardProvider already wired; audit per-screen).
-- [P2] Minor dark-mode polish: a few hardcoded light accent cards (starter-kit item image bg, streak-freeze card).
+### Customer app + web panel (need serving to verify)
+- B1 ✅ / B2 ✅ (code verified).
+- B3 ✅ backend; verify frontend checkout launches gateway once real keys saved.
+- B4 Globe icon in Customer panel → opens front (mode+logo aware).
+- B5 "Book Now" outline buttons uniform (some say "Add").
+- B6 search box square (3–5px radius) + larger single-line font.
+- B7 Profile click when logged-in → panel home.
+- B8 keyboard slide-up (app).
+- B9 full dark mode (home blocks, service detail, checkout — remove #fff).
+- B10 Wallet: Reward & Cashback menu → scratch cards (rewards route exists in app).
+- B11 View Invoice preview + Download PDF + Open/Print.
+- B12 booking tabs square (3–5px radius).
+- B13 profile pic reflect in top nav after save.
 
-### Customer app (priority #2)
-- Booking flow: ask mobile → OTP verify → if new user also ask name, then proceed.
-- Login/signup phone input: keep first 10 digits (don't drop leading digit past 10).
-- Payment gateway: honor admin Integration Center active gateway + test/live mode (all gateways).
-- Global icon beside notification → opens customer web front (mode-aware, dynamic logo).
-- All service cards: uniform size + "Book Now" (outline/border button, not filled) everywhere.
-- Search box: square-ish (3–5px radius), larger single-line font.
-- Booking tabs (Active/Searching…): square-ish (3–5px radius).
-- Profile click when logged-in → customer panel home (not profile screen).
-- Keyboard slide-up on all typing screens.
-- Full dark mode (home blocks, service detail, checkout — remove hardcoded #fff).
-- Wallet: move top scratch cards into a dedicated "Reward & Cashback" menu (View all → new screen).
-- View Invoice: show preview + Download PDF + Open/Print.
-- Profile pic: reflect in top nav after save.
-- Inputs: larger font everywhere.
+### Common
+- C1 larger input fonts (app + web).
+- C2 Admin Branding&Theme Primary color drives whole app (dynamic).
+- C3 live gateway (Razorpay test) end-to-end on device build.
 
-### Common / infra
-- Admin Branding&Theme Primary color must drive the whole app's primary (dynamic).
-- Live gateway (Razorpay test) end-to-end on a device build.
+## Notes for next session
+- Only Partner app is served on :3000. To verify Customer app/web_panel UI, they must be served (separate port/preview) or tested via device build.
+- Screenshot tool may time out on the ~16MB Expo web bundle.

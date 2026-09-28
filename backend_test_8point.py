@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://keyboard-fix-suite.preview.emergentagent.com/api"
+BASE_URL = "https://azo-services.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

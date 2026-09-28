@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://keyboard-fix-suite.preview.emergentagent.com  
+**App URL:** https://azo-services.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary
