@@ -255,5 +255,7 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 - 2026-09-27 AI Assistant REMOVED from customer panel: mobile `Customer/src/components/customer/nav.ts` (key "ai" + type) and `app/(customer)/ai.tsx` deleted; web `CustomerDashboard.jsx` nav item + section + AiChat import and `CustomerShell.jsx` menu-ai removed. `components/AiChat.jsx` kept for other roles. Web panel rebuilt.
 - 2026-09-27 Guest OTP (OtpInline.tsx) paste fix: maxLength 10 → 16 so "+91 98765 43210" normalises to last 10 digits (testing agent iteration_144 finding).
 
+- 2026-09-28 Welcome (partner/merchant app) fit-to-screen: no scroll on short Android screens — vertical scale `V = clamp(avail/800, 0.72, 1)` shrinks header/hero/features/card/button spacing; `heroH` = whatever remains after header + estimated card + footer (min 280). Verified 360×640 + 390×844: no overflowing scroller, footer visible.
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).

@@ -42,7 +42,14 @@ export default function Welcome() {
   useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) router.replace(homeFor(user) as any); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const S = Math.max(0.84, Math.min(1.12, width / 390));
-  const heroH = Math.round(Math.max(360, Math.min(height * 0.5, 430 * S)));
+  // Fit-to-screen (no scroll): vertical scale V from the usable height; hero takes what is left
+  // after header + Get Started card + footer so everything is visible on short Android screens too.
+  const avail = height - insets.top - insets.bottom;
+  const V = Math.max(0.72, Math.min(1, avail / 800));
+  const cardH = Math.round(34 * V + 6 + 20 * V + 20 * V + 68 * V + 12 * V + 68 * V + 24 * V + 22 * V);
+  const footerH = Math.round(38 * V + 12);
+  const headerH = Math.round(insets.top + 10 * V + 46 + 20 * V);
+  const heroH = Math.round(Math.max(280, Math.min(440 * S, avail + insets.top + insets.bottom - headerH - cardH - footerH - 34 * V)));
   const personH = Math.round(heroH * 1.04);
   const personW = Math.round(personH * PERSON_RATIO);
   const blobD = Math.round(width * 0.62);
@@ -56,9 +63,9 @@ export default function Welcome() {
       <StatusBar style="dark" />
       <LinearGradient colors={["#FFFFFF", "#F3F7FD", "#EEF4FC"]} locations={[0, 0.5, 1]} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
 
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} showsVerticalScrollIndicator={false} bounces={false}>
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 12, minHeight: height }} showsVerticalScrollIndicator={false} bounces={false} overScrollMode="never">
         {/* ---------- Header ---------- */}
-        <View style={{ paddingTop: insets.top + 14, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 5 }}>
+        <View style={{ paddingTop: insets.top + Math.round(10 * V), paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 5 }}>
           <View testID="app-brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, marginRight: 12 }}>
             {adminLogo ? (
               <Image testID="app-brand-logo-dynamic" source={{ uri: adminLogo }} style={{ height: 44, width: Math.min(170, width * 0.45) }} contentFit="contain" contentPosition="left center" cachePolicy="memory-disk" transition={0} />
@@ -81,7 +88,7 @@ export default function Welcome() {
         </View>
 
         {/* ---------- Hero ---------- */}
-        <View style={{ height: heroH, marginTop: 34 }}>
+        <View style={{ height: heroH, marginTop: Math.round(20 * V) }}>
           {/* light-blue blob behind the professional */}
           <View style={{ position: "absolute", right: -blobD * 0.18, top: -8, width: blobD, height: blobD, borderRadius: blobD / 2, backgroundColor: C.blob, pointerEvents: "none" }} />
           <View style={{ position: "absolute", right: 30, bottom: -30, width: blobD * 0.72, height: blobD * 0.72, borderRadius: blobD, backgroundColor: C.blob, pointerEvents: "none" }} />
@@ -89,16 +96,16 @@ export default function Welcome() {
           <Image testID="welcome-hero" source={PERSON} style={{ position: "absolute", right: -personW * 0.1, bottom: -34, width: personW, height: personH, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom center" transition={0} priority="high" />
 
           <View style={{ paddingLeft: 22, width: Math.min(width - 90, 270), zIndex: 6 }}>
-            <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(32 * S), lineHeight: Math.round(38 * S), fontWeight: "900", letterSpacing: -0.6 }}>
+            <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(32 * S * Math.max(0.88, V)), lineHeight: Math.round(38 * S * Math.max(0.88, V)), fontWeight: "900", letterSpacing: -0.6 }}>
               Reliable{"\n"}Home Services
             </Text>
-            <Text style={{ color: C.gray, fontSize: 16, lineHeight: 23, marginTop: 14, width: Math.min(width * 0.52, 215), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
+            <Text style={{ color: C.gray, fontSize: Math.round(16 * Math.max(0.9, V)), lineHeight: Math.round(23 * Math.max(0.9, V)), marginTop: Math.round(14 * V), width: Math.min(width * 0.52, 215), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
           </View>
 
-          <View style={{ paddingLeft: 22, marginTop: 26, gap: 18, zIndex: 6 }}>
+          <View style={{ paddingLeft: 22, marginTop: Math.round(26 * V), gap: Math.round(18 * V), zIndex: 6 }}>
             {FEATURES.map((f) => (
               <View key={f.title} style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-                <View style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={22} color={f.fg} /></View>
+                <View style={{ width: Math.round(46 * Math.max(0.85, V)), height: Math.round(46 * Math.max(0.85, V)), borderRadius: 23, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={22} color={f.fg} /></View>
                 <View>
                   <Text style={{ color: C.navy, fontSize: 16, fontWeight: "800", lineHeight: 19 }}>{f.title}</Text>
                   <Text style={{ color: C.muted, fontSize: 14, fontWeight: "400", lineHeight: 18, marginTop: 1 }}>{f.sub}</Text>
@@ -109,12 +116,12 @@ export default function Welcome() {
         </View>
 
         {/* ---------- Get Started card ---------- */}
-        <View testID="get-started-card" style={{ marginHorizontal: 12, marginTop: 18, backgroundColor: C.white, borderRadius: 30, paddingTop: 28, paddingHorizontal: 18, paddingBottom: 26, boxShadow: "0px 14px 40px rgba(14,27,69,0.10)", zIndex: 7 }}>
-          <Text style={{ textAlign: "center", color: C.navy, fontSize: 28, fontWeight: "900", letterSpacing: -0.4 }}>Get Started</Text>
-          <Text style={{ textAlign: "center", color: C.gray, fontSize: 14.5, fontWeight: "400", marginTop: 6 }}>Choose how you want to continue</Text>
+        <View testID="get-started-card" style={{ marginHorizontal: 12, marginTop: Math.round(14 * V), backgroundColor: C.white, borderRadius: 30, paddingTop: Math.round(22 * V), paddingHorizontal: 18, paddingBottom: Math.round(22 * V), boxShadow: "0px 14px 40px rgba(14,27,69,0.10)", zIndex: 7 }}>
+          <Text style={{ textAlign: "center", color: C.navy, fontSize: Math.round(28 * Math.max(0.85, V)), fontWeight: "900", letterSpacing: -0.4 }}>Get Started</Text>
+          <Text style={{ textAlign: "center", color: C.gray, fontSize: 14.5, fontWeight: "400", marginTop: 4 }}>Choose how you want to continue</Text>
 
-          <Pressable testID="welcome-login-btn" onPress={() => router.push("/(auth)/login" as any)} style={({ pressed }) => ({ marginTop: 24, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
-            <LinearGradient colors={[C.blueDeep, "#2A7BEA"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 76, borderRadius: 20, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, boxShadow: "0px 10px 22px rgba(31,111,235,0.30)" }}>
+          <Pressable testID="welcome-login-btn" onPress={() => router.push("/(auth)/login" as any)} style={({ pressed }) => ({ marginTop: Math.round(20 * V), transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+            <LinearGradient colors={[C.blueDeep, "#2A7BEA"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: Math.round(68 * V) + 4, borderRadius: 20, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, boxShadow: "0px 10px 22px rgba(31,111,235,0.30)" }}>
               <Icon name="login-variant" size={30} color={C.white} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: C.white, fontSize: 19, fontWeight: "800" }}>Log In</Text>
@@ -124,7 +131,7 @@ export default function Welcome() {
             </LinearGradient>
           </Pressable>
 
-          <Pressable testID="welcome-register-btn" onPress={() => router.push("/(auth)/register" as any)} style={({ pressed }) => ({ marginTop: 16, height: 76, borderRadius: 20, borderWidth: 1.5, borderColor: C.line, backgroundColor: C.white, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+          <Pressable testID="welcome-register-btn" onPress={() => router.push("/(auth)/register" as any)} style={({ pressed }) => ({ marginTop: Math.round(12 * V), height: Math.round(68 * V) + 4, borderRadius: 20, borderWidth: 1.5, borderColor: C.line, backgroundColor: C.white, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
             <Icon name="account-plus-outline" size={30} color={C.blue} />
             <View style={{ flex: 1 }}>
               <Text style={{ color: C.navy, fontSize: 19, fontWeight: "800" }}>Create New Account</Text>
@@ -134,7 +141,7 @@ export default function Welcome() {
           </Pressable>
         </View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 22 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: Math.round(16 * V) }}>
           <Icon name="shield-check-outline" size={18} color={C.gray} />
           <Text style={{ color: C.gray, fontSize: 13.5, fontWeight: "500" }}>Your data is secure & encrypted</Text>
         </View>
