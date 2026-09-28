@@ -66,6 +66,19 @@ async def upload_audio(file: UploadFile = File(...), folder: str = Form("alerts"
     return {"url": url, "name": name, "size": len(raw), "original": file.filename}
 
 
+@router.post("/upload-video")
+async def upload_video(request: Request, file: UploadFile = File(...), folder: str = Form("app_home_stories"), admin=Depends(ADMIN)):
+    """Store a short story-type video (MP4/MOV/WebM, max 25MB) for the Customer App home."""
+    raw = await file.read()
+    try:
+        res = await storage_service.save_video(raw, file.content_type or "", folder=folder, base_hint=_abs_base(request))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    await storage_service.record_media({"url": res["url"], "thumb_url": None, "name": res["name"],
+                                        "folder": folder, "size": res["size"], "original": file.filename, "kind": "video"})
+    return res
+
+
 @router.get("")
 async def list_media(folder: str = None, admin=Depends(ADMIN)):
     q = {"folder": folder} if folder else {}

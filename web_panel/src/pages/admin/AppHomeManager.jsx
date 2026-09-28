@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Smartphone, ImagePlus, Plus, Trash2, ArrowUp, ArrowDown, Save, RefreshCw } from "lucide-react";
+import { Smartphone, ImagePlus, Plus, Trash2, ArrowUp, ArrowDown, Save, RefreshCw, Video, Film } from "lucide-react";
 
 const ICONS = ["shield-check", "clock", "indian-rupee", "credit-card", "headphones", "zap", "map-pin", "wallet", "gift", "star", "sparkles", "flame", "badge-percent", "truck", "phone", "heart", "check-circle", "award", "users", "home"];
 const SECTION_LABELS = { categories: "Service Categories grid", offer_banner: "Offer banner (first booking)", quick_features: "Quick features strip", most_booked: "Most Booked Services", why_choose: "Why Choose Us", trending: "Trending Near You", salon: "Salon at Home (category tabs)", offers: "Offers & Savings" };
@@ -52,8 +52,30 @@ function ImageUpload({ value, onChange, folder = "app_home", testid, wide = fals
   );
 }
 
-const Card = ({ title, sub, children, right }) => (
-  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
+function VideoUpload({ value, onChange, testid }) {
+  const [uploading, setUploading] = useState(false);
+  return (
+    <div className="flex items-center gap-3">
+      {value
+        ? <video src={value} className="h-16 w-28 rounded-xl object-cover border border-slate-200 bg-black" muted playsInline />
+        : <div className="h-16 w-28 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center text-slate-400"><Video className="h-5 w-5" /></div>}
+      <div className="flex flex-col gap-1.5">
+        <label className="inline-flex items-center gap-2 cursor-pointer text-sm font-semibold text-primary-700 border border-primary-200 rounded-lg px-3 py-1.5 hover:bg-primary-50 w-fit">
+          <input type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" data-testid={testid} onChange={async (e) => {
+            const file = e.target.files?.[0]; if (!file) return;
+            const fd = new FormData(); fd.append("file", file); fd.append("folder", "app_home_stories");
+            try { setUploading(true); const { data } = await api.post("/media/upload-video", fd, { headers: { "Content-Type": "multipart/form-data" } }); onChange(data.url); toast.success("Video uploaded"); }
+            catch (err) { toast.error(err?.response?.data?.detail || "Upload failed"); } finally { setUploading(false); }
+          }} />
+          {uploading ? "Uploading…" : value ? "Change video" : "Upload video"}
+        </label>
+        {value && <button type="button" onClick={() => onChange("")} className="text-xs text-red-600 hover:underline w-fit">Remove</button>}
+      </div>
+    </div>
+  );
+}
+
+const Card = ({ title, sub, children, right }) => (  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 space-y-4">
     <div className="flex items-start justify-between gap-3">
       <div><p className="font-heading font-bold text-base text-slate-900 dark:text-white">{title}</p>{sub && <p className="text-xs text-slate-500 mt-0.5">{sub}</p>}</div>
       {right}
@@ -233,13 +255,38 @@ export default function AppHomeManager() {
               <Button size="icon" variant="ghost" className="text-red-600" data-testid={`custom-remove-${i}`} onClick={() => set({ custom_sections: cfg.custom_sections.filter((_, k) => k !== i), sections: cfg.sections.filter((x) => x.key !== `custom:${c.id}`) })}><Trash2 className="h-4 w-4" /></Button>
             </div>
             <div className="grid sm:grid-cols-3 gap-3">
-              <Field label="Type"><select data-testid={`custom-type-${i}`} value={c.type} onChange={(e) => upList("custom_sections", i, { type: e.target.value })} className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm w-full"><option value="services">Hand-picked services</option><option value="category">All services of a category</option><option value="banner">Promo banner (image + link)</option></select></Field>
+              <Field label="Type"><select data-testid={`custom-type-${i}`} value={c.type} onChange={(e) => upList("custom_sections", i, { type: e.target.value })} className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm w-full"><option value="services">Hand-picked services</option><option value="category">All services of a category</option><option value="banner">Promo banner (image + link)</option><option value="stories">Video stories (story cards)</option></select></Field>
               <Field label="Title"><Input data-testid={`custom-title-${i}`} value={c.title || ""} onChange={(e) => upList("custom_sections", i, { title: e.target.value })} placeholder="e.g. Monsoon Essentials" /></Field>
               <Field label="Icon"><IconSelect value={c.icon} onChange={(v) => upList("custom_sections", i, { icon: v })} /></Field>
               {c.type === "services" && <Field label="Services (multi-select)" className="sm:col-span-3"><select multiple data-testid={`custom-services-${i}`} value={c.service_ids || []} onChange={(e) => upList("custom_sections", i, { service_ids: Array.from(e.target.selectedOptions).map((o) => o.value) })} className="h-36 rounded-md border border-slate-200 bg-white px-2 text-sm w-full">{services.map((sv) => <option key={sv.id} value={sv.id}>{sv.name} · {sv.category_name}</option>)}</select></Field>}
               {c.type === "category" && <Field label="Category"><select data-testid={`custom-category-${i}`} value={c.category_id || ""} onChange={(e) => upList("custom_sections", i, { category_id: e.target.value })} className="h-9 rounded-md border border-slate-200 bg-white px-2 text-sm w-full"><option value="">Select category</option>{cats.map((ct) => <option key={ct.id} value={ct.id}>{ct.name}</option>)}</select></Field>}
-              {c.type !== "banner" && <Field label="Max items"><Input type="number" value={c.limit || 8} onChange={(e) => upList("custom_sections", i, { limit: Number(e.target.value) })} /></Field>}
+              {(c.type === "services" || c.type === "category") && <Field label="Max items"><Input type="number" value={c.limit || 8} onChange={(e) => upList("custom_sections", i, { limit: Number(e.target.value) })} /></Field>}
               {c.type === "banner" && <><Field label="Banner image" className="sm:col-span-2"><ImageUpload value={c.image} onChange={(v) => upList("custom_sections", i, { image: v })} wide testid={`custom-image-${i}`} /></Field><Field label="Link"><Input value={c.link || ""} onChange={(e) => upList("custom_sections", i, { link: e.target.value })} placeholder="/services" /></Field><Field label="Subtitle" className="sm:col-span-3"><Input value={c.subtitle || ""} onChange={(e) => upList("custom_sections", i, { subtitle: e.target.value })} /></Field></>}
+              {c.type === "stories" && (
+                <Field label="Story cards — short vertical videos shown as tappable story circles/cards" className="sm:col-span-3">
+                  <div className="space-y-3">
+                    {(c.stories || []).map((st, si) => {
+                      const setStory = (patch) => upList("custom_sections", i, { stories: (c.stories || []).map((x, k) => (k === si ? { ...x, ...patch } : x)) });
+                      return (
+                        <div key={st.id || si} className="rounded-lg border border-slate-200 dark:border-slate-700 p-3 grid sm:grid-cols-2 gap-3" data-testid={`custom-story-${i}-${si}`}>
+                          <div className="flex items-center justify-between sm:col-span-2">
+                            <label className="flex items-center gap-2 text-xs font-semibold"><Switch checked={st.enabled !== false} onCheckedChange={(v) => setStory({ enabled: v })} /> Story {si + 1}</label>
+                            <Button size="icon" variant="ghost" className="text-red-600" data-testid={`custom-story-remove-${i}-${si}`} onClick={() => upList("custom_sections", i, { stories: (c.stories || []).filter((_, k) => k !== si) })}><Trash2 className="h-4 w-4" /></Button>
+                          </div>
+                          <Field label="Title (shown on card)"><Input data-testid={`custom-story-title-${i}-${si}`} value={st.title || ""} onChange={(e) => setStory({ title: e.target.value })} placeholder="e.g. Deep Clean" /></Field>
+                          <Field label="Tap link (optional)"><Input value={st.cta_link || ""} onChange={(e) => setStory({ cta_link: e.target.value })} placeholder="/services or /service/ID" /></Field>
+                          <Field label="Button label (optional)"><Input value={st.cta_label || ""} onChange={(e) => setStory({ cta_label: e.target.value })} placeholder="Book Now" /></Field>
+                          <Field label="Avatar (small circle, optional)"><ImageUpload value={st.avatar} onChange={(v) => setStory({ avatar: v })} testid={`custom-story-avatar-${i}-${si}`} /></Field>
+                          <Field label="Poster / thumbnail (card cover)" className="sm:col-span-2"><ImageUpload value={st.poster} onChange={(v) => setStory({ poster: v })} wide testid={`custom-story-poster-${i}-${si}`} /></Field>
+                          <Field label="Video (MP4/MOV/WebM · max 25MB)" className="sm:col-span-2"><VideoUpload value={st.video} onChange={(v) => setStory({ video: v })} testid={`custom-story-video-${i}-${si}`} /></Field>
+                          <Field label="…or paste a video URL" className="sm:col-span-2"><Input value={st.video || ""} onChange={(e) => setStory({ video: e.target.value })} placeholder="https://…/story.mp4" /></Field>
+                        </div>
+                      );
+                    })}
+                    <Button size="sm" variant="outline" data-testid={`custom-story-add-${i}`} onClick={() => upList("custom_sections", i, { stories: [...(c.stories || []), { id: uid(), enabled: true, title: "", avatar: "", poster: "", video: "", cta_label: "", cta_link: "" }] })}><Film className="h-4 w-4 mr-1" />Add story</Button>
+                  </div>
+                </Field>
+              )}
             </div>
           </div>
         ))}

@@ -13,6 +13,7 @@ import { requestStartupPermissions } from "../../src/lib/permissions";
 import SiteNavbar from "../../src/components/site/SiteNavbar";
 import { AppSearchBar } from "../../src/components/apphome/AppHeader";
 import { HeroSlider, CategoriesGrid, OfferBanner, QuickFeatures, ServicesRow, WhyChoose, SalonSection, OffersRow, CustomBanner } from "../../src/components/apphome/Blocks";
+import { StoriesRow, StoryViewer } from "../../src/components/apphome/Stories";
 import { CategoryServicesSheet } from "../../src/components/site/HomeSections";
 import { Sk } from "../../src/components/site/ui";
 
@@ -25,6 +26,7 @@ export default function AppHome() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [sheetCat, setSheetCat] = useState<any>(null);
+  const [story, setStory] = useState<{ stories: any[]; index: number } | null>(null);
   const [visibleCount, setVisibleCount] = useState(3);
   const listRef = useRef<FlatList>(null);
 
@@ -50,7 +52,7 @@ export default function AppHome() {
       else if (k === "why_choose") out.push({ key: k, render: () => <WhyChoose data={sec.data} /> });
       else if (k === "salon") out.push({ key: k, render: () => <SalonSection sec={sec} navigate={navigate} /> });
       else if (k === "offers") out.push({ key: k, render: () => <OffersRow sec={sec} navigate={navigate} /> });
-      else if (k.startsWith("custom:")) out.push({ key: k, render: () => (sec.custom_type === "banner" ? <CustomBanner sec={sec} navigate={navigate} /> : <ServicesRow sec={sec} navigate={navigate} testID={`app-custom-${sec.key.split(":")[1]}`} />) });
+      else if (k.startsWith("custom:")) out.push({ key: k, render: () => (sec.custom_type === "banner" ? <CustomBanner sec={sec} navigate={navigate} /> : sec.custom_type === "stories" ? <StoriesRow sec={sec} onOpen={(index) => setStory({ stories: sec.data || [], index })} /> : <ServicesRow sec={sec} navigate={navigate} testID={`app-custom-${sec.key.split(":")[1]}`} />) });
     }
     return out;
   }, [data, navigate, router]);
@@ -92,6 +94,7 @@ export default function AppHome() {
         />
       )}
       <CategoryServicesSheet category={sheetCat} onClose={() => setSheetCat(null)} navigate={navigate} />
+      {story ? <StoryViewer stories={story.stories} startIndex={story.index} onClose={() => setStory(null)} navigate={navigate} /> : null}
     </View>
   );
 }

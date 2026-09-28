@@ -176,6 +176,11 @@ async def _public_home(city: str):
                 item["category_id"] = cs.get("category_id")
             elif ctype == "banner":
                 item["data"] = {"image": cs.get("image") or "", "link": cs.get("link") or "/services", "title": cs.get("title") or "", "subtitle": cs.get("subtitle") or ""}
+            elif ctype == "stories":
+                stories = [st for st in (cs.get("stories") or []) if st.get("enabled", True) and (st.get("video") or st.get("poster"))]
+                item["data"] = [{"id": st.get("id"), "title": st.get("title") or "", "avatar": st.get("avatar") or "",
+                                 "poster": st.get("poster") or "", "video": st.get("video") or "",
+                                 "cta_label": st.get("cta_label") or "", "cta_link": st.get("cta_link") or ""} for st in stories]
             if not item.get("data"):
                 continue
         sections.append(item)
