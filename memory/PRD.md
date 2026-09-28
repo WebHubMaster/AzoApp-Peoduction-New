@@ -84,3 +84,16 @@ Audited the Customer **app** (Expo) — the following are ALREADY implemented (v
 (history.tsx TextInput is just a top search bar — no fix needed.)
 
 STILL TODO (need web_panel served to implement+verify): web-panel versions of B4/B7/B9/B10/B11/B13. Partner A2 device verification (keyboard behavior can't be tested in web preview).
+
+### 2026-06 (session 4) — Brand logo + C2 audit
+**Logo applied (dynamic):** User uploaded a white emblem (HalfIcon.png, 500×500, transparent). Hosted two variants under `backend/uploads/branding/` and set in `settings.branding`:
+- `logo_light` = navy (#0659B2 recolor) `…/api/media/file/branding/azo_logo_light.png` (visible on light bg)
+- `logo_dark` = white `…/azo_logo_dark.png` (for dark bg)
+`/api/site/config` reflects them immediately → shows in all dynamic logo slots (welcome header, app/panel headers, login) across Partner + Customer app + web panel, theme-aware.
+NOTE: the "A" on the character's shirt in the Partner welcome hero is BAKED INTO `welcome-person.webp` (a photo, not an overlay) — not changed by branding config. Would need image regeneration to swap.
+
+**C2 audit — primary color is FULLY DYNAMIC** across all surfaces:
+- web_panel: `SiteConfigContext.applySiteTheme()` → `genPalette(theme.primary)` sets `--p-50..900` + `--primary`; tailwind `primary-*` consume them.
+- Customer app: `_layout` passes `theme.primary` → `applyBrandPrimary()` regenerates PRIMARY scale in place.
+- Partner app: `theme.ts palette(brand.primary)` builds all shades from admin color.
+Fixed one hardcode: Partner dark `primarySubtle` rgba now derived from `P[500]` (was fixed #0659B2).

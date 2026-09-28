@@ -87,7 +87,7 @@ function buildColors(mode: ThemeMode, brand: typeof BASE_BRAND): ThemeColors {
       primary: P[500],
       primaryDark: P[800],
       primaryHover: P[700],
-      primarySubtle: "rgba(6, 89, 178, 0.28)",
+      primarySubtle: `rgba(${parseInt(P[500].slice(1, 3), 16)}, ${parseInt(P[500].slice(3, 5), 16)}, ${parseInt(P[500].slice(5, 7), 16)}, 0.28)`,
       secondary: P[600],
       accent: brand.accent,
       onPrimary: "#FFFFFF",
