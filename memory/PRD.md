@@ -86,3 +86,16 @@ Partner: #1 welcome scroll fit, #2 login/signup font-size consistency, #5 keyboa
 Customer: #1 booking flow mobile→OTP→(name if new), #2 10-digit input trimming, #3 multi-gateway test/live payments, #7 admin Primary color → whole app, #9 keyboard slide-up, #10 full dark-mode pass, #11 Wallet scratch cards → "Reward & Cashback" screen, #12 View-Invoice preview + Download/Print. Overall: increase base font size app-wide.
 
 NOTE: Only the Partner app runs in the preview (supervisor). Customer-app changes are code-level and were not visually verified in-preview.
+
+---
+
+## Update — 2026-06 (Batch 2: 4 requested items)
+
+- [DONE] Booking OTP flow (Customer/src/components/site/OtpInline.tsx): rewritten to mobile → OTP → (name asked ONLY for a brand-new number) → account created + booking continues. Existing numbers log straight in.
+- [DONE] 10-digit input fix: OtpInline phone now keeps the FIRST 10 typed digits (strips pasted 91/leading zeros), maxLength 10 — typing past 10 no longer drops the starting digit.
+- [DONE] Multi-gateway payments in the Customer app: new src/components/PaymentWebViewHost.tsx (mounted in app/_layout.tsx) renders the ACTIVE gateway's checkout in a WebView — Razorpay SDK (postMessage → /payments/verify), Cashfree SDK, PayU form-post, Easebuzz/Juspay hosted redirect (return URL detected → /payments/confirm-return). src/lib/payments.ts rewired to use it; test/live mode is decided entirely by the backend gateway_resolver (admin Integration Center). NOTE: react-native-webview is declared in package.json but node_modules for the Customer app isn't installed in this preview; verified only by code review (needs a device/build to exercise real gateways).
+- [DONE] App-wide bigger fonts: globalFont.ts (both apps) scales numeric fontSize + lineHeight by 1.09 in the native Text/TextInput wrapper (icons untouched). Web preview path is unchanged.
+- [DONE] Dark mode — Partner Rewards / My-Availability / Starter-Kit: light hero/streak/next-reward/benefit cards made dark-aware (were showing white text on light cards in dark mode). Availability info-card + inner card + progress track themed.
+
+### Still open
+Customer full dark-mode pass (many screens hardcode #fff/SLATE); Partner welcome-scroll (#1) + login/signup font consistency (#2); keyboard slide-up (Cust #9 / Partner #5); admin Primary-color → whole Customer app (#7, needs dynamic PRIMARY palette); Wallet scratch → "Reward & Cashback" screen (#11); View-Invoice preview + Download/Print (#12).

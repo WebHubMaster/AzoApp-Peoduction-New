@@ -16,6 +16,7 @@ import { CartProvider } from "../src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { ToastProvider } from "@/src/components/Toast";
+import { PaymentWebViewHost } from "@/src/components/PaymentWebViewHost";
 import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -47,6 +48,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
       <BrandProvider value={data}>
         <AuthProvider><CartProvider>
           <ToastProvider>
+            <PaymentWebViewHost />
             <PushTapBridge /><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="(site)" />

@@ -41,7 +41,8 @@ function Pulse({ children, style }: { children: React.ReactNode; style?: any }) 
 
 /** Web ChallengesRewards.jsx 1:1 */
 export default function PartnerRewards() {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const dark = mode === "dark";
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["partner-challenges"], queryFn: () => api.get<any>("/partner/challenges") });
@@ -87,7 +88,7 @@ export default function PartnerRewards() {
               </View>
 
               {/* Streak */}
-              <LinearGradient colors={["#FFF7ED", "#FFFBEB"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 16, borderWidth: 1, borderColor: "#FED7AA", padding: 16 }} testID="streak-card">
+              <LinearGradient colors={dark ? ["#2A1E10", "#231B0C"] : ["#FFF7ED", "#FFFBEB"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 16, borderWidth: 1, borderColor: dark ? colors.border : "#FED7AA", padding: 16 }} testID="streak-card">
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="fire" size={22} color="#F97316" /><Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>5★ Streak</Text></View>
                   <Text><Text style={{ color: "#EA580C", fontSize: 24, fontWeight: "800" }}>{streak.current || 0}</Text><Text style={{ color: SLATE400, fontSize: 13 }}> in a row</Text></Text>
@@ -132,7 +133,7 @@ export default function PartnerRewards() {
 
               {/* Next reward */}
               {next ? (
-                <View testID="next-reward" style={{ flexDirection: "row", alignItems: "center", gap: 20, borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: "#BFDBFE", backgroundColor: "rgba(239,246,255,0.5)", padding: 20 }}>
+                <View testID="next-reward" style={{ flexDirection: "row", alignItems: "center", gap: 20, borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: dark ? colors.border : "#BFDBFE", backgroundColor: dark ? colors.surface : "rgba(239,246,255,0.5)", padding: 20 }}>
                   <Ring pct={next.progress_pct} />
                   <View style={{ flex: 1 }}>
                     <Text style={{ color: colors.secondary, fontSize: 12, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.8 }}>Closest reward</Text>

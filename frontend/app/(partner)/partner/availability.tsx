@@ -13,7 +13,8 @@ const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 
 /** Web AvailabilitySection — My Availability card + month calendar + legend + next available dates */
 export default function PartnerAvailability() {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const dark = mode === "dark";
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const toast = useToast();
@@ -49,17 +50,17 @@ export default function PartnerAvailability() {
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-availability"] })} tintColor={colors.primary} colors={[colors.primary]} />}>
         {/* Info card */}
-        <View testID="partner-availability-header" style={{ borderRadius: 24, backgroundColor: "#E8F1FB", padding: 20 }}>
+        <View testID="partner-availability-header" style={{ borderRadius: 24, backgroundColor: dark ? colors.surface : "#E8F1FB", borderWidth: dark ? 1 : 0, borderColor: colors.border, padding: 20 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "#1976D2", alignItems: "center", justifyContent: "center" }}><Icon name="calendar-month-outline" size={24} color="#fff" /></View>
             <Text style={{ color: colors.text, fontSize: 24, fontWeight: "800" }}>My Availability</Text>
           </View>
-          <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 16, marginTop: 16, width: "100%", boxShadow: "0px 4px 12px rgba(2,32,71,0.06)" }}>
+          <View style={{ backgroundColor: dark ? colors.surfaceSubtle : "#fff", borderRadius: 16, padding: 16, marginTop: 16, width: "100%", boxShadow: "0px 4px 12px rgba(2,32,71,0.06)" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <Text style={{ color: SLATE400, fontSize: 12, fontWeight: "700", letterSpacing: 0.8 }}>AVAILABLE DATES</Text>
               <Text><Text style={{ color: "#059669", fontSize: 26, fontWeight: "800" }}>{availCount}</Text><Text style={{ color: SLATE400, fontSize: 18, fontWeight: "600" }}> / {maxAvail}</Text></Text>
             </View>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: "#E2E8F0", marginTop: 10, overflow: "hidden" }}><View style={{ width: `${Math.min(100, (availCount / maxAvail) * 100)}%`, height: 6, backgroundColor: GREEN }} /></View>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.border, marginTop: 10, overflow: "hidden" }}><View style={{ width: `${Math.min(100, (availCount / maxAvail) * 100)}%`, height: 6, backgroundColor: GREEN }} /></View>
           </View>
         </View>
 

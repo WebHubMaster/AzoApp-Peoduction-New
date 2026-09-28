@@ -82,6 +82,10 @@ export function installGlobalFont() {
       if (flat.fontFamily) return React.createElement(Orig, props);
       // weight is baked into the font file → drop fontWeight so Android never applies faux-bold
       const { fontWeight: _w, ...rest } = flat;
+      // App-wide readability bump — scale up numeric font sizes (+ line heights) a touch.
+      const FS = 1.09;
+      if (typeof (rest as any).fontSize === "number") (rest as any).fontSize = Math.round((rest as any).fontSize * FS);
+      if (typeof (rest as any).lineHeight === "number") (rest as any).lineHeight = Math.round((rest as any).lineHeight * FS);
       return React.createElement(Orig, { ...props, style: { ...rest, fontFamily: familyFor(flat) } });
     };
     Object.assign(Wrapped, Orig); // keep statics (TextInput.State, propTypes…)

@@ -17,7 +17,8 @@ const SLATE400 = "#94A3B8";
 
 /** Web PartnerStarterKit.jsx — sales page / owned view */
 export default function PartnerStarterKit() {
-  const { colors } = useTheme();
+  const { colors, mode } = useTheme();
+  const dark = mode === "dark";
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const toast = useToast();
@@ -161,11 +162,11 @@ export default function PartnerStarterKit() {
       </View>
 
       {(cfg.benefits || []).length > 0 ? (
-        <LinearGradient colors={["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 16, borderWidth: 1, borderColor: "#DBEAFE", padding: 24 }}>
+        <LinearGradient colors={dark ? [colors.surface, colors.surface] : ["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 16, borderWidth: 1, borderColor: dark ? colors.border : "#DBEAFE", padding: 24 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="crown-outline" size={20} color="#F59E0B" /><Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Why partners love it</Text></View>
           <View style={{ gap: 12, marginTop: 16 }}>
             {cfg.benefits.map((b: string, i: number) => (
-              <View key={i} style={{ flexDirection: "row", gap: 10, backgroundColor: "rgba(255,255,255,0.7)", borderRadius: 12, padding: 12 }}>
+              <View key={i} style={{ flexDirection: "row", gap: 10, backgroundColor: dark ? colors.surfaceSubtle : "rgba(255,255,255,0.7)", borderRadius: 12, padding: 12 }}>
                 <Icon name="check-circle-outline" size={20} color="#10B981" /><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "500", flex: 1, lineHeight: 20 }}>{b}</Text>
               </View>
             ))}
