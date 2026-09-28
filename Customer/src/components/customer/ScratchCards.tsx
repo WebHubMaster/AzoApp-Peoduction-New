@@ -73,12 +73,12 @@ function ScratchModal({ card, onClose, onDone, toast }: { card: any; onClose: ()
   );
 }
 
-export function ScratchCardsPanel({ onClaimed, toast }: { onClaimed?: () => void; toast: any }) {
+export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly }: { onClaimed?: () => void; toast: any; onViewAll?: () => void; gridOnly?: boolean }) {
   const { c, isDark } = useTheme();
   const [data, setData] = useState<any>({ cards: [], summary: {} });
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<any>(null);
-  const [viewAll, setViewAll] = useState(false);
+  const [viewAll, setViewAll] = useState(!!gridOnly);
   const load = useCallback(() => { setLoading(true); api.get<any>("/growth/scratch-cards").then((r) => setData(r || { cards: [] })).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => { load(); }, [load]);
   const cards: any[] = data.cards || []; const summary = data.summary || {};
@@ -97,9 +97,9 @@ export function ScratchCardsPanel({ onClaimed, toast }: { onClaimed?: () => void
     return (
       <View testID="scratch-viewall" style={{ marginBottom: 24 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          <Pressable testID="scratch-viewall-back" onPress={() => setViewAll(false)} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={c.textMuted} /></Pressable>
+          {gridOnly ? null : <Pressable testID="scratch-viewall-back" onPress={() => setViewAll(false)} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={c.textMuted} /></Pressable>}
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Sparkles size={20} color={AMBER[500]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>All Scratch Cards</Text></View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Sparkles size={20} color={AMBER[500]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Reward &amp; Cashback</Text></View>
             <Text style={{ fontSize: 12, color: SLATE[500] }}>Earned {fmt(summary.earned)} · {cards.length} card{cards.length > 1 ? "s" : ""} · scratched cards auto-remove after 30 days</Text>
           </View>
         </View>
@@ -112,7 +112,7 @@ export function ScratchCardsPanel({ onClaimed, toast }: { onClaimed?: () => void
     <View testID="scratch-panel" style={{ marginBottom: 24 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}><Sparkles size={20} color={AMBER[500]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Scratch Cards & Cashback</Text></View>
-        {cards.length > 1 ? <Pressable testID="scratch-viewall-btn" onPress={() => setViewAll(true)}><Text style={{ fontSize: 14, fontWeight: "600", color: PRIMARY[600] }}>View All ({cards.length})</Text></Pressable> : null}
+        {cards.length > 1 ? <Pressable testID="scratch-viewall-btn" onPress={() => (onViewAll ? onViewAll() : setViewAll(true))}><Text style={{ fontSize: 14, fontWeight: "600", color: PRIMARY[600] }}>View All ({cards.length})</Text></Pressable> : null}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} testID="scratch-carousel" contentContainerStyle={{ gap: 12, paddingBottom: 8 }}>
         {cards.map((x) => <ScratchTile key={x.id} card={x} width={160} onOpen={() => openCard(x)} />)}

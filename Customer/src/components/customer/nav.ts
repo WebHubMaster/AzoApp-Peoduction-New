@@ -1,7 +1,7 @@
 /** Same NAV + status helpers as web_panel/src/pages/customer/CustomerDashboard.jsx */
-import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, CalendarHeart } from "lucide-react-native";
+import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, CalendarHeart, Sparkles } from "lucide-react-native";
 
-export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "profile" | "referral" | "support";
+export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "rewards" | "profile" | "referral" | "support";
 
 export interface NavItem { key: NavKey; label: string; short: string; icon: any; route: string }
 
@@ -14,6 +14,7 @@ export const NAV: NavItem[] = [
   { key: "invoices", label: "My Invoices", short: "Invoices", icon: FileText, route: "/(customer)/invoices" },
   { key: "addresses", label: "My Addresses", short: "Address", icon: MapPin, route: "/(customer)/addresses" },
   { key: "wallet", label: "Wallet", short: "Wallet", icon: Wallet, route: "/(customer)/wallet" },
+  { key: "rewards", label: "Reward & Cashback", short: "Rewards", icon: Sparkles, route: "/(customer)/rewards" },
   { key: "profile", label: "My Profile", short: "Profile", icon: User, route: "/(customer)/profile" },
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift, route: "/(customer)/referral" },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy, route: "/(customer)/support" },

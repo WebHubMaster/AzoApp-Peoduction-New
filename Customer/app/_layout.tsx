@@ -44,7 +44,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
   useEffect(() => { if (fontsLoaded) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded]);
   if (!fontsLoaded) return null;
   return (
-    <ThemeProvider>
+    <ThemeProvider brandPrimary={data?.theme?.primary}>
       <BrandProvider value={data}>
         <AuthProvider><CartProvider>
           <ToastProvider>

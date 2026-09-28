@@ -27,7 +27,7 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   const toast = useToast();
   const city = useCity();
   const notif = useNotifPermission();
-  const { isDark } = useTheme();
+  const { isDark, c } = useTheme();
   const { branding: cfg } = useSiteConfig();
   const brandLogo = (isDark ? cfg.logo_dark || cfg.logo_light : cfg.logo_light || cfg.logo_dark) || "";
   const [locOpen, setLocOpen] = useState(false);
@@ -46,7 +46,7 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   };
 
   return (
-    <View testID="app-header" style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: "#fff" }}>
+    <View testID="app-header" style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: c.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1, minWidth: 110 }}>
           {brandLogo ? (
@@ -60,14 +60,14 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
           {!brandLogo && branding?.show_tagline !== false && (branding?.tagline || cfg.tagline) ? <Text testID="app-tagline" style={{ fontSize: 11, color: SLATE[500], marginTop: 0 }} numberOfLines={1}>{branding?.tagline || cfg.tagline}</Text> : null}
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
-            <MapPin size={16} color={PRIMARY[700]} />
-            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: SLATE[800], flexShrink: 1 }}>{city || "Set location"}</Text>
-            <ChevronDown size={14} color={SLATE[500]} />
+          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: isDark ? c.surfaceAlt : PRIMARY[50], borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
+            <MapPin size={16} color={isDark ? PRIMARY[300] : PRIMARY[700]} />
+            <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: c.text, flexShrink: 1 }}>{city || "Set location"}</Text>
+            <ChevronDown size={14} color={c.textMuted} />
           </Pressable>
         </View>
         <Pressable testID="app-bell" onPress={onBell} style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center" }}>
-          {notif === "denied" ? <BellOff size={24} color={SLATE[400]} /> : <Bell size={24} color={SLATE[800]} />}
+          {notif === "denied" ? <BellOff size={24} color={SLATE[400]} /> : <Bell size={24} color={c.text} />}
           {(unread > 0 || notif === "undetermined") && notif !== "denied" ? <View testID="app-bell-dot" style={{ position: "absolute", top: 5, right: 7, height: 8, width: 8, borderRadius: 4, backgroundColor: ROSE[500], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
           {notif === "denied" ? <View testID="app-bell-muted" style={{ position: "absolute", top: 4, right: 5, height: 9, width: 9, borderRadius: 5, backgroundColor: SLATE[400], borderWidth: 1.5, borderColor: "#fff" }} /> : null}
         </Pressable>
@@ -85,6 +85,7 @@ const RECENT_KEY = "azo_recent_searches_v1";
 const MAX_RECENT = 6;
 
 export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
+  const { c, isDark } = useTheme();
   const [recent, setRecent] = useState<string[]>([]);
   useEffect(() => { AsyncStorage.getItem(RECENT_KEY).then((v) => { try { const arr = JSON.parse(v || "[]"); if (Array.isArray(arr)) setRecent(arr.filter((x) => typeof x === "string").slice(0, MAX_RECENT)); } catch { /* ignore */ } }); }, []);
   const remember = useCallback((term: string) => {
@@ -147,12 +148,12 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   }, [q]);
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: "#fff", zIndex: 20 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: c.surface, zIndex: 20 }}>
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: "#fff", borderWidth: 1, borderColor: SLATE[100], paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
-        <Search size={22} color={SLATE[800]} strokeWidth={2.4} />
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: isDark ? c.surfaceAlt : "#fff", borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+        <Search size={22} color={c.text} strokeWidth={2.4} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search" numberOfLines={1} multiline={false}
-          placeholder="Search for services" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 16, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
+          placeholder="Search for services" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 16, color: c.text, height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={SLATE[400]} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
           {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : SLATE[300]} strokeWidth={2.2} />}

@@ -4,7 +4,7 @@ import { View, Text, Pressable, TextInput, ScrollView, Modal, Linking } from "re
 import * as Clipboard from "expo-clipboard";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard } from "lucide-react-native";
+import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard, Printer } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn } from "../../src/theme";
@@ -131,7 +131,7 @@ export default function InvoicesScreen() {
                 <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>{money(inv.display_amount ?? inv.total_amount, inv.currency)}</Text>
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-                <Btn tone="outline" icon={Eye} label="View" onPress={() => openDrawer(inv)} testID={`invoice-view-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
+                <Btn tone="outline" icon={Eye} label="View" onPress={() => openPreview(inv)} testID={`invoice-view-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
                 <Btn tone="outline" icon={Download} label="Download" onPress={() => downloadById(inv)} testID={`invoice-download-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
                 <Pressable testID={`invoice-more-${inv.invoice_number}`} onPress={() => setShareFor(inv)} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Share2 size={16} color={c.textMuted} /></Pressable>
               </View>
@@ -183,6 +183,7 @@ export default function InvoicesScreen() {
             <Text numberOfLines={1} style={{ flex: 1, fontSize: 16, fontWeight: "600", color: c.text }}>{preview?.invoice_number || "Invoice"}</Text>
             <Pressable testID="invoice-share" onPress={() => setShareFor(preview)} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Share2 size={16} color={c.text} /></Pressable>
             <Pressable testID="invoice-email-btn" onPress={() => { setEmailTo(preview?.customer_snapshot?.email || ""); setEmailFor(preview); }} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Mail size={16} color={c.text} /></Pressable>
+            <Pressable testID="invoice-open-print" onPress={() => preview?.url && Linking.openURL(preview.url).catch(() => toast.error("Could not open invoice"))} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Printer size={16} color={c.text} /></Pressable>
             <Pressable testID="invoice-download-pdf" onPress={() => downloadById(preview)} style={{ height: 36, width: 36, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Download size={16} color="#fff" /></Pressable>
             <Pressable testID="invoice-close-btn" onPress={() => setPreview(null)} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.text} /></Pressable>
           </View>

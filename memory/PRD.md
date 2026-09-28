@@ -99,3 +99,14 @@ NOTE: Only the Partner app runs in the preview (supervisor). Customer-app change
 
 ### Still open
 Customer full dark-mode pass (many screens hardcode #fff/SLATE); Partner welcome-scroll (#1) + login/signup font consistency (#2); keyboard slide-up (Cust #9 / Partner #5); admin Primary-color → whole Customer app (#7, needs dynamic PRIMARY palette); Wallet scratch → "Reward & Cashback" screen (#11); View-Invoice preview + Download/Print (#12).
+
+---
+
+## Update — 2026-06 (Batch 3: Customer app — 4 requested items)
+
+- [DONE] Primary Color theming (#7): Customer/src/theme.tsx now generates the full PRIMARY 50→900 scale from the admin brand primary (applyBrandPrimary), wired via ThemeProvider brandPrimary={data.theme.primary} in app/_layout.tsx — the whole Customer app follows the admin's Branding & Theme colour.
+- [DONE] Reward & Cashback screen (#11): new app/(customer)/rewards.tsx (grid of all scratch cards + cashback), added to NAV as "Reward & Cashback", and Wallet's "View All" now navigates there (ScratchCardsPanel gained onViewAll + gridOnly props).
+- [DONE] Invoice preview (#12): invoices card "View" now opens the visual invoice preview (server page in a WebView) directly, with Open/Print (Printer → opens page) + Download PDF buttons.
+- [PARTIAL] Customer dark mode (#10): front AppHeader + AppSearchBar + AppBottomNav made dark-aware (were hardcoded #fff). Panel (CustomerShell) already dark-aware. FULL site pass (home blocks, service detail, checkout, etc.) still pending.
+
+NOTE: Customer app is not run under supervisor in this preview and its node_modules is incomplete (react-native-webview missing) + its eslint.config.js is broken — changes are code-level, verified by review; exercise on a device/build.

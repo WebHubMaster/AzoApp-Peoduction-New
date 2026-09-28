@@ -5,7 +5,9 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { storage } from "@/src/utils/storage";
 
-/* Brand palette (--p-50 … --p-900), converted from the HSL values in index.css */
+/* Brand palette (--p-50 … --p-900) — DEFAULT values; overridden at runtime from the
+ * Admin "Branding & Theme" primary colour via applyBrandPrimary() so the WHOLE app
+ * (every PRIMARY[...] reference) follows the admin's chosen colour. */
 export const PRIMARY = {
   50: "#EBF3FE",
   100: "#CFE2FC",
@@ -18,6 +20,42 @@ export const PRIMARY = {
   800: "#0A3F89",
   900: "#073473",
 };
+
+/* Generate a full 50→900 tint/shade scale from a single brand hex (mirrors the web
+ * SiteConfig genPalette + Partner theme.ts palette). */
+const SHADE_L: Record<number, number> = { 50: 97, 100: 94, 200: 87, 300: 78, 400: 66, 500: 56, 600: 50, 700: 44, 800: 37, 900: 29 };
+function hexToHsl(hex: string) {
+  const n = parseInt((hex || "").replace("#", ""), 16);
+  const r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b); const l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60;
+  }
+  return { h: Math.round(h), s: Math.round(s * 100), l: Math.round(l * 100) };
+}
+function hslToHex(h: number, s: number, l: number): string {
+  const sn = s / 100, ln = l / 100; const a = sn * Math.min(ln, 1 - ln);
+  const f = (n: number) => { const k = (n + h / 30) % 12; const c = ln - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(255 * c).toString(16).padStart(2, "0"); };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+function genPalette(hex: string): Record<number, string> {
+  const c = hexToHsl(hex); const sat = Math.min(95, Math.max(35, c.s));
+  const out: Record<number, string> = {};
+  Object.entries(SHADE_L).forEach(([k, l]) => { out[Number(k)] = hslToHex(c.h, sat, l); });
+  return out;
+}
+let _brandHex = "";
+/** Overwrite the shared PRIMARY scale + primary theme tokens IN PLACE so every
+ * `PRIMARY[...]` import across the app reflects the admin's brand colour. */
+export function applyBrandPrimary(hex?: string) {
+  if (!hex || !/^#?[0-9A-Fa-f]{6}$/.test(hex) || hex === _brandHex) return;
+  _brandHex = hex;
+  Object.assign(PRIMARY, genPalette(hex));
+  LIGHT.primaryText = PRIMARY[700]; LIGHT.primarySoft = PRIMARY[50];
+  DARK.primaryText = PRIMARY[300];
+}
 
 export const SLATE = {
   50: "#F8FAFC", 100: "#F1F5F9", 200: "#E2E8F0", 300: "#CBD5E1", 400: "#94A3B8",
@@ -62,14 +100,17 @@ interface ThemeCtx {
 const Ctx = createContext<ThemeCtx>({ isDark: false, toggle: () => {}, c: LIGHT });
 const KEY = "azo_theme";
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({ children, brandPrimary }: { children: React.ReactNode; brandPrimary?: string }) => {
   const [isDark, setDark] = useState(false);
   useEffect(() => { storage.getItem(KEY).then((v) => { if (v === "dark") setDark(true); }); }, []);
+  // Apply the admin brand colour synchronously (before children render) so every
+  // PRIMARY[...] reference in the tree uses it.
+  useMemo(() => { applyBrandPrimary(brandPrimary); return brandPrimary; }, [brandPrimary]);
   const value = useMemo(() => ({
     isDark,
     c: isDark ? DARK : LIGHT,
     toggle: () => setDark((d) => { storage.setItem(KEY, d ? "light" : "dark"); return !d; }),
-  }), [isDark]);
+  }), [isDark, brandPrimary]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
 
