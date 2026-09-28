@@ -14,7 +14,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://keyboard-input-flow.preview.emergentagent.com",
+    "https://keyboard-fix-suite.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -44,7 +44,7 @@ CAPTION_MULTILINE = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link to book now:\n"
-    "https://keyboard-input-flow.preview.emergentagent.com/?ref=XZ6SV49"
+    "https://keyboard-fix-suite.preview.emergentagent.com/?ref=XZ6SV49"
 )
 
 

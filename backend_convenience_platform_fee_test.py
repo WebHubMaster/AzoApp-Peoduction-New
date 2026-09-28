@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://keyboard-input-flow.preview.emergentagent.com/api"
+BASE_URL = "https://keyboard-fix-suite.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

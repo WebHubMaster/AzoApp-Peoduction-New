@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 # Base URL
-BASE_URL = "https://keyboard-input-flow.preview.emergentagent.com/api"
+BASE_URL = "https://keyboard-fix-suite.preview.emergentagent.com/api"
 
 # Test credentials (OTP = 123456 for all)
 CREDENTIALS = {

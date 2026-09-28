@@ -10,7 +10,7 @@ import uuid
 import requests
 import pytest
 
-BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if "EXPO_PUBLIC_BACKEND_URL" in os.environ else "https://keyboard-input-flow.preview.emergentagent.com"
+BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if "EXPO_PUBLIC_BACKEND_URL" in os.environ else "https://keyboard-fix-suite.preview.emergentagent.com"
 API = f"{BASE}/api"
 
 CUSTOMER_PHONE = "+919000000004"

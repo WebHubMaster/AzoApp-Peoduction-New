@@ -10,7 +10,7 @@ import time
 from typing import Dict, Any, Optional
 
 # Base URL from frontend/.env
-BASE_URL = "https://keyboard-input-flow.preview.emergentagent.com/api"
+BASE_URL = "https://keyboard-fix-suite.preview.emergentagent.com/api"
 
 # Test credentials from test_credentials.md
 ADMIN_PHONE = "+919000000000"

@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://keyboard-input-flow.preview.emergentagent.com/api"
+BACKEND_URL = "https://keyboard-fix-suite.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
