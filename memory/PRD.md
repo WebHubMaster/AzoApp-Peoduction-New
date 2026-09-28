@@ -259,5 +259,7 @@ Payment is MOCKED (no live gateway configured) via /pay/mock.
 
 - 2026-09-28 Wizard/login fixes (testing agent iteration_145 all pass): partner login OTP Verify button no longer hidden under keyboard (KeyboardAwareScrollView bottomOffset 230); wizard scroll is KeyboardAwareScrollView (bottomOffset 240) so OTP boxes stay above keyboard; VIDEO chunk upload 700KB base64 parts + retry (mobile JobProof.tsx, web JobWizard.jsx), backend total ≤120 parts; Details step = full job info (category/status/timing/booked on/value/payment/check-in) + customer card + collapsible Job timeline (default closed; `wizard-timeline-toggle`/`-list`) on mobile + web.
 
+- 2026-09-28 Customer app fixes (testing agent iteration_146 pass): Support chat panel shrinks while keyboard is open (`useKeyboardState` → panelH = winH - kb - 190, min 240) so composer stays visible; guest checkout OtpInline now 6 OTP BOXES (`otp-boxes`, `otp-box-N`, hidden `otp-code`) with manual "Verify OTP & continue" only (no auto-verify); login: demo-login block removed, feature chips smaller + width-constrained (no overlap with hero), subtitle width tightened, placeholder single-line "Enter mobile number".
+
 ### Env note
 backend/.env, frontend/.env, Customer/.env were MISSING on this pod and were recreated (DB_NAME=azoapp, MONGO_URL local, EXPO_PUBLIC_BACKEND_URL / REACT_APP_BACKEND_URL = preview URL).
