@@ -50,16 +50,17 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
   const { width, height } = useWindowDimensions();
   const [idx, setIdx] = useState(startIndex);
   const [muted, setMuted] = useState(true);
+  const [progress, setProgress] = useState(0);
   const cur = stories[idx];
-  const next = () => (idx < stories.length - 1 ? setIdx(idx + 1) : onClose());
-  const prev = () => idx > 0 && setIdx(idx - 1);
+  const next = () => { setProgress(0); return idx < stories.length - 1 ? setIdx(idx + 1) : onClose(); };
+  const prev = () => { if (idx > 0) { setProgress(0); setIdx(idx - 1); } };
   if (!cur) return null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: "#000" }} testID="story-viewer">
         {/* video (auto-advances to the next story when it ends) */}
         {cur.video ? (
-          <StoryVideo key={cur.id} url={cur.video} poster={cur.poster} muted={muted} onEnded={next} />
+          <StoryVideo key={cur.id} url={cur.video} poster={cur.poster} muted={muted} onEnded={next} onProgress={setProgress} />
         ) : (
           <Image source={{ uri: cur.poster }} style={{ flex: 1 }} contentFit="contain" />
         )}
@@ -68,7 +69,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
         <View style={{ position: "absolute", top: 52, left: 12, right: 12, flexDirection: "row", gap: 5 }}>
           {stories.map((_, i) => (
             <View key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.3)", overflow: "hidden" }}>
-              <View style={{ height: "100%", width: i < idx ? "100%" : i === idx ? "60%" : "0%", backgroundColor: "#fff" }} />
+              <View style={{ height: "100%", width: i < idx ? "100%" : i === idx ? `${Math.round(progress * 100)}%` : "0%", backgroundColor: "#fff" }} />
             </View>
           ))}
         </View>
