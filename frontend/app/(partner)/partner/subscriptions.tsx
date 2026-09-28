@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Linking, Modal, TextInput, Image } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, Linking, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -185,6 +185,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
 
       {/* Start Service — customer OTP */}
       <Modal visible={!!otpFor} transparent animationType="fade" onRequestClose={() => setOtpFor(null)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Start Service</Text>
@@ -202,10 +203,12 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Complete Service — optional photo proof */}
       <Modal visible={!!completeFor} transparent animationType="fade" onRequestClose={() => setCompleteFor(null)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Complete Service</Text>
@@ -230,6 +233,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );

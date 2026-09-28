@@ -67,3 +67,20 @@ Implemented + validated (babel transform + eslint, root exit 0; Partner files 0 
 Verification constraint: web_panel + Customer have NO node_modules here and aren't served; their edits are compile+lint verified only (not live-screenshot). Partner app is served but 16MB bundle makes screenshots unreliable.
 
 Discovery: B1, B2, B3, and much of B5/B6/B12 in the **Customer app** were already implemented in prior batches; gaps were mostly in web_panel (now filled).
+
+### 2026-06 (session 3) — Customer items audit + Partner A2
+Audited the Customer **app** (Expo) — the following are ALREADY implemented (verified in code):
+- B4 Globe icon: `CustomerShell.tsx` line 82-83 (`m-goto-site` → `/(site)`, dark-aware).
+- B7 profile→panel: site `AppHeader` avatar → `/(customer)` when logged in.
+- B9 dark mode: checkout `#fff` are white-on-color (legit); CheckoutUi uses dark detection for card bg.
+- B10 Reward & Cashback: `wallet.tsx` ScratchCardsPanel + onViewAll → `/rewards`; nav has "Reward & Cashback".
+- B11 View Invoice: `invoices.tsx` has View (WebView preview modal) + Download.
+- B13 profile pic in nav: `AppHeader`/`CustomerShell` avatar use `user.photo`.
+
+**Partner A2 (keyboard slide-up)** — most screens already had in-modal `KeyboardAvoidingView`/`KeyboardProvider` (wallet Sheet, payouts, chat, support, active, reg). Filled the 3 genuine gaps (babel + eslint verified, 0 errors):
+- `(partner)/partner/subscriptions.tsx`: wrapped OTP + complete-note modals in `KeyboardAvoidingView`.
+- `merchant/scanqr.tsx`: wrapped share-message modal in `KeyboardAvoidingView`.
+- `merchant/bankkyc.tsx`: full KYC form `ScrollView` → `KeyboardAwareScrollView` (bottomOffset 100).
+(history.tsx TextInput is just a top search bar — no fix needed.)
+
+STILL TODO (need web_panel served to implement+verify): web-panel versions of B4/B7/B9/B10/B11/B13. Partner A2 device verification (keyboard behavior can't be tested in web preview).

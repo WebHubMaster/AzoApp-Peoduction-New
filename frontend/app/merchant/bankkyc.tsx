@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, Alert, ActivityIndicator, StyleProp, ViewStyle, useWindowDimensions } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -178,8 +179,9 @@ export default function MerchantBankKyc() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
+        bottomOffset={100}
         contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -342,7 +344,7 @@ export default function MerchantBankKyc() {
             <SecurityNote />
           </View>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <SourceSheet open={!!pick} onClose={() => setPick(null)} onPick={runUpload} title={pick?.title || "Upload document"} />
 

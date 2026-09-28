@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Linking, ActivityIndicator, Modal, Platform } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Linking, ActivityIndicator, Modal, Platform, KeyboardAvoidingView } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -272,6 +272,7 @@ export default function MerchantScanQr() {
 
       {/* Share modal (fallback when the native sheet is unavailable) */}
       <Modal visible={shareOpen} transparent animationType="fade" onRequestClose={() => setShareOpen(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={() => setShareOpen(false)} />
           <View testID="share-modal" style={{ backgroundColor: dark ? SLATE[900] : "#fff", borderRadius: 16, padding: 20, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
@@ -293,6 +294,7 @@ export default function MerchantScanQr() {
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
