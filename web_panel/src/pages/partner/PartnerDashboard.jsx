@@ -153,10 +153,12 @@ export default function PartnerDashboard() {
     );
   }
 
-  // Maid partners get a work-focused menu — hide "Rewards & Challenges" for them
-  // (parity with the mobile partner app).
+  // Maid partners get a work-focused menu — hide "Rewards & Challenges" for them.
+  // Non-maid partners don't see "Maid Subscriptions" (parity with the mobile partner app).
   const isMaid = (user?.skills || []).includes("maid");
-  const partnerNav = isMaid ? NAV.filter((n) => n.key !== "incentives") : NAV;
+  const partnerNav = isMaid
+    ? NAV.filter((n) => n.key !== "incentives")
+    : NAV.filter((n) => n.key !== "subscriptions");
 
   return (
     <>

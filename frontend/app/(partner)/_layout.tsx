@@ -33,7 +33,7 @@ export default function PartnerLayout() {
     { key: "starterkit", label: "Starter Kit", icon: "package-variant-closed", onPress: () => router.push("/partner/starter-kit") },
     { key: "onboarding", label: "Profile & KYC", icon: "check-circle-outline", onPress: () => router.push("/partner/verification") },
     { key: "support", label: "Help & Support", icon: "lifebuoy", onPress: () => router.push("/partner/support") },
-  ] as MoreItem[]).filter((it) => !(isMaid && it.key === "incentives")).map((it) => ({ ...it, active: pathname.startsWith(ROUTES[it.key]) }));
+  ] as MoreItem[]).filter((it) => !(isMaid && it.key === "incentives") && !(!isMaid && it.key === "subscriptions")).map((it) => ({ ...it, active: pathname.startsWith(ROUTES[it.key]) }));
 
   return (
     <>

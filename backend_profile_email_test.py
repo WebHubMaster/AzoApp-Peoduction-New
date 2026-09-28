@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 # Configuration
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://objective-elion-17.preview.emergentagent.com")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-panel-3.preview.emergentagent.com")
 API_BASE = f"{BASE_URL}/api"
 OTP = "123456"
 

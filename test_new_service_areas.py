@@ -15,7 +15,7 @@ import os
 import time
 
 # Base URL from environment
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://objective-elion-17.preview.emergentagent.com") + "/api"
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-panel-3.preview.emergentagent.com") + "/api"
 print(f"Testing against: {BASE_URL}")
 
 # Admin credentials

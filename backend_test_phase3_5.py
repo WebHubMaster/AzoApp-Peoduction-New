@@ -9,7 +9,7 @@ import json
 import sys
 
 # Base URL from frontend/.env
-BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
+BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
 
 # Test credentials (demo accounts with OTP 123456)
 ADMIN_PHONE = "+919000000000"

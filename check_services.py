@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
+BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()

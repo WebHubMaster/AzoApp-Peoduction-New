@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://objective-elion-17.preview.emergentagent.com"
+BASE_URL = "https://partner-panel-3.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

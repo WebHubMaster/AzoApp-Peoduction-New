@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
+BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo credentials

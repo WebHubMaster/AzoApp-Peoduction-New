@@ -7,7 +7,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://objective-elion-17.preview.emergentagent.com/api"
+BASE_URL = "https://partner-panel-3.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"
