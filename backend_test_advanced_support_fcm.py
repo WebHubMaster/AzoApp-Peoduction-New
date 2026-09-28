@@ -7,7 +7,7 @@ import json
 import time
 
 # Backend base URL from frontend/.env
-BASE_URL = "https://customer-app-web-1.preview.emergentagent.com/api"
+BASE_URL = "https://multi-app-platform-25.preview.emergentagent.com/api"
 
 # Test credentials (demo_mode)
 ADMIN_PHONE = "+919000000000"
