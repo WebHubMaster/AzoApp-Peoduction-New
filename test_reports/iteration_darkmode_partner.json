@@ -1,0 +1,45 @@
+{
+  "summary": "Backend (site/config, send-otp demo, verify-otp partner) all pass. Frontend welcome + partner login flow (welcome-login-btn -> login-phone-input -> send-otp-btn -> verify-otp-btn) works and lands on the partner dashboard with the full bottom tab bar (Dashboard, Job Request, Active Job, Wallet & With..., More). Dark-mode core fix VERIFIED: after tapping the header theme-toggle on the dashboard and navigating in-app via More -> Rewards & Challenges / My Availability / Starter Kit, all three screens (plus dashboard and the More sheet itself) render uniformly with a dark page background (rgb(11,17,32) / rgb(30,41,59)). The screen intermittency the user reported is not reproducible in-app anymore.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "ThemeProvider (src/theme.ts) — override state",
+        "issue": "The manual dark-mode override is not persisted (no AsyncStorage/localStorage). On a full page reload / direct-URL open the override resets to admin default_mode (currently 'light') and userPinned ref resets to false, so dark mode is lost. Reproduces by: toggle dark on dashboard -> hard-refresh or open /(partner)/partner/rewards directly -> page renders in light. Not blocking for the reported bug (in-app nav is uniform now), but users who refresh/re-open the app will see the theme snap back to admin default_mode.",
+        "selector": "[data-testid=\"theme-toggle\"]",
+        "priority": "MEDIUM"
+      },
+      {
+        "component": "AppShell header theme-toggle",
+        "issue": "The very first click on the theme toggle right after login is occasionally a no-op (icon and background do not change); the second click works. Suspected race between the initial useEffect syncing forcedMode and the click's setOverride. Second click reliably flips the theme. Manageable in real use but slightly confusing UX.",
+        "selector": "[data-testid=\"theme-toggle\"]",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter_darkmode_backend.py",
+    "/app/test_reports/pytest/iter_darkmode.xml"
+  ],
+  "action_items": [
+    "Consider persisting the user's manual theme override to AsyncStorage/localStorage (e.g. key 'themeOverride') and hydrating it in ThemeProvider's initial useState so dark mode survives page reloads / cold starts.",
+    "Investigate the 'first-click no-op' on the theme-toggle after login (possibly re-run useEffect that resets override, or capture setOverride inside a ref so pinMode is stable)."
+  ],
+  "critical_code_review_comments": [
+    "src/theme.ts: `toggleMode` is recreated every render inside ThemeProvider but the value object is memoized on `[mode, brand.*]` — the toggle callback is not part of the deps, which is fine because it re-runs when mode changes. However, `pinMode` sets a ref synchronously AND setState — if forcedMode is not yet resolved on first render, the subsequent useEffect can still overwrite override before userPinned=true is observed (this is likely the cause of the intermittent first-click no-op).",
+    "app/_layout.tsx: mode derivation on line 69 collapses 'system' to undefined which is correct, but there is no persistence layer for user pins — see UI bug above.",
+    "rewards.tsx / availability.tsx / starter-kit.tsx correctly consume useTheme() -> colors.background so they respect the provider — no per-screen fix needed."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter_darkmode_backend.py"
+  ],
+  "success_rate": { "backend": "100%", "frontend": "100% (core dark-mode fix), with 2 residual issues noted above" },
+  "test_credentials": "Partner login phone 9000000003 + OTP 123456 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "The dark-mode-race-on-late-forcedMode fix in /app/frontend/src/theme.ts (useEffect syncing forcedMode + userPinned ref) is verified working. In-app navigation to Rewards & Challenges (via more-incentives), My Availability (more-availability) and Starter Kit (more-starterkit) all render uniformly dark after tapping theme-toggle on the dashboard. Two residual issues remain (not blocking the reported bug): (a) dark override is not persisted across full-page reloads / direct URL opens — the theme snaps back to admin default_mode ('light') because ThemeProvider's `override` is only in-memory; (b) the very first click on theme-toggle right after login is occasionally a no-op (second click reliably flips). If main agent wants to fully close the user's complaint they should persist `override` to localStorage/AsyncStorage.",
+  "rca of the issue": "Original race: ThemeProvider was initialised with override = forcedMode (undefined at first mount because /api/site/config had not resolved). Once site config resolved, forcedMode became the admin 'default_mode' but override was never re-synced -> some screens still saw the stale value and rendered light while others rendered dark depending on when they first mounted. E1's fix adds a useEffect syncing setOverride(forcedMode) whenever forcedMode changes, gated by a userPinned ref so a manual toggle wins. Verified: dashboard + rewards + availability + starter-kit all render dark after one toggle when navigated in-app. Remaining gap: userPinned is a ref (in-memory only), so a page reload/cold start loses the user's manual choice."
+}

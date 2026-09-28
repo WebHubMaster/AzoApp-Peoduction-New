@@ -8,6 +8,9 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { StyleSheet, useColorScheme } from "react-native";
 import React, { createContext, useContext } from "react";
+import { storage } from "@/src/utils/storage";
+
+const THEME_OVERRIDE_KEY = "azo_theme_override";
 
 export type ThemeMode = "light" | "dark";
 
@@ -198,15 +201,36 @@ export const ThemeProvider = ({
   // Follow the admin default (forcedMode) whenever it changes — it arrives LATE, once
   // GET /site/config resolves. Without this sync the very first (pre-config) "light"
   // value would lock in and dark mode would never apply. A manual user toggle wins
-  // from then on (userPinned), so toggling is still sticky.
+  // from then on (userPinned) and is persisted, so it survives reloads / cold starts.
   const userPinned = useRef(false);
+  const overrideRef = useRef<ThemeMode | undefined>(override);
+  overrideRef.current = override;
+
+  // Hydrate the user's persisted manual choice once on mount (wins over admin default).
+  useEffect(() => {
+    storage.getItem(THEME_OVERRIDE_KEY).then((v) => {
+      if (v === "dark" || v === "light") { userPinned.current = true; setOverride(v); }
+    }).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (!userPinned.current) setOverride(forcedMode);
   }, [forcedMode]);
+
   const mode: ThemeMode = override || (system === "dark" ? "dark" : "light");
   const mergedBrand = { ...BASE_BRAND, ...(brand || {}) };
-  const pinMode = (m?: ThemeMode) => { userPinned.current = true; setOverride(m); };
-  const toggleMode = () => pinMode((mode === "dark" ? "light" : "dark"));
+  const pinMode = (m?: ThemeMode) => {
+    userPinned.current = true;
+    overrideRef.current = m;
+    setOverride(m);
+    if (m) storage.setItem(THEME_OVERRIDE_KEY, m).catch(() => {});
+    else storage.removeItem(THEME_OVERRIDE_KEY).catch(() => {});
+  };
+  // Read the latest value via ref so a rapid first tap is never a stale-closure no-op.
+  const toggleMode = () => {
+    const cur = overrideRef.current || (system === "dark" ? "dark" : "light");
+    pinMode(cur === "dark" ? "light" : "dark");
+  };
   const value = useMemo<ThemeContextValue>(
     () => ({
       mode,

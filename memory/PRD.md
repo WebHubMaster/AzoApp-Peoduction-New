@@ -1,112 +1,66 @@
-# AzoApp — PRD / Working Notes
+# AzoApp — Home Services Platform (PRD / working notes)
 
-AzoApp: home-services marketplace. Apps in repo:
-- `backend/` — FastAPI + MongoDB (`/api` prefix, supervised on :8001)
-- `frontend/` — Partner Expo app (supervised on :3000)
-- `Customer/` — Customer Expo app
-- `web_panel/` — Admin + Partner + Customer web panel (React/CRACO)
+## Overview
+Multi-app on-demand home-services platform (like UrbanClap), imported from another account.
+- `/app/frontend` — Partner + Merchant app (Expo / React Native, expo-router). Preview: https://keyboard-fix-suite.preview.emergentagent.com
+- `/app/Customer` — Customer app (Expo / React Native).
+- `/app/backend` — FastAPI + MongoDB (`azoapp` db). ~150 iterations of history.
+- `/app/web_panel` — Admin + Customer web panel (CRA/craco).
 
-## Recent work
+Auth: mobile-OTP (demo mode → OTP `123456`). Branding/theme/gateways are admin-driven (Integration Center + Branding & Theme).
 
-### 2026-06 — Partner "Maid Subscriptions" menu visibility
-- Hidden the "Maid Subscriptions" menu for non-maid partners (skills does not include "maid")
-  in both web panel (`web_panel/src/pages/partner/PartnerDashboard.jsx`) and partner app
-  (`frontend/app/(partner)/_layout.tsx`). Maids continue to see it; incentives stays hidden for maids.
+## Session log
 
-### 2026-06 — Customer App Home: Video "Stories" section (admin-controlled)
-Extended the existing Customer App Home CMS (`Admin → Customer App Home`, backed by
-`GET/PUT /api/admin/app-home` and public `GET /api/app/home`).
-- New custom-section type **"stories"** (alongside services / category / banner).
-  Admin adds story cards, each with: title, avatar, poster/thumbnail, a video
-  (upload via new `POST /api/media/upload-video`, MP4/MOV/WebM ≤25MB, or paste a URL),
-  optional CTA label + link, and a per-story on/off toggle.
-- Every section (built-in + custom stories/banner) has an on/off toggle and ordering in
-  "Sections — order & visibility"; only enabled sections are returned by `/app/home`.
-- Backend: `app_home_controller._public_home` resolves the stories section (skips disabled /
-  media-less stories). Verified end-to-end via curl (scripts/test_stories.py — PASS).
-- Customer app: `Customer/src/components/apphome/Stories.tsx`
-  - `StoriesRow` — Instagram-style horizontal story cards (poster + avatar ring + title).
-  - `StoryViewer` — full-screen modal, plays the short video via `react-native-webview`
-    (autoplay, mute toggle, progress bars, tap left/right to navigate, CTA button).
-  - Wired into `Customer/app/(site)/index.tsx`.
+### 2026-06 (current session) — Partner app first
+**CRITICAL environment fix**
+- `backend/.env` was MISSING (import lost it) → backend crashed on `KeyError: 'MONGO_URL'`; nothing ran.
+  Recreated `backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS=*,
+  CACHE/FCM encryption keys). Backend now boots + seeds.
+- Added `frontend/.env` → `EXPO_PUBLIC_BACKEND_URL=<preview origin>` so the Expo web preview talks to the
+  local backend SAME-ORIGIN (no CORS). Native EAS builds are unaffected (eas.json pins the prod backend).
 
-Files changed:
-- backend/routes/media_routes.py (+ /media/upload-video)
-- backend/controllers/app_home_controller.py (stories resolution)
-- web_panel/src/pages/admin/AppHomeManager.jsx (stories editor + VideoUpload)
-- Customer/src/components/apphome/Stories.tsx (new)
-- Customer/app/(site)/index.tsx (wire stories row + viewer)
+**Dark mode (app-wide) — FIXED & verified**
+- Root cause: `src/theme.ts` ThemeProvider initialised `override` from `forcedMode` once and never re-synced.
+  `forcedMode` (admin default_mode) arrives late (after /site/config), so dark mode applied inconsistently
+  (some screens light, some dark — the user's "dark mode not working" complaint).
+- Fix: useEffect syncs `override` to `forcedMode` (gated by a `userPinned` ref so manual toggle wins),
+  persist manual choice to storage (`azo_theme_override`) + hydrate on mount, and toggle reads latest via a
+  ref (fixes first-click no-op). Verified via headless-chrome harness + testing_agent: dashboard, Rewards &
+  Challenges, My Availability, Starter Kit all render dark uniformly; first click flips; survives reload.
 
-### 2026-06 — Auto Play Next + UI verification (testing_agent iter 150/151)
-- Story viewer now **auto-advances** to the next story when the video ends, plus a
-  **live progress bar** (per-story segment fills with playback) and an **onError fallback**
-  (broken/unplayable video still advances after 5s so it never freezes on the poster).
-- Cross-platform video split: `StoryVideo.tsx` (native WebView, posts `ended`/progress) and
-  `StoryVideo.web.tsx` (real DOM `<video>` for react-native-web) — so it works on device AND web.
-- Verified via testing_agent (frontend) on the Customer app served on :3000:
-  stories row (3 cards), viewer open, mute/close/prev/next/CTA, and the full auto-advance
-  chain (story 1→2→3→close) — 100% of observable acceptance criteria pass, no UI bugs.
-  (Note: Playwright's Chromium lacks the H.264 codec so video pixels don't decode in that
-  test browser; real browsers/devices play H.264 and the onError fallback covers the rest.)
+**Verified already-done items (Partner)**
+- Welcome screen: one-screen fit, dynamic admin logo, realistic man in navy polo w/ AzoApp logo, consistent FS font scale.
+- Login/Register: OTP flow works end-to-end (send-otp demo → verify-otp → dashboard). Phone input capped at 10 digits.
 
-## Backlog / Next
+## Verification tooling
+- Screenshot tool times out on the ~16MB Expo web bundle. Use headless chrome:
+  `/app/scripts/pshot.js` (login + capture partner screens) and `pshot_dark.js` (dark toggle/persistence),
+  run with `node` after `npm i puppeteer-core` in /tmp. RN `testID` → DOM `data-testid`.
 
-### 2026-06 — Customer app: signup + Book Now flow (testing_agent iter 152)
-- Root cause of "signup nahi ho raha": the backend was down because all `.env` files were
-  missing on the pod — restored them, backend healthy, OTP signup/login verified working
-  end-to-end (new number -> OTP 123456 -> name step -> account created & logged in; existing
-  number logs straight in).
-- Book Now fix: category card 'Book Now' (testID `category-book-N`) now opens the service
-  detail with `?book=1` which **auto-adds** the service to the booking (once, `autoAddRef`
-  guard) and shows checkout immediately — no second 'Add to Booking' tap. Card body tap
-  (`category-open-N`) still opens detail without adding. Files: `Customer/app/(site)/category/[id].tsx`,
-  `Customer/app/(site)/service/[id].tsx`. Verified 5/5 flows pass incl. checkout reaches /book.
+## Backlog (from user; Partner → Customer → common)
+### Partner app
+- [DONE] Welcome/login/signup scroll-fit + consistent font + character/logo dynamic.
+- [DONE] Dark mode across Reward&Challenge / My Availability / Starter Kit (+ everywhere).
+- [P1] Job Complete wizard: selfie capture not opening (was working) — device/camera; needs device verify.
+- [P1] Keyboard slide-up: input rises above keyboard on every typing screen (KeyboardProvider already wired; audit per-screen).
+- [P2] Minor dark-mode polish: a few hardcoded light accent cards (starter-kit item image bg, streak-freeze card).
 
-- P2: Circle-style story avatars variant (round bubbles) as an admin layout choice.
-- P2: Turn recurring subscriptions on for Cook/Nanny/Driver/Housekeeping.
+### Customer app (priority #2)
+- Booking flow: ask mobile → OTP verify → if new user also ask name, then proceed.
+- Login/signup phone input: keep first 10 digits (don't drop leading digit past 10).
+- Payment gateway: honor admin Integration Center active gateway + test/live mode (all gateways).
+- Global icon beside notification → opens customer web front (mode-aware, dynamic logo).
+- All service cards: uniform size + "Book Now" (outline/border button, not filled) everywhere.
+- Search box: square-ish (3–5px radius), larger single-line font.
+- Booking tabs (Active/Searching…): square-ish (3–5px radius).
+- Profile click when logged-in → customer panel home (not profile screen).
+- Keyboard slide-up on all typing screens.
+- Full dark mode (home blocks, service detail, checkout — remove hardcoded #fff).
+- Wallet: move top scratch cards into a dedicated "Reward & Cashback" menu (View all → new screen).
+- View Invoice: show preview + Download PDF + Open/Print.
+- Profile pic: reflect in top nav after save.
+- Inputs: larger font everywhere.
 
----
-
-## Update — 2026-06 (UI/UX bug batch 1)
-
-### Partner App (frontend/)
-- [DONE] Register screen "Register as Partner/Merchant" avatars replaced with photorealistic humans wearing a #0D47A1 polo with the AzoApp logo (assets/hero-partner-arms.png, hero-merchant-apron.png; AI-generated + transparent-bg cutout).
-- [DONE] Job-Complete wizard "Take selfie" made reliable — wrapped in try/catch, explicit mediaTypes, front-camera fallback (app/(partner)/partner/job/[id].tsx).
-
-### Customer App (Customer/)
-- [DONE] Globe icon added to Customer-panel header → opens the front site home (CustomerShell.tsx).
-- [DONE] Service cards: "Add" → "Book Now" everywhere; outlined (border, no fill) buttons; consistent sizing (services.tsx, category/[id].tsx; Blocks.tsx already outlined).
-- [DONE] Home search box: square (5px radius), larger font (16), single line (AppHeader.tsx).
-- [DONE] Front "Profile" tab now opens Customer-panel home instead of the profile page (SiteNavbar.tsx).
-- [DONE] Booking tabs (Active/Searching/…) now square (5px radius) via SegTabs (ux.tsx).
-- [DONE] Saved profile photo now shows in the top-nav avatar (AppHeader.tsx).
-
-### Remaining backlog (not started this session)
-Partner: #1 welcome scroll fit, #2 login/signup font-size consistency, #5 keyboard slide-up, #6 dark mode (Rewards, My Availability, Starter Kit).
-Customer: #1 booking flow mobile→OTP→(name if new), #2 10-digit input trimming, #3 multi-gateway test/live payments, #7 admin Primary color → whole app, #9 keyboard slide-up, #10 full dark-mode pass, #11 Wallet scratch cards → "Reward & Cashback" screen, #12 View-Invoice preview + Download/Print. Overall: increase base font size app-wide.
-
-NOTE: Only the Partner app runs in the preview (supervisor). Customer-app changes are code-level and were not visually verified in-preview.
-
----
-
-## Update — 2026-06 (Batch 2: 4 requested items)
-
-- [DONE] Booking OTP flow (Customer/src/components/site/OtpInline.tsx): rewritten to mobile → OTP → (name asked ONLY for a brand-new number) → account created + booking continues. Existing numbers log straight in.
-- [DONE] 10-digit input fix: OtpInline phone now keeps the FIRST 10 typed digits (strips pasted 91/leading zeros), maxLength 10 — typing past 10 no longer drops the starting digit.
-- [DONE] Multi-gateway payments in the Customer app: new src/components/PaymentWebViewHost.tsx (mounted in app/_layout.tsx) renders the ACTIVE gateway's checkout in a WebView — Razorpay SDK (postMessage → /payments/verify), Cashfree SDK, PayU form-post, Easebuzz/Juspay hosted redirect (return URL detected → /payments/confirm-return). src/lib/payments.ts rewired to use it; test/live mode is decided entirely by the backend gateway_resolver (admin Integration Center). NOTE: react-native-webview is declared in package.json but node_modules for the Customer app isn't installed in this preview; verified only by code review (needs a device/build to exercise real gateways).
-- [DONE] App-wide bigger fonts: globalFont.ts (both apps) scales numeric fontSize + lineHeight by 1.09 in the native Text/TextInput wrapper (icons untouched). Web preview path is unchanged.
-- [DONE] Dark mode — Partner Rewards / My-Availability / Starter-Kit: light hero/streak/next-reward/benefit cards made dark-aware (were showing white text on light cards in dark mode). Availability info-card + inner card + progress track themed.
-
-### Still open
-Customer full dark-mode pass (many screens hardcode #fff/SLATE); Partner welcome-scroll (#1) + login/signup font consistency (#2); keyboard slide-up (Cust #9 / Partner #5); admin Primary-color → whole Customer app (#7, needs dynamic PRIMARY palette); Wallet scratch → "Reward & Cashback" screen (#11); View-Invoice preview + Download/Print (#12).
-
----
-
-## Update — 2026-06 (Batch 3: Customer app — 4 requested items)
-
-- [DONE] Primary Color theming (#7): Customer/src/theme.tsx now generates the full PRIMARY 50→900 scale from the admin brand primary (applyBrandPrimary), wired via ThemeProvider brandPrimary={data.theme.primary} in app/_layout.tsx — the whole Customer app follows the admin's Branding & Theme colour.
-- [DONE] Reward & Cashback screen (#11): new app/(customer)/rewards.tsx (grid of all scratch cards + cashback), added to NAV as "Reward & Cashback", and Wallet's "View All" now navigates there (ScratchCardsPanel gained onViewAll + gridOnly props).
-- [DONE] Invoice preview (#12): invoices card "View" now opens the visual invoice preview (server page in a WebView) directly, with Open/Print (Printer → opens page) + Download PDF buttons.
-- [PARTIAL] Customer dark mode (#10): front AppHeader + AppSearchBar + AppBottomNav made dark-aware (were hardcoded #fff). Panel (CustomerShell) already dark-aware. FULL site pass (home blocks, service detail, checkout, etc.) still pending.
-
-NOTE: Customer app is not run under supervisor in this preview and its node_modules is incomplete (react-native-webview missing) + its eslint.config.js is broken — changes are code-level, verified by review; exercise on a device/build.
+### Common / infra
+- Admin Branding&Theme Primary color must drive the whole app's primary (dynamic).
+- Live gateway (Razorpay test) end-to-end on a device build.
