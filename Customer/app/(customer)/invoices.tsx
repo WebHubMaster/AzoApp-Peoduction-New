@@ -1,5 +1,5 @@
 /** My Invoices — port of web_panel/src/components/invoices/InvoiceCenter.jsx (customer role, mobile view). */
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, Modal, Linking } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { WebView } from "react-native-webview";
@@ -55,6 +55,9 @@ export default function InvoicesScreen() {
   const [showFilters, setShowFilters] = useState(false); const [drawerInv, setDrawerInv] = useState<any>(null); const [drawerFull, setDrawerFull] = useState<any>(null);
   const [preview, setPreview] = useState<any>(null); const [emailFor, setEmailFor] = useState<any>(null); const [emailTo, setEmailTo] = useState(""); const [emailBusy, setEmailBusy] = useState(false); const [shareFor, setShareFor] = useState<any>(null);
   const PAGE_SIZE = 10;
+  // Guard so one invoice can't fire multiple concurrent download requests to the server.
+  const downloadingRef = useRef<Set<string>>(new Set());
+  const [downloading, setDownloading] = useState<Record<string, boolean>>({});
   const params = useCallback(() => {
     const p: Record<string, string> = { page: String(page), page_size: String(PAGE_SIZE), range, invoice_type: type, payment_status: payStatus, sort };
     if (search) p.search = search; if (minAmount) p.min_amount = minAmount; if (maxAmount) p.max_amount = maxAmount;
@@ -66,7 +69,22 @@ export default function InvoicesScreen() {
   useEffect(() => { setPage(1); }, [range, type, payStatus, sort, minAmount, maxAmount, dateFrom, dateTo, search]);
 
   const publicUrl = async (inv: any, kind: "pdf" | "page" | "html", download = false) => { const s: any = await api.get(`/invoices/${inv.id}/share-link`); return kind === "pdf" ? `${API_BASE}${s.path}${download ? "&download=1" : ""}` : `${API_BASE}/invoices/pub/${inv.id}/${kind}?s=${s.sig}`; };
-  const downloadById = async (inv: any) => { try { await Linking.openURL(await publicUrl(inv, "pdf", true)); toast.success("Invoice downloaded successfully"); } catch { toast.error("Invoice could not be downloaded"); } };
+  const downloadById = async (inv: any) => {
+    if (!inv?.id) return;
+    if (downloadingRef.current.has(inv.id)) { toast.info("Invoice is already downloading… please wait."); return; }
+    downloadingRef.current.add(inv.id);
+    setDownloading((m) => ({ ...m, [inv.id]: true }));
+    toast.info("Downloading invoice PDF… please wait a moment.");
+    try {
+      await Linking.openURL(await publicUrl(inv, "pdf", true));
+      toast.success("Invoice download started.");
+    } catch {
+      toast.error("Invoice could not be downloaded");
+    } finally {
+      downloadingRef.current.delete(inv.id);
+      setDownloading((m) => { const n = { ...m }; delete n[inv.id]; return n; });
+    }
+  };
   const openDrawer = (inv: any) => { setDrawerInv(inv); setDrawerFull(null); api.get(`/invoices/${inv.id}`).then(setDrawerFull).catch(() => {}); };
   const openPreview = async (inv: any) => { setDrawerInv(null); try { setPreview({ ...inv, url: await publicUrl(inv, "html") }); } catch { toast.error("Invoice could not be loaded. Please try again."); } };
   const shareInvoice = async (inv: any, channel: "whatsapp" | "copy") => {
@@ -131,8 +149,8 @@ export default function InvoicesScreen() {
                 <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>{money(inv.display_amount ?? inv.total_amount, inv.currency)}</Text>
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-                <Btn tone="outline" icon={Eye} label="View" onPress={() => openPreview(inv)} testID={`invoice-view-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
-                <Btn tone="outline" icon={Download} label="Download" onPress={() => downloadById(inv)} testID={`invoice-download-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
+                <Btn tone="outline" icon={Eye} label="View" onPress={() => openDrawer(inv)} testID={`invoice-view-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
+                <Btn tone="outline" icon={Download} label={downloading[inv.id] ? "Downloading…" : "Download"} disabled={!!downloading[inv.id]} onPress={() => downloadById(inv)} testID={`invoice-download-${inv.invoice_number}`} style={{ flex: 1, height: 36 }} />
                 <Pressable testID={`invoice-more-${inv.invoice_number}`} onPress={() => setShareFor(inv)} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Share2 size={16} color={c.textMuted} /></Pressable>
               </View>
             </Pressable>
@@ -152,7 +170,7 @@ export default function InvoicesScreen() {
       </FilterSheet>
 
       <DrawerShell open={!!d} onClose={() => { setDrawerInv(null); setDrawerFull(null); }} title={d?.invoice_number || "Invoice"} testID="invoice-detail-drawer"
-        footer={d ? <View style={{ flexDirection: "row", gap: 8 }}><Btn tone="outline" icon={Download} label="Download" onPress={() => downloadById(d)} testID="drawer-download" style={{ flex: 1, height: 44, borderRadius: 12 }} /><Btn icon={Eye} label="View Invoice" onPress={() => openPreview(d)} testID="drawer-view-full" style={{ flex: 1, height: 44, borderRadius: 12 }} /></View> : null}>
+        footer={d ? <View style={{ flexDirection: "row", gap: 8 }}><Btn tone="outline" icon={Download} label={downloading[d.id] ? "Downloading…" : "Download"} disabled={!!downloading[d.id]} onPress={() => downloadById(d)} testID="drawer-download" style={{ flex: 1, height: 44, borderRadius: 12 }} /><Btn icon={Eye} label="View Invoice" onPress={() => openPreview(d)} testID="drawer-view-full" style={{ flex: 1, height: 44, borderRadius: 12 }} /></View> : null}>
         {d ? <>
           <View style={{ borderRadius: 16, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View><Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: TC.textFaint }}>{d.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</Text><Text style={{ fontSize: 24, fontWeight: "800", color: c.text }}>{money(d.invoice_type === "cancellation" ? (d.original_amount ?? d.total_amount) : d.total_amount, d.currency)}</Text></View>
