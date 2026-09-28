@@ -25,6 +25,7 @@ import SupportCenter from "@/components/SupportCenter";
 import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
 import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
+import LiveTrack from "@/components/customer/LiveTrack";
 import { AddressForm, emptyAddress } from "@/components/AddressForm";
 import BookingChat from "@/components/booking/BookingChat";
 import { useChatUnread, UnreadPill } from "@/context/ChatContext";
@@ -1413,6 +1414,11 @@ function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
       {((b.breakdown && (b.breakdown.service_items || []).length > 0) || (b.items || []).length > 0) && (
         <DBlock icon={Package} title="Services">
           <ServiceBreakdown booking={b} fmt={fmt} title="Services in this order" compact />
+        </DBlock>
+      )}
+      {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && b.partner_id && (
+        <DBlock icon={Navigation} title="Live Tracking">
+          <LiveTrack booking={b} />
         </DBlock>
       )}
       {b.checkin?.selfie_url && (

@@ -11,6 +11,9 @@ import { statusText } from "./nav";
 import { fmtTs } from "./BookingCard";
 import { DrawerShell, Btn } from "./BookingDialogs";
 import { ServiceBreakdown } from "./ServiceBreakdown";
+import { LiveTrackCard } from "./LiveTrackCard";
+import { InlineVideo, isVideoUrl } from "../InlineVideo";
+import { PlayCircle, Navigation as NavIcon } from "lucide-react-native";
 
 export const DRow = ({ k, v, strong }: { k: string; v: any; strong?: boolean }) => {
   const { c, isDark } = useTheme();
@@ -36,7 +39,7 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
   return (
     <View testID={testID}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 12, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : SLATE[100], borderWidth: 1, borderColor: c.border }}><Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" /></Pressable>)}
+        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 12, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : SLATE[100], borderWidth: 1, borderColor: c.border }}>{isVideoUrl(u) ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}><PlayCircle size={24} color="#fff" /></View> : <Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" />}</Pressable>)}
       </View>
       <Modal visible={open >= 0} transparent animationType="fade" onRequestClose={() => setOpen(-1)}>
         <View testID="workproof-lightbox" style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)" }}>
@@ -45,7 +48,7 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
             <Pressable testID="lightbox-close" onPress={() => setOpen(-1)} style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></Pressable>
           </View>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingBottom: 16 }}>
-            {open >= 0 ? <Image testID="lightbox-image" source={{ uri: mediaUrl(images[i]) }} style={{ width: "100%", height: "100%", borderRadius: 8 }} contentFit="contain" /> : null}
+            {open >= 0 ? (isVideoUrl(images[i]) ? <InlineVideo testID="lightbox-video" uri={mediaUrl(images[i]) || images[i]} /> : <Image testID="lightbox-image" source={{ uri: mediaUrl(images[i]) }} style={{ width: "100%", height: "100%", borderRadius: 8 }} contentFit="contain" />) : null}
             {images.length > 1 ? <>
               <Pressable testID="lightbox-prev" disabled={i === 0} onPress={() => setOpen(Math.max(i - 1, 0))} style={{ position: "absolute", left: 8, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", opacity: i === 0 ? 0.3 : 1 }}><ChevronLeft size={20} color="#fff" /></Pressable>
               <Pressable testID="lightbox-next" disabled={i === images.length - 1} onPress={() => setOpen(Math.min(i + 1, images.length - 1))} style={{ position: "absolute", right: 8, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", opacity: i === images.length - 1 ? 0.3 : 1 }}><ChevronRight size={20} color="#fff" /></Pressable>
@@ -144,8 +147,9 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
       footer={canInvoice ? <Btn testID="details-view-invoice" icon={FileText} label="View Invoice" onPress={() => { onClose(); onInvoice(b); }} style={{ height: 44, borderRadius: 12 }} /> : null}>
       <DBlock icon={Wrench} title="Service Information"><DRow k="Service" v={b.service_name} strong /><DRow k="Category" v={b.category_name} /><DRow k="Status" v={statusText(b.status)} /></DBlock>
       {((bd && (bd.service_items || []).length > 0) || (b.items || []).length > 0) ? <DBlock icon={Package} title="Services"><ServiceBreakdown booking={b} title="Services in this order" /></DBlock> : null}
+      {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && b.partner_id ? <DBlock icon={NavIcon} title="Live Tracking"><LiveTrackCard booking={b} /></DBlock> : null}
       {b.checkin?.selfie_url ? <DBlock icon={ShieldCheck} title="Partner Check-in"><PartnerCheckin checkin={b.checkin} partnerName={b.partner_name} /></DBlock> : null}
-      {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0) ? <DBlock icon={Camera} title="Work Proof Photos"><WorkProofSection evidence={b.evidence} /></DBlock> : null}
+      {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0) ? <DBlock icon={Camera} title="Work Proof Photos & Videos"><WorkProofSection evidence={b.evidence} /></DBlock> : null}
       <DBlock icon={Package} title="Booking Information">
         <DRow k="Booking ID" v={`#${b.code}`} /><DRow k="Booked on" v={fmtTs(b.created_at)} />
         {b.scheduled_at ? <DRow k="Scheduled" v={fmtTs(b.scheduled_at)} /> : null}

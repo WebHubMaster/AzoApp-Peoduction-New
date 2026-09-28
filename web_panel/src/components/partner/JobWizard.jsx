@@ -62,6 +62,7 @@ export function OtpBoxes({ value, onChange, len = 4, testid = "otp-boxes" }) {
 }
 
 function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, locked }) {
+  const [playing, setPlaying] = useState(null);
   const full = items.length >= MAX_PROOF_FILES;
   return (
     <div data-testid={testid}>
@@ -73,7 +74,7 @@ function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, 
         {items.map((u, i) => (
           <div key={u} className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100" data-testid={`${testid}-item-${i}`}>
             {isVideoUrl(u)
-              ? <a href={u} target="_blank" rel="noreferrer" className="h-full w-full grid place-items-center bg-slate-900 text-white"><PlayCircle className="h-8 w-8" /><span className="absolute bottom-1 text-[10px] font-bold text-slate-300">VIDEO</span></a>
+              ? <button type="button" data-testid={`${testid}-play-${i}`} onClick={() => setPlaying(u)} className="h-full w-full grid place-items-center bg-slate-900 text-white"><PlayCircle className="h-8 w-8" /><span className="absolute bottom-1 text-[10px] font-bold text-slate-300">VIDEO</span></button>
               : <img src={u} alt="" className="h-full w-full object-cover" />}
             <button type="button" data-testid={`${testid}-remove-${i}`} disabled={busy} onClick={() => onRemove(u)} className="absolute top-1 right-1 h-6 w-6 rounded-full bg-black/65 text-white grid place-items-center"><X className="h-3.5 w-3.5" /></button>
           </div>
@@ -91,6 +92,10 @@ function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, 
       </div>
       {busy && <p data-testid={`${testid}-uploading`} className="mt-2 text-xs font-semibold text-slate-500 flex items-center gap-1.5"><Loader2 className="h-3.5 w-3.5 animate-spin" /> {progress ? `Uploading video… ${progress}%` : "Uploading…"}</p>}
       <p className="text-[11px] text-slate-400 mt-2">{full ? `Maximum ${MAX_PROOF_FILES} files reached — remove one to add another.` : "Gallery upload is not allowed. Max 5 files, videos up to 30 sec."}</p>
+      {playing && createPortal(
+        <div data-testid="video-player-modal" className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4" onClick={() => setPlaying(null)}>
+          <video src={playing} controls autoPlay playsInline className="max-h-full max-w-full rounded-xl" onClick={(e) => e.stopPropagation()} />
+        </div>, document.body)}
     </div>
   );
 }

@@ -1,6 +1,8 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, Linking, Platform, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
+import { Modal } from "react-native";
+import { InlineVideo } from "@/src/components/InlineVideo";
 import * as ImagePicker from "expo-image-picker";
 import { File as FsFile } from "expo-file-system";
 import { useTheme } from "@/src/theme";
@@ -118,10 +120,12 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
 
 /* ── ProofGrid: photos + videos (max 5), live camera only ── */
 export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testID, locked }: { items: string[]; onPhoto: () => void; onVideo: () => void; onRemove: (u: string) => void; busy: boolean; progress?: number; testID: string; locked?: boolean }) {
+  const [playing, setPlaying] = useState<string | null>(null);
   const { colors } = useTheme();
   const full = items.length >= MAX_PROOF_FILES;
   const tile = { width: "31%" as const, aspectRatio: 1, borderRadius: 12, overflow: "hidden" as const, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle };
   return (
+    <>
     <View testID={testID}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600" }}>Photos & videos · live camera only</Text>
@@ -133,7 +137,7 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
         {items.map((u, i) => (
           <View key={u} style={tile} testID={`${testID}-item-${i}`}>
             {isVideoUrl(u) ? (
-              <Pressable onPress={() => Linking.openURL(mediaUrl(u) || u)} style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}>
+              <Pressable testID={`${testID}-play-${i}`} onPress={() => setPlaying(mediaUrl(u) || u)} style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}>
                 <Icon name="play-circle" size={34} color="#fff" />
                 <Text style={{ color: "#CBD5E1", fontSize: 10, fontWeight: "700", marginTop: 4 }}>VIDEO</Text>
               </Pressable>
@@ -166,5 +170,12 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
       ) : null}
       <Text style={{ color: SLATE400, fontSize: 11, marginTop: 8 }}>{full ? `Maximum ${MAX_PROOF_FILES} files reached — remove one to add another.` : "Gallery upload is not allowed. Max 5 files, videos up to 30 sec."}</Text>
     </View>
+      <Modal visible={!!playing} transparent animationType="fade" onRequestClose={() => setPlaying(null)}>
+        <View testID="video-player-modal" style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.94)", justifyContent: "center", padding: 12 }}>
+          <Pressable testID="video-player-close" onPress={() => setPlaying(null)} style={{ position: "absolute", top: 44, right: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon name="close" size={22} color="#fff" /></Pressable>
+          <View style={{ height: "60%" }}>{playing ? <InlineVideo uri={playing} testID="inline-video" /> : null}</View>
+        </View>
+      </Modal>
+    </>
   );
 }

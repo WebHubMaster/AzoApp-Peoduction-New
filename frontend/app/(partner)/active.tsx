@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import * as Location from "expo-location";
 import { View, Text, Pressable, Linking, Modal, ScrollView, Alert, Platform, RefreshControl } from "react-native";
 import { CalendarSlotPicker } from "@/src/components/CalendarSlotPicker";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
@@ -477,6 +478,25 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const [reschedDate, setReschedDate] = useState<Date | null>(null);
 
   const openWizard = () => router.push({ pathname: "/(partner)/partner/job/[id]", params: { id: b.id } } as any);
+
+  // Live location sharing while travelling (assigned / arrived_shop) → customer's Live Tracking map.
+  const watchRef = useRef<Location.LocationSubscription | null>(null);
+  const travelling = ["assigned", "arrived_shop"].includes(status) && !sched.comm_locked;
+  useEffect(() => {
+    if (!travelling || Platform.OS === "web") return undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const perm = await Location.requestForegroundPermissionsAsync();
+        if (!perm.granted || !alive) return;
+        const send = (pos: Location.LocationObject) => api.post(`/bookings/${b.id}/location`, { lat: pos.coords.latitude, lng: pos.coords.longitude }).catch(() => {});
+        const cur = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }).catch(() => null);
+        if (cur) send(cur);
+        watchRef.current = await Location.watchPositionAsync({ accuracy: Location.Accuracy.Balanced, timeInterval: 20000, distanceInterval: 40 }, send);
+      } catch { /* location unavailable — customer sees last known */ }
+    })();
+    return () => { alive = false; watchRef.current?.remove(); watchRef.current = null; };
+  }, [travelling, b.id]);
   const reject = () => {
     Alert.alert("Reject this job?", "It will be sent back to admin for re-assignment.", [
       { text: "Cancel", style: "cancel" },
