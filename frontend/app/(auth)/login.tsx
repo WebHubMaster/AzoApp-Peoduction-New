@@ -27,7 +27,7 @@ export default function Login() {
   return (
     <View style={{ flex: 1, backgroundColor: AUTH.bg }}>
       <StatusBar style="dark" />
-      <KeyboardAwareScrollView bottomOffset={110} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
+      <KeyboardAwareScrollView bottomOffset={230} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}>
         <AuthHeader top={insets.top} right={<NeedHelpLink />} onBack={() => (router.canGoBack() ? router.back() : router.replace("/(auth)/welcome" as any))} />
 
         <View style={{ alignItems: "center", marginTop: 22, paddingHorizontal: 24 }}>

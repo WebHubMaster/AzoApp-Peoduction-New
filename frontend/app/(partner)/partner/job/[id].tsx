@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Linking } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -127,7 +128,7 @@ export default function PartnerJobWizard() {
         </View>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView bottomOffset={240} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {phase === 4 ? <DoneStep b={b} /> :
           step === 0 ? <DetailsStep b={b} /> :
           step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
@@ -136,7 +137,7 @@ export default function PartnerJobWizard() {
           ) : (
             <WorkStep b={b} after={after} addlPending={addlPending} demoOtp={demoOtp.completion} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("after", "photo")} onVideo={() => proof("after", "video")} onRemove={(u) => removeProof("after", u)} onUpdate={refresh} />
           )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {/* Bottom CTA bar (replaces the hidden tab bar) */}
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
@@ -185,17 +186,29 @@ function KV({ label, value }: { label: string; value?: string }) {
 /* ── Step 1: Details ── */
 function DetailsStep({ b }: { b: any }) {
   const { colors } = useTheme();
+  const [tlOpen, setTlOpen] = useState(false);
   const a = b.address || {};
   const items: any[] = b.breakdown?.service_items || [];
+  const bd = b.breakdown || {};
+  const pay = b.payment || {};
+  const sched = b.schedule || {};
+  const timeline: any[] = b.timeline || [];
+  const statusLabel = String(b.status || "").replace(/_/g, " ");
   return (
     <>
       <Card testID="wizard-details">
-        <SectionTitle icon="clipboard-text-outline" title="Job basics" />
+        <SectionTitle icon="clipboard-text-outline" title="Job information" />
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           <KV label="Service" value={b.service_name} />
           <KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} />
-          <KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
+          <KV label="Category" value={b.category_name || b.category || "—"} />
+          <KV label="Status" value={statusLabel} />
+          <KV label="Job timing" value={sched.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} />
+          <KV label="Booked on" value={fmtDT(b.created_at)} />
+          <KV label="Job value" value={fmt(bd.total || b.total || 0)} />
+          <KV label="Payment" value={`${(pay.method || b.payment_method || "online").toString().toUpperCase()} · ${pay.status || b.payment_status || "pending"}`} />
+          {b.checkin?.at ? <KV label="Checked in" value={fmtDT(b.checkin.at)} /> : null}
+          {b.checkin?.distance_km != null ? <KV label="Distance at check-in" value={`~${b.checkin.distance_km} km`} /> : null}
         </View>
         {items.length ? (
           <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
@@ -205,41 +218,66 @@ function DetailsStep({ b }: { b: any }) {
                 <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{fmt(it.amount ?? it.price ?? 0)}</Text>
               </View>
             ))}
+            {num(bd.additional_total || b.additional?.total) > 0 ? (
+              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: colors.border }}>
+                <Text style={{ color: colors.text, fontSize: 13 }}>Additional work</Text>
+                <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{fmt(bd.additional_total || b.additional?.total)}</Text>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+        {b.notes ? (
+          <View style={{ marginTop: 12, backgroundColor: "#FFFBEB", borderRadius: 12, padding: 10, flexDirection: "row", gap: 8 }}>
+            <Icon name="note-text-outline" size={16} color="#B45309" />
+            <Text style={{ color: "#92400E", fontSize: 12.5, flex: 1, lineHeight: 18 }}>{b.notes}</Text>
           </View>
         ) : null}
       </Card>
       <Card testID="wizard-customer">
         <SectionTitle icon="account-outline" title="Customer details" />
-        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{b.customer_name || "Customer"}</Text>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-          <Icon name="map-marker-outline" size={16} color={colors.secondary} />
-          <Text style={{ color: colors.textSecondary, fontSize: 13.5, lineHeight: 19, flex: 1 }}>{a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "900", fontSize: 17 }}>{String(b.customer_name || "C").trim().charAt(0).toUpperCase()}</Text></View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{b.customer_name || "Customer"}</Text>
+            {b.customer_phone ? <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 2 }}>{b.customer_phone}</Text> : null}
+          </View>
         </View>
-        {b.notes ? <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 8 }}>Note: {b.notes}</Text> : null}
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 12, backgroundColor: colors.surfaceSubtle, borderRadius: 12, padding: 10 }}>
+          <Icon name="map-marker-outline" size={16} color={colors.secondary} />
+          <Text style={{ color: colors.textSecondary, fontSize: 13.5, lineHeight: 19, flex: 1 }}>{a.line || "Address unavailable"}{a.landmark ? `, ${a.landmark}` : ""}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</Text>
+        </View>
         <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-          {b.customer_phone ? <Pressable testID="wizard-call" onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#A7F3D0", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "700" }}>Call</Text></Pressable> : null}
-          <Pressable testID="wizard-navigate" onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`)}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="navigation-variant-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Navigate</Text></Pressable>
+          {b.customer_phone ? <Pressable testID="wizard-call" onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "700" }}>Call</Text></Pressable> : null}
+          <Pressable testID="wizard-navigate" onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`)}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="navigation-variant-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Navigate</Text></Pressable>
         </View>
       </Card>
-      {(b.timeline || []).length ? (
+      {timeline.length ? (
         <Card testID="wizard-timeline">
-          <SectionTitle icon="clock-outline" title="Job timeline" />
-          <View style={{ borderLeftWidth: 1, borderLeftColor: colors.border, marginLeft: 6, gap: 12, paddingTop: 2 }}>
-            {b.timeline.map((t: any, i: number) => (
-              <View key={i} style={{ marginLeft: 16 }}>
-                <View style={{ position: "absolute", left: -23, top: 2, width: 12, height: 12, borderRadius: 6, backgroundColor: colors.secondary, borderWidth: 3, borderColor: colors.primarySubtle }} />
-                <Text style={{ color: colors.textSecondary, fontSize: 12.5, fontWeight: "600", textTransform: "capitalize" }}>{String(t.status || "").replace(/_/g, " ")}</Text>
-                <Text style={{ color: SLATE400, fontSize: 11 }}>{fmtShort(t.at)}</Text>
-              </View>
-            ))}
-          </View>
+          <Pressable testID="wizard-timeline-toggle" onPress={() => setTlOpen((o) => !o)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Icon name="clock-outline" size={15} color={colors.textMuted} />
+              <Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8 }}>Job timeline</Text>
+              <View style={{ backgroundColor: colors.primarySubtle, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: colors.primary, fontSize: 11, fontWeight: "800" }}>{timeline.length}</Text></View>
+            </View>
+            <Icon name={tlOpen ? "chevron-up" : "chevron-down"} size={20} color={colors.textMuted} />
+          </Pressable>
+          {tlOpen ? (
+            <View testID="wizard-timeline-list" style={{ borderLeftWidth: 1, borderLeftColor: colors.border, marginLeft: 6, gap: 12, paddingTop: 2, marginTop: 12 }}>
+              {timeline.map((t: any, i: number) => (
+                <View key={i} style={{ marginLeft: 16 }}>
+                  <View style={{ position: "absolute", left: -23, top: 2, width: 12, height: 12, borderRadius: 6, backgroundColor: i === timeline.length - 1 ? colors.secondary : colors.border, borderWidth: 3, borderColor: colors.primarySubtle }} />
+                  <Text style={{ color: colors.textSecondary, fontSize: 12.5, fontWeight: "600", textTransform: "capitalize" }}>{String(t.status || "").replace(/_/g, " ")}</Text>
+                  <Text style={{ color: SLATE400, fontSize: 11 }}>{fmtShort(t.at)}</Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </Card>
       ) : null}
     </>
   );
 }
 
-/* ── Step 2: Selfie + live location check-in ── */
 function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
   const { colors } = useTheme();
   const toast = useToast();

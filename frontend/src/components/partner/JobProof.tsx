@@ -11,7 +11,7 @@ import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@
 export const MAX_PROOF_FILES = 5;
 export const MAX_VIDEO_SEC = 30;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
-const CHUNK_B64 = 2 * 1024 * 1024; // ~1.5MB binary per JSON part
+const CHUNK_B64 = 700 * 1024; // ~525KB binary per JSON part — small enough for proxy body limits on mobile networks
 const SLATE400 = "#94A3B8";
 
 export const isVideoUrl = (u: string) => /\.(mp4|mov|webm|3gp|mkv)(\?|$)/i.test(u || "");
@@ -71,7 +71,16 @@ export async function captureProofVideo(bookingId: string, stage: "before" | "af
   const mime = asset.mimeType || (asset.uri.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4");
   let out: any = null;
   for (let i = 0; i < total; i++) {
-    out = await api.post(`/bookings/${bookingId}/evidence/chunk`, { stage, upload_id: uploadId, index: i, total, content_type: mime, data: b64.slice(i * CHUNK_B64, (i + 1) * CHUNK_B64) });
+    const body = { stage, upload_id: uploadId, index: i, total, content_type: mime, data: b64.slice(i * CHUNK_B64, (i + 1) * CHUNK_B64) };
+    let attempt = 0;
+    for (;;) {
+      try { out = await api.post(`/bookings/${bookingId}/evidence/chunk`, body); break; }
+      catch (e: any) {
+        if (e?.status && e.status !== 502 && e.status !== 503 && e.status !== 504 && e.status !== 413) throw e;
+        if (++attempt >= 3) throw new Error(e?.detail || `Video upload failed at part ${i + 1}/${total}. Check your connection and try again.`);
+        await new Promise((r) => setTimeout(r, 800 * attempt));
+      }
+    }
     onProgress?.(Math.round(((i + 1) / total) * 100));
   }
   return !!out?.done;

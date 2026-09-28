@@ -2883,7 +2883,7 @@ async def upload_evidence_chunk(partner, booking_id, payload: dict):
         raise HTTPException(status_code=400, detail="index/total required")
     if stage not in ("before", "after"):
         raise HTTPException(status_code=400, detail="stage must be 'before' or 'after'")
-    if not upload_id or total < 1 or total > 40 or index < 0 or index >= total:
+    if not upload_id or total < 1 or total > 120 or index < 0 or index >= total:
         raise HTTPException(status_code=400, detail="Invalid chunk parameters")
     b = await _partner_owns(partner, booking_id)
     if stage == "before" and schedule_state(b).get("comm_locked"):

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ArrowRight, Camera, Video, X, Check, CheckCircle2, ShieldCheck, MapPin, Phone, Navigation, Clock, ClipboardList, User as UserIcon, Crosshair, Loader2, PlayCircle, Lock, AlertTriangle, Wrench, Trash2, Plus, BadgeCheck, RefreshCw } from "lucide-react";
+import { ChevronDown, ArrowLeft, ArrowRight, Camera, Video, X, Check, CheckCircle2, ShieldCheck, MapPin, Phone, Navigation, Clock, ClipboardList, User as UserIcon, Crosshair, Loader2, PlayCircle, Lock, AlertTriangle, Wrench, Trash2, Plus, BadgeCheck, RefreshCw } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { toast } from "sonner";
 import CameraCapture from "@/components/partner/CameraCapture";
@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/partner/ui/kit";
 import { isVideoUrl } from "@/components/WorkProof";
 
 export const MAX_PROOF_FILES = 5;
-const CHUNK = 1.5 * 1024 * 1024;
+const CHUNK = 700 * 1024;
 const STEPS = [
   { key: "details", label: "Details", icon: ClipboardList },
   { key: "checkin", label: "Check-in", icon: Camera },
@@ -100,39 +100,56 @@ const Title = ({ icon: Icon, children }) => <p className="text-[11.5px] font-ext
 const KV = ({ label, value }) => <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="text-[13.5px] font-bold text-slate-800 dark:text-slate-100 mt-0.5">{value || "—"}</p></div>;
 
 function DetailsStep({ b }) {
+  const [tlOpen, setTlOpen] = useState(false);
   const a = b.address || {};
   const items = b.breakdown?.service_items || [];
+  const bd = b.breakdown || {};
+  const pay = b.payment || {};
+  const timeline = b.timeline || [];
   const dest = a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`);
   return (
     <>
       <Card testid="wizard-details">
-        <Title icon={ClipboardList}>Job basics</Title>
+        <Title icon={ClipboardList}>Job information</Title>
         <div className="grid grid-cols-2 gap-2">
           <KV label="Service" value={b.service_name} /><KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} /><KV label="Job value" value={fmt(b.breakdown?.total || b.total || 0)} />
+          <KV label="Category" value={b.category_name || b.category} /><KV label="Status" value={String(b.status || "").replace(/_/g, " ")} />
+          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} /><KV label="Booked on" value={fmtDT(b.created_at)} />
+          <KV label="Job value" value={fmt(bd.total || b.total || 0)} /><KV label="Payment" value={`${String(pay.method || b.payment_method || "online").toUpperCase()} · ${pay.status || b.payment_status || "pending"}`} />
+          {b.checkin?.at && <KV label="Checked in" value={fmtDT(b.checkin.at)} />}
+          {b.checkin?.distance_km != null && <KV label="Distance at check-in" value={`~${b.checkin.distance_km} km`} />}
         </div>
         {items.length > 0 && (
           <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800">
             {items.map((it, i) => <div key={i} className="flex justify-between px-3 py-2 text-[13px]"><span className="text-slate-700 dark:text-slate-200">{it.name || it.service_name || "Service"}{Number(it.qty) > 1 ? ` × ${it.qty}` : ""}</span><b className="text-slate-900 dark:text-white">{fmt(it.amount ?? it.price ?? 0)}</b></div>)}
+            {Number(bd.additional_total || b.additional?.total) > 0 && <div className="flex justify-between px-3 py-2 text-[13px]"><span className="text-slate-700 dark:text-slate-200">Additional work</span><b className="text-slate-900 dark:text-white">{fmt(bd.additional_total || b.additional?.total)}</b></div>}
           </div>
         )}
+        {b.notes && <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 p-2.5 text-[12.5px] text-amber-800 dark:text-amber-200">{b.notes}</div>}
       </Card>
       <Card testid="wizard-customer">
         <Title icon={UserIcon}>Customer details</Title>
-        <p className="font-heading font-extrabold text-slate-900 dark:text-white">{b.customer_name || "Customer"}</p>
-        <p className="text-[13.5px] text-slate-600 dark:text-slate-300 mt-1.5 flex items-start gap-1.5"><MapPin className="h-4 w-4 text-primary-600 shrink-0 mt-0.5" /> {a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</p>
-        {b.notes && <p className="text-xs text-slate-500 mt-2">Note: {b.notes}</p>}
+        <div className="flex items-center gap-3">
+          <span className="h-11 w-11 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 font-black grid place-items-center">{String(b.customer_name || "C").trim().charAt(0).toUpperCase()}</span>
+          <div className="min-w-0"><p className="font-heading font-extrabold text-slate-900 dark:text-white">{b.customer_name || "Customer"}</p>{b.customer_phone && <p className="text-xs text-slate-500">{b.customer_phone}</p>}</div>
+        </div>
+        <p className="text-[13.5px] text-slate-600 dark:text-slate-300 mt-3 flex items-start gap-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-2.5"><MapPin className="h-4 w-4 text-primary-600 shrink-0 mt-0.5" /> {a.line || "Address unavailable"}{a.landmark ? `, ${a.landmark}` : ""}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</p>
         <div className="grid grid-cols-2 gap-2 mt-3">
-          {b.customer_phone ? <a href={`tel:${b.customer_phone}`} data-testid="wizard-call" className="h-10 rounded-xl border border-emerald-200 text-emerald-700 font-bold text-sm flex items-center justify-center gap-1.5"><Phone className="h-4 w-4" /> Call</a> : <span />}
-          <a href={`https://www.google.com/maps/dir/?api=1&destination=${dest}`} target="_blank" rel="noreferrer" data-testid="wizard-navigate" className="h-10 rounded-xl border border-primary-200 text-primary-700 font-bold text-sm flex items-center justify-center gap-1.5"><Navigation className="h-4 w-4" /> Navigate</a>
+          {b.customer_phone ? <a href={`tel:${b.customer_phone}`} data-testid="wizard-call" className="h-10 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold text-sm flex items-center justify-center gap-1.5"><Phone className="h-4 w-4" /> Call</a> : <span />}
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${dest}`} target="_blank" rel="noreferrer" data-testid="wizard-navigate" className="h-10 rounded-xl border border-primary-200 bg-primary-50 text-primary-700 font-bold text-sm flex items-center justify-center gap-1.5"><Navigation className="h-4 w-4" /> Navigate</a>
         </div>
       </Card>
-      {(b.timeline || []).length > 0 && (
+      {timeline.length > 0 && (
         <Card testid="wizard-timeline">
-          <Title icon={Clock}>Job timeline</Title>
-          <ol className="relative border-l border-slate-200 dark:border-slate-700 ml-1.5 space-y-3 pt-1">
-            {b.timeline.map((t, i) => <li key={i} className="ml-4"><span className="absolute -left-[7px] mt-0.5 h-3 w-3 rounded-full bg-primary-600 ring-4 ring-primary-100" /><p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200 capitalize">{String(t.status || "").replace(/_/g, " ")}</p><p className="text-[11px] text-slate-400">{t.at ? new Date(t.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</p></li>)}
-          </ol>
+          <button type="button" data-testid="wizard-timeline-toggle" onClick={() => setTlOpen((o) => !o)} className="w-full flex items-center justify-between">
+            <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Job timeline <span className="rounded-full bg-primary-50 text-primary-700 px-2 py-0.5 text-[10.5px]">{timeline.length}</span></span>
+            <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${tlOpen ? "rotate-180" : ""}`} />
+          </button>
+          {tlOpen && (
+            <ol data-testid="wizard-timeline-list" className="relative border-l border-slate-200 dark:border-slate-700 ml-1.5 space-y-3 pt-1 mt-3">
+              {timeline.map((t, i) => <li key={i} className="ml-4"><span className={`absolute -left-[7px] mt-0.5 h-3 w-3 rounded-full ring-4 ring-primary-100 ${i === timeline.length - 1 ? "bg-primary-600" : "bg-slate-300"}`} /><p className="text-[12.5px] font-semibold text-slate-700 dark:text-slate-200 capitalize">{String(t.status || "").replace(/_/g, " ")}</p><p className="text-[11px] text-slate-400">{t.at ? new Date(t.at).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : ""}</p></li>)}
+            </ol>
+          )}
         </Card>
       )}
     </>
