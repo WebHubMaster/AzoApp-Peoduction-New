@@ -218,8 +218,8 @@ export default function ServiceDetail() {
               <span className="font-heading font-extrabold text-2xl text-slate-900">{fmt(unitPrice * qty)}</span>
             </div>
 
-            <Button data-testid="add-to-booking" onClick={() => addToBooking(false)} className="w-full mt-4 h-12 bg-primary-700 hover:bg-primary-800 text-base">
-              {added ? <><Check className="h-4 w-4 mr-1" /> Added · Add again</> : <><Plus className="h-4 w-4 mr-1" /> Add to Booking</>}
+            <Button data-testid="add-to-booking" onClick={() => addToBooking(false)} variant="outline" className="w-full mt-4 h-12 rounded-[6px] bg-transparent border-2 border-primary-600 text-primary-700 hover:bg-primary-700 hover:text-white text-base font-bold">
+              {added ? <><Check className="h-4 w-4 mr-1" /> Added · Book again</> : "Book Now"}
             </Button>
             {count > 0 ? (
               <Button data-testid="go-checkout" onClick={() => navigate("/book")} variant="outline" className="w-full mt-2 h-11 border-primary-200 text-primary-700 hover:bg-primary-50">
@@ -240,7 +240,7 @@ export default function ServiceDetail() {
       {/* Mobile sticky add bar */}
       {!svc.is_subscription && (<div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-4 py-3 flex items-center gap-3">
         <div><p className="text-[11px] text-slate-400">Item total</p><p className="font-heading font-extrabold text-lg text-slate-900 leading-none">{fmt(unitPrice * qty)}</p></div>
-        <Button data-testid="add-to-booking-mobile" onClick={() => addToBooking(false)} className="ml-auto h-11 px-5 bg-primary-700 hover:bg-primary-800"><Plus className="h-4 w-4 mr-1" /> Add</Button>
+        <Button data-testid="add-to-booking-mobile" onClick={() => addToBooking(false)} variant="outline" className="ml-auto h-11 px-5 rounded-[6px] bg-transparent border-2 border-primary-600 text-primary-700 hover:bg-primary-700 hover:text-white font-bold">Book Now</Button>
         {count > 0 && <Button data-testid="go-checkout-mobile" onClick={() => navigate("/book")} className="h-11 px-4 bg-emerald-600 hover:bg-emerald-700">Checkout ({count})</Button>}
       </div>)}
 

@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Star, Clock, Plus, Check, ChevronRight, Sparkles } from "lucide-react";
+import { Star, Clock, Check, ChevronRight, Sparkles } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -41,8 +41,8 @@ const ServiceCard = ({ s, navigate, i }) => {
             {off > 0 && <span className="text-[11px] text-slate-400 line-through whitespace-nowrap">{fmt(s.base_price)}</span>}
           </div>
           <button data-testid={`add-${s.id}`} onClick={quickAdd}
-            className={`shrink-0 h-8 px-3 rounded-lg text-xs font-bold border transition-all flex items-center justify-center gap-1 ${added ? "bg-emerald-500 border-emerald-500 text-white" : "border-primary-300 text-primary-700 hover:bg-primary-700 hover:text-white hover:border-primary-700 active:scale-[0.98]"}`}>
-            {added ? <><Check className="h-3.5 w-3.5" /> Added</> : <><Plus className="h-3.5 w-3.5" /> Add</>}
+            className={`shrink-0 h-9 px-4 rounded-[4px] text-[13px] font-bold border-2 transition-all flex items-center justify-center gap-1 ${added ? "bg-emerald-500 border-emerald-500 text-white" : "bg-transparent border-primary-600 text-primary-700 hover:bg-primary-700 hover:text-white hover:border-primary-700 active:scale-[0.98]"}`}>
+            {added ? <><Check className="h-3.5 w-3.5" /> Added</> : "Book Now"}
           </button>
         </div>
       </div>
@@ -141,7 +141,7 @@ export default function Services() {
         {/* category chips + search */}
         <div className="flex gap-3 items-center mt-6 mb-6">
           <input data-testid="services-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search services…"
-            className="h-10 px-4 rounded-xl border border-slate-200 bg-white text-sm w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            className="h-12 px-4 rounded-[4px] border border-slate-200 bg-white text-base w-full max-w-md truncate focus:outline-none focus:ring-2 focus:ring-primary-200" />
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-6">
           {loading ? <CategoryChipsSkeleton count={7} /> : (

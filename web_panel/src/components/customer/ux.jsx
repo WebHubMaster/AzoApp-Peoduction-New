@@ -171,7 +171,7 @@ export function SearchInput({ value, onChange, placeholder = "Search…", deboun
         value={text}
         onChange={(e) => handle(e.target.value)}
         placeholder={placeholder}
-        className="w-full h-10 pl-9 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-400"
+        className="w-full h-11 pl-9 pr-9 rounded-[5px] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-base text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-400 truncate"
       />
       {text && (
         <button onClick={() => handle("")} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -413,7 +413,7 @@ export function SegTabs({ tabs, value, onChange, counts = {}, testId = "tab" }) 
     <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 py-0.5">
       {tabs.map((t) => (
         <button key={t.key} data-testid={`${testId}-${t.key}`} onClick={() => onChange(t.key)}
-          className={`whitespace-nowrap text-sm font-semibold px-3.5 h-9 rounded-full azo-press transition-colors ${value === t.key ? "bg-primary-700 text-white shadow-primarybtn" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300"}`}>
+          className={`whitespace-nowrap text-sm font-semibold px-3.5 h-9 rounded-[4px] azo-press transition-colors ${value === t.key ? "bg-primary-700 text-white shadow-primarybtn" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300"}`}>
           {t.label}{counts[t.key] != null && <span className={`ml-1.5 text-[11px] ${value === t.key ? "text-white/80" : "text-slate-400"}`}>{counts[t.key]}</span>}
         </button>
       ))}

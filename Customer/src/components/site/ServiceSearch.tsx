@@ -56,10 +56,10 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
       <TextInput testID={isHero ? "hero-search" : "nav-search"} value={q} autoFocus={autoFocus} onChangeText={(v) => { setQ(v); setOpen(true); runSearch(v); }} onFocus={() => setOpen(true)} onSubmitEditing={goAll}
         placeholder={placeholder} placeholderTextColor={TC.textFaint}
         style={isHero
-          ? { height: 56, paddingLeft: 48, paddingRight: 112, borderRadius: 16, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, fontSize: 15, color: TC.text, boxShadow: "0px 10px 40px -12px rgba(13,71,161,0.25)" }
-          : { height: 44, paddingLeft: 40, paddingRight: 16, borderRadius: 12, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.bg, fontSize: 14, color: TC.text }} />
+          ? { height: 56, paddingLeft: 48, paddingRight: 112, borderRadius: 5, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, fontSize: 16, color: TC.text, boxShadow: "0px 10px 40px -12px rgba(13,71,161,0.25)" }
+          : { height: 46, paddingLeft: 40, paddingRight: 16, borderRadius: 5, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.bg, fontSize: 16, color: TC.text }} />
       {isHero ? (
-        <Pressable testID="hero-search-btn" onPress={goAll} style={({ pressed }) => ({ position: "absolute", right: 8, top: 8, height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 })}>
+        <Pressable testID="hero-search-btn" onPress={goAll} style={({ pressed }) => ({ position: "absolute", right: 8, top: 8, height: 40, paddingHorizontal: 16, borderRadius: 5, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 })}>
           <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Search</Text><ArrowRight size={16} color="#fff" />
         </Pressable>
       ) : null}

@@ -55,3 +55,15 @@ B1, B2, B3 confirmed. Others need per-screen audit on the (unserved) Customer ap
 ## Notes for next session
 - Only Partner app is served on :3000. To verify Customer app/web_panel UI, they must be served (separate port/preview) or tested via device build.
 - Screenshot tool may time out on the ~16MB Expo web bundle.
+
+### 2026-06 (session 2) — UI batch: B5/B6/B12/C1 + A3
+Implemented + validated (babel transform + eslint, root exit 0; Partner files 0 errors):
+- **B5 Book Now (outline, uniform)**: web_panel `Services.jsx` card, `ServiceDetail.jsx` (desktop + mobile bar), `home/HomeSections.jsx` chip → outline "Book Now"; Customer app `site/HomeSections.tsx` + `(site)/service/[id].tsx` → outline "Book Now" (services.tsx/category already had it).
+- **B6 square search + larger font**: web_panel `Services.jsx` search, `site/ServiceSearch.jsx` (hero+navbar rounded-[5px], text-base), `CustomerDashboard.jsx` home-search; Customer app `site/ServiceSearch.tsx` (radius 5, fontSize 16). App AppSearchBar was already square.
+- **B12 square booking tabs**: web_panel `components/customer/ux.jsx` SegTabs rounded-[4px]. Customer app SegTabs already square (radius 5).
+- **C1 larger input fonts (web)**: `components/ui/input.jsx` + `ux.jsx` SearchInput → text-base.
+- **A3 Partner dark accents**: `starter-kit.tsx` item-image placeholder + lock notice now dark-aware; `rewards.tsx` streak-freeze card dark-aware.
+
+Verification constraint: web_panel + Customer have NO node_modules here and aren't served; their edits are compile+lint verified only (not live-screenshot). Partner app is served but 16MB bundle makes screenshots unreliable.
+
+Discovery: B1, B2, B3, and much of B5/B6/B12 in the **Customer app** were already implemented in prior batches; gaps were mostly in web_panel (now filled).

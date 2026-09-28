@@ -49,7 +49,7 @@ export function ServiceCard({ s, navigate, badge, testId }) {
             <p className="text-[10px] uppercase tracking-wider font-bold text-slate-400">Starts at</p>
             <div className="flex items-baseline gap-1.5"><p className="font-heading font-extrabold text-lg text-slate-900">{fmt(price)}</p>{off > 0 && <span className="text-xs text-slate-400 line-through">{fmt(s.base_price)}</span>}</div>
           </div>
-          <span className="h-9 px-3 rounded-xl bg-primary-50 text-primary-700 text-xs font-bold inline-flex items-center gap-1 group-hover:bg-primary-700 group-hover:text-white transition-colors">Book <ArrowRight className="h-3.5 w-3.5" /></span>
+          <span className="h-9 px-4 rounded-[4px] bg-transparent border-2 border-primary-600 text-primary-700 text-xs font-bold inline-flex items-center gap-1 group-hover:bg-primary-700 group-hover:text-white group-hover:border-primary-700 transition-colors whitespace-nowrap">Book Now</span>
         </div>
       </div>
     </button>

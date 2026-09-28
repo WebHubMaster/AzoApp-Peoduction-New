@@ -150,8 +150,8 @@ export default function ServiceSearch({
 
   const isHero = variant === "hero";
   const inputCls = isHero
-    ? "w-full h-14 pl-12 pr-28 rounded-2xl border border-slate-200 bg-white text-[15px] shadow-[0_10px_40px_-12px_rgba(13,71,161,0.25)] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 transition"
-    : "w-full h-11 pl-10 pr-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300";
+    ? "w-full h-14 pl-12 pr-28 rounded-[5px] border border-slate-200 bg-white text-base shadow-[0_10px_40px_-12px_rgba(13,71,161,0.25)] focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300 transition truncate"
+    : "w-full h-11 pl-10 pr-4 rounded-[5px] border border-slate-200 bg-slate-50 focus:bg-white text-base focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 truncate";
 
   return (
     <div ref={boxRef} className={`relative ${className}`} data-testid={`service-search-${variant}`}>
@@ -170,7 +170,7 @@ export default function ServiceSearch({
         <button
           onClick={goAll}
           data-testid="hero-search-btn"
-          className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold inline-flex items-center gap-1 transition"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-10 px-4 rounded-[5px] bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold inline-flex items-center gap-1 transition"
         >
           Search <ArrowRight className="h-4 w-4" />
         </button>

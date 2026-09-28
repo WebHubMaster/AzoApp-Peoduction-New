@@ -122,9 +122,9 @@ export default function PartnerStarterKit() {
   return (
     <Wrap>
       {data.locked ? (
-        <View testID="starter-kit-lock-notice" style={{ flexDirection: "row", gap: 12, borderRadius: 16, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", padding: 16 }}>
+        <View testID="starter-kit-lock-notice" style={{ flexDirection: "row", gap: 12, borderRadius: 16, backgroundColor: dark ? colors.surface : "#FFFBEB", borderWidth: 1, borderColor: dark ? colors.border : "#FDE68A", padding: 16 }}>
           <Icon name="lock-outline" size={24} color="#D97706" />
-          <View style={{ flex: 1 }}><Text style={{ color: "#78350F", fontWeight: "700", fontSize: 15 }}>Starter Kit purchase required</Text><Text style={{ color: "#92400E", fontSize: 13, marginTop: 2, lineHeight: 18 }}>Your service area requires the AzoApp Pro Starter Kit before you can start taking jobs. Please complete the purchase below to unlock your dashboard.</Text></View>
+          <View style={{ flex: 1 }}><Text style={{ color: dark ? colors.text : "#78350F", fontWeight: "700", fontSize: 15 }}>Starter Kit purchase required</Text><Text style={{ color: dark ? colors.textMuted : "#92400E", fontSize: 13, marginTop: 2, lineHeight: 18 }}>Your service area requires the AzoApp Pro Starter Kit before you can start taking jobs. Please complete the purchase below to unlock your dashboard.</Text></View>
         </View>
       ) : null}
       <LinearGradient colors={["#0F172A", "#0A2E6B", "#312E81"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 28, overflow: "hidden", boxShadow: "0px 20px 40px rgba(15,23,42,0.3)", elevation: 8 }} testID="starter-kit-buy">
@@ -152,7 +152,7 @@ export default function PartnerStarterKit() {
         <View style={{ gap: 16, marginTop: 16 }}>
           {items.map((it) => (
             <Surface key={it.id} testID={`sk-view-item-${it.id}`} style={{ overflow: "hidden" }}>
-              <LinearGradient colors={["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 144, alignItems: "center", justifyContent: "center" }}>
+              <LinearGradient colors={dark ? [colors.surfaceAlt || colors.surface, colors.surface] : ["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 144, alignItems: "center", justifyContent: "center" }}>
                 {it.image ? <Image source={{ uri: mediaUrl(it.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : <ItemIcon it={it} size={56} color="#93C5FD" />}
               </LinearGradient>
               <View style={{ padding: 16 }}><Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>{it.name}</Text><Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4, lineHeight: 19 }}>{it.description}</Text></View>

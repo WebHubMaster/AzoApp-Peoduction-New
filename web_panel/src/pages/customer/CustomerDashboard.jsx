@@ -251,9 +251,9 @@ function HomeView({ user, bookings, wallet, refunds, categories, services, refer
           <p className="text-white/85 mt-1 text-sm lg:text-base">What service do you need today?</p>
           <div className="mt-4 relative max-w-xl">
             <input data-testid="home-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search AC repair, electrician, cleaning…"
-              className="w-full h-12 lg:h-14 pl-5 pr-32 rounded-2xl bg-white text-slate-800 placeholder:text-slate-400 shadow-xl focus:outline-none focus:ring-4 focus:ring-white/30" />
-            <Button data-testid="home-book-cta" onClick={onBook} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 lg:h-11 rounded-xl bg-primary-700 hover:bg-primary-800 px-4">
-              <Plus className="h-4 w-4 mr-1" /> Book
+              className="w-full h-12 lg:h-14 pl-5 pr-32 rounded-[5px] bg-white text-base text-slate-800 placeholder:text-slate-400 shadow-xl focus:outline-none focus:ring-4 focus:ring-white/30 truncate" />
+            <Button data-testid="home-book-cta" onClick={onBook} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 lg:h-11 rounded-[4px] bg-primary-700 hover:bg-primary-800 px-4">
+              Book Now
             </Button>
             {svcMatches.length > 0 && (
               <div className="absolute z-20 top-14 lg:top-16 left-0 right-0 rounded-2xl bg-white text-slate-800 shadow-2xl overflow-hidden azo-scale-in">

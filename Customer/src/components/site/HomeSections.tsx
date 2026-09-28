@@ -173,7 +173,7 @@ export function ServiceCard({ s, navigate, badge, testID }: { s: any; navigate: 
         {s.duration_min > 0 ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 }}><Clock size={12} color={TC.textMuted} /><Text style={{ fontSize: 12, color: TC.textMuted }}>{dur}</Text></View> : null}
         <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 8, marginTop: 12 }}>
           <View><Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: "700", color: TC.textFaint }}>Starts at</Text><View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}><Text style={{ fontWeight: "800", fontSize: 18, color: TC.text }}>{fmt(price)}</Text>{off > 0 ? <Text style={{ fontSize: 12, color: TC.textFaint, textDecorationLine: "line-through" }}>{fmt(s.base_price)}</Text> : null}</View></View>
-          <View style={{ height: 36, paddingHorizontal: 12, borderRadius: 12, backgroundColor: TC.primarySoft, flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.primaryText, fontSize: 12, fontWeight: "700" }}>Book</Text><ArrowRight size={14} color={TC.primaryText} /></View>
+          <View style={{ height: 36, paddingHorizontal: 14, borderRadius: 4, borderWidth: 2, borderColor: PRIMARY[600], backgroundColor: "transparent", flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.primaryText, fontSize: 12, fontWeight: "700" }}>Book Now</Text></View>
         </View>
       </View>
     </Pressable>
