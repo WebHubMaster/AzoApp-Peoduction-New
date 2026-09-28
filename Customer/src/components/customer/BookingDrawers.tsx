@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, Modal, Linking } from "react-native";
 import { Image } from "expo-image";
-import { Wrench, Package, Camera, User, CreditCard, MapPin, AlertTriangle, FileText, MessageCircle, Download, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react-native";
+import { Wrench, Package, Camera, User, CreditCard, MapPin, AlertTriangle, FileText, MessageCircle, Download, X, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Navigation } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme } from "../../theme";
 import { api, API_BASE, mediaUrl } from "../../api/client";
 import { useSiteConfig } from "../../context/BrandContext";
@@ -64,6 +64,37 @@ function ProofBlock({ label, imgs, testID }: { label: string; imgs: string[]; te
     </View>
   );
 }
+/** Trust block: the partner's live selfie + GPS taken at the customer's door (wizard check-in). */
+export function PartnerCheckin({ checkin, partnerName }: { checkin: any; partnerName?: string }) {
+  const [open, setOpen] = useState(false);
+  const url = mediaUrl(checkin?.selfie_url) || checkin?.selfie_url;
+  if (!url) return null;
+  const when = checkin.at ? fmtTs(checkin.at) : "";
+  const far = !!checkin.far;
+  return (
+    <View testID="partner-checkin" style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: far ? "#FFFBEB" : EMERALD[50], borderRadius: 14, padding: 10, borderWidth: 1, borderColor: far ? "#FDE68A" : EMERALD[100] }}>
+      <Pressable testID="partner-checkin-selfie" onPress={() => setOpen(true)} style={{ width: 64, height: 80, borderRadius: 12, overflow: "hidden", borderWidth: 2, borderColor: "#fff" }}>
+        <Image source={{ uri: url }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+      </Pressable>
+      <View style={{ flex: 1, gap: 3 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><ShieldCheck size={14} color={far ? "#B45309" : EMERALD[700]} /><Text style={{ fontSize: 13.5, fontWeight: "800", color: SLATE[800] }}>{partnerName || "Your partner"} arrived</Text></View>
+        {when ? <Text style={{ fontSize: 12, color: SLATE[500] }}>Selfie verified · {when}</Text> : null}
+        {checkin.distance_km != null ? <Text style={{ fontSize: 12, color: far ? "#B45309" : EMERALD[700], fontWeight: "600" }}>{far ? `~${checkin.distance_km} km from your address` : `Within ${checkin.distance_km <= 0.05 ? "50 m" : `${Math.round(checkin.distance_km * 1000)} m`} of your address`}</Text> : null}
+        {checkin.lat != null ? (
+          <Pressable testID="partner-checkin-map" onPress={() => Linking.openURL(`https://www.google.com/maps?q=${checkin.lat},${checkin.lng}`)} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+            <Navigation size={12} color={PRIMARY[700]} /><Text style={{ fontSize: 12, fontWeight: "700", color: PRIMARY[700] }}>View arrival location</Text>
+          </Pressable>
+        ) : null}
+      </View>
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <Pressable onPress={() => setOpen(false)} style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.92)", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          <Image source={{ uri: url }} style={{ width: "100%", height: "80%" }} contentFit="contain" />
+          <Text style={{ color: "#fff", marginTop: 10, fontSize: 13 }}>Partner check-in selfie{when ? ` · ${when}` : ""}</Text>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}
 export function WorkProofSection({ evidence }: { evidence: any }) {
   const before = (evidence?.before || []).map(norm).filter(Boolean); const after = (evidence?.after || []).map(norm).filter(Boolean);
   if (!before.length && !after.length) return null;
@@ -113,6 +144,7 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
       footer={canInvoice ? <Btn testID="details-view-invoice" icon={FileText} label="View Invoice" onPress={() => { onClose(); onInvoice(b); }} style={{ height: 44, borderRadius: 12 }} /> : null}>
       <DBlock icon={Wrench} title="Service Information"><DRow k="Service" v={b.service_name} strong /><DRow k="Category" v={b.category_name} /><DRow k="Status" v={statusText(b.status)} /></DBlock>
       {((bd && (bd.service_items || []).length > 0) || (b.items || []).length > 0) ? <DBlock icon={Package} title="Services"><ServiceBreakdown booking={b} title="Services in this order" /></DBlock> : null}
+      {b.checkin?.selfie_url ? <DBlock icon={ShieldCheck} title="Partner Check-in"><PartnerCheckin checkin={b.checkin} partnerName={b.partner_name} /></DBlock> : null}
       {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0) ? <DBlock icon={Camera} title="Work Proof Photos"><WorkProofSection evidence={b.evidence} /></DBlock> : null}
       <DBlock icon={Package} title="Booking Information">
         <DRow k="Booking ID" v={`#${b.code}`} /><DRow k="Booked on" v={fmtTs(b.created_at)} />

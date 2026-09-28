@@ -534,16 +534,25 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
       )}
 
       <View style={{ padding: 20, gap: 16 }} testID={`active-job-${b.code}`}>
-        {/* Header (tap → job wizard) */}
-        <Pressable testID={`job-card-${b.code}`} onPress={openWizard} style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-          <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, lineHeight: 22 }}>{b.service_name}</Text>
-              <Text style={{ color: SLATE400, fontSize: 12, marginTop: 2, fontFamily: "monospace" }}>#{b.code}</Text>
+        {/* Header (tap → job wizard): soft tinted band, gradient icon tile, big status pill */}
+        <Pressable testID={`job-card-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: inProgress ? "#ECFDF5" : colors.primarySubtle, opacity: pressed ? 0.92 : 1 })}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: inProgress ? EMERALD : colors.primary, alignItems: "center", justifyContent: "center", boxShadow: inProgress ? "0px 6px 14px rgba(5,150,105,0.28)" : "0px 6px 14px rgba(13,71,161,0.25)" } as any}><Icon name={inProgress ? "progress-wrench" : "wrench"} size={22} color="#fff" /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text numberOfLines={2} style={{ color: colors.text, fontWeight: "800", fontSize: 16.5, lineHeight: 22 }}>{b.service_name}</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                <View style={{ backgroundColor: "#fff", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.border }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", fontFamily: "monospace" }}>#{b.code}</Text></View>
+                {b.category_name ? <Text style={{ color: colors.textMuted, fontSize: 11.5 }}>{b.category_name}</Text> : null}
+              </View>
             </View>
           </View>
-          <StatusBadge status={status} />
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+            <View testID={`status-pill-${b.code}`} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: inProgress ? EMERALD : colors.primary }}>
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff", opacity: 0.9 }} />
+              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12.5, textTransform: "capitalize" }}>{inProgress ? "Work in progress" : String(status).replace(/_/g, " ")}</Text>
+            </View>
+            <Text style={{ color: inProgress ? "#047857" : colors.primary, fontWeight: "800", fontSize: 15 }}>{fmt(b.breakdown?.total || b.total || 0)}</Text>
+          </View>
         </Pressable>
 
         {/* Customer location */}

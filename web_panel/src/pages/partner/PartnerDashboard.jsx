@@ -422,16 +422,25 @@ const ActiveJob = ({ b, onUpdate }) => {
       )}
 
       <div className="p-5 space-y-4">
-        {/* Header (click → job wizard) */}
-        <button type="button" data-testid={`job-card-${b.code}`} onClick={() => setWizardOpen(true)} className="w-full flex items-start justify-between gap-3 text-left rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-          <div className="flex items-start gap-3 min-w-0">
-            <span className="h-11 w-11 rounded-2xl grid place-items-center text-white shrink-0" style={{ background: "#0D47A1" }}><Wrench className="h-5 w-5" /></span>
-            <div className="min-w-0">
-              <p className="font-heading font-bold text-slate-900 dark:text-white leading-snug break-words">{b.service_name}</p>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">#{b.code}</p>
+        {/* Header (click → job wizard): soft tinted band, gradient icon tile, big status pill */}
+        <button type="button" data-testid={`job-card-${b.code}`} onClick={() => setWizardOpen(true)}
+          className={`w-full text-left -mx-4 -mt-4 px-4 pt-4 pb-3.5 rounded-t-[20px] transition ${inProgress ? "bg-emerald-50 dark:bg-emerald-900/15 hover:bg-emerald-100/70" : "bg-primary-50/70 dark:bg-primary-900/15 hover:bg-primary-100/60"}`} style={{ width: "calc(100% + 2rem)" }}>
+          <div className="flex items-center gap-3">
+            <span className={`h-12 w-12 rounded-2xl grid place-items-center text-white shrink-0 shadow-md ${inProgress ? "bg-gradient-to-br from-emerald-600 to-emerald-500 shadow-emerald-600/25" : "bg-gradient-to-br from-primary-700 to-primary-500 shadow-primary-700/25"}`}><Wrench className="h-5.5 w-5.5" /></span>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading font-extrabold text-slate-900 dark:text-white leading-snug break-words text-[16px]">{b.service_name}</p>
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                <span className="text-[11px] font-mono font-bold text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-2 py-0.5">#{b.code}</span>
+                {b.category_name && <span className="text-[11.5px] text-slate-500">{b.category_name}</span>}
+              </div>
             </div>
           </div>
-          <StatusBadge status={b.status} />
+          <div className="flex items-center justify-between mt-3">
+            <span data-testid={`status-pill-${b.code}`} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-white text-[12.5px] font-extrabold capitalize ${inProgress ? "bg-emerald-600" : "bg-primary-600"}`}>
+              <span className="h-2 w-2 rounded-full bg-white/90" />{inProgress ? "Work in progress" : String(b.status || "").replace(/_/g, " ")}
+            </span>
+            <span className={`font-extrabold text-[15px] ${inProgress ? "text-emerald-700" : "text-primary-700"}`}>{fmt(b.breakdown?.total || b.total || 0)}</span>
+          </div>
         </button>
 
         {/* Customer location (no map) */}

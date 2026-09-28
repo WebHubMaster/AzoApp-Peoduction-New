@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { jsPDF } from "jspdf";
 import { useNavigate } from "react-router-dom";
 import {
-  Home, Wallet, Gift, Package, Star, MapPin, Plus, Navigation, User as UserIcon,
+  Home, Wallet, Gift, Package, Star, MapPin, Plus, Navigation, User as UserIcon, ShieldCheck,
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
   Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
@@ -24,7 +24,7 @@ import InvoiceCenter from "@/components/invoices/InvoiceCenter";
 import SupportCenter from "@/components/SupportCenter";
 import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
-import WorkProofSection from "@/components/WorkProof";
+import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
 import { AddressForm, emptyAddress } from "@/components/AddressForm";
 import BookingChat from "@/components/booking/BookingChat";
 import { useChatUnread, UnreadPill } from "@/context/ChatContext";
@@ -1413,6 +1413,11 @@ function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
       {((b.breakdown && (b.breakdown.service_items || []).length > 0) || (b.items || []).length > 0) && (
         <DBlock icon={Package} title="Services">
           <ServiceBreakdown booking={b} fmt={fmt} title="Services in this order" compact />
+        </DBlock>
+      )}
+      {b.checkin?.selfie_url && (
+        <DBlock icon={ShieldCheck} title="Partner Check-in">
+          <CheckinProof checkin={b.checkin} />
         </DBlock>
       )}
       {/* Point #10 — partner-uploaded before/after work photos with lightbox */}

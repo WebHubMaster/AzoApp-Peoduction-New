@@ -4,7 +4,8 @@ import { View, Text, Pressable, TextInput, ScrollView, ActivityIndicator, Platfo
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight } from "lucide-react-native";
+import { MapPin, ChevronDown, Bell, BellOff, User, Search, Mic, MicOff, X, Home as HomeIcon, ArrowRight, History } from "lucide-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PRIMARY, SLATE, ROSE, shadowBtn, useTheme } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
 import { useSiteConfig } from "../../context/BrandContext";
@@ -79,7 +80,20 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   );
 }
 
+const RECENT_KEY = "azo_recent_searches_v1";
+const MAX_RECENT = 6;
+
 export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
+  const [recent, setRecent] = useState<string[]>([]);
+  useEffect(() => { AsyncStorage.getItem(RECENT_KEY).then((v) => { try { const arr = JSON.parse(v || "[]"); if (Array.isArray(arr)) setRecent(arr.filter((x) => typeof x === "string").slice(0, MAX_RECENT)); } catch { /* ignore */ } }); }, []);
+  const remember = useCallback((term: string) => {
+    const t = term.trim(); if (t.length < 2) return;
+    setRecent((prev) => { const next = [t, ...prev.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, MAX_RECENT); AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next)).catch(() => {}); return next; });
+  }, []);
+  const forget = useCallback((term: string) => {
+    setRecent((prev) => { const next = prev.filter((x) => x !== term); AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next)).catch(() => {}); return next; });
+  }, []);
+  const clearRecent = useCallback(() => { setRecent([]); AsyncStorage.removeItem(RECENT_KEY).catch(() => {}); }, []);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<any[] | null>(null);
@@ -87,8 +101,9 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   const router = useRouter();
   const toast = useToast();
   const timer = useRef<any>(null);
-  const submitRef = useRef(onSubmit);
-  submitRef.current = onSubmit;
+  const submitRef = useRef<(q: string) => void>(onSubmit);
+  submitRef.current = (term: string) => { remember(term); onSubmit(term); };
+  const submit = (term: string) => submitRef.current(term);
   const [voiceOpen, setVoiceOpen] = useState(false);
   const [heard, setHeard] = useState("");
   const heardRef = useRef("");
@@ -135,13 +150,29 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
       <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 27, backgroundColor: "#fff", borderWidth: 1, borderColor: SLATE[100], paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
         <Search size={22} color={SLATE[800]} strokeWidth={2.4} />
-        <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && onSubmit(q.trim())} returnKeyType="search"
+        <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search"
           placeholder="Search for services (e.g. AC Repair, Cleaning, Salon)" placeholderTextColor={SLATE[400]} style={{ flex: 1, fontSize: 14.5, color: SLATE[800], height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={SLATE[400]} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
           {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : SLATE[300]} strokeWidth={2.2} />}
         </Pressable>
       </View>
+      {recent.length > 0 && q.trim().length < 2 ? (
+        <View testID="recent-searches" style={{ marginTop: 10 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><History size={13} color={SLATE[400]} /><Text style={{ fontSize: 11, fontWeight: "700", color: SLATE[400], textTransform: "uppercase", letterSpacing: 0.6 }}>Recent searches</Text></View>
+            <Pressable testID="recent-clear" onPress={clearRecent} hitSlop={8}><Text style={{ fontSize: 11.5, fontWeight: "700", color: PRIMARY[700] }}>Clear</Text></Pressable>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
+            {recent.map((term) => (
+              <View key={term} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingLeft: 12, paddingRight: 8, borderRadius: 17, backgroundColor: SLATE[50], borderWidth: 1, borderColor: SLATE[200] }}>
+                <Pressable testID={`recent-${term.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => { setQ(term); setOpen(false); submit(term); }} hitSlop={6}><Text style={{ fontSize: 13, fontWeight: "600", color: SLATE[700] }}>{term}</Text></Pressable>
+                <Pressable onPress={() => forget(term)} hitSlop={8} testID={`recent-remove-${term.replace(/\s+/g, "-").toLowerCase()}`}><X size={13} color={SLATE[400]} /></Pressable>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
       {open && q.trim().length >= 2 ? (
         <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: "#fff", borderRadius: 16, borderWidth: 1, borderColor: SLATE[200], padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={PRIMARY[700]} style={{ margin: 12 }} /> : null}
@@ -155,7 +186,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
             ))}
             {results && results.length === 0 ? <Text style={{ fontSize: 13, color: SLATE[500], padding: 12 }}>No services match “{q}”.</Text> : null}
             {results && results.length > 0 ? (
-              <Pressable testID="app-search-all" onPress={() => { setOpen(false); onSubmit(q.trim()); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: 10 }}>
+              <Pressable testID="app-search-all" onPress={() => { setOpen(false); submit(q.trim()); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, padding: 10 }}>
                 <Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[700] }}>See all results</Text><ArrowRight size={14} color={PRIMARY[700]} />
               </Pressable>
             ) : null}
