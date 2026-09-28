@@ -1,6 +1,6 @@
 /** Mobile site header: logo · membership · location · cart · profile (per approved order). */
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, TextInput, ActivityIndicator, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, usePathname } from "expo-router";
 import { Image } from "expo-image";
@@ -13,6 +13,12 @@ import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "@/src/theme";
 import { useRawLocation, setLocationName, detectLocation } from "@/src/lib/location";
 
 const CROWN = require("../../../assets/membership-crown.png"); // eslint-disable-line @typescript-eslint/no-require-imports
+
+// Full-width dropdown metrics: the location icon sits 112px from the screen's
+// right edge (paddingRight 16 + profile 40 + gap 8 + cart 40 + gap 8). We push
+// the panel out to leave a 12px margin on each side so it spans full width.
+const SIDE_MARGIN = 12;
+const ICON_RIGHT_GAP = 112;
 
 export function LocationButton({ testID = "nav-location", iconOnly = false }: { testID?: string; iconOnly?: boolean }) {
   const loc = useRawLocation();
@@ -53,7 +59,7 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
     <View style={iconOnly ? { position: "relative", zIndex: 60 } : undefined}>
       {Trigger}
       {open ? (
-        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 16, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: 0, zIndex: 100 } : {}) } as any}>
+        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: iconOnly ? Dimensions.get("window").width - SIDE_MARGIN * 2 : 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 16, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: -(ICON_RIGHT_GAP - SIDE_MARGIN), zIndex: 100 } : {}) } as any}>
           {status === "out_of_area" && oos ? (
             <View testID="out-of-area">
               <Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>We&apos;re not in {oos.city} yet</Text>
