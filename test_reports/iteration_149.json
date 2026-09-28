@@ -1,0 +1,24 @@
+{
+  "summary": "Full regression health-check (iteration 149) requested by user (mujhe bug nahi pata, sab check karo). Wrote a single new pytest module covering OTP auth for admin/customer/partner/maid, catalog & subscription plans, full customer subscription lifecycle (create -> pay/mock -> mine -> invoice), maid partner subs (OTP stripped check), admin subscription stats/list/partners, one-time booking JobWizard end-to-end (reset -> job-detail -> start-otp blocked before checkin -> selfie checkin -> before-evidence photo -> start-otp allowed -> after-evidence chunked video -> complete with OTP 1234 -> customer /track), and 6 generic customer endpoints (/api/bookings /api/wallet /api/payments/refunds /api/notifications /api/app/home /api/site/config). All 21 tests pass. UI smoke: Web panel OTP+demo logins work for customer (/api/panel/account), partner (/api/panel/partner active jobs card renders with 2 jobs), admin (/api/panel/admin dashboard KPIs render, Subscriptions tab loads), maid Sunita (partner panel, Rewards menu correctly hidden, Maid Subscriptions visible). Partner Expo (localhost:3000): Welcome->Login->OTP verify -> Raj Kumar home renders with 2 active jobs card, Job Request/Active Job/Wallet/More tabs. Customer Expo (localhost:3001): Landing renders (search bar + 7 categories + banners + recent), Login -> Priya home renders with 6 total bookings, /orders shows booking cards, /subscriptions shows 'Home Maid · 4 plans' with My Subscriptions=21, /wallet shows ₹250 balance & scratch cards, /support shows TKT-100001. No red error screens, no console pageerrors captured on any surface. Job AZOAF1BBB was reset back to assigned via dev_reset_job.py teardown.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter149_regression.py",
+    "/app/test_reports/pytest/iter149.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/backend/controllers/booking_controller.py is ~4090 lines — well past the 700-line guideline. Consider splitting into checkin/evidence/otp/track sub-modules to improve maintainability (non-blocking).",
+    "GET /api/subscriptions/plans/{service_id} requires auth (returns 401 without a bearer token). If plans list is intended for anonymous discovery on the landing page, consider making it public; otherwise fine as-is."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter149_regression.py"
+  ],
+  "success_rate": {"backend": "100% (21/21 pytest, 1 skipped later re-enabled)", "frontend": "100% (web panel 4/4 roles, partner expo, customer expo all render without errors)"},
+  "test_credentials": "Admin +919000000000, Customer +919000000004 (Priya Verma), Partner +919000000003 (Raj Kumar), Maid +919000000020 (Sunita Devi). Demo OTP 123456. JobWizard OTPs: start 1234 / completion 1234. Demo job AZOAF1BBB id ba936117-834f-40a2-a19c-65d3d4628050.",
+  "seed_data_creation": "One new customer subscription for +919000000004 (Home Maid monthly, start date = tomorrow, mock-paid). Demo job AZOAF1BBB was walked through the full wizard and left reset to 'assigned' via TestBookingWizard.teardown_class calling dev_reset_job.py.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression test file at /app/backend/tests/test_iter149_regression.py can be re-run any time with `export $(grep -v ^# /app/backend/.env | xargs) && pytest backend/tests/test_iter149_regression.py -o addopts=''` — it self-resets AZOAF1BBB before and after the wizard class. Booking wizard payload contract: checkin/upload multipart field name is `file` (not `selfie`); evidence/upload multipart field is `file` + `stage=before|after`; evidence/chunk JSON needs {stage, upload_id, index, total, data(base64), content_type}. Subscription plans endpoint requires customer auth. Web panel demo login shortcut texts are 'Login as Admin/Partner/Customer/Merchant' (no Maid shortcut — use OTP flow with 6 maxlength=1 boxes). Partner/Customer Expo apps have a single hidden combined OTP input that accepts fill('123456'); click precisely on 'Verify & Log In' or 'Verify OTP' button (may collide with heading text — use get_by_role button first, else .last locator).",
+  "rca of the issue": "N/A — no bugs found. Every requested endpoint returns 200/expected status with correct JSON, every requested UI surface renders without crashes. OTP is confirmed stripped from maid /partner/mine payload. start-otp correctly blocks before checkin (400) and succeeds after checkin + at least one before-work-proof photo. Chunked video evidence assembles correctly on the last chunk. Customer /track endpoint accessible after job completion."
+}
