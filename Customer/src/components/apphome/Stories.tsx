@@ -1,14 +1,14 @@
 /** Video "stories" — Instagram-style tappable story cards on the home screen.
  * Cards come from an admin custom section (type "stories") via GET /app/home.
  * Tapping a card opens a full-screen viewer that plays the short video (WebView). */
-import React, { useMemo, useRef, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Modal, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { WebView } from "react-native-webview";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, ArrowRight, Play } from "lucide-react-native";
 import { PRIMARY, SLATE } from "../../theme";
 import { BlockTitle } from "./Blocks";
+import { StoryVideo } from "./StoryVideo";
 
 type Story = { id: string; title?: string; avatar?: string; poster?: string; video?: string; cta_label?: string; cta_link?: string };
 type Nav = (to: string) => void;
@@ -46,45 +46,20 @@ export function StoriesRow({ sec, onOpen }: { sec: any; onOpen: (index: number) 
 const StyleFill = { position: "absolute" as const, left: 0, right: 0, top: 0, bottom: 0 };
 
 /* ---------------- Full-screen story viewer ---------------- */
-function videoHtml(url: string, poster: string) {
-  const p = poster ? `poster="${poster}"` : "";
-  return `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <style>html,body{margin:0;height:100%;background:#000;overflow:hidden}video{width:100vw;height:100vh;object-fit:contain;background:#000}</style></head>
-  <body><video id="v" src="${url}" ${p} autoplay muted loop playsinline webkit-playsinline></video>
-  <script>var v=document.getElementById('v');
-  function onMsg(e){var d=(e&&e.data)||'';if(d==='unmute'){v.muted=false;v.play&&v.play()}else if(d==='mute'){v.muted=true}else if(d==='play'){v.play&&v.play()}}
-  document.addEventListener('message',onMsg);window.addEventListener('message',onMsg);
-  v.play&&v.play();</script></body></html>`;
-}
-
 export function StoryViewer({ stories, startIndex, onClose, navigate }: { stories: Story[]; startIndex: number; onClose: () => void; navigate: Nav }) {
   const { width, height } = useWindowDimensions();
   const [idx, setIdx] = useState(startIndex);
   const [muted, setMuted] = useState(true);
-  const webRef = useRef<WebView>(null);
   const cur = stories[idx];
   const next = () => (idx < stories.length - 1 ? setIdx(idx + 1) : onClose());
   const prev = () => idx > 0 && setIdx(idx - 1);
-  const toggleMute = () => { const m = !muted; setMuted(m); webRef.current?.injectJavaScript(`(function(){var v=document.getElementById('v');if(v){v.muted=${m ? "true" : "false"};v.play&&v.play();}})();true;`); };
-  const html = useMemo(() => (cur ? videoHtml(cur.video || "", cur.poster || "") : ""), [cur?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!cur) return null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: "#000" }} testID="story-viewer">
-        {/* video */}
+        {/* video (auto-advances to the next story when it ends) */}
         {cur.video ? (
-          <WebView
-            ref={webRef}
-            key={cur.id}
-            source={{ html }}
-            style={{ flex: 1, backgroundColor: "#000" }}
-            originWhitelist={["*"]}
-            allowsInlineMediaPlayback
-            mediaPlaybackRequiresUserAction={false}
-            scrollEnabled={false}
-            javaScriptEnabled
-            testID="story-video"
-          />
+          <StoryVideo key={cur.id} url={cur.video} poster={cur.poster} muted={muted} onEnded={next} />
         ) : (
           <Image source={{ uri: cur.poster }} style={{ flex: 1 }} contentFit="contain" />
         )}
@@ -98,11 +73,11 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
           ))}
         </View>
 
-        {/* header: avatar + title + close */}
+        {/* header: avatar + title + mute + close */}
         <View style={{ position: "absolute", top: 66, left: 14, right: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
           {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 18, borderWidth: 2, borderColor: "#fff" }} contentFit="cover" /> : null}
           <Text numberOfLines={1} style={{ flex: 1, color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.title}</Text>
-          <Pressable testID="story-mute" onPress={toggleMute} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
+          <Pressable testID="story-mute" onPress={() => setMuted((m) => !m)} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
             {muted ? <VolumeX size={18} color="#fff" /> : <Volume2 size={18} color="#fff" />}
           </Pressable>
           <Pressable testID="story-close" onPress={onClose} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
