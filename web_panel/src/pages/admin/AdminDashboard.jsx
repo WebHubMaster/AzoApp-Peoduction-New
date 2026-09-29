@@ -293,7 +293,7 @@ export default function AdminDashboard() {
     kyc_approvals: "KYC Approvals",
     pro_partners: "Pro Partners (AzoApp Pro)",
     commission: "Rate Card & Commission Rules", customers: "Customers", ledger: "Transactions & Ledger",
-    pricing: "Pricing Rules", surge: "Surge Rules", launch_demand: "Launch Demand", coverage_map: "Coverage Map",
+    surge: "Surge Rules", launch_demand: "Launch Demand", coverage_map: "Coverage Map",
     coupons: "Promo Codes", notifications: "Notifications", tickets: "User Queries", banners: "Sliders / Banners",
     blogs: "Blog", faqs: "FAQs", plans: "Subscription Plans", sysusers: "System Users", ai: "AI Insights",
     liveops: "Live Operations", locations: "Locations", campaigns: "Marketing Campaigns", memberships: "Membership Tiers",
@@ -376,16 +376,6 @@ export default function AdminDashboard() {
       {active === "terms" && <PageEditorPro pageKey="terms" title="Terms & Conditions" subtitle="Your terms of service — rendered on /terms." />}
       {active === "refund" && <PageEditorPro pageKey="refund" title="Refund Policy" subtitle="Your refund/cancellation policy — rendered on /refund." />}
       {active === "commission" && <S.CommissionSettings />}
-      {active === "pricing" && <S.CmsManager title="Pricing Rule" endpoint="collection/pricing_rules"
-        fields={[
-          { key: "name", label: "Rule name", required: true },
-          { key: "price_type", label: "Price type", type: "select", options: [{ label: "Fixed", value: "fixed" }, { label: "Per hour", value: "per_hour" }, { label: "Per person", value: "per_person" }, { label: "Per sq ft", value: "per_sqft" }] },
-          { key: "base_price", label: "Base price (₹)", type: "number" },
-          { key: "min_price", label: "Minimum price (₹)", type: "number" },
-          { key: "service_category", label: "Apply to category (blank = all)" },
-          { key: "status", label: "Status", type: "select", options: [{ label: "Active", value: "active" }, { label: "Inactive", value: "inactive" }] },
-        ]}
-        columns={[{ key: "name", label: "Rule" }, { key: "price_type", label: "Type" }, { key: "base_price", label: "Base ₹" }, { key: "min_price", label: "Min ₹" }, { key: "service_category", label: "Category" }, { key: "status", label: "Status", render: (r) => <S.SBadge s={r.status || "active"} /> }]} />}
       {active === "surge" && <SurgeRulesManager />}
       {active === "ledger" && <TransactionsHub />}
       {active === "invoices" && <InvoiceManagement />}
