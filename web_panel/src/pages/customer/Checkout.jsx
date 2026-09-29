@@ -138,7 +138,12 @@ const MemberSavingsBadge = ({ totals }) => {
 };
 
 // Cart item → API request line (shared by cart-quote preview, coupon validation and booking).
-const toReqItem = (it) => (it.custom
+// A subscription line is priced through the SAME engine as a normal booking by sending it
+// as a "custom" line whose price is the chosen plan price — so GST, service charge and every
+// other charge are computed identically. The only difference is placement (see placeSubscription).
+const toReqItem = (it) => (it.subscription
+  ? { custom: true, custom_name: `${it.name} — ${it.plan_label || it.plan_type} plan`, custom_price: Number(it.plan_price) || 0, labour_charge: 0, category_id: it.category_id, category_name: it.category_name, qty: 1 }
+  : it.custom
   ? { custom: true, custom_name: it.custom_name, custom_price: it.custom_price, labour_charge: it.labour_charge || 0, category_id: it.category_id, category_name: it.category_name, qty: it.qty }
   : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id, category_name: it.category_name });
 
@@ -219,13 +224,6 @@ export default function Checkout() {
      effects) so retrying is always safe. */
   useEffect(() => {
     if (!items.length) { setQuotes({}); setCartPricing(null); return; }
-    if (items.some((it) => it.subscription)) {
-      const s = items.find((it) => it.subscription);
-      const amt = Number(s?.plan_price) || 0;
-      setQuotes({ [s.id]: { line_total: amt } });
-      setCartPricing({ base: amt, services_total: amt, cart_service_total: amt, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: amt, category_charges: [] });
-      return;
-    }
     let cancelled = false;
     // address is part of the quote: city/pincode-scoped rules (surge, serviceability)
     // must show in the preview exactly as they will be charged on the bookings.

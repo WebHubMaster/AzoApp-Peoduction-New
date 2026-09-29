@@ -72,12 +72,24 @@ async def create_subscription(user, req):
     commission_pct = svc.commission_pct_for(settings)
     tax_pct = float(service.get("tax_pct") or 0)
     fin = svc.compute_financials(price, commission_pct, tax_pct, working_days)
-    # Customer-facing GST — EXACTLY like a normal booking: government GST % is added
-    # ON TOP of the plan price. This does NOT change the maid's earning (allocation is
-    # still computed on the plan gross); GST is collected separately for the govt.
+    # Customer-facing price — computed through the EXACT SAME engine a normal booking
+    # uses (GST, service charge, any platform/visiting charges), by quoting the plan as
+    # a custom line. This does NOT change the maid's earning (allocation stays on the
+    # plan gross); GST etc. are collected on top, just like a normal booking.
+    from controllers import booking_controller as _bc
+    try:
+        _quote = await _bc.cart_quote(user, [{
+            "custom": True,
+            "custom_name": f"{service.get('name')} — {plan.get('label') or plan_type.title()} plan",
+            "custom_price": fin["gross"], "category_id": service.get("category_id"),
+            "category_name": service.get("category_name"), "qty": 1,
+        }], schedule_type="schedule", address=address, apply_emergency=False)
+        _p = _quote.get("pricing") or {}
+    except Exception:  # noqa: BLE001 — never block booking on a quote hiccup
+        _p = {}
     gst_pct = float(settings.get("gst_pct") or 0)
-    gst_amount = money.pct(fin["gross"], gst_pct)
-    total_payable = money.add(fin["gross"], gst_amount)
+    gst_amount = money.money(_p.get("gst") if _p.get("gst") is not None else money.pct(fin["gross"], gst_pct))
+    total_payable = money.money(_p.get("total") if _p.get("total") is not None else money.add(fin["gross"], gst_amount))
 
     sub = {
         "id": new_id(),
@@ -96,6 +108,7 @@ async def create_subscription(user, req):
         "gst_pct": gst_pct,
         "gst_amount": gst_amount,
         "total_payable": total_payable,
+        "customer_pricing": _p,
         "start_date": start.isoformat(),
         "end_date": end.isoformat(),
         "duration_days": duration,
@@ -176,7 +189,7 @@ async def pay_order(user, subscription_id):
     sub = await _sub_for_customer(user, subscription_id)
     if sub.get("payment_status") == "paid":
         raise HTTPException(status_code=400, detail="Already paid")
-    amt = float(sub["price"])
+    amt = float(sub.get("total_payable") or sub["price"])
     try:
         order = await payment_service.create_order(amt, sub["code"], customer={
             "id": user.get("id"), "name": user.get("name"),
@@ -203,7 +216,7 @@ async def _ensure_payment_invoice(sub):
     if not txn:
         txn = {
             "id": new_id(), "user_id": sub["customer_id"], "type": "debit",
-            "kind": "subscription_payment", "amount": money.money(sub.get("price") or 0),
+            "kind": "subscription_payment", "amount": money.money(sub.get("total_payable") or sub.get("price") or 0),
             "method": "Online" if sub.get("pay_gateway") else "Mock",
             "note": f"{sub.get('service_name')} · {sub.get('plan_label')} Subscription ({sub.get('code')})",
             "ref_id": sub["id"], "created_at": sub.get("paid_at") or now_iso(),

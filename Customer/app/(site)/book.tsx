@@ -75,12 +75,6 @@ export default function Checkout() {
   /* live combined cart quote (debounced, retried, keeps last good pricing) */
   useEffect(() => {
     if (!items.length) { setQuotes({}); setCartPricing(null); return; }
-    if (items.some((it) => it.subscription)) {
-      const s = items.find((it) => it.subscription); const amt = Number(s?.plan_price) || 0;
-      setQuotes({ [s.id]: { line_total: amt } });
-      setCartPricing({ base: amt, services_total: amt, cart_service_total: amt, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: amt, category_charges: [] });
-      return;
-    }
     let cancelled = false;
     const payload = { schedule_type: schedule, ...(applied ? { coupon_code: applied } : {}), address: addr, items: items.map(toReqItem) };
     const attempt = async (n: number) => {
