@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
+BASE_URL = "https://service-hub-1622.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()

@@ -8,7 +8,7 @@ import re
 from typing import Dict, Any
 
 # Base URL from frontend/.env
-BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
+BASE_URL = "https://service-hub-1622.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

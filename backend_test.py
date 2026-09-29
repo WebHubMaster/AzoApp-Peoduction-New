@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com"
+BASE_URL = "https://service-hub-1622.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

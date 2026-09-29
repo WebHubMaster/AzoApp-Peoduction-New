@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
-BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
+BASE_URL = "https://service-hub-1622.preview.emergentagent.com/api"
 
 # Test credentials
 CUSTOMER_PHONE = "+919000000004"

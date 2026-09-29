@@ -12,7 +12,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
+BASE_URL = "https://service-hub-1622.preview.emergentagent.com/api"
 
 # Test accounts from review_request
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals, merchant_code = "3L6MKM3"
