@@ -1002,31 +1002,40 @@ async def request_reschedule(user, booking_id, scheduled_at):
                 target_id, "Reschedule request",
                 f"{_who} requested to move {b.get('service_name', 'your service')} ({b.get('code')}) "
                 f"from {req['old_label']} to {req['new_label']}. Tap to accept or reject.",
-                link=("/partner" if other_role == "partner" else "/account"),
+                link=("/partner" if other_role == "partner" else "/account?tab=orders"),
                 event="reschedule_request",
-                push=(other_role != "partner"),  # partner gets the full-screen RING instead of a tray push
+                # BOTH parties now get the full-screen call-style RING (below) instead of
+                # a plain tray push — so we suppress the tray push for both. (Previously
+                # only the partner got the ring; the customer got a tray push and NEVER
+                # a full-screen alert when a partner rescheduled — this fixes that.)
+                push=False,
                 data={"type": "reschedule_request", "booking_id": booking_id, "code": b.get("code"),
                       "request_id": req["id"]})
         except Exception:  # noqa: BLE001
             pass
-        # Partner gets the same full-screen call-style RING as a new job (data-only
-        # message → background task → Notifee full-screen + brings app to front).
-        if other_role == "partner":
-            try:
-                from services import push_dispatch
-                await push_dispatch.push_to_user(
-                    target_id, "Reschedule request",
-                    f"{req['requester_name']} wants to move to {req.get('new_label') or ''}",
-                    link="/(partner)",
-                    data={"type": "reschedule_request", "booking_id": booking_id,
-                          "code": str(b.get("code") or ""), "service_name": str(b.get("service_name") or ""),
-                          "requester_name": str(req["requester_name"]),
-                          "new_date": str(req.get("new_date") or ""), "new_time": str(req.get("new_time") or ""),
-                          "old_date": str(req.get("old_date") or ""), "old_time": str(req.get("old_time") or ""),
-                          "android_channel": "azo-ring-silent-v1", "tag": f"resched-{booking_id}"},
-                    data_only=True)
-            except Exception:  # noqa: BLE001
-                pass
+        # BOTH the partner AND the customer get the same full-screen call-style RING
+        # (data-only message → background task → Notifee full-screen intent + brings the
+        # app to front). This is what makes the reschedule alert appear on the lock
+        # screen / with the app closed on EITHER app, exactly like an incoming job ring.
+        try:
+            from services import push_dispatch
+            await push_dispatch.push_to_user(
+                target_id, "Reschedule request",
+                f"{req['requester_name']} wants to move to {req.get('new_label') or ''}",
+                link=("/(partner)" if other_role == "partner" else "/account?tab=orders"),
+                data={"type": "reschedule_request", "booking_id": booking_id,
+                      "code": str(b.get("code") or ""), "service_name": str(b.get("service_name") or ""),
+                      "requester_name": str(req["requester_name"]), "requester_role": str(role),
+                      "new_date": str(req.get("new_date") or ""), "new_time": str(req.get("new_time") or ""),
+                      "old_date": str(req.get("old_date") or ""), "old_time": str(req.get("old_time") or ""),
+                      # title/body let the WEB service worker render a descriptive tray
+                      # notification for a data-only push (browser closed) too.
+                      "title": "Reschedule request",
+                      "body": f"{req['requester_name']} wants to move {b.get('service_name', 'your service')} to {req.get('new_label') or ''}".strip(),
+                      "android_channel": "azo-ring-silent-v1", "tag": f"resched-{booking_id}"},
+                data_only=True)
+        except Exception:  # noqa: BLE001
+            pass
     return await get_booking(user, booking_id)
 
 

@@ -1,8 +1,16 @@
-/** Expo push registration → POST /notifications/devices (same device registry the web/partner apps use). */
+/** Push registration for the Customer app.
+ *
+ * PRIMARY: a RAW FCM device token (needs the bundled google-services.json for
+ * package app.azoapp.customer) so the backend's data-only full-screen reschedule
+ * ring (push_dispatch → fcm_service) reaches the app when backgrounded / closed.
+ * FALLBACK: an Expo push token (ExponentPushToken) when the raw FCM token can't be
+ * minted yet — delivered as a best-effort tray notification via expo_push_service.
+ */
 import { Platform } from "react-native";
 import Constants from "expo-constants";
 import { api } from "../api/client";
 import { storage } from "../utils/storage";
+import { registerFcmDeviceToken } from "./notifications";
 
 let Notifications: any = null;
 try { Notifications = require("expo-notifications"); } catch { Notifications = null; } // eslint-disable-line @typescript-eslint/no-require-imports
@@ -13,12 +21,18 @@ async function deviceId() {
   return id;
 }
 
-/** Registers this device's Expo push token for the logged-in customer. Silent no-op on web / Expo Go (remote push unsupported). */
+/** Registers this device for push. Silent no-op on web / Expo Go. */
 export async function registerPushToken(): Promise<string | null> {
   if (Platform.OS === "web" || !Notifications) return null;
   try {
     const perm = await Notifications.getPermissionsAsync();
     if (perm.status !== "granted") return null;
+
+    // 1) Preferred: raw FCM device token (enables the killed-app full-screen ring).
+    const fcm = await registerFcmDeviceToken();
+    if (fcm.ok) return "fcm";
+
+    // 2) Fallback: Expo push token (best-effort tray alert while FCM isn't available).
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", { name: "Booking updates", importance: Notifications.AndroidImportance.MAX, sound: "default" });
     }

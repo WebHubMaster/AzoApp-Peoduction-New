@@ -251,9 +251,18 @@ def _derive_web_config(gs: dict, package_name: str = None) -> dict:
     }
 
 
-async def save_google_services(raw: str, package_name: str = None) -> dict:
-    """Validate + store google-services.json and auto-configure the web-push
-    config (integrations.fcm_web_config + individual fcm_* fields) from it."""
+# google-services.json is stored per APP so the admin can keep the Partner AND the
+# Customer Android configs on record independently. Partner keeps the original doc id
+# for backward-compat; the Customer app uses its own doc id.
+def _gs_doc_id(app: str = "partner") -> str:
+    return "google_services_customer" if (app or "partner").lower() == "customer" else "google_services"
+
+
+async def save_google_services(raw: str, package_name: str = None, app: str = "partner") -> dict:
+    """Validate + store google-services.json for the given app (partner|customer).
+    For the PARTNER app this also auto-configures the browser web-push config
+    (integrations.fcm_web_config + individual fcm_* fields). The Customer app upload
+    is kept on record only (it must not clobber the web panel's push config)."""
     txt = (raw or "").strip().lstrip("\ufeff")
     if not txt:
         raise HTTPException(400, "Empty google-services.json")
@@ -269,25 +278,28 @@ async def save_google_services(raw: str, package_name: str = None) -> dict:
     web_config = _derive_web_config(gs, package_name)
     ts = now_iso()
     await db.fcm_config.update_one(
-        {"_id": "google_services"},
-        {"$set": {"_id": "google_services", "raw": txt, "project_id": web_config["projectId"],
-                  "packages": packages, "web_config": web_config, "updated_at": ts}},
+        {"_id": _gs_doc_id(app)},
+        {"$set": {"_id": _gs_doc_id(app), "raw": txt, "project_id": web_config["projectId"],
+                  "packages": packages, "web_config": web_config, "app": (app or "partner").lower(),
+                  "updated_at": ts}},
         upsert=True)
-    # Persist into settings so browser web-push auto-configures out of the box.
-    try:
-        upd = {"integrations.fcm_web_config": web_config, "integrations.fcm_enabled": True}
-        for js_key, val in web_config.items():
-            flat = _FCM_FIELD_MAP.get(js_key)
-            if flat:
-                upd[f"integrations.{flat}"] = val
-        await db.settings.update_one({"id": "global"}, {"$set": upd}, upsert=True)
-    except Exception:  # noqa: BLE001
-        pass
+    # Persist into settings so browser web-push auto-configures out of the box — PARTNER
+    # only (the shared web panel's push config must not be overwritten by a customer upload).
+    if (app or "partner").lower() != "customer":
+        try:
+            upd = {"integrations.fcm_web_config": web_config, "integrations.fcm_enabled": True}
+            for js_key, val in web_config.items():
+                flat = _FCM_FIELD_MAP.get(js_key)
+                if flat:
+                    upd[f"integrations.{flat}"] = val
+            await db.settings.update_one({"id": "global"}, {"$set": upd}, upsert=True)
+        except Exception:  # noqa: BLE001
+            pass
     return {"ok": True, "project_id": web_config["projectId"], "packages": packages, "web_config": web_config}
 
 
-async def google_services_status() -> dict:
-    row = await db.fcm_config.find_one({"_id": "google_services"})
+async def google_services_status(app: str = "partner") -> dict:
+    row = await db.fcm_config.find_one({"_id": _gs_doc_id(app)})
     if not row:
         return {"configured": False}
     return {"configured": True, "project_id": row.get("project_id"),
@@ -391,8 +403,8 @@ async def android_registration_diagnostic(package_name: str = "app.azoapp.partne
     return out
 
 
-async def get_google_services_json() -> str:
-    row = await db.fcm_config.find_one({"_id": "google_services"})
+async def get_google_services_json(app: str = "partner") -> str:
+    row = await db.fcm_config.find_one({"_id": _gs_doc_id(app)})
     return row.get("raw") if row else None
 
 

@@ -14,7 +14,11 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "AzoApp uses speech recognition for voice search.",
-        "NSMicrophoneUsageDescription": "AzoApp uses the microphone for voice search."
+        "NSMicrophoneUsageDescription": "AzoApp uses the microphone for voice search.",
+        "UIBackgroundModes": [
+          "remote-notification",
+          "audio"
+        ]
       }
     },
     "android": {
@@ -27,8 +31,18 @@
         "VIBRATE",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "android.permission.RECORD_AUDIO",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK",
+        "USE_FULL_SCREEN_INTENT",
+        "SYSTEM_ALERT_WINDOW",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_DATA_SYNC",
+        "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+        "SCHEDULE_EXACT_ALARM"
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +53,33 @@
       "expo-secure-store",
       "expo-font",
       "expo-image",
-      "expo-notifications",
+      "expo-audio",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
+      "./plugins/withFirebaseBomPin.js",
+      "./plugins/withJobRingAndroid.js",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#1666D3",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "expo-asset",
       [
         "expo-location",
         {
@@ -62,7 +102,6 @@
           "imageWidth": 240
         }
       ],
-      "expo-speech-recognition",
       "expo-sharing"
     ],
     "experiments": {

@@ -99,21 +99,23 @@ async def fcm_download(admin=Depends(ADMIN)):
 
 
 # ---------------- google-services.json (Android client config) ----------------
+# `app` selects which app's config to manage: "partner" (default) or "customer".
 @router.get("/fcm-config/google-services")
-async def gs_status(admin=Depends(ADMIN)):
-    return await fcm_service.google_services_status()
+async def gs_status(app: str = "partner", admin=Depends(ADMIN)):
+    return await fcm_service.google_services_status(app)
 
 
 @router.put("/fcm-config/google-services")
-async def gs_save(body: dict, admin=Depends(ADMIN)):
+async def gs_save(body: dict, app: str = "partner", admin=Depends(ADMIN)):
     return await fcm_service.save_google_services(
-        body.get("google_services_json", ""), body.get("package_name"))
+        body.get("google_services_json", ""), body.get("package_name"),
+        app=body.get("app") or app)
 
 
 @router.get("/fcm-config/google-services/download")
-async def gs_download(admin=Depends(ADMIN)):
+async def gs_download(app: str = "partner", admin=Depends(ADMIN)):
     from fastapi import Response, HTTPException
-    js = await fcm_service.get_google_services_json()
+    js = await fcm_service.get_google_services_json(app)
     if not js:
         raise HTTPException(404, "No google-services.json uploaded")
     return Response(content=js, media_type="application/json",

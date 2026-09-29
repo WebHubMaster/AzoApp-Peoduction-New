@@ -6,6 +6,9 @@ import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-co
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
+import { setupAndroidChannels, requestNotificationPermission } from "../src/lib/notifications";
+import { RealtimeProvider } from "@/src/context/RealtimeContext";
+import { RescheduleAlertOverlay } from "@/src/components/customer/RescheduleAlertOverlay";
 import { useNavigate } from "../src/lib/navigate";
 setupNotificationHandler();
 import { useFonts } from "expo-font";
@@ -42,20 +45,27 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
 function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { data } = useSiteConfigQuery();
   useEffect(() => { if (fontsLoaded) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded]);
+  // Create the loud full-screen ring channels + ask for notification permission at
+  // app open so the reschedule alert can render on the very first event.
+  useEffect(() => { setupAndroidChannels().catch(() => {}); requestNotificationPermission().catch(() => {}); }, []);
   if (!fontsLoaded) return null;
   return (
     <ThemeProvider brandPrimary={data?.theme?.primary}>
       <BrandProvider value={data}>
         <AuthProvider><CartProvider>
-          <ToastProvider>
-            <PaymentWebViewHost />
-            <PushTapBridge /><KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(site)" />
-              <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
-              <Stack.Screen name="(customer)" />
-            </Stack></KeyboardAvoidingView>
-          </ToastProvider>
+          <RealtimeProvider>
+            <ToastProvider>
+              <PaymentWebViewHost />
+              <PushTapBridge />
+              <RescheduleAlertOverlay />
+              <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(site)" />
+                <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
+                <Stack.Screen name="(customer)" />
+              </Stack></KeyboardAvoidingView>
+            </ToastProvider>
+          </RealtimeProvider>
         </CartProvider></AuthProvider>
       </BrandProvider>
     </ThemeProvider>

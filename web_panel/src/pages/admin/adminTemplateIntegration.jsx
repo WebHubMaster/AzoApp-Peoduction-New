@@ -1531,12 +1531,39 @@ function FirebaseModal({ integ, onClose, onSaved }) {
   const [gsName, setGsName] = useState("");
   const [gsStatus, setGsStatus] = useState(null);
   const [gsDownloading, setGsDownloading] = useState(false);
+  // Customer app google-services.json (managed independently from the Partner app).
+  const [csGsJson, setCsGsJson] = useState("");
+  const [csGsName, setCsGsName] = useState("");
+  const [csGsStatus, setCsGsStatus] = useState(null);
+  const [csGsDownloading, setCsGsDownloading] = useState(false);
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
   useEffect(() => {
     api.get("/admin/partner-reg/fcm-config").then((r) => setSaStatus(r.data)).catch(() => {});
     api.get("/admin/partner-reg/fcm-config/google-services").then((r) => setGsStatus(r.data)).catch(() => {});
+    api.get("/admin/partner-reg/fcm-config/google-services?app=customer").then((r) => setCsGsStatus(r.data)).catch(() => {});
   }, []);
+  // Customer app google-services.json — kept on record only (no web-config autofill).
+  const onCsGsFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsGsName(file.name);
+    const r = new FileReader();
+    r.onload = () => setCsGsJson(String(r.result || ""));
+    r.readAsText(file);
+  };
+  const downloadCsGs = async () => {
+    setCsGsDownloading(true);
+    try {
+      const res = await api.get("/admin/partner-reg/fcm-config/google-services/download?app=customer", { responseType: "blob" });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/json" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = "google-services.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch { toast.error("Could not download the Customer google-services.json"); }
+    finally { setCsGsDownloading(false); }
+  };
   // Parse an uploaded google-services.json → auto-fill the web-push config fields.
   const onGsFile = (e) => {
     const file = e.target.files?.[0];
@@ -1640,6 +1667,17 @@ function FirebaseModal({ integ, onClose, onSaved }) {
           return;
         }
       }
+      if (csGsJson.trim()) {
+        try {
+          const { data } = await api.put("/admin/partner-reg/fcm-config/google-services?app=customer", { google_services_json: csGsJson, package_name: "app.azoapp.customer", app: "customer" });
+          toast.success(`Customer google-services.json saved: ${data.project_id || "ok"}`);
+          setCsGsStatus({ configured: true, project_id: data.project_id, packages: data.packages, updated_at: new Date().toISOString() });
+        } catch (err) {
+          const msg = err?.response?.data?.detail || err?.message || "Customer google-services.json invalid";
+          toast.error(msg, { duration: 6000 });
+          return;
+        }
+      }
       toast.success("Firebase settings saved"); onSaved();
     } catch { toast.error("Save failed"); } finally { setBusy(false); }
   };
@@ -1698,6 +1736,28 @@ function FirebaseModal({ integ, onClose, onSaved }) {
             <p className="text-[11px] text-slate-400 mt-1">This is the Firebase Android config (not the service account). The mobile app bundles it at build time; uploading here keeps it on record and auto-fills the web-push fields.</p>
           </L>
           {gsJson && <p className="text-[11px] text-blue-600 mt-1">New google-services.json loaded: {gsName} ({gsJson.length} chars).</p>}
+        </div>
+        <div className="mt-3">
+          <L label="Customer app google-services.json (app.azoapp.customer — kept on record for the Customer app)">
+            {csGsStatus && csGsStatus.configured && !csGsJson && (
+              <div data-testid="fb-cs-gs-existing" className="mb-2 flex items-center justify-between gap-3 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle2 className="h-5 w-5 text-indigo-600 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-indigo-800 truncate">Customer google-services.json uploaded</p>
+                    <p className="text-[11px] text-indigo-700/80 truncate">Project: {csGsStatus.project_id || "—"} · {(csGsStatus.packages || []).join(", ") || "—"}</p>
+                  </div>
+                </div>
+                <Button type="button" size="sm" variant="outline" data-testid="fb-cs-gs-download" onClick={downloadCsGs} disabled={csGsDownloading} className="shrink-0 border-indigo-300 text-indigo-700 hover:bg-indigo-100">
+                  {csGsDownloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Download className="h-4 w-4 mr-1" /> Download</>}
+                </Button>
+              </div>
+            )}
+            <input type="file" accept="application/json,.json" data-testid="fb-cs-gs-file" onChange={onCsGsFile}
+              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium" />
+            <p className="text-[11px] text-slate-400 mt-1">This is the Firebase Android config for the <b>Customer</b> app (package <code>app.azoapp.customer</code>). The Customer app bundles it at build time; uploading here keeps it on record and lets you download it for the build.</p>
+          </L>
+          {csGsJson && <p className="text-[11px] text-indigo-600 mt-1">New Customer google-services.json loaded: {csGsName} ({csGsJson.length} chars).</p>}
         </div>
         <div className="flex justify-end gap-2 pt-3">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
