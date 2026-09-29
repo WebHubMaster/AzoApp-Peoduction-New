@@ -56,6 +56,16 @@ async def partner_list(user=Depends(PARTNER)):
     return await c.partner_list(user)
 
 
+@router.get("/partner/ring-pending")
+async def partner_ring_pending(user=Depends(PARTNER)):
+    return await c.partner_ring_pending(user)
+
+
+@router.post("/{subscription_id}/accept")
+async def accept_subscription(subscription_id: str, user=Depends(PARTNER)):
+    return await c.accept_subscription(user, subscription_id)
+
+
 @router.get("/partner/daily-leaderboard")
 async def partner_daily_leaderboard(day: str = "", user=Depends(PARTNER)):
     from services import subscription_service as svc

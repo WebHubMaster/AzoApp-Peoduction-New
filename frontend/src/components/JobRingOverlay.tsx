@@ -144,8 +144,10 @@ export function JobRingOverlay() {
     // Smart Snooze: non-emergency requests are ignored entirely (never counted as missed).
     if (!force && isSnoozed() && job.schedule_type !== "emergency") return;
     const isTest = !!job.is_test || String(job.id).startsWith("test-");
-    setQueue((q) => (q.find((x) => x.id === job.id) ? q : [...q, { ...job, is_test: isTest, _manual: isTest || job._manual, _at: Date.now() }]));
-    if (isTest || job._resched) return;
+    const isSub = job.kind === "subscription" || !!job._sub;
+    setQueue((q) => (q.find((x) => x.id === job.id) ? q : [...q, { ...job, _sub: isSub, is_test: isTest, _manual: isTest || job._manual, _at: Date.now() }]));
+    // Subscriptions have no /seen endpoint and persist until accepted; skip the seen ping.
+    if (isTest || job._resched || isSub) return;
     api.post(`/bookings/${job.id}/seen`, {}).catch(() => {});
   }, []);
 
@@ -184,6 +186,10 @@ export function JobRingOverlay() {
           api.get<any[]>("/bookings/partner/reschedule-pending").catch(() => [] as any[]),
           api.get<any[]>("/bookings/partner/reminder-pending").catch(() => [] as any[]),
         ]);
+        const subs = await api.get<any[]>("/subscriptions/partner/ring-pending").catch(() => [] as any[]);
+        const subList = Array.isArray(subs) ? subs : [];
+        subList.forEach((s) => enqueue({ ...s, _sub: true }, true));
+        const liveSubs = new Set(subList.map((s) => s.id));
         const jobList = Array.isArray(jobs) ? jobs : [];
         const reList = Array.isArray(resched) ? resched : [];
         const rmList = Array.isArray(remind) ? remind : [];
@@ -193,7 +199,7 @@ export function JobRingOverlay() {
         const liveJobs = new Set(jobList.map((j) => j.id));
         const liveResched = new Set(reList.map((r) => String(r.booking_id)));
         const liveRemind = new Set(rmList.map((r) => String(r.booking_id)));
-        setQueue((q) => q.filter((j) => (j._reminder ? liveRemind.has(j.id) : j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
+        setQueue((q) => q.filter((j) => (j._sub ? liveSubs.has(j.id) : j._reminder ? liveRemind.has(j.id) : j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
       } catch { /* retry next tick */ }
     };
     check();
@@ -223,6 +229,14 @@ export function JobRingOverlay() {
     if (job.is_test) { finishTest(job, "accepted"); return; }
     setBusy(true);
     try {
+      if (job._sub || job.kind === "subscription") {
+        await api.post(`/subscriptions/${job.id}/accept`, {});
+        handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {});
+        toast.success(`Subscription accepted · ${job.service_name || ""}`);
+        refetch();
+        router.push("/(partner)/partner/subscriptions");
+        return;
+      }
       await api.post(`/bookings/${job.id}/accept`, {});
       handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {});
       toast.success(`Job accepted · ${job.service_name || ""}`);
@@ -237,6 +251,14 @@ export function JobRingOverlay() {
     if (!job || busy) return;
     if (job.is_test) { finishTest(job, "dismissed"); return; }
     setBusy(true);
+    // Subscriptions broadcast to everyone (no per-partner reject) — just dismiss locally
+    // so other maids can still accept.
+    if (job._sub || job.kind === "subscription") {
+      handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {});
+      toast.info(`Dismissed · ${job.service_name || ""}`);
+      setBusy(false);
+      return;
+    }
     try { await api.post(`/bookings/${job.id}/reject`, { reason: "" }); toast.info(`Request declined · ${job.service_name || ""}`); } catch { /* ignore */ }
     handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
     setBusy(false);

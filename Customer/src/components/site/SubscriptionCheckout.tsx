@@ -61,6 +61,7 @@ export function SubscriptionCheckout({ item }: { item: any }) {
       const order = await api.post<any>(`/subscriptions/${sub.id}/pay/order`);
       const ok = await openPreparedOrder(order, { purpose: "subscription", subscriptionId: sub.id, toast });
       if (ok) { clear(); setPlaced(true); }
+      else { toast.info("Payment was not completed. You can try again."); }
     } catch (e: any) {
       toast.error(e?.detail || e?.message || "Booking failed, please try again");
     } finally { setBusy(false); }

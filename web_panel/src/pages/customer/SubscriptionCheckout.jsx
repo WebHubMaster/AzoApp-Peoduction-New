@@ -67,6 +67,7 @@ export default function SubscriptionCheckout({ item }) {
           : api.post(`/subscriptions/${sub.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),
       });
       if (ok) { clear(); setPlaced({ code: sub.code || sub.id }); }
+      else { toast.info("Payment was not completed. You can try again."); }
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Booking failed, please try again");
     } finally { setBusy(false); }

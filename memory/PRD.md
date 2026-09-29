@@ -96,3 +96,18 @@ Admin web (compiles): Person360 "Reset Device" button (partner only) + confirm m
 - Customer service detail (Customer/app/(site)/service/[id].tsx): when `svc.is_subscription`, now renders a "Choose your plan" panel (Daily/Weekly/Monthly from `/subscriptions/plans/{id}`) with start date/time + address, a single **"Book Now"** button (NO "pay upfront" wording, NO green attendance note), and hides the normal add-to-booking card + sticky bar. Book → create `/subscriptions` then pay/mock (fallback pay/order) → go to subscriptions.
 - Added a "Need a Custom Service?" entry on every service detail → `/(customer)/custom_jobs?new=1`, which now auto-opens the existing custom-job wizard.
 - Verified: tsc + eslint clean; backend `svc-maid-fulltime` returns is_subscription + 3 plans. Native UI to be confirmed on an EAS build.
+
+## Feature — Subscription booked like a normal service + maid broadcast (2026-06)
+Goal (user, Hinglish): Maid subscription ka booking flow bilkul normal service jaisa; backend subscription hi rahe; payment ke baad us category ke SABHI eligible maids ko new-job ring jaaye (first-accept-wins), jaise normal booking me hota hai.
+
+Implemented:
+- Removed leftover "Pay upfront"/"upfront" wording from the DB service description (svc-maid-fulltime), seed_maid_subscription.py, and all My-Subscriptions cards (web + Customer app "Paid upfront" -> "Total"/"Amount paid").
+- WEB: subscription now flows through the normal cart + /book checkout.
+  - CartContext.addSubscription(svc, plan) -> single subscription cart line (booked alone; addService clears a sub line and vice-versa).
+  - Subscriptions.jsx SubscriptionPlansPanel: plan picker + "Book Now" -> addSubscription + navigate('/book') (removed the old inline date/time/address dialog).
+  - Checkout.jsx: if cart is a single subscription line -> renders new SubscriptionCheckout.jsx (plan summary, start date, preferred time, saved-address picker, Confirm & Pay -> POST /subscriptions -> /subscriptions/{id}/pay/order -> openCheckout -> verify/confirm). cart-quote effect skipped for subscription carts. Normal booking flow untouched. Verified 100% by testing agent (iteration_162).
+- CUSTOMER APP: mirrored — CartContext.addSubscription; service/[id].tsx SubscriptionPanel -> addSubscription + push('/(site)/book'); book.tsx renders src/components/site/SubscriptionCheckout.tsx; PaymentWebViewHost + payments.ts extended with purpose 'subscription' (verify -> /subscriptions/{id}/pay/verify, confirm -> /subscriptions/{id}/pay/confirm) + openPreparedOrder helper.
+- BACKEND (subscription_controller.py): on payment success (_activate) -> _broadcast_subscription(sub): rings EVERY eligible category/skill maid (SSE job_request + data-only FCM full-screen ring + in-app link), marks dispatch_status='searching', records offered_partner_ids. New endpoints: GET /subscriptions/partner/ring-pending, POST /subscriptions/{id}/accept (first-accept-wins, atomic; others get job_taken; customer gets 'Maid assigned'). Admin manual assign still works as fallback. Verified via script + HTTP (broadcast -> ring-pending -> accept -> others cleared).
+- PARTNER APP (JobRingOverlay.tsx): reuses the existing incoming-job ring for kind='subscription' rings — Accept -> /subscriptions/{id}/accept then routes to /(partner)/partner/subscriptions; Reject just dismisses locally; subscription ring-pending added to the 6s reliability poll.
+
+NOT verifiable in preview: native full-screen lock-screen rings (Notifee/@react-native-firebase) require an EAS build + uploaded google-services.json. Payment gateway is not configured in this env, so Confirm & Pay surfaces a graceful "gateway not configured" toast (no crash) — same as normal bookings.

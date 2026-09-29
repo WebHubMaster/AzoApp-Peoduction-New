@@ -12,6 +12,8 @@ from models.subscription import PLAN_DEFAULT_DURATION, DAY_STATUSES
 from services import money, payment_service, storage_service
 from services import subscription_service as svc
 from services import invoice_service as inv_svc
+from services import push_dispatch
+from services import realtime as rt
 from services.gateway_resolver import GatewayConfigError
 
 
@@ -217,7 +219,152 @@ async def _activate(sub):
         await _ensure_payment_invoice(sub)
     except Exception as e:
         print(f"[subscriptions] invoice generation failed for {sub.get('code')}: {e}")  # lazy retry via invoice endpoint
+    # NORMAL-BOOKING-STYLE DISPATCH: as soon as the customer pays, ring EVERY eligible
+    # maid of this category/skill. First maid to Accept gets the whole subscription
+    # (first-accept-wins). Admin can still assign manually as a fallback.
+    if not sub.get("partner_id"):
+        try:
+            await _broadcast_subscription(sub)
+        except Exception as e:  # noqa: BLE001
+            print(f"[subscriptions] broadcast failed for {sub.get('code')}: {e}")
     return sub
+
+
+async def _sub_brief(sub):
+    """Ring payload shaped like a booking job-request so the Partner app's existing
+    JobRingOverlay renders it unchanged (kind='subscription' routes Accept to the
+    subscription accept endpoint)."""
+    addr = sub.get("address") or {}
+    svcdoc = await db.services.find_one({"id": sub.get("service_id")}, {"_id": 0, "image": 1}) or {}
+    return {
+        "id": sub["id"], "kind": "subscription", "subscription_id": sub["id"],
+        "code": sub.get("code", ""),
+        "service_name": sub.get("service_name", ""),
+        "category_name": sub.get("category_name", ""),
+        "service_image": svcdoc.get("image", ""),
+        "city": addr.get("city", ""),
+        "address_line": addr.get("line") or addr.get("address_line") or "",
+        "total": str(sub.get("price") or ""),
+        "services_total": str(sub.get("price") or ""),
+        "partner_amount": str(sub.get("partner_allocation") or ""),
+        "is_scheduled": True,
+        "schedule_type": "schedule",
+        "scheduled_date": sub.get("start_date", ""),
+        "scheduled_time": sub.get("preferred_time", ""),
+        "plan_label": sub.get("plan_label", ""),
+    }
+
+
+async def _sub_eligible_ids(sub):
+    """All active, non-suspended maids whose skill matches the service (or all active
+    partners if the service has no required_skill), excluding anyone already busy in
+    this slot."""
+    rows = await db.users.find(
+        {"role": "partner", "status": "active", "suspended": {"$ne": True}},
+        {"_id": 0, "id": 1, "skills": 1}).to_list(1000)
+    busy = await svc.busy_partner_ids_for(sub)
+    skill = (sub.get("required_skill") or "").lower()
+    if not skill:
+        return [p["id"] for p in rows if p["id"] not in busy]
+    try:
+        from services.partner_sync import skill_alias_map, skill_matches
+        amap = await skill_alias_map()
+        return [p["id"] for p in rows if p["id"] not in busy and skill_matches(p.get("skills"), skill, amap)]
+    except Exception:  # noqa: BLE001
+        return [p["id"] for p in rows if p["id"] not in busy]
+
+
+async def _broadcast_subscription(sub):
+    """Ring every eligible maid (SSE job_request + data-only FCM full-screen ring +
+    in-app link). Marks the subscription 'searching' and records who was offered."""
+    import json as _json  # noqa: F401
+    pids = await _sub_eligible_ids(sub)
+    brief = await _sub_brief(sub)
+    await db.subscriptions.update_one(
+        {"id": sub["id"]},
+        {"$set": {"dispatch_status": "searching", "offered_partner_ids": pids,
+                  "dispatch_started_at": now_iso(), "updated_at": now_iso()}})
+    for pid in pids:
+        rt.emit_user(pid, "job_request", brief)
+        try:
+            await push_dispatch.push_to_user(
+                pid, "New subscription job",
+                f"{brief['service_name']} · {brief['plan_label']} · {brief['city'] or 'nearby'}",
+                link=f"/partner/subscriptions?job={sub['id']}",
+                data={"type": "job_request", "kind": "subscription", "subscription_id": sub["id"],
+                      "booking_id": sub["id"], "code": brief["code"],
+                      "service_name": brief["service_name"], "category_name": brief["category_name"],
+                      "city": brief["city"], "address_line": brief["address_line"],
+                      "total": brief["total"], "services_total": brief["services_total"],
+                      "partner_amount": brief["partner_amount"], "schedule_type": "schedule",
+                      "scheduled_date": brief["scheduled_date"], "scheduled_time": brief["scheduled_time"],
+                      "android_channel": "azo-job-ring-v3", "tag": f"sub-{sub['id']}",
+                      "image": brief["service_image"]},
+                image=brief["service_image"] or None, data_only=True)
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        rt.emit_admin("job_new", brief)
+    except Exception:  # noqa: BLE001
+        pass
+    return pids
+
+
+async def partner_ring_pending(user):
+    """Open subscription jobs this maid was offered and that are still unassigned —
+    powers the Partner app ring-recovery poll so the ring keeps showing until someone
+    accepts (or admin assigns)."""
+    rows = await db.subscriptions.find(
+        {"payment_status": "paid", "partner_id": None, "dispatch_status": "searching",
+         "offered_partner_ids": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(50)
+    return [await _sub_brief(r) for r in rows]
+
+
+async def accept_subscription(user, subscription_id):
+    """First-accept-wins: the first eligible maid to accept gets the whole subscription."""
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    if sub.get("payment_status") != "paid":
+        raise HTTPException(status_code=400, detail="This subscription is not available")
+    p = await db.users.find_one({"id": user["id"], "role": "partner"}, {"_id": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    res = await db.subscriptions.update_one(
+        {"id": subscription_id, "partner_id": None},
+        {"$set": {"partner_id": user["id"], "partner_name": p.get("name"),
+                  "partner_phone": p.get("phone"), "dispatch_status": "assigned", "updated_at": now_iso()},
+         "$push": {"timeline": {"status": "partner_assigned", "at": now_iso(), "partner_id": user["id"]}}})
+    if res.modified_count == 0:
+        raise HTTPException(status_code=409, detail="This subscription was already taken by another maid")
+    await svc.apply_accrual(subscription_id)
+    # Tell everyone else the job is gone so their ring stops.
+    for pid in (sub.get("offered_partner_ids") or []):
+        if pid == user["id"]:
+            continue
+        try:
+            rt.emit_user(pid, "job_taken", {"id": subscription_id})
+            await push_dispatch.push_to_user(
+                pid, "Subscription taken", "Another maid accepted this subscription.",
+                data={"type": "job_taken", "booking_id": subscription_id, "subscription_id": subscription_id},
+                data_only=True)
+        except Exception:  # noqa: BLE001
+            pass
+    # Notify the customer their maid is assigned.
+    try:
+        rt.emit_user(sub["customer_id"], "subscription_update", {"id": subscription_id})
+        await push_dispatch.push_to_user(
+            sub["customer_id"], "Maid assigned",
+            f"{p.get('name')} has been assigned to your {sub.get('service_name')} subscription {sub.get('code')}.",
+            link="/account?tab=subscriptions",
+            data={"type": "subscription_update", "subscription_id": subscription_id})
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        rt.emit_admin("subscription_update", {"id": subscription_id})
+    except Exception:  # noqa: BLE001
+        pass
+    return await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
 
 
 async def pay_verify(user, subscription_id, data):

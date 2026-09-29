@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend-only verification of the new WEB PANEL Maid-subscription booking UX that reuses the normal Booking cart + /book checkout. All 5 requested scenarios PASS. (1) On /service/svc-maid-fulltime the words 'upfront' / 'pay upfront' are gone; new description 'Book a verified maid on a recurring plan…' is present. (2) Plan picker renders sub-plan-daily/weekly/monthly + sub-subscribe-btn, and no inline sub-start-date / sub-time-input / subscription-checkout dialog exists on the service page (all counts = 0). (3) Selecting Weekly and clicking Book Now navigates to /book which renders <SubscriptionCheckout> (data-testid subscription-checkout) with plan summary 'Full-time Maid' + 'Weekly' + 'Total payable ₹2,200', sub-start-date, sub-time-input, saved sub-address-<id> for the customer's 'Home · 12 MG Road' address, and sub-confirm-pay-btn. (4) Clicking sub-confirm-pay-btn does NOT crash / blank the page — subscription-checkout stays rendered (count=1 after 15s of polling), which is the documented PASS condition for the un-configured payment gateway. (5) Normal non-subscription booking still works: cart cleared, opened Door Repair service, 'Book Now' added to cart, /book rendered the multi-step checkout with step-services=1, checkout-next=1, subscription-checkout=0.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Subscription Confirm & Pay", "issue": "No visible sonner toast was captured after clicking sub-confirm-pay-btn in the un-configured Razorpay TEST env. Page does NOT crash (subscription-checkout still rendered), which meets the PASS criteria in the review request, but the graceful error toast ('Razorpay TEST MODE… not fully configured' / 'Payment gateway is not configured') was not observed via DOM MutationObserver over 15s. Likely either the toast is auto-dismissed very quickly OR openCheckout() resolves falsy without surfacing a user-facing toast. Minor UX gap — main agent may want to ensure a toast is always fired when openCheckout returns falsy so the user sees why nothing happened.", "affected_selectors": ["[data-testid=sub-confirm-pay-btn]", "[data-sonner-toast]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "OPTIONAL/LOW: In SubscriptionCheckout.placeOrder, if openCheckout() returns falsy (payment cancelled / gateway not configured), surface a toast.info/toast.error so the user isn't left staring at the button — currently the page stays rendered (good, no crash) but silently."
+  ],
+  "critical_code_review_comments": [
+    "SubscriptionCheckout.jsx is clean and well-scoped (~170 lines). Good separation from the normal MultiStep checkout via Checkout.jsx early-return.",
+    "SubscriptionPlansPanel.book() correctly calls addSubscription(svc, plan) then navigate('/book'). CartContext.addService reciprocally clears any subscription line, so cart-mixing is prevented — verified in practice (cleared cart + Door Repair → step-services renders, not subscription-checkout).",
+    "Minor: consider showing a toast when openCheckout resolves falsy, otherwise the Confirm & Pay silent no-op looks like a dead button."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (5/5 review scenarios pass)"},
+  "test_credentials": "Customer phone +919000000004, OTP 123456. Login via /login → fill mobile → [data-testid=send-otp-button] → type 123456 into the 6 [maxlength=1] OTP inputs → [data-testid=verify-otp-button]. Token in localStorage 'azo_token'.",
+  "seed_data_creation": "Added 1 saved address for +919000000004 via POST /api/auth/addresses (label 'Home', line '123 Test St, Sector 5', Delhi 110001, default) to enable the sub-address-<id> selector during T3/T4.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web panel Maid subscription flow now goes: /service/svc-maid-fulltime → plan picker (sub-plan-daily/weekly/monthly) → sub-subscribe-btn → /book → <SubscriptionCheckout> (data-testid=subscription-checkout) with sub-start-date, sub-time-input, sub-address-<id>, sub-confirm-pay-btn, sub-checkout-back. Normal services still hit the multi-step checkout (step-services / checkout-next). Payment gateway is intentionally unconfigured — Confirm & Pay must not crash. OTP boxes are 6 separate input[maxlength=1] fields — type '123456' into the first with keyboard.type so auto-advance handles it (do NOT fill each box separately; auto-advance causes digit shifting).",
+  "rca of the issue": "n/a — feature verification, no bug found."
+}
