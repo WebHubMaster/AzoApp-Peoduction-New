@@ -1,0 +1,48 @@
+{
+  "summary": "Reproduced the Person360 (People profile) crash caught by the app-level ErrorBoundary. Exact RCA obtained from browser console. Bug affects ALL role profiles (partner, customer, merchant) — NOT only partners as the main agent suspected — because the crashing JSX is inside the shared PersonActions component rendered for every role.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PersonActions (web_panel/src/pages/admin/people/Person360.jsx)",
+        "issue": "Renders ErrorBoundary fallback on ANY person profile open. TypeError: Cannot read properties of null (reading 'toUpperCase'). The Email/Push templates <Modal> at lines 898-935 is NOT wrapped in a conditional (unlike the sibling modals for edit/suspend/reset-device/purge/delete). So it renders on the initial mount when `modal` state is still `null` (useState(null) at line 649). Inside that always-mounted Modal, line 934 executes `{modal.toUpperCase()}` and line 898/900/901/907/929/934 all reference `modal` assuming it is 'email' or 'push'. The very first crash point is line 934 — `null.toUpperCase()`.",
+        "selector": "[data-testid=\"person-actions\"]",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Wrap the email/push template <Modal> in Person360.jsx (lines 898-935) with a conditional: `{(modal === 'email' || modal === 'push') && ( ... )}`. The closing `)}` on line 935 already assumes such a wrapper exists — it was clearly dropped in a recent edit. This single change fixes partner AND customer AND merchant profile crashes.",
+    "After fix, retest opening a partner, a customer and a merchant profile — Overview tab should render with the PersonActions toolbar (Edit / Suspend / Reset Device / Email / Push / Delete) visible and functional, no ErrorBoundary."
+  ],
+  "critical_code_review_comments": [
+    "Person360.jsx line 898: <Modal ...> for Email/Push is rendered unconditionally. Sibling modals (purge/delete/edit/suspend/reset-device) are all wrapped in `{modal === '...' && ( ... )}`. This one lost its wrapper — the trailing `)}` on line 935 is orphaned.",
+    "Person360.jsx is 1141 lines — should be split into smaller focused modules (PersonActions, modals, tabs) per code-review guidelines (>700 lines).",
+    "Defensive coding: even inside a proper conditional, prefer `(modal || '').toUpperCase()` to survive future refactors."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "RCA complete"},
+  "seed_data_creation": "None. Used existing demo seed via 'Login as Admin' one-click on /login.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "After main agent wraps lines 898-935 with `{(modal === 'email' || modal === 'push') && ( ... )}`, retest by (1) /login -> click [data-testid=demo-admin] -> [data-testid=navgroup-partners] -> [data-testid=nav-partners] -> click first Partner row -> confirm Overview renders with [data-testid=person-actions] visible and no 'Something went wrong' card. (2) Repeat for a customer (navgroup-customers -> nav-customers -> first row) and merchant (nav-merchants -> first row). All three should render cleanly. Backend /admin/people/{role}/{uid}/overview already returns 200 — no backend changes required.",
+  "rca of the issue": {
+    "exact_error": "TypeError: Cannot read properties of null (reading 'toUpperCase')",
+    "component_stack": "at PersonActions (Person360.jsx) -> Person360 -> AdminDashboard -> ErrorBoundary",
+    "throw_site": "web_panel/src/pages/admin/people/Person360.jsx line 934: `<p className=\"text-[11px] text-slate-400\">If the {modal.toUpperCase()} gateway is not configured in the Integration Center, it is delivered as an in-app notification.</p>`",
+    "root_cause": "The Email/Push template <Modal> block (lines 898-935) is missing its conditional wrapper. Sibling modals in the same component are gated with `{modal === 'edit' && ( ... )}`, `{modal === 'suspend' && ( ... )}`, etc. — but this one was left ungated. So on the very first render, when useState(null) makes `modal === null`, the Modal is mounted anyway and its body evaluates `modal.toUpperCase()` on null, throwing synchronously during render. React unmounts the whole Person360 subtree and the app-level ErrorBoundary shows 'Something went wrong'.",
+    "scope": "Affects ALL person profile views (partner, customer, merchant) — confirmed by reproducing on both a partner (Raj Kumar) and a customer row. The main agent's hypothesis that only partners crash is INCORRECT; the recently-added device-info/device-history blocks (lines 748-787) are NOT the cause — they are properly gated with `{role === 'partner' && ...}` and did not throw.",
+    "reproduction_steps": [
+      "1. Open https://01691b26-836c-47ff-a409-a1e5b37a0910.preview.emergentagent.com/login",
+      "2. Click [data-testid=demo-admin] (one-click 'Login as Admin')",
+      "3. In sidebar, expand [data-testid=navgroup-partners] then click [data-testid=nav-partners]",
+      "4. Click any partner row (e.g. Raj Kumar)",
+      "5. Full-page 'Something went wrong' ErrorBoundary card appears within ~500ms; console shows the TypeError above.",
+      "6. Same crash reproduces for customers: navgroup-customers -> nav-customers -> click any row."
+    ],
+    "fix": "In web_panel/src/pages/admin/people/Person360.jsx, wrap lines 898-935 with `{(modal === 'email' || modal === 'push') && (` opening after line 896 blank line and keep the existing `)}` at end of line 935. That single change resolves the crash for all three roles."
+  }
+}

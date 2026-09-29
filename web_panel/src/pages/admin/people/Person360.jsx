@@ -895,6 +895,7 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
           </div>
         </Modal>)}
 
+      {(modal === "email" || modal === "push") && (
         <Modal title={`Send ${modal === "email" ? "Email" : "Push"} · choose a template`} icon={modal === "email" ? Mail : BellRing} onClose={() => setModal(null)}
           footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
             <button onClick={doSendTpl} disabled={busy || !sel} data-testid="message-send" className="h-10 px-5 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send {modal === "email" ? "Email" : "Push"}</button></>}>
