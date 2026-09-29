@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, Pressable } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useAuth } from "@/src/context/AuthContext";
+import { Icon } from "@/src/components/Icon";
 import { useBrand } from "@/src/context/BrandContext";
 import { AUTH, FS, AuthHeader, LOGIN_ACCENT, NeedHelpLink, SafeSecureCard } from "@/src/components/auth/AuthUi";
 import { OtpFlow, homeFor, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
@@ -16,7 +17,7 @@ export default function Login() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const brand = useBrand();
-  const { user, loading, booting } = useAuth();
+  const { user, loading, booting, sessionEndedReason, clearSessionEndedReason } = useAuth();
   const [routing, setRouting] = useState(false);
   const [step, setStep] = useState<Step>("phone");
   const [heroH, setHeroH] = useState(160);
@@ -44,6 +45,15 @@ export default function Login() {
         </View>
 
         <View style={{ paddingHorizontal: 16, gap: 12 }}>
+          {sessionEndedReason === "device_revoked" ? (
+            <View testID="session-ended-banner" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA", borderRadius: 14, padding: 12 }}>
+              <Icon name="cellphone-lock" size={20} color="#E11D48" />
+              <Text style={{ color: "#9F1239", fontSize: 13, flex: 1, lineHeight: 19 }}>
+                You were logged out because this account was opened on another device. Log in again to use it on this device.
+              </Text>
+              <Pressable testID="session-ended-dismiss" onPress={clearSessionEndedReason} hitSlop={8}><Icon name="close" size={18} color="#9F1239" /></Pressable>
+            </View>
+          ) : null}
           <View testID="login-card" style={{ backgroundColor: "#fff", borderRadius: 22, padding: 18, borderWidth: 1, borderColor: "#E8EEF7", boxShadow: AUTH.card }}>
             <OtpFlow mode="login" accent={LOGIN_ACCENT} onStepChange={setStep} onRouting={setRouting} onNewUser={() => router.replace("/(auth)/register" as any)} />
           </View>

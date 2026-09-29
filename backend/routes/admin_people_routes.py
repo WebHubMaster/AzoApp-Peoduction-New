@@ -102,6 +102,12 @@ async def person_suspend(role: str, uid: str, data: dict, admin=Depends(ADMIN)):
                                   d.get("reason", ""), d.get("days", 0))
 
 
+@router.post("/{role}/{uid}/reset-device")
+async def person_reset_device(role: str, uid: str, admin=Depends(ADMIN)):
+    """Clear a partner's single-device lock so they can log in and register a new device."""
+    return await ps.reset_device(admin, role, uid)
+
+
 @router.post("/{role}/{uid}/delete")
 async def person_delete(role: str, uid: str, data: dict = None, admin=Depends(ADMIN)):
     """Soft-delete a customer/partner/merchant (recoverable 30 days). Body: {reason?}."""

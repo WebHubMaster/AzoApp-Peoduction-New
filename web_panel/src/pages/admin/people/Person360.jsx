@@ -4,7 +4,7 @@ import PremiumSelect from "@/components/ui/PremiumSelect";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import api from "@/lib/api";
 import { toast } from "sonner";
-import { ArrowLeft, Bell, CheckCheck, Wallet, ShoppingBag, IndianRupee, RotateCcw, MapPin, Gift, Award, Activity, History, FileText, ScrollText, Landmark, Star, Wrench, Users, Network, CreditCard, Package, Sparkles, Phone, Mail, Calendar, ShieldCheck, Store, User, TrendingUp, ArrowDownToLine, Receipt, CheckCircle2, XCircle, ShieldAlert, Loader2, Pencil, Ban, MessageSquare, BellRing, Navigation, Crown, Send, FileWarning, ArrowRight, Eye, Lock, ChevronDown, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, CheckCheck, Wallet, ShoppingBag, IndianRupee, RotateCcw, MapPin, Gift, Award, Activity, History, FileText, ScrollText, Landmark, Star, Wrench, Users, Network, CreditCard, Package, Sparkles, Phone, Mail, Calendar, ShieldCheck, Store, User, TrendingUp, ArrowDownToLine, Receipt, CheckCircle2, XCircle, ShieldAlert, Loader2, Pencil, Ban, MessageSquare, BellRing, Navigation, Crown, Send, FileWarning, ArrowRight, Eye, Lock, ChevronDown, Trash2, Smartphone } from "lucide-react";
 import RangeCalendar from "./RangeCalendar";
 import { usePaged, invalidatePaged, useDebounce, Card, KpiCard, DataGrid, Pager, Tabs, Drawer, SearchBox, Select, Btn, Pill, TierPill, Progress, Avatar, KV, Empty, ErrorState, Skeleton, money, Money, Num, dt, rel, useIsMobile } from "./ui";
 import { StatValue } from "@/components/ExactHover";
@@ -704,6 +704,7 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
     toast.success(`Updated ${(r.data?.updated || []).join(", ") || "profile"}`);
   });
   const doSuspend = () => call(async () => { await api.post(`/admin/people/${role}/${uid}/suspend`, { suspend: !suspended, reason: form.reason, days: Number(form.days) || 0 }); toast.success(suspended ? "Reinstated" : "Suspended"); });
+  const doResetDevice = () => call(async () => { await api.post(`/admin/people/${role}/${uid}/reset-device`); toast.success("Device reset — the partner can now log in on a new device"); });
   const doRestore = async () => {
     setBusy(true);
     try {
@@ -744,6 +745,10 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
       <ActionBtn icon={Pencil} label="Edit" onClick={() => open("edit")} />
       <ActionBtn icon={Ban} label={suspended ? "Unsuspend" : "Suspend"} onClick={() => open("suspend")}
         tone={suspended ? "bg-emerald-600 text-white ring-emerald-600 hover:bg-emerald-700" : "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 ring-rose-200 dark:ring-rose-800 hover:ring-rose-300"} />
+      {role === "partner" && (
+        <ActionBtn icon={Smartphone} label="Reset Device" onClick={() => setModal("reset-device")}
+          tone="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-indigo-200 dark:ring-indigo-800 hover:ring-indigo-300" />
+      )}
       <ActionBtn icon={Mail} label="Email" onClick={() => open("email")} />
       <ActionBtn icon={BellRing} label="Push" onClick={() => open("push")} />
       {u.deleted
@@ -844,7 +849,16 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
             </>}
         </Modal>)}
 
-      {(modal === "email" || modal === "push") && (
+      {modal === "reset-device" && (
+        <Modal title="Reset device lock" icon={Smartphone} onClose={() => setModal(null)}
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doResetDevice} disabled={busy} data-testid="reset-device-confirm" className="h-10 px-5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Reset device</button></>}>
+          <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-200 dark:ring-indigo-800 p-3 flex gap-2.5">
+            <Smartphone className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-indigo-700 dark:text-indigo-300">This clears the single-device lock for <b>{u.name || "this partner"}</b> ({u.phone}). They can then log in on <b>any new device</b>, which becomes their registered device — the old device is logged out automatically.</p>
+          </div>
+        </Modal>)}
+
         <Modal title={`Send ${modal === "email" ? "Email" : "Push"} · choose a template`} icon={modal === "email" ? Mail : BellRing} onClose={() => setModal(null)}
           footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
             <button onClick={doSendTpl} disabled={busy || !sel} data-testid="message-send" className="h-10 px-5 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send {modal === "email" ? "Email" : "Push"}</button></>}>

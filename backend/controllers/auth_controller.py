@@ -111,9 +111,15 @@ async def send_otp(phone):
     return await auth_service.send_otp(phone)
 
 
-async def verify_otp(phone, otp, name=None, create_if_new=True, role=None):
-    res = await auth_service.verify_otp(phone, otp, name, create_if_new, role)
+async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, device_id=None):
+    res = await auth_service.verify_otp(phone, otp, name, create_if_new, role, device_id)
     if not res["ok"]:
+        if res.get("reason") == "device_mismatch":
+            # Single-device lock: this partner is bound to a different device. The app
+            # detects the `code` and shows the blocking screen + Support button.
+            raise HTTPException(status_code=403, detail={
+                "code": "device_mismatch",
+                "message": "This account is registered on another device. Please contact Support for help."})
         if res.get("reason") == "role_mismatch":
             raise HTTPException(status_code=400, detail=f"This number is already registered as {res.get('existing_role')}. Please login instead.")
         if res.get("reason") == "demo_disabled":
@@ -143,7 +149,7 @@ async def verify_otp(phone, otp, name=None, create_if_new=True, role=None):
     if res.get("new_user"):
         return {"new_user": True}
     user = res["user"]
-    token = create_token(user["id"], user["role"])
+    token = create_token(user["id"], user["role"], did=device_id)
     if user.get("role") in ("admin", "staff"):
         from services.rbac_service import enrich_user
         user = await enrich_user(user)

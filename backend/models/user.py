@@ -20,6 +20,7 @@ class VerifyOTPRequest(BaseModel):
     name: Optional[str] = None
     create_if_new: bool = True
     role: Optional[str] = None
+    device_id: Optional[str] = None
 
 
 class RegisterProviderRequest(BaseModel):

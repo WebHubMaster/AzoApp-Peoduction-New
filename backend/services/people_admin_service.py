@@ -881,6 +881,28 @@ async def set_suspended(admin: dict, role: str, uid: str, suspend: bool, reason:
     return {"ok": True, "suspended": suspend}
 
 
+async def reset_device(admin: dict, role: str, uid: str):
+    """Clear the partner's single-device binding so they can log in on a fresh device
+    (and re-lock it to that new device). Also invalidates the old device's session."""
+    u = await _user(role, uid)
+    aid = admin.get("id"); aname = admin.get("name") or "Admin"
+    await db.users.update_one({"id": uid}, {"$unset": {"registered_device_id": "", "device_registered_at": ""}})
+    try:
+        from services import activity_service
+        await activity_service.log("admin", aid, aname, f"{role}.device_reset",
+                                   f"{u.get('name') or ''} device lock reset — can now log in on a new device",
+                                   target_id=uid, target_role=role)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from services.notification_service import notify
+        await notify(uid, "Device reset",
+                     "Your device lock has been reset by support. You can now log in on a new device.", link="/")
+    except Exception:  # noqa: BLE001
+        pass
+    return {"ok": True, "reset": True}
+
+
 async def message_person(admin: dict, role: str, uid: str, data: dict):
     """Send an Email / Push message to a person — either free-text or from a
     Template Manager template (with dynamic variables filled in)."""

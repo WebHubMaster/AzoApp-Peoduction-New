@@ -8,6 +8,7 @@ import { useAuth, AppUser } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { AUTH, FS, Accent } from "./AuthUi";
 import { LegalConsent } from "./LegalConsent";
+import { DeviceLockedModal } from "./DeviceLockedModal";
 
 export type Role = "partner" | "merchant";
 export type Step = "phone" | "otp" | "name";
@@ -48,8 +49,16 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   const [busy, setBusy] = useState("");
   const [resendIn, setResendIn] = useState(0);
   const [accepted, setAccepted] = useState(false);
+  const [deviceBlocked, setDeviceBlocked] = useState(false);
   const otpRef = useRef<TextInput>(null);
   const setStep = (s: Step) => { setStepRaw(s); onStepChange?.(s); };
+
+  // Single-device lock: a partner logging in from a non-registered device is blocked —
+  // show the full-screen notice with a Support button instead of a toast.
+  const handleAuthError = (e: any, fallback: string) => {
+    if (e?.code === "device_mismatch") { setDeviceBlocked(true); return; }
+    toast.error(e?.detail || fallback);
+  };
 
   useEffect(() => {
     if (resendIn <= 0) return;
@@ -90,7 +99,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
         setBusy(""); return;
       }
       await finish(data, mode === "register" ? `Account already exists — welcome back, ${data.user?.name || ""}!` : undefined);
-    } catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
+    } catch (e: any) { handleAuthError(e, "Invalid OTP"); }
     setBusy("");
   };
 
@@ -101,7 +110,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
     try {
       const data = await api.post<any>("/auth/verify-otp", { phone: `+91${phone.trim()}`, otp: otp.trim(), name: name.trim(), create_if_new: true, role }, { auth: false });
       await finish(data, `Welcome, ${data.user?.name || name}!`);
-    } catch (e: any) { toast.error(e?.detail || "Could not complete registration"); }
+    } catch (e: any) { handleAuthError(e, "Could not complete registration"); }
     setBusy("");
   };
 
@@ -135,6 +144,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   if (step === "otp") {
     return (
       <View testID="otp-step-otp" style={{ gap: 14 }}>
+        <DeviceLockedModal visible={deviceBlocked} onClose={() => { setDeviceBlocked(false); setStep("phone"); setOtp(""); }} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <Icon name="message-text-lock-outline" size={22} color={AUTH.ink} />
           <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Verify OTP</Text>
@@ -166,6 +176,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
 
   return (
     <View testID="otp-step-name" style={{ gap: 14 }}>
+      <DeviceLockedModal visible={deviceBlocked} onClose={() => { setDeviceBlocked(false); setStep("phone"); setOtp(""); }} />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: ac.border }}>
         <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={20} color="#fff" /></View>
         <Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700", flex: 1 }}>Mobile verified · creating your {cap(role || "")} account</Text>

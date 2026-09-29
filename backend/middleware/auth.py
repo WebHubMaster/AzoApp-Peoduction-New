@@ -10,8 +10,11 @@ SECRET = os.environ.get("JWT_SECRET", "dev-secret")
 ALGO = "HS256"
 
 
-def create_token(uid: str, role: str) -> str:
-    return jwt.encode({"uid": uid, "role": role}, SECRET, algorithm=ALGO)
+def create_token(uid: str, role: str, did: str = None) -> str:
+    payload = {"uid": uid, "role": role}
+    if did:
+        payload["did"] = did  # bound device id — enables single-device enforcement
+    return jwt.encode(payload, SECRET, algorithm=ALGO)
 
 
 async def user_from_token(token: str):
@@ -36,6 +39,14 @@ async def get_current_user(authorization: str = Header(None)) -> dict:
     user = await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    # Single-device lock (Partner): the token's bound device must still match the
+    # partner's registered device. When a NEW device logs in it rebinds, so the old
+    # device's token no longer matches → it is auto-logged-out on its next request.
+    if user.get("role") == "partner" and user.get("registered_device_id"):
+        if data.get("did") != user.get("registered_device_id"):
+            raise HTTPException(status_code=401, detail={
+                "code": "device_revoked",
+                "message": "You've been logged out because this account was opened on another device."})
     return user
 
 

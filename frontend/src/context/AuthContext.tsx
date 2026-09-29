@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
-import { api, getToken, setToken } from "@/src/api/client";
+import { api, getToken, setToken, setForceLogoutHandler } from "@/src/api/client";
 
 export interface AppUser {
   id: string;
@@ -34,6 +34,8 @@ interface AuthCtx {
   logout: () => Promise<void>;
   refresh: () => Promise<AppUser | null>;
   setUser: (u: AppUser | null) => void;
+  sessionEndedReason: string | null;
+  clearSessionEndedReason: () => void;
 }
 
 const Ctx = createContext<AuthCtx | null>(null);
@@ -42,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [booting, setBooting] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [sessionEndedReason, setSessionEndedReason] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     const t = await getToken();
@@ -70,8 +73,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     })();
   }, [refresh]);
 
+  // Single-device lock: the API layer calls this when the backend revokes this
+  // device's session (a new device registered). Drop to login with a clear reason.
+  useEffect(() => {
+    setForceLogoutHandler((reason) => {
+      setSessionEndedReason(reason || "device_revoked");
+      setUser(null);
+    });
+    return () => setForceLogoutHandler(null);
+  }, []);
+
   const login = useCallback(async (token: string, u: AppUser) => {
     setLoading(true);
+    setSessionEndedReason(null);
     await setToken(token);
     setUser(u);
     setLoading(false);
@@ -82,8 +96,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   }, []);
 
+  const clearSessionEndedReason = useCallback(() => setSessionEndedReason(null), []);
+
   return (
-    <Ctx.Provider value={{ user, loading, booting, login, logout, refresh, setUser }}>
+    <Ctx.Provider value={{ user, loading, booting, login, logout, refresh, setUser, sessionEndedReason, clearSessionEndedReason }}>
       {children}
     </Ctx.Provider>
   );

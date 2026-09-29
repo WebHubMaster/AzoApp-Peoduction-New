@@ -4,6 +4,7 @@
  * Base URL comes from EXPO_PUBLIC_BACKEND_URL; the ingress routes /api → backend.
  */
 import { secureStorage } from "@/src/utils/storage";
+import { getDeviceUid } from "@/src/lib/deviceId";
 
 const RAW = process.env.EXPO_PUBLIC_BACKEND_URL || "https://api.webhubmaster.shop";
 export const API_BASE = `${RAW.replace(/\/+$/, "")}/api`;
@@ -34,11 +35,21 @@ export function mediaUrl(u?: string | null): string | undefined {
 export class ApiError extends Error {
   status: number;
   detail: string;
-  constructor(status: number, detail: string) {
+  code: string;
+  constructor(status: number, detail: string, code = "") {
     super(detail);
     this.status = status;
     this.detail = detail;
+    this.code = code;
   }
+}
+
+// When the backend force-logs-out this device (single-device lock: another device
+// registered), the API layer clears the token and notifies AuthContext so the app
+// drops to the login screen with a "session ended" banner.
+let _onForceLogout: ((reason: string) => void) | null = null;
+export function setForceLogoutHandler(fn: ((reason: string) => void) | null) {
+  _onForceLogout = fn;
 }
 
 let _memoryToken: string | null = null;
@@ -69,6 +80,12 @@ async function request<T = any>(path: string, opts: RequestOpts = {}): Promise<T
     const t = await getToken();
     if (t) headers.Authorization = `Bearer ${t}`;
   }
+  // Single-device login: every OTP verification carries this device's stable id so the
+  // backend can register / enforce the bound device.
+  let finalBody = body;
+  if (method === "POST" && path === "/auth/verify-otp") {
+    finalBody = { ...(body || {}), device_id: (body && body.device_id) || (await getDeviceUid()) };
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;
@@ -76,7 +93,7 @@ async function request<T = any>(path: string, opts: RequestOpts = {}): Promise<T
     res = await fetch(`${API_BASE}${path}`, {
       method,
       headers,
-      body: body != null ? JSON.stringify(body) : undefined,
+      body: finalBody != null ? JSON.stringify(finalBody) : undefined,
       signal: controller.signal,
     });
   } catch (e: any) {
@@ -94,11 +111,24 @@ async function request<T = any>(path: string, opts: RequestOpts = {}): Promise<T
   }
   if (!res.ok) {
     const raw = data && (data.detail ?? data.message);
-    // FastAPI 422 returns an array of {msg} objects — flatten to a readable string.
-    const detail = typeof raw === "string" ? raw
-      : Array.isArray(raw) ? raw.map((e: any) => (e && typeof e.msg === "string" ? e.msg : "")).filter(Boolean).join(" ")
-      : raw && typeof raw.msg === "string" ? raw.msg : "";
-    throw new ApiError(res.status, detail || (res.status >= 500 ? "Something went wrong. Please try again shortly." : "Request failed"));
+    let code = "";
+    let detail = "";
+    if (raw && typeof raw === "object" && !Array.isArray(raw) && (raw.code || raw.message)) {
+      // Structured error, e.g. { code: "device_mismatch", message: "..." }.
+      code = typeof raw.code === "string" ? raw.code : "";
+      detail = typeof raw.message === "string" ? raw.message : "";
+    } else {
+      // FastAPI 422 returns an array of {msg} objects — flatten to a readable string.
+      detail = typeof raw === "string" ? raw
+        : Array.isArray(raw) ? raw.map((e: any) => (e && typeof e.msg === "string" ? e.msg : "")).filter(Boolean).join(" ")
+        : raw && typeof raw.msg === "string" ? raw.msg : "";
+    }
+    // Auto-logout: this device's session was revoked because a new device registered.
+    if (res.status === 401 && code === "device_revoked") {
+      await setToken(null);
+      try { _onForceLogout?.("device_revoked"); } catch { /* ignore */ }
+    }
+    throw new ApiError(res.status, detail || (res.status >= 500 ? "Something went wrong. Please try again shortly." : "Request failed"), code);
   }
   return data as T;
 }

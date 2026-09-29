@@ -89,7 +89,7 @@ async def send_otp(phone: str) -> dict:
     return {"sent": True, "dev_otp": otp, "message": "OTP sent (dev mode · use 123456 until SMS is configured)"}
 
 
-async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool = True, role: str = None) -> dict:
+async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool = True, role: str = None, device_id: str = None) -> dict:
     settings = await get_settings()
     user = await db.users.find_one({"phone": phone}, {"_id": 0})
 
@@ -160,6 +160,21 @@ async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool
             # A guest-created account is now a real, verified customer.
             await db.users.update_one({"id": user["id"]}, {"$set": {"is_guest": False}})
             user["is_guest"] = False
+
+    # ---- Single-device login (Partner only) ----
+    # A partner may stay logged in on exactly ONE device. The first login (new account
+    # OR the first login after an admin "Reset Device") binds this device. A later login
+    # from any OTHER device is blocked. Binding a NEW device (post-reset) automatically
+    # invalidates the old device's session (see middleware.get_current_user).
+    if user.get("role") == "partner" and device_id:
+        reg = user.get("registered_device_id")
+        if not reg:
+            await db.users.update_one({"id": user["id"]}, {"$set": {
+                "registered_device_id": device_id, "device_registered_at": now_iso()}})
+            user["registered_device_id"] = device_id
+        elif reg != device_id:
+            return {"ok": False, "reason": "device_mismatch"}
+
     await db.otps.delete_one({"phone": phone})
     try:
         await db.users.update_one({"id": user["id"]}, {"$set": {"last_login_at": now_iso()}})
