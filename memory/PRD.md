@@ -78,3 +78,11 @@ https://reg-payment-redesign.preview.emergentagent.com
 - Backend `/api/legal/{doc}` tested live on local backend (dynamic CMS + default fallback both pass).
 - Created a local `backend/.env` (MONGO_URL/DB_NAME) — env files were absent in the workspace; needed to run/verify the backend.
 - Legal fallback text remains as a default ONLY; admin CMS content always overrides it.
+
+---
+
+## Session — June 2026 · Homepage Builder video sections (Website CMS)
+- `web_panel` HomepageBuilder (adminSectionsPro.jsx): added **"video"** section type. Config supports a pasted **Video URL** OR **file upload** via new `VideoUpload` (client validates ≤100MB & ≤60s, shows a clear error and blocks; uploads to `/api/media/upload-homepage-video`) + optional poster. CRUD/reorder/enable already existed for all types.
+- Backend: `storage_service.save_video(..., max_bytes)`; new admin route `POST /api/media/upload-homepage-video` (100MB cap, folder `homepage_videos`); `site_controller._homepage` resolves `type=="video"` → `data:{video,poster,autoplay}`.
+- Website `Landing.jsx`: renders `video` sections with click-to-play (poster → tap → `<video controls autoplay>`); works for URL or uploaded file via `mediaSrc()`.
+- Verified live: inserting a video section surfaces it in `/api/site/homepage`; upload route registered (401 w/o admin). Server has no ffprobe, so the 60s duration check is enforced in the admin browser; 100MB size enforced both client and server.

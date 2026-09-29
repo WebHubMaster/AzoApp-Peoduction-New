@@ -79,6 +79,20 @@ async def upload_video(request: Request, file: UploadFile = File(...), folder: s
     return res
 
 
+@router.post("/upload-homepage-video")
+async def upload_homepage_video(request: Request, file: UploadFile = File(...), folder: str = Form("homepage_videos"), admin=Depends(ADMIN)):
+    """Store a homepage video section clip (MP4/MOV/WebM, max 100MB). Duration
+    (<=60s) is validated in the admin browser before upload; size is enforced here."""
+    raw = await file.read()
+    try:
+        res = await storage_service.save_video(raw, file.content_type or "", folder=folder, base_hint=_abs_base(request), max_bytes=100 * 1024 * 1024)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    await storage_service.record_media({"url": res["url"], "thumb_url": None, "name": res["name"],
+                                        "folder": folder, "size": res["size"], "original": file.filename, "kind": "video"})
+    return res
+
+
 @router.get("")
 async def list_media(folder: str = None, admin=Depends(ADMIN)):
     q = {"folder": folder} if folder else {}

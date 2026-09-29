@@ -227,6 +227,9 @@ async def _homepage(city: str = ""):
             data = faqs[:limit]
         elif t in ("blog", "latest_blogs", "blogs", "insights"):
             data = blogs[:limit]
+        elif t == "video":
+            data = {"video": cfg.get("video") or cfg.get("url") or "", "poster": cfg.get("poster") or "",
+                    "autoplay": bool(cfg.get("autoplay"))}
         else:
             data = cfg.get("items", [])
         out.append({"type": t, "title": sec.get("title", ""), "subtitle": sec.get("subtitle", ""),

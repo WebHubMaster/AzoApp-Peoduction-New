@@ -50,14 +50,15 @@ def is_video_url(u: str) -> bool:
     return bool(re.search(r"\.(mp4|mov|webm|3gp|mkv)(\?|$)", (u or "").lower()))
 
 
-async def save_video(raw: bytes, content_type: str, folder: str = "media", base_hint: str = "") -> dict:
+async def save_video(raw: bytes, content_type: str, folder: str = "media", base_hint: str = "", max_bytes: int = MAX_VIDEO_BYTES) -> dict:
     """Store a camera-recorded work-proof video as-is (no transcoding)."""
     ct = (content_type or "").split(";")[0].strip().lower()
     ext = VIDEO_ALLOWED.get(ct)
     if not ext:
         raise ValueError("Unsupported video type. Use MP4, MOV or WebM.")
-    if len(raw) > MAX_VIDEO_BYTES:
-        raise ValueError("Video too large (max 25MB / ~30 seconds).")
+    if len(raw) > max_bytes:
+        mb = int(max_bytes / (1024 * 1024))
+        raise ValueError(f"Video too large (max {mb}MB).")
     if len(raw) < 1024:
         raise ValueError("Video is empty or corrupted, please record again.")
     uid = uuid.uuid4().hex

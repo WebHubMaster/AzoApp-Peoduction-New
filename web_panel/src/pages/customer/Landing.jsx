@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import SiteNavbar from "@/components/site/SiteNavbar";
@@ -113,6 +113,36 @@ function MemberSavingsBanner({ navigate }) {
   );
 }
 
+function VideoSection({ sec }) {
+  const [playing, setPlaying] = useState(false);
+  const d = sec.data || {};
+  const src = d.video || sec.config?.video || "";
+  const poster = d.poster || sec.config?.poster || "";
+  if (!src) return null;
+  return (
+    <section className="py-10 bg-white" data-testid={`home-video-${sec.id}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {sec.title ? <h2 className="font-heading font-extrabold text-2xl sm:text-3xl text-slate-900">{sec.title}</h2> : null}
+        {sec.subtitle ? <p className="text-slate-500 mt-1">{sec.subtitle}</p> : null}
+        <div className={`${sec.title || sec.subtitle ? "mt-5" : ""} relative rounded-3xl overflow-hidden bg-black shadow-lg aspect-video max-w-4xl`}>
+          {playing ? (
+            <video src={mediaSrc(src)} poster={poster ? mediaSrc(poster) : undefined} controls autoPlay playsInline className="w-full h-full object-contain bg-black" data-testid={`home-video-player-${sec.id}`} />
+          ) : (
+            <button type="button" onClick={() => setPlaying(true)} data-testid={`home-video-play-${sec.id}`} className="group w-full h-full">
+              {poster ? <img src={mediaSrc(poster)} alt={sec.title || "video"} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900" />}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <span className="h-16 w-16 rounded-full bg-white/90 group-hover:bg-white flex items-center justify-center shadow-xl transition">
+                  <span className="ml-1 border-y-[11px] border-y-transparent border-l-[18px] border-l-primary-700" />
+                </span>
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function Landing() {
   const [sections, setSections] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -172,6 +202,7 @@ export default function Landing() {
           return <ServicesSection key={sec.id} sec={sec} navigate={navigate} city={city} tone={serviceRows % 2 === 0 ? "tint" : "white"} />;
         }
         if (["promo_banner", "slider"].includes(sec.type)) return <BannersSection key={sec.id} sec={sec} navigate={navigate} />;
+        if (sec.type === "video") return <VideoSection key={sec.id} sec={sec} />;
         return null; // hero_banner → rendered inside the hero; coupons/faq → dedicated sections below
       })}
 

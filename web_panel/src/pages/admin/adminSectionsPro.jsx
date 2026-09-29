@@ -1027,13 +1027,78 @@ export const ServiceWizard = () => {
 };
 
 /* =============== HOMEPAGE BUILDER =============== */
-const SECTION_TYPES = ["hero_banner", "popular_categories", "featured_categories", "featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services", "promo_banner", "coupons", "faq", "blog", "why_choose_us", "how_it_works"];
-const TYPE_LABELS = { service_collection: "Hand-picked services", category_services: "Category services (whole category)", promo_banner: "Promo banner (image + link)" };
+const SECTION_TYPES = ["hero_banner", "popular_categories", "featured_categories", "featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services", "promo_banner", "video", "coupons", "faq", "blog", "why_choose_us", "how_it_works"];
+const TYPE_LABELS = { service_collection: "Hand-picked services", category_services: "Category services (whole category)", promo_banner: "Promo banner (image + link)", video: "Video section (URL or upload)" };
 const typeLabel = (t) => TYPE_LABELS[t] || t.replace(/_/g, " ");
 const needsServices = (t) => ["service_collection", "most_requested", "recommended_services"].includes(t);
 const needsCategory = (t) => t === "category_services";
 const needsBanner = (t) => ["promo_banner", "slider"].includes(t);
-const typeHasConfig = (t) => needsServices(t) || needsCategory(t) || needsBanner(t);
+const needsVideo = (t) => t === "video";
+const hasLimit = (t) => !needsBanner(t) && !needsVideo(t);
+const typeHasConfig = (t) => needsServices(t) || needsCategory(t) || needsBanner(t) || needsVideo(t);
+
+/* Video upload for homepage sections — validates size (<=100MB) & duration (<=60s)
+ * in the browser before uploading, showing a clear error and blocking on failure. */
+const HP_MAX_MB = 100;
+const HP_MAX_SEC = 60;
+const VideoUpload = ({ value, onChange, folder = "homepage_videos" }) => {
+  const ref = useRef();
+  const [busy, setBusy] = useState(false);
+  const [pct, setPct] = useState(0);
+  const readDuration = (file) => new Promise((resolve) => {
+    try {
+      const v = document.createElement("video");
+      v.preload = "metadata";
+      v.onloadedmetadata = () => { const d = v.duration; window.URL.revokeObjectURL(v.src); resolve(d); };
+      v.onerror = () => resolve(-1);
+      v.src = window.URL.createObjectURL(file);
+    } catch { resolve(-1); }
+  });
+  const pick = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > HP_MAX_MB * 1024 * 1024) {
+      toast.error(`Video is too large (${(file.size / 1048576).toFixed(1)}MB). Maximum allowed is ${HP_MAX_MB}MB.`);
+      if (ref.current) ref.current.value = ""; return;
+    }
+    const dur = await readDuration(file);
+    if (dur === -1) { toast.error("Couldn't read this video. Please use an MP4, MOV or WebM file."); if (ref.current) ref.current.value = ""; return; }
+    if (dur > HP_MAX_SEC + 0.5) {
+      toast.error(`Video is too long (${Math.round(dur)}s). Maximum allowed duration is ${HP_MAX_SEC} seconds.`);
+      if (ref.current) ref.current.value = ""; return;
+    }
+    const fd = new FormData(); fd.append("file", file); fd.append("folder", folder);
+    try {
+      setBusy(true); setPct(0);
+      const { data } = await api.post("/media/upload-homepage-video", fd, { headers: { "Content-Type": "multipart/form-data" }, onUploadProgress: (ev) => { if (ev.total) setPct(Math.round((ev.loaded * 100) / ev.total)); } });
+      onChange(data.url); toast.success("Video uploaded");
+    } catch (err) { toast.error(err?.response?.data?.detail || "Upload failed"); }
+    finally { setBusy(false); setPct(0); if (ref.current) ref.current.value = ""; }
+  };
+  return (
+    <div>
+      <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Or upload a video file (MP4/MOV/WebM · max {HP_MAX_MB}MB · max {HP_MAX_SEC}s)</label>
+      <div className="mt-1 flex items-center gap-3">
+        {value ? (
+          <div className="relative group">
+            <video src={mediaSrc(value)} className="h-20 w-32 rounded-lg object-cover bg-black border border-slate-200 dark:border-slate-700" muted playsInline />
+            <button type="button" onClick={() => onChange("")} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"><X className="h-3.5 w-3.5" /></button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="hp-video-upload-btn" className="h-20 w-32 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-primary-500 hover:text-primary-600 transition disabled:opacity-70">
+            {busy ? (
+              <div className="w-full px-2 text-center">
+                <span className="text-[10px] font-semibold text-primary-600" data-testid="hp-video-upload-pct">{pct || 1}%</span>
+                <div className="mt-1 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden"><div className="h-full rounded-full bg-primary-500 transition-[width] duration-200" style={{ width: `${pct || 1}%` }} /></div>
+              </div>
+            ) : (<><Upload className="h-5 w-5" /><span className="text-[10px] mt-1">Upload video</span></>)}
+          </button>
+        )}
+      </div>
+      <input ref={ref} type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden" data-testid="hp-video-file-input" onChange={pick} />
+    </div>
+  );
+};
 
 const SectionConfig = ({ type, config, onChange, services, cats }) => {
   const cfg = config || {};
@@ -1058,6 +1123,15 @@ const SectionConfig = ({ type, config, onChange, services, cats }) => {
     <>
       <ImageUpload label="Banner image" folder="homepage" value={cfg.image || ""} onChange={(v) => onChange({ ...cfg, image: v })} />
       <Field label="Link (e.g. /services)"><Input data-testid="hp-config-link" value={cfg.link || ""} placeholder="/services" onChange={(e) => onChange({ ...cfg, link: e.target.value })} /></Field>
+    </>
+  );
+  if (needsVideo(type)) return (
+    <>
+      <Field label="Video URL (paste a link — plays directly on the website)">
+        <Input data-testid="hp-config-video-url" value={cfg.video || ""} placeholder="https://…/clip.mp4" onChange={(e) => onChange({ ...cfg, video: e.target.value })} />
+      </Field>
+      <VideoUpload value={cfg.video || ""} onChange={(v) => onChange({ ...cfg, video: v })} />
+      <ImageUpload label="Poster image (optional — shown before play)" folder="homepage" value={cfg.poster || ""} onChange={(v) => onChange({ ...cfg, poster: v })} />
     </>
   );
   return null;
@@ -1094,7 +1168,7 @@ export const HomepageBuilder = () => {
         <Field label="Type"><Select value={add.type} onValueChange={(v) => setAdd({ ...add, type: v, config: {} })}><SelectTrigger data-testid="hp-add-type"><SelectValue /></SelectTrigger><SelectContent>{SECTION_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{typeLabel(t)}</SelectItem>)}</SelectContent></Select></Field>
         <Field label="Title"><Input data-testid="hp-add-title" value={add.title} onChange={(e) => setAdd({ ...add, title: e.target.value })} /></Field>
         <Field label="Subtitle / Eyebrow"><Input value={add.subtitle} onChange={(e) => setAdd({ ...add, subtitle: e.target.value })} /></Field>
-        {!needsBanner(add.type) && <Field label="Item Limit"><Input type="number" value={add.limit} onChange={(e) => setAdd({ ...add, limit: e.target.value })} /></Field>}
+        {hasLimit(add.type) && <Field label="Item Limit"><Input type="number" value={add.limit} onChange={(e) => setAdd({ ...add, limit: e.target.value })} /></Field>}
         {typeHasConfig(add.type) && <SectionConfig type={add.type} config={add.config} onChange={(c) => setAdd({ ...add, config: c })} services={services} cats={cats} />}
         <Button onClick={create} data-testid="hp-add-submit" className="w-full bg-primary-700 hover:bg-primary-800">Add Section</Button>
       </Section>
@@ -1108,7 +1182,7 @@ export const HomepageBuilder = () => {
                 <Input className="mb-1" placeholder="Title" defaultValue={s.title} onBlur={(e) => patch(s.id, { title: e.target.value })} />
                 <div className="flex gap-2">
                   <Input placeholder="Subtitle" defaultValue={s.subtitle} onBlur={(e) => patch(s.id, { subtitle: e.target.value })} />
-                  {!needsBanner(s.type) && <Input type="number" className="w-24" placeholder="Limit" defaultValue={s.config?.limit || 8} onBlur={(e) => patch(s.id, { config: { ...s.config, limit: Number(e.target.value) } })} />}
+                  {hasLimit(s.type) && <Input type="number" className="w-24" placeholder="Limit" defaultValue={s.config?.limit || 8} onBlur={(e) => patch(s.id, { config: { ...s.config, limit: Number(e.target.value) } })} />}
                 </div>
                 {typeHasConfig(s.type) && (
                   <div className="mt-3 space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
