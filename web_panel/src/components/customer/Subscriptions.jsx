@@ -5,7 +5,7 @@
  * service progress, attendance calendar, payment snapshot, maid details, invoice. */
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarHeart, CheckCircle2, MapPin, ShieldCheck, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
+import { CalendarHeart, CheckCircle2, MapPin, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
 import api, { fmt, API } from "@/lib/api";
 import { openCheckout } from "@/lib/payments";
 import { useAuth } from "@/context/AuthContext";
@@ -100,7 +100,7 @@ export function SubscriptionPlansPanel({ svc }) {
         <CalendarHeart className="h-5 w-5 text-primary-700" />
         <h3 className="font-heading font-bold text-xl text-slate-900">Choose your plan</h3>
       </div>
-      <p className="text-xs text-slate-500 mt-1">Recurring subscription — pay once upfront, the maid visits every working day.</p>
+      <p className="text-xs text-slate-500 mt-1">Recurring subscription — the maid visits every working day.</p>
 
       <div className="space-y-2.5 mt-4">
         {plans.map((p) => {
@@ -125,13 +125,8 @@ export function SubscriptionPlansPanel({ svc }) {
       <Button data-testid="sub-subscribe-btn"
         onClick={() => (user ? setOpen(true) : (toast.info("Please login to subscribe"), navigate("/login")))}
         className="w-full mt-4 h-12 bg-primary-700 hover:bg-primary-800 text-base">
-        Subscribe · Pay {fmt(plan?.price || 0)} upfront
+        Book Now
       </Button>
-
-      <div className="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 flex items-center gap-3" data-testid="sub-upfront-note">
-        <div className="h-9 w-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5" /></div>
-        <p className="text-[11px] text-emerald-700">Full plan amount is paid upfront. Daily attendance is tracked and a free replacement is arranged on absent days.</p>
-      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md" data-testid="sub-book-dialog">
