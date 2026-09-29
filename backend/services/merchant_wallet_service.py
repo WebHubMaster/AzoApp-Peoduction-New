@@ -137,20 +137,43 @@ async def process_withdrawal(admin, wid, action, reason=""):
         raise HTTPException(400, "Already processed")
     if action == "approve":
         await db.users.update_one({"id": w["merchant_id"]}, {"$inc": {"wallet_balance": -w["amount"]}})
-        await db.merchant_ledger.update_one(
-            {"ref_id": wid, "kind": "withdrawal"},
-            {"$set": {"status": "completed", "note": f"Withdrawal paid ({w['method'].upper()})"}})
-        await db.merchant_withdrawals.update_one(
-            {"id": wid}, {"$set": {"status": "completed", "processed_at": now_iso(),
-                                   "processed_by": admin.get("id")}})
-        await db.transactions.insert_one({
-            "id": new_id(), "user_id": w["merchant_id"], "amount": w["amount"], "type": "debit",
-            "kind": "withdrawal", "note": f"Withdrawal {w['method'].upper()}", "created_at": now_iso()})
+        # Route the disbursement through the ACTIVE payout gateway (Admin config).
+        # Cheque stays a manual instrument (no gateway). Bank/UPI → real payout API.
+        payout = None
+        payout_ok = True
+        if w.get("method") in ("bank", "upi"):
+            from services import payout_service
+            payout = await payout_service.create_payout({**w, "name": w.get("merchant_name")})
+            payout_ok = payout.get("status") in ("processed", "queued", "processing")
         _pm = {"upi": "UPI", "bank": "bank account", "cheque": "cheque"}.get(w["method"], w["method"])
-        await notify(w["merchant_id"], "Withdrawal approved ✅",
-                     f"₹{w['net_amount']} is on its way via {_pm}.", link="/merchant",
-                     sms_text=f"AzoApp: Your withdrawal of Rs.{w['net_amount']} has been APPROVED and is being paid via {_pm}. Check your merchant wallet for details.")
-        status = "completed"
+        if not payout_ok:
+            # Gateway could not process → roll the money back so nothing is lost.
+            await db.users.update_one({"id": w["merchant_id"]}, {"$inc": {"wallet_balance": w["amount"]}})
+            await db.merchant_ledger.update_one(
+                {"ref_id": wid, "kind": "withdrawal"},
+                {"$set": {"status": "cancelled", "note": "Withdrawal payout failed — amount returned to wallet"}})
+            await db.merchant_withdrawals.update_one(
+                {"id": wid}, {"$set": {"status": "failed", "payout": payout,
+                                       "reason": (payout or {}).get("error", "Payout failed"),
+                                       "processed_at": now_iso(), "processed_by": admin.get("id")}})
+            await notify(w["merchant_id"], "Withdrawal payout failed",
+                         "We hit an issue sending your payout. The amount is back in your wallet.",
+                         link="/merchant")
+            status = "failed"
+        else:
+            await db.merchant_ledger.update_one(
+                {"ref_id": wid, "kind": "withdrawal"},
+                {"$set": {"status": "completed", "note": f"Withdrawal paid ({w['method'].upper()})"}})
+            await db.merchant_withdrawals.update_one(
+                {"id": wid}, {"$set": {"status": "completed", "payout": payout,
+                                       "processed_at": now_iso(), "processed_by": admin.get("id")}})
+            await db.transactions.insert_one({
+                "id": new_id(), "user_id": w["merchant_id"], "amount": w["amount"], "type": "debit",
+                "kind": "withdrawal", "note": f"Withdrawal {w['method'].upper()}", "created_at": now_iso()})
+            await notify(w["merchant_id"], "Withdrawal approved ✅",
+                         f"₹{w['net_amount']} is on its way via {_pm}.", link="/merchant",
+                         sms_text=f"AzoApp: Your withdrawal of Rs.{w['net_amount']} has been APPROVED and is being paid via {_pm}. Check your merchant wallet for details.")
+            status = "completed"
     elif action == "reject":
         if not (reason or "").strip():
             raise HTTPException(400, "Rejection reason is required")

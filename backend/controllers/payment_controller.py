@@ -60,8 +60,8 @@ async def create_order(user, purpose, booking_id=None, amount=None, group_id=Non
         # Active gateway is enabled but its active mode is not fully configured.
         # NO fallback, NO mock — surface a clear config error.
         raise HTTPException(status_code=409, detail=str(e))
-    if not order:
-        return {"mock": True, "amount": amt, "purpose": purpose}
+    # create_order ALWAYS returns a real gateway order or raises — there is no
+    # dev-mode/mock bypass anywhere in the payment flow.
     # Immutable transaction snapshot: which gateway + mode processed this payment.
     snap = {"pay_order_id": order.get("order_id"), "pay_gateway": order.get("gateway"),
             "pay_mode": order.get("mode"), "pay_env": order.get("env")}
@@ -179,21 +179,3 @@ async def verify(user, data):
     return await _apply(user, data.purpose, data.booking_id, data.amount,
                         payment_id=data.payment_id, order_id=data.order_id,
                         group_id=data.group_id)
-
-
-async def mock_pay(user, purpose, booking_id=None, amount=None, group_id=None):
-    # Allowed only when the active gateway is not configured (dev fallback). No
-    # side-effecting probe.
-    if await payment_service.is_configured():
-        raise HTTPException(status_code=400, detail="Live payments enabled — use the payment gateway")
-    # Snapshot the (disabled) active gateway + mode so mock transactions carry the
-    # same immutable gateway/mode metadata as real ones.
-    st = await payment_service.payin_state()
-    snap = {"pay_gateway": st.get("gateway"), "pay_mode": st.get("mode"),
-            "pay_env": st.get("env"), "pay_mock": True}
-    if purpose == "booking" and booking_id:
-        await db.bookings.update_one({"id": booking_id}, {"$set": snap})
-    elif purpose == "booking_group" and group_id:
-        await db.bookings.update_many(
-            {"customer_id": user["id"], "order_group_id": group_id}, {"$set": snap})
-    return await _apply(user, purpose, booking_id, amount, group_id=group_id)

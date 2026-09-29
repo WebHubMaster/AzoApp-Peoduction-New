@@ -24,14 +24,6 @@ export async function runPayment(opts: PayOpts, toast?: any): Promise<boolean> {
     toast?.error?.(e?.message || e?.detail || "Payment could not be started");
     return false;
   }
-  // No gateway configured → backend signals a dev mock order.
-  if (order?.mock) {
-    try {
-      await api.post("/payments/mock", body);
-      toast?.success?.(opts.purpose === "wallet" ? "Money added to wallet" : "Payment successful");
-      return true;
-    } catch (e: any) { toast?.error?.(e?.message || "Payment failed"); return false; }
-  }
   if (!_opener) { toast?.error?.("Payment is not ready yet. Please try again in a moment."); return false; }
   return _opener(order, { ...opts, toast });
 }

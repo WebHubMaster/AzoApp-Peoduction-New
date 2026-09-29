@@ -54,3 +54,9 @@ class MembershipVerifyRequest(BaseModel):
 
 class MembershipMockRequest(BaseModel):
     plan_id: str
+
+
+class MembershipConfirmRequest(BaseModel):
+    plan_id: str
+    order_id: str
+    gw: Optional[str] = None

@@ -168,12 +168,12 @@ async def pay_order(user, subscription_id):
     except GatewayConfigError as e:
         raise HTTPException(status_code=409, detail=str(e))
     if not order:
-        return {"mock": True, "amount": amt}
+        raise HTTPException(status_code=409, detail="Payment gateway is not configured.")
     await db.subscriptions.update_one(
         {"id": subscription_id},
         {"$set": {"pay_order_id": order.get("order_id"), "pay_gateway": order.get("gateway"),
                   "pay_mode": order.get("mode"), "pay_env": order.get("env")}})
-    return {"mock": False, **order}
+    return {**order}
 
 
 def _invoice_share_sig(invoice_id: str) -> str:
@@ -228,12 +228,17 @@ async def pay_verify(user, subscription_id, data):
     return await _activate(sub)
 
 
-async def pay_mock(user, subscription_id):
+async def pay_confirm(user, subscription_id, order_id, gw=None):
+    """Hosted-checkout (Cashfree/Juspay/Easebuzz) confirm: verify the gateway order
+    status on the transaction's stored gateway+mode snapshot and activate on success."""
     sub = await _sub_for_customer(user, subscription_id)
     if sub.get("payment_status") == "paid":
         return await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
-    if await payment_service.is_configured():
-        raise HTTPException(status_code=400, detail="Live payments enabled — use the payment gateway")
+    paid = await payment_service.check_order_paid(
+        order_id or sub.get("pay_order_id"),
+        sub.get("pay_gateway") or gw, sub.get("pay_mode"))
+    if not paid:
+        raise HTTPException(status_code=400, detail="Payment not completed. If money was debited it will reflect shortly.")
     return await _activate(sub)
 
 

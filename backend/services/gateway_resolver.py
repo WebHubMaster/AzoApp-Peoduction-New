@@ -208,7 +208,14 @@ def resolve(g: dict, direction: str, gateway: str = None, mode: str = None) -> d
     if gateway not in GATEWAYS:
         gateway = "razorpay"
     mode = normalize_mode(mode) if mode else active_mode(g, gateway, direction)
-    enabled = _enabled_flag(g, gateway, direction)
+    # GOLDEN RULE: whichever gateway is marked ACTIVE in Admin is the one that MUST
+    # process the transaction — in its selected mode, using that mode's credentials.
+    # The per-gateway "enabled" toggle is treated as advisory: the ACTIVE gateway is
+    # always considered enabled for routing, so a saved-but-not-toggled gateway can
+    # NEVER cause a silent dev-mode bypass. If the active gateway's active-mode keys
+    # are missing, the transaction fails with a clear config error (no fallback).
+    is_active = (gateway == active_gateway(g, direction))
+    enabled = _enabled_flag(g, gateway, direction) or is_active
     synth = _synthesize(g, gateway, mode, direction)
     missing = [f for f in _required(direction, gateway) if synth.get(f) in (None, "")]
     configured = bool(enabled and not missing)

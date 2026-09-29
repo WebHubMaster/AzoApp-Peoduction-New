@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
+BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"
 

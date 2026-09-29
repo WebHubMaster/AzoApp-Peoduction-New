@@ -342,18 +342,16 @@ async def create_fee_order(user) -> dict:
     receipt = f"REGFEE-{user['id'][:8]}"
     from services import payment_service
     from services.payment_service import GatewayConfigError
-    order = None
     try:
         order = await payment_service.create_order(amount, receipt, customer={
+            "id": user.get("id"),
             "name": (p.get("basic") or {}).get("full_name") or user.get("name", ""),
             "email": (p.get("basic") or {}).get("email") or user.get("email", ""),
             "phone": p.get("phone") or user.get("phone", ""),
         })
-    except GatewayConfigError:
-        order = None  # never block onboarding on a mis/unconfigured gateway → dev mock
-    if not order:
-        order = {"gateway": "mock", "mock": True, "order_id": f"REGFEE-{new_id()[:12]}",
-                 "amount": int(round(amount * 100)), "currency": "INR", "mode": "test"}
+    except GatewayConfigError as e:
+        # NO dev-mock bypass — the ACTIVE gateway must process the fee.
+        raise HTTPException(409, str(e))
     await db.partner_profiles.update_one(
         {"user_id": user["id"]},
         {"$set": {"reg_fee_pending_order": {
@@ -371,22 +369,27 @@ async def confirm_fee_payment(user, body: dict) -> dict:
     if (p.get("reg_fee_payment") or {}).get("status") == "paid":
         return {"ok": True, "payment": p["reg_fee_payment"]}
     pending = p.get("reg_fee_pending_order") or {}
-    gateway = body.get("gateway") or pending.get("gateway") or "mock"
+    gateway = body.get("gateway") or pending.get("gateway")
+    mode = pending.get("mode") or body.get("mode")
     fee = await reg_fee_config()
-    if gateway == "mock" or str(order_id).startswith("REGFEE-"):
-        paid = True  # dev mock success (no live gateway configured)
+    from services import payment_service
+    payment_id = body.get("payment_id")
+    signature = body.get("signature")
+    # Razorpay in-page SDK returns a signature to verify; hosted gateways
+    # (Cashfree/Juspay/Easebuzz) are confirmed by querying the order status. Either
+    # way the ACTIVE gateway (in its stored mode) is what verifies — no mock bypass.
+    if gateway == "razorpay" and payment_id and signature:
+        paid = await payment_service.verify_signature(order_id, payment_id, signature)
     else:
-        from services import payment_service
-        paid = await payment_service.check_order_paid(
-            order_id, gateway, pending.get("mode") or body.get("mode"))
+        paid = await payment_service.check_order_paid(order_id, gateway, mode)
     if not paid:
         raise HTTPException(400, "Payment not completed. Please try again.")
     payment = {
         "status": "paid", "amount": pending.get("amount", fee["final_amount"]),
         "original_price": fee["original_price"], "discount_amount": fee["discount_amount"],
         "currency": "INR", "gateway": gateway,
-        "mode": pending.get("mode") or body.get("mode") or "test",
-        "order_id": order_id, "payment_id": body.get("payment_id") or order_id,
+        "mode": mode or "test",
+        "order_id": order_id, "payment_id": payment_id or order_id,
         "paid_at": now_iso(),
     }
     await db.partner_profiles.update_one(

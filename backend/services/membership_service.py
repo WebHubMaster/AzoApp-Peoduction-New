@@ -204,12 +204,27 @@ async def purchase_order(user: dict, plan_id: str) -> dict:
     amt = round(float(plan.get("price", 0) or 0), 2)
     if amt <= 0:
         pur = await _activate(user, plan, method="free", amount=0)
-        return {"mock": True, "free": True, "amount": 0, "plan": _public(plan), "purchase_id": pur["id"]}
+        return {"free": True, "amount": 0, "plan": _public(plan), "purchase_id": pur["id"]}
     receipt = f"MEMB-{user['id'][:8]}"
-    order = await payment_service.create_order(amt, receipt)
-    if not order:
-        return {"mock": True, "amount": amt, "plan": _public(plan)}
-    return {"mock": False, "amount": amt, "plan": _public(plan), **order}
+    order = await payment_service.create_order(amt, receipt, customer={
+        "id": user.get("id"), "name": user.get("name"),
+        "email": user.get("email"), "phone": user.get("phone")})
+    return {"free": False, "amount": amt, "plan": _public(plan), **order}
+
+
+async def purchase_confirm(user: dict, plan_id: str, order_id: str, gw: str = None) -> dict:
+    """Hosted-checkout RETURN (Cashfree/Juspay/Easebuzz) for a membership purchase:
+    verify the gateway order status on the ACTIVE gateway+mode and activate on success."""
+    existing = await my_membership(user)
+    if existing.get("active") and (existing.get("membership") or {}).get("plan_id") == plan_id:
+        return {"ok": True, "paid": True, "already": True, "membership": existing}
+    paid = await payment_service.check_order_paid(order_id, gw)
+    if not paid:
+        raise HTTPException(status_code=400, detail="Payment not completed. If money was debited it will reflect shortly.")
+    plan = await get_plan(plan_id, active_only=True)
+    await _activate(user, plan, method=gw or "gateway", amount=plan.get("price", 0),
+                    razorpay_order_id=order_id)
+    return {"ok": True, "paid": True, "membership": await my_membership(user)}
 
 
 async def purchase_verify(user: dict, plan_id: str, order_id: str,
@@ -220,14 +235,6 @@ async def purchase_verify(user: dict, plan_id: str, order_id: str,
     plan = await get_plan(plan_id, active_only=True)
     await _activate(user, plan, method="razorpay", amount=plan.get("price", 0),
                     razorpay_order_id=order_id, razorpay_payment_id=payment_id)
-    return {"ok": True, "membership": await my_membership(user)}
-
-
-async def purchase_mock(user: dict, plan_id: str) -> dict:
-    if await payment_service.is_configured():
-        raise HTTPException(status_code=400, detail="Live payments enabled \u2014 use the payment gateway")
-    plan = await get_plan(plan_id, active_only=True)
-    await _activate(user, plan, method="mock", amount=plan.get("price", 0))
     return {"ok": True, "membership": await my_membership(user)}
 
 

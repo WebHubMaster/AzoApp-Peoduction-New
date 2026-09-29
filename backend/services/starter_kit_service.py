@@ -285,22 +285,16 @@ async def purchase_order(user: dict) -> dict:
     amt = round(float(cfg.get("discounted_price") or 0), 2)
     if amt <= 0:
         pur = await _activate(user, cfg, "free", 0)
-        return {"mock": True, "free": True, "amount": 0, "purchase_id": pur["id"]}
-    order = await payment_service.create_order(amt, f"KIT-{user['id'][:8]}")
-    if not order:
-        return {"mock": True, "amount": amt}
-    return {"mock": False, "amount": amt, **order}
+        return {"free": True, "amount": 0, "purchase_id": pur["id"]}
+    order = await payment_service.create_order(amt, f"KIT-{user['id'][:8]}", customer={
+        "id": user.get("id"), "name": user.get("name"),
+        "email": user.get("email"), "phone": user.get("phone")})
+    return {"free": False, "amount": amt, **order}
 
 
-async def purchase_mock(user: dict) -> dict:
-    if await payment_service.is_configured():
-        raise HTTPException(status_code=400, detail="Live payments enabled \u2014 use the payment gateway")
-    fresh = await _fresh(user)
-    if (fresh.get("starter_kit") or {}).get("purchased"):
-        raise HTTPException(status_code=400, detail="You already own the Starter Kit")
-    cfg = await get_config()
-    await _activate(fresh, cfg, "mock", cfg.get("discounted_price", 0))
-    return {"ok": True, "status": await partner_status(fresh)}
+async def purchase_confirm(user: dict, order_id: str, gateway: str = None) -> dict:
+    """Hosted-checkout (Cashfree/Juspay/Easebuzz) confirm for the Starter Kit."""
+    return await purchase_confirm_return(user, order_id, gateway)
 
 
 async def purchase_verify(user: dict, order_id: str, payment_id: str, signature: str) -> dict:

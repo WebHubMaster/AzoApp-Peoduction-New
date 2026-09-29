@@ -7,6 +7,7 @@ import {
   FileText, Bell, LayoutGrid, ListChecks, Info, Lock, ArrowRight,
 } from "lucide-react";
 import api, { compactPlus } from "@/lib/api";
+import { openCheckout } from "@/lib/payments";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import LivePhotoCapture from "@/components/partner/LivePhotoCapture";
@@ -334,7 +335,20 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
     setPaying(true); setPayError("");
     try {
       const { data: order } = await api.post(`${RB}/pay/create-order`);
-      await api.post(`${RB}/pay/confirm`, { order_id: order.order_id, gateway: order.gateway, mode: order.mode, payment_id: order.payment_id });
+      // Open the ACTIVE gateway's real checkout (Razorpay/Cashfree/etc.) in its
+      // selected mode, then confirm server-side. No dev-mock bypass.
+      const ok = await openCheckout(order, {
+        user, name: "AzoApp Registration", description: "Partner registration fee",
+        onVerify: (res) => res.razorpay_payment_id
+          ? api.post(`${RB}/pay/confirm`, {
+              order_id: res.razorpay_order_id, gateway: "razorpay",
+              payment_id: res.razorpay_payment_id, signature: res.razorpay_signature,
+            })
+          : api.post(`${RB}/pay/confirm`, {
+              order_id: res.order_id, gateway: res.gw || order.gateway, mode: order.mode,
+            }),
+      });
+      if (!ok) { setPayError("Payment was not completed. Please try again."); setPaying(false); return; }
       try { const { data: fd } = await api.get(`${RB}/fee`); setFee(fd); } catch { /* ignore */ }
       setShowPay(false);
       await submit();

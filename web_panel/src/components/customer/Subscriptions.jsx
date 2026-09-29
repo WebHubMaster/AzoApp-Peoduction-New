@@ -7,6 +7,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarHeart, CheckCircle2, MapPin, ShieldCheck, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
 import api, { fmt, API } from "@/lib/api";
+import { openCheckout } from "@/lib/payments";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,15 +71,24 @@ export function SubscriptionPlansPanel({ svc }) {
         service_id: svc.id, plan_type: sel, start_date: startDate,
         preferred_time: time, address_id: addrId,
       });
-      try {
-        await api.post(`/subscriptions/${sub.id}/pay/mock`);
+      // Create the order on the ACTIVE gateway and open its real checkout in the
+      // selected mode. No dev-mock bypass anywhere.
+      const { data: order } = await api.post(`/subscriptions/${sub.id}/pay/order`);
+      const ok = await openCheckout(order, {
+        user, name: "AzoApp Subscription", description: svc.name || "Subscription",
+        onVerify: (res) => res.razorpay_payment_id
+          ? api.post(`/subscriptions/${sub.id}/pay/verify`, {
+              order_id: res.razorpay_order_id,
+              payment_id: res.razorpay_payment_id,
+              signature: res.razorpay_signature,
+            })
+          : api.post(`/subscriptions/${sub.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),
+      });
+      if (ok) {
         toast.success("Subscription activated! Full amount paid upfront.");
-      } catch {
-        await api.post(`/subscriptions/${sub.id}/pay/order`);
-        toast.info("Complete the payment to activate your subscription.");
+        setOpen(false);
+        navigate("/account?tab=subscriptions");
       }
-      setOpen(false);
-      navigate("/account?tab=subscriptions");
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Booking failed, please try again");
     } finally { setBusy(false); }

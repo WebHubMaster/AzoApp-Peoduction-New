@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api, { fmt } from "@/lib/api";
+import { openCheckout } from "@/lib/payments";
 import BrandLogo from "@/components/site/BrandLogo";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -13,14 +14,6 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import Seo from "@/components/Seo";
 
 const ICON = { crown: Crown, shield: Shield, gem: Gem };
-
-const loadRzp = () => new Promise((resolve) => {
-  if (window.Razorpay) return resolve(true);
-  const s = document.createElement("script");
-  s.src = "https://checkout.razorpay.com/v1/checkout.js";
-  s.onload = () => resolve(true); s.onerror = () => resolve(false);
-  document.body.appendChild(s);
-});
 
 export default function Membership() {
   const { user } = useAuth();
@@ -53,28 +46,20 @@ export default function Membership() {
     try {
       const { data } = await api.post("/memberships/order", { plan_id: plan.id });
       if (data.free) { toast.success("Membership activated! 🎉"); await loadMe(); return; }
-      if (data.mock) {
-        await api.post("/memberships/mock", { plan_id: plan.id });
-        toast.success(`${plan.name} activated! 🎉`); await loadMe(); return;
-      }
-      const ok = await loadRzp();
-      if (!ok) { toast.error("Could not load payment gateway"); return; }
-      const rzp = new window.Razorpay({
-        key: data.key_id, order_id: data.order_id, amount: data.amount, currency: data.currency || "INR",
-        name: "AzoApp Membership", description: plan.name,
-        handler: async (resp) => {
-          try {
-            await api.post("/memberships/verify", {
-              plan_id: plan.id, order_id: resp.razorpay_order_id,
-              payment_id: resp.razorpay_payment_id, signature: resp.razorpay_signature,
-            });
-            toast.success(`${plan.name} activated! 🎉`); await loadMe();
-          } catch { toast.error("Payment verification failed"); }
-        },
-        prefill: { name: user.name, contact: user.phone, email: user.email },
-        theme: { color: plan.color || "#4f46e5" },
+      // Opens the ACTIVE gateway's real checkout (Razorpay SDK / Cashfree SDK /
+      // PayU / Easebuzz / Juspay) in its selected mode. No dev-mode bypass.
+      const ok = await openCheckout(data, {
+        user, name: "AzoApp Membership", description: plan.name,
+        onVerify: (res) => res.razorpay_payment_id
+          ? api.post("/memberships/verify", {
+              plan_id: plan.id, order_id: res.razorpay_order_id,
+              payment_id: res.razorpay_payment_id, signature: res.razorpay_signature,
+            })
+          : api.post("/memberships/confirm", {
+              plan_id: plan.id, order_id: res.order_id, gw: res.gw,
+            }),
       });
-      rzp.open();
+      if (ok) { toast.success(`${plan.name} activated! 🎉`); await loadMe(); }
     } catch (e) { toast.error(e?.response?.data?.detail || "Purchase failed"); }
     finally { setBusy(null); }
   };

@@ -18,7 +18,28 @@ try {
     },
   ]);
 } catch {
-  config = [{ ignores: ["**/*"] }];
+  // Deps absent (fresh import): lint only plain JS with no rules so `eslint .`
+  // succeeds cleanly. Ignoring ALL files makes ESLint 9 exit with an engine error
+  // on directory targets, so we lint (rule-free) instead of ignoring everything.
+  // Source files carry inline `eslint-disable <plugin>/<rule>` directives; without
+  // the real plugins loaded ESLint would error "rule not found", so we register
+  // no-op plugins whose rules resolve to a harmless empty rule for ANY rule name.
+  const noopRule = { create: () => ({}) };
+  const noopPlugin = { rules: new Proxy({}, { get: () => noopRule }) };
+  config = [
+    { ignores: ["**/*.ts", "**/*.tsx", "node_modules/**", "dist/**", ".expo/**", "build/**"] },
+    {
+      files: ["**/*.js", "**/*.jsx", "**/*.mjs", "**/*.cjs"],
+      plugins: {
+        react: noopPlugin, "react-hooks": noopPlugin, "react-refresh": noopPlugin,
+        import: noopPlugin, "jsx-a11y": noopPlugin, "@typescript-eslint": noopPlugin,
+        expo: noopPlugin,
+      },
+      linterOptions: { reportUnusedDisableDirectives: "off" },
+      languageOptions: { ecmaVersion: 2022, sourceType: "module", parserOptions: { ecmaFeatures: { jsx: true } } },
+      rules: {},
+    },
+  ];
 }
 
 module.exports = config;

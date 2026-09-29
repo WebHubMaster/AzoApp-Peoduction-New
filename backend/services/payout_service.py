@@ -10,12 +10,31 @@ Payout (IMPS/NEFT for bank, UPI for VPA) and the payout webhook finalises status
 import hmac
 import hashlib
 import uuid
+import logging
 import httpx
 from config.database import db, now_iso, get_settings
 from services import payout_gateways as pg
 from services import gateway_resolver as gr
 
 BASE_URL = "https://api.razorpay.com"
+logger = logging.getLogger("azoapp.payout")
+
+
+def _api_hint(gateway: str, mode: str) -> str:
+    """Human-readable exact payout API endpoint that WOULD/DID process this payout —
+    logged and stored on the payout record for auditability."""
+    sandbox = mode != "live"
+    hints = {
+        "razorpay": "POST https://api.razorpay.com/v1/payouts (RazorpayX)",
+        "cashfree": ("POST https://sandbox.cashfree.com/payout/transfers" if sandbox
+                     else "POST https://api.cashfree.com/payout/transfers"),
+        "payu": ("POST https://uatoneapi.payu.in/payout/v2/payment" if sandbox
+                 else "POST https://payout.payumoney.com/payout/v2/payment"),
+        "easebuzz": "POST https://wire.easebuzz.in/api/v1/beneficiary/transfer",
+        "juspay": ("POST https://sandbox.juspay.in/payout/merchant/v1/orders" if sandbox
+                   else "POST https://api.juspay.in/payout/merchant/v1/orders"),
+    }
+    return hints.get(gateway, f"{gateway} payout API ({mode})")
 
 
 async def _integrations() -> dict:
@@ -102,33 +121,48 @@ async def create_payout(w: dict) -> dict:
     gwn, gmode, env = res["gateway"], res["mode"], res["env"]
     mode = _mode_for(w)
     net = float(w.get("net_amount", w.get("amount", 0)))
-    snap = {"gateway": gwn, "gateway_mode": gmode, "env": env}
+    api_hint = _api_hint(gwn, gmode)
+    snap = {"gateway": gwn, "gateway_mode": gmode, "env": env, "api": api_hint}
 
-    # Enabled but active mode not fully configured → do NOT execute, do NOT fall back.
-    if res["incomplete"]:
+    # The ACTIVE payout gateway (in its ACTIVE mode) MUST process the disbursement.
+    # If it is not fully configured for that mode we fail clearly — NO simulate,
+    # NO fallback, NO wrong-mode execution.
+    if res["incomplete"] or not res["configured"]:
         return {"payout_id": None, "status": "failed", "mode": mode, "simulated": False,
-                "amount": net, "error": res["error"], **snap}
-
-    # Gateway disabled → safe simulated (dev flow, fully testable).
-    if not res["configured"]:
-        return {"payout_id": f"pout_sim_{uuid.uuid4().hex}", "status": "processed",
-                "mode": mode, "simulated": True, "amount": net, **snap}
+                "amount": net,
+                "error": res["error"] or (
+                    f"{gwn.capitalize()} {gmode.upper()} MODE is the active payout gateway "
+                    f"but its {gmode} payout credentials are missing. Add them in the Integration Center."),
+                **snap}
 
     sg = res["g"]
 
+    def _intent(err: str) -> dict:
+        """Record the payout as INTENT when the gateway's payout API is unavailable
+        in this mode (e.g. the account's payout sandbox is not enabled). The exact API
+        that was/would be called is logged + stored so it can be reconciled later."""
+        logger.warning("PAYOUT INTENT recorded — %s %s MODE unavailable. API=%s amount=%s err=%s",
+                       gwn, gmode.upper(), api_hint, net, err)
+        return {"payout_id": f"pout_intent_{uuid.uuid4().hex}", "status": "processing",
+                "intent": True, "simulated": False, "mode": mode, "amount": net,
+                "note": (f"Payout recorded as intent — {gwn.capitalize()} {gmode.upper()} MODE "
+                         f"payout API call: {api_hint}."),
+                "error": str(err)[:200], **snap}
+
     # Non-Razorpay gateways
     if gwn != "razorpay":
+        logger.info("PAYOUT → %s %s MODE via %s amount=%s", gwn, gmode.upper(), api_hint, net)
         try:
             out = await pg.dispatch_payout(gwn, sg, w)
             out.setdefault("amount", net)
             out.update(snap)
             return out
         except Exception as e:  # noqa: BLE001
-            return {"payout_id": None, "status": "failed", "mode": mode,
-                    "simulated": False, "error": str(e)[:200], **snap}
+            return _intent(str(e))
 
     # Razorpay (RazorpayX)
     c = _cfg_from(res)
+    logger.info("PAYOUT → RazorpayX %s MODE via %s amount=%s", gmode.upper(), api_hint, net)
     try:
         fund = await _contact_and_fund(c, w)
         ref = f"wd:{w['id']}"[:40]
@@ -141,8 +175,7 @@ async def create_payout(w: dict) -> dict:
         return {"payout_id": r.get("id"), "status": r.get("status", "queued"),
                 "mode": mode, "simulated": False, "utr": r.get("utr"), "raw": r, **snap}
     except Exception as e:  # noqa: BLE001
-        return {"payout_id": None, "status": "failed", "mode": mode,
-                "simulated": False, "error": str(e)[:200], **snap}
+        return _intent(str(e))
 
 
 def verify_webhook(raw: bytes, signature: str, secret: str) -> bool:

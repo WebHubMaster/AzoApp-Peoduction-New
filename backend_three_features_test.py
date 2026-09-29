@@ -18,7 +18,7 @@ import random
 import string
 
 # Base URL from environment
-BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
+BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

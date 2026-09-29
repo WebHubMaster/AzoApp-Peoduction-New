@@ -28,11 +28,9 @@ class VerifyRequest(BaseModel):
     group_id: Optional[str] = None
 
 
-class MockPayRequest(BaseModel):
-    purpose: str
-    booking_id: Optional[str] = None
-    amount: Optional[float] = None
-    group_id: Optional[str] = None
+class ReturnRequest(BaseModel):
+    gw: Optional[str] = None
+    order_id: str
 
 
 @router.post("/order")
@@ -43,16 +41,6 @@ async def create_order(req: OrderRequest, user=Depends(CUSTOMER)):
 @router.post("/verify")
 async def verify(req: VerifyRequest, user=Depends(CUSTOMER)):
     return await c.verify(user, req)
-
-
-@router.post("/mock")
-async def mock_pay(req: MockPayRequest, user=Depends(CUSTOMER)):
-    return await c.mock_pay(user, req.purpose, req.booking_id, req.amount, req.group_id)
-
-
-class ReturnRequest(BaseModel):
-    gw: Optional[str] = None
-    order_id: str
 
 
 @router.post("/confirm-return")

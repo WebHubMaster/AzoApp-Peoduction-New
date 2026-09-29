@@ -1,9 +1,10 @@
 """Membership plans (public + customer purchase) and admin management."""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from services import membership_service as m
+from services.gateway_resolver import GatewayConfigError
 from models.membership import (
     MembershipPlanCreate, MembershipPlanUpdate,
-    MembershipOrderRequest, MembershipVerifyRequest, MembershipMockRequest,
+    MembershipOrderRequest, MembershipVerifyRequest, MembershipConfirmRequest,
 )
 from middleware.auth import require_role, get_current_user
 
@@ -31,7 +32,10 @@ async def my_membership(user=Depends(CUSTOMER)):
 
 @router.post("/order")
 async def create_order(req: MembershipOrderRequest, user=Depends(CUSTOMER)):
-    return await m.purchase_order(user, req.plan_id)
+    try:
+        return await m.purchase_order(user, req.plan_id)
+    except GatewayConfigError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 
 @router.post("/verify")
@@ -39,9 +43,10 @@ async def verify(req: MembershipVerifyRequest, user=Depends(CUSTOMER)):
     return await m.purchase_verify(user, req.plan_id, req.order_id, req.payment_id, req.signature)
 
 
-@router.post("/mock")
-async def mock_pay(req: MembershipMockRequest, user=Depends(CUSTOMER)):
-    return await m.purchase_mock(user, req.plan_id)
+@router.post("/confirm")
+async def confirm(req: MembershipConfirmRequest, user=Depends(CUSTOMER)):
+    """Hosted-checkout (Cashfree/Juspay/Easebuzz) confirm — verify order status + activate."""
+    return await m.purchase_confirm(user, req.plan_id, req.order_id, req.gw)
 
 
 # ---------------- Admin ----------------

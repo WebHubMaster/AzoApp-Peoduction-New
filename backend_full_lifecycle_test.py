@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
+BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

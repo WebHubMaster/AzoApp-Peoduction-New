@@ -30,20 +30,18 @@ export default function PartnerStarterKit({ status, locked = false, onPurchased 
       if (order.free) {
         // Kit is free — backend already activated it.
         toast.success("Starter Kit activated!");
-      } else if (order.mock) {
-        // No live gateway configured → dev mock activation (gated server-side).
-        await api.post("/starter-kit/mock");
-        toast.success("Payment successful — welcome to AzoApp Pro! 🎉");
       } else {
-        // REAL payment gateway: open checkout, then verify server-side. The Pro
-        // tag is granted ONLY after /starter-kit/verify confirms the signature.
+        // REAL active gateway (Razorpay SDK / Cashfree SDK / PayU / Easebuzz / Juspay)
+        // in its selected mode. The Pro tag is granted ONLY after server-side verify.
         const ok = await openCheckout(order, {
           user, name: "AzoApp Pro", description: "Starter Kit",
-          onVerify: (res) => api.post("/starter-kit/verify", {
-            order_id: res.razorpay_order_id,
-            payment_id: res.razorpay_payment_id,
-            signature: res.razorpay_signature,
-          }),
+          onVerify: (res) => res.razorpay_payment_id
+            ? api.post("/starter-kit/verify", {
+                order_id: res.razorpay_order_id,
+                payment_id: res.razorpay_payment_id,
+                signature: res.razorpay_signature,
+              })
+            : api.post("/starter-kit/confirm", { order_id: res.order_id, gw: res.gw }),
         });
         if (!ok) { setBuying(false); return; }  // cancelled / failed — no Pro tag
         toast.success("Payment verified — welcome to AzoApp Pro! 🎉");

@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
+BASE_URL = "https://payment-flow-restore-1.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

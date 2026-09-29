@@ -205,8 +205,12 @@ async def admin_process_withdrawal(admin: dict, wid: str, action: str, reason: s
     if wd.get("status") != "pending":
         raise HTTPException(status_code=400, detail="This request is already processed")
     if action == "approve":
+        # Disburse via the ACTIVE payout gateway (Admin config). Bank transfer only.
+        from services import payout_service
+        payout = await payout_service.create_payout({**wd, "name": wd.get("agent_name")})
         await db[_WD].update_one({"id": wid}, {"$set": {
-            "status": "approved", "processed_at": now_iso(), "processed_by": admin.get("id")}})
+            "status": "approved", "payout": payout,
+            "processed_at": now_iso(), "processed_by": admin.get("id")}})
     elif action == "reject":
         await db[_WD].update_one({"id": wid}, {"$set": {
             "status": "rejected", "reason": reason or "Rejected by admin",

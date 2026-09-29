@@ -58,17 +58,24 @@ async def create_order(amount_inr: float, receipt: str, customer: dict | None = 
     when the active gateway is ENABLED but its active mode is INCOMPLETE."""
     g = await _integrations()
     res = gr.resolve_payin(g)
-    if res["incomplete"]:
-        raise GatewayConfigError(res["error"])
-    if not res["configured"]:
-        return None  # gateway disabled → dev mock flow
+    # The ACTIVE gateway (in its ACTIVE mode) MUST process the payment. If it is not
+    # fully configured for that mode we raise a clear error — there is NO dev-mode
+    # bypass, NO mock, NO silent fallback to another gateway/mode.
+    if res["incomplete"] or not res["configured"]:
+        raise GatewayConfigError(
+            res["error"]
+            or (f"{res['gateway'].capitalize()} {res['mode'].upper()} MODE is the active "
+                f"payment gateway but its {res['mode']} credentials are missing. "
+                f"Add them (and keep it selected as Active) in the Integration Center."))
     gwn, mode, sg = res["gateway"], res["mode"], res["g"]
     order = None
     try:
         if gwn == "razorpay":
             client, kid = _rzp_client(res)
             if not client:
-                return None
+                raise GatewayConfigError(
+                    "Razorpay is active but its key credentials are missing for the "
+                    f"{mode} mode. Please check the Integration Center.")
             rp = client.order.create({
                 "amount": int(round(amount_inr * 100)), "currency": "INR",
                 "receipt": (receipt or "azo")[:40], "payment_capture": 1,
@@ -92,7 +99,8 @@ async def create_order(amount_inr: float, receipt: str, customer: dict | None = 
             f"Please verify the {mode} credentials in the Integration Center and try again."
         ) from e
     if not order:
-        return None
+        raise GatewayConfigError(
+            f"Could not create the payment order on {gwn.capitalize()} {mode.upper()} MODE.")
     order["mode"] = mode
     order["env"] = res["env"]
     order.setdefault("gateway", gwn)

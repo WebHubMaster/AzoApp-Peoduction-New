@@ -11,7 +11,7 @@ Provide Expo Go tunnel URLs for the two mobile apps. Backend + web panel must be
 - **web_panel/** — React (CRA + CRACO) admin/web panel. Port 3002 (local dev server).
 
 ## Environment / run state (2026-09-28)
-- Preview endpoint: https://order-visibility-4.preview.emergentagent.com
+- Preview endpoint: https://payment-flow-restore-1.preview.emergentagent.com
 - Recreated all missing `.env` files (backend, frontend, Customer, web_panel) with dev/demo defaults.
   - backend/.env: MONGO_URL, DB_NAME=azoapp, JWT_SECRET, Fernet keys (CACHE/FCM), preview URLs.
   - frontend/.env & Customer/.env: EXPO_PUBLIC_BACKEND_URL = preview URL.
@@ -20,7 +20,7 @@ Provide Expo Go tunnel URLs for the two mobile apps. Backend + web panel must be
 
 ## URL allocation (only port 3000 is public → given to the admin web app)
 - **Admin panel (web_panel)** → runs on port 3000 → PUBLIC preview URL.
-  - Site/store: https://order-visibility-4.preview.emergentagent.com
+  - Site/store: https://payment-flow-restore-1.preview.emergentagent.com
   - Login: `/login`   Admin dashboard: `/admin`
 - **PartnerApp** → `expo start --tunnel` on port 3005 → Expo Go: `exp://vfdmm4o-anonymous-3005.exp.direct`
 - **Customer app** → `expo start --tunnel` on port 3001 → Expo Go: `exp://1n0jmdo-anonymous-3001.exp.direct`

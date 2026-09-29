@@ -34,7 +34,7 @@ function formPost(action, fields) {
 // dedicated endpoint). `onVerify(res)` is called with the gateway response so the
 // caller can POST it to its own /verify route. Resolves true only on verified success.
 export async function openCheckout(order, { user, name = "AzoApp", description = "Payment", onVerify } = {}) {
-  if (!order || order.mock) return false;
+  if (!order) return false;
   if (order.method === "cashfree_sdk") {
     const ok = await loadScript("https://sdk.cashfree.com/js/v3/cashfree.js", () => window.Cashfree);
     if (!ok) { toast.error("Could not load Cashfree"); return false; }
@@ -76,8 +76,9 @@ export async function openCheckout(order, { user, name = "AzoApp", description =
  * booking_group pays for EVERY booking created in one checkout (order group) with
  * a single combined gateway transaction.
  * Uses whichever gateway the admin has set ACTIVE (Razorpay SDK, Cashfree SDK,
- * PayU form-post, or Easebuzz/Juspay hosted redirect). Falls back to the dev
- * mock endpoint when no gateway is configured. Resolves true on success.
+ * PayU form-post, or Easebuzz/Juspay hosted redirect) in its selected mode. There
+ * is NO dev-mock fallback — if the active gateway is not configured the backend
+ * returns a 409 and the caller surfaces the error. Resolves true on success.
  */
 export async function runPayment({ purpose, bookingId, groupId, amount, user }) {
   const { data: order } = await api.post("/payments/order", {
@@ -86,12 +87,6 @@ export async function runPayment({ purpose, bookingId, groupId, amount, user }) 
     group_id: groupId,
     amount,
   });
-
-  if (order.mock) {
-    await api.post("/payments/mock", { purpose, booking_id: bookingId, group_id: groupId, amount });
-    toast.success("Payment successful (dev mode)");
-    return true;
-  }
 
   // Cashfree — hosted checkout in a MODAL (stays inside the SPA; no full-page
   // redirect → no lost auth/session). After the modal closes we verify the order
