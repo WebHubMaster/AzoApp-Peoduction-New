@@ -1,0 +1,27 @@
+{
+  "summary": "Backend-only tests for AzoApp full-screen reschedule ring + admin customer google-services.json. All 9 pytest tests PASS. Verified via direct Mongo query that notification_delivery_logs rows with title 'Reschedule request' are created for BOTH the customer user_id (+919000000004) and partner user_id (+919000000003) with status='skipped'/'FCM service account not configured' — expected since no Firebase creds in this pod. This proves the ring dispatch code path fires for the customer when a partner reschedules (the fix), and continues to fire for the partner when a customer reschedules (no regression).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "test_report_links": [
+    "/app/backend/tests/test_reschedule_ring_customer_iter.py",
+    "/app/test_reports/pytest/reschedule_ring.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.request_reschedule uses push_dispatch.push_to_user (data-only) for the OPPOSITE party and suppresses the tray push in notify(push=False). Correct per spec. In-app notification is still created for the target — verified via /api/notifications for both directions.",
+    "partner_reg_admin_routes.gs_save takes both a query-param `app` and a body `app` key and prefers the body key (`body.get('app') or app`). Consider always trusting the query param when body key is missing to avoid subtle mismatches.",
+    "fcm_service._gs_doc_id namespaces customer vs partner into separate Mongo docs (google_services / google_services_customer) so PUT app=customer does NOT mutate partner config — verified: after PUT customer, GET partner still shows partner packages only (no 'app.azoapp.customer' present).",
+    "GET /api/admin/partner-reg/fcm-config/google-services/download?app=customer returns the exact uploaded JSON including package_name app.azoapp.customer — round-trip persistence OK.",
+    "There is no admin HTTP endpoint to list notification_delivery_logs; verification required a direct Mongo read. Consider adding GET /api/admin/notification-delivery-logs for observability."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_reschedule_ring_customer_iter.py (new)"
+  ],
+  "success_rate": { "backend": "100% (9/9)", "frontend": "n/a" },
+  "test_credentials": "Admin +919000000000, Partner +919000000003, Customer +919000000004, OTP=123456",
+  "seed_data_creation": "None. Uses seeded booking assigned to partner +919000000003 and customer +919000000004. Test cancels any pending reschedule_request before/after each case for idempotency.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Reschedule endpoint enforces a slot grid; use future date +2 days with HH:MM like 10:00/10:30/14:00. /api/bookings/partner/active returns a raw list (not {bookings:[]}). /api/notifications also returns a raw list. No admin endpoint to list notification_delivery_logs — read Mongo directly (db=azoapp, collection=notification_delivery_logs).",
+  "rca_of_the_issue": "Not a bug run — verifies feature parity: partner-initiated reschedule now triggers the same ring dispatch to the CUSTOMER as customer-initiated reschedule does to the PARTNER. Confirmed both directions in one code path (request_reschedule → push_dispatch.push_to_user data_only=True on the OPPOSITE party) and independent Firebase google-services.json documents per Android app."
+}
