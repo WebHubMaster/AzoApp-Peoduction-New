@@ -150,3 +150,14 @@ Partner app already had a full permission/diagnostics screen (app/(partner)/part
 - Customer/src/components/customer/nav.ts: added `alerts` NavKey + NAV item (BellRing icon, route /(customer)/alerts) → appears in the "More" sheet.
 - Backend routes/notification_routes.py test_self: kind="ring" now branches by role — non-partner (customer) gets a call-style `booking_confirmed` SSE test event + data-only push with link /(customer)/orders (partner path unchanged) so the customer's CustomerAlertOverlay/full-screen ring is genuinely exercised.
 Verified: backend curl as the customer — push-config/my-devices/test-self(ring→ok:true,sse:true / push→correct not_configured message in preview). Customer app tsc + eslint clean (0 errors). NOTE: the native screen itself can't be rendered in the web preview (Notifee/RNFB native modules) — visual + on-device permission flows must be verified on an EAS build.
+
+## Partner app: Work Start Wizard fixes — correct-service + reliable OTP flow (2026-06)
+Reported bugs: (1) wrong/mixed service wizard opening with multiple active bookings, (2) after Start OTP the job didn't mark "started" (looked like "Work Not Started"), (3) Complete OTP didn't mark "completed" immediately.
+RCA: BACKEND is correct (verified via curl: assigned→start-otp→started→complete→completed, per-id service_name correct, both responses return id+status). Bugs were FRONTEND state/timing in Customer... no — in frontend/app/(partner)/partner/job/[id].tsx:
+- Wizard local step/otp state could carry over when the [id] screen is reused for a different booking, and a stale cached booking could briefly render → wrong service. Verify relied on a non-awaited refetch so the UI lagged behind server truth (tap Complete while cache still "assigned" → "Job not started yet").
+Fixes (frontend only):
+- Reset step/otp/busy/progress on `id` change (useEffect [id]).
+- Hard guard: never render unless `String(b.id) === String(id)` (else spinner) → wrong-service wizard can't show.
+- verify(): now uses the mutation's returned booking (contains id+new status) to `qc.setQueryData` merge, then optimistically `setStep(3)` (start) / `setStep(4)` (complete) so the next step / Done screen shows instantly; still refetch in background for full enrichment.
+- Render + footer treat `step >= 4` as done (instant "Job completed" screen).
+Verified: backend full flow via curl (2 bookings, distinct services + OTPs) — per-service detail correct, start→started, complete→completed, responses include id. Frontend tsc + eslint clean (0 errors). NOTE: the native wizard UI itself can't run in web preview (Notifee/RNFB native modules) — the on-device tap-through must be verified on an EAS build.

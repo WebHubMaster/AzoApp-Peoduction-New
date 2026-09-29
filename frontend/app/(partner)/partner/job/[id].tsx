@@ -56,13 +56,19 @@ export default function PartnerJobWizard() {
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
 
+  // Opening a DIFFERENT job (id change) must never carry over the previous job's
+  // step / OTP / busy state — otherwise the wrong service's wizard step shows.
+  useEffect(() => { setStep(0); setOtp(""); setBusy(null); setProgress(0); }, [id]);
+
   // Server moved forward (OTP verified / completed) → wizard follows.
   useEffect(() => { if (step > 0 && phase > step) setStep(phase); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refresh = () => { q.refetch(); ["partner-active", "partner-joblist", "partner-wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); };
   const goBack = () => router.replace("/(partner)/active" as any);
 
-  if (q.isLoading || !b) {
+  // NEVER render a booking whose id doesn't match the route id (guards against a
+  // stale/previous booking briefly showing the wrong service in this wizard).
+  if (q.isLoading || !b || String(b.id) !== String(id)) {
     return <View style={{ flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={colors.primary} /></View>;
   }
 
@@ -88,8 +94,19 @@ export default function PartnerJobWizard() {
   };
   const verify = async (path: "start-otp" | "complete", label: string) => {
     setBusy(path);
-    try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); refresh(); }
-    catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
+    try {
+      const updated = await api.post<any>(`/bookings/${b.id}/${path}`, { otp });
+      setOtp("");
+      // Advance the wizard IMMEDIATELY from server truth — don't wait for the poll,
+      // otherwise the partner can tap Complete while the cache still says "assigned"
+      // (→ "Job not started yet") or the Start screen lingers after a verified OTP.
+      if (updated && String(updated.id) === String(b.id)) {
+        qc.setQueryData(["partner-booking", id], (old: any) => (old ? { ...old, ...updated } : updated));
+      }
+      setStep(path === "start-otp" ? 3 : 4);
+      toast.success(label);
+      refresh();
+    } catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
     finally { setBusy(null); }
   };
 
@@ -129,7 +146,7 @@ export default function PartnerJobWizard() {
       </LinearGradient>
 
       <KeyboardAwareScrollView bottomOffset={240} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        {phase === 4 ? <DoneStep b={b} /> :
+        {(phase === 4 || step >= 4) ? <DoneStep b={b} /> :
           step === 0 ? <DetailsStep b={b} /> :
           step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
           step === 2 ? (
@@ -141,7 +158,7 @@ export default function PartnerJobWizard() {
 
       {/* Bottom CTA bar (replaces the hidden tab bar) */}
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
-        {phase === 4 ? (
+        {(phase === 4 || step >= 4) ? (
           <Cta testID="wizard-finish" label="Back to Active Jobs" icon="arrow-left" color={EMERALD} onPress={() => router.replace("/(partner)/active" as any)} />
         ) : step === 0 ? (
           <Cta testID="wizard-continue" label={phase >= 3 ? "Continue to Complete Job" : phase >= 2 ? "Continue to Start Job" : "Continue"} icon="arrow-right" color={primary} onPress={() => setStep(phase)} />
