@@ -4,7 +4,7 @@ import {
   User, Briefcase, FileCheck2, MapPin, ClipboardCheck, Check, ChevronRight,
   ChevronLeft, Search, Upload, Loader2, ShieldCheck, Clock, AlertTriangle,
   CheckCircle2, Crosshair, X, LogOut, Camera, GraduationCap, Wallet, Zap, Star,
-  FileText, Bell, LayoutGrid, ListChecks, Info, Lock, ArrowRight, IndianRupee,
+  FileText, Bell, LayoutGrid, ListChecks, Info, Lock, ArrowRight,
 } from "lucide-react";
 import api, { compactPlus } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";

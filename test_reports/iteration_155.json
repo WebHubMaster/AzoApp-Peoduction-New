@@ -1,0 +1,31 @@
+{
+  "summary": "Verified Partner Registration Fee feature end-to-end. Backend: 5/5 pytest tests passing — admin can update fee settings, partner /fee reflects live (percentage 20% on ₹499 → ₹399.2, fixed ₹100 on ₹499 → ₹399), mock create-order/confirm marks fee as paid, inactive toggle sets enabled=false, and admin partner-reg kyc detail endpoint returns reg_fee_payment.status='paid' for target profile. Frontend: Integration Center card (intg-card-partner-reg-fee) shows 'Active · ₹399.2 ₹499'; Configure dialog (partner-reg-fee-dialog) opens with all required testids (prf-enabled/prf-original/prf-dtype-percentage/prf-dtype-fixed/prf-dvalue/prf-final/prf-save). Live recalculation verified: pct 20% → ₹399.2, fixed 100 → ₹399. Values persist after Save (reopen shows original=499, dvalue=20, enabled toggle checked, final=₹399.2). Approved KYC list → clicked kyc-open-<id> (Review) for partner f79db2be-e104-4980-9fd7-756a5609063e → kyc-detail dialog Registration Fee section shows kyc-fee-status='Paid', Amount Paid=₹399, Paid On timestamp, Transaction Ref=REGFEE-488d71ef-647, Gateway=mock · test.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Admin KYC detail (Registration Fee section)", "issue": "Review request said click 'Full Profile' (kyc-profile-<id>) to reach kyc-detail dialog, but that button opens Person360 (setViewUser). The kyc-detail dialog with the Registration Fee section is actually opened by the Review button (kyc-open-<id>). Not a bug — just a request-doc mismatch. Verified via kyc-open-<id> that Registration Fee section renders correctly.", "affected_selectors": ["kyc-profile-<id>", "kyc-open-<id>"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_partner_reg_fee_iter155.py",
+    "/app/test_reports/pytest/iter155.xml"
+  ],
+  "action_items": [
+    "Consider clarifying in feature docs that on approved-KYC list, the 'Review' button (kyc-open-<id>) opens the KycDetail dialog containing the Registration Fee section, not 'Full Profile' (kyc-profile-<id>) which opens Person360."
+  ],
+  "critical_code_review_comments": [
+    "KycDetail Section 'Registration Fee' correctly gates 'Paid' details on status == 'paid'. Uses Math.round for amount display consistent with card and partner overlay.",
+    "Backend create-order returns HTTP 400 with detail 'Registration fee already paid' when partner already paid. This is correct idempotent behavior; frontend/tests should treat it as a non-error and fall through to /fee already_paid=true.",
+    "PartnerRegFeeCard status line renders '<original>' as strikethrough next to the discounted amount — verified visually as 'Active · ₹399.2 ₹499'."
+  ],
+  "updated_files": ["/app/backend/tests/test_partner_reg_fee_iter155.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin phone +919000000000, Partner phone +919000000003, OTP 123456 (dev). data-testid='demo-admin' one-click login also works.",
+  "seed_data_creation": "None. Used existing paid partner profile f79db2be-e104-4980-9fd7-756a5609063e (Raj Kumar, +919000000003) which already had a REGFEE- mock payment on record.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Integration Center is under sidebar group 'System'. Approved KYC page is not in a nav group — navigate via URL param ?tab=reg_kyc_approved. Two testids per KYC row: 'kyc-open-<id>' (Review — opens KycDetail dialog with Registration Fee section) and 'kyc-profile-<id>' (Full Profile — opens Person360). The full-screen partner payment overlay (partner-fee-payment-page) is not reachable headlessly because completing the wizard requires camera-based selfie & Aadhaar capture; API mock flow was validated instead.",
+  "rca of the issue": "N/A — all feature checks passed. Note the note above about kyc-profile vs kyc-open."
+}

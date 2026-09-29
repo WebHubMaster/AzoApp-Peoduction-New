@@ -48,3 +48,11 @@ Provide Expo Go tunnel URLs for the two mobile apps. Backend + web panel must be
 - Backend (backend/controllers/site_controller.py _homepage): renders category_services (all services of cfg.category_id), hand-picked keeps admin order, and promo_banner supports inline cfg.image + cfg.link (synthetic banner).
 - Public site (web_panel/src/pages/customer/Landing.jsx): category_services rendered as a services row.
 - NOTE: This pod is code-only (backend/frontend not running here, web_panel node_modules absent → builds on deploy). Changes verified by backend logic simulation + syntax check; not e2e-screenshot verified in-pod.
+
+## Update (Jun 2026) — Partner Registration Fee
+- Admin Integration Center card 'Partner Registration Fee' (adminTemplateIntegration.jsx → PartnerRegFeeCard): toggle Active/Inactive, Original Price, Discount Type (percentage/fixed), Discount Value, auto Final Payable. Saves to /admin/settings.partner_reg_fee (SettingsUpdate model updated).
+- Backend (partner_reg_service.py + partner_reg_routes.py): GET /partner/registration/fee, POST /pay/create-order, POST /pay/confirm. submit_profile gates on paid fee when active (402 if unpaid), snapshots reg_fee_payment='not_required' when inactive. Reuses payment_service active gateway; dev MOCK auto-success when no gateway configured.
+- Partner flow (PartnerRegistration.jsx): after Review, if fee active & unpaid, 'Pay & Submit' opens full-screen payment page (#0D47A1, What's Included, Pay ₹XXX & Continue). Success → confirm → submit → under_review (NOT auto-approved). Fail → stays with retry. Inactive → straight to submit.
+- Admin partner detail (partnerRegAdminSections.jsx KycDetail): 'Registration Fee' section shows Paid (amount/date/txn/gateway) / Unpaid / Not Required.
+- Verified: testing_agent iteration_155 backend 5/5, frontend 100%. Payment overlay UI not driven headlessly (needs live selfie to reach Review) — verified via API flow + build.
+- NOTE: partner reg-fee payment is MOCKED in this pod (no live gateway). Configure a gateway in Integration Center for real charges.
