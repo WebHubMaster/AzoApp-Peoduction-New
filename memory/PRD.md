@@ -111,3 +111,13 @@ Implemented:
 - PARTNER APP (JobRingOverlay.tsx): reuses the existing incoming-job ring for kind='subscription' rings — Accept -> /subscriptions/{id}/accept then routes to /(partner)/partner/subscriptions; Reject just dismisses locally; subscription ring-pending added to the 6s reliability poll.
 
 NOT verifiable in preview: native full-screen lock-screen rings (Notifee/@react-native-firebase) require an EAS build + uploaded google-services.json. Payment gateway is not configured in this env, so Confirm & Pay surfaces a graceful "gateway not configured" toast (no crash) — same as normal bookings.
+
+## Update — Subscription fully merged into the normal /book checkout (2026-06)
+User asked: booking a Maid subscription must look/run EXACTLY like a normal service booking (same multi-step /book checkout with calendar+time-SLOT picker, address, review, pay), with a green "Recurring Subscription" badge on ALL plans (Daily/Weekly/Monthly), web + app both. Backend stays subscription (on payment → broadcast to category maids, first-accept-wins).
+
+Implemented (replaces the earlier standalone SubscriptionCheckout page, now DELETED on both platforms):
+- WEB Checkout.jsx: detects a single subscription cart line (isSub). Reuses the SAME stepper/steps; the "Details" (tiers/add-ons) step is dropped for subscriptions (activeSteps). Key-based step rendering + canNext/next. Flat pricing injected into cart-quote effect (no server quote). placeSubscription() → POST /subscriptions → /subscriptions/{id}/pay/order → openCheckout (verify/confirm). New shared SubscriptionHeader badge (green pill + name + "Monthly plan · 26 working days · 30-day period · Sun off"). Coupon + emergency hidden for subs; success screen + CTA point to /account?tab=subscriptions.
+- CUSTOMER app book.tsx + CheckoutUi.tsx + CheckoutSteps.tsx: same merge — Stepper accepts steps; StepServices/StepSchedule/StepSummary/StepReview are isSub-aware (badge, no coupon, no emergency); placeSubscription() uses openPreparedOrder(purpose 'subscription'); PaymentWebViewHost already routes subscription verify/confirm.
+- Service detail already shows the subscription-badge; "Book Now" → addSubscription → /book (home 'Book Now' → service detail → plan → Book Now, i.e. normal flow).
+
+Verification: WEB tested by testing agent iteration_163 → 100% (10/10, incl. normal-booking regression: full 6 steps + coupon preserved). Customer app: tsc + eslint clean (native pay/lock-screen ring verifiable only on EAS build). Preview has no payment gateway → final pay surfaces a graceful toast (no crash).

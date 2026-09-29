@@ -1,0 +1,27 @@
+{
+  "summary": "Frontend-only verification of the MERGED Maid subscription checkout inside the normal /book multi-step flow. ALL 10 review scenarios PASS. (1) Login OTP works. (2) /service/svc-maid-fulltime shows green subscription-badge + plan picker (sub-plan-daily/weekly/monthly, all 3 present). (3) Selecting Monthly + sub-subscribe-btn navigates to /book (URL == /book, not the old separate page). (4) /book header says 'Book your subscription', sub-title 'Monthly plan', Stepper shows exactly 5 steps [Services, Schedule, Your Info, Summary, Confirm] — step-details is DROPPED (count=0). (5) Step 1 Services renders sub-recurring-header with green 'Recurring Subscription' badge + 'Full-time Maid' + plan line 'Monthly plan · 26 working days · 30-day period · Sat off' + price ₹8,000. (6) Step Schedule shows schedule-picker (count=1), NO when-schedule / when-emergency toggles (both counts=0), 30 cal-day-* + 24 slot-* rendered; a default date+slot is preselected (checkout-next enabled without user action). (7) Step Your Info: 1 saved address (Home · 12 MG Road) auto-selected, next enabled. (8) Step Summary: coupon-input count=0 (correctly hidden for subs), sub-recurring-header + ₹8,000 shown, button reads 'Review order'. (9) Step Confirm renders plan card (with badge), Schedule (Tue, 29 Sept · 6:30 PM), Contact (Priya Verma / +919000000004), Service address (Home · 12 MG Road, Patna 800001), Payment method (Pay Online default; Wallet balance shown), Total payable ₹8,000, button reads 'Confirm & Pay'. Clicking place-order does NOT crash — button remains rendered, /subscriptions returned 409 (customer already has an active subscription from previous iterations) which is caught by the placeSubscription try/catch and would surface as a toast; page stays fully rendered. Per review spec, reaching this point is PASS. (10) REGRESSION on normal service (Door Repair) still uses the FULL 6-step checkout (all step-services/details/schedule/contact/summary/confirm present=1, sub-recurring-header=0), coupon-input=1 on summary, place-order click reaches the success screen 'Order placed!' — no crash, coupon box present, 'Details' step preserved.",
+  "backend_issues": {"critical": [], "minor": [
+    {"endpoint": "POST /api/subscriptions", "issue": "Returns 409 when customer already has an active/pending subscription for same plan. Frontend handles gracefully (toast.error, no crash) so this is PASS per review spec — but for a first-time clean run the graceful gateway toast would be preferable. Cleanup of test subscriptions between iterations would give cleaner runs."}
+  ]},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Checkout.jsx (~1050+ lines) is doing a LOT — Stepper, Steps 1-6 components, address logic, coupon logic, subscription placement, order placement, payment. Consider extracting Step* components + placeSubscription/placeOrder into separate files for maintainability; currently exceeds the 700-line file-size review guideline.",
+    "isSub branching is clean: activeSteps filters out 'details', cart-quote effect short-circuits with flat plan pricing, StepServices/Schedule/Summary all have isSub props to hide non-applicable UI (coupon, emergency toggle). Verified via runtime that details=0, coupon=0, emergency=0 for subs and =1 for normal services.",
+    "placeSubscription catches errors and surfaces toast.error with server detail — good UX. openCheckout(order) falsy path emits toast.info('Payment was not completed.') — also good.",
+    "Minor: subPlanLine shows 'Sat off' for Monthly in this env (weekly_offs contained 6=Sat) — matches backend seed but the review-request example says 'Sun off'. This is just seed data content, not a code bug."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (10/10 review scenarios pass, incl. regression)"},
+  "test_credentials": "Customer phone +919000000004, OTP 123456. OTP: type all 6 digits into the first input[maxlength=1] via keyboard.type — auto-advance handles the rest.",
+  "seed_data_creation": "Reused existing saved address (Home · 12 MG Road, Patna 800001) already present on the customer from iteration_162.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Merged flow is live: /service/svc-maid-fulltime → subscription-badge + sub-plan-daily/weekly/monthly + sub-subscribe-btn → /book. On /book with a subscription cart line: activeSteps=[services, schedule, contact, summary, confirm] (5 steps), SubscriptionHeader (data-testid=sub-recurring-header) appears on services + summary + confirm, StepSchedule hides when-schedule/when-emergency + shows only SchedulePicker, StepSummary hides the coupon SectionCard, StepReview footer button reads 'Confirm & Pay'. placeSubscription() calls POST /subscriptions → POST /subscriptions/{id}/pay/order → openCheckout; on 409 (dup active sub) it toasts and does not crash. Normal services still use all 6 steps + coupon.",
+  "rca of the issue": "n/a — feature verification, no bug found."
+}
