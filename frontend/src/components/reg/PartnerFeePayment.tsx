@@ -96,9 +96,9 @@ export function PartnerFeePayment({
   const headerLogo = brand?.branding?.logo || brand?.branding?.logo_light || brand?.branding?.logo_dark || "";
 
   // responsive hero sizing
-  const heroW = Math.max(128, Math.min(W * 0.4, 168));
-  const heroH = heroW * 1.16;
-  const circleD = heroW * 0.94;
+  const heroW = Math.max(142, Math.min(W * 0.46, 182));
+  const heroH = heroW * 1.28;
+  const titleW = Math.min(W * 0.56, 240);
 
   const finish = () => { setCheckout(null); onPaid(); };
 
@@ -185,38 +185,41 @@ export function PartnerFeePayment({
 
         <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 220 }} showsVerticalScrollIndicator={false}>
           {/* title + hero provider */}
-          <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 16 }}>
-            <View style={{ flex: 1, paddingRight: 8 }}>
-              <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: INK }}>Complete Your Registration</Text>
+          <View style={{ position: "relative", marginTop: 12, minHeight: heroH }}>
+            <View style={{ position: "absolute", right: -10, top: 0, width: heroW, height: heroH, alignItems: "center", justifyContent: "flex-end" }}>
+              <View style={{ position: "absolute", top: heroW * 0.04, width: heroW, height: heroW, borderRadius: heroW, backgroundColor: TINT }} />
+              <View style={{ position: "absolute", top: heroW * 0.16, right: heroW * 0.02, width: heroW * 0.34, height: heroW * 0.34, borderRadius: heroW, backgroundColor: "#DCE8FB" }} />
+              <Image source={HERO} style={{ width: heroW, height: heroH }} contentFit="contain" contentPosition="bottom" testID="fee-hero-provider" />
+            </View>
+            <View style={{ width: titleW }}>
+              <Text style={{ fontSize: 29, lineHeight: 35, fontWeight: "800", color: INK, letterSpacing: -0.4 }}>Complete Your Registration</Text>
               <Text style={{ ...T.base, color: TW.slate500, marginTop: 12, lineHeight: 22 }}>
                 Pay the one-time processing fee to activate your partner account and start receiving service opportunities in your area.
               </Text>
             </View>
-            <View style={{ width: heroW, height: heroH, alignItems: "center", justifyContent: "flex-end" }}>
-              <View style={{ position: "absolute", top: 0, width: circleD, height: circleD, borderRadius: circleD / 2, backgroundColor: TINT }} />
-              <Image source={HERO} style={{ width: heroW, height: heroH }} contentFit="contain" contentPosition="bottom" testID="fee-hero-provider" />
-            </View>
           </View>
 
           {/* fee card */}
-          <View style={{ marginTop: 20, borderRadius: 24, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 16, backgroundColor: TINT }}>
-            <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ marginTop: 24, borderRadius: 26, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 16, backgroundColor: "#F3F7FE", borderWidth: 1, borderColor: "#E3ECFA", boxShadow: "0px 14px 34px rgba(13,71,161,0.12)" }}>
+            <View style={{ height: 58, width: 58, borderRadius: 18, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", boxShadow: "0px 8px 18px rgba(13,71,161,0.16)" }}>
               <FileText size={28} color={BLUE} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 22, fontWeight: "800", color: INK }}>Registration Fee</Text>
+              <Text style={{ fontSize: 21, fontWeight: "800", color: INK }}>Registration Fee</Text>
               <Text style={{ ...T.sm, color: TW.slate500 }}>One-Time Processing Fee</Text>
-              <Text testID="fee-amount" style={{ fontSize: 44, fontWeight: "900", color: BLUE, marginTop: 4 }}>₹{amount}</Text>
-              {fee.discount_amount > 0 ? (
-                <Text style={{ ...T.sm, marginTop: 2 }}>
-                  <Text style={{ textDecorationLine: "line-through", color: TW.slate400 }}>₹{Math.round(fee.original_price)}</Text>
-                  <Text style={{ color: TW.emerald600, fontWeight: "700" }}>  Save ₹{Math.round(fee.discount_amount)}</Text>
-                </Text>
-              ) : null}
-              <View style={{ marginTop: 12, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.7)", paddingHorizontal: 12, paddingVertical: 6 }}>
-                <Text style={{ ...T.sm, fontWeight: "700", color: BLUE }}>One-time payment</Text>
-                <Text style={{ color: TW.slate300 }}>|</Text>
-                <Text style={{ ...T.sm, fontWeight: "700", color: BLUE }}>No monthly charges</Text>
+              <View style={{ flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", gap: 10, marginTop: 6 }}>
+                <Text testID="fee-amount" style={{ fontSize: 42, lineHeight: 46, fontWeight: "900", color: BLUE, letterSpacing: -1 }}>₹{amount}</Text>
+                {fee.discount_amount > 0 ? (
+                  <View style={{ paddingBottom: 7 }}>
+                    <Text style={{ ...T.sm, textDecorationLine: "line-through", color: TW.slate400 }}>₹{Math.round(fee.original_price)}</Text>
+                    <Text style={{ ...T.sm, color: TW.emerald600, fontWeight: "800" }}>Save ₹{Math.round(fee.discount_amount)}</Text>
+                  </View>
+                ) : null}
+              </View>
+              <View style={{ marginTop: 12, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
+                <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>One-time payment</Text>
+                <View style={{ width: 1, height: 12, backgroundColor: TW.slate200 }} />
+                <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>No monthly charges</Text>
               </View>
             </View>
           </View>
