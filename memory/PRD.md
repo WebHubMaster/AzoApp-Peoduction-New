@@ -39,6 +39,15 @@ https://f0d86221-daec-4487-98fb-5b815df15e56.preview.emergentagent.com
 - Verified: admin PUT /admin/settings {partner_reg_fee:{enabled,original_price:999,discount_type:fixed,discount_value:500}} → partner GET /fee returns enabled=true final_amount=499; POST /pay/create-order returns a live Razorpay TEST order (gateway razorpay_sdk, rzp_test key). Mobile bundle compiles (HTTP 200).
 - Active gateway in this pod = Razorpay TEST mode (already configured in Integration Center). The final in-app Razorpay checkout + signature verify must be validated on a real device via Expo Go (cannot be driven headlessly here).
 
+## Payment screen redesign (mobile) — 2026-09-29
+- src/components/reg/PartnerFeePayment.tsx redesigned to match the "Complete Your Registration" reference:
+  - Header now renders the ADMIN Branding & Theme logo (useBrand().branding.logo = blue AzoApp wordmark SVG) instead of hardcoded text; falls back to site_name+tagline text if no logo.
+  - Added hero provider image assets/partner-hero.png (man in #0D47A1 polo with the white AzoApp stacked logo on the chest near the pocket) inside a light-blue circle, top-right, responsive (useWindowDimensions).
+  - Added payment-methods strip assets/pay-methods.png (UPI/Visa/Mastercard/RuPay/Paytm) under the Pay button + "Secure Payment" line.
+  - Wording changed "Provider" → "Partner" (account activation, dashboard access, description).
+  - Primary/theme colour #0D47A1 throughout; fully responsive layout.
+- Assets bundled under /app/frontend/assets/ (partner-hero.png, pay-methods.png). Hero built by keying the generated image bg to transparent + compositing the user's white stacked logo on the polo. Bundle recompiles HTTP 200.
+
 ## Notes / Caveats (setup)
 - supervisor `frontend` program is STOPPED (port 3000 is used by partner Expo tunnel instead).
 - Payments run in dev MOCK mode (no live gateway keys). Configure in Admin -> Integration Center for real payments.

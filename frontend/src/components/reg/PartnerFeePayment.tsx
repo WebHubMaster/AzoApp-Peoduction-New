@@ -1,15 +1,16 @@
 /**
  * Partner Registration Fee — payment screen (mobile parity with the web panel).
  * Shown ONLY when the admin has the one-time registration fee ACTIVE and the
- * partner has not paid yet. Mirrors web PartnerRegistration payment page:
- *   create-order → open the ACTIVE gateway's checkout → confirm server-side.
- * There is NO dev-mock bypass — the active gateway processes the fee.
+ * partner has not paid yet. Design matches the AzoApp "Complete Your Registration"
+ * reference (admin brand logo header, hero provider, fee card, Pay & Continue).
  *   • razorpay_sdk → Razorpay Standard Checkout inside a WebView
  *   • redirect      → open payment_url in a WebView, then verify
  *   • form_post     → auto-submit form in a WebView, then verify
+ * No dev-mock bypass — the ACTIVE gateway processes the fee.
  */
 import React, { useState } from "react";
-import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
+import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
+import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
 import {
   FileText, ShieldCheck, ListChecks, Bell, LayoutGrid, Info, ArrowRight, Lock,
@@ -18,18 +19,23 @@ import {
 import { api } from "@/src/api/client";
 import { TW, T } from "@/src/components/reg/tokens";
 import { WButton } from "@/src/components/reg/Fields";
+import { useBrand } from "@/src/context/BrandContext";
+
+const HERO = require("../../../assets/partner-hero.png");
+const PAY_METHODS = require("../../../assets/pay-methods.png");
 
 const RB = "/partner/registration";
 const BLUE = "#0D47A1";
 const INK = "#0D1B2A";
 const TINT = "#EAF1FB";
 
+// "Partner" (not "Provider") wording per brand.
 const INCLUDED: [any, string, string][] = [
-  [UserIcon, "Provider account activation", "Activate your provider account on AzoApp"],
-  [ShieldCheck, "Profile verification & onboarding", "Verify your details and complete onboarding"],
+  [UserIcon, "Partner account activation", "Activate your partner account on AzoApp"],
+  [ShieldCheck, "Profile verification & onboarding", "Verify your details and complete onboarding process"],
   [ListChecks, "Service listing activation", "List your services and make them live"],
   [Bell, "Start receiving work opportunities", "Get job notifications from customers in your area"],
-  [LayoutGrid, "Provider dashboard access", "Access your dashboard to manage bookings"],
+  [LayoutGrid, "Partner dashboard access", "Access your dashboard to manage bookings"],
 ];
 
 const esc = (v: any) => String(v ?? "").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -44,7 +50,7 @@ function formPostHtml(action: string, params: Record<string, any>): string {
 function razorpayHtml(order: any, customer: any): string {
   const opts = {
     key: order.key_id,
-    amount: order.amount, // paise
+    amount: order.amount,
     currency: order.currency || "INR",
     name: "AzoApp Registration",
     description: "Partner registration fee",
@@ -78,6 +84,8 @@ export function PartnerFeePayment({
   onPaid: () => void;
   customer?: { name?: string; email?: string; phone?: string };
 }) {
+  const { width: W } = useWindowDimensions();
+  const brand = useBrand();
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
   const [checkout, setCheckout] = useState<{ html?: string; url?: string; order: any; kind: string } | null>(null);
@@ -85,13 +93,14 @@ export function PartnerFeePayment({
 
   if (!fee) return null;
   const amount = Math.round(fee.final_amount || 0);
+  const headerLogo = brand?.branding?.logo || brand?.branding?.logo_light || brand?.branding?.logo_dark || "";
+
+  // responsive hero sizing
+  const heroW = Math.max(128, Math.min(W * 0.4, 168));
+  const heroH = heroW * 1.16;
+  const circleD = heroW * 0.94;
 
   const finish = () => { setCheckout(null); onPaid(); };
-
-  const confirmHosted = async (order: any) => {
-    const res = await api.post<any>(`${RB}/pay/confirm`, { order_id: order.order_id, gateway: order.gateway, mode: order.mode });
-    return !!res?.ok;
-  };
 
   const payAndContinue = async () => {
     setPaying(true);
@@ -105,8 +114,6 @@ export function PartnerFeePayment({
         setCheckout({ url: order.payment_url, order, kind: "hosted" });
       } else if (method === "form_post" && order.action) {
         setCheckout({ html: formPostHtml(order.action, order.params || {}), order, kind: "hosted" });
-      } else if (method === "cashfree_sdk" && order.payment_session_id) {
-        setPayError("Cashfree in-app checkout isn't available in this build. Please complete the payment from the web panel.");
       } else {
         setPayError("This gateway's in-app checkout isn't available in this build. Please complete the payment from the web panel.");
       }
@@ -117,7 +124,6 @@ export function PartnerFeePayment({
     }
   };
 
-  // Razorpay checkout posts the result back through the WebView bridge.
   const onCheckoutMessage = async (raw: string) => {
     let msg: any = {};
     try { msg = JSON.parse(raw); } catch { return; }
@@ -136,21 +142,19 @@ export function PartnerFeePayment({
         setCheckout(null);
       } finally { setVerifying(false); }
     } else if (msg.type === "failed") {
-      setPayError(msg.message || "Payment failed. Please try again.");
-      setCheckout(null);
+      setPayError(msg.message || "Payment failed. Please try again."); setCheckout(null);
     } else if (msg.type === "dismiss") {
       setCheckout(null);
     }
   };
 
-  // Hosted redirect / form-post gateways are confirmed by querying the order.
   const verifyHosted = async () => {
     if (!checkout) return;
     setVerifying(true);
     setPayError("");
     try {
-      const ok = await confirmHosted(checkout.order);
-      if (ok) { finish(); }
+      const res = await api.post<any>(`${RB}/pay/confirm`, { order_id: checkout.order.order_id, gateway: checkout.order.gateway, mode: checkout.order.mode });
+      if (res?.ok) { finish(); }
       else { setPayError("Payment was not completed. Please try again."); }
     } catch (e: any) {
       setPayError(e?.detail || "Payment was not completed. Please try again.");
@@ -160,27 +164,42 @@ export function PartnerFeePayment({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "#fff" }} testID="partner-fee-payment-page">
-        {/* header */}
+        {/* header — admin brand logo (from Branding & Theme) */}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 48, paddingBottom: 8 }}>
           <Pressable testID="fee-pay-back" onPress={() => { if (!paying) onClose(); }} hitSlop={8}
             style={{ height: 40, width: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
-            <ChevronLeft size={22} color={TW.slate700} />
+            <ChevronLeft size={24} color={INK} />
           </Pressable>
-          <View style={{ alignItems: "center" }}>
-            <Text style={{ ...T.lg, fontWeight: "800", color: BLUE }}>AzoApp</Text>
-            <Text style={{ ...T.xs, color: TW.slate400, marginTop: -2 }}>Service at Your Doorstep</Text>
+          <View style={{ flex: 1, alignItems: "center" }}>
+            {headerLogo ? (
+              <Image testID="fee-brand-logo" source={{ uri: headerLogo }} style={{ height: 40, width: 168 }} contentFit="contain" transition={150} />
+            ) : (
+              <View style={{ alignItems: "center" }}>
+                <Text style={{ ...T.lg, fontWeight: "800", color: BLUE }}>{brand?.branding?.site_name || "AzoApp"}</Text>
+                <Text style={{ ...T.xs, color: TW.slate400, marginTop: -2 }}>{brand?.branding?.tagline || "Service at Your Doorstep"}</Text>
+              </View>
+            )}
           </View>
           <View style={{ width: 40 }} />
         </View>
 
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140 }} showsVerticalScrollIndicator={false}>
-          <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: INK, marginTop: 16 }}>Complete Your Registration</Text>
-          <Text style={{ ...T.base, color: TW.slate500, marginTop: 10, lineHeight: 22 }}>
-            Pay the one-time processing fee to activate your provider account and start receiving service opportunities in your area.
-          </Text>
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 220 }} showsVerticalScrollIndicator={false}>
+          {/* title + hero provider */}
+          <View style={{ flexDirection: "row", alignItems: "flex-start", marginTop: 16 }}>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: INK }}>Complete Your Registration</Text>
+              <Text style={{ ...T.base, color: TW.slate500, marginTop: 12, lineHeight: 22 }}>
+                Pay the one-time processing fee to activate your partner account and start receiving service opportunities in your area.
+              </Text>
+            </View>
+            <View style={{ width: heroW, height: heroH, alignItems: "center", justifyContent: "flex-end" }}>
+              <View style={{ position: "absolute", top: 0, width: circleD, height: circleD, borderRadius: circleD / 2, backgroundColor: TINT }} />
+              <Image source={HERO} style={{ width: heroW, height: heroH }} contentFit="contain" contentPosition="bottom" testID="fee-hero-provider" />
+            </View>
+          </View>
 
           {/* fee card */}
-          <View style={{ marginTop: 22, borderRadius: 24, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 16, backgroundColor: TINT }}>
+          <View style={{ marginTop: 20, borderRadius: 24, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 16, backgroundColor: TINT }}>
             <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}>
               <FileText size={28} color={BLUE} />
             </View>
@@ -235,7 +254,7 @@ export function PartnerFeePayment({
         </ScrollView>
 
         {/* sticky pay bar */}
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 28, backgroundColor: "rgba(255,255,255,0.97)", borderTopWidth: 1, borderTopColor: TW.slate100 }}>
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24, backgroundColor: "rgba(255,255,255,0.98)", borderTopWidth: 1, borderTopColor: TW.slate100 }}>
           <Pressable testID="fee-pay-btn" onPress={payAndContinue} disabled={paying}
             style={{ height: 56, borderRadius: 18, backgroundColor: BLUE, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: paying ? 0.7 : 1 }}>
             {paying ? <ActivityIndicator color="#fff" /> : (
@@ -249,6 +268,7 @@ export function PartnerFeePayment({
             <Lock size={14} color={TW.slate400} />
             <Text style={{ ...T.xs, color: TW.slate400 }}>Secure Payment · 100% Safe &amp; Secure</Text>
           </View>
+          <Image source={PAY_METHODS} style={{ width: "82%", height: 24, alignSelf: "center", marginTop: 10 }} contentFit="contain" testID="fee-pay-methods" />
         </View>
 
         {/* gateway checkout */}
