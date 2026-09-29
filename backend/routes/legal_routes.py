@@ -6,6 +6,10 @@ Exposed under /api/legal/{doc} (doc = terms | privacy).
 """
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
+from html import escape as _escape
+import re
+
+from config.database import db
 
 router = APIRouter()
 
@@ -132,18 +136,55 @@ _DOCS = {
     "privacy": ("Privacy Policy", _PRIVACY),
 }
 
+_HTML_RE = re.compile(r"<[a-z][\s\S]*>", re.I)
+
+
+def _render_body(body: str) -> str:
+    """Admin CMS body may be rich HTML (from the panel editor) or plain text."""
+    body = (body or "").strip()
+    if _HTML_RE.search(body):
+        return body
+    return f'<p style="white-space:pre-wrap">{_escape(body)}</p>'
+
+
+async def _cms_page(key: str):
+    """Fetch admin-managed page content (Website / CMS → pages collection)."""
+    try:
+        return await db.pages.find_one({"key": key}, {"_id": 0})
+    except Exception:
+        return None
+
 
 @router.get("/legal/{doc}", response_class=HTMLResponse)
 async def legal_page(doc: str):
-    entry = _DOCS.get(doc.lower())
+    key = doc.lower()
+    entry = _DOCS.get(key)
     if not entry:
         raise HTTPException(404, "Not found")
-    title, body = entry
+    default_title, default_body = entry
+
+    # Prefer the exact content the admin saved in Website / CMS. If nothing is
+    # saved yet, fall back to the built-in default so the page is never blank.
+    title = default_title
+    body = default_body
+    page = await _cms_page(key)
+    if page and (page.get("body") or "").strip():
+        title = (page.get("title") or default_title).strip()
+        upd = str(page.get("updated_at") or "")[:10]
+        updated_line = f'<div class="upd">Last updated: {upd}</div>' if upd else ""
+        body = (
+            f'<div class="brand">{_BRAND}</div>'
+            f'<h1>{_escape(title)}</h1>'
+            f'{updated_line}'
+            f'{_render_body(page.get("body"))}'
+            f'<div class="foot">© 2026 {_BRAND}. All rights reserved.</div>'
+        )
+
     html = f"""<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-<title>{title} · {_BRAND}</title>
+<title>{_escape(title)} · {_BRAND}</title>
 <style>{_STYLE}</style>
 </head><body><div class="wrap">{body}</div></body></html>"""
     return HTMLResponse(content=html)

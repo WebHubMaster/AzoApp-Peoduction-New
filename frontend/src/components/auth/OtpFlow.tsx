@@ -20,10 +20,11 @@ export const homeFor = (u: AppUser) => {
   return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
 };
 
-function GradButton({ title, icon, busy, onPress, grad, testID }: { title: string; icon: any; busy: boolean; onPress: () => void; grad: readonly [string, string]; testID: string }) {
+function GradButton({ title, icon, busy, onPress, grad, testID, disabled }: { title: string; icon: any; busy: boolean; onPress: () => void; grad: readonly [string, string]; testID: string; disabled?: boolean }) {
+  const off = busy || disabled;
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={busy} style={({ pressed }) => ({ transform: [{ scale: pressed ? 0.98 : 1 }] })}>
-      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: busy ? 0.7 : 1 }}>
+    <Pressable testID={testID} onPress={onPress} disabled={off} style={({ pressed }) => ({ transform: [{ scale: pressed && !off ? 0.98 : 1 }] })}>
+      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: off ? 0.5 : 1 }}>
         {busy ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: FS.label, fontWeight: "800" }}>{title}</Text><Icon name={icon} size={22} color="#fff" /></>}
       </LinearGradient>
     </Pressable>
@@ -175,7 +176,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
       </View>
       <TextInput testID="login-name-input" value={name} onChangeText={setName} placeholder="Enter your full name" placeholderTextColor="#94A3B8" autoFocus onSubmitEditing={submitName} style={[inputStyle, { borderColor: name.trim() ? ac.main : AUTH.line, fontWeight: "600" }]} />
       <LegalConsent checked={accepted} onChange={setAccepted} accent={ac.main} testID="register-legal" />
-      <GradButton testID="continue-signup-btn" title={`Create ${cap(role || "")} Account`} icon="arrow-right" busy={busy === "name"} onPress={submitName} grad={ac.grad} />
+      <GradButton testID="continue-signup-btn" title={`Create ${cap(role || "")} Account`} icon="arrow-right" busy={busy === "name"} disabled={!accepted || !name.trim()} onPress={submitName} grad={ac.grad} />
     </View>
   );
 }

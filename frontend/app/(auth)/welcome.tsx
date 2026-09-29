@@ -13,7 +13,7 @@ import { FS } from "@/src/components/auth/AuthUi";
 
 const LOGO_A = require("../../assets/welcome-logo-a.png");
 const PERSON = require("../../assets/welcome-person.webp");
-const PERSON_RATIO = 600 / 1093;
+const PERSON_RATIO = 682 / 1255;
 
 const C = {
   bg: "#F6F9FE",

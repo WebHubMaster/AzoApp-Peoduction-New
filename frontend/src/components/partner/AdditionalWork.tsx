@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, Modal, TextInput, ScrollView, Platform } from "react-native";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,20 +21,48 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
   const addl = b.additional || null;
   const rcQ = useQuery({ queryKey: ["ratecard", b.category_id], queryFn: () => api.get<any>(`/ratecards/by-category/${b.category_id}`), enabled: !!b.category_id });
   const rcCard = rcQ.data && (rcQ.data.groups || []).length ? rcQ.data : null;
-  const addAdditionalRow = async (row: any) => {
+
+  // Group identical items (same rate-card row) so repeated adds show as a quantity, not duplicate lines.
+  const groups = useMemo(() => {
+    const map = new Map<string, { key: string; ids: string[]; description: string; part: number; labour: number; warranty: string; qty: number }>();
+    for (const it of (addl?.items || [])) {
+      const key = it.ratecard_row_id || `${it.description}|${it.part_charge}|${it.labour_charge}`;
+      const g = map.get(key) || { key, ids: [], description: it.description, part: num(it.part_charge), labour: num(it.labour_charge), warranty: it.warranty || "", qty: 0 };
+      g.ids.push(it.id);
+      g.qty += 1;
+      map.set(key, g);
+    }
+    return Array.from(map.values());
+  }, [addl]);
+
+  const addAdditionalRow = async (row: any, quiet = false) => {
     const part = num(row.service_charge);
     const labour = num(row.labour_charge);
     if (part <= 0 && labour <= 0) { toast.error("This item has no charge to add"); return; }
     try {
       await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: part, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] });
-      toast.success(`Added "${row.description}" — ask customer to pay`);
+      if (!quiet) toast.success(`Added "${row.description}" — ask customer to pay`);
       onUpdate();
     } catch (e: any) { toast.error(e?.detail || "Failed to add"); }
   };
-  const removeAdditional = async (itemId: string) => {
-    try { await api.del(`/bookings/${b.id}/additional/${itemId}`); toast.success("Removed"); onUpdate(); }
+
+  // Remove ONE instance of a rate-card row (the quantity "minus" control).
+  const removeAdditionalRow = async (rowId: string) => {
+    const list = (addl?.items || []).filter((i: any) => i.ratecard_row_id === rowId);
+    if (!list.length) return;
+    try { await api.del(`/bookings/${b.id}/additional/${list[list.length - 1].id}`); onUpdate(); }
     catch (e: any) { toast.error(e?.detail || "Failed"); }
   };
+
+  // Remove an entire grouped line (the trash button on the summary list).
+  const removeGroup = async (ids: string[]) => {
+    try {
+      for (const id of ids) { await api.del(`/bookings/${b.id}/additional/${id}`); }
+      toast.success("Removed");
+      onUpdate();
+    } catch (e: any) { toast.error(e?.detail || "Failed"); }
+  };
+
   return (
     <View testID={`additional-section-${b.code}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, backgroundColor: colors.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
@@ -46,12 +74,16 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
         ) : null}
       </View>
       <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 17 }}>If any extra parts or labour were used, add them from the category rate card. <Text style={{ color: "#B45309", fontWeight: "700" }}>Collect the payment for additional work from the customer first, then complete the job.</Text></Text>
-      {addl && (addl.items || []).length > 0 ? (
+      {groups.length > 0 ? (
         <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 8, padding: 12, gap: 6, marginBottom: 12 }}>
-          {addl.items.map((it: any) => (
-            <View key={it.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <Text style={{ color: colors.textSecondary, fontSize: 13, flex: 1 }}>{it.description}<Text style={{ color: SLATE400 }}> · part {fmt(it.part_charge)}{num(it.labour_charge) > 0 ? ` + labour ${fmt(it.labour_charge)}` : ""}</Text></Text>
-              {addl.status !== "paid" ? <Pressable testID={`addl-remove-${it.id}`} onPress={() => removeAdditional(it.id)} hitSlop={8}><Icon name="trash-can-outline" size={16} color="#EF4444" /></Pressable> : null}
+          {groups.map((g) => (
+            <View key={g.key} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+              <Text style={{ color: colors.textSecondary, fontSize: 13, flex: 1 }}>
+                {g.description}
+                {g.qty > 1 ? <Text style={{ color: colors.primary, fontWeight: "800" }}>{"  "}×{g.qty}</Text> : null}
+                <Text style={{ color: SLATE400 }}> · part {fmt(g.part)}{g.labour > 0 ? ` + labour ${fmt(g.labour)}` : ""}</Text>
+              </Text>
+              {addl.status !== "paid" ? <Pressable testID={`addl-remove-${g.key}`} onPress={() => removeGroup(g.ids)} hitSlop={8}><Icon name="trash-can-outline" size={16} color="#EF4444" /></Pressable> : null}
             </View>
           ))}
           <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Parts (no commission)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.parts_total)}</Text></View>
@@ -74,19 +106,28 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
           <Text style={{ color: SLATE400, fontSize: 12 }}>No rate card configured for this category — additional work unavailable.</Text>
         )
       ) : null}
-      {rcCard ? <RateCardSheet open={rcOpen} onClose={() => setRcOpen(false)} card={rcCard} onAdd={addAdditionalRow} /> : null}
+      {rcCard ? <RateCardSheet open={rcOpen} onClose={() => setRcOpen(false)} card={rcCard} items={addl?.items || []} onAdd={(r) => addAdditionalRow(r, true)} onRemoveRow={removeAdditionalRow} /> : null}
     </View>
   );
 }
 
 /* ── RateCardSheet — RN mirror of web RateCardModal (add extra work from category rate card) ── */
-function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose: () => void; card: any; onAdd: (row: any) => void }) {
+function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { open: boolean; onClose: () => void; card: any; items: any[]; onAdd: (row: any) => Promise<void> | void; onRemoveRow: (rowId: string) => Promise<void> | void }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [q, setQ] = useState("");
-  const [added, setAdded] = useState<Set<string>>(new Set());
+  const [busy, setBusy] = useState<Set<string>>(new Set());
   const accent = card?.accent_color || "#0D47A1";
   const groups: any[] = card?.groups || [];
+
+  // Live quantity per rate-card row, derived from the booking's additional items.
+  const countByRow = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const it of (items || [])) { const k = it.ratecard_row_id; if (k) m[k] = (m[k] || 0) + 1; }
+    return m;
+  }, [items]);
+  const totalCount = (items || []).length;
+
   const filtered = !q.trim() ? groups : groups.map((g) => ({
     ...g,
     rows: (g.rows || []).filter((r: any) =>
@@ -94,7 +135,13 @@ function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose:
       (r.warranty || "").toLowerCase().includes(q.trim().toLowerCase()) ||
       String(r.service_charge || "").includes(q.trim())),
   })).filter((g) => g.rows.length > 0);
-  const handleAdd = (r: any) => { onAdd(r); setAdded((prev) => new Set(prev).add(r.id)); };
+
+  const mut = async (id: string, fn: () => Promise<void> | void) => {
+    if (busy.has(id)) return;
+    setBusy((p) => new Set(p).add(id));
+    try { await fn(); } finally { setBusy((p) => { const n = new Set(p); n.delete(id); return n; }); }
+  };
+
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardProvider>
@@ -131,7 +178,8 @@ function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose:
                 </View>
                 {(g.rows || []).map((r: any) => {
                   const sc = num(r.service_charge);
-                  const isAdded = added.has(r.id);
+                  const qty = countByRow[r.id] || 0;
+                  const isBusy = busy.has(r.id);
                   return (
                     <View key={r.id} style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1, borderTopColor: colors.border }}>
                       <View style={{ flex: 1 }}>
@@ -141,9 +189,23 @@ function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose:
                             <Icon name="shield-check-outline" size={11} color="#047857" /><Text style={{ color: "#047857", fontSize: 10.5, fontWeight: "600" }}>{r.warranty} warranty</Text>
                           </View>
                         ) : null}
-                        <Pressable testID={`ratecard-add-${r.id}`} onPress={() => handleAdd(r)} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: isAdded ? EMERALD : accent }}>
-                          <Icon name={isAdded ? "check" : "plus"} size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{isAdded ? "Added · add again" : "Add"}</Text>
-                        </Pressable>
+                        {qty > 0 ? (
+                          <View testID={`ratecard-qty-${r.id}`} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", borderRadius: 10, borderWidth: 1.5, borderColor: accent, overflow: "hidden", opacity: isBusy ? 0.6 : 1 }}>
+                            <Pressable testID={`ratecard-qty-minus-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onRemoveRow(r.id))} hitSlop={6} style={{ width: 34, height: 32, alignItems: "center", justifyContent: "center" }}>
+                              <Icon name="minus" size={16} color={accent} />
+                            </Pressable>
+                            <View style={{ minWidth: 34, height: 32, alignItems: "center", justifyContent: "center", borderLeftWidth: 1.5, borderRightWidth: 1.5, borderColor: accent }}>
+                              <Text testID={`ratecard-qty-value-${r.id}`} style={{ color: accent, fontSize: 15, fontWeight: "800" }}>{qty}</Text>
+                            </View>
+                            <Pressable testID={`ratecard-qty-plus-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onAdd(r))} hitSlop={6} style={{ width: 34, height: 32, alignItems: "center", justifyContent: "center" }}>
+                              <Icon name="plus" size={16} color={accent} />
+                            </Pressable>
+                          </View>
+                        ) : (
+                          <Pressable testID={`ratecard-add-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onAdd(r))} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: accent, opacity: isBusy ? 0.6 : 1 }}>
+                            <Icon name="plus" size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>Add</Text>
+                          </Pressable>
+                        )}
                       </View>
                       <View style={{ alignItems: "flex-end" }}>
                         <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{fmt(sc)}</Text>
@@ -156,7 +218,7 @@ function RateCardSheet({ open, onClose, card, onAdd }: { open: boolean; onClose:
             ))}
           </ScrollView>
           <View style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 }} testID="ratecard-footer">
-            <Text style={{ color: added.size > 0 ? "#047857" : colors.textMuted, fontSize: 13, fontWeight: "600", flex: 1 }}>{added.size > 0 ? `${added.size} item${added.size > 1 ? "s" : ""} added — customer will be asked to pay` : "Tap Add on any item to add it as extra work"}</Text>
+            <Text style={{ color: totalCount > 0 ? "#047857" : colors.textMuted, fontSize: 13, fontWeight: "600", flex: 1 }}>{totalCount > 0 ? `${totalCount} item${totalCount > 1 ? "s" : ""} added — customer will be asked to pay` : "Tap Add on any item, then adjust the quantity"}</Text>
             <Pressable testID="ratecard-done" onPress={onClose} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: accent }}><Icon name="check" size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Done</Text></Pressable>
           </View>
         </View>

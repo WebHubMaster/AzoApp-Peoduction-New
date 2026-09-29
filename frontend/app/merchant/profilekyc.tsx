@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, RefreshControl, ActivityIndicator } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Location from "expo-location";
@@ -150,7 +151,8 @@ export default function MerchantProfileKyc() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader title="Profile & KYC" back embedded variant="plain" testID="merchant-profilekyc-header" />
-      <ScrollView
+      <KeyboardAwareScrollView
+        bottomOffset={24}
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120, gap: spacing.md }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -299,7 +301,7 @@ export default function MerchantProfileKyc() {
             <RegNav step={step} total={STEPS.length} embedded onBack={() => setStep((s) => Math.max(0, s - 1))} viewOnly onViewNext={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))} />
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </View>
   );
 }

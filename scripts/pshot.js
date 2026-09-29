@@ -2,7 +2,7 @@
 // Usage: node /app/scripts/pshot.js
 const puppeteer = require('/tmp/node_modules/puppeteer-core');
 
-const BASE = 'https://service-hub-1622.preview.emergentagent.com';
+const BASE = 'https://reg-payment-redesign.preview.emergentagent.com';
 const CHROME = '/usr/bin/google-chrome';
 const OUT = '/tmp';
 

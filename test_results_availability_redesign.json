@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://service-hub-1622.preview.emergentagent.com",
+  "base_url": "https://reg-payment-redesign.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

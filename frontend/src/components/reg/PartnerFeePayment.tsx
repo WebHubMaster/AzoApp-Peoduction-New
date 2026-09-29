@@ -14,7 +14,7 @@ import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
 import {
   FileText, ShieldCheck, ListChecks, Bell, LayoutGrid, Info, ArrowRight, Lock,
-  ChevronLeft, TriangleAlert, User as UserIcon,
+  ChevronLeft, TriangleAlert, Check, User as UserIcon,
 } from "lucide-react-native";
 import { api } from "@/src/api/client";
 import { TW, T } from "@/src/components/reg/tokens";
@@ -192,33 +192,34 @@ export function PartnerFeePayment({
               <Image source={HERO} style={{ width: heroW, height: heroH }} contentFit="contain" contentPosition="bottom" testID="fee-hero-provider" />
             </View>
             <View style={{ width: titleW }}>
-              <Text style={{ fontSize: 29, lineHeight: 35, fontWeight: "800", color: INK, letterSpacing: -0.4 }}>Complete Your Registration</Text>
-              <Text style={{ ...T.base, color: TW.slate500, marginTop: 12, lineHeight: 22 }}>
+              <Text style={{ fontSize: 23, lineHeight: 29, fontWeight: "800", color: INK, letterSpacing: -0.3 }}>Complete Your{"\n"}Registration</Text>
+              <Text style={{ ...T.sm, color: TW.slate500, marginTop: 10, lineHeight: 20 }}>
                 Pay the one-time processing fee to activate your partner account and start receiving service opportunities in your area.
               </Text>
             </View>
           </View>
 
-          {/* fee card */}
-          <View style={{ marginTop: 24, borderRadius: 26, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 16, backgroundColor: "#F3F7FE", borderWidth: 1, borderColor: "#E3ECFA", boxShadow: "0px 14px 34px rgba(13,71,161,0.12)" }}>
-            <View style={{ height: 58, width: 58, borderRadius: 18, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", boxShadow: "0px 8px 18px rgba(13,71,161,0.16)" }}>
-              <FileText size={28} color={BLUE} />
+          {/* fee card — centered, self-contained (nothing overflows the screen) */}
+          <View style={{ marginTop: 24, borderRadius: 24, paddingVertical: 24, paddingHorizontal: 18, alignItems: "center", backgroundColor: "#F3F7FE", borderWidth: 1, borderColor: "#E3ECFA", boxShadow: "0px 14px 34px rgba(13,71,161,0.12)" }}>
+            <View style={{ height: 56, width: 56, borderRadius: 18, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", boxShadow: "0px 8px 18px rgba(13,71,161,0.16)" }}>
+              <FileText size={26} color={BLUE} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 21, fontWeight: "800", color: INK }}>Registration Fee</Text>
-              <Text style={{ ...T.sm, color: TW.slate500 }}>One-Time Processing Fee</Text>
-              <View style={{ flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", gap: 10, marginTop: 6 }}>
-                <Text testID="fee-amount" style={{ fontSize: 42, lineHeight: 46, fontWeight: "900", color: BLUE, letterSpacing: -1 }}>₹{amount}</Text>
-                {fee.discount_amount > 0 ? (
-                  <View style={{ paddingBottom: 7 }}>
-                    <Text style={{ ...T.sm, textDecorationLine: "line-through", color: TW.slate400 }}>₹{Math.round(fee.original_price)}</Text>
-                    <Text style={{ ...T.sm, color: TW.emerald600, fontWeight: "800" }}>Save ₹{Math.round(fee.discount_amount)}</Text>
-                  </View>
-                ) : null}
+            <Text style={{ fontSize: 20, fontWeight: "800", color: INK, marginTop: 14, textAlign: "center" }}>Registration Fee</Text>
+            <Text style={{ ...T.sm, color: TW.slate500, marginTop: 2, textAlign: "center" }}>One-Time Processing Fee</Text>
+            <Text testID="fee-amount" style={{ fontSize: 44, lineHeight: 50, fontWeight: "900", color: BLUE, letterSpacing: -1, marginTop: 8 }}>₹{amount}</Text>
+            {fee.discount_amount > 0 ? (
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
+                <Text style={{ ...T.sm, textDecorationLine: "line-through", color: TW.slate400 }}>₹{Math.round(fee.original_price)}</Text>
+                <Text style={{ ...T.sm, color: TW.emerald600, fontWeight: "800" }}>Save ₹{Math.round(fee.discount_amount)}</Text>
               </View>
-              <View style={{ marginTop: 12, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
+            ) : null}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 16 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
+                <ShieldCheck size={13} color={BLUE} />
                 <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>One-time payment</Text>
-                <View style={{ width: 1, height: 12, backgroundColor: TW.slate200 }} />
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
+                <Check size={13} color={BLUE} />
                 <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>No monthly charges</Text>
               </View>
             </View>

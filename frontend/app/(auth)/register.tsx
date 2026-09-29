@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator, ScrollView } from "react-native";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -70,7 +71,7 @@ export default function Register() {
   return (
     <View style={{ flex: 1, backgroundColor: AUTH.bg }}>
       <StatusBar style="dark" />
-      <ScrollView style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 16 }}>
+      <KeyboardAwareScrollView bottomOffset={24} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + 16 }}>
         <AuthHeader top={insets.top} onBack={goBack} right={role ? <NeedHelpLink /> : undefined} />
 
         {!role || !ac ? (
@@ -111,7 +112,7 @@ export default function Register() {
             </View>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {showLoader ? (
         <View testID="login-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: AUTH.bg, alignItems: "center", justifyContent: "center", zIndex: 200 }}>

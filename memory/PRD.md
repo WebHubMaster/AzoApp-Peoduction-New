@@ -5,7 +5,7 @@ Bring migrated AzoApp (home services platform) up on a new account and deliver 3
 Admin panel, Customer Expo app, Partner Expo app. No new features — run existing code only.
 
 ## BASE_URL
-https://f0d86221-daec-4487-98fb-5b815df15e56.preview.emergentagent.com
+https://reg-payment-redesign.preview.emergentagent.com
 
 ## Architecture
 - backend/  -> FastAPI, port 8001 (supervisor), auto-seeds demo data on startup. Serves web_panel at /api/panel and Customer web export at /api/customer.
@@ -52,3 +52,29 @@ https://f0d86221-daec-4487-98fb-5b815df15e56.preview.emergentagent.com
 - supervisor `frontend` program is STOPPED (port 3000 is used by partner Expo tunnel instead).
 - Payments run in dev MOCK mode (no live gateway keys). Configure in Admin -> Integration Center for real payments.
 - Mongo is local (DB_NAME=azoapp); startup seed recreates all demo data.
+
+---
+
+## Session — June 2026 · UI fixes + Legal/CMS + Hero logo
+
+### Delivered
+1. **Registration payment screen** (`frontend/src/components/reg/PartnerFeePayment.tsx`)
+   - "Complete Your Registration" now 2 lines, smaller font (23px).
+   - Fee card redesigned to a centered, self-contained card; "Registration Fee" + "One-time payment / No monthly charges" chips wrap and never overflow the screen width.
+2. **Rate-card quantity** (`frontend/src/components/partner/AdditionalWork.tsx`)
+   - Repeated services no longer create duplicate line items; grouped with `×qty`.
+   - Rate-card sheet shows a −/number/+ quantity control once a service is added; sheet stays open. +/- map to add / remove-one-instance (backend unchanged; frontend groups by `ratecard_row_id`).
+3. **Keyboard handling** (`frontend/app/_layout.tsx` + auth/kyc screens)
+   - Removed the global `KeyboardAvoidingView behavior="padding"` at root (root cause of leftover white space + double-compensation).
+   - Converted the remaining plain-ScrollView form screens to `KeyboardAwareScrollView`: `(auth)/login.tsx`, `(auth)/register.tsx`, `merchant/profilekyc.tsx`. OTP job screen already used KeyboardAwareScrollView (auto scroll-up + restore). RegShell & modal screens already keyboard-safe → now free of double padding.
+4. **Hero logo on t-shirt** (partner welcome screen)
+   - Replaced chest logo on `frontend/assets/welcome-person.webp` with the user-provided AzoApp emblem (generative edit + background cutout → transparent webp). `PERSON_RATIO` updated to 682/1255.
+5. **Privacy/Terms consent + dynamic CMS** 
+   - Consent checkbox already existed & is mandatory in Partner/Merchant (`OtpFlow.tsx`, now also disables the Create button) and Customer (`login.tsx`, `OtpInline.tsx`). Webviews point to `/api/legal/{doc}`.
+   - `backend/routes/legal_routes.py`: `/api/legal/{terms|privacy}` now renders admin CMS content from the `pages` collection (saved via `PUT /api/admin/pages/{key}`, edited in Website/CMS). Falls back to built-in default only when admin has saved nothing. Verified live (dynamic + fallback).
+
+### Testing status / notes
+- Native Expo app → keyboard behavior & UI verified by code + clean `tsc` and full Metro android bundle (HTTP 200, no errors). Could NOT run browser/testing-agent (native app + app targets remote backend via EXPO_PUBLIC_BACKEND_URL).
+- Backend `/api/legal/{doc}` tested live on local backend (dynamic CMS + default fallback both pass).
+- Created a local `backend/.env` (MONGO_URL/DB_NAME) — env files were absent in the workspace; needed to run/verify the backend.
+- Legal fallback text remains as a default ONLY; admin CMS content always overrides it.
