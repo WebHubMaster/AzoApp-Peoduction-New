@@ -47,6 +47,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     setConnected(false);
   }, []);
 
+  const connectRef = useRef<() => void>(() => {});
   const connect = useCallback(async () => {
     close();
     const token = await getToken();
@@ -64,11 +65,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       es.close();
       retryRef.current += 1;
       const wait = Math.min(30000, 1000 * 2 ** Math.min(retryRef.current, 5));
-      timerRef.current = setTimeout(() => { connect(); }, wait);
+      timerRef.current = setTimeout(() => { connectRef.current(); }, wait);
     });
   }, [user, close, emit]);
+  useEffect(() => { connectRef.current = connect; }, [connect]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (user) connect(); else close();
     return close;
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -90,7 +93,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   const playRing = useCallback(() => {
     try {
+      // expo-audio's player exposes mutable loop/volume as its documented API.
+      /* eslint-disable react-hooks/immutability */
       player.loop = true; player.volume = 0.8; player.seekTo(0); player.play();
+      /* eslint-enable react-hooks/immutability */
     } catch { /* ignore */ }
   }, [player]);
   const stopRing = useCallback(() => { try { player.pause(); player.seekTo(0); } catch { /* ignore */ } }, [player]);

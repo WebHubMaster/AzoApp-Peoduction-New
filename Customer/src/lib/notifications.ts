@@ -364,6 +364,84 @@ export async function cancelRescheduleRing(bookingId?: string) {
   } catch { /* ignore */ }
 }
 
+/**
+ * Full-screen, call-style "Booking confirmed" alert — fires the instant a partner
+ * accepts the customer's booking. Same delivery path as the reschedule ring.
+ */
+export async function displayBookingRing(d: Record<string, any>, ctx: "fg" | "bg" = "fg", source: "sse" | "fcm" | "" = ""): Promise<boolean> {
+  const n = NotifeeApi();
+  const mod = notifee();
+  if (!n || !d?.booking_id) return false;
+  if (AppState.currentState === "active") return false;
+  const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
+  await setupAndroidChannels();
+
+  let did = "";
+  try { did = await deviceId(); } catch { /* ignore */ }
+  const report = (ok: boolean, m2: string, error = "") => {
+    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, device_id: did, src: source }).catch(() => {});
+  };
+
+  const cleanData: Record<string, string> = {};
+  for (const [k, v] of Object.entries(d || {})) {
+    if (k === "dataString" || v == null) continue;
+    cleanData[k] = typeof v === "string" ? v : String(v);
+  }
+  cleanData.type = "booking_confirmed";
+  const when = [d.scheduled_date, d.scheduled_time].filter(Boolean).join(" \u00b7 ");
+  const body = `${d.partner_name || "A partner"} accepted your ${d.service_name || "booking"}${when ? ` \u2014 ${when}` : ""}`.trim();
+  try {
+    await n.displayNotification({
+      id: `booking-${d.booking_id}`,
+      title: "\u2705 Booking confirmed",
+      subtitle: d.partner_name ? `${d.partner_name} is on the way` : undefined,
+      body,
+      data: cleanData,
+      android: {
+        channelId: CHANNELS.ringSilent,
+        category: AndroidCategory.CALL,
+        importance: AndroidImportance.HIGH,
+        visibility: AndroidVisibility.PUBLIC,
+        smallIcon: "ic_notification",
+        color: "#10B981",
+        colorized: true,
+        largeIcon: APP_LOGO_ICON,
+        vibrationPattern: [300, 200, 300],
+        lightUpScreen: true,
+        ongoing: false,
+        autoCancel: false,
+        timeoutAfter: 120000,
+        showTimestamp: true,
+        style: { type: mod.AndroidStyle.BIGTEXT, text: body },
+        fullScreenAction: { id: "default", launchActivity: "default" },
+        pressAction: { id: "default", launchActivity: "default" },
+        actions: [
+          { title: "\u{1F44D} Got it", pressAction: { id: "default", launchActivity: "default" } },
+        ],
+      },
+      ios: {
+        categoryId: "booking_confirmed",
+        critical: true, criticalVolume: 1.0,
+        interruptionLevel: "timeSensitive",
+        foregroundPresentationOptions: { banner: true, sound: true, list: true, badge: true },
+      },
+    } as any);
+    report(true, "fs");
+  } catch (e2: any) {
+    report(false, "failed", String(e2?.message || e2));
+    return false;
+  }
+  return true;
+}
+
+export async function cancelBookingRing(bookingId?: string) {
+  const n = NotifeeApi();
+  if (!n) return;
+  try {
+    if (bookingId) await n.cancelNotification(`booking-${bookingId}`);
+  } catch { /* ignore */ }
+}
+
 async function fullScreenGranted(): Promise<boolean | undefined> {
   if (Platform.OS !== "android") return undefined;
   if (_androidSdk() < 34) return true;

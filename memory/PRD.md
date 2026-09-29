@@ -55,3 +55,13 @@ User choices (locked):
 ## Backlog / next
 - On-device verification of the Customer full-screen ring (lock screen / app closed).
 - Optional: richer web SW `reschedule_request` branch.
+
+## Update — Booking Ring (partner accept → customer full-screen confirmation)
+- Backend `accept_job`: after assigning the partner, now emits SSE `booking_confirmed` + a
+  data-only full-screen ring push to the CUSTOMER (partner name/rating/schedule, `title`/`body`
+  for the web SW). Verified in-pod: accept → 200, customer gets in-app "Partner assigned" +
+  a "Booking confirmed" ring dispatch (skipped only because no Firebase creds in this pod).
+- Customer app: `notifications.ts` `displayBookingRing`/`cancelBookingRing`; `pushBackground.ts`
+  handles `booking_confirmed`; unified `src/components/customer/CustomerAlertOverlay.tsx`
+  (replaces RescheduleAlertOverlay) renders BOTH the amber reschedule ring and a green
+  "Booking confirmed" ring (Call / View booking). One-time (never re-rings; not polled).

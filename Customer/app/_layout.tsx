@@ -8,7 +8,7 @@ import { Stack } from "expo-router";
 import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
 import { setupAndroidChannels, requestNotificationPermission } from "../src/lib/notifications";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
-import { RescheduleAlertOverlay } from "@/src/components/customer/RescheduleAlertOverlay";
+import { CustomerAlertOverlay } from "@/src/components/customer/CustomerAlertOverlay";
 import { useNavigate } from "../src/lib/navigate";
 setupNotificationHandler();
 import { useFonts } from "expo-font";
@@ -57,7 +57,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
             <ToastProvider>
               <PaymentWebViewHost />
               <PushTapBridge />
-              <RescheduleAlertOverlay />
+              <CustomerAlertOverlay />
               <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(site)" />

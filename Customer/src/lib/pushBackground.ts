@@ -12,7 +12,7 @@
 import { api } from "@/src/api/client";
 import {
   pushSupported, notifee, NotifeeApi, messaging,
-  displayRescheduleRing, cancelRescheduleRing, setupAndroidChannels,
+  displayRescheduleRing, cancelRescheduleRing, displayBookingRing, setupAndroidChannels,
 } from "@/src/lib/notifications";
 
 const RING_TYPES = new Set(["reschedule_request"]);
@@ -37,8 +37,9 @@ function _extractFcmData(data: any): Record<string, any> {
 
 export async function handleRemoteData(d: Record<string, any> | undefined, isBackground: boolean) {
   if (!d || !d.type) return;
-  if (RING_TYPES.has(d.type)) {
-    await displayRescheduleRing(d, "bg", "fcm");
+  if (RING_TYPES.has(d.type) || d.type === "booking_confirmed") {
+    if (d.type === "booking_confirmed") await displayBookingRing(d, "bg", "fcm");
+    else await displayRescheduleRing(d, "bg", "fcm");
     // Bring the app to the FOREGROUND so the in-app full-screen overlay shows even
     // when the phone is UNLOCKED / in another app (fullScreenAction only auto-launches
     // over the LOCK screen). Needs the "Display over other apps" permission.

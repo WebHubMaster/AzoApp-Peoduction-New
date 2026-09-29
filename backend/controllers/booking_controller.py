@@ -2647,6 +2647,41 @@ async def accept_job(partner, booking_id):
                   f"{partner['name']} is assigned to {out['code']} and on the way.",
                   event_type="partner_assigned",
                   ctx={"customer_name": out.get("customer_name", ""), "partner_name": partner["name"], "booking_id": out["code"]})
+    # Full-screen call-style "Booking confirmed" RING for the CUSTOMER the instant a
+    # partner accepts — same reliable path as the reschedule ring (SSE for the open app
+    # + data-only push → Notifee full-screen intent for a backgrounded/locked/closed app),
+    # so the customer never misses the confirmation.
+    _cbrief = _job_brief(out)
+    booking_ring = {
+        "type": "booking_confirmed", "booking_id": booking_id, "code": out.get("code"),
+        "service_name": out.get("service_name"), "service_image": _cbrief.get("service_image"),
+        "partner_name": partner.get("name"), "partner_phone": partner.get("phone"),
+        "partner_rating": partner.get("rating"),
+        "scheduled_date": _cbrief.get("scheduled_date"), "scheduled_time": _cbrief.get("scheduled_time"),
+        "scheduled_label": _cbrief.get("scheduled_label"), "is_scheduled": _cbrief.get("is_scheduled"),
+    }
+    try:
+        rt.emit_user(out["customer_id"], "booking_confirmed", booking_ring)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        from services import push_dispatch
+        await push_dispatch.push_to_user(
+            out["customer_id"], "Booking confirmed",
+            f"{partner.get('name')} accepted your {out.get('service_name') or 'booking'} ({out.get('code')})",
+            link="/account?tab=orders",
+            data={"type": "booking_confirmed", "booking_id": booking_id,
+                  "code": str(out.get("code") or ""), "service_name": str(out.get("service_name") or ""),
+                  "partner_name": str(partner.get("name") or ""), "partner_phone": str(partner.get("phone") or ""),
+                  "scheduled_date": str(_cbrief.get("scheduled_date") or ""), "scheduled_time": str(_cbrief.get("scheduled_time") or ""),
+                  "scheduled_label": str(_cbrief.get("scheduled_label") or ""),
+                  "image": str(_cbrief.get("service_image") or ""),
+                  "title": "Booking confirmed",
+                  "body": f"{partner.get('name')} accepted your {out.get('service_name') or 'booking'} ({out.get('code')})",
+                  "android_channel": "azo-ring-silent-v1", "tag": f"booking-{booking_id}"},
+            image=_cbrief.get("service_image") or None, data_only=True)
+    except Exception:  # noqa: BLE001
+        pass
     # first-accept-wins: close this request on every other partner. Mark their
     # still-pending dispatch rows 'superseded' (for the admin feed) and stop their
     # ring via a job_taken event. (spec 12, 16, 17, 21)
