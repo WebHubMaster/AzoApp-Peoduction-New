@@ -56,6 +56,23 @@ User choices (locked):
 - On-device verification of the Customer full-screen ring (lock screen / app closed).
 - Optional: richer web SW `reschedule_request` branch.
 
+## Feature — Single Device Login (Partner app)
+User choices: Partner role only; Support button opens support contact (tel/mailto from brand); stable per-install device id in secure storage; old device shows a "logged out on another device" message; Admin Reset Device on the partner 360 profile.
+
+Backend (verified: testing agent 7/7 backend tests pass):
+- `verify_otp(..., device_id)`: partner first login (or first login post-reset) binds `registered_device_id`; a different device → `{ok:False, reason:'device_mismatch'}`.
+- `auth_controller.verify_otp`: 403 `detail={code:'device_mismatch', message}`; `create_token(uid, role, did=device_id)` adds a `did` claim.
+- `middleware.get_current_user`: for partners, if token `did` != `registered_device_id` → 401 `detail={code:'device_revoked'}` (old device auto-logout).
+- `POST /admin/people/{role}/{uid}/reset-device` → `people_admin_service.reset_device` unsets the binding + logs + notifies.
+- Non-partner roles are NOT locked. Backward-compatible (no device_id + no binding still logs in).
+
+Partner app (frontend/, tsc+eslint clean):
+- `src/lib/deviceId.ts` (stable secure-store uid); `api/client.ts` injects device_id into /auth/verify-otp, parses `{code,message}` errors, and on 401 `device_revoked` clears the token + fires a force-logout handler.
+- `AuthContext`: `sessionEndedReason` + force-logout wiring.
+- `components/auth/DeviceLockedModal.tsx` (blocking notice + Contact Support); `OtpFlow` shows it on `device_mismatch`; `(auth)/login.tsx` shows the auto-logout banner.
+
+Admin web (compiles): Person360 "Reset Device" button (partner only) + confirm modal → reset-device endpoint.
+
 ## Update — Booking Ring (partner accept → customer full-screen confirmation)
 - Backend `accept_job`: after assigning the partner, now emits SSE `booking_confirmed` + a
   data-only full-screen ring push to the CUSTOMER (partner name/rating/schedule, `title`/`body`

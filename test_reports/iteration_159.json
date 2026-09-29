@@ -1,0 +1,22 @@
+{
+  "summary": "Backend testing for PARTNER Single Device Login feature. Wrote and executed pytest suite (7 tests) covering: first device binding, same-device relogin, different-device 403 with detail.code='device_mismatch', admin reset-device, new-device binding after reset with OLD token revoked (401 detail.code='device_revoked'), customer NOT device-locked (multiple tokens work), and backward compatibility (no device_id when no binding). All 7 tests PASSED. Post-run cleanup executed: admin reset-device for partner uid 42e57f91-... confirmed partner can log in without device_id and /auth/me returns 200.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_single_device_login.py",
+    "/app/test_reports/pytest/single_device_login.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Structured error detail (dict with code+message) is implemented correctly for both 403 device_mismatch and 401 device_revoked responses.",
+    "Partner-only device lock scope is enforced (customer logins from multiple devices are unaffected).",
+    "Backward compatibility works: absence of device_id is permitted when partner has no existing binding."
+  ],
+  "updated_files": ["/app/backend/tests/test_single_device_login.py"],
+  "success_rate": {"backend": "100%", "frontend": "N/A (skipped per request)"},
+  "test_credentials": "OTP 123456; Admin +919000000000; Partner +919000000003 (uid 42e57f91-11e9-4637-b5a9-f63de2ddc8f4); Customer +919000000004",
+  "seed_data_creation": "None. Only transient device bindings which were cleaned up.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Single-device login tests reside at /app/backend/tests/test_single_device_login.py and include auto-cleanup fixture that resets the partner device binding before and after run. Safe to reuse. Behavior verified: verify-otp accepts optional device_id; partners get bound; admin POST /api/admin/people/partner/{uid}/reset-device clears binding; /auth/me returns 401 detail.code='device_revoked' for stale partner tokens; non-partner roles unaffected."
+}
