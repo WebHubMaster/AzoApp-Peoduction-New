@@ -124,3 +124,9 @@ Verification: backend fully curl/script-verified (arrival 200m pass/fail, no-GPS
 - FIXED (app-wide): web_panel/src/components/ui/dialog.jsx — DialogContent now has mobile side gutter + `max-h-[90dvh] overflow-y-auto` so tall dialogs scroll on small screens (dropdowns portal to body, unaffected).
 - Env note: container restore lost .env files; recreated backend/.env (MONGO_URL, DB_NAME=azoapp_database, JWT_SECRET, CORS, Fernet keys, APP_URL/REACT_APP_BACKEND_URL=smart-slot-matcher preview) + frontend/.env + web_panel/.env. Web_panel node_modules reinstalled (yarn).
 - Tooling limit: screenshot harness only renders 390 (mobile) & 1920 (desktop); 320/768/1440 not visually captured.
+
+### Deep Screen Sweep (mobile 390px) — 2026-06
+- Swept via bottom-nav `tab-{key}` + `tab-more`/`more-{key}`. Verified NO horizontal overflow:
+  - Partner: jobs, active, wallet, earnings, invoices, analytics, availability, bankkyc, subscriptions (9 clean).
+  - Merchant: customers, wallet, network, earnings, analytics (clean) + Scan QR fixed.
+- FIXED: Merchant Scan QR (pages/merchant/scanqr/ScanQRModule.jsx) — off-screen full-res 1080px poster capture node (position:fixed left:0) caused horizontal scroll on phones; wrapped in a 0x0 `overflow:hidden` box (html2canvas still captures posterRef, so share/print unaffected). Verified document.scrollWidth==innerWidth (390), canScrollX=false.

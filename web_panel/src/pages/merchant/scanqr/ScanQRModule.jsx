@@ -316,8 +316,8 @@ export default function ScanQRModule({ code = "", shopName = "My Shop", user }) 
       {/* Analytics */}
       <QRAnalytics />
 
-      {/* Offscreen full-res poster for export (kept at 0,0 behind app content so html2canvas captures it fully & opaque). Rendered at the SELECTED paper size. */}
-      <div style={{ position: "fixed", left: 0, top: 0, zIndex: -1000, pointerEvents: "none" }} aria-hidden>
+      {/* Offscreen full-res poster for export (kept at 0,0 behind app content so html2canvas captures it fully & opaque). Rendered at the SELECTED paper size. Wrapper is clipped to a 0x0 box so the full-width poster never causes horizontal overflow on mobile — html2canvas still captures posterRef directly. */}
+      <div style={{ position: "fixed", left: 0, top: 0, width: 0, height: 0, overflow: "hidden", zIndex: -1000, pointerEvents: "none" }} aria-hidden>
         <div ref={posterRef}>
           <QrBookingPoster qrValue={link} token={code} merchantName={businessName} brand={posterBrand} trustLine={posterTrust} width={previewDims.canvasW} height={previewDims.canvasH} scale={previewDims.scale} />
         </div>
