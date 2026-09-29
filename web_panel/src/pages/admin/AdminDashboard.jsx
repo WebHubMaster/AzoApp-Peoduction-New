@@ -40,6 +40,7 @@ import LivePartnerMap from "@/pages/admin/LivePartnerMap";
 import CoverageMap from "@/pages/admin/CoverageMap";
 import { AdminJobRequests, AreaPartners, RealtimeSettings, AdminDispatchFeed } from "@/pages/admin/adminRealtimeSections";
 import { SurgeRulesManager, ServiceAreasManager, LaunchDemandManager } from "@/pages/admin/serviceOpsSections";
+import AppManagement from "@/pages/admin/AppManagement";
 import AdminDashboardHome from "@/pages/admin/AdminDashboardHome";
 import PerformanceCenter from "@/pages/admin/PerformanceCenter";
 import CustomJobsAdmin from "@/pages/admin/CustomJobsAdmin";
@@ -174,6 +175,7 @@ const NAV = [
 
   { group: "System", icon: Settings, items: [
     { key: "integration_center", label: "Integration Center", icon: KeyRound },
+    { key: "app_mgmt", label: "App Management", icon: Smartphone },
     { key: "branding", label: "Branding & Theme", icon: Sparkles },
     { key: "settings_general", label: "General Settings", icon: Settings },
   ]},
@@ -377,6 +379,7 @@ export default function AdminDashboard() {
       {active === "refund" && <PageEditorPro pageKey="refund" title="Refund Policy" subtitle="Your refund/cancellation policy — rendered on /refund." />}
       {active === "commission" && <S.CommissionSettings />}
       {active === "surge" && <SurgeRulesManager />}
+      {active === "app_mgmt" && <AppManagement />}
       {active === "ledger" && <TransactionsHub />}
       {active === "invoices" && <InvoiceManagement />}
       {active === "invoice_config" && <BusinessConfigSettings />}

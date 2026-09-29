@@ -20,6 +20,7 @@ import { AuthProvider } from "@/src/context/AuthContext";
 import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { ToastProvider } from "@/src/components/Toast";
 import { PaymentWebViewHost } from "@/src/components/PaymentWebViewHost";
+import AppUpdateGate from "@/src/components/AppUpdateGate";
 import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -58,6 +59,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <PaymentWebViewHost />
               <PushTapBridge />
               <CustomerAlertOverlay />
+              <AppUpdateGate />
               <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(site)" />

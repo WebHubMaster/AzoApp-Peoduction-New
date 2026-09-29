@@ -4,6 +4,7 @@ aiosignal==1.4.0
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.14.2
+asn1crypto==1.5.1
 ast_serialize==0.8.0
 attrs==26.1.0
 bcrypt==4.1.3
@@ -25,6 +26,7 @@ distro==1.9.0
 dnspython==2.8.0
 ecdsa==0.19.2
 email-validator==2.3.0
+emergentintegrations==0.2.1
 execnet==2.1.2
 fastapi==0.110.1
 fastuuid==0.14.0
@@ -64,6 +66,7 @@ jsonschema==4.26.0
 jsonschema-specifications==2025.9.1
 librt==0.15.0
 litellm @ https://customer-assets.emergentagent.com/internal-asset/library/litellm-1.80.0-py3-none-any.whl#sha256=adf398c513273de9341f61822296c6b2145f7f2dc4a69daf3ac04829f5bde3f8
+lxml==6.1.3
 markdown-it-py==4.2.0
 MarkupSafe==3.0.3
 mccabe==0.7.0
@@ -88,6 +91,7 @@ protobuf==5.29.6
 py-vapid==1.9.4
 pyasn1==0.6.4
 pyasn1_modules==0.4.2
+pyaxmlparser==0.3.31
 pycodestyle==2.14.0
 pycparser==3.0
 pydantic==2.13.4

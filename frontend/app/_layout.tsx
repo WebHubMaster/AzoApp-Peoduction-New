@@ -14,6 +14,7 @@ import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { ChatProvider } from "@/src/context/ChatContext";
 import { ChatNotifier } from "@/src/components/ChatNotifier";
 import { OfflineGate } from "@/src/components/OfflineGate";
+import AppUpdateGate from "@/src/components/AppUpdateGate";
 import { ToastProvider } from "@/src/components/Toast";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
@@ -96,6 +97,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
             <OfflineGate />
+            <AppUpdateGate />
           </ToastProvider>
           </ChatProvider>
           </RealtimeProvider>

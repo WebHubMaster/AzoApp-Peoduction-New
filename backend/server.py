@@ -52,6 +52,7 @@ from routes.physical_qr_routes import router as physical_qr_router  # noqa: E402
 from routes.agent_routes import router as agent_router  # noqa: E402
 from routes.subscription_routes import router as subscription_router  # noqa: E402
 from routes.legal_routes import router as legal_router  # noqa: E402
+from routes.app_management_routes import router as app_mgmt_router  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
 
 app = FastAPI(title="AzoApp API")
@@ -73,7 +74,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router]:
     api_router.include_router(r)
 
 app.include_router(api_router)
