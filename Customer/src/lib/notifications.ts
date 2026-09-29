@@ -21,6 +21,7 @@ import { api } from "@/src/api/client";
 
 const DEVICE_ID_KEY = "azo_device_id";
 const FSI_ASKED_KEY = "azo_fsi_asked";
+const BATTERY_ASKED_KEY = "azo_battery_asked";
 
 export const CHANNELS = {
   // Silent high-importance channel for the call-style ring: NO channel sound so the
@@ -181,6 +182,7 @@ export async function openFullScreenIntentSettings() {
 export async function requestBatteryExemption() {
   const n = NotifeeApi();
   if (Platform.OS !== "android") return;
+  try { await storage.setItem(BATTERY_ASKED_KEY, "1"); } catch { /* ignore */ }
   const pkg = Constants.expoConfig?.android?.package || "app.azoapp.customer";
   try {
     if (n && !(await n.isBatteryOptimizationEnabled())) return;
@@ -192,6 +194,40 @@ export async function requestBatteryExemption() {
   } catch {
     try { if (n) await n.openBatteryOptimizationSettings(); } catch { /* ignore */ }
   }
+}
+
+/* ------------------------- alert health-check states ------------------------- */
+export type PermKey = "notifications" | "fullscreen" | "battery";
+export type PermState = { key: PermKey; granted: boolean; canAskAgain: boolean; available: boolean };
+
+/** Notification OS permission — via Notifee (build) or expo-notifications (Expo Go / web). */
+export async function notifState(): Promise<PermState> {
+  const s = await getPermissionStatus();
+  const available = !!(NotifeeApi() || expoNotif());
+  return { key: "notifications", granted: s.granted, canAskAgain: s.canAskAgain, available };
+}
+
+/** Full-screen intent — Android 14+ (SDK 34) needs the user to allow call-style screens. */
+export async function fullScreenState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "fullscreen", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  if (_androidSdk() < 34) return { key: "fullscreen", granted: true, canAskAgain: false, available: true };
+  const g = await fullScreenGranted();
+  if (typeof g === "boolean") return { key: "fullscreen", granted: g, canAskAgain: true, available: true };
+  const asked = (await storage.getItem(FSI_ASKED_KEY)) === "1";
+  return { key: "fullscreen", granted: asked, canAskAgain: true, available: true };
+}
+
+/** Battery-optimisation exemption — required so a killed app can still ring. */
+export async function batteryState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "battery", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(BATTERY_ASKED_KEY)) === "1";
+  return { key: "battery", granted: asked, canAskAgain: true, available: true };
+}
+
+/** Snapshot of every alert permission the customer full-screen ring relies on. */
+export async function allAlertStates(): Promise<Record<PermKey, PermState>> {
+  const [notif, fullscreen, battery] = await Promise.all([notifState(), fullScreenState(), batteryState()]);
+  return { notifications: notif, fullscreen, battery };
 }
 
 /* ------------------------- FCM device token ------------------------- */

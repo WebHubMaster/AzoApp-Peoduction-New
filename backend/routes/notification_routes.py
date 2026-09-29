@@ -84,6 +84,18 @@ async def test_self(body: dict, user=Depends(get_current_user)):
     async def _send():
         stamp = int(_t.time())
         if kind == "ring":
+            # Customer accounts get a call-style "booking confirmed" test ring so the
+            # customer app's CustomerAlertOverlay / full-screen ring is exercised too.
+            if str(user.get("role") or "") != "partner":
+                data = {"type": "booking_confirmed", "booking_id": f"test-{stamp}",
+                        "service_name": "Test Service", "partner_name": "Test Partner",
+                        "scheduled_date": "Today", "scheduled_time": "Now",
+                        "android_channel": "azo-ring-silent-v1", "tag": f"test-{stamp}"}
+                rt.emit_user(user["id"], "booking_confirmed", data)
+                res = await push_dispatch.push_to_user(
+                    user["id"], "Booking confirmed", "Test alert — tap to open",
+                    link="/(customer)/orders", data=data, data_only=True)
+                return {**res, "sse": True}
             data = {"type": "job_request", "booking_id": f"test-{stamp}",
                     "service_name": "Test Service", "city": "Your City",
                     "address_line": "Test address", "total": "499", "partner_amount": "399",

@@ -1,7 +1,7 @@
 /** Same NAV + status helpers as web_panel/src/pages/customer/CustomerDashboard.jsx */
-import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, CalendarHeart, Sparkles } from "lucide-react-native";
+import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, CalendarHeart, Sparkles, BellRing } from "lucide-react-native";
 
-export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "rewards" | "profile" | "referral" | "support";
+export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "rewards" | "profile" | "referral" | "support" | "alerts";
 
 export interface NavItem { key: NavKey; label: string; short: string; icon: any; route: string }
 
@@ -17,6 +17,7 @@ export const NAV: NavItem[] = [
   { key: "rewards", label: "Reward & Cashback", short: "Rewards", icon: Sparkles, route: "/(customer)/rewards" },
   { key: "profile", label: "My Profile", short: "Profile", icon: User, route: "/(customer)/profile" },
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift, route: "/(customer)/referral" },
+  { key: "alerts", label: "Alert Health Check", short: "Alerts", icon: BellRing, route: "/(customer)/alerts" },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy, route: "/(customer)/support" },
 ];
 
