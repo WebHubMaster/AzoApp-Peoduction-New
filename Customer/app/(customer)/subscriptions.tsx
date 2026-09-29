@@ -123,7 +123,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
 
         {plan ? (
           <View style={{ marginTop: 16, borderRadius: 12, backgroundColor: EMERALD[50], padding: 12 }}>
-            <Text style={{ color: EMERALD[700], fontSize: 12 }}>You pay the full {plan.label.toLowerCase()} amount upfront. The maid is paid based on actual completed days; commission &amp; tax apply as configured.</Text>
+            <Text style={{ color: EMERALD[700], fontSize: 12 }}>Your {plan.label.toLowerCase()} plan covers a verified maid who visits every working day. Attendance is captured by location.</Text>
           </View>
         ) : null}
       </ScrollView>
@@ -194,7 +194,7 @@ function SubCard({ s }: { s: any }) {
           <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "800", color: c.text }}>{s.partner_name || "Assigning soon"}</Text>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</Text>
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
-          <Text style={{ color: TC.textFaint, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
+          <Text style={{ color: TC.textFaint, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Total</Text>
           <Text style={{ color: c.text, fontWeight: "800", fontSize: 20 }}>{money(s.price)}</Text>
         </View>
       </View>
@@ -276,7 +276,7 @@ function SubCard({ s }: { s: any }) {
               <Text style={{ color: c.textMuted, fontSize: 12 }}>No arrivals recorded yet. Your maid's arrival time will show here each day.</Text>
             )}
             {[
-              ["Paid upfront", money(s.price)],
+              ["Amount paid", money(s.price)],
               ["Weekly off", (s.weekly_offs || []).length ? (s.weekly_offs as number[]).map((d) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][d]).join(", ") : "None"],
               ["Subscription status", status.replace(/_/g, " ")],
             ].map(([k, v]) => (

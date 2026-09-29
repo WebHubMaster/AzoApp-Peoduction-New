@@ -5,13 +5,11 @@
  * service progress, attendance calendar, payment snapshot, maid details, invoice. */
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarHeart, CheckCircle2, MapPin, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
+import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
 import api, { fmt, API } from "@/lib/api";
-import { openCheckout } from "@/lib/payments";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { StatusChip, EmptyState, SkeletonList } from "./ux";
 import { toast } from "sonner";
 
@@ -37,12 +35,7 @@ export function SubscriptionPlansPanel({ svc }) {
   const rawPlans = svc.subscription_plans || [];
   const [plans, setPlans] = useState(rawPlans);
   const [sel, setSel] = useState(rawPlans[0]?.plan_type || "");
-  const [open, setOpen] = useState(false);
-  const [addresses, setAddresses] = useState([]);
-  const [addrId, setAddrId] = useState("");
-  const [startDate, setStartDate] = useState(todayPlus(1));
-  const [time, setTime] = useState("09:00");
-  const [busy, setBusy] = useState(false);
+  const { addSubscription } = useCart();
 
   useEffect(() => {
     if (!user) return;
@@ -53,45 +46,17 @@ export function SubscriptionPlansPanel({ svc }) {
         setSel((cur) => (ps.some((p) => p.plan_type === cur) ? cur : ps[0].plan_type));
       }
     }).catch(() => {});
-    api.get("/auth/addresses").then((r) => {
-      const as = r.data || [];
-      setAddresses(as);
-      setAddrId((cur) => cur || as[0]?.id || "");
-    }).catch(() => {});
   }, [svc.id, user]);
 
   const plan = plans.find((p) => p.plan_type === sel);
 
-  const book = async () => {
+  // Book like a normal service: drop the chosen plan into the Booking cart and
+  // continue to the same /book checkout (backend keeps full subscription logic).
+  const book = () => {
+    if (!user) { toast.info("Please login to book"); return navigate("/login"); }
     if (!plan) return toast.error("Please select a plan");
-    if (!addrId) return toast.error("Please select a service address");
-    setBusy(true);
-    try {
-      const { data: sub } = await api.post("/subscriptions", {
-        service_id: svc.id, plan_type: sel, start_date: startDate,
-        preferred_time: time, address_id: addrId,
-      });
-      // Create the order on the ACTIVE gateway and open its real checkout in the
-      // selected mode. No dev-mock bypass anywhere.
-      const { data: order } = await api.post(`/subscriptions/${sub.id}/pay/order`);
-      const ok = await openCheckout(order, {
-        user, name: "AzoApp Subscription", description: svc.name || "Subscription",
-        onVerify: (res) => res.razorpay_payment_id
-          ? api.post(`/subscriptions/${sub.id}/pay/verify`, {
-              order_id: res.razorpay_order_id,
-              payment_id: res.razorpay_payment_id,
-              signature: res.razorpay_signature,
-            })
-          : api.post(`/subscriptions/${sub.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),
-      });
-      if (ok) {
-        toast.success("Booking confirmed!");
-        setOpen(false);
-        navigate("/account?tab=subscriptions");
-      }
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Booking failed, please try again");
-    } finally { setBusy(false); }
+    addSubscription(svc, plan);
+    navigate("/book");
   };
 
   return (
@@ -122,52 +87,10 @@ export function SubscriptionPlansPanel({ svc }) {
         })}
       </div>
 
-      <Button data-testid="sub-subscribe-btn"
-        onClick={() => (user ? setOpen(true) : (toast.info("Please login to subscribe"), navigate("/login")))}
+      <Button data-testid="sub-subscribe-btn" onClick={book}
         className="w-full mt-4 h-12 bg-primary-700 hover:bg-primary-800 text-base">
         Book Now
       </Button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md" data-testid="sub-book-dialog">
-          <DialogHeader>
-            <DialogTitle>Book {svc.name}</DialogTitle>
-            <DialogDescription>{plan?.label} plan · {fmt(plan?.price || 0)}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-semibold text-slate-500">Start date</label>
-                <Input data-testid="sub-start-date" type="date" min={todayPlus(1)} value={startDate} onChange={(e) => setStartDate(e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500">Preferred time</label>
-                <Input data-testid="sub-time-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} className="mt-1" />
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-500">Service address</label>
-              {addresses.length === 0 ? (
-                <p className="text-sm text-slate-400 mt-1">No saved address. <button data-testid="sub-add-address-link" className="text-primary-700 font-semibold" onClick={() => navigate("/account?tab=addresses")}>Add one</button></p>
-              ) : (
-                <div className="space-y-2 mt-1.5 max-h-44 overflow-y-auto">
-                  {addresses.map((a) => (
-                    <button key={a.id} data-testid={`sub-address-${a.id}`} onClick={() => setAddrId(a.id)}
-                      className={`w-full flex items-start gap-2 rounded-xl border-2 p-2.5 text-left transition-all ${a.id === addrId ? "border-primary-700 bg-primary-50/60" : "border-slate-200 hover:border-primary-300"}`}>
-                      <MapPin className="h-4 w-4 text-primary-700 mt-0.5 shrink-0" />
-                      <span className="text-sm text-slate-700">{a.label ? `${a.label} · ` : ""}{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <Button data-testid="sub-confirm-pay-btn" disabled={busy || !plan || !addrId} onClick={book}
-              className="w-full h-11 bg-primary-700 hover:bg-primary-800">
-              {busy ? "Processing…" : "Confirm Booking"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -245,7 +168,7 @@ function SubCard({ s }) {
           </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Paid upfront</p>
+          <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Total</p>
           <p className="font-heading font-extrabold text-2xl text-slate-900">{fmt(s.price)}</p>
         </div>
       </div>
@@ -335,7 +258,7 @@ function SubCard({ s }) {
               <p className="text-sm text-slate-400">No arrivals recorded yet. Your maid's arrival time will show here each day.</p>
             )}
             <div className="mt-3 pt-3 border-t border-slate-50 space-y-0">
-              <DetailRow k="Paid upfront" v={fmt(s.price)} strong />
+              <DetailRow k="Amount paid" v={fmt(s.price)} strong />
               <DetailRow k="Weekly off" v={(s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD[d]).join(", ") : "None"} />
               <DetailRow k="Subscription status" v={<StatusChip label={status.replace(/_/g, " ")} tone={tone} />} />
             </div>
@@ -379,7 +302,7 @@ export function MySubscriptions() {
           <h2 className="font-heading font-extrabold text-xl text-slate-900 flex items-center gap-2">
             <CalendarHeart className="h-5 w-5 text-primary-700" /> My Subscriptions
           </h2>
-          <p className="text-xs text-slate-500 mt-0.5">Recurring maid plans — paid upfront, settled daily on attendance.</p>
+          <p className="text-xs text-slate-500 mt-0.5">Recurring maid plans — the maid visits every working day.</p>
         </div>
         <Button data-testid="new-subscription-btn" onClick={() => navigate("/services")} className="bg-primary-700 hover:bg-primary-800">
           <Plus className="h-4 w-4 mr-1" /> New

@@ -959,7 +959,7 @@ export const ServiceWizard = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1"><Calendar className="h-4 w-4 text-primary-600" />Recurring Subscription Service</p>
-                    <p className="text-xs text-slate-400">Maid / Cook / Nanny etc. Customer pays the full plan upfront; the partner is settled from actual completed working days.</p>
+                    <p className="text-xs text-slate-400">Maid / Cook / Nanny etc. Recurring plan where the partner visits every working day; the partner is settled from actual completed working days.</p>
                   </div>
                   <Switch data-testid="svc-is-subscription" checked={!!f.is_subscription} onCheckedChange={(v) => setF({ ...f, is_subscription: v, subscription_plans: v && (!f.subscription_plans || !f.subscription_plans.length) ? DEFAULT_SUB_PLANS() : (f.subscription_plans || []) })} />
                 </div>

@@ -18,6 +18,7 @@ import AddressMap from "@/components/site/AddressMap";
 import SchedulePicker from "@/components/site/SchedulePicker";
 import { OtpLogin } from "@/components/OtpLogin";
 import SiteNavbar from "@/components/site/SiteNavbar";
+import SubscriptionCheckout from "@/pages/customer/SubscriptionCheckout";
 import { toast } from "sonner";
 
 const STEPS = [
@@ -186,7 +187,7 @@ export default function Checkout() {
      "Calculating…" once we have a number). cart-quote is a pure calculation (no side
      effects) so retrying is always safe. */
   useEffect(() => {
-    if (!items.length) { setQuotes({}); setCartPricing(null); return; }
+    if (!items.length || items.some((it) => it.subscription)) { setQuotes({}); setCartPricing(null); return; }
     let cancelled = false;
     // address is part of the quote: city/pincode-scoped rules (surge, serviceability)
     // must show in the preview exactly as they will be charged on the bookings.
@@ -417,6 +418,10 @@ export default function Checkout() {
       toast.error(firstErr || "Could not place your order");
     }
   };
+
+  /* ---------------- Subscription cart → dedicated checkout ---------------- */
+  const subItem = items.length === 1 && items[0]?.subscription ? items[0] : null;
+  if (subItem) return <SubscriptionCheckout item={subItem} />;
 
   /* ---------------- Success screen ---------------- */
   if (placed) {

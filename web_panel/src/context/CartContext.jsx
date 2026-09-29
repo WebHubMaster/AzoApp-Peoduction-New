@@ -107,9 +107,46 @@ export const CartProvider = ({ children }) => {
       .catch(() => {});
   }, []);
 
+  /* Recurring subscription (Maid) — booked ALONE in its own cart. The customer
+     picks the plan on the service page; "Book Now" drops a single subscription
+     line into the cart and continues to the same /book checkout as a normal
+     service. Backend still runs the full subscription logic. */
+  const addSubscription = useCallback((svc, plan) => {
+    const price = Number(plan.price) || 0;
+    const line = {
+      id: uid(),
+      subscription: true,
+      service_id: svc.id,
+      name: svc.name,
+      image: svc.image,
+      category_name: svc.category_name,
+      category_id: svc.category_id,
+      plan_type: plan.plan_type,
+      plan_label: plan.label || plan.plan_type,
+      plan_price: price,
+      working_days: plan.working_days,
+      duration_days: plan.duration_days,
+      weekly_offs: plan.weekly_offs || [],
+      price_type: "plan",
+      tax_pct: 0,
+      base_price: price,
+      discounted_price: 0,
+      tiers: [],
+      addonsCatalog: [],
+      tier_index: null,
+      addons: [],
+      addonQty: {},
+      qty: 1,
+    };
+    setItems([line]); // a subscription is always booked on its own
+    return line;
+  }, []);
+
   const addService = useCallback((svc, opts = {}) => {
     const line = lineFromService(svc, opts);
-    setItems((prev) => {
+    setItems((prev0) => {
+      // never mix a normal service with a subscription line
+      const prev = prev0.some((p) => p.subscription) ? [] : prev0;
       // merge identical service+tier+addons -> bump qty
       const sig = (x) => `${x.service_id}|${x.tier_index}|${[...(x.addons || [])].sort().join(",")}`;
       const idx = prev.findIndex((p) => sig(p) === sig(line));
@@ -184,7 +221,7 @@ export const CartProvider = ({ children }) => {
     () => items.reduce((s, x) => s + lineEstimate(x), 0), [items]);
 
   return (
-    <CartCtx.Provider value={{ items, addService, addCustom, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, minLabourCharge: minLabour }}>
+    <CartCtx.Provider value={{ items, addService, addCustom, addSubscription, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, minLabourCharge: minLabour }}>
       {children}
     </CartCtx.Provider>
   );

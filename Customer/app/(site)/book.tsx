@@ -16,6 +16,7 @@ import { PRIMARY, SLATE, EMERALD, TC, useTheme } from "../../src/theme";
 import { emptyAddress } from "../../src/components/customer/AddressForm";
 import { STEPS, Stepper, StepServices, StepDetails, StepSchedule } from "../../src/components/site/CheckoutUi";
 import { StepContact, StepSummary, StepReview, SuccessScreen } from "../../src/components/site/CheckoutSteps";
+import { SubscriptionCheckout } from "../../src/components/site/SubscriptionCheckout";
 
 export default function Checkout() {
   useTheme();
@@ -65,7 +66,7 @@ export default function Checkout() {
 
   /* live combined cart quote (debounced, retried, keeps last good pricing) */
   useEffect(() => {
-    if (!items.length) { setQuotes({}); setCartPricing(null); return; }
+    if (!items.length || items.some((it) => it.subscription)) { setQuotes({}); setCartPricing(null); return; }
     let cancelled = false;
     const payload = { schedule_type: schedule, ...(applied ? { coupon_code: applied } : {}), address: addr, items: items.map(toReqItem) };
     const attempt = async (n: number) => {
@@ -178,6 +179,8 @@ export default function Checkout() {
   };
 
   if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace("/(customer)/orders" as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
+  const subItem = ready && items.length === 1 && items[0]?.subscription ? items[0] : null;
+  if (subItem) return <SubscriptionCheckout item={subItem} />;
   if (ready && !items.length && step === 0) return (
     <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
       <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>

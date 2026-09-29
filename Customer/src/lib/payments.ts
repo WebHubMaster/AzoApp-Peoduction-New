@@ -6,14 +6,23 @@
  *  which registers an opener here so runPayment can stay a simple awaited function. */
 import { api } from "../api/client";
 
-export type PayPurpose = "booking" | "booking_group" | "wallet" | "additional";
-export interface PayOpts { purpose: PayPurpose; bookingId?: string; groupId?: string; amount?: number }
+export type PayPurpose = "booking" | "booking_group" | "wallet" | "additional" | "subscription";
+export interface PayOpts { purpose: PayPurpose; bookingId?: string; groupId?: string; subscriptionId?: string; amount?: number }
 export interface PayContext extends PayOpts { toast?: any }
 
 type Opener = (order: any, ctx: PayContext) => Promise<boolean>;
 let _opener: Opener | null = null;
 /** Called by <PaymentWebViewHost/> on mount. */
 export function setPaymentOpener(fn: Opener | null) { _opener = fn; }
+
+/** Open a PRE-CREATED gateway order (e.g. from /subscriptions/{id}/pay/order) in
+ *  the payment WebView. Used by flows that create their order on a dedicated
+ *  endpoint and verify on a dedicated endpoint. */
+export async function openPreparedOrder(order: any, ctx: PayContext): Promise<boolean> {
+  if (!order) return false;
+  if (!_opener) { ctx?.toast?.error?.("Payment is not ready yet. Please try again in a moment."); return false; }
+  return _opener(order, ctx);
+}
 
 export async function runPayment(opts: PayOpts, toast?: any): Promise<boolean> {
   const body: any = { purpose: opts.purpose, booking_id: opts.bookingId, group_id: opts.groupId, amount: opts.amount };

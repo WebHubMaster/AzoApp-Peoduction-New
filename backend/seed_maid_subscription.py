@@ -30,7 +30,7 @@ async def main():
         "id": SVC_ID, "name": "Full-time Maid", "slug": "full-time-maid",
         "category_id": CAT_ID, "category_name": "Maid Services",
         "short_description": "Recurring maid service — daily, weekly or monthly plans.",
-        "description": "Book a verified maid on a recurring plan. Pay upfront; the maid visits every working day. Attendance is captured by location.",
+        "description": "Book a verified maid on a recurring plan. The maid visits every working day, and attendance is captured by location.",
         "image": "", "base_price": 400, "discounted_price": 0, "price_type": "plan",
         "duration_min": 60, "status": "active", "approval_status": "approved",
         "is_subscription": True, "subscription_plans": PLANS,

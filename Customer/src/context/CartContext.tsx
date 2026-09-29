@@ -32,7 +32,7 @@ export const toReqItem = (it: any) => (it.custom
   ? { custom: true, custom_name: it.custom_name, custom_price: it.custom_price, labour_charge: it.labour_charge || 0, category_id: it.category_id, category_name: it.category_name, qty: it.qty }
   : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n: string) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id, category_name: it.category_name });
 
-interface CartCtx { items: any[]; addService: (svc: any, opts?: any) => any; addCustom: (row: any) => any; minLabourCharge: number; removeItem: (id: string) => void; updateItem: (id: string, patch: any) => void; setQty: (id: string, qty: number) => void; setAddonQty: (id: string, name: string, qty: number) => void; clear: () => void; count: number; estimateTotal: number; ready: boolean }
+interface CartCtx { items: any[]; addService: (svc: any, opts?: any) => any; addCustom: (row: any) => any; addSubscription: (svc: any, plan: any) => any; minLabourCharge: number; removeItem: (id: string) => void; updateItem: (id: string, patch: any) => void; setQty: (id: string, qty: number) => void; setAddonQty: (id: string, name: string, qty: number) => void; clear: () => void; count: number; estimateTotal: number; ready: boolean }
 const Ctx = createContext<CartCtx | null>(null);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
@@ -43,9 +43,22 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => { AsyncStorage.getItem(KEY).then((raw) => { try { if (raw) setItems(JSON.parse(raw)); } catch {} setReady(true); }).catch(() => setReady(true)); }, []);
   useEffect(() => { if (ready) AsyncStorage.setItem(KEY, JSON.stringify(items)).catch(() => {}); }, [items, ready]);
 
+  /* Recurring subscription (Maid) — booked ALONE; plan is chosen on the service
+     page and "Book Now" drops a single subscription line into the cart, then the
+     customer continues to the same /book checkout (backend keeps full sub logic). */
+  const addSubscription = useCallback((svc: any, plan: any) => {
+    const price = Number(plan.price) || 0;
+    const line = { id: uid(), subscription: true, service_id: svc.id, name: svc.name, image: svc.image, category_name: svc.category_name, category_id: svc.category_id,
+      plan_type: plan.plan_type, plan_label: plan.label || plan.plan_type, plan_price: price, working_days: plan.working_days, duration_days: plan.duration_days, weekly_offs: plan.weekly_offs || [],
+      price_type: "plan", tax_pct: 0, base_price: price, discounted_price: 0, tiers: [], addonsCatalog: [], tier_index: null, addons: [], addonQty: {}, qty: 1 };
+    setItems([line]);
+    return line;
+  }, []);
+
   const addService = useCallback((svc: any, opts: any = {}) => {
     const line = lineFromService(svc, opts);
-    setItems((prev) => {
+    setItems((prev0) => {
+      const prev = prev0.some((p) => p.subscription) ? [] : prev0; // never mix normal + subscription
       const idx = prev.findIndex((p) => sigOf(p) === sigOf(line));
       if (idx >= 0) { const next = [...prev]; next[idx] = { ...next[idx], qty: next[idx].qty + (opts.qty || 1) }; return next; }
       return [...prev, line];
@@ -67,6 +80,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const clear = useCallback(() => setItems([]), []);
   const count = useMemo(() => items.reduce((s, x) => s + (x.qty || 1), 0), [items]);
   const estimateTotal = useMemo(() => items.reduce((s, x) => s + lineEstimate(x), 0), [items]);
-  return <Ctx.Provider value={{ items, addService, addCustom, minLabourCharge: minLabour, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, ready }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ items, addService, addCustom, addSubscription, minLabourCharge: minLabour, removeItem, updateItem, setQty, setAddonQty, clear, count, estimateTotal, ready }}>{children}</Ctx.Provider>;
 };
 export const useCart = () => { const c = useContext(Ctx); if (!c) throw new Error("useCart outside CartProvider"); return c; };

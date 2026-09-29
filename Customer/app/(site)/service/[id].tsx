@@ -1,10 +1,10 @@
 /** Service detail — port of web_panel/src/pages/customer/ServiceDetail.jsx (mobile view + sticky add bar). */
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator, TextInput } from "react-native";
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ArrowLeft, ShoppingBag, Star, Clock, Tag, CheckCircle2, Check, Minus, Plus, ShieldCheck, ChevronDown, CalendarClock, MapPin, Sparkles, Wrench } from "lucide-react-native";
+import { ArrowLeft, ShoppingBag, Star, Clock, Tag, CheckCircle2, Check, Minus, Plus, ShieldCheck, ChevronDown, CalendarClock, Sparkles, Wrench } from "lucide-react-native";
 import { api } from "../../../src/api/client";
 import { PRIMARY, SLATE, AMBER, EMERALD, TC, useTheme } from "../../../src/theme";
 import { fmt } from "../../../src/lib/format";
@@ -15,7 +15,6 @@ import { useToast } from "../../../src/components/Toast";
 import { stripHtml } from "../../../src/components/site/ui";
 
 const PRICE_LABEL: Record<string, string> = { per_hour: "/ hr", per_person: "/ person", per_sqft: "/ sq ft" };
-const todayPlus = (d: number) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
 
 /** Recurring-subscription (maid) plan picker — parity with the web ServiceDetail.
  *  Button says "Book Now" (no "pay upfront") and there is NO green attendance note. */
@@ -23,34 +22,24 @@ function SubscriptionPanel({ svc }: { svc: any }) {
   const router = useRouter();
   const toast = useToast();
   const { user } = useAuth();
+  const { addSubscription } = useCart();
   const [plans, setPlans] = useState<any[]>(svc.subscription_plans || []);
   const [sel, setSel] = useState<string>((svc.subscription_plans || [])[0]?.plan_type || "");
-  const [addresses, setAddresses] = useState<any[]>([]);
-  const [addrId, setAddrId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(todayPlus(1));
-  const [time, setTime] = useState<string>("09:00");
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     api.get<any>(`/subscriptions/plans/${svc.id}`).then((r) => {
       const ps = r?.plans || [];
       if (ps.length) { setPlans(ps); setSel((cur) => (ps.some((p: any) => p.plan_type === cur) ? cur : ps[0].plan_type)); }
     }).catch(() => {});
-    if (user) api.get<any[]>("/auth/addresses").then((a) => { setAddresses(a || []); setAddrId((cur) => cur || (a || [])[0]?.id || ""); }).catch(() => {});
-  }, [svc.id, user]);
+  }, [svc.id]);
 
   const plan = plans.find((p) => p.plan_type === sel);
-  const book = async () => {
+  // Book like a normal service: drop the chosen plan into the cart, continue to /book.
+  const book = () => {
     if (!user) { toast.info("Please log in to book"); router.push("/login" as any); return; }
     if (!plan) return toast.error("Please select a plan");
-    if (!addrId) return toast.error("Please add a service address first");
-    setBusy(true);
-    try {
-      const sub = await api.post<any>("/subscriptions", { service_id: svc.id, plan_type: sel, start_date: startDate, preferred_time: time, address_id: addrId });
-      try { await api.post(`/subscriptions/${sub.id}/pay/mock`); toast.success("Booking confirmed!"); }
-      catch { await api.post(`/subscriptions/${sub.id}/pay/order`); toast.info("Complete payment to confirm your booking."); }
-      router.push("/(customer)/subscriptions" as any);
-    } catch (e: any) { toast.error(e?.detail || "Booking failed, please try again"); } finally { setBusy(false); }
+    addSubscription(svc, plan);
+    router.push("/(site)/book" as any);
   };
 
   return (
@@ -77,36 +66,8 @@ function SubscriptionPanel({ svc }: { svc: any }) {
         })}
       </View>
 
-      <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: TC.textMuted, fontSize: 11, marginBottom: 4 }}>Start date</Text>
-          <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={TC.textFaint} style={{ height: 44, borderWidth: 1, borderColor: TC.border, borderRadius: 12, paddingHorizontal: 12, color: TC.text }} />
-        </View>
-        <View style={{ width: 110 }}>
-          <Text style={{ color: TC.textMuted, fontSize: 11, marginBottom: 4 }}>Time</Text>
-          <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={TC.textFaint} style={{ height: 44, borderWidth: 1, borderColor: TC.border, borderRadius: 12, paddingHorizontal: 12, color: TC.text }} />
-        </View>
-      </View>
-
-      <Text style={{ color: TC.textMuted, fontSize: 11, marginTop: 16, marginBottom: 6 }}>Service address</Text>
-      {addresses.length === 0 ? (
-        <Text style={{ color: TC.textFaint, fontSize: 13 }}>No saved address — add one from My Addresses.</Text>
-      ) : (
-        <View style={{ gap: 8 }}>
-          {addresses.map((a) => {
-            const on = a.id === addrId;
-            return (
-              <Pressable key={a.id} testID={`sub-addr-${a.id}`} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, alignItems: "center", borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 12, padding: 10 }}>
-                <MapPin size={16} color={TC.primaryText} />
-                <Text style={{ color: TC.text, fontSize: 13, flex: 1 }} numberOfLines={1}>{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-
-      <Pressable testID="sub-book-now" onPress={book} disabled={busy || !plan} style={{ marginTop: 18, height: 52, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: busy || !plan ? 0.6 : 1 }}>
-        <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{busy ? "Processing…" : "Book Now"}</Text>
+      <Pressable testID="sub-book-now" onPress={book} disabled={!plan} style={{ marginTop: 18, height: 52, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: !plan ? 0.6 : 1 }}>
+        <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Book Now</Text>
       </Pressable>
     </View>
   );

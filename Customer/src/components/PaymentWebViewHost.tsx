@@ -91,8 +91,11 @@ export function PaymentWebViewHost() {
   const confirmReturn = useCallback(async () => {
     const ord = order; const ctx = ctxRef.current;
     try {
-      const d: any = await api.post("/payments/confirm-return", { gw: ord?.gateway, order_id: ord?.order_id });
-      if (d?.paid) { ctx?.toast?.success?.("Payment successful"); close(true); }
+      const d: any = ctx?.purpose === "subscription"
+        ? await api.post(`/subscriptions/${ctx?.subscriptionId}/pay/confirm`, { order_id: ord?.order_id, gw: ord?.gateway })
+        : await api.post("/payments/confirm-return", { gw: ord?.gateway, order_id: ord?.order_id });
+      const paid = ctx?.purpose === "subscription" ? !!(d && (d.payment_status === "paid" || d.id)) : !!d?.paid;
+      if (paid) { ctx?.toast?.success?.("Payment successful"); close(true); }
       else { ctx?.toast?.error?.("Payment not completed. If money was debited it will reflect shortly."); close(false); }
     } catch (e: any) { ctx?.toast?.error?.(e?.message || "Could not confirm payment"); close(false); }
   }, [order, close]);
@@ -103,7 +106,11 @@ export function PaymentWebViewHost() {
     const ctx = ctxRef.current;
     if (msg.type === "razorpay") {
       try {
-        await api.post("/payments/verify", { order_id: msg.order_id, payment_id: msg.payment_id, signature: msg.signature, purpose: ctx?.purpose, booking_id: ctx?.bookingId, group_id: ctx?.groupId, amount: ctx?.amount });
+        if (ctx?.purpose === "subscription") {
+          await api.post(`/subscriptions/${ctx?.subscriptionId}/pay/verify`, { order_id: msg.order_id, payment_id: msg.payment_id, signature: msg.signature });
+        } else {
+          await api.post("/payments/verify", { order_id: msg.order_id, payment_id: msg.payment_id, signature: msg.signature, purpose: ctx?.purpose, booking_id: ctx?.bookingId, group_id: ctx?.groupId, amount: ctx?.amount });
+        }
         ctx?.toast?.success?.("Payment successful");
         close(true);
       } catch (err: any) { ctx?.toast?.error?.(err?.detail || err?.message || "Payment verification failed"); close(false); }
