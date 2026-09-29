@@ -15,12 +15,14 @@ import { ChatProvider } from "@/src/context/ChatContext";
 import { ChatNotifier } from "@/src/components/ChatNotifier";
 import { OfflineGate } from "@/src/components/OfflineGate";
 import AppUpdateGate from "@/src/components/AppUpdateGate";
+import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
 import { ToastProvider } from "@/src/components/Toast";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
 import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+initCrashReporter("partner");
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,6 +36,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { err
   static getDerivedStateFromError(error: Error) {
     return { error };
   }
+  componentDidCatch(error: Error) { try { reportError("partner", error, true); } catch { /* noop */ } }
   render() {
     if (this.state.error) {
       return (

@@ -53,6 +53,9 @@ from routes.agent_routes import router as agent_router  # noqa: E402
 from routes.subscription_routes import router as subscription_router  # noqa: E402
 from routes.legal_routes import router as legal_router  # noqa: E402
 from routes.app_management_routes import router as app_mgmt_router  # noqa: E402
+from routes.logs_routes import router as logs_router  # noqa: E402
+from middleware.log_middleware import LogMiddleware  # noqa: E402
+from services import logbus  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
 
 app = FastAPI(title="AzoApp API")
@@ -74,7 +77,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router]:
     api_router.include_router(r)
 
 app.include_router(api_router)
@@ -137,6 +140,8 @@ app.add_middleware(
 # Outermost: measure end-to-end latency of every /api request for the
 # Super Admin -> Performance page (records into services.perf_service).
 app.add_middleware(PerfMiddleware)
+# Structured request logging (Request-ID + level) → Admin Live Logs dashboard.
+app.add_middleware(LogMiddleware)
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -145,6 +150,7 @@ logger = logging.getLogger("azoapp")
 
 @app.on_event("startup")
 async def startup():
+    logbus.start()
     await seed()
     # Recurring maid subscription category + service (idempotent) so the maid
     # category shows the subscription plan picker.

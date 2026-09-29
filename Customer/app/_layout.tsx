@@ -21,15 +21,18 @@ import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { ToastProvider } from "@/src/components/Toast";
 import { PaymentWebViewHost } from "@/src/components/PaymentWebViewHost";
 import AppUpdateGate from "@/src/components/AppUpdateGate";
+import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
 import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+initCrashReporter("customer");
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 2, staleTime: 30 * 1000, refetchOnWindowFocus: false } } });
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch(error: Error) { try { reportError("customer", error, true); } catch { /* noop */ } }
   render() {
     if (this.state.error) {
       return (
