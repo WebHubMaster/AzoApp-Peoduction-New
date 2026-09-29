@@ -52,8 +52,11 @@ export default function SubscriptionCheckout({ item }) {
 
   const placeOrder = async () => {
     if (!user) { toast.info("Please login to continue"); return navigate("/login"); }
+    if (!scheduledAt) return toast.error("Please pick a date & time slot");
     if (!addrId) return toast.error("Please select a service address");
     setBusy(true);
+    const startDate = scheduledAt.split("T")[0];
+    const time = scheduledAt.split("T")[1] || "09:00";
     try {
       const { data: sub } = await api.post("/subscriptions", {
         service_id: item.service_id, plan_type: item.plan_type,
