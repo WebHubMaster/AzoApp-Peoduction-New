@@ -4,7 +4,7 @@
  * Base URL comes from EXPO_PUBLIC_BACKEND_URL; the ingress routes /api → backend.
  */
 import { secureStorage } from "@/src/utils/storage";
-import { getDeviceUid } from "@/src/lib/deviceId";
+import { getDeviceUid, getDeviceName } from "@/src/lib/deviceId";
 
 const RAW = process.env.EXPO_PUBLIC_BACKEND_URL || "https://api.webhubmaster.shop";
 export const API_BASE = `${RAW.replace(/\/+$/, "")}/api`;
@@ -84,7 +84,11 @@ async function request<T = any>(path: string, opts: RequestOpts = {}): Promise<T
   // backend can register / enforce the bound device.
   let finalBody = body;
   if (method === "POST" && path === "/auth/verify-otp") {
-    finalBody = { ...(body || {}), device_id: (body && body.device_id) || (await getDeviceUid()) };
+    finalBody = {
+      ...(body || {}),
+      device_id: (body && body.device_id) || (await getDeviceUid()),
+      device_name: (body && body.device_name) || getDeviceName(),
+    };
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

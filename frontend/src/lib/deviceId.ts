@@ -26,3 +26,19 @@ export async function getDeviceUid(): Promise<string> {
     return _cached;
   }
 }
+
+/**
+ * A human-readable device label shown to admins next to "Reset Device", e.g.
+ * "Galaxy S21 · Android 13" or "iPhone 14 · iOS 17". Best-effort — falls back to the OS.
+ */
+export function getDeviceName(): string {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Device = require("expo-device");
+    const model = Device.deviceName || Device.modelName || Device.designName || "";
+    const os = [Device.osName || (Platform.OS === "ios" ? "iOS" : "Android"), Device.osVersion].filter(Boolean).join(" ");
+    return [model, os].filter(Boolean).join(" · ") || os || Platform.OS;
+  } catch {
+    return Platform.OS === "ios" ? "iPhone" : "Android device";
+  }
+}

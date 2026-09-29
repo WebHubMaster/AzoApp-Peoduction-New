@@ -73,6 +73,11 @@ Partner app (frontend/, tsc+eslint clean):
 
 Admin web (compiles): Person360 "Reset Device" button (partner only) + confirm modal → reset-device endpoint.
 
+### Update — Device Info on admin profile
+- verify-otp now also accepts `device_name`; stored as `registered_device_name` on bind (and kept fresh on same-device login). Partner app sends it via `getDeviceName()` (expo-device: model · OS version).
+- reset_device also unsets `registered_device_name`.
+- Person360 shows a device-info panel next to Reset Device: device name, registered-on and last-login timestamps (or "No device registered yet"). Verified: login with device_name → overview returns it; reset clears it.
+
 ## Update — Booking Ring (partner accept → customer full-screen confirmation)
 - Backend `accept_job`: after assigning the partner, now emits SSE `booking_confirmed` + a
   data-only full-screen ring push to the CUSTOMER (partner name/rating/schedule, `title`/`body`

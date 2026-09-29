@@ -89,7 +89,7 @@ async def send_otp(phone: str) -> dict:
     return {"sent": True, "dev_otp": otp, "message": "OTP sent (dev mode · use 123456 until SMS is configured)"}
 
 
-async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool = True, role: str = None, device_id: str = None) -> dict:
+async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool = True, role: str = None, device_id: str = None, device_name: str = None) -> dict:
     settings = await get_settings()
     user = await db.users.find_one({"phone": phone}, {"_id": 0})
 
@@ -169,11 +169,16 @@ async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool
     if user.get("role") == "partner" and device_id:
         reg = user.get("registered_device_id")
         if not reg:
-            await db.users.update_one({"id": user["id"]}, {"$set": {
-                "registered_device_id": device_id, "device_registered_at": now_iso()}})
+            upd = {"registered_device_id": device_id, "device_registered_at": now_iso()}
+            if device_name:
+                upd["registered_device_name"] = device_name
+            await db.users.update_one({"id": user["id"]}, {"$set": upd})
             user["registered_device_id"] = device_id
         elif reg != device_id:
             return {"ok": False, "reason": "device_mismatch"}
+        elif device_name and user.get("registered_device_name") != device_name:
+            # Same registered device — keep its human-readable label fresh.
+            await db.users.update_one({"id": user["id"]}, {"$set": {"registered_device_name": device_name}})
 
     await db.otps.delete_one({"phone": phone})
     try:

@@ -25,7 +25,7 @@ async def register_provider(req: RegisterProviderRequest):
 
 @router.post("/verify-otp")
 async def verify_otp(req: VerifyOTPRequest):
-    return await c.verify_otp(req.phone, req.otp, req.name, req.create_if_new, req.role, req.device_id)
+    return await c.verify_otp(req.phone, req.otp, req.name, req.create_if_new, req.role, req.device_id, req.device_name)
 
 
 @router.get("/demo-status")

@@ -111,8 +111,8 @@ async def send_otp(phone):
     return await auth_service.send_otp(phone)
 
 
-async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, device_id=None):
-    res = await auth_service.verify_otp(phone, otp, name, create_if_new, role, device_id)
+async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, device_id=None, device_name=None):
+    res = await auth_service.verify_otp(phone, otp, name, create_if_new, role, device_id, device_name)
     if not res["ok"]:
         if res.get("reason") == "device_mismatch":
             # Single-device lock: this partner is bound to a different device. The app

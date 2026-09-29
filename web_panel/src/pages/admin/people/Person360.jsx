@@ -749,6 +749,22 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
         <ActionBtn icon={Smartphone} label="Reset Device" onClick={() => setModal("reset-device")}
           tone="bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 ring-indigo-200 dark:ring-indigo-800 hover:ring-indigo-300" />
       )}
+      {role === "partner" && (
+        <div data-testid="device-info" className="w-full mt-1 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-50 dark:bg-slate-800/40 px-3.5 py-2.5 flex items-center gap-3">
+          <Smartphone className="h-5 w-5 text-indigo-600 shrink-0" />
+          {u.registered_device_id ? (
+            <div className="min-w-0 text-sm">
+              <p data-testid="device-info-name" className="font-semibold text-slate-700 dark:text-slate-200 truncate">{u.registered_device_name || "Registered device"}</p>
+              <p className="text-[11px] text-slate-500">
+                Registered {u.device_registered_at ? new Date(u.device_registered_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—"}
+                {u.last_login_at ? ` · Last login ${new Date(u.last_login_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}` : ""}
+              </p>
+            </div>
+          ) : (
+            <p data-testid="device-info-none" className="text-sm text-slate-500">No device registered yet — the partner will lock to their next login device.</p>
+          )}
+        </div>
+      )}
       <ActionBtn icon={Mail} label="Email" onClick={() => open("email")} />
       <ActionBtn icon={BellRing} label="Push" onClick={() => open("push")} />
       {u.deleted
