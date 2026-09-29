@@ -202,12 +202,25 @@ async def _homepage(city: str = ""):
         elif t in ("most_requested", "recommended_services", "service_collection"):
             ids = cfg.get("service_ids") or []
             if ids:
-                data = [s for s in visible if s["id"] in ids][:limit]
+                order = {sid: i for i, sid in enumerate(ids)}
+                data = sorted([s for s in visible if s["id"] in ids], key=lambda x: order.get(x["id"], 999))[:limit]
             else:
                 data = [s for s in visible if s.get("show_on_home", True)][:limit]
-        elif t in ("hero_banner", "promo_banner", "slider"):
+        elif t == "category_services":
+            cid = cfg.get("category_id")
+            data = [s for s in visible if s.get("category_id") == cid][:limit] if cid else []
+        elif t == "hero_banner":
             bids = cfg.get("banner_ids") or []
             data = [b for b in banners if b["id"] in bids] if bids else banners
+        elif t in ("promo_banner", "slider"):
+            bids = cfg.get("banner_ids") or []
+            if bids:
+                data = [b for b in banners if b["id"] in bids]
+            elif cfg.get("image"):
+                data = [{"id": sec.get("id"), "image": cfg["image"], "desktop_image": cfg["image"],
+                         "link": cfg.get("link", ""), "title": sec.get("title", ""), "subtitle": sec.get("subtitle", "")}]
+            else:
+                data = banners
         elif t == "coupons":
             data = coupons[:limit]
         elif t == "faq":

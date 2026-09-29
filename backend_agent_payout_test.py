@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://multi-app-platform-25.preview.emergentagent.com/api"
+BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo credentials

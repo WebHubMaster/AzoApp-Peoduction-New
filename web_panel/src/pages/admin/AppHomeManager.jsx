@@ -104,6 +104,13 @@ export default function AppHomeManager() {
   const upList = (k, i, patch) => setCfg((p) => ({ ...p, [k]: p[k].map((x, j) => (j === i ? { ...x, ...patch } : x)) }));
   const rmList = (k, i) => setCfg((p) => ({ ...p, [k]: p[k].filter((_, j) => j !== i) }));
   const move = (k, i, d) => setCfg((p) => { const a = [...p[k]]; const j = i + d; if (j < 0 || j >= a.length) return p; [a[i], a[j]] = [a[j], a[i]]; return { ...p, [k]: a }; });
+  const removeSection = (i) => setCfg((p) => {
+    const s = p.sections[i];
+    if (!window.confirm(`Delete "${SECTION_LABELS[s.key] || "this section"}"? It will be removed from the app home. You can re-add it later only via a fresh setup.`)) return p;
+    const sections = p.sections.filter((_, j) => j !== i);
+    const custom_sections = s.key.startsWith("custom:") ? (p.custom_sections || []).filter((c) => `custom:${c.id}` !== s.key) : p.custom_sections;
+    return { ...p, sections, custom_sections };
+  });
   const save = async () => {
     setSaving(true);
     const known = new Set(cfg.sections.map((x) => x.key));
@@ -128,16 +135,6 @@ export default function AppHomeManager() {
           <Button onClick={save} disabled={saving} className="bg-primary-700 hover:bg-primary-800 text-white" data-testid="app-home-save"><Save className="h-4 w-4 mr-1" />{saving ? "Saving…" : "Save changes"}</Button>
         </div>
       </div>
-
-      <Card title="Branding (header)" sub="Leave empty to use the global Branding & Theme logo / tagline.">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="App logo"><ImageUpload value={cfg.branding.logo} onChange={(v) => setIn("branding", { logo: v })} wide testid="app-home-logo-input" /></Field>
-          <div className="space-y-3">
-            <Field label="Tagline"><Input data-testid="app-home-tagline" value={cfg.branding.tagline || ""} onChange={(e) => setIn("branding", { tagline: e.target.value })} placeholder="Service at Your Doorstep" /></Field>
-            <label className="flex items-center gap-2 text-sm"><Switch checked={cfg.branding.show_tagline !== false} onCheckedChange={(v) => setIn("branding", { show_tagline: v })} /> Show tagline under logo</label>
-          </div>
-        </div>
-      </Card>
 
       <Card title="Hero slider" sub="Swipeable slides at the top of the home screen." right={<Button size="sm" variant="outline" data-testid="hero-add" onClick={() => set({ hero_slides: [...cfg.hero_slides, { id: `slide-${uid()}`, enabled: true, badge: "", title: "", highlight: "", subtitle: "", image: "", side_text: "", rating_value: "", rating_label: "Customer Rating", cta_label: "Book a Service", cta_link: "/services", features: [] }] })}><Plus className="h-4 w-4 mr-1" />Add slide</Button>}>
         {cfg.hero_slides.map((s, i) => (
@@ -307,6 +304,7 @@ export default function AppHomeManager() {
             <div className="ml-auto flex gap-1">
               <Button size="icon" variant="ghost" onClick={() => move("sections", i, -1)}><ArrowUp className="h-4 w-4" /></Button>
               <Button size="icon" variant="ghost" onClick={() => move("sections", i, 1)}><ArrowDown className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" className="text-red-600" onClick={() => removeSection(i)} data-testid={`section-remove-${s.key}`}><Trash2 className="h-4 w-4" /></Button>
             </div>
           </div>
         ))}

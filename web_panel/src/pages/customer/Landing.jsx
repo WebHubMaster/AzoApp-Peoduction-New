@@ -167,7 +167,7 @@ export default function Landing() {
 
       {secs.map((sec) => {
         if (["popular_categories", "featured_categories", "category_slider"].includes(sec.type)) return <CategoriesSection key={sec.id} sec={sec} navigate={navigate} onCategory={setSheetCat} />;
-        if (["featured_services", "trending_services", "most_requested", "recommended_services", "service_collection"].includes(sec.type)) {
+        if (["featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services"].includes(sec.type)) {
           serviceRows += 1;
           return <ServicesSection key={sec.id} sec={sec} navigate={navigate} city={city} tone={serviceRows % 2 === 0 ? "tint" : "white"} />;
         }

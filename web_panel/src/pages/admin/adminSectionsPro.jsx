@@ -1027,13 +1027,57 @@ export const ServiceWizard = () => {
 };
 
 /* =============== HOMEPAGE BUILDER =============== */
-const SECTION_TYPES = ["hero_banner", "popular_categories", "featured_categories", "featured_services", "trending_services", "most_requested", "recommended_services", "promo_banner", "coupons", "faq", "blog", "why_choose_us", "how_it_works"];
+const SECTION_TYPES = ["hero_banner", "popular_categories", "featured_categories", "featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services", "promo_banner", "coupons", "faq", "blog", "why_choose_us", "how_it_works"];
+const TYPE_LABELS = { service_collection: "Hand-picked services", category_services: "Category services (whole category)", promo_banner: "Promo banner (image + link)" };
+const typeLabel = (t) => TYPE_LABELS[t] || t.replace(/_/g, " ");
+const needsServices = (t) => ["service_collection", "most_requested", "recommended_services"].includes(t);
+const needsCategory = (t) => t === "category_services";
+const needsBanner = (t) => ["promo_banner", "slider"].includes(t);
+const typeHasConfig = (t) => needsServices(t) || needsCategory(t) || needsBanner(t);
+
+const SectionConfig = ({ type, config, onChange, services, cats }) => {
+  const cfg = config || {};
+  if (needsServices(type)) return (
+    <Field label="Pick services (Ctrl/Cmd-click for multiple)">
+      <select multiple data-testid="hp-config-services" value={cfg.service_ids || []}
+        onChange={(e) => onChange({ ...cfg, service_ids: Array.from(e.target.selectedOptions).map((o) => o.value) })}
+        className="h-40 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-sm">
+        {services.map((sv) => <option key={sv.id} value={sv.id}>{sv.name}{sv.category_name ? ` · ${sv.category_name}` : ""}</option>)}
+      </select>
+    </Field>
+  );
+  if (needsCategory(type)) return (
+    <Field label="Category (shows all its services)">
+      <Select value={cfg.category_id || ""} onValueChange={(v) => onChange({ ...cfg, category_id: v })}>
+        <SelectTrigger data-testid="hp-config-category"><SelectValue placeholder="Select category" /></SelectTrigger>
+        <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+      </Select>
+    </Field>
+  );
+  if (needsBanner(type)) return (
+    <>
+      <ImageUpload label="Banner image" folder="homepage" value={cfg.image || ""} onChange={(v) => onChange({ ...cfg, image: v })} />
+      <Field label="Link (e.g. /services)"><Input data-testid="hp-config-link" value={cfg.link || ""} placeholder="/services" onChange={(e) => onChange({ ...cfg, link: e.target.value })} /></Field>
+    </>
+  );
+  return null;
+};
+
 export const HomepageBuilder = () => {
   const [rows, setRows] = useState([]);
-  const [add, setAdd] = useState({ type: "featured_services", title: "", subtitle: "", limit: 8 });
+  const [services, setServices] = useState([]);
+  const [cats, setCats] = useState([]);
+  const [add, setAdd] = useState({ type: "featured_services", title: "", subtitle: "", limit: 8, config: {} });
   const load = () => api.get("/admin/homepage-sections").then((r) => setRows(r.data));
-  useEffect(() => { load(); }, []);
-  const create = async () => { await api.post("/admin/homepage-sections", { type: add.type, title: add.title, subtitle: add.subtitle, enabled: true, order: rows.length, config: { limit: Number(add.limit) } }); toast.success("Section added"); setAdd({ ...add, title: "" }); load(); };
+  useEffect(() => {
+    load();
+    api.get("/catalog/services").then((r) => setServices(r.data || [])).catch(() => {});
+    api.get("/catalog/categories").then((r) => setCats(r.data || [])).catch(() => {});
+  }, []);
+  const create = async () => {
+    await api.post("/admin/homepage-sections", { type: add.type, title: add.title, subtitle: add.subtitle, enabled: true, order: rows.length, config: { limit: Number(add.limit), ...(add.config || {}) } });
+    toast.success("Section added"); setAdd({ type: add.type, title: "", subtitle: "", limit: 8, config: {} }); load();
+  };
   const patch = async (id, data) => { await api.put(`/admin/homepage-sections/${id}`, data); load(); };
   const del = async (id) => { await api.delete(`/admin/homepage-sections/${id}`); load(); };
   const move = async (i, dir) => {
@@ -1047,11 +1091,12 @@ export const HomepageBuilder = () => {
     <HomeStatsControl />
     <div className="grid xl:grid-cols-3 gap-5">
       <Section title="Add Section">
-        <Field label="Type"><Select value={add.type} onValueChange={(v) => setAdd({ ...add, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{SECTION_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{t.replace(/_/g, " ")}</SelectItem>)}</SelectContent></Select></Field>
-        <Field label="Title"><Input value={add.title} onChange={(e) => setAdd({ ...add, title: e.target.value })} /></Field>
+        <Field label="Type"><Select value={add.type} onValueChange={(v) => setAdd({ ...add, type: v, config: {} })}><SelectTrigger data-testid="hp-add-type"><SelectValue /></SelectTrigger><SelectContent>{SECTION_TYPES.map((t) => <SelectItem key={t} value={t} className="capitalize">{typeLabel(t)}</SelectItem>)}</SelectContent></Select></Field>
+        <Field label="Title"><Input data-testid="hp-add-title" value={add.title} onChange={(e) => setAdd({ ...add, title: e.target.value })} /></Field>
         <Field label="Subtitle / Eyebrow"><Input value={add.subtitle} onChange={(e) => setAdd({ ...add, subtitle: e.target.value })} /></Field>
-        <Field label="Item Limit"><Input type="number" value={add.limit} onChange={(e) => setAdd({ ...add, limit: e.target.value })} /></Field>
-        <Button onClick={create} className="w-full bg-primary-700 hover:bg-primary-800">Add Section</Button>
+        {!needsBanner(add.type) && <Field label="Item Limit"><Input type="number" value={add.limit} onChange={(e) => setAdd({ ...add, limit: e.target.value })} /></Field>}
+        {typeHasConfig(add.type) && <SectionConfig type={add.type} config={add.config} onChange={(c) => setAdd({ ...add, config: c })} services={services} cats={cats} />}
+        <Button onClick={create} data-testid="hp-add-submit" className="w-full bg-primary-700 hover:bg-primary-800">Add Section</Button>
       </Section>
       <div className="xl:col-span-2 space-y-3">
         {rows.map((s, i) => (
@@ -1059,16 +1104,21 @@ export const HomepageBuilder = () => {
             <div className="flex items-center gap-3">
               <div className="flex flex-col"><button onClick={() => move(i, -1)} className="text-slate-400 hover:text-primary-700"><ChevronUp className="h-4 w-4" /></button><button onClick={() => move(i, 1)} className="text-slate-400 hover:text-primary-700"><ChevronDown className="h-4 w-4" /></button></div>
               <div className="flex-1">
-                <Badge className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-0 capitalize mb-1">{s.type.replace(/_/g, " ")}</Badge>
+                <Badge className="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-0 capitalize mb-1">{typeLabel(s.type)}</Badge>
                 <Input className="mb-1" placeholder="Title" defaultValue={s.title} onBlur={(e) => patch(s.id, { title: e.target.value })} />
                 <div className="flex gap-2">
                   <Input placeholder="Subtitle" defaultValue={s.subtitle} onBlur={(e) => patch(s.id, { subtitle: e.target.value })} />
-                  <Input type="number" className="w-24" placeholder="Limit" defaultValue={s.config?.limit || 8} onBlur={(e) => patch(s.id, { config: { ...s.config, limit: Number(e.target.value) } })} />
+                  {!needsBanner(s.type) && <Input type="number" className="w-24" placeholder="Limit" defaultValue={s.config?.limit || 8} onBlur={(e) => patch(s.id, { config: { ...s.config, limit: Number(e.target.value) } })} />}
                 </div>
+                {typeHasConfig(s.type) && (
+                  <div className="mt-3 space-y-2 border-t border-slate-100 dark:border-slate-700 pt-3">
+                    <SectionConfig type={s.type} config={s.config} onChange={(c) => patch(s.id, { config: { ...s.config, ...c } })} services={services} cats={cats} />
+                  </div>
+                )}
               </div>
               <div className="flex flex-col items-center gap-2">
                 <Switch checked={!!s.enabled} onCheckedChange={(v) => patch(s.id, { enabled: v })} />
-                <button onClick={() => del(s.id)} className="text-red-500"><Trash2 className="h-4 w-4" /></button>
+                <button onClick={() => del(s.id)} className="text-red-500" data-testid={`hp-del-${i}`}><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>
           </div>

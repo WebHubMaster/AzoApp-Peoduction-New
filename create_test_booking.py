@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://multi-app-platform-25.preview.emergentagent.com/api"
+BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

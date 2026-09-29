@@ -28,7 +28,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://multi-app-platform-25.preview.emergentagent.com/api"
+BASE_URL = "https://order-visibility-4.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
