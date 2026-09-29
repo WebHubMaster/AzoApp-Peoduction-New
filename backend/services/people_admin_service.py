@@ -886,7 +886,12 @@ async def reset_device(admin: dict, role: str, uid: str):
     (and re-lock it to that new device). Also invalidates the old device's session."""
     u = await _user(role, uid)
     aid = admin.get("id"); aname = admin.get("name") or "Admin"
-    await db.users.update_one({"id": uid}, {"$unset": {"registered_device_id": "", "device_registered_at": "", "registered_device_name": ""}})
+    from config.database import now_iso
+    entry = {"event": "reset", "by": aname, "device_name": u.get("registered_device_name") or "",
+             "device_id": u.get("registered_device_id") or "", "at": now_iso()}
+    await db.users.update_one({"id": uid}, {
+        "$unset": {"registered_device_id": "", "device_registered_at": "", "registered_device_name": ""},
+        "$push": {"device_history": {"$each": [entry], "$slice": -15}}})
     try:
         from services import activity_service
         await activity_service.log("admin", aid, aname, f"{role}.device_reset",

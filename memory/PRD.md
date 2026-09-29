@@ -78,6 +78,10 @@ Admin web (compiles): Person360 "Reset Device" button (partner only) + confirm m
 - reset_device also unsets `registered_device_name`.
 - Person360 shows a device-info panel next to Reset Device: device name, registered-on and last-login timestamps (or "No device registered yet"). Verified: login with device_name → overview returns it; reset clears it.
 
+### Update — Device History (audit)
+- User doc keeps a capped `device_history` (last 15) with entries: `registered` (on bind), `blocked` (login attempt from an unregistered device), `reset` (admin, with `by`). Pushed from `auth_service.verify_otp` and `people_admin_service.reset_device`.
+- Person360 renders a "Device history" panel (last 6, newest first) with per-event colour/icon, device name, actor and timestamp. Verified in-pod: register → blocked → reset all logged and returned in overview.
+
 ## Update — Booking Ring (partner accept → customer full-screen confirmation)
 - Backend `accept_job`: after assigning the partner, now emits SSE `booking_confirmed` + a
   data-only full-screen ring push to the CUSTOMER (partner name/rating/schedule, `title`/`body`

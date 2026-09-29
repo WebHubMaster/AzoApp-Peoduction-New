@@ -169,12 +169,21 @@ async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool
     if user.get("role") == "partner" and device_id:
         reg = user.get("registered_device_id")
         if not reg:
-            upd = {"registered_device_id": device_id, "device_registered_at": now_iso()}
+            entry = {"event": "registered", "device_id": device_id,
+                     "device_name": device_name or "", "at": now_iso()}
+            _set = {"registered_device_id": device_id, "device_registered_at": now_iso()}
             if device_name:
-                upd["registered_device_name"] = device_name
-            await db.users.update_one({"id": user["id"]}, {"$set": upd})
+                _set["registered_device_name"] = device_name
+            await db.users.update_one({"id": user["id"]}, {
+                "$set": _set,
+                "$push": {"device_history": {"$each": [entry], "$slice": -15}}})
             user["registered_device_id"] = device_id
         elif reg != device_id:
+            # Audit the blocked attempt from an unregistered device.
+            entry = {"event": "blocked", "device_id": device_id,
+                     "device_name": device_name or "", "at": now_iso()}
+            await db.users.update_one({"id": user["id"]},
+                                      {"$push": {"device_history": {"$each": [entry], "$slice": -15}}})
             return {"ok": False, "reason": "device_mismatch"}
         elif device_name and user.get("registered_device_name") != device_name:
             # Same registered device — keep its human-readable label fresh.

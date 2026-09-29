@@ -765,6 +765,26 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
           )}
         </div>
       )}
+      {role === "partner" && Array.isArray(u.device_history) && u.device_history.length > 0 && (
+        <div data-testid="device-history" className="w-full rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900/40 px-3.5 py-2.5">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400 mb-1.5">Device history</p>
+          <ul className="space-y-1.5">
+            {[...u.device_history].reverse().slice(0, 6).map((h, i) => {
+              const tone = h.event === "registered" ? "text-emerald-600" : h.event === "reset" ? "text-indigo-600" : "text-rose-600";
+              const label = h.event === "registered" ? "Registered" : h.event === "reset" ? "Reset" : "Blocked attempt";
+              const Ico = h.event === "blocked" ? ShieldAlert : h.event === "reset" ? RotateCcw : Smartphone;
+              return (
+                <li key={i} data-testid={`device-history-${i}`} className="flex items-center gap-2 text-xs">
+                  <Ico className={`h-3.5 w-3.5 shrink-0 ${tone}`} />
+                  <span className={`font-semibold ${tone}`}>{label}</span>
+                  <span className="text-slate-500 truncate">{h.device_name || h.device_id || "device"}{h.by ? ` · by ${h.by}` : ""}</span>
+                  <span className="text-slate-400 ml-auto shrink-0">{h.at ? new Date(h.at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : ""}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
       <ActionBtn icon={Mail} label="Email" onClick={() => open("email")} />
       <ActionBtn icon={BellRing} label="Push" onClick={() => open("push")} />
       {u.deleted
