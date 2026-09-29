@@ -72,6 +72,12 @@ async def create_subscription(user, req):
     commission_pct = svc.commission_pct_for(settings)
     tax_pct = float(service.get("tax_pct") or 0)
     fin = svc.compute_financials(price, commission_pct, tax_pct, working_days)
+    # Customer-facing GST — EXACTLY like a normal booking: government GST % is added
+    # ON TOP of the plan price. This does NOT change the maid's earning (allocation is
+    # still computed on the plan gross); GST is collected separately for the govt.
+    gst_pct = float(settings.get("gst_pct") or 0)
+    gst_amount = money.pct(fin["gross"], gst_pct)
+    total_payable = money.add(fin["gross"], gst_amount)
 
     sub = {
         "id": new_id(),
@@ -87,6 +93,9 @@ async def create_subscription(user, req):
         "plan_type": plan_type,
         "plan_label": plan.get("label") or plan_type.title(),
         "price": fin["gross"],
+        "gst_pct": gst_pct,
+        "gst_amount": gst_amount,
+        "total_payable": total_payable,
         "start_date": start.isoformat(),
         "end_date": end.isoformat(),
         "duration_days": duration,
