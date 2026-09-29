@@ -1,7 +1,6 @@
 /** Wallet — 1:1 port of WalletView + WalletTopup (CustomerDashboard.jsx) + ScratchCardsPanel. */
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
-import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { TrendingUp, IndianRupee, Receipt, Wallet, Layers } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
@@ -10,7 +9,6 @@ import { fmt, fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "../../src/theme";
 import { StatTile, EmptyState, SearchInput, OptionMenu, DateRangePicker, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
-import { ScratchCardsPanel } from "../../src/components/customer/ScratchCards";
 
 const TYPES = [{ value: "all", label: "All types" }, { value: "credit", label: "Credits" }, { value: "debit", label: "Debits" }];
 const ALL_RANGE: DateRange = { preset: "All", from: null, to: null };
@@ -36,7 +34,6 @@ function WalletTopup({ onDone, toast }: { onDone: () => void; toast: any }) {
 
 export default function WalletScreen() {
   const { c, isDark } = useTheme();
-  const router = useRouter();
   const { wallet, load: reload } = useCustomerData();
   const toast = useToast();
   const [type, setType] = useState("all"); const [q, setQ] = useState(""); const [range, setRange] = useState<DateRange>(ALL_RANGE); const [page, setPage] = useState(1);
@@ -57,7 +54,6 @@ export default function WalletScreen() {
         <Text testID="page-title" style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>Wallet</Text>
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Your AzoApp balance, top-ups and payments</Text>
       </View>
-      <ScratchCardsPanel onClaimed={reload} toast={toast} hideWhenEmpty onViewAll={() => router.push("/(customer)/rewards" as any)} />
       <View style={{ gap: 16, marginBottom: 20 }}>
         <LinearGradient colors={[PRIMARY[600], PRIMARY[800], "#1E7AD6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -24, bottom: -24, height: 128, width: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.1)" }} />

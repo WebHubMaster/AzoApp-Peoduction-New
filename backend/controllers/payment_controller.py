@@ -47,6 +47,19 @@ async def create_order(user, purpose, booking_id=None, amount=None, group_id=Non
     elif purpose == "booking":
         b = await _booking_for_pay(user, booking_id)
         amt, receipt = float(b["pricing"]["total"]), b["code"]
+    elif purpose == "additional":
+        b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+        if not b:
+            raise HTTPException(status_code=404, detail="Booking not found")
+        if b["customer_id"] != user["id"]:
+            raise HTTPException(status_code=403, detail="Not your booking")
+        addl = b.get("additional") or {}
+        if addl.get("status") == "paid":
+            raise HTTPException(status_code=400, detail="Additional work already paid")
+        amt = float(addl.get("total") or 0)
+        if amt <= 0:
+            raise HTTPException(status_code=400, detail="No additional work to pay for")
+        receipt = ("ADDL-" + str(b.get("code") or booking_id))[:40]
     else:
         amt = float(amount or 0)
         if amt <= 0:
@@ -69,6 +82,8 @@ async def create_order(user, purpose, booking_id=None, amount=None, group_id=Non
     # confirm it (redirect gateways like Cashfree/Juspay come back via /payment/return).
     if purpose == "booking" and order.get("order_id"):
         await db.bookings.update_one({"id": booking_id}, {"$set": snap})
+    if purpose == "additional" and order.get("order_id"):
+        await db.bookings.update_one({"id": booking_id}, {"$set": {**snap, "pay_addl_order_id": order.get("order_id")}})
     if purpose == "booking_group" and order.get("order_id"):
         ids = [b["id"] for b in group_unpaid]
         await db.bookings.update_many({"id": {"$in": ids}}, {"$set": snap})
@@ -86,6 +101,18 @@ async def confirm_return(user, gw_name, order_id):
     if str(order_id).startswith("KIT-"):
         from services import starter_kit_service as sk
         return await sk.purchase_confirm_return(user, order_id, gw_name)
+    # Additional-work payment (partner added extra work during the job).
+    b_addl = await db.bookings.find_one({"pay_addl_order_id": order_id, "customer_id": user["id"]}, {"_id": 0})
+    if b_addl:
+        addl = b_addl.get("additional") or {}
+        if addl.get("status") == "paid":
+            return {"ok": True, "paid": True, "kind": "additional", "booking_id": b_addl["id"], "already": True}
+        paid = await payment_service.check_order_paid(
+            order_id, b_addl.get("pay_gateway") or gw_name, b_addl.get("pay_mode"))
+        if paid:
+            await _apply(user, "additional", b_addl["id"], None, order_id=order_id)
+            return {"ok": True, "paid": True, "kind": "additional", "booking_id": b_addl["id"]}
+        return {"ok": True, "paid": False, "kind": "additional", "booking_id": b_addl["id"]}
     b = await db.bookings.find_one({"pay_order_id": order_id, "customer_id": user["id"]}, {"_id": 0})
     if not b:
         # Fallback: Cashfree order_id is "<CODE>-<hex8>" — match by booking code.
@@ -162,6 +189,10 @@ async def _apply(user, purpose, booking_id, amount, payment_id=None, order_id=No
                 {"$set": {"status": "paid", "payment_status": "paid", "updated_at": now_iso()},
                  "$push": {"timeline": {"status": "paid", "at": now_iso()}}})
         return {"ok": True, "booking_id": booking_id}
+    if purpose == "additional":
+        from controllers import booking_controller
+        await booking_controller.pay_additional(user, booking_id, method="online")
+        return {"ok": True, "booking_id": booking_id, "kind": "additional"}
     amt = float(amount or 0)
     if amt <= 0:
         raise HTTPException(status_code=400, detail="Invalid amount")
