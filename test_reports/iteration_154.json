@@ -1,0 +1,23 @@
+{
+  "summary": "Frontend end-to-end verification of the 3 requested changes on the AzoApp admin panel. All three features verified working: (1) Every section row in Customer App Home 'Sections — order & visibility' has a data-testid section-remove-<key> trash button (8 present: categories, offer_banner, quick_features, most_booked, why_choose, trending, salon, offers). Deleting 'why_choose' + Save changes + reload → row remains removed (persistence confirmed). (2) 'Branding (header)' card is absent from Customer App Home. (3) Homepage Builder Type dropdown (data-testid hp-add-type) exposes 'Hand-picked services', 'Category services (whole category)' and 'Promo banner (image + link)'. Selecting each shows correct config fields: hp-config-services multi-select for hand-picked (3 services selected OK), hp-config-category for category services, banner image uploader + hp-config-link input for promo banner. Added a 'Category services' section (AC Repair & Service, title 'TEST Cat Services') and a 'Hand-picked services' section (title 'TEST Hand-picked', 3 picked services) via hp-add-submit — sections count grew 7 → 8 → 9, both got hp-del-<i> entries. Public storefront ({base}/api/panel/) after reload rendered both TEST sections (body innerText contained 'TEST Cat Services' and 'TEST Hand-picked').",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard", "issues": ["Recharts container warnings (width/height -1) — cosmetic, not blocking"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SECTION_TYPES uses key 'service_collection' for the 'Hand-picked services' label — mismatch between key and label may cause confusion; ensure backend site_controller._homepage treats both 'service_collection' and 'hand_picked_services' consistently (verified visually on storefront it renders)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100%"},
+  "test_credentials": "demo-admin one-click on /api/panel/login (dev OTP 123456)",
+  "seed_data_creation": "Created 2 homepage sections via admin UI: 'TEST Cat Services' (category_services → AC Repair & Service), 'TEST Hand-picked' (service_collection with 3 services). Also removed the 'Why Choose Us' section from Customer App Home to prove persistence — main agent may want to re-add if that section should be default.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 3 features work E2E. Note that on Homepage Builder the Type control is a shadcn Select (not <select>), open via click then get_by_role('option', name=...). The Save-changes button on Customer App Home has two testids: app-home-save (top) and app-home-save-bottom (avoid strict get_by_text). Storefront homepage has ~45s cache but appeared updated within ~8s in this run."
+}

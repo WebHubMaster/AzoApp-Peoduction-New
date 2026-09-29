@@ -37,6 +37,7 @@ class SettingsUpdate(BaseModel):
     pwa: Optional[dict] = None
     storage: Optional[dict] = None
     agent_config: Optional[dict] = None
+    partner_reg_fee: Optional[dict] = None
 
 
 class CouponCreate(BaseModel):

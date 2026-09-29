@@ -508,6 +508,88 @@ const PAYMENT_GATEWAYS = [
   ["easebuzz", "Easebuzz"], ["juspay", "Juspay"],
 ];
 
+function PartnerRegFeeCard() {
+  const [open, setOpen] = useState(false);
+  const [f, setF] = useState({ enabled: false, original_price: 499, discount_type: "percentage", discount_value: 0 });
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(() => {
+    api.get("/admin/settings").then((r) => {
+      const rf = r.data?.partner_reg_fee || {};
+      setF({ enabled: !!rf.enabled, original_price: rf.original_price ?? 499, discount_type: rf.discount_type || "percentage", discount_value: rf.discount_value ?? 0 });
+    }).catch(() => {});
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const orig = Number(f.original_price) || 0;
+  const rawDiscount = f.discount_type === "percentage" ? orig * (Number(f.discount_value) || 0) / 100 : (Number(f.discount_value) || 0);
+  const discount = Math.max(0, Math.min(rawDiscount, orig));
+  const finalAmount = Math.max(0, Math.round((orig - discount) * 100) / 100);
+  const save = async (patch) => {
+    const next = { ...f, ...patch };
+    setBusy(true);
+    try {
+      await api.put("/admin/settings", { partner_reg_fee: { enabled: next.enabled, original_price: Number(next.original_price) || 0, discount_type: next.discount_type, discount_value: Number(next.discount_value) || 0 } });
+      setF(next);
+      toast.success("Partner Registration Fee saved — live on partner side");
+    } catch (e) { toast.error(e?.response?.data?.detail || "Save failed"); }
+    finally { setBusy(false); }
+  };
+  return (
+    <>
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col" data-testid="intg-card-partner-reg-fee">
+        <div className="flex items-start justify-between">
+          <div className="h-10 w-10 rounded-xl bg-blue-50 grid place-items-center"><UserPlus className="h-5 w-5 text-blue-700" /></div>
+          <Switch data-testid="intg-toggle-partner-reg-fee" checked={f.enabled} onCheckedChange={(v) => save({ enabled: v })} />
+        </div>
+        <p className="font-heading font-bold text-slate-800 mt-3">Partner Registration Fee</p>
+        <p className="text-sm text-slate-500 flex-1">One-time processing fee shown before Final Submit</p>
+        <p className={`text-xs mt-2 flex items-center gap-1 ${f.enabled ? "text-emerald-600" : "text-slate-400"}`} data-testid="prf-card-status">
+          {f.enabled ? <><CheckCircle2 className="h-3.5 w-3.5" /> Active · ₹{finalAmount}{discount > 0 ? <span className="text-slate-400 line-through ml-1">₹{Math.round(orig)}</span> : null}</> : "Inactive"}
+        </p>
+        <Button variant="outline" size="sm" data-testid="intg-config-partner-reg-fee" className="mt-3" onClick={() => setOpen(true)}><Settings2 className="h-4 w-4 mr-1" /> Configure</Button>
+      </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent data-testid="partner-reg-fee-dialog">
+          <DialogHeader><DialogTitle>Partner Registration Fee</DialogTitle></DialogHeader>
+          <div className="space-y-4">
+            <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-3.5 py-3">
+              <span className="text-sm font-semibold text-slate-700">Registration Fee Active</span>
+              <Switch data-testid="prf-enabled" checked={f.enabled} onCheckedChange={(v) => setF({ ...f, enabled: v })} />
+            </label>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Original Price (₹)</label>
+              <Input type="number" data-testid="prf-original" value={f.original_price} onChange={(e) => setF({ ...f, original_price: e.target.value })} className="mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Discount Type</label>
+              <div className="flex gap-2 mt-1">
+                {[["percentage", "Percentage (%)"], ["fixed", "Fixed (₹)"]].map(([v, l]) => (
+                  <button key={v} type="button" data-testid={`prf-dtype-${v}`} onClick={() => setF({ ...f, discount_type: v })}
+                    className={`flex-1 h-9 rounded-lg border text-sm font-medium transition ${f.discount_type === v ? "border-primary-500 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>{l}</button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Discount Value {f.discount_type === "percentage" ? "(%)" : "(₹)"}</label>
+              <Input type="number" data-testid="prf-dvalue" value={f.discount_value} onChange={(e) => setF({ ...f, discount_value: e.target.value })} className="mt-1" />
+            </div>
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Final Payable Amount</p>
+                <p className="text-2xl font-heading font-extrabold text-primary-700" data-testid="prf-final">₹{finalAmount}</p>
+              </div>
+              {discount > 0 && <div className="text-right text-sm text-slate-400"><span className="line-through">₹{Math.round(orig)}</span><br /><span className="text-emerald-600 font-semibold">You save ₹{Math.round(discount)}</span></div>}
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" onClick={() => { setOpen(false); load(); }}>Cancel</Button>
+              <Button data-testid="prf-save" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700" onClick={async () => { await save({}); setOpen(false); }}>{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-1" /> Save</>}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
+
 function ActiveGatewayCard({ integ, options, onSaved }) {
   const [payin, setPayin] = useState(integ.active_payin_gateway || "razorpay");
   const [payout, setPayout] = useState(integ.active_payout_gateway || "razorpay");
@@ -800,6 +882,9 @@ export function IntegrationCenter({ onNavigate }) {
 
         {/* Referral Program card */}
         <ReferralCard onNavigate={onNavigate} />
+
+        {/* Partner Registration Fee card */}
+        <PartnerRegFeeCard />
 
         {/* Payouts & Rewards (moved from Finance) */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col" data-testid="intg-card-payouts">

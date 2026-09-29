@@ -2,7 +2,7 @@ import PremiumSelect from "@/components/ui/PremiumSelect";
 import { useEffect, useState, useCallback } from "react";
 import {
   ShieldCheck, Clock, XCircle, CheckCircle2, Eye, Plus, Trash2, Loader2,
-  MapPin, Phone, Mail, FileText, GraduationCap, Briefcase, X, Save,
+  MapPin, Phone, Mail, FileText, GraduationCap, Briefcase, X, Save, IndianRupee,
 } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -179,6 +179,29 @@ function KycDetail({ profileId, onClose, onChanged }) {
                 </div>
               )}
             </Section>
+
+            {(() => {
+              const pay = p.reg_fee_payment || {};
+              const st = pay.status || "unpaid";
+              const badge = st === "paid" ? "bg-emerald-100 text-emerald-700" : st === "not_required" ? "bg-slate-100 text-slate-500" : "bg-amber-100 text-amber-700";
+              const label = st === "paid" ? "Paid" : st === "not_required" ? "Not Required" : "Unpaid";
+              return (
+                <Section title="Registration Fee" icon={IndianRupee}>
+                  <div className="px-4 py-2.5 flex items-center justify-between text-sm">
+                    <span className="text-slate-400">Payment Status</span>
+                    <Badge className={`${badge} border-0`} data-testid="kyc-fee-status">{label}</Badge>
+                  </div>
+                  {st === "paid" && (<>
+                    <Row k="Amount Paid" v={`₹${Math.round(pay.amount || 0)}`} />
+                    <Row k="Paid On" v={pay.paid_at ? new Date(pay.paid_at).toLocaleString() : "—"} />
+                    <Row k="Transaction Ref" v={pay.payment_id || pay.order_id || "—"} />
+                    <Row k="Gateway" v={`${pay.gateway || "—"}${pay.mode ? " · " + pay.mode : ""}`} />
+                  </>)}
+                  {st === "not_required" && <div className="px-4 py-2.5 text-sm text-slate-500">Registration fee was inactive when this partner submitted.</div>}
+                  {st === "unpaid" && <div className="px-4 py-2.5 text-sm text-slate-500">No registration-fee payment on record.</div>}
+                </Section>
+              );
+            })()}
 
             {p.status === "rejected" && p.rejection_reason && (
               <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-600">

@@ -295,6 +295,107 @@ async def aadhaar_ocr(user, raw: bytes, ext: str, aadhaar_number: str) -> dict:
 
 
 # ---------------------------------------------------------------- submit
+# ---------------------------------------------------------------- registration fee
+def compute_reg_fee(cfg: dict) -> dict:
+    """Turn the admin fee config into the live payable breakdown."""
+    cfg = cfg or {}
+    enabled = bool(cfg.get("enabled"))
+    original = float(cfg.get("original_price") or 0)
+    dtype = cfg.get("discount_type") or "percentage"
+    dval = float(cfg.get("discount_value") or 0)
+    discount = (original * dval / 100.0) if dtype == "percentage" else dval
+    discount = max(0.0, min(discount, original))
+    final = round(max(0.0, original - discount), 2)
+    return {
+        "enabled": enabled,
+        "original_price": round(original, 2),
+        "discount_type": dtype,
+        "discount_value": round(dval, 2),
+        "discount_amount": round(discount, 2),
+        "final_amount": final,
+        "currency": "INR",
+    }
+
+
+async def reg_fee_config() -> dict:
+    from config.database import get_settings
+    s = await get_settings()
+    return compute_reg_fee(s.get("partner_reg_fee") or {})
+
+
+async def partner_fee_state(user) -> dict:
+    """Fee config + this partner's payment snapshot (reg flow & admin detail)."""
+    fee = await reg_fee_config()
+    p = await get_or_create_profile(user)
+    pay = p.get("reg_fee_payment") or {}
+    return {**fee, "already_paid": pay.get("status") == "paid", "payment": pay or None}
+
+
+async def create_fee_order(user) -> dict:
+    fee = await reg_fee_config()
+    if not fee["enabled"]:
+        raise HTTPException(400, "Registration fee is not active")
+    p = await get_or_create_profile(user)
+    if (p.get("reg_fee_payment") or {}).get("status") == "paid":
+        raise HTTPException(400, "Registration fee already paid")
+    amount = fee["final_amount"]
+    receipt = f"REGFEE-{user['id'][:8]}"
+    from services import payment_service
+    from services.payment_service import GatewayConfigError
+    order = None
+    try:
+        order = await payment_service.create_order(amount, receipt, customer={
+            "name": (p.get("basic") or {}).get("full_name") or user.get("name", ""),
+            "email": (p.get("basic") or {}).get("email") or user.get("email", ""),
+            "phone": p.get("phone") or user.get("phone", ""),
+        })
+    except GatewayConfigError:
+        order = None  # never block onboarding on a mis/unconfigured gateway → dev mock
+    if not order:
+        order = {"gateway": "mock", "mock": True, "order_id": f"REGFEE-{new_id()[:12]}",
+                 "amount": int(round(amount * 100)), "currency": "INR", "mode": "test"}
+    await db.partner_profiles.update_one(
+        {"user_id": user["id"]},
+        {"$set": {"reg_fee_pending_order": {
+            "order_id": order.get("order_id"), "gateway": order.get("gateway"),
+            "mode": order.get("mode"), "amount": amount, "created_at": now_iso()},
+            "updated_at": now_iso()}})
+    return {"amount": amount, "currency": "INR", "fee": fee, **order}
+
+
+async def confirm_fee_payment(user, body: dict) -> dict:
+    order_id = (body or {}).get("order_id")
+    if not order_id:
+        raise HTTPException(400, "Missing order id")
+    p = await get_or_create_profile(user)
+    if (p.get("reg_fee_payment") or {}).get("status") == "paid":
+        return {"ok": True, "payment": p["reg_fee_payment"]}
+    pending = p.get("reg_fee_pending_order") or {}
+    gateway = body.get("gateway") or pending.get("gateway") or "mock"
+    fee = await reg_fee_config()
+    if gateway == "mock" or str(order_id).startswith("REGFEE-"):
+        paid = True  # dev mock success (no live gateway configured)
+    else:
+        from services import payment_service
+        paid = await payment_service.check_order_paid(
+            order_id, gateway, pending.get("mode") or body.get("mode"))
+    if not paid:
+        raise HTTPException(400, "Payment not completed. Please try again.")
+    payment = {
+        "status": "paid", "amount": pending.get("amount", fee["final_amount"]),
+        "original_price": fee["original_price"], "discount_amount": fee["discount_amount"],
+        "currency": "INR", "gateway": gateway,
+        "mode": pending.get("mode") or body.get("mode") or "test",
+        "order_id": order_id, "payment_id": body.get("payment_id") or order_id,
+        "paid_at": now_iso(),
+    }
+    await db.partner_profiles.update_one(
+        {"user_id": user["id"]},
+        {"$set": {"reg_fee_payment": payment, "updated_at": now_iso()},
+         "$unset": {"reg_fee_pending_order": ""}})
+    return {"ok": True, "payment": payment}
+
+
 async def submit_profile(user) -> dict:
     p = await get_or_create_profile(user)
     if p["status"] == "approved":
@@ -326,12 +427,23 @@ async def submit_profile(user) -> dict:
         raise HTTPException(
             400, "Please enter a valid Aadhaar number or upload the correct ID.")
 
+    # Registration fee gate — must be paid when active; snapshot "Not required" when off.
+    fee = await reg_fee_config()
+    existing_pay = p.get("reg_fee_payment") or {}
+    fee_set = {}
+    if fee["enabled"]:
+        if existing_pay.get("status") != "paid":
+            raise HTTPException(
+                402, "Please complete the one-time registration fee to submit your application.")
+    elif existing_pay.get("status") != "paid":
+        fee_set = {"reg_fee_payment": {"status": "not_required", "amount": 0, "currency": "INR"}}
+
     version = p.get("version", 0) + 1
     await db.partner_profiles.update_one(
         {"user_id": user["id"]},
         {"$set": {"status": "under_review", "rejection_reason": "",
                   "submitted_at": now_iso(), "version": version,
-                  "completion_score": sc["score"], "updated_at": now_iso()}})
+                  "completion_score": sc["score"], "updated_at": now_iso(), **fee_set}})
     await db.users.update_one({"id": user["id"]}, {"$set": {"kyc_status": "under_review"}})
 
     full_name = p["basic"].get("full_name") or p.get("phone") or "Partner"

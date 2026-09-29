@@ -4,6 +4,7 @@ import {
   User, Briefcase, FileCheck2, MapPin, ClipboardCheck, Check, ChevronRight,
   ChevronLeft, Search, Upload, Loader2, ShieldCheck, Clock, AlertTriangle,
   CheckCircle2, Crosshair, X, LogOut, Camera, GraduationCap, Wallet, Zap, Star,
+  FileText, Bell, LayoutGrid, ListChecks, Info, Lock, ArrowRight, IndianRupee,
 } from "lucide-react";
 import api, { compactPlus } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -162,6 +163,11 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
   const [score, setScore] = useState({ score: 0, sections: {} });
   const [step, setStep] = useState(0);
   const [meta, setMeta] = useState({ educations: [], experiences: [], categories: [] });
+  // registration fee (one-time processing fee)
+  const [fee, setFee] = useState(null);
+  const [showPay, setShowPay] = useState(false);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
 
   // form state
   const [basic, setBasic] = useState({ full_name: "", dob: "", email: "", education_id: "", education_name: "", live_photo_url: "", state: "", district: "", city: "", village: "", pincode: "" });
@@ -207,6 +213,9 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
       setWork({ categories: pr.work.categories || [] });
       setDocs({ ...pr.documents, aadhaar_ocr: pr.documents.aadhaar_ocr || {} });
       setAddr({ ...pr.address });
+      if (!adminEdit) {
+        try { const { data: fd } = await api.get(`${RB}/fee`); setFee(fd); } catch { /* fee optional */ }
+      }
     } catch (e) { toast.error("Failed to load profile"); }
     setLoading(false);
   }, [RB]);
@@ -311,6 +320,27 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Submit failed");
     } finally { setSaving(false); }
+  };
+
+  // Fee-aware submit: when the fee is active & unpaid, show the payment page first.
+  const onSubmitClick = () => {
+    const err = validateStep();
+    if (err) return toast.error(err);
+    if (fee && fee.enabled && !fee.already_paid) { setPayError(""); setShowPay(true); return; }
+    submit();
+  };
+
+  const payAndContinue = async () => {
+    setPaying(true); setPayError("");
+    try {
+      const { data: order } = await api.post(`${RB}/pay/create-order`);
+      await api.post(`${RB}/pay/confirm`, { order_id: order.order_id, gateway: order.gateway, mode: order.mode, payment_id: order.payment_id });
+      try { const { data: fd } = await api.get(`${RB}/fee`); setFee(fd); } catch { /* ignore */ }
+      setShowPay(false);
+      await submit();
+    } catch (e) {
+      setPayError(e?.response?.data?.detail || "Payment could not be completed. Please try again.");
+    } finally { setPaying(false); }
   };
 
   /* ---------- category select (single) ---------- */
@@ -671,11 +701,97 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Save changes <Check className="h-4 w-4 ml-1" /></>}
           </Button>
         ) : (
-          <Button data-testid="reg-submit" onClick={submit} disabled={saving} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 min-w-[130px]">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Submit Application <Check className="h-4 w-4 ml-1" /></>}
+          <Button data-testid="reg-submit" onClick={onSubmitClick} disabled={saving} className="rounded-xl bg-emerald-600 hover:bg-emerald-700 min-w-[130px]">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{fee && fee.enabled && !fee.already_paid ? "Pay & Submit" : "Submit Application"} <Check className="h-4 w-4 ml-1" /></>}
           </Button>
         )}
       </div>
+
+      {/* ---------- FULL-SCREEN REGISTRATION FEE PAYMENT ---------- */}
+      {showPay && fee && (
+        <div className="fixed inset-0 z-[95] bg-white overflow-y-auto" data-testid="partner-fee-payment-page">
+          <div className="max-w-xl mx-auto px-5 pb-40 pt-5">
+            {/* header */}
+            <div className="flex items-center justify-between">
+              <button data-testid="fee-pay-back" onClick={() => { if (!paying) setShowPay(false); }} className="h-10 w-10 grid place-items-center rounded-xl hover:bg-slate-100 text-slate-700">
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <div className="text-center">
+                <p className="font-heading font-extrabold text-xl" style={{ color: "#0D47A1" }}>AzoApp</p>
+                <p className="text-[11px] text-slate-400 -mt-0.5">Service at Your Doorstep</p>
+              </div>
+              <div className="w-10" />
+            </div>
+
+            <h1 className="font-heading font-extrabold text-3xl sm:text-4xl leading-tight mt-6" style={{ color: "#0D1B2A" }}>Complete Your Registration</h1>
+            <p className="text-slate-500 mt-3 leading-relaxed">Pay the one-time processing fee to activate your provider account and start receiving service opportunities in your area.</p>
+
+            {/* fee card */}
+            <div className="mt-6 rounded-3xl p-5 sm:p-6 flex items-start gap-4" style={{ background: "#EAF1FB" }}>
+              <div className="h-14 w-14 rounded-2xl bg-white grid place-items-center shrink-0 shadow-sm">
+                <FileText className="h-7 w-7" style={{ color: "#0D47A1" }} />
+              </div>
+              <div className="min-w-0">
+                <p className="font-heading font-extrabold text-2xl" style={{ color: "#0D1B2A" }}>Registration Fee</p>
+                <p className="text-slate-500 text-sm">One-Time Processing Fee</p>
+                <p className="font-heading font-black text-5xl mt-1" style={{ color: "#0D47A1" }} data-testid="fee-amount">₹{Math.round(fee.final_amount)}</p>
+                {fee.discount_amount > 0 && (
+                  <p className="text-sm mt-1"><span className="line-through text-slate-400">₹{Math.round(fee.original_price)}</span> <span className="text-emerald-600 font-semibold">Save ₹{Math.round(fee.discount_amount)}</span></p>
+                )}
+                <div className="mt-3 inline-flex items-center gap-3 rounded-xl bg-white/70 px-3 py-1.5 text-sm font-semibold" style={{ color: "#0D47A1" }}>
+                  <span>One-time payment</span><span className="text-slate-300">|</span><span>No monthly charges</span>
+                </div>
+              </div>
+            </div>
+
+            {/* what's included */}
+            <h2 className="font-heading font-extrabold text-2xl mt-8" style={{ color: "#0D1B2A" }}>What&rsquo;s Included?</h2>
+            <div className="mt-4 space-y-4">
+              {[
+                [User, "Provider account activation", "Activate your provider account on AzoApp"],
+                [ShieldCheck, "Profile verification & onboarding", "Verify your details and complete onboarding"],
+                [ListChecks, "Service listing activation", "List your services and make them live"],
+                [Bell, "Start receiving work opportunities", "Get job notifications from customers in your area"],
+                [LayoutGrid, "Provider dashboard access", "Access your dashboard to manage bookings"],
+              ].map(([Icon, t, d]) => (
+                <div key={t} className="flex items-start gap-3.5">
+                  <div className="h-11 w-11 rounded-full grid place-items-center shrink-0" style={{ background: "#EAF1FB" }}>
+                    <Icon className="h-5 w-5" style={{ color: "#0D47A1" }} />
+                  </div>
+                  <div>
+                    <p className="font-bold" style={{ color: "#0D1B2A" }}>{t}</p>
+                    <p className="text-slate-500 text-sm leading-snug">{d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 rounded-2xl p-4 flex items-start gap-3" style={{ background: "#EAF1FB" }}>
+              <Info className="h-5 w-5 shrink-0 mt-0.5" style={{ color: "#0D47A1" }} />
+              <p className="text-sm" style={{ color: "#0D1B2A" }}><span className="font-bold">This is a one-time processing fee.</span> <span className="text-slate-500">There are no monthly registration charges or hidden fees.</span></p>
+            </div>
+
+            {payError && (
+              <div className="mt-5 rounded-xl bg-rose-50 border border-rose-200 px-4 py-3 text-sm text-rose-700 flex items-center gap-2" data-testid="fee-pay-error">
+                <AlertTriangle className="h-4 w-4 shrink-0" /> {payError}
+              </div>
+            )}
+          </div>
+
+          {/* sticky pay bar */}
+          <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-100 px-5 py-4">
+            <div className="max-w-xl mx-auto">
+              <Button data-testid="fee-pay-btn" onClick={payAndContinue} disabled={paying}
+                className="w-full h-14 rounded-2xl text-white text-lg font-bold hover:opacity-95" style={{ background: "#0D47A1" }}>
+                {paying ? <Loader2 className="h-5 w-5 animate-spin" /> : <>{payError ? "Retry Payment" : `Pay ₹${Math.round(fee.final_amount)} & Continue`} <ArrowRight className="h-5 w-5 ml-2" /></>}
+              </Button>
+              <p className="text-center text-xs text-slate-400 mt-3 flex items-center justify-center gap-1.5">
+                <Lock className="h-3.5 w-3.5" /> Secure Payment · 100% Safe &amp; Secure
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
   return embedded

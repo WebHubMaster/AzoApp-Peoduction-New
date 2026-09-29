@@ -62,6 +62,22 @@ async def submit(user=Depends(PARTNER)):
     return await prs.submit_profile(user)
 
 
+# ---------------- registration fee (one-time processing fee) ----------------
+@router.get("/fee")
+async def fee_state(user=Depends(PARTNER)):
+    return await prs.partner_fee_state(user)
+
+
+@router.post("/pay/create-order")
+async def fee_create_order(user=Depends(PARTNER)):
+    return await prs.create_fee_order(user)
+
+
+@router.post("/pay/confirm")
+async def fee_confirm(body: dict, user=Depends(PARTNER)):
+    return await prs.confirm_fee_payment(user, body)
+
+
 @router.post("/upload")
 async def upload_doc(request: Request,
                      file: UploadFile = File(...),
