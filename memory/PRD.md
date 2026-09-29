@@ -28,7 +28,18 @@ https://f0d86221-daec-4487-98fb-5b815df15e56.preview.emergentagent.com
 3. Partner Expo:  exp://op_vtw8-anonymous-3000.exp.direct
 
 ## Notes / Caveats
-- Expo tunnels run via nohup (NOT supervisor). exp:// hosts regenerate if the tunnel process restarts (pod resume/inactivity). Re-run the two `npx expo start --tunnel` commands to get fresh URLs.
+- Expo tunnels run via nohup (NOT supervisor). The .exp.direct host is stable per project (partner op_vtw8-anonymous-3000, customer lsu05vk-anonymous-3001) but the tunnel process may stop on pod resume/inactivity — re-run `CI=1 npx expo start --tunnel --port 3000` (partner, in /app/frontend) and `npx expo start --tunnel --port 3001` (customer, in /app/Customer).
+
+## Feature: Partner Registration Fee payment wizard (mobile) — 2026-09-29
+- Bug: Partner mobile app (frontend/) submitted the registration directly even when the admin's one-time Registration Fee was ACTIVE, so the payment wizard never showed (backend returned 402 "complete the registration fee").
+- Fix (mobile parity with web PartnerRegistration.jsx):
+  - New component src/components/reg/PartnerFeePayment.tsx — full-screen payment page matching the "Complete Your Registration / Pay ₹X & Continue" design.
+  - app/partner/register.tsx: loads GET /partner/registration/fee; Review submit button = "Pay & Submit" when fee.enabled && !already_paid, opens the payment screen; else "Submit Application" submits directly. After successful payment → auto-submits.
+  - Checkout: razorpay_sdk → Razorpay Standard Checkout in a WebView (bridge posts payment_id/signature → POST /pay/confirm); redirect/form_post → WebView + "I've completed the payment" verify (POST /pay/confirm order status). No dev-mock bypass.
+- Verified: admin PUT /admin/settings {partner_reg_fee:{enabled,original_price:999,discount_type:fixed,discount_value:500}} → partner GET /fee returns enabled=true final_amount=499; POST /pay/create-order returns a live Razorpay TEST order (gateway razorpay_sdk, rzp_test key). Mobile bundle compiles (HTTP 200).
+- Active gateway in this pod = Razorpay TEST mode (already configured in Integration Center). The final in-app Razorpay checkout + signature verify must be validated on a real device via Expo Go (cannot be driven headlessly here).
+
+## Notes / Caveats (setup)
 - supervisor `frontend` program is STOPPED (port 3000 is used by partner Expo tunnel instead).
 - Payments run in dev MOCK mode (no live gateway keys). Configure in Admin -> Integration Center for real payments.
 - Mongo is local (DB_NAME=azoapp); startup seed recreates all demo data.

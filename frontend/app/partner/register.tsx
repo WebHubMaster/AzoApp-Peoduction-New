@@ -15,6 +15,7 @@ import {
 } from "@/src/components/reg/Fields";
 import { WDatePicker } from "@/src/components/reg/DatePicker";
 import { LivePhotoCapture, Uploader } from "@/src/components/reg/Photo";
+import { PartnerFeePayment } from "@/src/components/reg/PartnerFeePayment";
 
 const RB = "/partner/registration";
 const STEPS: StepDef[] = [
@@ -53,6 +54,8 @@ export default function PartnerRegistration() {
   const [locBusy, setLocBusy] = useState(false);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [fee, setFee] = useState<any>(null);
+  const [showPay, setShowPay] = useState(false);
   const { checking: pinChecking, cov: pinCov } = useServiceability(basic.pincode, (u) => api.get(u));
 
   const loadProfile = useCallback(async () => {
@@ -72,6 +75,11 @@ export default function PartnerRegistration() {
     setLoading(false);
   }, []);
   useEffect(() => { loadProfile(); }, [loadProfile]);
+
+  const loadFee = useCallback(async () => {
+    try { setFee(await api.get<any>(`${RB}/fee`)); } catch { /* fee optional */ }
+  }, []);
+  useEffect(() => { loadFee(); }, [loadFee]);
 
   useEffect(() => { api.get<any[]>("/geo/states").then(setStates).catch(() => {}); }, []);
   useEffect(() => {
@@ -145,6 +153,19 @@ export default function PartnerRegistration() {
     finally { setSaving(false); }
   };
 
+  // Fee-aware submit: when the registration fee is ACTIVE & unpaid, show the
+  // payment screen first; otherwise submit directly.
+  const feeDue = !!(fee && fee.enabled && !fee.already_paid);
+  const onSubmitClick = () => {
+    if (feeDue) { setShowPay(true); return; }
+    submit();
+  };
+  const onFeePaid = async () => {
+    setShowPay(false);
+    await loadFee();
+    await submit();
+  };
+
   const refreshStatus = async () => {
     setRefreshing(true);
     const u = await refresh?.();
@@ -199,7 +220,7 @@ export default function PartnerRegistration() {
 
   return (
     <RegShell kind="partner" score={score?.score} scoreTitle="Complete your profile" onLogout={doLogout} testID="partner-registration"
-      nav={<RegNav step={step} total={5} onBack={() => setStep((s) => Math.max(0, s - 1))} saving={saving} onNext={next} nextDisabled={step === 0 && blocked} onSubmit={submit} />}>
+      nav={<RegNav step={step} total={5} onBack={() => setStep((s) => Math.max(0, s - 1))} saving={saving} onNext={next} nextDisabled={step === 0 && blocked} onSubmit={onSubmitClick} submitLabel={feeDue ? "Pay & Submit" : "Submit Application"} />}>
       {status === "rejected" ? <RejectedBanner reason={rejection} /> : null}
       <PartnerStepper steps={STEPS} step={step} onStep={setStep} />
       <StepTitle Icon={STEPS[step].icon} title={TITLES[step]} />
@@ -350,6 +371,9 @@ export default function PartnerRegistration() {
           <InfoBox text="After submission your profile & KYC will be sent to admin for review. You’ll get an update within 24–48 hours." />
         </View>
       ) : null}
+
+      <PartnerFeePayment fee={fee} visible={showPay} onClose={() => setShowPay(false)} onPaid={onFeePaid}
+        customer={{ name: basic.full_name || user?.name, email: basic.email || user?.email, phone: user?.phone }} />
     </RegShell>
   );
 }
