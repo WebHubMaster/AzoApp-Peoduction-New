@@ -91,3 +91,8 @@ Admin web (compiles): Person360 "Reset Device" button (partner only) + confirm m
   handles `booking_confirmed`; unified `src/components/customer/CustomerAlertOverlay.tsx`
   (replaces RescheduleAlertOverlay) renders BOTH the amber reschedule ring and a green
   "Booking confirmed" ring (Call / View booking). One-time (never re-rings; not polled).
+
+## Feature — Recurring Subscription (maid) + Custom Service in Customer app
+- Customer service detail (Customer/app/(site)/service/[id].tsx): when `svc.is_subscription`, now renders a "Choose your plan" panel (Daily/Weekly/Monthly from `/subscriptions/plans/{id}`) with start date/time + address, a single **"Book Now"** button (NO "pay upfront" wording, NO green attendance note), and hides the normal add-to-booking card + sticky bar. Book → create `/subscriptions` then pay/mock (fallback pay/order) → go to subscriptions.
+- Added a "Need a Custom Service?" entry on every service detail → `/(customer)/custom_jobs?new=1`, which now auto-opens the existing custom-job wizard.
+- Verified: tsc + eslint clean; backend `svc-maid-fulltime` returns is_subscription + 3 plans. Native UI to be confirmed on an EAS build.

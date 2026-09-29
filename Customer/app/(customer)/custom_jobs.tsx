@@ -2,7 +2,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { PlainList } from "../../src/components/customer/ux";
 import { View, Text, Pressable, TextInput, ScrollView, Modal, ActivityIndicator } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
@@ -30,6 +30,8 @@ export default function CustomJobsScreen() {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const { new: openNew } = useLocalSearchParams<{ new?: string }>();
+  useEffect(() => { if (openNew === "1") setWizardOpen(true); }, [openNew]);
   const load = useCallback(() => { setLoading(true); api.get<any[]>("/custom-jobs/mine").then((d) => setRows(d || [])).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => { load(); }, [load]);
 

@@ -1,19 +1,116 @@
 /** Service detail — port of web_panel/src/pages/customer/ServiceDetail.jsx (mobile view + sticky add bar). */
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable, ActivityIndicator, TextInput } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ArrowLeft, ShoppingBag, Star, Clock, Tag, CheckCircle2, Check, Minus, Plus, ShieldCheck, ChevronDown } from "lucide-react-native";
+import { ArrowLeft, ShoppingBag, Star, Clock, Tag, CheckCircle2, Check, Minus, Plus, ShieldCheck, ChevronDown, CalendarClock, MapPin, Sparkles, Wrench } from "lucide-react-native";
 import { api } from "../../../src/api/client";
 import { PRIMARY, SLATE, AMBER, EMERALD, TC, useTheme } from "../../../src/theme";
 import { fmt } from "../../../src/lib/format";
 import { useCart } from "../../../src/context/CartContext";
+import { useAuth } from "../../../src/context/AuthContext";
 import { RateCardBar } from "../../../src/components/site/RateCardBar";
 import { useToast } from "../../../src/components/Toast";
 import { stripHtml } from "../../../src/components/site/ui";
 
 const PRICE_LABEL: Record<string, string> = { per_hour: "/ hr", per_person: "/ person", per_sqft: "/ sq ft" };
+const todayPlus = (d: number) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
+
+/** Recurring-subscription (maid) plan picker — parity with the web ServiceDetail.
+ *  Button says "Book Now" (no "pay upfront") and there is NO green attendance note. */
+function SubscriptionPanel({ svc }: { svc: any }) {
+  const router = useRouter();
+  const toast = useToast();
+  const { user } = useAuth();
+  const [plans, setPlans] = useState<any[]>(svc.subscription_plans || []);
+  const [sel, setSel] = useState<string>((svc.subscription_plans || [])[0]?.plan_type || "");
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [addrId, setAddrId] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>(todayPlus(1));
+  const [time, setTime] = useState<string>("09:00");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    api.get<any>(`/subscriptions/plans/${svc.id}`).then((r) => {
+      const ps = r?.plans || [];
+      if (ps.length) { setPlans(ps); setSel((cur) => (ps.some((p: any) => p.plan_type === cur) ? cur : ps[0].plan_type)); }
+    }).catch(() => {});
+    if (user) api.get<any[]>("/auth/addresses").then((a) => { setAddresses(a || []); setAddrId((cur) => cur || (a || [])[0]?.id || ""); }).catch(() => {});
+  }, [svc.id, user]);
+
+  const plan = plans.find((p) => p.plan_type === sel);
+  const book = async () => {
+    if (!user) { toast.info("Please log in to book"); router.push("/login" as any); return; }
+    if (!plan) return toast.error("Please select a plan");
+    if (!addrId) return toast.error("Please add a service address first");
+    setBusy(true);
+    try {
+      const sub = await api.post<any>("/subscriptions", { service_id: svc.id, plan_type: sel, start_date: startDate, preferred_time: time, address_id: addrId });
+      try { await api.post(`/subscriptions/${sub.id}/pay/mock`); toast.success("Subscription booked & activated!"); }
+      catch { await api.post(`/subscriptions/${sub.id}/pay/order`); toast.info("Complete payment to activate your subscription."); }
+      router.push("/(customer)/subscriptions" as any);
+    } catch (e: any) { toast.error(e?.detail || "Booking failed, please try again"); } finally { setBusy(false); }
+  };
+
+  return (
+    <View testID="subscription-panel" style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 20, borderWidth: 1, borderColor: TC.border, padding: 20 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><CalendarClock size={20} color={PRIMARY[700]} /><Text style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>Choose your plan</Text></View>
+      <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>Recurring subscription — the maid visits every working day.</Text>
+
+      <View style={{ gap: 10, marginTop: 16 }}>
+        {plans.map((p) => {
+          const on = p.plan_type === sel;
+          return (
+            <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
+              style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 16, padding: 14, backgroundColor: on ? PRIMARY[50] : TC.surface }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text style={{ color: TC.text, fontWeight: "800", fontSize: 16 }}>{p.label}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                  <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 17 }}>{fmt(p.price)}</Text>
+                  {on ? <CheckCircle2 size={18} color={TC.primaryText} /> : null}
+                </View>
+              </View>
+              <Text style={{ color: TC.textMuted, fontSize: 12, marginTop: 4 }}>{p.duration_days}-day period{p.working_days ? ` · ${p.working_days} working days` : ""}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: TC.textMuted, fontSize: 11, marginBottom: 4 }}>Start date</Text>
+          <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={TC.textFaint} style={{ height: 44, borderWidth: 1, borderColor: TC.border, borderRadius: 12, paddingHorizontal: 12, color: TC.text }} />
+        </View>
+        <View style={{ width: 110 }}>
+          <Text style={{ color: TC.textMuted, fontSize: 11, marginBottom: 4 }}>Time</Text>
+          <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={TC.textFaint} style={{ height: 44, borderWidth: 1, borderColor: TC.border, borderRadius: 12, paddingHorizontal: 12, color: TC.text }} />
+        </View>
+      </View>
+
+      <Text style={{ color: TC.textMuted, fontSize: 11, marginTop: 16, marginBottom: 6 }}>Service address</Text>
+      {addresses.length === 0 ? (
+        <Text style={{ color: TC.textFaint, fontSize: 13 }}>No saved address — add one from My Addresses.</Text>
+      ) : (
+        <View style={{ gap: 8 }}>
+          {addresses.map((a) => {
+            const on = a.id === addrId;
+            return (
+              <Pressable key={a.id} testID={`sub-addr-${a.id}`} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, alignItems: "center", borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 12, padding: 10 }}>
+                <MapPin size={16} color={TC.primaryText} />
+                <Text style={{ color: TC.text, fontSize: 13, flex: 1 }} numberOfLines={1}>{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      <Pressable testID="sub-book-now" onPress={book} disabled={busy || !plan} style={{ marginTop: 18, height: 52, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: busy || !plan ? 0.6 : 1 }}>
+        <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>{busy ? "Processing…" : "Book Now"}</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function ServiceDetail() {
   useTheme();
@@ -88,6 +185,7 @@ export default function ServiceDetail() {
         <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 16, backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
         {gallery.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 12 }}>{gallery.map((im: string, i: number) => <Pressable key={i} testID={`gallery-thumb-${i}`} onPress={() => setGalleryIdx(i)} style={{ height: 64, width: 96, borderRadius: 8, overflow: "hidden", borderWidth: 2, borderColor: i === galleryIdx ? PRIMARY[700] : "transparent" }}><Image source={{ uri: im }} style={{ width: "100%", height: "100%" }} contentFit="cover" /></Pressable>)}</ScrollView> : null}
         <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: "700", color: TC.primaryText, marginTop: 20 }}>{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</Text>
+        {svc.is_subscription ? <View testID="subscription-badge" style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><CalendarClock size={12} color={EMERALD[700]} /><Text style={{ fontSize: 11, fontWeight: "700", color: EMERALD[700] }}>Recurring Subscription</Text></View> : null}
         <Text testID="service-name" style={{ fontSize: 26, fontWeight: "800", color: TC.text, marginTop: 4, letterSpacing: -0.4 }}>{svc.name}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginTop: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Star size={16} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 14, color: TC.textMuted }}>{svc.rating}</Text></View>
@@ -102,6 +200,8 @@ export default function ServiceDetail() {
         </View>
         {(svc.tags || []).length ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>{svc.tags.map((t: string) => <View key={t} style={{ backgroundColor: TC.surfaceAlt, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><Text style={{ fontSize: 12, color: TC.textMuted }}>{t}</Text></View>)}</View> : null}
         <View style={{ marginTop: 16 }}><RateCardBar serviceId={svc.id} categoryId={svc.category_id} addable /></View>
+
+        {svc.is_subscription ? <SubscriptionPanel svc={svc} /> : null}
 
         {(svc.tiers || []).length ? (
           <View style={{ marginTop: 24 }}>
@@ -168,7 +268,7 @@ export default function ServiceDetail() {
           </View>
         ) : null}
 
-        <View style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 20, borderWidth: 1, borderColor: TC.border, padding: 20 }}>
+        <View style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 20, borderWidth: 1, borderColor: TC.border, padding: 20, display: svc.is_subscription ? "none" : "flex" }}>
           <Text style={{ fontSize: 20, fontWeight: "700", color: TC.text }}>Add to your booking</Text>
           <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>Select options, then add this service. You can add more services before checkout.</Text>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20 }}>
@@ -190,8 +290,16 @@ export default function ServiceDetail() {
             <View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely at checkout · easy cancellations</Text></View>
           </View>
         </View>
+        <Pressable testID="need-custom-service" onPress={() => router.push("/(customer)/custom_jobs?new=1" as any)} style={{ marginTop: 20, borderRadius: 16, borderWidth: 1, borderColor: PRIMARY[200], backgroundColor: PRIMARY[50], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Sparkles size={20} color="#fff" /></View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: "800", color: TC.text }}>Need a Custom Service?</Text>
+            <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 1 }}>Can’t find it? Tell us and we’ll arrange it for you.</Text>
+          </View>
+          <Wrench size={18} color={PRIMARY[700]} />
+        </Pressable>
       </ScrollView>
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12, display: svc.is_subscription ? "none" : "flex" }}>
         <View><Text style={{ fontSize: 11, color: TC.textFaint }}>Item total</Text><Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>{fmt(unitPrice * qty)}</Text></View>
         {count > 0 ? <Pressable testID="go-checkout-mobile" onPress={() => router.push("/(site)/book" as any)} style={{ marginLeft: "auto", height: 44, paddingHorizontal: 24, borderRadius: 12, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>Checkout ({count})</Text></Pressable> : null}
       </View>
