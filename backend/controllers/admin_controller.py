@@ -2688,7 +2688,7 @@ async def dispatch_attention():
         svc = svc_map.get(b.get("service_id")) or {}
         skill = (svc.get("required_skill") or "").lower()
         elig = b.get("eligible_partner_ids", []) or []
-        live = await MatchingEngine.available_targets(elig)
+        live = await MatchingEngine.available_targets(elig, b)
         if live:
             continue  # someone can still be alerted — not stuck
         # Build an assignable partner list: same category + same area (incl. offline, so the

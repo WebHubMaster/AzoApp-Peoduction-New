@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://homepage-builder-119.preview.emergentagent.com/api"
+BASE_URL = "https://smart-slot-matcher.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

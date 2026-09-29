@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://homepage-builder-119.preview.emergentagent.com/api"
+BASE_URL = "https://smart-slot-matcher.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo credentials

@@ -772,13 +772,53 @@ class MatchingEngine:
             -x["score"]))
         return matched
 
+    # Statuses that mean a partner has ACCEPTED a booking and is committed to its
+    # time slot (an in-progress or upcoming job they must show up for).
+    ACCEPTED_STATUSES = ("assigned", "arrived_shop", "arrived_customer", "started")
+
     @staticmethod
-    async def available_targets(partner_ids: list) -> list:
+    def slot_window(booking: dict, now=None, step_min: int = 30):
+        """Return the (start_utc, end_utc) time window a booking occupies.
+
+        Scheduled bookings occupy [scheduled_at, scheduled_at + slot). Instant /
+        emergency ("now") bookings occupy the current slot [now, now + slot) —
+        they are worked immediately, so they only ever conflict with other
+        right-now jobs, NEVER with a future-dated scheduled booking. This is the
+        heart of the slot-based availability rule: accepting a booking blocks ONLY
+        that booking's date+time slot, not the partner's whole day."""
+        from services.schedule_service import parse_scheduled
+        now = now or datetime.now(timezone.utc)
+        try:
+            dur = timedelta(minutes=int(step_min or 30))
+        except (TypeError, ValueError):
+            dur = timedelta(minutes=30)
+        if (booking.get("schedule_type") or "").lower() == "schedule":
+            start = parse_scheduled(booking.get("scheduled_at"))
+            if start is not None:
+                return start, start + dur
+        # instant / emergency / unparseable → the job happens now
+        return now, now + dur
+
+    @staticmethod
+    def _slot_step(settings) -> int:
+        from services.schedule_service import _slot_cfg
+        try:
+            return int(_slot_cfg(settings)[2] or 30)
+        except Exception:  # noqa: BLE001
+            return 30
+
+    @staticmethod
+    async def available_targets(partner_ids: list, booking: dict = None,
+                                settings: dict = None) -> list:
         """From a capability+area eligible pool, return ONLY the partners we may
         push a job alert to RIGHT NOW: currently ONLINE, ACTIVE, approved, not
-        suspended, and NOT BUSY on another in-progress job. (spec 3, 11, 16)
-        Re-checked at every dispatch so status changes / race conditions are
-        respected — an offline or busy partner never gets a notification."""
+        suspended, and FREE for the given booking's DATE + TIME SLOT. (spec 3,11,16)
+
+        A partner is FREE for a booking when they have NO accepted booking whose
+        time slot OVERLAPS this booking's slot. A partner who accepted a job for a
+        different date/time (e.g. 2 days from now) stays free for every other slot
+        and MUST still be alerted for it. Re-checked at every dispatch so status
+        changes / race conditions are respected."""
         ids = [pid for pid in (partner_ids or []) if pid]
         if not ids:
             return []
@@ -789,13 +829,48 @@ class MatchingEngine:
         online_ids = [u["id"] for u in online]
         if not online_ids:
             return []
-        busy = await db.bookings.find(
+        accepted = await db.bookings.find(
             {"partner_id": {"$in": online_ids},
-             "status": {"$in": ["assigned", "arrived_shop", "arrived_customer", "started"]}},
-            {"_id": 0, "partner_id": 1}).to_list(2000)
-        busy_ids = {b["partner_id"] for b in busy}
+             "status": {"$in": list(MatchingEngine.ACCEPTED_STATUSES)}},
+            {"_id": 0, "partner_id": 1, "schedule_type": 1, "scheduled_at": 1}).to_list(4000)
+        if booking is None:
+            # No booking context → conservative legacy behaviour: any accepted job = busy.
+            busy_ids = {b["partner_id"] for b in accepted}
+        else:
+            if settings is None:
+                settings = await get_settings()
+            step = MatchingEngine._slot_step(settings)
+            now = datetime.now(timezone.utc)
+            ns, ne = MatchingEngine.slot_window(booking, now, step)
+            busy_ids = set()
+            for b in accepted:
+                es, ee = MatchingEngine.slot_window(b, now, step)
+                # half-open interval overlap: [ns,ne) intersects [es,ee)
+                if ns < ee and es < ne:
+                    busy_ids.add(b["partner_id"])
         # preserve the incoming (score-sorted) order
         return [pid for pid in ids if pid in set(online_ids) and pid not in busy_ids]
+
+    @staticmethod
+    async def partner_free_for(partner_id: str, booking: dict, settings: dict = None) -> bool:
+        """True when this partner has no accepted booking overlapping `booking`'s
+        date+time slot. Used to filter a single partner's job feed / ring list."""
+        if not partner_id or booking is None:
+            return True
+        if settings is None:
+            settings = await get_settings()
+        step = MatchingEngine._slot_step(settings)
+        now = datetime.now(timezone.utc)
+        ns, ne = MatchingEngine.slot_window(booking, now, step)
+        accepted = await db.bookings.find(
+            {"partner_id": partner_id,
+             "status": {"$in": list(MatchingEngine.ACCEPTED_STATUSES)}},
+            {"_id": 0, "schedule_type": 1, "scheduled_at": 1}).to_list(500)
+        for b in accepted:
+            es, ee = MatchingEngine.slot_window(b, now, step)
+            if ns < ee and es < ne:
+                return False
+        return True
 
 
 

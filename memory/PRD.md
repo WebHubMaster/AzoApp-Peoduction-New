@@ -5,7 +5,7 @@ Bring migrated AzoApp (home services platform) up on a new account and deliver 3
 Admin panel, Customer Expo app, Partner Expo app. No new features — run existing code only.
 
 ## BASE_URL
-https://homepage-builder-119.preview.emergentagent.com
+https://smart-slot-matcher.preview.emergentagent.com
 
 ## Architecture
 - backend/  -> FastAPI, port 8001 (supervisor), auto-seeds demo data on startup. Serves web_panel at /api/panel and Customer web export at /api/customer.
@@ -109,3 +109,18 @@ Built on the existing recurring-subscription engine.
 Files: backend models/subscription.py, services/subscription_service.py, controllers/subscription_controller.py, routes/subscription_routes.py, seed_maid_subscription.py, server.py; web_panel/src/components/customer/Subscriptions.jsx; frontend (Partner app) app/(partner)/partner/subscriptions.tsx + src/components/partner/home/MaidTasksCard.tsx; Customer/app/(customer)/subscriptions.tsx.
 
 Verification: backend fully curl/script-verified (arrival 200m pass/fail, no-GPS block, instant wallet credit, daily leaderboard, no double-pay, busy-slot filter, customer_view no earning leaks, plans per selected days). web_panel compiles + plan picker screenshot verified. Mobile app edits are code-complete but NOT runtime-verified (preview currently serves web_panel, not the Expo apps).
+
+---
+## 2026-06 — Job-ring slot fix + Responsive audit (E1 session)
+### Job ring / partner availability (backend) — DONE & VERIFIED
+- Fixed slot-based availability in services/engines.py: `available_targets(partner_ids, booking, settings)` now excludes a partner ONLY if they have an accepted booking (assigned/arrived_shop/arrived_customer/started) whose time slot OVERLAPS the new booking's date+time slot. Added `slot_window()`, `ACCEPTED_STATUSES`, `partner_free_for()`.
+- Accepting a future booking no longer blocks the partner for other slots (root bug fixed). Instant/emergency jobs occupy "now"; scheduled jobs occupy their scheduled slot only.
+- Call sites updated to pass booking context: booking_controller `_next_wave_targets`, `_nearby_candidates`, `dispatch_pending_to_partner`, `partner_ring_pending`, `partner_jobs` (per-job slot filter), `accept_job` (slot-conflict guard, 409), admin_controller `dispatch_attention`. Applies to Partner mobile app + web panel (same backend endpoints).
+- Verified with synthetic partner: free for today + other future slots, busy only for the exact overlapping slot.
+
+### Responsiveness (web_panel + Expo audit)
+- App is already mobile-first/responsive. Verified clean at 390px: Customer/Partner/Merchant home dashboards, customer Wallet/Invoices, public Landing/Services. Data-dense partner/merchant modules use `hidden md:block overflow-x-auto` tables + mobile card fallbacks.
+- FIXED: web_panel/src/pages/merchant/MerchantPanels.jsx — 3 tables (Recent Activity, My Customers, Payout History) were in `overflow-hidden` (clipped on mobile) → now `overflow-x-auto` + `min-w`.
+- FIXED (app-wide): web_panel/src/components/ui/dialog.jsx — DialogContent now has mobile side gutter + `max-h-[90dvh] overflow-y-auto` so tall dialogs scroll on small screens (dropdowns portal to body, unaffected).
+- Env note: container restore lost .env files; recreated backend/.env (MONGO_URL, DB_NAME=azoapp_database, JWT_SECRET, CORS, Fernet keys, APP_URL/REACT_APP_BACKEND_URL=smart-slot-matcher preview) + frontend/.env + web_panel/.env. Web_panel node_modules reinstalled (yarn).
+- Tooling limit: screenshot harness only renders 390 (mobile) & 1920 (desktop); 320/768/1440 not visually captured.

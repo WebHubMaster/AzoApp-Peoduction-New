@@ -117,8 +117,8 @@ export function OverviewKPIs({ ov }) {
       </div>
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Recent Activity</p>
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
             <thead className="bg-slate-50 text-slate-500 text-left"><tr>
               <th className="px-4 py-2.5 font-semibold">Booking</th><th className="px-4 py-2.5 font-semibold">Customer</th>
               <th className="px-4 py-2.5 font-semibold">Service</th><th className="px-4 py-2.5 font-semibold">Status</th>
@@ -276,8 +276,8 @@ export function MyCustomers({ shopName = "My Shop", logoUrl = "" }) {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+        <table className="w-full min-w-[760px] text-sm">
           <thead className="bg-slate-50 text-slate-500 text-left"><tr>
             <th className="px-4 py-3 w-10"><input type="checkbox" data-testid="cust-select-all" checked={allSelected} onChange={toggleAll} /></th>
             <th className="px-4 py-3 font-semibold">Customer</th><th className="px-4 py-3 font-semibold">Tags</th><th className="px-4 py-3 font-semibold">Bookings</th>
@@ -471,8 +471,8 @@ export function WalletWithdraw({ kycApproved, shopName = "My Shop", logoUrl = ""
 
         <div>
           <h3 className="font-heading font-bold text-lg mb-3">Payout History</h3>
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden" data-testid="payout-history">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto" data-testid="payout-history">
+            <table className="w-full min-w-[520px] text-sm">
               <thead className="bg-slate-50 text-slate-500 text-left"><tr>
                 <th className="px-4 py-2.5 font-semibold">Amount</th><th className="px-4 py-2.5 font-semibold">Method</th>
                 <th className="px-4 py-2.5 font-semibold">Status</th><th className="px-4 py-2.5 font-semibold">Date</th><th className="px-4 py-2.5"></th>

@@ -1289,7 +1289,7 @@ async def _nearby_candidates(booking, radius_km):
                     "distance_km": round(dist, 1) if dist is not None else None,
                     "eta_min": max(3, round((dist / 25.0) * 60)) if dist is not None else None})
     out.sort(key=lambda x: x["distance_km"] if x["distance_km"] is not None else 1e9)
-    live = await MatchingEngine.available_targets([x["id"] for x in out])
+    live = await MatchingEngine.available_targets([x["id"] for x in out], booking)
     keep = set(live)
     return [x for x in out if x["id"] in keep]
 
@@ -1327,8 +1327,8 @@ async def _next_wave_targets(booking, wave_size):
     pool = [pid for pid in ordered if pid not in offered and pid not in rejected]
     if not pool:
         return []
-    # available_targets re-checks online + not-busy live and preserves order
-    live = await MatchingEngine.available_targets(pool)
+    # available_targets re-checks online + FREE FOR THIS BOOKING'S SLOT and preserves order
+    live = await MatchingEngine.available_targets(pool, booking)
     return live[:max(1, int(wave_size))]
 
 
@@ -1756,9 +1756,9 @@ async def dispatch_pending_to_partner(partner):
          "offered_partner_ids": {"$ne": pid}},
         {"_id": 0}).to_list(50)
     for b in rows:
-        # re-verify this partner is a valid live target (online + not busy)
+        # re-verify this partner is a valid live target (online + free for THIS slot)
         from services.engines import MatchingEngine
-        if pid not in await MatchingEngine.available_targets([pid]):
+        if pid not in await MatchingEngine.available_targets([pid], b):
             continue
         _area = (b.get("address") or {}).get("city") or (b.get("address") or {}).get("pincode") or "your area"
         brief = _job_brief(b)
@@ -2192,13 +2192,20 @@ async def partner_jobs(partner):
     rows = await db.bookings.find(
         q, {"_id": 0, "otps": 0}).sort("created_at", -1).to_list(100)
     settings = await get_settings()
+    from services.engines import MatchingEngine
+    out = []
     for b in rows:
+        # Hide jobs whose date+time slot clashes with a booking this partner has
+        # already accepted — every other slot they are free for stays visible.
+        if not await MatchingEngine.partner_free_for(partner["id"], b, settings):
+            continue
         st = schedule_state(b)
         b["schedule"] = st
         if st.get("comm_locked"):
             b["customer_phone"] = None
         _partner_view(b, settings)
-    return rows
+        out.append(b)
+    return out
 
 
 async def partner_ring_pending(partner):
@@ -2211,15 +2218,20 @@ async def partner_ring_pending(partner):
     if partner.get("partner_status") != "online":
         return []
     from services.engines import MatchingEngine
-    if pid not in await MatchingEngine.available_targets([pid]):
-        return []
     from datetime import datetime, timezone, timedelta
     since = (datetime.now(timezone.utc) - timedelta(hours=6)).isoformat()
     rows = await db.bookings.find(
         {"status": "searching", "offered_partner_ids": pid,
          "rejected_partner_ids": {"$ne": pid}, "created_at": {"$gte": since}},
         {"_id": 0, "otps": 0}).sort("created_at", -1).to_list(20)
-    return [_job_brief(b) for b in rows]
+    settings = await get_settings()
+    # Only ring for jobs whose DATE + TIME SLOT the partner is free for. An accepted
+    # booking blocks only its own slot, so other-slot jobs must still ring.
+    out = []
+    for b in rows:
+        if await MatchingEngine.partner_free_for(pid, b, settings):
+            out.append(_job_brief(b))
+    return out
 
 
 async def partner_reschedule_pending(partner):
@@ -2602,6 +2614,12 @@ async def accept_job(partner, booking_id):
     b = await _get_booking(booking_id)
     if partner["id"] not in b.get("eligible_partner_ids", []):
         raise HTTPException(status_code=403, detail="You are not eligible for this job")
+    # Slot guard: a partner may hold many bookings, but never two whose date+time
+    # slots overlap. Accepting is allowed for any slot they are still free for.
+    from services.engines import MatchingEngine
+    if not await MatchingEngine.partner_free_for(partner["id"], b):
+        raise HTTPException(status_code=409,
+                            detail="You already have a job in this time slot")
     # atomic claim: only one partner can move it out of 'searching'
     res = await db.bookings.update_one(
         {"id": booking_id, "status": "searching"},

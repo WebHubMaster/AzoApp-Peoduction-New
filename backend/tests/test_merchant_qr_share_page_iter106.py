@@ -17,7 +17,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://homepage-builder-119.preview.emergentagent.com",
+    "https://smart-slot-matcher.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -27,7 +27,7 @@ CAPTION = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link:\n"
-    f"https://homepage-builder-119.preview.emergentagent.com/?ref={VALID_CODE}"
+    f"https://smart-slot-matcher.preview.emergentagent.com/?ref={VALID_CODE}"
 )
 
 
