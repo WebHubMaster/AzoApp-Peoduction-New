@@ -5,6 +5,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import * as Location from "expo-location";
 import { useTheme } from "@/src/theme";
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
@@ -33,11 +34,29 @@ export function MaidTasksCard() {
   const isMaid = (user?.skills || []).includes("maid");
 
   const q = useQuery({ queryKey: ["maid-subs"], queryFn: () => api.get<any[]>("/subscriptions/partner/mine"), enabled: isMaid });
+  const [arriving, setArriving] = React.useState<string | null>(null);
   const complete = useMutation({
     mutationFn: (t: Task) => api.post(`/subscriptions/${t.subId}/days/${t.date}/complete`),
     onSuccess: () => { toast.success("Marked completed"); qc.invalidateQueries({ queryKey: ["maid-subs"] }); },
     onError: (e: any) => toast.error(e?.detail || "Could not mark completed"),
   });
+  const arrive = useMutation({
+    mutationFn: ({ t, lat, lng }: { t: Task; lat: number; lng: number }) =>
+      api.post(`/subscriptions/${t.subId}/days/${t.date}/arrive`, { lat, lng }),
+    onSuccess: () => { toast.success("Attendance marked — you've arrived"); qc.invalidateQueries({ queryKey: ["maid-subs"] }); },
+    onError: (e: any) => toast.error(e?.detail || "Could not mark arrival"),
+    onSettled: () => setArriving(null),
+  });
+  const onArrive = async (t: Task) => {
+    setArriving(`${t.subId}-${t.date}`);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== "granted") { toast.error("Please allow location access to mark your arrival"); setArriving(null); return; }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }).catch(() => null);
+      if (!pos) { toast.error("Couldn't get your location. Please try again."); setArriving(null); return; }
+      arrive.mutate({ t, lat: pos.coords.latitude, lng: pos.coords.longitude });
+    } catch { toast.error("Couldn't get your location. Please try again."); setArriving(null); }
+  };
   if (!isMaid || !(q.data || []).length) return null;
 
   const tasks: Task[] = [];
@@ -76,8 +95,9 @@ export function MaidTasksCard() {
               <Text style={{ color: "#94A3B8", fontSize: 11 }}>{t.code}{t.time ? ` · ${t.time}` : ""} · {money(t.earning)}/day</Text>
             </View>
             {t.date === todayIso() ? (
-              <Pressable testID={`maid-task-start-${t.subId}-${t.date}`} onPress={() => router.push("/partner/subscriptions" as any)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Start service</Text>
+              <Pressable testID={`maid-task-arrive-${t.subId}-${t.date}`} disabled={arriving === `${t.subId}-${t.date}` || arrive.isPending} onPress={() => onArrive(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, opacity: arriving === `${t.subId}-${t.date}` ? 0.6 : 1 }}>
+                <Icon name="map-pin" size={12} color="#fff" />
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{arriving === `${t.subId}-${t.date}` ? "Locating…" : "I Have Arrived"}</Text>
               </Pressable>
             ) : markable ? (
               <Pressable testID={`maid-task-done-${t.subId}-${t.date}`} disabled={complete.isPending} onPress={() => complete.mutate(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>

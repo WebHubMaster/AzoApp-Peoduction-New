@@ -248,11 +248,6 @@ function SubCard({ s }) {
             <UserIcon className="h-3.5 w-3.5 text-slate-400" /> Maid: <span className="font-bold text-slate-800">{s.partner_name || "Assigning soon"}</span>
             {s.preferred_time ? <span className="text-slate-400">· Service time {s.preferred_time}</span> : null}
           </p>
-          {status === "active" && todayDay?.otp ? (
-            <p className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1 text-xs font-semibold text-amber-700" data-testid={`my-sub-otp-${s.id}`}>
-              <ShieldCheck className="h-3.5 w-3.5" /> Today's service OTP: <span className="tracking-[0.2em] font-extrabold">{todayDay.otp}</span> — share with your maid to start the service
-            </p>
-          ) : null}
         </div>
         <div className="text-right shrink-0">
           <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Paid upfront</p>
@@ -309,7 +304,9 @@ function SubCard({ s }) {
                       <p className="text-xs font-bold">{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} · {WD_SHORT[dt.getDay()]}</p>
                       <p className="text-[11px] opacity-80">{m.label}</p>
                     </div>
-                    {d.status !== "weekly_off" && <span className="text-xs font-bold">{d.earning > 0 ? "+" + fmt(d.earning) : "—"}</span>}
+                    {d.arrival_at
+                      ? <span className="text-[11px] font-bold text-emerald-700">{new Date(d.arrival_at).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</span>
+                      : null}
                   </div>
                 );
               })}
@@ -321,16 +318,32 @@ function SubCard({ s }) {
             </div>
           </div>
 
-          {/* payment & subscription details */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5" data-testid={`my-sub-payment-${s.id}`}>
-            <p className="font-bold text-slate-900 mb-2 flex items-center gap-2"><Receipt className="h-4 w-4 text-primary-700" /> Payment & subscription details</p>
-            <DetailRow k="Paid upfront" v={fmt(s.price)} strong />
-            <DetailRow k="Commission snapshot" v={`${s.commission_pct}% (${fmt(s.commission_amount)})`} />
-            <DetailRow k="Tax snapshot" v={`${s.tax_pct}% (${fmt(s.tax_amount)})`} />
-            <DetailRow k="Partner maximum allocation" v={fmt(s.partner_allocation)} />
-            <DetailRow k="Per-day earning" v={fmt(s.per_day_earning)} />
-            <DetailRow k="Weekly off" v={(s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD[d]).join(", ") : "None"} />
-            <DetailRow k="Subscription status" v={<StatusChip label={status.replace(/_/g, " ")} tone={tone} />} />
+          {/* attendance — maid name · date · arrival time only (no rate/earnings) */}
+          <div className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5" data-testid={`my-sub-attendance-${s.id}`}>
+            <p className="font-bold text-slate-900 mb-2 flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-primary-700" /> Attendance</p>
+            {(s.attendance || []).length ? (
+              <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                {(s.attendance || []).slice().reverse().map((a) => {
+                  const dt = new Date(a.date + "T00:00:00");
+                  return (
+                    <div key={a.date} data-testid={`my-sub-attend-${s.id}-${a.date}`} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-emerald-50/60 px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-800 truncate">{a.maid_name || s.partner_name || "Maid"}</p>
+                        <p className="text-[11px] text-slate-500">{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} {dt.getFullYear()}</p>
+                      </div>
+                      <span className="text-xs font-bold text-emerald-700 shrink-0">Arrived {new Date(a.arrival_time).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">No arrivals recorded yet. Your maid's arrival time will show here each day.</p>
+            )}
+            <div className="mt-3 pt-3 border-t border-slate-50 space-y-0">
+              <DetailRow k="Paid upfront" v={fmt(s.price)} strong />
+              <DetailRow k="Weekly off" v={(s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD[d]).join(", ") : "None"} />
+              <DetailRow k="Subscription status" v={<StatusChip label={status.replace(/_/g, " ")} tone={tone} />} />
+            </div>
           </div>
 
           {/* maid details */}

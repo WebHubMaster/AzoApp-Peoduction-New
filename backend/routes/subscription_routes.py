@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from controllers import subscription_controller as c
 from models.subscription import (SubscriptionCreate, SubscriptionPayVerify,
                                   AssignPartnerRequest, DayMarkRequest,
-                                  SettlementActionRequest, StartDayRequest, CompleteDayRequest)
+                                  SettlementActionRequest, StartDayRequest, CompleteDayRequest,
+                                  ArriveRequest)
 from middleware.auth import require_role
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
@@ -53,6 +54,17 @@ async def get_invoice(subscription_id: str, user=Depends(ANY)):
 @router.get("/partner/mine")
 async def partner_list(user=Depends(PARTNER)):
     return await c.partner_list(user)
+
+
+@router.get("/partner/daily-leaderboard")
+async def partner_daily_leaderboard(day: str = "", user=Depends(PARTNER)):
+    from services import subscription_service as svc
+    return await svc.daily_earnings_leaderboard(user, day=day)
+
+
+@router.post("/{subscription_id}/days/{day_date}/arrive")
+async def partner_arrive(subscription_id: str, day_date: str, req: ArriveRequest, user=Depends(PARTNER)):
+    return await c.partner_mark_arrival(user, subscription_id, day_date, req.lat, req.lng)
 
 
 @router.post("/{subscription_id}/days/{day_date}/start")

@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import * as Location from "expo-location";
 import { useTheme, spacing } from "@/src/theme";
 import { api } from "@/src/api/client";
 import { AppShellHeader, Surface, KitEmpty, KV, StatusBadge, money, shortDate } from "@/src/components/AppShell";
@@ -50,18 +51,35 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
   const qc = useQueryClient();
   const s = sub;
 
-  const [otpFor, setOtpFor] = useState<string | null>(null);
-  const [otp, setOtp] = useState("");
   const [completeFor, setCompleteFor] = useState<string | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [arriving, setArriving] = useState<string | null>(null);
 
   const done = (msg: string) => { toast.success(msg); qc.invalidateQueries({ queryKey: ["maid-subs"] }); reload(); };
-  const start = useMutation({
-    mutationFn: ({ date, code }: { date: string; code: string }) => api.post(`/subscriptions/${s.id}/days/${date}/start`, { otp: code }),
-    onSuccess: () => { setOtpFor(null); setOtp(""); done("Service started"); },
-    onError: (e: any) => toast.error(e?.detail || "Could not start service"),
+  const arrive = useMutation({
+    mutationFn: ({ date, lat, lng }: { date: string; lat: number; lng: number }) =>
+      api.post(`/subscriptions/${s.id}/days/${date}/arrive`, { lat, lng }),
+    onSuccess: () => { done("Attendance marked — you've arrived"); },
+    onError: (e: any) => toast.error(e?.detail || "Could not mark arrival"),
+    onSettled: () => setArriving(null),
   });
+  // "I Have Arrived" — capture current GPS (no OTP) and mark attendance if within 200m.
+  const onArrive = async (date: string) => {
+    setArriving(date);
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== "granted") {
+        toast.error("Please allow location access to mark your arrival");
+        setArriving(null); return;
+      }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High }).catch(() => null);
+      if (!pos) { toast.error("Couldn't get your location. Please try again."); setArriving(null); return; }
+      arrive.mutate({ date, lat: pos.coords.latitude, lng: pos.coords.longitude });
+    } catch {
+      toast.error("Couldn't get your location. Please try again."); setArriving(null);
+    }
+  };
   const complete = useMutation({
     mutationFn: ({ date, note: n, photo: p }: { date: string; note: string; photo: string | null }) =>
       api.post(`/subscriptions/${s.id}/days/${date}/complete`, { note: n, photo: p }),
@@ -163,9 +181,10 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Complete</Text>
                   </Pressable>
                 ) : canStart(d) ? (
-                  <Pressable testID={`sub-start-${d.date}`} disabled={start.isPending} onPress={() => { setOtpFor(d.date); setOtp(""); }}
-                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Start</Text>
+                  <Pressable testID={`sub-arrive-${d.date}`} disabled={arriving === d.date || arrive.isPending} onPress={() => onArrive(d.date)}
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 5, opacity: arriving === d.date ? 0.6 : 1 }}>
+                    <Icon name="map-pin" size={13} color="#fff" />
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{arriving === d.date ? "Locating…" : "I Have Arrived"}</Text>
                   </Pressable>
                 ) : canMarkPast(d) ? (
                   <Pressable testID={`sub-markdone-${d.date}`} disabled={complete.isPending} onPress={() => complete.mutate({ date: d.date, note: "", photo: null })}
@@ -182,29 +201,6 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
           })}
         </View>
       </Surface>
-
-      {/* Start Service — customer OTP */}
-      <Modal visible={!!otpFor} transparent animationType="fade" onRequestClose={() => setOtpFor(null)}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-        <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
-            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Start Service</Text>
-            <Text style={{ color: SLATE, fontSize: 12, marginTop: 4 }}>Customer se aaj ka 4-digit service OTP lein.</Text>
-            <TextInput testID="sub-otp-input" value={otp} onChangeText={setOtp} keyboardType="number-pad" maxLength={4} placeholder="••••" placeholderTextColor={SLATE}
-              style={{ marginTop: 14, height: 52, borderWidth: 1.5, borderColor: colors.primary, borderRadius: 12, textAlign: "center", fontSize: 22, fontWeight: "800", letterSpacing: 8, color: colors.text }} />
-            <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-              <Pressable testID="sub-otp-cancel" onPress={() => setOtpFor(null)} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
-                <Text style={{ color: SLATE, fontWeight: "700" }}>Cancel</Text>
-              </Pressable>
-              <Pressable testID="sub-otp-confirm" disabled={otp.length !== 4 || start.isPending} onPress={() => otpFor && start.mutate({ date: otpFor, code: otp })}
-                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: otp.length !== 4 ? 0.5 : 1 }}>
-                <Text style={{ color: "#fff", fontWeight: "700" }}>{start.isPending ? "…" : "Start Service"}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-        </KeyboardAvoidingView>
-      </Modal>
 
       {/* Complete Service — optional photo proof */}
       <Modal visible={!!completeFor} transparent animationType="fade" onRequestClose={() => setCompleteFor(null)}>

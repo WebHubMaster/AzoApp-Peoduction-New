@@ -60,6 +60,14 @@ class StartDayRequest(BaseModel):
     otp: str                             # customer shares this with the maid on arrival
 
 
+class ArriveRequest(BaseModel):
+    """Location-based attendance — the maid taps "I Have Arrived"; the app sends her
+    current GPS. Attendance succeeds only when she is within 200m of the customer's
+    home. No OTP, no extra confirmation."""
+    lat: float
+    lng: float
+
+
 class CompleteDayRequest(BaseModel):
     note: str = ""
     photo: Optional[str] = None          # base64 data URL — materialized to storage, never stored raw

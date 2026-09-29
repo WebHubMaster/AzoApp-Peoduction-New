@@ -45,6 +45,21 @@ def _parse_date(d):
     return datetime.strptime(s, "%Y-%m-%d").date()
 
 
+def haversine_m(a, b) -> float:
+    """Great-circle distance in METERS between (lat,lng) tuples."""
+    from math import radians, sin, cos, asin, sqrt
+    lat1, lon1 = radians(a[0]), radians(a[1])
+    lat2, lon2 = radians(b[0]), radians(b[1])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+    return 2 * 6371000.0 * asin(sqrt(h))
+
+
+# Max distance (metres) between the maid's GPS and the customer's home for a valid
+# location-based attendance.
+ATTENDANCE_RADIUS_M = 200
+
+
 def commission_pct_for(settings: dict) -> float:
     """Resolve the platform commission % applied to subscriptions. Admin-configurable:
     settings.commission.subscription_commission_pct wins, else the platform base %."""
@@ -208,7 +223,11 @@ def recompute_accrual(sub: dict) -> dict:
             served = d.get("served_by") or assigned
             d["served_by"] = served
             d["earning"] = per_day
-            if served and served != assigned:
+            # Earning already credited to the maid's wallet at ARRIVAL (attendance)
+            # — don't re-accrue it into the end-of-period settlement (no double pay).
+            if d.get("earning_credited"):
+                pass
+            elif served and served != assigned:
                 replacement_earnings[served] = money.add(replacement_earnings.get(served, 0), per_day)
             else:
                 accrued = money.add(accrued, per_day)
@@ -217,7 +236,7 @@ def recompute_accrual(sub: dict) -> dict:
             served = d.get("served_by") or d.get("replacement_partner_id")
             d["served_by"] = served
             d["earning"] = per_day
-            if served:
+            if served and not d.get("earning_credited"):
                 replacement_earnings[served] = money.add(replacement_earnings.get(served, 0), per_day)
         elif st == "maid_absent":
             absent += 1
@@ -353,3 +372,124 @@ async def pay_settlement(sub: dict):
         {"$set": {"settlement": settlement, "updated_at": now_iso()},
          "$push": {"timeline": {"status": "settlement_paid", "at": now_iso()}}})
     return await db.subscriptions.find_one({"id": sub["id"]}, {"_id": 0})
+
+
+def address_latlng(address: dict):
+    """Best-effort (lat, lng) from a stored address dict; None if not available."""
+    a = address or {}
+    lat = a.get("lat", a.get("latitude"))
+    lng = a.get("lng", a.get("longitude", a.get("lon")))
+    try:
+        if lat in (None, "") or lng in (None, ""):
+            return None
+        return (float(lat), float(lng))
+    except (TypeError, ValueError):
+        return None
+
+
+async def credit_daily_earning(sub: dict, day_date: str, partner_id: str, amount: float):
+    """Instantly & finally credit one working day's earning to the maid's in-app
+    wallet the moment attendance (arrival) is marked, and roll it into the daily
+    earnings leaderboard. Runs silently — nothing about money is shown to the customer.
+    Idempotent per (subscription, day)."""
+    amount = money.money(amount or 0)
+    if not partner_id or amount <= 0:
+        return
+    today = datetime.now(timezone.utc).date().isoformat()
+    # Wallet + ledger (reuses the shared partner wallet).
+    await db.users.update_one({"id": partner_id}, {"$inc": {"wallet_balance": amount}})
+    await db.transactions.insert_one({
+        "id": new_id(), "user_id": partner_id, "amount": amount, "type": "credit",
+        "kind": "subscription_daily_earning",
+        "note": f"Attendance earning · {sub.get('code')} · {day_date}",
+        "ref_id": sub.get("id"), "day_date": day_date, "created_at": now_iso()})
+    # Daily leaderboard bucket (one doc per partner per calendar day).
+    await db.daily_earnings.update_one(
+        {"partner_id": partner_id, "date": today},
+        {"$inc": {"amount": amount, "days": 1},
+         "$setOnInsert": {"id": new_id(), "partner_id": partner_id, "date": today,
+                          "created_at": now_iso()},
+         "$set": {"partner_name": sub.get("partner_name"), "updated_at": now_iso()}},
+        upsert=True)
+
+
+async def daily_earnings_leaderboard(partner: dict, day: str = "", limit: int = 10) -> dict:
+    """Today's (or a given day's) maid earnings ranking, built from the silent
+    per-day attendance credits. Ranked by total earning for the day."""
+    day = (day or datetime.now(timezone.utc).date().isoformat())[:10]
+    rows = await db.daily_earnings.find({"date": day}, {"_id": 0}).to_list(5000)
+    rows.sort(key=lambda r: money.money(r.get("amount") or 0), reverse=True)
+    pid = (partner or {}).get("id")
+
+    def _row(r, i):
+        return {"rank": i + 1, "partner_id": r.get("partner_id"),
+                "name": r.get("partner_name") or "Maid",
+                "amount": money.money(r.get("amount") or 0),
+                "days": int(r.get("days") or 0),
+                "is_me": r.get("partner_id") == pid}
+    top = [_row(r, i) for i, r in enumerate(rows[:limit])]
+    my_idx = next((i for i, r in enumerate(rows) if r.get("partner_id") == pid), None)
+    me = _row(rows[my_idx], my_idx) if my_idx is not None else None
+    return {"day": day, "top": top, "me": me,
+            "my_rank": (my_idx + 1) if my_idx is not None else None,
+            "total": len(rows)}
+
+
+def slot_overlaps(a_start, a_end, b_start, b_end) -> bool:
+    """Do two [start,end] date ranges (ISO yyyy-mm-dd) overlap at all?"""
+    if not (a_start and a_end and b_start and b_end):
+        return False
+    return a_start <= b_end and b_start <= a_end
+
+
+async def busy_partner_ids_for(sub: dict) -> set:
+    """Partners who are already committed to another ACTIVE subscription in the SAME
+    time slot over an overlapping date range + shared working weekday — so they must
+    NOT receive a new job alert / assignment for this slot (maid notifications rule)."""
+    slot = (sub.get("preferred_time") or "").strip()
+    if not slot:
+        return set()
+    others = await db.subscriptions.find(
+        {"status": "active", "preferred_time": slot, "partner_id": {"$ne": None},
+         "id": {"$ne": sub.get("id")}},
+        {"_id": 0, "partner_id": 1, "start_date": 1, "end_date": 1, "weekly_offs": 1}).to_list(2000)
+    my_offs = set(sub.get("weekly_offs") or [])
+    my_days = {i for i in range(7) if i not in my_offs}
+    busy = set()
+    for o in others:
+        if not slot_overlaps(sub.get("start_date"), sub.get("end_date"),
+                             o.get("start_date"), o.get("end_date")):
+            continue
+        o_offs = set(o.get("weekly_offs") or [])
+        o_days = {i for i in range(7) if i not in o_offs}
+        if my_days & o_days:          # they share at least one working weekday
+            busy.add(o.get("partner_id"))
+    return busy
+
+
+# ---- Customer-facing sanitisation: never expose maid rate / earnings ----
+_EARNING_KEYS = ("per_day_earning", "partner_allocation", "accrued_earning",
+                 "absent_adjustment", "customer_cancel_retained", "replacement_earnings",
+                 "platform_total", "settlement_amount", "settlement",
+                 "commission_pct", "commission_amount", "tax_pct", "tax_amount")
+
+
+def customer_view(sub: dict) -> dict:
+    """Strip every rate / earning figure and expose a clean attendance list
+    (maid name · date · arrival time only) for the customer's booking history."""
+    s = {k: v for k, v in dict(sub).items() if k not in _EARNING_KEYS}
+    attendance = []
+    for d in (sub.get("schedule") or []):
+        if d.get("arrival_at"):
+            attendance.append({
+                "date": d.get("date"),
+                "maid_name": sub.get("partner_name") or "",
+                "arrival_time": d.get("arrival_at"),
+                "status": d.get("status"),
+            })
+    s["attendance"] = attendance
+    # Also scrub per-day earning fields inside the schedule the customer can see.
+    s["schedule"] = [{k: v for k, v in d.items()
+                      if k not in ("earning", "earning_credited", "otp")}
+                     for d in (sub.get("schedule") or [])]
+    return s

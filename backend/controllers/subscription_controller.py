@@ -138,7 +138,11 @@ async def _sub_for_customer(user, subscription_id):
 async def list_mine(user):
     rows = await db.subscriptions.find(
         {"customer_id": user["id"]}, {"_id": 0}).sort("created_at", -1).to_list(200)
-    return [await svc.ensure_day_otps(r) for r in rows]
+    out = []
+    for r in rows:
+        r = await svc.ensure_day_otps(r)
+        out.append(svc.customer_view(r))
+    return out
 
 
 async def get_one(user, subscription_id):
@@ -149,7 +153,8 @@ async def get_one(user, subscription_id):
     if role == "admin":
         return sub
     if role == "customer" and sub.get("customer_id") == user["id"]:
-        return await svc.ensure_day_otps(sub)
+        sub = await svc.ensure_day_otps(sub)
+        return svc.customer_view(sub)
     if role == "partner" and sub.get("partner_id") == user["id"]:
         return svc.strip_otps_for_partner(sub)
     raise HTTPException(status_code=403, detail="Not allowed")
@@ -293,6 +298,67 @@ async def partner_start_day(user, subscription_id, day_date, otp):
     return svc.strip_otps_for_partner(sub)
 
 
+async def partner_mark_arrival(user, subscription_id, day_date, lat, lng):
+    """I Have Arrived — location-based attendance (no OTP). Verifies the maid is within
+    200m of the customer's home, marks the day's attendance, and INSTANTLY credits that
+    day's earning to her wallet + the daily leaderboard (silent; customer sees nothing
+    about money). 'Complete' stays a separate step."""
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    if not sub:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    if sub.get("partner_id") != user["id"]:
+        raise HTTPException(status_code=403, detail="This subscription is not assigned to you")
+    if sub.get("status") != "active":
+        raise HTTPException(status_code=400, detail="Subscription is not active")
+    today = datetime.now(timezone.utc).date().isoformat()
+    if day_date != today:
+        raise HTTPException(status_code=400, detail="You can only mark arrival for today")
+    day = next((d for d in (sub.get("schedule") or []) if d.get("date") == day_date), None)
+    if not day:
+        raise HTTPException(status_code=404, detail="No scheduled day for today")
+    if day.get("status") == "weekly_off":
+        raise HTTPException(status_code=400, detail="Today is an agreed weekly off")
+    if day.get("arrival_at") or day.get("status") in ("in_progress", "completed"):
+        raise HTTPException(status_code=400, detail="Attendance already marked for today")
+    # 5b: block arrival until GPS is available on BOTH sides.
+    try:
+        maid = (float(lat), float(lng))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="Turn on location to mark your arrival")
+    home = svc.address_latlng(sub.get("address"))
+    if not home:
+        raise HTTPException(status_code=400,
+                            detail="Customer's home location isn't set yet, so arrival can't be verified.")
+    dist = svc.haversine_m(maid, home)
+    if dist > svc.ATTENDANCE_RADIUS_M:
+        raise HTTPException(
+            status_code=400,
+            detail=f"You look about {int(dist)}m from the customer's home. Please reach within {svc.ATTENDANCE_RADIUS_M}m to mark arrival.")
+    # Mark attendance (arrival) on the day; keep 'completed' as a separate action.
+    schedule = sub.get("schedule") or []
+    for d in schedule:
+        if d.get("date") == day_date:
+            d["status"] = "in_progress"
+            d["arrival_at"] = now_iso()
+            d["arrival_lat"] = maid[0]
+            d["arrival_lng"] = maid[1]
+            d["arrival_distance_m"] = round(dist, 1)
+            d["marked_by"] = user["id"]
+            d["marked_at"] = now_iso()
+            d["earning"] = money.money(sub.get("per_day_earning") or 0)
+            d["earning_credited"] = True
+            break
+    await db.subscriptions.update_one(
+        {"id": subscription_id},
+        {"$set": {"schedule": schedule, "updated_at": now_iso()},
+         "$push": {"timeline": {"status": "arrival_marked", "at": now_iso(), "date": day_date}}})
+    # Silent, instant, final earning credit + daily leaderboard.
+    await svc.credit_daily_earning(sub, day_date, user["id"], sub.get("per_day_earning") or 0)
+    await svc.apply_accrual(subscription_id)
+    sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    return svc.strip_otps_for_partner(sub)
+
+
 async def partner_mark_completed(user, subscription_id, day_date, note="", photo=None):
     """Complete Service — today's day must be started first (customer OTP verified);
     past days can be marked directly (backdated). Optional photo proof goes to storage."""
@@ -384,7 +450,10 @@ async def admin_eligible_partners(subscription_id):
         {"role": "partner", "status": "active"},
         {"_id": 0, "id": 1, "name": 1, "phone": 1, "skills": 1, "city": 1,
          "rating": 1, "kyc_status": 1}).to_list(500)
-    return rows
+    # Maid notifications rule: a maid already booked in this time slot must NOT get a
+    # new job alert / assignment for the same slot — hide her from the eligible list.
+    busy = await svc.busy_partner_ids_for(sub)
+    return [r for r in rows if r.get("id") not in busy]
 
 
 async def admin_assign_partner(subscription_id, partner_id):

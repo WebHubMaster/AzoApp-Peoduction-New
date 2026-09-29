@@ -96,3 +96,16 @@ Dynamic homepage section builder in Admin (Website / CMS → Homepage Builder), 
 - Public storefront renders + plays video sections on click (customer/Landing.jsx VideoSection).
 - ENV note: `/app/backend/.env` (MONGO_URL, DB_NAME) and `/app/web_panel/.env` (REACT_APP_BACKEND_URL) were missing on import and had to be recreated.
 - App layout: admin+storefront = `/app/web_panel` (CRA/craco); `/app/frontend` = Expo Partner app (supervisor `frontend`, port 3000).
+
+---
+## Maid booking improvements — 2026-09-29
+Built on the existing recurring-subscription engine.
+1. Maid category → Recurring Subscription plan picker (Daily/Weekly/Monthly) with weekly-offs; schedule built per selected plan. Seeded via backend/seed_maid_subscription.py (wired into server startup). Service id svc-maid-fulltime.
+2. Maid notifications: a maid already booked in a time slot is excluded from new job alerts/assignment for that overlapping slot — subscription_service.busy_partner_ids_for() + admin_eligible_partners filter.
+3. Attendance via location (no OTP): partner "I Have Arrived" button captures GPS; POST /subscriptions/{id}/days/{date}/arrive; success only within 200m of the customer's home; blocked if either GPS missing. Arrival & Complete remain separate steps.
+4. Earnings: on arrival the day's per-day earning is INSTANTLY & finally credited to the maid wallet (transactions kind subscription_daily_earning) + a daily leaderboard bucket (db.daily_earnings). GET /subscriptions/partner/daily-leaderboard. No admin approval; no double-pay at settlement (earning_credited flag skips accrual). Silent to customer.
+5. Customer attendance view: subscription_service.customer_view() strips ALL rate/earning fields and returns an attendance list (maid name · date · arrival time). Applied to /subscriptions/mine and /subscriptions/{id} for customers. UI updated in web_panel Subscriptions.jsx + Customer app subscriptions.tsx (OTP banner + earnings removed, Attendance card added).
+
+Files: backend models/subscription.py, services/subscription_service.py, controllers/subscription_controller.py, routes/subscription_routes.py, seed_maid_subscription.py, server.py; web_panel/src/components/customer/Subscriptions.jsx; frontend (Partner app) app/(partner)/partner/subscriptions.tsx + src/components/partner/home/MaidTasksCard.tsx; Customer/app/(customer)/subscriptions.tsx.
+
+Verification: backend fully curl/script-verified (arrival 200m pass/fail, no-GPS block, instant wallet credit, daily leaderboard, no double-pay, busy-slot filter, customer_view no earning leaks, plans per selected days). web_panel compiles + plan picker screenshot verified. Mobile app edits are code-complete but NOT runtime-verified (preview currently serves web_panel, not the Expo apps).

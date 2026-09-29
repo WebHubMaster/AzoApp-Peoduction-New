@@ -193,11 +193,6 @@ function SubCard({ s }: { s: any }) {
           <User size={13} color={TC.textFaint} />
           <Text style={{ color: c.textMuted, fontSize: 12 }}>Maid: <Text style={{ fontWeight: "800", color: c.text }}>{s.partner_name || "Assigning soon"}</Text>{s.preferred_time ? ` · ${s.preferred_time}` : ""}</Text>
         </View>
-        {active && todayDay?.otp ? (
-          <View testID={`my-sub-otp-${s.id}`} style={{ borderRadius: 10, backgroundColor: AMBER[50], borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 10, paddingVertical: 7 }}>
-            <Text style={{ color: "#B45309", fontSize: 11, fontWeight: "700" }}>Today's service OTP: <Text style={{ fontWeight: "800", letterSpacing: 2 }}>{todayDay.otp}</Text> — share with your maid to start the service</Text>
-          </View>
-        ) : null}
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginTop: 2 }}>
           <Text style={{ color: TC.textFaint, fontSize: 10, fontWeight: "700", textTransform: "uppercase" }}>Paid upfront</Text>
           <Text style={{ color: c.text, fontWeight: "800", fontSize: 20 }}>{money(s.price)}</Text>
@@ -254,22 +249,34 @@ function SubCard({ s }: { s: any }) {
                       <Text style={{ color: m.color, fontWeight: "800", fontSize: 12 }}>{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} · {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dt.getDay()]}</Text>
                       <Text style={{ color: m.color, fontSize: 11, opacity: 0.85 }}>{m.label}</Text>
                     </View>
-                    {d.status !== "weekly_off" ? <Text style={{ color: m.color, fontWeight: "800", fontSize: 12 }}>{d.earning > 0 ? "+" + money(d.earning) : "—"}</Text> : null}
+                    {d.arrival_at ? <Text style={{ color: EMERALD[700], fontWeight: "800", fontSize: 12 }}>{new Date(d.arrival_at).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</Text> : null}
                   </View>
                 );
               })}
             </View>
           </View>
 
-          {/* payment snapshot */}
+          {/* attendance — maid name · date · arrival time only (no rate/earnings) */}
           <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
-            <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Payment & subscription details</Text>
+            <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Attendance</Text>
+            {(s.attendance || []).length ? (
+              (s.attendance || []).slice().reverse().map((a: any) => {
+                const dt = new Date(a.date + "T00:00:00");
+                return (
+                  <View key={a.date} testID={`my-sub-attend-${s.id}-${a.date}`} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: EMERALD[50], paddingHorizontal: 10, paddingVertical: 8 }}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: c.text, fontWeight: "800", fontSize: 12 }}>{a.maid_name || s.partner_name || "Maid"}</Text>
+                      <Text style={{ color: c.textMuted, fontSize: 11 }}>{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} {dt.getFullYear()}</Text>
+                    </View>
+                    <Text style={{ color: EMERALD[700], fontWeight: "800", fontSize: 12 }}>Arrived {new Date(a.arrival_time).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}</Text>
+                  </View>
+                );
+              })
+            ) : (
+              <Text style={{ color: c.textMuted, fontSize: 12 }}>No arrivals recorded yet. Your maid's arrival time will show here each day.</Text>
+            )}
             {[
               ["Paid upfront", money(s.price)],
-              ["Commission snapshot", `${s.commission_pct}% (${money(s.commission_amount)})`],
-              ["Tax snapshot", `${s.tax_pct}% (${money(s.tax_amount)})`],
-              ["Partner maximum allocation", money(s.partner_allocation)],
-              ["Per-day earning", money(s.per_day_earning)],
               ["Weekly off", (s.weekly_offs || []).length ? (s.weekly_offs as number[]).map((d) => ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][d]).join(", ") : "None"],
               ["Subscription status", status.replace(/_/g, " ")],
             ].map(([k, v]) => (

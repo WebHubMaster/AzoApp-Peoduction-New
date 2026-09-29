@@ -145,6 +145,13 @@ logger = logging.getLogger("azoapp")
 @app.on_event("startup")
 async def startup():
     await seed()
+    # Recurring maid subscription category + service (idempotent) so the maid
+    # category shows the subscription plan picker.
+    try:
+        from seed_maid_subscription import main as seed_maid_sub
+        await seed_maid_sub()
+    except Exception as e:  # noqa: BLE001
+        logger.warning("maid subscription seed skipped: %s", e)
     # Partner registration masters (education/experience defaults)
     try:
         from services.partner_reg_service import seed_masters
