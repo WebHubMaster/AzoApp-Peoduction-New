@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://reg-payment-redesign.preview.emergentagent.com/api"
+BASE_URL = "https://homepage-builder-119.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

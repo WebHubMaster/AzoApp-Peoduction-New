@@ -5,7 +5,7 @@ Bring migrated AzoApp (home services platform) up on a new account and deliver 3
 Admin panel, Customer Expo app, Partner Expo app. No new features — run existing code only.
 
 ## BASE_URL
-https://reg-payment-redesign.preview.emergentagent.com
+https://homepage-builder-119.preview.emergentagent.com
 
 ## Architecture
 - backend/  -> FastAPI, port 8001 (supervisor), auto-seeds demo data on startup. Serves web_panel at /api/panel and Customer web export at /api/customer.
@@ -86,3 +86,13 @@ https://reg-payment-redesign.preview.emergentagent.com
 - Backend: `storage_service.save_video(..., max_bytes)`; new admin route `POST /api/media/upload-homepage-video` (100MB cap, folder `homepage_videos`); `site_controller._homepage` resolves `type=="video"` → `data:{video,poster,autoplay}`.
 - Website `Landing.jsx`: renders `video` sections with click-to-play (poster → tap → `<video controls autoplay>`); works for URL or uploaded file via `mediaSrc()`.
 - Verified live: inserting a video section surfaces it in `/api/site/homepage`; upload route registered (401 w/o admin). Server has no ffprobe, so the 60s duration check is enforced in the admin browser; 100MB size enforced both client and server.
+
+---
+## Homepage Builder (Website/CMS) — verified 2026-09-29
+Dynamic homepage section builder in Admin (Website / CMS → Homepage Builder), mirroring the Customer App Home builder.
+- Backend: `homepage_sections` collection; CRUD + reorder via `/api/admin/homepage-sections` (GET/POST/PUT/DELETE). Public feed `/api/site/homepage` resolves ordered enabled sections incl. `video` type.
+- Section types incl. video (URL or uploaded file), banners, service collections, categories, coupons, faq, blog.
+- Video file upload: `/api/media/upload-homepage-video` — server enforces MP4/MOV/WebM + 100MB; browser enforces 100MB + 60s duration (adminSectionsPro.jsx VideoUpload). Clear error toasts on limit breach.
+- Public storefront renders + plays video sections on click (customer/Landing.jsx VideoSection).
+- ENV note: `/app/backend/.env` (MONGO_URL, DB_NAME) and `/app/web_panel/.env` (REACT_APP_BACKEND_URL) were missing on import and had to be recreated.
+- App layout: admin+storefront = `/app/web_panel` (CRA/craco); `/app/frontend` = Expo Partner app (supervisor `frontend`, port 3000).
