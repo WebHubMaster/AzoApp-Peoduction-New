@@ -1,0 +1,34 @@
+{
+  "summary": "Verified slot-based partner availability bug-fix. Wrote /app/backend/tests/test_slot_based_availability.py covering MatchingEngine.slot_window / partner_free_for / available_targets (unit-level), GET /api/bookings/partner/jobs, GET /api/bookings/partner/ring-pending slot filters, and POST /api/bookings/{id}/accept 409-on-overlap guard. Seeded synthetic bookings directly into MongoDB (test rows tagged TEST_SLOT_, cleaned up on teardown) because there is NO /api/payments/mock route in the current codebase — payment flow is real-gateway only. All 11 tests PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "N/A", "issue": "Review request references POST /api/payments/mock but no such endpoint exists in /app/backend/routes/payment_routes.py — only /order, /verify, /confirm-return. If E2E mock-pay is required for tests/UI demos, add a MOCK gateway path or a dev-only /payments/mock endpoint. Test bypassed it by seeding bookings directly in Mongo."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_slot_based_availability.py",
+    "/app/test_reports/pytest/slot_based_availability.xml"
+  ],
+  "action_items": [
+    "Optional: add a dev/mock payments endpoint so full E2E (create -> pay -> searching -> ring) can be tested via HTTP without direct DB seeding.",
+    "Optional: engines.available_targets() returns list preserving insertion order — consider adding a docstring test to guarantee ordering contract."
+  ],
+  "critical_code_review_comments": [
+    "engines.py:836-838 — when booking is None available_targets falls back to legacy 'any accepted job = busy' behaviour. All existing callers pass a booking, but a future caller forgetting to pass one would silently regress to the old bug. Consider making booking required.",
+    "booking_controller.partner_jobs (2200) and partner_ring_pending (2232) call MatchingEngine.partner_free_for per row in a Python loop → N+1 Mongo hits for large feeds. For scale, fetch the partner's ACCEPTED bookings once and reuse across rows.",
+    "accept_job (2620) rechecks partner_free_for BEFORE the atomic status update; there's a small race between the check and the update where a partner could accept two overlapping bookings if both requests interleave. Consider making the atomic $set filter also assert no overlap (or wrap in a Mongo transaction).",
+    "slot_window uses a hard-coded 30-min fallback in three places (engines.py 792, 800, 806) — safe today, but if _slot_cfg is ever misconfigured a partner could be silently over- or under-blocked. Log a warning when the fallback fires."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_slot_based_availability.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A (frontend testing skipped per request)"},
+  "test_credentials": "Demo partner +919000000003 / OTP 123456 (from /app/memory/test_credentials.md). Test used direct Mongo access via MONGO_URL from /app/backend/.env for seed/cleanup.",
+  "seed_data_creation": "All test bookings prefixed TEST_SLOT_ (codes TEST_SLOT_A/B/C/D/INSTANT). Fixture-level teardown removes them. Verified DB is clean post-run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run: pytest /app/backend/tests/test_slot_based_availability.py -v -n 0. Test file uses a persistent asyncio event loop (motor caches its io_loop on first use). It sets partner +919000000003 online at module scope; if a later test toggles it offline, prepend that step. There is no /api/payments/mock route — do NOT try to hit it. If you need to test the payment->searching path, seed bookings in Mongo (schema shown in _mk_booking) or add a mock gateway endpoint first.",
+  "rca of the issue": "N/A — this iteration verified a bug-fix already applied. Prior bug: engines.available_targets excluded any partner with any accepted booking regardless of slot, so a partner with a future accepted booking was blocked from all alerts. Fix (engines.py 811-852, 855-873): compute the target booking's [start,end) slot window and only mark a partner busy if one of their accepted bookings' slot windows OVERLAPS the target window (half-open interval overlap `ns<ee and es<ne`). Instant/'now' bookings occupy [now, now+step) so they never conflict with future scheduled bookings. All 11 tests pass, confirming: (1) accepted future scheduled booking still allows alerts for other slots (unit + HTTP), (2) overlapping-slot booking correctly hidden and returns 409 on accept, (3) non-overlapping accept succeeds, multiple non-overlap accepts stack, (4) instant in-progress job doesn't block future scheduled offers but does block new now-jobs."
+}
