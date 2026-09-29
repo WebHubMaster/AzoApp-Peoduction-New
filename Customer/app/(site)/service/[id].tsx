@@ -47,8 +47,8 @@ function SubscriptionPanel({ svc }: { svc: any }) {
     setBusy(true);
     try {
       const sub = await api.post<any>("/subscriptions", { service_id: svc.id, plan_type: sel, start_date: startDate, preferred_time: time, address_id: addrId });
-      try { await api.post(`/subscriptions/${sub.id}/pay/mock`); toast.success("Subscription booked & activated!"); }
-      catch { await api.post(`/subscriptions/${sub.id}/pay/order`); toast.info("Complete payment to activate your subscription."); }
+      try { await api.post(`/subscriptions/${sub.id}/pay/mock`); toast.success("Booking confirmed!"); }
+      catch { await api.post(`/subscriptions/${sub.id}/pay/order`); toast.info("Complete payment to confirm your booking."); }
       router.push("/(customer)/subscriptions" as any);
     } catch (e: any) { toast.error(e?.detail || "Booking failed, please try again"); } finally { setBusy(false); }
   };

@@ -85,7 +85,7 @@ export function SubscriptionPlansPanel({ svc }) {
           : api.post(`/subscriptions/${sub.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),
       });
       if (ok) {
-        toast.success("Subscription activated! Full amount paid upfront.");
+        toast.success("Booking confirmed!");
         setOpen(false);
         navigate("/account?tab=subscriptions");
       }
@@ -131,8 +131,8 @@ export function SubscriptionPlansPanel({ svc }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md" data-testid="sub-book-dialog">
           <DialogHeader>
-            <DialogTitle>Book {plan?.label} subscription</DialogTitle>
-            <DialogDescription>{svc.name} · {fmt(plan?.price || 0)} payable now (upfront)</DialogDescription>
+            <DialogTitle>Book {svc.name}</DialogTitle>
+            <DialogDescription>{plan?.label} plan · {fmt(plan?.price || 0)}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
@@ -163,7 +163,7 @@ export function SubscriptionPlansPanel({ svc }) {
             </div>
             <Button data-testid="sub-confirm-pay-btn" disabled={busy || !plan || !addrId} onClick={book}
               className="w-full h-11 bg-primary-700 hover:bg-primary-800">
-              {busy ? "Processing…" : `Pay ${fmt(plan?.price || 0)} & Activate`}
+              {busy ? "Processing…" : "Confirm Booking"}
             </Button>
           </div>
         </DialogContent>
