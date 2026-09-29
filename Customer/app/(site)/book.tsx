@@ -16,7 +16,7 @@ import { PRIMARY, SLATE, EMERALD, TC, useTheme } from "../../src/theme";
 import { emptyAddress } from "../../src/components/customer/AddressForm";
 import { STEPS, Stepper, StepServices, StepDetails, StepSchedule } from "../../src/components/site/CheckoutUi";
 import { StepContact, StepSummary, StepReview, SuccessScreen } from "../../src/components/site/CheckoutSteps";
-import { SubscriptionCheckout } from "../../src/components/site/SubscriptionCheckout";
+import { openPreparedOrder } from "../../src/lib/payments";
 
 export default function Checkout() {
   useTheme();
@@ -57,6 +57,14 @@ export default function Checkout() {
   const nonceRef = useRef<string | null>(null);
   const acfg = cfg.address_config || {};
 
+  // Recurring subscription (Maid) booked ALONE — flows through this SAME checkout
+  // (slot picker, address, review, pay); flat pricing + /subscriptions on placement.
+  const isSub = items.length === 1 && !!items[0]?.subscription;
+  const sub = isSub ? items[0] : null;
+  const activeSteps = useMemo(() => (isSub ? STEPS.filter((s: any) => s.key !== "details") : STEPS), [isSub]);
+  const stepKey = activeSteps[step]?.key;
+  const showFull = stepKey === "summary" || stepKey === "confirm";
+
   useEffect(() => { api.get("/auth/config", { auth: false }).then(setCfg).catch(() => {}); }, []);
   useEffect(() => { if (user) api.get("/wallet").then((r: any) => setWalletBal(r?.balance || 0)).catch(() => {}); else setWalletBal(0); }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const savedAddresses: any[] = user?.addresses || [];
@@ -66,7 +74,13 @@ export default function Checkout() {
 
   /* live combined cart quote (debounced, retried, keeps last good pricing) */
   useEffect(() => {
-    if (!items.length || items.some((it) => it.subscription)) { setQuotes({}); setCartPricing(null); return; }
+    if (!items.length) { setQuotes({}); setCartPricing(null); return; }
+    if (items.some((it) => it.subscription)) {
+      const s = items.find((it) => it.subscription); const amt = Number(s?.plan_price) || 0;
+      setQuotes({ [s.id]: { line_total: amt } });
+      setCartPricing({ base: amt, services_total: amt, cart_service_total: amt, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: amt, category_charges: [] });
+      return;
+    }
     let cancelled = false;
     const payload = { schedule_type: schedule, ...(applied ? { coupon_code: applied } : {}), address: addr, items: items.map(toReqItem) };
     const attempt = async (n: number) => {
@@ -116,18 +130,19 @@ export default function Checkout() {
 
   const needsGps = selectedId === "new" || savedAddresses.length === 0;
   const addressValid = () => !!user && !!addr.line && !!addr.pincode && !(needsGps && (!addr.lat || !addr.lng)) && !(acfg.mandatory_landmark && acfg.landmark_instructions && !addr.landmark) && !(needsGps && serviceable && serviceable.serviceable === false);
-  const canNext = () => (step === 0 ? items.length > 0 : step === 2 ? schedule !== "schedule" || !!scheduledAt : step === 3 ? addressValid() : true);
+  const canNext = () => { const k = activeSteps[step]?.key; return k === "services" ? items.length > 0 : k === "schedule" ? (schedule !== "schedule" || !!scheduledAt) : k === "contact" ? addressValid() : true; };
   const next = () => {
-    if (step === 0 && !items.length) return toast.error("Add at least one service");
-    if (step === 2 && schedule === "schedule" && !scheduledAt) return toast.error("Please pick a date & time slot");
-    if (step === 3) {
+    const k = activeSteps[step]?.key;
+    if (k === "services" && !items.length) return toast.error("Add at least one service");
+    if (k === "schedule" && schedule === "schedule" && !scheduledAt) return toast.error("Please pick a date & time slot");
+    if (k === "contact") {
       if (!user) return toast.error("Please verify your mobile to continue");
       if (needsGps && (!addr.lat || !addr.lng)) return toast.error("Please set your location using \"Use my current location\"");
       if (!addr.line || !addr.pincode) return toast.error("Please enter your service address");
       if (acfg.mandatory_landmark && acfg.landmark_instructions && !addr.landmark) return toast.error("Landmark is required");
       if (needsGps && serviceable && serviceable.serviceable === false) return toast.error("Sorry, we don't service this location yet");
     }
-    if (step < STEPS.length - 1) go(step + 1);
+    if (step < activeSteps.length - 1) go(step + 1);
   };
   const back = () => { if (step > 0) go(step - 1); else if (router.canGoBack()) router.back(); else router.replace("/(site)" as any); };
 
@@ -140,8 +155,28 @@ export default function Checkout() {
     throw last;
   };
 
+  const placeSubscription = async () => {
+    setPlacing(true);
+    try {
+      const startDate = scheduledAt ? scheduledAt.split("T")[0] : null;
+      const time = scheduledAt ? (scheduledAt.split("T")[1] || "09:00") : "09:00";
+      let addressId = selectedId !== "new" ? selectedId : null;
+      if (!addressId && addr.line) {
+        try { const data: any = await api.post("/auth/address", { ...addr, label: addr.label || "Home" }); const list = data?.addresses || []; addressId = (list.find((a: any) => a.line === addr.line && a.pincode === addr.pincode) || list[list.length - 1])?.id || null; await refresh(); } catch {}
+      }
+      const created: any = await api.post("/subscriptions", { service_id: sub.service_id, plan_type: sub.plan_type, start_date: startDate, preferred_time: time, address_id: addressId });
+      const order: any = await api.post(`/subscriptions/${created.id}/pay/order`);
+      const ok = await openPreparedOrder(order, { purpose: "subscription", subscriptionId: created.id, toast });
+      await refresh();
+      setPlacing(false);
+      if (ok) { clear(); setPlaced({ count: 1, total: Number(sub.plan_price) || 0, paid: true, orders: [], subscription: true }); }
+      else toast.info("Payment was not completed. You can try again.");
+    } catch (e: any) { setPlacing(false); toast.error(e?.detail || e?.message || "Booking failed, please try again"); }
+  };
+
   const placeOrder = async () => {
     if (!user) return toast.error("Please verify your mobile first");
+    if (isSub) return placeSubscription();
     setPlacing(true);
     const groups: Record<string, any[]> = {};
     for (const it of items) { const k = it.category_id || it.category_name || "uncategorised"; (groups[k] ||= []).push(it); }
@@ -178,9 +213,7 @@ export default function Checkout() {
     else toast.error(firstErr || "Could not place your order");
   };
 
-  if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace("/(customer)/orders" as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
-  const subItem = ready && items.length === 1 && items[0]?.subscription ? items[0] : null;
-  if (subItem) return <SubscriptionCheckout item={subItem} />;
+  if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace((placed.subscription ? "/(customer)/subscriptions" : "/(customer)/orders") as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (ready && !items.length && step === 0) return (
     <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
       <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
@@ -197,25 +230,25 @@ export default function Checkout() {
       <View style={{ paddingTop: insets.top + 8, backgroundColor: TC.surface, borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)" }}>
         <View style={{ height: 56, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
           <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={TC.textMuted} /></Pressable>
-          <View><Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>Book your services</Text><Text testID="checkout-count" style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{count} item{count > 1 ? "s" : ""} in your order</Text></View>
+          <View><Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>{isSub ? "Book your subscription" : "Book your services"}</Text><Text testID="checkout-count" style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{isSub ? `${sub.plan_label || sub.plan_type} plan` : `${count} item${count > 1 ? "s" : ""} in your order`}</Text></View>
         </View>
-        <View style={{ borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} /></View>
+        <View style={{ borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} steps={activeSteps} /></View>
       </View>
       <KeyboardAwareScrollView ref={scrollRef as any} bottomOffset={120} contentContainerStyle={{ padding: 16, paddingBottom: 160 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        {step === 0 ? <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} together={upsell.frequently_together} addService={addService} /> : null}
-        {step === 1 ? <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} popularAddons={upsell.popular_addons} lineTotal={lineTotal} /> : null}
-        {step === 2 ? <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} /> : null}
-        {step === 3 ? <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} /> : null}
-        {step === 4 ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} /> : null}
-        {step === 5 ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} /> : null}
-        {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.primaryText }}>Jump back to {STEPS[maxReached].label} →</Text></Pressable> : null}
+        {stepKey === "services" ? <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} together={upsell.frequently_together} addService={addService} isSub={isSub} /> : null}
+        {stepKey === "details" ? <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} popularAddons={upsell.popular_addons} lineTotal={lineTotal} /> : null}
+        {stepKey === "schedule" ? <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} isSub={isSub} /> : null}
+        {stepKey === "contact" ? <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} /> : null}
+        {stepKey === "summary" ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} isSub={isSub} /> : null}
+        {stepKey === "confirm" ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} /> : null}
+        {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.primaryText }}>Jump back to {activeSteps[maxReached]?.label} →</Text></Pressable> : null}
       </KeyboardAwareScrollView>
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(step >= 4 ? displayTotal : subtotal)}</Text></View>
-        {step < STEPS.length - 1 ? (
-          <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{step === 4 ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
+        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{showFull ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(showFull ? displayTotal : subtotal)}</Text></View>
+        {step < activeSteps.length - 1 ? (
+          <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{stepKey === "summary" ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
         ) : (
-          <Pressable testID="place-order" onPress={placeOrder} disabled={placing} style={({ pressed }) => ({ height: 48, paddingHorizontal: 20, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 6, opacity: placing ? 0.7 : 1 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placing ? `Placing ${progress.done}/${progress.total}…` : "Confirm & Place Order"}</Text><ShieldCheck size={16} color="#fff" /></Pressable>
+          <Pressable testID="place-order" onPress={placeOrder} disabled={placing} style={({ pressed }) => ({ height: 48, paddingHorizontal: 20, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 6, opacity: placing ? 0.7 : 1 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placing ? (isSub ? "Processing…" : `Placing ${progress.done}/${progress.total}…`) : (isSub ? "Confirm & Pay" : "Confirm & Place Order")}</Text><ShieldCheck size={16} color="#fff" /></Pressable>
         )}
       </View>
     </View>

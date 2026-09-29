@@ -15,14 +15,33 @@ export const STEPS = [
   { key: "services", label: "Services", icon: ShoppingBag }, { key: "details", label: "Details", icon: Tag }, { key: "schedule", label: "Schedule", icon: CalendarClock },
   { key: "contact", label: "Your Info", icon: User }, { key: "summary", label: "Summary", icon: MapPin }, { key: "confirm", label: "Confirm", icon: ShieldCheck },
 ];
+
+const DOW_LONG = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+export const subPlanLine = (it: any) => {
+  if (!it) return "";
+  const parts = [`${it.plan_label || it.plan_type} plan`];
+  if (it.working_days) parts.push(`${it.working_days} working days`);
+  if (it.duration_days) parts.push(`${it.duration_days}-day period`);
+  if ((it.weekly_offs || []).length) parts.push(`${(it.weekly_offs || []).map((d: number) => DOW_LONG[d]).join(", ")} off`);
+  return parts.join(" · ");
+};
+export const SubscriptionHeader = ({ it }: { it: any }) => (
+  <View testID="sub-recurring-header">
+    <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 }}>
+      <CalendarClock size={12} color={EMERALD[700]} /><Text style={{ fontSize: 11, fontWeight: "700", color: EMERALD[700] }}>Recurring Subscription</Text>
+    </View>
+    <Text style={{ fontSize: 16, fontWeight: "700", color: TC.text, marginTop: 6 }}>{it.name}</Text>
+    <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2 }}>{subPlanLine(it)}</Text>
+  </View>
+);
 export const card = { borderRadius: 16, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.surface; } };
 export const H2 = ({ t, s }: { t: string; s: string }) => <View><Text style={{ fontSize: 20, fontWeight: "700", color: TC.text }}>{t}</Text><Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 2 }}>{s}</Text></View>;
 export const Lbl = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>{children}</Text>;
 
-export const Stepper = ({ step }: { step: number }) => (
+export const Stepper = ({ step, steps = STEPS }: { step: number; steps?: any[] }) => (
   <View testID="checkout-stepper">
-    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.primaryText }}>Step {step + 1} of {STEPS.length}</Text><Text testID="checkout-step-label" style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>{STEPS[step].label}</Text></View>
-    <View style={{ height: 6, borderRadius: 3, backgroundColor: TC.border, overflow: "hidden" }}><View style={{ height: "100%", width: `${((step + 1) / STEPS.length) * 100}%`, backgroundColor: PRIMARY[700], borderRadius: 3 }} /></View>
+    <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.primaryText }}>Step {step + 1} of {steps.length}</Text><Text testID="checkout-step-label" style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>{steps[step]?.label}</Text></View>
+    <View style={{ height: 6, borderRadius: 3, backgroundColor: TC.border, overflow: "hidden" }}><View style={{ height: "100%", width: `${((step + 1) / steps.length) * 100}%`, backgroundColor: PRIMARY[700], borderRadius: 3 }} /></View>
   </View>
 );
 
@@ -87,10 +106,23 @@ const Thumb = ({ uri, size }: { uri?: string; size: number }) => <View style={{ 
 export const addonLabel = (it: any) => (it.addons || []).map((n: string) => `${n}${((it.addonQty || {})[n] || 1) > 1 ? ` ×${(it.addonQty || {})[n]}` : ""}`).join(", ");
 
 /* ================= STEP 1 ================= */
-export function StepServices({ items, removeItem, setQty, lineTotal, together = [], addService }: any) {
+export function StepServices({ items, removeItem, setQty, lineTotal, together = [], addService, isSub }: any) {
   const router = useRouter(); const toast = useToast();
   const inCart = new Set(items.map((it: any) => it.service_id));
   const suggestions = (together || []).filter((s: any) => !inCart.has(s.id)).slice(0, 6);
+  if (isSub) {
+    const it = items[0];
+    return (
+      <View style={{ gap: 16 }}>
+        <H2 t="Your plan" s="You're booking a recurring subscription — a verified professional every working day." />
+        <View testID={`cart-item-${it.service_id || it.id}`} style={{ ...card, flexDirection: "row", gap: 12, padding: 16 }}>
+          <Thumb uri={it.image} size={72} />
+          <View style={{ flex: 1, minWidth: 0 }}><SubscriptionHeader it={it} /></View>
+          <Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{fmt(lineTotal(it))}</Text>
+        </View>
+      </View>
+    );
+  }
   return (
     <View style={{ gap: 16 }}>
       <H2 t="Your selected services" s="Add as many services as you like — they'll all be booked in one order." />
@@ -177,19 +209,21 @@ export function StepDetails({ items, updateItem, setAddonQty, popularAddons = {}
 }
 
 /* ================= STEP 3 ================= */
-export function StepSchedule({ schedule, setSchedule, scheduledAt, setScheduledAt }: any) {
+export function StepSchedule({ schedule, setSchedule, scheduledAt, setScheduledAt, isSub }: any) {
   return (
     <View style={{ gap: 16 }}>
-      <H2 t="When should we come?" s="This schedule applies to your whole order." />
-      <View style={{ flexDirection: "row", gap: 12 }}>
-        {([["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]] as any[]).map(([k, t, d, Icon]) => (
-          <Pressable key={k} testID={`when-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 16, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : TC.border, backgroundColor: schedule === k ? PRIMARY[50] : TC.surface, padding: 16 }}>
-            <Icon size={24} color={schedule === k ? PRIMARY[700] : TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text, marginTop: 8 }}>{t}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{d}</Text>
-          </Pressable>
-        ))}
-      </View>
+      <H2 t={isSub ? "When should we start?" : "When should we come?"} s={isSub ? "Pick the start date & time — your recurring visits begin from here." : "This schedule applies to your whole order."} />
+      {!isSub ? (
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          {([["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]] as any[]).map(([k, t, d, Icon]) => (
+            <Pressable key={k} testID={`when-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 16, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : TC.border, backgroundColor: schedule === k ? PRIMARY[50] : TC.surface, padding: 16 }}>
+              <Icon size={24} color={schedule === k ? PRIMARY[700] : TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text, marginTop: 8 }}>{t}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{d}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       {schedule === "schedule" ? <SchedulePicker value={scheduledAt} onChange={setScheduledAt} /> : null}
-      {schedule === "emergency" ? <View style={{ borderRadius: 16, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small instant / emergency charge may apply.</Text></View> : null}
+      {schedule === "emergency" && !isSub ? <View style={{ borderRadius: 16, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small instant / emergency charge may apply.</Text></View> : null}
     </View>
   );
 }

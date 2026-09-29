@@ -9,7 +9,7 @@ import { fmt } from "../../lib/format";
 import { PRIMARY, SLATE, EMERALD } from "../../theme";
 import { AddressForm } from "../customer/AddressForm";
 import { OtpInline } from "./OtpInline";
-import { H2, Lbl, SectionCard, Row, PriceRows, addonLabel, card } from "./CheckoutUi";
+import { H2, Lbl, SectionCard, Row, PriceRows, addonLabel, card, SubscriptionHeader } from "./CheckoutUi";
 
 const OsmMap = ({ lat, lng }: { lat: number; lng: number }) => {
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.008}%2C${lng + 0.008}%2C${lat + 0.008}&layer=mapnik&marker=${lat}%2C${lng}`;
@@ -64,13 +64,14 @@ export function StepContact({ user, refresh, savedAddresses, selectedId, pickAdd
 }
 
 /* ================= STEP 5 ================= */
-export function StepSummary({ items, totals, lineTotal, estimateTotal, coupon, setCoupon, applyCoupon, applied, clearCoupon, couponMsg, setCouponMsg, couponChecking }: any) {
+export function StepSummary({ items, totals, lineTotal, estimateTotal, coupon, setCoupon, applyCoupon, applied, clearCoupon, couponMsg, setCouponMsg, couponChecking, isSub }: any) {
   return (
     <View style={{ gap: 16 }}>
-      <H2 t="Order summary" s="Review pricing and apply a coupon before you continue." />
-      <SectionCard title="Services" icon={ShoppingBag} testID="summary-services">
-        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1, minWidth: 0 }}><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · +${it.addons.length} add-on` : ""}</Text></View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
+      <H2 t="Order summary" s={isSub ? "Review your plan before you continue." : "Review pricing and apply a coupon before you continue."} />
+      <SectionCard title={isSub ? "Your plan" : "Services"} icon={ShoppingBag} testID="summary-services">
+        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}><View style={{ flex: 1, minWidth: 0 }}>{isSub ? <SubscriptionHeader it={it} /> : <><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · +${it.addons.length} add-on` : ""}</Text></>}</View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
       </SectionCard>
+      {!isSub ? (
       <SectionCard title="Have a coupon?" icon={Tag} testID="summary-coupon">
         <View style={{ flexDirection: "row", alignItems: "center", height: 40, borderRadius: 6, borderWidth: 1, borderColor: TC.border, paddingHorizontal: 12, gap: 8 }}>
           <Tag size={16} color={TC.textFaint} /><TextInput testID="coupon-input" value={coupon} onChangeText={(v) => { setCoupon(v.toUpperCase()); setCouponMsg(null); }} placeholder="Try AZO50" placeholderTextColor={TC.textFaint} autoCapitalize="characters" style={{ flex: 1, fontSize: 14, color: TC.text, outlineStyle: "none" } as any} />
@@ -79,6 +80,7 @@ export function StepSummary({ items, totals, lineTotal, estimateTotal, coupon, s
         </View>
         {couponMsg ? <Text testID="coupon-msg" style={{ fontSize: 12, marginTop: 8, color: couponMsg.ok ? EMERALD[600] : "#EF4444" }}>{couponMsg.text}</Text> : null}
       </SectionCard>
+      ) : null}
       {totals.ready && (totals.category_charges || []).length > 1 ? (
         <SectionCard title="Category-wise charges" icon={Layers} testID="category-charges-table">
           <View style={{ flexDirection: "row", paddingBottom: 4 }}>{["Category", "Service", "Visiting", "Emerg.", "Total"].map((h, i) => <Text key={h} style={{ flex: i === 0 ? 1.6 : 1, fontSize: 11, color: TC.textFaint, textAlign: i === 0 ? "left" : "right" }}>{h}</Text>)}</View>
@@ -106,17 +108,17 @@ function PayOpt({ k, Icon, title, sub, disabled, tone, testID, payMethod, setPay
       <View style={{ height: 16, width: 16, borderRadius: 8, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? col : "transparent" }} />
     </Pressable>); }
 
-export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal }: any) {
+export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub }: any) {
   const canWallet = walletBal >= displayTotal && displayTotal > 0;
   return (
     <View style={{ gap: 16 }}>
       <H2 t="Review & confirm" s="Please verify everything before placing your order." />
-      <SectionCard title={`Services (${items.length})`} icon={ShoppingBag} onEdit={() => go(0)} testID="review-services">
-        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ height: 48, width: 48, borderRadius: 8, backgroundColor: TC.surfaceAlt, overflow: "hidden" }}>{it.image ? <Image source={{ uri: it.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : null}</View><View style={{ flex: 1, minWidth: 0 }}><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · ${addonLabel(it)}` : ""}</Text></View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
+      <SectionCard title={isSub ? "Your plan" : `Services (${items.length})`} icon={ShoppingBag} onEdit={() => go(0)} testID="review-services">
+        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ height: 48, width: 48, borderRadius: 8, backgroundColor: TC.surfaceAlt, overflow: "hidden" }}>{it.image ? <Image source={{ uri: it.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : null}</View><View style={{ flex: 1, minWidth: 0 }}>{isSub ? <SubscriptionHeader it={it} /> : <><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · ${addonLabel(it)}` : ""}</Text></>}</View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
       </SectionCard>
-      <SectionCard title="Schedule" icon={CalendarClock} onEdit={() => go(2)} testID="review-schedule"><View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>{schedule === "emergency" ? <Zap size={16} color="#F59E0B" /> : <CalendarClock size={16} color={TC.primaryText} />}<Text style={{ fontSize: 14, fontWeight: "500", color: TC.text2 }}>{scheduleLabel(schedule, scheduledAt)}</Text></View></SectionCard>
-      <SectionCard title="Contact" icon={User} onEdit={() => go(3)} testID="review-contact"><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{user?.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted }}>{user?.phone}</Text></SectionCard>
-      <SectionCard title="Service address" icon={MapPin} onEdit={() => go(3)} testID="review-address"><Text style={{ fontSize: 14, color: TC.text2 }}><Text style={{ fontWeight: "600" }}>{addr.label}</Text> · {addr.line}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{[addr.city, addr.pincode].filter(Boolean).join(" - ")}{addr.landmark ? ` · Near ${addr.landmark}` : ""}</Text></SectionCard>
+      <SectionCard title="Schedule" icon={CalendarClock} onEdit={() => go(isSub ? 1 : 2)} testID="review-schedule"><View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>{schedule === "emergency" ? <Zap size={16} color="#F59E0B" /> : <CalendarClock size={16} color={TC.primaryText} />}<Text style={{ fontSize: 14, fontWeight: "500", color: TC.text2 }}>{scheduleLabel(schedule, scheduledAt)}</Text></View></SectionCard>
+      <SectionCard title="Contact" icon={User} onEdit={() => go(isSub ? 2 : 3)} testID="review-contact"><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{user?.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted }}>{user?.phone}</Text></SectionCard>
+      <SectionCard title="Service address" icon={MapPin} onEdit={() => go(isSub ? 2 : 3)} testID="review-address"><Text style={{ fontSize: 14, color: TC.text2 }}><Text style={{ fontWeight: "600" }}>{addr.label}</Text> · {addr.line}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{[addr.city, addr.pincode].filter(Boolean).join(" - ")}{addr.landmark ? ` · Near ${addr.landmark}` : ""}</Text></SectionCard>
       <SectionCard title="Payment method" icon={Wallet} testID="pay-method">
         <View style={{ gap: 10 }}>
           <PayOpt k="online" Icon={CreditCard} title="Pay Online" sub="UPI · Card · Netbanking" testID="pay-online" payMethod={payMethod} setPayMethod={setPayMethod} />
@@ -124,7 +126,7 @@ export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, ad
           {walletBal <= 0 ? <Text style={{ fontSize: 11, color: TC.textFaint }}>New here? Wallet unlocks once you have balance (e.g. from a refund). For now, pay online.</Text> : null}
         </View>
       </SectionCard>
-      <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(4)} testID="review-price"><PriceRows totals={totals} items={items} lineTotal={lineTotal} estimate={displayTotal} review /></SectionCard>
+      <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(isSub ? 3 : 4)} testID="review-price"><PriceRows totals={totals} items={items} lineTotal={lineTotal} estimate={displayTotal} review /></SectionCard>
       <View testID="secure-badge" style={{ borderRadius: 16, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: EMERALD[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color="#fff" /></View><View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely now · full refund on eligible cancellations</Text></View></View>
     </View>
   );
@@ -135,8 +137,8 @@ export function SuccessScreen({ placed, onBookings, onMore }: { placed: any; onB
   return (
     <View testID="order-success" style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
       <View style={{ height: 80, width: 80, borderRadius: 40, backgroundColor: EMERALD[500], alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: "0px 10px 30px rgba(16,185,129,0.3)" } as any}><PartyPopper size={40} color="#fff" /></View>
-      <Text style={{ fontSize: 26, fontWeight: "900", color: TC.text }}>Order placed!</Text>
-      <Text testID="order-success-msg" style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 360 }}>{placed.paid ? `${placed.count} booking${placed.count > 1 ? "s" : ""} confirmed & paid · ${fmt(placed.total)}. We're finding the best professionals near you.` : `${placed.count} booking${placed.count > 1 ? "s" : ""} created · complete the payment from My Bookings to confirm.`}</Text>
+      <Text style={{ fontSize: 26, fontWeight: "900", color: TC.text }}>{placed.subscription ? "Booking confirmed!" : "Order placed!"}</Text>
+      <Text testID="order-success-msg" style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 360 }}>{placed.subscription ? `Your subscription is confirmed & paid · ${fmt(placed.total)}. We're alerting verified professionals near you to accept it.` : placed.paid ? `${placed.count} booking${placed.count > 1 ? "s" : ""} confirmed & paid · ${fmt(placed.total)}. We're finding the best professionals near you.` : `${placed.count} booking${placed.count > 1 ? "s" : ""} created · complete the payment from My Bookings to confirm.`}</Text>
       {orders.length > 1 ? (
         <View testID="order-group-summary" style={{ marginTop: 24, width: "100%", maxWidth: 420 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8, paddingHorizontal: 4 }}><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>Order group · {orders.length} invoices</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>one per category</Text></View>
@@ -146,7 +148,7 @@ export function SuccessScreen({ placed, onBookings, onMore }: { placed: any; onB
           </View>
         </View>
       ) : null}
-      <Pressable testID="go-bookings" onPress={onBookings} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>View my bookings</Text><ArrowRight size={16} color="#fff" /></Pressable>
+      <Pressable testID="go-bookings" onPress={onBookings} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placed.subscription ? "View my subscriptions" : "View my bookings"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
       <Pressable testID="book-more" onPress={onMore} style={{ marginTop: 12 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.textMuted }}>Book more services</Text></Pressable>
     </View>
   );

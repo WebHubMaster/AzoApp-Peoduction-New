@@ -6,7 +6,7 @@ import {
   Tag, MapPin, CalendarClock, Zap, ShieldCheck, User, Pencil, PartyPopper, Clock, Star, LocateFixed, Loader2, Wallet, CreditCard, Layers,
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
-import { runPayment } from "@/lib/payments";
+import { runPayment, openCheckout } from "@/lib/payments";
 import { getMerchantRefCode } from "@/lib/merchantRef";
 
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +18,6 @@ import AddressMap from "@/components/site/AddressMap";
 import SchedulePicker from "@/components/site/SchedulePicker";
 import { OtpLogin } from "@/components/OtpLogin";
 import SiteNavbar from "@/components/site/SiteNavbar";
-import SubscriptionCheckout from "@/pages/customer/SubscriptionCheckout";
 import { toast } from "sonner";
 
 const STEPS = [
@@ -30,14 +29,36 @@ const STEPS = [
   { key: "confirm", label: "Confirm", icon: ShieldCheck },
 ];
 
+const DOW_LONG = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// Human line for a subscription plan, e.g. "Monthly plan · 26 working days · 30-day period · Sun off"
+const subPlanLine = (it) => {
+  if (!it) return "";
+  const parts = [`${it.plan_label || it.plan_type} plan`];
+  if (it.working_days) parts.push(`${it.working_days} working days`);
+  if (it.duration_days) parts.push(`${it.duration_days}-day period`);
+  if ((it.weekly_offs || []).length) parts.push(`${(it.weekly_offs || []).map((d) => DOW_LONG[d]).join(", ")} off`);
+  return parts.join(" · ");
+};
+
+// Green "Recurring Subscription" badge + name + plan line (matches the service page look).
+const SubscriptionHeader = ({ it, size = "md" }) => (
+  <div data-testid="sub-recurring-header">
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+      <CalendarClock className="h-3 w-3" /> Recurring Subscription
+    </span>
+    <h3 className={`font-heading font-bold text-slate-900 mt-1.5 leading-snug ${size === "lg" ? "text-lg" : ""}`}>{it.name}</h3>
+    <p className="text-sm text-slate-500 mt-0.5">{subPlanLine(it)}</p>
+  </div>
+);
+
 const PRICE_LABEL = { per_hour: "/ hr", per_person: "/ person", per_sqft: "/ sq ft" };
 
 /* ---------------- Progress Stepper ---------------- */
-const Stepper = ({ step, setStep, maxReached }) => (
+const Stepper = ({ step, setStep, maxReached, steps = STEPS }) => (
   <div className="w-full">
     {/* Desktop */}
     <div className="hidden sm:flex items-center justify-between max-w-3xl mx-auto">
-      {STEPS.map((s, i) => {
+      {steps.map((s, i) => {
         const done = i < step;
         const active = i === step;
         const clickable = i <= maxReached;
@@ -54,7 +75,7 @@ const Stepper = ({ step, setStep, maxReached }) => (
               </span>
               <span className={`text-[11px] font-semibold ${active ? "text-primary-700" : done ? "text-slate-700" : "text-slate-400"}`}>{s.label}</span>
             </button>
-            {i < STEPS.length - 1 && (
+            {i < steps.length - 1 && (
               <div className={`flex-1 h-0.5 mx-1 -mt-5 rounded-full transition-all ${i < step ? "bg-primary-700" : "bg-slate-200"}`} />
             )}
           </React.Fragment>
@@ -64,11 +85,11 @@ const Stepper = ({ step, setStep, maxReached }) => (
     {/* Mobile */}
     <div className="sm:hidden">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs font-bold uppercase tracking-wider text-primary-700">Step {step + 1} of {STEPS.length}</span>
-        <span className="text-xs font-semibold text-slate-500">{STEPS[step].label}</span>
+        <span className="text-xs font-bold uppercase tracking-wider text-primary-700">Step {step + 1} of {steps.length}</span>
+        <span className="text-xs font-semibold text-slate-500">{steps[step]?.label}</span>
       </div>
       <div className="h-1.5 rounded-full bg-slate-200 overflow-hidden">
-        <motion.div className="h-full bg-primary-700 rounded-full" animate={{ width: `${((step + 1) / STEPS.length) * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
+        <motion.div className="h-full bg-primary-700 rounded-full" animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
       </div>
     </div>
   </div>
@@ -165,6 +186,16 @@ export default function Checkout() {
   const orderNonceRef = useRef(null);
   const acfg = cfg.address_config || {};
 
+  // Recurring subscription (Maid) — booked ALONE. It flows through this SAME normal
+  // checkout (schedule slot-picker, address, review, pay); only the pricing is flat and
+  // the final placement hits the /subscriptions endpoints. The "Details" (tiers/add-ons)
+  // step is dropped since a plan has no options.
+  const isSub = items.length === 1 && !!items[0]?.subscription;
+  const sub = isSub ? items[0] : null;
+  const activeSteps = useMemo(() => (isSub ? STEPS.filter((s) => s.key !== "details") : STEPS), [isSub]);
+  const stepKey = activeSteps[step]?.key;
+  const showFull = stepKey === "summary" || stepKey === "confirm";
+
   useEffect(() => { document.title = "Checkout · AzoApp"; window.scrollTo(0, 0); }, []);
   useEffect(() => { api.get("/auth/config").then((r) => setCfg(r.data)).catch(() => {}); }, []);
   useEffect(() => {
@@ -187,7 +218,14 @@ export default function Checkout() {
      "Calculating…" once we have a number). cart-quote is a pure calculation (no side
      effects) so retrying is always safe. */
   useEffect(() => {
-    if (!items.length || items.some((it) => it.subscription)) { setQuotes({}); setCartPricing(null); return; }
+    if (!items.length) { setQuotes({}); setCartPricing(null); return; }
+    if (items.some((it) => it.subscription)) {
+      const s = items.find((it) => it.subscription);
+      const amt = Number(s?.plan_price) || 0;
+      setQuotes({ [s.id]: { line_total: amt } });
+      setCartPricing({ base: amt, services_total: amt, cart_service_total: amt, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: amt, category_charges: [] });
+      return;
+    }
     let cancelled = false;
     // address is part of the quote: city/pincode-scoped rules (surge, serviceability)
     // must show in the preview exactly as they will be charged on the bookings.
@@ -296,28 +334,64 @@ export default function Checkout() {
   };
 
   const canNext = () => {
-    if (step === 0) return items.length > 0;
-    if (step === 2) return schedule !== "schedule" || !!scheduledAt;
-    if (step === 3) return addressValid();
+    const k = activeSteps[step]?.key;
+    if (k === "services") return items.length > 0;
+    if (k === "schedule") return schedule !== "schedule" || !!scheduledAt;
+    if (k === "contact") return addressValid();
     return true;
   };
 
   const next = () => {
-    if (step === 0 && !items.length) return toast.error("Add at least one service");
-    if (step === 2 && schedule === "schedule" && !scheduledAt) return toast.error("Please pick a date & time slot");
-    if (step === 3) {
+    const k = activeSteps[step]?.key;
+    if (k === "services" && !items.length) return toast.error("Add at least one service");
+    if (k === "schedule" && schedule === "schedule" && !scheduledAt) return toast.error("Please pick a date & time slot");
+    if (k === "contact") {
       if (!user) return toast.error("Please verify your mobile to continue");
       if (needsGps && (!addr.lat || !addr.lng)) return toast.error("Please set your location using \"Use my current location\" or the map");
       if (!addr.line || !addr.pincode) return toast.error("Please enter your service address");
       if (acfg.mandatory_landmark && acfg.landmark_instructions && !addr.landmark) return toast.error("Landmark is required");
       if (needsGps && serviceable && serviceable.serviceable === false) return toast.error("Sorry, we don't service this location yet");
     }
-    if (step < STEPS.length - 1) go(step + 1);
+    if (step < activeSteps.length - 1) go(step + 1);
   };
   const back = () => { if (step > 0) go(step - 1); else navigate(-1); };
 
+  const placeSubscription = async () => {
+    setPlacing(true);
+    try {
+      const startDate = scheduledAt ? scheduledAt.split("T")[0] : null;
+      const time = scheduledAt ? (scheduledAt.split("T")[1] || "09:00") : "09:00";
+      // Use the chosen saved address; if the customer entered a new one, save it first.
+      let addressId = selectedId !== "new" ? selectedId : null;
+      if (!addressId && addr.line) {
+        try {
+          const { data } = await api.post("/auth/address", { ...addr, label: addr.label || "Home" });
+          const list = data?.addresses || [];
+          addressId = (list.find((a) => a.line === addr.line && a.pincode === addr.pincode) || list[list.length - 1])?.id || null;
+          await refresh();
+        } catch { /* ignore */ }
+      }
+      const { data: created } = await api.post("/subscriptions", { service_id: sub.service_id, plan_type: sub.plan_type, start_date: startDate, preferred_time: time, address_id: addressId });
+      const { data: order } = await api.post(`/subscriptions/${created.id}/pay/order`);
+      const ok = await openCheckout(order, {
+        user, name: "AzoApp Subscription", description: sub.name || "Subscription",
+        onVerify: (res) => res.razorpay_payment_id
+          ? api.post(`/subscriptions/${created.id}/pay/verify`, { order_id: res.razorpay_order_id, payment_id: res.razorpay_payment_id, signature: res.razorpay_signature })
+          : api.post(`/subscriptions/${created.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),
+      });
+      await refresh();
+      setPlacing(false);
+      if (ok) { clear(); setPlaced({ count: 1, total: Number(sub.plan_price) || 0, paid: true, orders: [], subscription: true }); }
+      else { toast.info("Payment was not completed. You can try again."); }
+    } catch (e) {
+      setPlacing(false);
+      toast.error(e?.response?.data?.detail || "Booking failed, please try again");
+    }
+  };
+
   const placeOrder = async () => {
     if (!user) return toast.error("Please verify your mobile first");
+    if (isSub) return placeSubscription();
     setPlacing(true);
     // Group cart lines by CATEGORY → one order per category (a single partner does
     // all same-category services; different categories become separate orders).
@@ -419,10 +493,6 @@ export default function Checkout() {
     }
   };
 
-  /* ---------------- Subscription cart → dedicated checkout ---------------- */
-  const subItem = items.length === 1 && items[0]?.subscription ? items[0] : null;
-  if (subItem) return <SubscriptionCheckout item={subItem} />;
-
   /* ---------------- Success screen ---------------- */
   if (placed) {
     return (
@@ -431,8 +501,10 @@ export default function Checkout() {
           className="h-20 w-20 rounded-full bg-emerald-500 flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/30">
           <PartyPopper className="h-10 w-10 text-white" />
         </motion.div>
-        <h1 className="font-heading font-black text-2xl sm:text-3xl text-slate-900">Order placed!</h1>
-        <p className="text-slate-500 mt-2 max-w-sm">{placed.paid
+        <h1 className="font-heading font-black text-2xl sm:text-3xl text-slate-900">{placed.subscription ? "Booking confirmed!" : "Order placed!"}</h1>
+        <p className="text-slate-500 mt-2 max-w-sm">{placed.subscription
+          ? <>Your subscription is confirmed &amp; paid · {fmt(placed.total)}. We're alerting verified professionals near you to accept it.</>
+          : placed.paid
           ? <>{placed.count} booking{placed.count > 1 ? "s" : ""} confirmed &amp; paid · {fmt(placed.total)}. We're finding the best professionals near you.</>
           : <>{placed.count} booking{placed.count > 1 ? "s" : ""} created · complete the payment from My Bookings to confirm.</>}</p>
 
@@ -459,7 +531,7 @@ export default function Checkout() {
             </div>
           </div>
         )}
-        <Button data-testid="go-bookings" onClick={() => navigate("/account")} className="mt-6 h-12 px-8 bg-primary-700 hover:bg-primary-800">View my bookings <ArrowRight className="h-4 w-4 ml-1" /></Button>
+        <Button data-testid="go-bookings" onClick={() => navigate(placed.subscription ? "/account?tab=subscriptions" : "/account")} className="mt-6 h-12 px-8 bg-primary-700 hover:bg-primary-800">{placed.subscription ? "View my subscriptions" : "View my bookings"} <ArrowRight className="h-4 w-4 ml-1" /></Button>
         <button onClick={() => navigate("/services")} className="mt-3 text-sm font-semibold text-slate-500 hover:text-primary-700">Book more services</button>
       </div>
     );
@@ -487,11 +559,11 @@ export default function Checkout() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
           <button onClick={back} data-testid="checkout-back" className="h-9 w-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary-700"><ArrowLeft className="h-5 w-5" /></button>
           <div>
-            <h1 className="font-heading font-extrabold text-lg text-slate-900 leading-none">Book your services</h1>
-            <p className="text-[11px] text-slate-400 mt-0.5">{count} item{count > 1 ? "s" : ""} in your order</p>
+            <h1 className="font-heading font-extrabold text-lg text-slate-900 leading-none">{isSub ? "Book your subscription" : "Book your services"}</h1>
+            <p className="text-[11px] text-slate-400 mt-0.5">{isSub ? `${sub.plan_label || sub.plan_type} plan` : `${count} item${count > 1 ? "s" : ""} in your order`}</p>
           </div>
         </div>
-        <div className="border-t border-slate-100 py-3 px-4 sm:px-6"><Stepper step={step} setStep={go} maxReached={maxReached} /></div>
+        <div className="border-t border-slate-100 py-3 px-4 sm:px-6"><Stepper step={step} setStep={go} maxReached={maxReached} steps={activeSteps} /></div>
       </header>
 
       <div className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 grid lg:grid-cols-3 gap-6 pb-40 lg:pb-28">
@@ -499,19 +571,19 @@ export default function Checkout() {
         <div className="lg:col-span-2 min-w-0">
           <AnimatePresence mode="wait">
             <motion.div key={step} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }} transition={{ duration: 0.2 }}>
-              {step === 0 && <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} navigate={navigate} together={upsell.frequently_together} addService={addService} />}
-              {step === 1 && <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} quotes={quotes} popularAddons={upsell.popular_addons} lineTotal={lineTotal} />}
-              {step === 2 && <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} />}
-              {step === 3 && <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} mapsKey={cfg.integrations?.google_maps_api_key || ""} />}
-              {step === 4 && <StepSummary items={items} quotes={quotes} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} />}
-              {step === 5 && <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} />}
+              {stepKey === "services" && <StepServices items={items} removeItem={removeItem} setQty={setQty} lineTotal={lineTotal} navigate={navigate} together={upsell.frequently_together} addService={addService} isSub={isSub} />}
+              {stepKey === "details" && <StepDetails items={items} updateItem={updateItem} setAddonQty={setAddonQty} quotes={quotes} popularAddons={upsell.popular_addons} lineTotal={lineTotal} />}
+              {stepKey === "schedule" && <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} isSub={isSub} />}
+              {stepKey === "contact" && <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} mapsKey={cfg.integrations?.google_maps_api_key || ""} />}
+              {stepKey === "summary" && <StepSummary items={items} quotes={quotes} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} isSub={isSub} />}
+              {stepKey === "confirm" && <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} />}
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* summary sidebar (desktop) */}
         <div className="hidden lg:block">
-          <OrderSidebar items={items} lineTotal={lineTotal} totals={totals} displayTotal={displayTotal} navigate={navigate} showFull={step >= 4} />
+          <OrderSidebar items={items} lineTotal={lineTotal} totals={totals} displayTotal={displayTotal} navigate={navigate} showFull={showFull} isSub={isSub} />
         </div>
       </div>
 
@@ -519,16 +591,16 @@ export default function Checkout() {
       <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] text-slate-400 font-medium">{step >= 4 ? "Total payable" : "Services subtotal · taxes at checkout"}</p>
-            <p className="font-heading font-extrabold text-xl text-slate-900 leading-none truncate">{fmt(step >= 4 ? displayTotal : items.reduce((s, it) => s + lineTotal(it), 0))}</p>
+            <p className="text-[11px] text-slate-400 font-medium">{showFull ? "Total payable" : "Services subtotal · taxes at checkout"}</p>
+            <p className="font-heading font-extrabold text-xl text-slate-900 leading-none truncate">{fmt(showFull ? displayTotal : items.reduce((s, it) => s + lineTotal(it), 0))}</p>
           </div>
-          {step < STEPS.length - 1 ? (
+          {step < activeSteps.length - 1 ? (
             <Button data-testid="checkout-next" onClick={next} disabled={!canNext()} className="ml-auto h-12 px-6 sm:px-10 bg-primary-700 hover:bg-primary-800 text-base disabled:opacity-50">
-              {step === 4 ? "Review order" : "Continue"} <ArrowRight className="h-4 w-4 ml-1" />
+              {stepKey === "summary" ? "Review order" : "Continue"} <ArrowRight className="h-4 w-4 ml-1" />
             </Button>
           ) : (
             <Button data-testid="place-order" onClick={placeOrder} disabled={placing} className="ml-auto h-12 px-6 sm:px-10 bg-emerald-600 hover:bg-emerald-700 text-base">
-              {placing ? `Placing ${progress.done}/${progress.total}…` : "Confirm & Place Order"} <ShieldCheck className="h-4 w-4 ml-1" />
+              {placing ? (isSub ? "Processing…" : `Placing ${progress.done}/${progress.total}…`) : (isSub ? "Confirm & Pay" : "Confirm & Place Order")} <ShieldCheck className="h-4 w-4 ml-1" />
             </Button>
           )}
         </div>
@@ -538,9 +610,25 @@ export default function Checkout() {
 }
 
 /* ================= STEP 1: Select Services ================= */
-const StepServices = ({ items, removeItem, setQty, lineTotal, navigate, together = [], addService }) => {
+const StepServices = ({ items, removeItem, setQty, lineTotal, navigate, together = [], addService, isSub }) => {
   const inCart = new Set(items.map((it) => it.service_id));
   const suggestions = (together || []).filter((s) => !inCart.has(s.id)).slice(0, 6);
+  if (isSub) {
+    const it = items[0];
+    return (
+      <div className="space-y-4">
+        <div>
+          <h2 className="font-heading font-bold text-xl text-slate-900">Your plan</h2>
+          <p className="text-sm text-slate-500 mt-0.5">You're booking a recurring subscription — a verified professional every working day.</p>
+        </div>
+        <div className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4" data-testid={`cart-item-${it.service_id}`}>
+          <div className="h-20 w-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">{it.image && <img src={it.image} alt={it.name} className="h-full w-full object-cover" />}</div>
+          <div className="flex-1 min-w-0"><SubscriptionHeader it={it} /></div>
+          <span className="font-heading font-extrabold text-slate-900 shrink-0">{fmt(lineTotal(it))}</span>
+        </div>
+      </div>
+    );
+  }
   return (
   <div className="space-y-4">
     <div>
@@ -724,24 +812,26 @@ const StepDetails = ({ items, updateItem, setAddonQty, quotes, popularAddons = {
 };
 
 /* ================= STEP 3: Schedule ================= */
-const StepSchedule = ({ schedule, setSchedule, scheduledAt, setScheduledAt }) => (
+const StepSchedule = ({ schedule, setSchedule, scheduledAt, setScheduledAt, isSub }) => (
   <div className="space-y-4">
     <div>
-      <h2 className="font-heading font-bold text-xl text-slate-900">When should we come?</h2>
-      <p className="text-sm text-slate-500 mt-0.5">This schedule applies to your whole order.</p>
+      <h2 className="font-heading font-bold text-xl text-slate-900">When should we start?</h2>
+      <p className="text-sm text-slate-500 mt-0.5">{isSub ? "Pick the start date & time — your recurring visits begin from here." : "This schedule applies to your whole order."}</p>
     </div>
-    <div className="grid grid-cols-2 gap-3">
-      {[["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]].map(([k, t, d, Icon]) => (
-        <button key={k} data-testid={`when-${k}`} onClick={() => setSchedule(k)}
-          className={`text-left rounded-2xl border-2 p-4 transition-all ${schedule === k ? "border-primary-700 bg-primary-50" : "border-slate-200 bg-white hover:border-primary-300"}`}>
-          <Icon className={`h-6 w-6 mb-2 ${schedule === k ? "text-primary-700" : "text-slate-400"}`} />
-          <p className="font-semibold text-slate-900">{t}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{d}</p>
-        </button>
-      ))}
-    </div>
+    {!isSub && (
+      <div className="grid grid-cols-2 gap-3">
+        {[["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]].map(([k, t, d, Icon]) => (
+          <button key={k} data-testid={`when-${k}`} onClick={() => setSchedule(k)}
+            className={`text-left rounded-2xl border-2 p-4 transition-all ${schedule === k ? "border-primary-700 bg-primary-50" : "border-slate-200 bg-white hover:border-primary-300"}`}>
+            <Icon className={`h-6 w-6 mb-2 ${schedule === k ? "text-primary-700" : "text-slate-400"}`} />
+            <p className="font-semibold text-slate-900">{t}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{d}</p>
+          </button>
+        ))}
+      </div>
+    )}
     {schedule === "schedule" && <SchedulePicker value={scheduledAt} onChange={setScheduledAt} />}
-    {schedule === "emergency" && (
+    {schedule === "emergency" && !isSub && (
       <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex gap-3">
         <Zap className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800">We'll assign the nearest available professional right away. A small instant / emergency charge may apply.</p>
@@ -825,23 +915,25 @@ const StepContact = ({ user, refresh, savedAddresses, selectedId, pickAddress, a
 };
 
 /* ================= STEP 5: Order Summary (+coupon) ================= */
-const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, setCoupon, applyCoupon, applied, clearCoupon, couponMsg, setCouponMsg, couponChecking }) => (
+const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, setCoupon, applyCoupon, applied, clearCoupon, couponMsg, setCouponMsg, couponChecking, isSub }) => (
   <div className="space-y-4">
     <div>
       <h2 className="font-heading font-bold text-xl text-slate-900">Order summary</h2>
-      <p className="text-sm text-slate-500 mt-0.5">Review pricing and apply a coupon before you continue.</p>
+      <p className="text-sm text-slate-500 mt-0.5">{isSub ? "Review your plan before you continue." : "Review pricing and apply a coupon before you continue."}</p>
     </div>
 
-    <SectionCard title="Services" icon={ShoppingBag}>
+    <SectionCard title={isSub ? "Your plan" : "Services"} icon={ShoppingBag}>
       <div className="space-y-3">
         {items.map((it) => (
           <div key={it.id} className="flex justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-medium text-slate-900 text-sm line-clamp-1">{it.name}</p>
-              <p className="text-xs text-slate-400">
-                {it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}
-                {(it.addons || []).length > 0 ? ` · +${it.addons.length} add-on` : ""}
-              </p>
+              {isSub ? <SubscriptionHeader it={it} /> : (<>
+                <p className="font-medium text-slate-900 text-sm line-clamp-1">{it.name}</p>
+                <p className="text-xs text-slate-400">
+                  {it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}
+                  {(it.addons || []).length > 0 ? ` · +${it.addons.length} add-on` : ""}
+                </p>
+              </>)}
             </div>
             <span className="font-semibold text-slate-900 text-sm shrink-0">{fmt(lineTotal(it))}</span>
           </div>
@@ -849,6 +941,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
       </div>
     </SectionCard>
 
+    {!isSub && (
     <SectionCard title="Have a coupon?" icon={Tag}>
       <div className="relative">
         <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -863,6 +956,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
       </div>
       {couponMsg && <p className={`text-xs mt-2 ${couponMsg.ok ? "text-emerald-600" : "text-red-500"}`}>{couponMsg.text}</p>}
     </SectionCard>
+    )}
 
     {totals.ready && (totals.category_charges || []).length > 1 && (
       <SectionCard title="Category-wise charges" icon={Layers}>
@@ -941,24 +1035,26 @@ const scheduleLabel = (schedule, scheduledAt) => {
   return `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · ${hh}:${String(m).padStart(2, "0")} ${ap}`;
 };
 
-const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal }) => (
+const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub }) => (
   <div className="space-y-4">
     <div>
       <h2 className="font-heading font-bold text-xl text-slate-900">Review &amp; confirm</h2>
       <p className="text-sm text-slate-500 mt-0.5">Please verify everything before placing your order.</p>
     </div>
 
-    <SectionCard title={`Services (${items.length})`} icon={ShoppingBag} onEdit={() => go(0)}>
+    <SectionCard title={isSub ? "Your plan" : `Services (${items.length})`} icon={ShoppingBag} onEdit={() => go(0)}>
       <div className="space-y-3">
         {items.map((it) => (
           <div key={it.id} className="flex gap-3">
             <div className="h-12 w-12 rounded-lg bg-slate-100 overflow-hidden shrink-0">{it.image && <img src={it.image} alt="" className="h-full w-full object-cover" />}</div>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-slate-900 text-sm line-clamp-1">{it.name}</p>
-              <p className="text-xs text-slate-400">
-                {it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}
-                {(it.addons || []).length > 0 ? ` · ${it.addons.map((n) => `${n}${((it.addonQty || {})[n] || 1) > 1 ? ` ×${(it.addonQty || {})[n]}` : ""}`).join(", ")}` : ""}
-              </p>
+              {isSub ? <SubscriptionHeader it={it} /> : (<>
+                <p className="font-medium text-slate-900 text-sm line-clamp-1">{it.name}</p>
+                <p className="text-xs text-slate-400">
+                  {it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}
+                  {(it.addons || []).length > 0 ? ` · ${it.addons.map((n) => `${n}${((it.addonQty || {})[n] || 1) > 1 ? ` ×${(it.addonQty || {})[n]}` : ""}`).join(", ")}` : ""}
+                </p>
+              </>)}
             </div>
             <span className="font-semibold text-slate-900 text-sm shrink-0">{fmt(lineTotal(it))}</span>
           </div>
@@ -967,19 +1063,19 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
     </SectionCard>
 
     <div className="grid sm:grid-cols-2 gap-4">
-      <SectionCard title="Schedule" icon={CalendarClock} onEdit={() => go(2)}>
+      <SectionCard title="Schedule" icon={CalendarClock} onEdit={() => go(isSub ? 1 : 2)}>
         <p className="text-sm text-slate-700 font-medium flex items-center gap-2">
           {schedule === "emergency" ? <Zap className="h-4 w-4 text-amber-500" /> : <CalendarClock className="h-4 w-4 text-primary-700" />}
           {scheduleLabel(schedule, scheduledAt)}
         </p>
       </SectionCard>
-      <SectionCard title="Contact" icon={User} onEdit={() => go(3)}>
+      <SectionCard title="Contact" icon={User} onEdit={() => go(isSub ? 2 : 3)}>
         <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
         <p className="text-xs text-slate-500">{user?.phone}</p>
       </SectionCard>
     </div>
 
-    <SectionCard title="Service address" icon={MapPin} onEdit={() => go(3)}>
+    <SectionCard title="Service address" icon={MapPin} onEdit={() => go(isSub ? 2 : 3)}>
       <p className="text-sm text-slate-700"><span className="font-semibold">{addr.label}</span> · {addr.line}</p>
       <p className="text-xs text-slate-500 mt-0.5">{[addr.city, addr.pincode].filter(Boolean).join(" - ")}{addr.landmark ? ` · Near ${addr.landmark}` : ""}</p>
     </SectionCard>
@@ -1010,7 +1106,7 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
       })()}
     </SectionCard>
 
-    <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(4)}>
+    <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(isSub ? 3 : 4)}>
       {!totals.ready ? (
         <div className="space-y-1.5" data-testid="review-estimating">
           <Row l="Services" v={fmt(items.reduce((s, it) => s + lineTotal(it), 0))} />
@@ -1052,17 +1148,17 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
 );
 
 /* ================= Desktop order sidebar ================= */
-const OrderSidebar = ({ items, lineTotal, totals, displayTotal, navigate, showFull }) => (
+const OrderSidebar = ({ items, lineTotal, totals, displayTotal, navigate, showFull, isSub }) => (
   <div className="sticky top-40 rounded-2xl border border-slate-200 bg-white overflow-hidden">
     <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
       <h3 className="font-heading font-bold text-slate-900">Your order</h3>
-      <button onClick={() => navigate("/services")} className="text-xs font-semibold text-primary-700 flex items-center gap-1"><Plus className="h-3.5 w-3.5" /> Add</button>
+      {!isSub && <button onClick={() => navigate("/services")} className="text-xs font-semibold text-primary-700 flex items-center gap-1"><Plus className="h-3.5 w-3.5" /> Add</button>}
     </div>
     <div className="p-5 space-y-3 max-h-[40vh] overflow-y-auto">
       {items.map((it) => (
         <div key={it.id} className="flex gap-3">
           <div className="h-11 w-11 rounded-lg bg-slate-100 overflow-hidden shrink-0">{it.image && <img src={it.image} alt="" className="h-full w-full object-cover" />}</div>
-          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-slate-900 line-clamp-1">{it.name}</p><p className="text-xs text-slate-400">Qty {it.qty}</p></div>
+          <div className="flex-1 min-w-0"><p className="text-sm font-medium text-slate-900 line-clamp-1">{it.name}</p><p className="text-xs text-slate-400">{isSub ? `${it.plan_label || it.plan_type} plan` : `Qty ${it.qty}`}</p></div>
           <span className="text-sm font-semibold text-slate-900 shrink-0">{fmt(lineTotal(it))}</span>
         </div>
       ))}
