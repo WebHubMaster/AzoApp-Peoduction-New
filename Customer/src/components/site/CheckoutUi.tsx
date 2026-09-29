@@ -117,7 +117,13 @@ export function StepServices({ items, removeItem, setQty, lineTotal, together = 
         <H2 t="Your plan" s="You're booking a recurring subscription — a verified professional every working day." />
         <View testID={`cart-item-${it.service_id || it.id}`} style={{ ...card, flexDirection: "row", gap: 12, padding: 16 }}>
           <Thumb uri={it.image} size={72} />
-          <View style={{ flex: 1, minWidth: 0 }}><SubscriptionHeader it={it} /></View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <SubscriptionHeader it={it} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginTop: 12 }}>
+              <Pressable testID={`change-plan-${it.service_id || it.id}`} onPress={() => router.push(`/(site)/service/${it.service_id}` as any)} hitSlop={8}><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Change plan</Text></Pressable>
+              <Pressable testID={`remove-${it.service_id || it.id}`} onPress={() => { removeItem(it.id); router.replace(`/(site)/service/${it.service_id}` as any); }} hitSlop={8} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Trash2 size={14} color={TC.textFaint} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.textFaint }}>Remove</Text></Pressable>
+            </View>
+          </View>
           <Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{fmt(lineTotal(it))}</Text>
         </View>
       </View>

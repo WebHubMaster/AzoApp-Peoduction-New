@@ -623,7 +623,13 @@ const StepServices = ({ items, removeItem, setQty, lineTotal, navigate, together
         </div>
         <div className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-4" data-testid={`cart-item-${it.service_id}`}>
           <div className="h-20 w-20 rounded-xl bg-slate-100 overflow-hidden shrink-0">{it.image && <img src={it.image} alt={it.name} className="h-full w-full object-cover" />}</div>
-          <div className="flex-1 min-w-0"><SubscriptionHeader it={it} /></div>
+          <div className="flex-1 min-w-0">
+            <SubscriptionHeader it={it} />
+            <div className="flex items-center gap-4 mt-3">
+              <button data-testid={`change-plan-${it.service_id}`} onClick={() => navigate(`/service/${it.service_id}`)} className="text-xs font-semibold text-primary-700 hover:underline">Change plan</button>
+              <button data-testid={`remove-${it.service_id}`} onClick={() => { removeItem(it.id); navigate(`/service/${it.service_id}`); }} className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
+            </div>
+          </div>
           <span className="font-heading font-extrabold text-slate-900 shrink-0">{fmt(lineTotal(it))}</span>
         </div>
       </div>
