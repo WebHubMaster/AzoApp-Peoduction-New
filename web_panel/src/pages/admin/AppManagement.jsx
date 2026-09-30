@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 const CHUNK = 4 * 1024 * 1024; // 4MB
 const PLATFORMS = [
-  { key: "customer", label: "Customer App", pkg: "app.azoapp.customer" },
+  { key: "customer", label: "Customer App", pkg: "app.azoapp.homeservice" },
   { key: "partner", label: "Partner App", pkg: "app.azoapp.partner" },
 ];
 
