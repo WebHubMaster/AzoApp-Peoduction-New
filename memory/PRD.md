@@ -235,3 +235,13 @@ Tuned React Query defaults in both `app/_layout.tsx`: staleTime 2m, gcTime 24h, 
 
 ### 4. Maintenance-mode logo cropped (Customer)
 `AppUpdateGate.tsx`: maintenance image changed from contentFit="cover" (cropped the wide logo) to "contain" with a wider box; icon fallback also "contain".
+
+---
+## Session (2026-06) — App Management "Failed to fetch" + package names
+ROOT CAUSE: pod reset lost `/app/backend/.env` (→ MONGO_URL KeyError, backend crash-loop → every /api = 502 → panel "Failed to fetch") and `web_panel/node_modules`.
+FIX (verified 100% by testing agent, iteration_168):
+- Restored `/app/backend/.env` (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL). Startup seed() rebuilt admin + demo data.
+- Reinstalled web_panel deps; admin panel serving on :3000.
+- APK upload path already targets S3 via storage_service (Integration Center AWS config) with local fallback; verified chunk=200, finish=400-validation (reachable, no more Failed to fetch).
+- Panel Customer APK label corrected app.azoapp.customer → app.azoapp.homeservice (AppManagement.jsx). app.json packages already correct (customer=app.azoapp.homeservice, partner=app.azoapp.partner) — no change needed.
+DATA NOTE: DB reset wiped Integration Center settings incl. AWS S3 — user must re-enter AWS S3 config for uploads to land in S3 (else local disk).
