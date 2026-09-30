@@ -1,0 +1,24 @@
+{
+  "summary": "Iter165 smoke tests after removal of 'emergentintegrations==0.2.1' from backend/requirements.txt. Verified backend boots cleanly, emergentintegrations is still importable (installed via Dockerfile --extra-index-url in the running env), AI /api/ai/chat returns non-500 (dep still resolvable), App Management public + admin endpoints work, Live Logs ingest + admin endpoints work, and core admin regression (OTP login + admin dashboard/bookings) still works. 14/14 pytest tests passed.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "test_report_links": [
+    "/app/backend/tests/test_smoke_reqs_iter165.py",
+    "/app/test_reports/pytest/iter165.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/requirements.txt correctly no longer contains 'emergentintegrations==0.2.1' — good; it is now installed only in the Docker build step via --extra-index-url as intended.",
+    "JWT HMAC key in backend/.env is only 10 bytes (InsecureKeyLengthWarning at runtime); recommend >=32 bytes for HS256. Non-blocking for this iteration but worth fixing.",
+    "No Python source imports 'emergentintegrations' directly (grep clean); LLM path uses litellm in services/ai_service.py — so the removed pip line was truly unused at runtime by application code paths tested."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_smoke_reqs_iter165.py"
+  ],
+  "success_rate": { "backend": "100% (14/14)", "frontend": "skipped" },
+  "test_credentials": "Admin OTP login: phone +919000000000 / OTP 123456 (from /app/memory/test_credentials.md).",
+  "seed_data_creation": "None. Only ingested one TEST_iter165 client log via POST /api/logs/client.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Requirements.txt change verified safe. emergentintegrations is available at runtime (installed via Dockerfile extra-index step). Reusable smoke suite: /app/backend/tests/test_smoke_reqs_iter165.py covers ai/chat, app-mgmt (public+admin), logs (ingest+admin list/summary/health), and admin OTP+dashboard regression."
+}
