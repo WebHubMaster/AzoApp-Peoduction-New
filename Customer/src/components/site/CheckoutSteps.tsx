@@ -95,7 +95,7 @@ export function StepSummary({ items, totals, lineTotal, estimateTotal, coupon, s
 
 /* ================= STEP 6 ================= */
 export const scheduleLabel = (schedule: string, scheduledAt: string | null) => {
-  if (schedule === "emergency") return "Instant / Emergency · ASAP";
+  if (schedule === "emergency") return "Quick Services · ASAP";
   if (!scheduledAt) return "Not set";
   const d = new Date(scheduledAt); const t = scheduledAt.split("T")[1]; const [h, m] = (t || "10:00").split(":").map(Number);
   return `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · ${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;

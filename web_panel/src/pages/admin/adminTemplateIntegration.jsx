@@ -1916,10 +1916,10 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           </div>
           <p className="text-[11px] text-slate-400 -mt-1">Visiting charge applies only when the cart's total service amount is below the min amount above.</p>
           <div className="grid sm:grid-cols-2 gap-3">
-            <L label="Instant / Emergency Charge (₹)"><Input data-testid="biz-emergency-fee" type="number" value={f.emergency_fee} onChange={(e) => set("emergency_fee", e.target.value)} placeholder="e.g. 199" /></L>
+            <L label="Quick Services Charge (₹)"><Input data-testid="biz-emergency-fee" type="number" value={f.emergency_fee} onChange={(e) => set("emergency_fee", e.target.value)} placeholder="e.g. 199" /></L>
             <L label="Max Serviceable Distance (km)"><Input data-testid="biz-max-distance" type="number" value={f.max_distance_km} onChange={(e) => set("max_distance_km", e.target.value)} /></L>
           </div>
-          <p className="text-[11px] text-slate-400 -mt-1">Instant / Emergency charge is added when a customer books an Instant / Emergency service.</p>
+          <p className="text-[11px] text-slate-400 -mt-1">Quick Services charge is added when a customer books a Quick Services service.</p>
 
           <div className="pt-3 border-t border-slate-100">
             <L label="Minimum Labor Charge (₹)"><Input data-testid="biz-min-labour" type="number" min="0" value={f.min_labour_charge} onChange={(e) => set("min_labour_charge", e.target.value)} placeholder="e.g. 100" /></L>

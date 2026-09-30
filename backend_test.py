@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com"
+BASE_URL = "https://boring-haibt-13.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

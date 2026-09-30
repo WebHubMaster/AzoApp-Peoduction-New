@@ -824,7 +824,7 @@ const StepSchedule = ({ schedule, setSchedule, scheduledAt, setScheduledAt, isSu
     </div>
     {!isSub && (
       <div className="grid grid-cols-2 gap-3">
-        {[["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]].map(([k, t, d, Icon]) => (
+        {[["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Quick Services", "Get help as soon as possible", Zap]].map(([k, t, d, Icon]) => (
           <button key={k} data-testid={`when-${k}`} onClick={() => setSchedule(k)}
             className={`text-left rounded-2xl border-2 p-4 transition-all ${schedule === k ? "border-primary-700 bg-primary-50" : "border-slate-200 bg-white hover:border-primary-300"}`}>
             <Icon className={`h-6 w-6 mb-2 ${schedule === k ? "text-primary-700" : "text-slate-400"}`} />
@@ -838,7 +838,7 @@ const StepSchedule = ({ schedule, setSchedule, scheduledAt, setScheduledAt, isSu
     {schedule === "emergency" && !isSub && (
       <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4 flex gap-3">
         <Zap className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800">We'll assign the nearest available professional right away. A small instant / emergency charge may apply.</p>
+        <p className="text-sm text-amber-800">We'll assign the nearest available professional right away. A small quick services charge may apply.</p>
       </div>
     )}
   </div>
@@ -1009,7 +1009,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
           <Row l="Services" v={fmt((totals.base || 0) - (totals.labour_total || 0))} />
           {totals.labour_total > 0 && <Row l="Labour charge" v={fmt(totals.labour_total)} />}
           {totals.addons_total > 0 && <Row l="Add-ons" v={fmt(totals.addons_total)} />}
-          {totals.emergency_fee > 0 && <Row l="Instant / Emergency fee" v={fmt(totals.emergency_fee)} />}
+          {totals.emergency_fee > 0 && <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} />}
           {totals.visiting_charge > 0 && <Row l="Visiting charge" v={fmt(totals.visiting_charge)} />}
           {totals.convenience_fee > 0 && <Row l="Convenience fee" v={fmt(totals.convenience_fee)} />}
           {totals.platform_fee > 0 && <Row l="Platform fee" v={fmt(totals.platform_fee)} />}
@@ -1030,7 +1030,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
 
 /* ================= STEP 6: Final Review ================= */
 const scheduleLabel = (schedule, scheduledAt) => {
-  if (schedule === "emergency") return "Instant / Emergency · ASAP";
+  if (schedule === "emergency") return "Quick Services · ASAP";
   if (!scheduledAt) return "Not set";
   const d = new Date(scheduledAt);
   const t = scheduledAt.split("T")[1];
@@ -1127,7 +1127,7 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
           <Row l="Services" v={fmt((totals.base || 0) - (totals.labour_total || 0))} />
           {totals.labour_total > 0 && <Row l="Labour charge" v={fmt(totals.labour_total)} />}
           {totals.addons_total > 0 && <Row l="Add-ons" v={fmt(totals.addons_total)} />}
-          {totals.emergency_fee > 0 && <Row l="Instant / Emergency fee" v={fmt(totals.emergency_fee)} />}
+          {totals.emergency_fee > 0 && <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} />}
           {totals.visiting_charge > 0 && <Row l="Visiting charge" v={fmt(totals.visiting_charge)} />}
           {totals.convenience_fee > 0 && <Row l="Convenience fee" v={fmt(totals.convenience_fee)} />}
           {totals.platform_fee > 0 && <Row l="Platform fee" v={fmt(totals.platform_fee)} />}

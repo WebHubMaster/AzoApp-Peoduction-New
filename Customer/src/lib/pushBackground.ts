@@ -12,8 +12,10 @@
 import { api } from "@/src/api/client";
 import {
   pushSupported, notifee, NotifeeApi, messaging,
-  displayRescheduleRing, cancelRescheduleRing, displayBookingRing, setupAndroidChannels,
+  displayRescheduleRing, cancelRescheduleRing, displayBookingRing, cancelBookingRing,
+  setupAndroidChannels, startRingSound, stopRingSound,
 } from "@/src/lib/notifications";
+import { backgroundRingServiceTask } from "@/src/lib/backgroundRing";
 
 const RING_TYPES = new Set(["reschedule_request"]);
 const CLEAR_TYPES = new Set(["reschedule_accepted", "reschedule_rejected", "reschedule_cancelled", "reschedule_resolved", "booking_cancelled"]);
@@ -40,6 +42,9 @@ export async function handleRemoteData(d: Record<string, any> | undefined, isBac
   if (RING_TYPES.has(d.type) || d.type === "booking_confirmed") {
     if (d.type === "booking_confirmed") await displayBookingRing(d, "bg", "fcm");
     else await displayRescheduleRing(d, "bg", "fcm");
+    // Play the admin-configured ring tone so the alert is audible on a locked /
+    // closed phone (the process is kept alive by the foreground service below).
+    startRingSound().catch(() => {});
     // Bring the app to the FOREGROUND so the in-app full-screen overlay shows even
     // when the phone is UNLOCKED / in another app (fullScreenAction only auto-launches
     // over the LOCK screen). Needs the "Display over other apps" permission.
@@ -52,7 +57,7 @@ export async function handleRemoteData(d: Record<string, any> | undefined, isBac
     } catch { /* ignore */ }
     return;
   }
-  if (CLEAR_TYPES.has(d.type)) { await cancelRescheduleRing(String(d.booking_id || "")); return; }
+  if (CLEAR_TYPES.has(d.type)) { stopRingSound(); await cancelRescheduleRing(String(d.booking_id || "")); await cancelBookingRing(String(d.booking_id || "")); return; }
 }
 
 export async function respondToReschedule(bookingId: string, action: "accept" | "reject") {
@@ -84,15 +89,22 @@ if (pushSupported) {
     const mod = notifee();
     if (m) m.setBackgroundMessageHandler(async (rm: any) => { await handleRemoteData(rm?.data, true); });
     if (n && mod) {
+      // Keeps the process alive while the ring OR the background alert listener runs.
+      n.registerForegroundService(() => backgroundRingServiceTask());
       n.onBackgroundEvent(async ({ type, detail }: any) => {
         const { EventType } = mod;
         const data = detail?.notification?.data || {};
         const bid = String(data.booking_id || "");
         if (type === EventType.ACTION_PRESS && data.type === "reschedule_request") {
           const id = detail?.pressAction?.id;
-          if (id === "accept" || id === "reject") await respondToReschedule(bid, id);
-        } else if (type === EventType.DISMISSED && data.type === "reschedule_request") {
+          if (id === "accept" || id === "reject") { stopRingSound(); await respondToReschedule(bid, id); }
+        } else if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
+          // Any tap on the booking-confirmed / reschedule alert stops the ring tone.
+          stopRingSound();
+        } else if (type === EventType.DISMISSED) {
+          stopRingSound();
           await cancelRescheduleRing(bid);
+          await cancelBookingRing(bid);
         }
       });
     }

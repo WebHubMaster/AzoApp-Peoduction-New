@@ -1,9 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform } from "react-native";
 import EventSource from "react-native-sse";
-import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
+import { setAudioModeAsync } from "expo-audio";
 import { API_BASE, getToken } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
+import { startRingSound, stopRingSound, syncAlertConfig } from "@/src/lib/notifications";
+import { startBackgroundAlertListener, stopBackgroundAlertListener } from "@/src/lib/backgroundRing";
 
 /**
  * Live realtime over Server-Sent Events for the Customer app — mirrors the Partner
@@ -23,9 +25,6 @@ type RtCtx = {
 
 const Ctx = createContext<RtCtx>({ connected: false, subscribe: () => () => {}, playRing: () => {}, stopRing: () => {} });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const RING = require("../../assets/sounds/job-ring.wav");
-
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [connected, setConnected] = useState(false);
@@ -33,11 +32,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const esRef = useRef<EventSource | null>(null);
   const retryRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const player = useAudioPlayer(RING);
 
   useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true }).catch(() => {});
   }, []);
+
+  // Keep the admin-configured ring tone in sync whenever a customer is signed in.
+  useEffect(() => { if (user) syncAlertConfig().catch(() => {}); }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const emit = useCallback((ev: RtEvent) => { listeners.current.forEach((cb) => { try { cb(ev); } catch { /* ignore */ } }); }, []);
 
@@ -72,18 +73,22 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (user) connect(); else close();
+    if (user) connect(); else { close(); stopBackgroundAlertListener().catch(() => {}); }
     return close;
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // On background/locked the foreground SSE can't reliably survive, so drop it and
-  // let the FCM data-only push (pushBackground.ts) deliver the ring. Resume on return.
+  // start the FCM-independent foreground-service alert listener (backgroundRing.ts)
+  // so a partner reschedule / assignment still rings on a locked/closed phone.
+  // Resume the in-app stream (and stop the service) on return to foreground.
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") {
+        stopBackgroundAlertListener().catch(() => {});
         if (user && !esRef.current) { retryRef.current = 1; connect(); }
       } else if (s === "background" && Platform.OS !== "web") {
         close();
+        if (user) startBackgroundAlertListener().catch(() => {});
       }
     });
     return () => sub.remove();
@@ -91,15 +96,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   const subscribe = useCallback((cb: Listener) => { listeners.current.add(cb); return () => { listeners.current.delete(cb); }; }, []);
 
-  const playRing = useCallback(() => {
-    try {
-      // expo-audio's player exposes mutable loop/volume as its documented API.
-      /* eslint-disable react-hooks/immutability */
-      player.loop = true; player.volume = 0.8; player.seekTo(0); player.play();
-      /* eslint-enable react-hooks/immutability */
-    } catch { /* ignore */ }
-  }, [player]);
-  const stopRing = useCallback(() => { try { player.pause(); player.seekTo(0); } catch { /* ignore */ } }, [player]);
+  // Play the ADMIN-configured ring tone (synced via syncAlertConfig) — the SAME
+  // source used by the background full-screen alert, so foreground + background match.
+  const playRing = useCallback(() => { startRingSound().catch(() => {}); }, []);
+  const stopRing = useCallback(() => { stopRingSound(); }, []);
 
   const value = useMemo(() => ({ connected, subscribe, playRing, stopRing }), [connected, subscribe, playRing, stopRing]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

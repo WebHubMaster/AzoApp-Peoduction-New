@@ -19,6 +19,15 @@ async def push_config():
     }
 
 
+@router.get("/alert-config")
+async def alert_config(user=Depends(get_current_user)):
+    """Admin-configured alert sound / volume (Integration Center → Alert Sound &
+    Ring). Exposed to ANY authenticated user so the Customer app plays the SAME
+    admin-set ring tone as the Partner app for its full-screen alerts."""
+    from routes.partner_routes import admin_alert_config
+    return await admin_alert_config()
+
+
 @router.post("/devices")
 async def register_device(body: dict, user=Depends(get_current_user)):
     b = body or {}

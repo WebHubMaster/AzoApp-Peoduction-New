@@ -2,7 +2,7 @@
 import os
 import requests
 
-BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if os.environ.get("EXPO_PUBLIC_BACKEND_URL") else "https://booking-flow-fix-20.preview.emergentagent.com"
+BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if os.environ.get("EXPO_PUBLIC_BACKEND_URL") else "https://boring-haibt-13.preview.emergentagent.com"
 BOOKING_ID = "ba936117-834f-40a2-a19c-65d3d4628050"
 
 

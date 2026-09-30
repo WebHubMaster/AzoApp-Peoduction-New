@@ -213,3 +213,25 @@ Note: the user's deployed (EC2) app likely predates this code → a redeploy is 
 ## Session cont. — Registration Fee report: custom calendar + pagination
 - Swapped the two native `<input type=date>` (dd/mm/yyyy) in `RegistrationFeeReport.jsx` for the shared `@/components/ui/PremiumDatePicker` (same calendar used in TransactionsHub / people / starter-kit etc.) → consistent date-range UX.
 - Added client-side pagination (PAGE_SIZE 10) to BOTH the Paid and Unpaid tables via a small `Pager` (prev/next + "x–y of N"), auto-resets to page 1 on any filter change. Headers still show full totals. Webpack compiled 0 errors.
+
+---
+## Session (2026-06) — 4 reported tasks
+
+### 1. Customer full-screen alert on locked/closed/background + admin sound (MOST IMPORTANT)
+Root cause (see push_notification_rootcause.md): the Customer app relied ONLY on FCM for background alerts, but FCM getToken() is blocked by an EXTERNAL Google Cloud API-key restriction, so no background full-screen alert ever fired (only worked in-app via SSE). The Partner app works because it also has an FCM-INDEPENDENT foreground-service SSE listener.
+Fix (Customer app only — Partner untouched): ported the Partner's proven mechanism.
+- New `Customer/src/lib/backgroundRing.ts`: foreground-service SSE listener started when app backgrounds; rings ONLY for `reschedule_request` (partner-initiated) + `booking_confirmed` (partner assigned).
+- `notifications.ts`: added admin custom ring tone (`startRingSound/stopRingSound/_loadRingSource`), `syncAlertConfig()` (fetches admin sound), `online` low-importance channel.
+- `pushBackground.ts`: registers Notifee foreground service + plays admin tone on FCM delivery.
+- `RealtimeContext.tsx`: starts/stops the bg listener on background/active; plays admin tone; syncs alert-config on login.
+- Backend: new `GET /api/notifications/alert-config` returns admin alert sound/volume (reuses partner `admin_alert_config`).
+NOTE: native full-screen push behaviour is only verifiable on an EAS device build.
+
+### 2. "Instant / Emergency" → "Quick Services"
+Replaced all user-facing occurrences in Customer app (CheckoutSteps/CheckoutUi) and web_panel (Checkout.jsx, adminTemplateIntegration.jsx). Underlying schedule_type "emergency" unchanged.
+
+### 3. Faster load on slow networks (Customer + Partner)
+Tuned React Query defaults in both `app/_layout.tsx`: staleTime 2m, gcTime 24h, retry 1 with capped retryDelay (fail fast instead of long backoff), refetchOnWindowFocus off → instant cached screens + snappier failures on slow networks.
+
+### 4. Maintenance-mode logo cropped (Customer)
+`AppUpdateGate.tsx`: maintenance image changed from contentFit="cover" (cropped the wide logo) to "contain" with a wider box; icon fallback also "contain".

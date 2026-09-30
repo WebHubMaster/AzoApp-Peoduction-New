@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
+BASE_URL = "https://boring-haibt-13.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test users

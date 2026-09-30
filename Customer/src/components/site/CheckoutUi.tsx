@@ -86,7 +86,7 @@ export const PriceRows = ({ totals, items, lineTotal, estimate, review }: { tota
     <Row l="Services" v={fmt((totals.base || 0) - (totals.labour_total || 0))} />
     {totals.labour_total > 0 ? <Row l="Labour charge" v={fmt(totals.labour_total)} /> : null}
     {totals.addons_total > 0 ? <Row l="Add-ons" v={fmt(totals.addons_total)} /> : null}
-    {totals.emergency_fee > 0 ? <Row l="Instant / Emergency fee" v={fmt(totals.emergency_fee)} /> : null}
+    {totals.emergency_fee > 0 ? <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} /> : null}
     {totals.visiting_charge > 0 ? <Row l="Visiting charge" v={fmt(totals.visiting_charge)} /> : null}
     {totals.convenience_fee > 0 ? <Row l="Convenience fee" v={fmt(totals.convenience_fee)} /> : null}
     {totals.platform_fee > 0 ? <Row l="Platform fee" v={fmt(totals.platform_fee)} /> : null}
@@ -221,7 +221,7 @@ export function StepSchedule({ schedule, setSchedule, scheduledAt, setScheduledA
       <H2 t={isSub ? "When should we start?" : "When should we come?"} s={isSub ? "Pick the start date & time — your recurring visits begin from here." : "This schedule applies to your whole order."} />
       {!isSub ? (
         <View style={{ flexDirection: "row", gap: 12 }}>
-          {([["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Instant / Emergency", "Get help as soon as possible", Zap]] as any[]).map(([k, t, d, Icon]) => (
+          {([["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Quick Services", "Get help as soon as possible", Zap]] as any[]).map(([k, t, d, Icon]) => (
             <Pressable key={k} testID={`when-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 16, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : TC.border, backgroundColor: schedule === k ? PRIMARY[50] : TC.surface, padding: 16 }}>
               <Icon size={24} color={schedule === k ? PRIMARY[700] : TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text, marginTop: 8 }}>{t}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{d}</Text>
             </Pressable>
@@ -229,7 +229,7 @@ export function StepSchedule({ schedule, setSchedule, scheduledAt, setScheduledA
         </View>
       ) : null}
       {schedule === "schedule" ? <SchedulePicker value={scheduledAt} onChange={setScheduledAt} /> : null}
-      {schedule === "emergency" && !isSub ? <View style={{ borderRadius: 16, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small instant / emergency charge may apply.</Text></View> : null}
+      {schedule === "emergency" && !isSub ? <View style={{ borderRadius: 16, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small quick services charge may apply.</Text></View> : null}
     </View>
   );
 }

@@ -12,7 +12,7 @@ import re
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://booking-flow-fix-20.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://boring-haibt-13.preview.emergentagent.com").rstrip("/")
 
 
 def _login(phone: str) -> str:

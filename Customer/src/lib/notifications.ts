@@ -17,9 +17,13 @@
 import { Platform, Linking, AppState } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
 import { storage } from "@/src/utils/storage";
-import { api } from "@/src/api/client";
+import { api, mediaUrl } from "@/src/api/client";
 
 const DEVICE_ID_KEY = "azo_device_id";
+const RING_PREFS_KEY = "azo_ring_prefs";
+
+/** Bundled fallback ring tone (used until the admin custom sound is synced). */
+const RING_FALLBACK = require("../../assets/sounds/job-ring.wav");
 const FSI_ASKED_KEY = "azo_fsi_asked";
 const BATTERY_ASKED_KEY = "azo_battery_asked";
 
@@ -31,6 +35,10 @@ export const CHANNELS = {
   chat: "azo-chat-v3",
   bookings: "bookings",
   default: "default",
+  // Low-importance channel for the background "waiting for updates" foreground
+  // service that keeps the process alive so the full-screen alert can ring while
+  // the app is closed / the phone is locked (mirrors the Partner app).
+  online: "azo-cust-online-v1",
 } as const;
 
 const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat"];
@@ -110,6 +118,7 @@ export async function setupAndroidChannels() {
   await n.createChannel({ id: CHANNELS.chat, name: "Chat Messages", importance: AndroidImportance.HIGH, sound: "default", vibration: true, visibility: AndroidVisibility.PUBLIC });
   await n.createChannel({ id: CHANNELS.bookings, name: "Booking Updates", importance: AndroidImportance.HIGH, vibration: true });
   await n.createChannel({ id: CHANNELS.default, name: "General", importance: AndroidImportance.DEFAULT });
+  await n.createChannel({ id: CHANNELS.online, name: "Waiting for updates", importance: AndroidImportance.LOW, visibility: AndroidVisibility.PUBLIC });
 }
 
 async function setupExpoChannels() {
@@ -389,6 +398,7 @@ export async function displayRescheduleRing(d: Record<string, any>, ctx: "fg" | 
 }
 
 export async function cancelRescheduleRing(bookingId?: string) {
+  stopRingSound();
   const n = NotifeeApi();
   if (!n) return;
   try {
@@ -471,11 +481,67 @@ export async function displayBookingRing(d: Record<string, any>, ctx: "fg" | "bg
 }
 
 export async function cancelBookingRing(bookingId?: string) {
+  stopRingSound();
   const n = NotifeeApi();
   if (!n) return;
   try {
     if (bookingId) await n.cancelNotification(`booking-${bookingId}`);
   } catch { /* ignore */ }
+}
+
+/* ------------------------- admin ring sound ------------------------- */
+/**
+ * Sync the ADMIN-configured alert sound + volume (Integration Center → Alert
+ * Sound & Ring) into local storage so the customer full-screen alert plays the
+ * SAME tone the admin set for the Partner app. Best-effort — keeps the last
+ * synced value when offline.
+ */
+export async function syncAlertConfig(): Promise<void> {
+  try {
+    const cfg = await api.get<any>("/notifications/alert-config");
+    const prefs = {
+      customSoundUrl: cfg?.customSoundUrl || "",
+      customSoundName: cfg?.customSoundName || "",
+      volume: typeof cfg?.volume === "number" ? cfg.volume : 0.8,
+    };
+    await storage.setItem(RING_PREFS_KEY, JSON.stringify(prefs));
+  } catch { /* offline — keep the last synced tone */ }
+}
+
+let _ringPlayer: any = null;
+async function _loadRingSource(): Promise<{ src: any; volume: number }> {
+  try {
+    const raw = await storage.getItem(RING_PREFS_KEY);
+    const p = raw ? JSON.parse(raw) : {};
+    const vol = Math.max(0.05, Math.min(1, typeof p?.volume === "number" ? p.volume : 0.8));
+    if (p?.customSoundUrl) {
+      const uri = mediaUrl(p.customSoundUrl) || p.customSoundUrl;
+      if (uri) return { src: { uri }, volume: vol };
+    }
+    return { src: RING_FALLBACK, volume: vol };
+  } catch { return { src: RING_FALLBACK, volume: 0.8 }; }
+}
+
+/** Start looping the admin custom ring tone (else the bundled fallback). Used by
+ *  the background full-screen alert so it is audible on a locked/closed phone. */
+export async function startRingSound() {
+  if (Platform.OS === "web") return;
+  try {
+    const AA = require("expo-audio");
+    await AA.setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true }).catch(() => {});
+    const { src, volume } = await _loadRingSource();
+    if (!_ringPlayer) _ringPlayer = AA.createAudioPlayer(src);
+    else { try { _ringPlayer.replace(src); } catch { _ringPlayer = AA.createAudioPlayer(src); } }
+    _ringPlayer.loop = true;
+    _ringPlayer.volume = volume;
+    try { _ringPlayer.seekTo(0); } catch { /* ignore */ }
+    _ringPlayer.play();
+  } catch { /* ignore */ }
+}
+
+/** Stop the looping ring tone (on accept / dismiss / resolve / app foreground). */
+export function stopRingSound() {
+  try { _ringPlayer?.pause?.(); _ringPlayer?.seekTo?.(0); } catch { /* ignore */ }
 }
 
 async function fullScreenGranted(): Promise<boolean | undefined> {

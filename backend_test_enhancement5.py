@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL
-API = "https://booking-flow-fix-20.preview.emergentagent.com/api"
+API = "https://boring-haibt-13.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

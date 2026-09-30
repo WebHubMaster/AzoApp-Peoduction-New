@@ -100,9 +100,9 @@ export default function AppUpdateGate() {
         {mode === "maintenance" ? (
           <View style={{ alignItems: "center", maxWidth: 380 }}>
             {cfg?.maintenance_image ? (
-              <Image source={{ uri: mediaUrl(cfg.maintenance_image) }} style={{ width: 220, height: 160, borderRadius: 16, marginBottom: 20 }} contentFit="cover" />
+              <Image source={{ uri: mediaUrl(cfg.maintenance_image) }} style={{ width: 260, height: 140, marginBottom: 20 }} contentFit="contain" />
             ) : cfg?.maintenance_icon ? (
-              <Image source={{ uri: mediaUrl(cfg.maintenance_icon) }} style={{ width: 96, height: 96, borderRadius: 24, marginBottom: 20 }} contentFit="contain" />
+              <Image source={{ uri: mediaUrl(cfg.maintenance_icon) }} style={{ width: 140, height: 96, marginBottom: 20 }} contentFit="contain" />
             ) : (
               <View style={{ width: 96, height: 96, borderRadius: 24, backgroundColor: "#F59E0B22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Wrench size={44} color="#F59E0B" /></View>
             )}

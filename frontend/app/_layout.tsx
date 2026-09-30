@@ -26,7 +26,13 @@ initCrashReporter("partner");
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 2, staleTime: 30 * 1000, refetchOnWindowFocus: false },
+    queries: {
+      retry: 1,
+      retryDelay: (attempt: number) => Math.min(1000 * 2 ** attempt, 4000),
+      staleTime: 2 * 60 * 1000,
+      gcTime: 24 * 60 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
   },
 });
 

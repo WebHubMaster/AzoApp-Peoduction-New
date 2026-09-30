@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
+BASE_URL = "https://boring-haibt-13.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

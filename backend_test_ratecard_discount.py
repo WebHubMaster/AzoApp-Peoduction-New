@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
+BACKEND_URL = "https://boring-haibt-13.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
