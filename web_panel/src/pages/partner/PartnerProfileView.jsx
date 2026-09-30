@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import {
   ShieldCheck, User, Phone, Mail, Cake, Users, GraduationCap, MapPin,
   Building2, Briefcase, IdCard, FileText, Camera, ZoomIn, X, Lock, Crown, Star,
+  IndianRupee, CheckCircle2, Clock, Calendar,
 } from "lucide-react";
 
 const maskAadhaar = (n) => {
@@ -60,6 +61,7 @@ const DocTile = ({ label, url, onZoom }) => (
 
 export default function PartnerProfileView({ user, kit }) {
   const [data, setData] = useState(null);
+  const [fee, setFee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [zoom, setZoom] = useState(null);
 
@@ -68,6 +70,7 @@ export default function PartnerProfileView({ user, kit }) {
       .then((r) => setData(r.data))
       .catch(() => setData(null))
       .finally(() => setLoading(false));
+    api.get("/partner/registration/fee").then((r) => setFee(r.data)).catch(() => setFee(null));
   }, []);
 
   if (loading) {
@@ -194,6 +197,33 @@ export default function PartnerProfileView({ user, kit }) {
           <DocTile label="Education Cert" url={d.education_certificate_url} onZoom={setZoom} />
         </div>
       </SectionCard>
+
+      {/* Registration Fee status */}
+      {(fee?.enabled || fee?.already_paid) && (() => {
+        const paid = !!fee.already_paid; const pay = fee.payment || {};
+        const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+        return (
+          <SectionCard icon={IndianRupee} title="Registration Fee" sub="Your one-time onboarding fee status">
+            <div data-testid="partner-reg-fee-status" className={`flex items-center gap-3 rounded-xl border p-4 ${paid ? "border-emerald-200 bg-emerald-50 dark:bg-emerald-900/20" : "border-amber-200 bg-amber-50 dark:bg-amber-900/20"}`}>
+              <span className={`h-10 w-10 rounded-lg flex items-center justify-center text-white ${paid ? "bg-emerald-500" : "bg-amber-500"}`}>
+                {paid ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
+              </span>
+              <div className="min-w-0">
+                <p className={`font-extrabold text-lg ${paid ? "text-emerald-800 dark:text-emerald-200" : "text-amber-800 dark:text-amber-200"}`}>{paid ? "Paid" : "Unpaid"}</p>
+                <p className={`text-xs ${paid ? "text-emerald-700 dark:text-emerald-300" : "text-amber-700 dark:text-amber-300"}`}>
+                  {paid ? `${money(pay.amount)}${pay.gateway ? ` · ${pay.gateway}` : ""}${pay.mode ? ` · ${String(pay.mode).toUpperCase()}` : ""}` : `Fee ${money(fee.final_amount)} pending`}
+                </p>
+              </div>
+            </div>
+            {paid && (pay.paid_at || pay.payment_id || pay.order_id) && (
+              <div className="grid sm:grid-cols-2 gap-3 mt-3">
+                {pay.paid_at && <Field icon={Calendar} label="Paid On" value={new Date(pay.paid_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} />}
+                {(pay.payment_id || pay.order_id) && <Field icon={FileText} label="Txn Ref" value={pay.payment_id || pay.order_id} />}
+              </div>
+            )}
+          </SectionCard>
+        );
+      })()}
 
       {/* Zoom modal */}
       {zoom && (

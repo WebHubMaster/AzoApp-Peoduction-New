@@ -24,7 +24,12 @@ export default function PartnerVerification() {
   const [zoom, setZoom] = useState<{ url: string; label: string } | null>(null);
   const q = useQuery({ queryKey: ["partner-reg-profile"], queryFn: () => api.get<any>("/partner/registration/profile") });
   const kit = useQuery({ queryKey: ["starter-kit"], queryFn: () => api.get<any>("/starter-kit/me") });
+  const fee = useQuery({ queryKey: ["partner-reg-fee"], queryFn: () => api.get<any>("/partner/registration/fee") });
   const approved = user?.kyc_status === "approved" || user?.verified_partner;
+  const feeData: any = fee.data || {};
+  const feePaid = !!feeData.already_paid;
+  const feePay: any = feeData.payment || {};
+  const feeAmt = (n: any) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
   const p = q.data?.profile || {}; const b = p.basic || {}; const w = p.work || {}; const d = p.documents || {}; const a = p.address || {};
   const cats: any[] = w.categories || [];
@@ -133,6 +138,25 @@ export default function PartnerVerification() {
                 <DocTile label="Education Cert" url={d.education_certificate_url} />
               </View>
             </Section>
+
+            {(feeData.enabled || feePaid) ? (
+              <Section icon="cash-multiple" title="Registration Fee" sub="Your one-time onboarding fee status">
+                <View testID="partner-reg-fee-status" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: feePaid ? "#A7F3D0" : "#FDE68A", backgroundColor: feePaid ? "#ECFDF5" : "#FFFBEB", padding: 14 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: feePaid ? "#10B981" : "#F59E0B", alignItems: "center", justifyContent: "center" }}>
+                    <Icon name={feePaid ? "check-circle-outline" : "clock-outline"} size={22} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: feePaid ? "#065F46" : "#92400E", fontSize: 16, fontWeight: "800" }}>{feePaid ? "Paid" : "Unpaid"}</Text>
+                    <Text style={{ color: feePaid ? "#047857" : "#B45309", fontSize: 12, marginTop: 1 }}>
+                      {feePaid ? `${feeAmt(feePay.amount)}${feePay.gateway ? ` · ${feePay.gateway}` : ""}${feePay.mode ? ` · ${String(feePay.mode).toUpperCase()}` : ""}` : `Fee ${feeAmt(feeData.final_amount)} pending`}
+                    </Text>
+                  </View>
+                </View>
+                {feePaid && feePay.paid_at ? <Field icon="calendar-outline" label="Paid On" value={new Date(feePay.paid_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} /> : null}
+                {feePaid && (feePay.payment_id || feePay.order_id) ? <Field icon="receipt" label="Txn Ref" value={feePay.payment_id || feePay.order_id} /> : null}
+                {!feePaid ? <Pressable testID="partner-pay-reg-fee" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Pay Registration Fee</Text></Pressable> : null}
+              </Section>
+            ) : null}
           </>
         )}
       </ScrollView>
