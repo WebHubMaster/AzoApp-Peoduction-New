@@ -1,6 +1,25 @@
 import { useEffect, useState, useCallback } from "react";
-import { IndianRupee, Search, CheckCircle2, XCircle, Users, Loader2, RefreshCcw } from "lucide-react";
+import { IndianRupee, Search, CheckCircle2, XCircle, Users, Loader2, RefreshCcw, ChevronLeft, ChevronRight } from "lucide-react";
 import api, { fmt } from "@/lib/api";
+import PremiumDatePicker from "@/components/ui/PremiumDatePicker";
+
+const PAGE_SIZE = 10;
+
+function Pager({ page, setPage, total, testid }) {
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const cur = Math.min(page, pageCount);
+  if (total <= PAGE_SIZE) return null;
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-sm text-slate-500">
+      <span data-testid={`${testid}-info`}>{(cur - 1) * PAGE_SIZE + 1}–{Math.min(cur * PAGE_SIZE, total)} of {total}</span>
+      <div className="flex items-center gap-1">
+        <button data-testid={`${testid}-prev`} onClick={() => setPage(Math.max(1, cur - 1))} disabled={cur === 1} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
+        <span className="px-3 font-medium text-slate-700">{cur} / {pageCount}</span>
+        <button data-testid={`${testid}-next`} onClick={() => setPage(Math.min(pageCount, cur + 1))} disabled={cur === pageCount} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronRight className="h-4 w-4" /></button>
+      </div>
+    </div>
+  );
+}
 
 const fmtDate = (s) => {
   if (!s) return "—";
@@ -28,6 +47,8 @@ export default function RegistrationFeeReport({ onView }) {
   const [dateTo, setDateTo] = useState("");
   const [gateway, setGateway] = useState("");
   const [mode, setMode] = useState("");
+  const [paidPage, setPaidPage] = useState(1);
+  const [unpaidPage, setUnpaidPage] = useState(1);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -39,10 +60,13 @@ export default function RegistrationFeeReport({ onView }) {
   }, [status, q, dateFrom, dateTo, gateway, mode]);
 
   useEffect(() => { const t = setTimeout(load, 300); return () => clearTimeout(t); }, [load]);
+  useEffect(() => { setPaidPage(1); setUnpaidPage(1); }, [status, q, dateFrom, dateTo, gateway, mode]);
 
   const s = data?.summary || {};
   const txns = data?.transactions || [];
   const unpaid = data?.unpaid || [];
+  const paidRows = txns.slice((paidPage - 1) * PAGE_SIZE, paidPage * PAGE_SIZE);
+  const unpaidRows = unpaid.slice((unpaidPage - 1) * PAGE_SIZE, unpaidPage * PAGE_SIZE);
   const openPartner = (pid) => pid && onView?.({ id: pid, role: "partner" });
 
   return (
@@ -71,8 +95,8 @@ export default function RegistrationFeeReport({ onView }) {
         <select data-testid="regfee-status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm">
           <option value="all">All</option><option value="paid">Paid only</option><option value="unpaid">Unpaid only</option>
         </select>
-        <input data-testid="regfee-date-from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-        <input data-testid="regfee-date-to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
+        <PremiumDatePicker data-testid="regfee-date-from" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="From date" />
+        <PremiumDatePicker data-testid="regfee-date-to" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="To date" />
         <div className="grid grid-cols-2 gap-2">
           <input data-testid="regfee-gateway" value={gateway} onChange={(e) => setGateway(e.target.value)} placeholder="Gateway" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
           <select data-testid="regfee-mode" value={mode} onChange={(e) => setMode(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-2 text-sm">
@@ -95,7 +119,7 @@ export default function RegistrationFeeReport({ onView }) {
                   </tr></thead>
                   <tbody>
                     {txns.length === 0 ? <tr><td colSpan={6} className="px-4 py-8 text-center text-slate-400">No paid registration fees found</td></tr> :
-                      txns.map((t) => (
+                      paidRows.map((t) => (
                         <tr key={t.id} data-testid={`regfee-txn-${t.id}`} className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => openPartner(t.partner_id)}>
                           <td className="px-4 py-2.5"><p className="font-semibold text-slate-800">{t.customer_name}</p><p className="text-xs text-slate-400">{t.customer_phone}{t.partner_code ? ` · ${t.partner_code}` : ""}</p></td>
                           <td className="px-4 py-2.5 font-mono text-xs text-slate-500">{t.txn_ref}</td>
@@ -108,6 +132,7 @@ export default function RegistrationFeeReport({ onView }) {
                   </tbody>
                 </table>
               </div>
+              <Pager page={paidPage} setPage={setPaidPage} total={txns.length} testid="regfee-paid-page" />
             </div>
           )}
 
@@ -121,7 +146,7 @@ export default function RegistrationFeeReport({ onView }) {
                   </tr></thead>
                   <tbody>
                     {unpaid.length === 0 ? <tr><td colSpan={5} className="px-4 py-8 text-center text-slate-400">No unpaid partners</td></tr> :
-                      unpaid.map((p) => (
+                      unpaidRows.map((p) => (
                         <tr key={p.partner_id} data-testid={`regfee-unpaid-${p.partner_id}`} className="border-b border-slate-50 hover:bg-slate-50 cursor-pointer" onClick={() => openPartner(p.partner_id)}>
                           <td className="px-4 py-2.5"><p className="font-semibold text-slate-800">{p.name}</p><p className="text-xs text-slate-400">{p.phone}</p></td>
                           <td className="px-4 py-2.5 text-slate-500">{p.partner_code || "—"}</td>
@@ -133,6 +158,7 @@ export default function RegistrationFeeReport({ onView }) {
                   </tbody>
                 </table>
               </div>
+              <Pager page={unpaidPage} setPage={setUnpaidPage} total={unpaid.length} testid="regfee-unpaid-page" />
             </div>
           )}
         </>

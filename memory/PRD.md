@@ -209,3 +209,7 @@ Verification of the 5 tasks (all found ALREADY IMPLEMENTED in code by a prior se
 5. Image loading — backend compresses+thumbnails to WebP; web uses lazy `SmartImage`. ENHANCED mobile: added `cachePolicy="memory-disk"`/`transition`/`recyclingKey`/`priority` to Customer home category & popular-service images (`HomeView.tsx`) and AppHome hero/promo/deal banners (`apphome/Blocks.tsx`).
 
 Note: the user's deployed (EC2) app likely predates this code → a redeploy is needed to see these fixes live. Web `/service/:id` deep-link shows a brief spinner in preview = dev-server cold-compiling the lazy chunk (not a product bug).
+
+## Session cont. — Registration Fee report: custom calendar + pagination
+- Swapped the two native `<input type=date>` (dd/mm/yyyy) in `RegistrationFeeReport.jsx` for the shared `@/components/ui/PremiumDatePicker` (same calendar used in TransactionsHub / people / starter-kit etc.) → consistent date-range UX.
+- Added client-side pagination (PAGE_SIZE 10) to BOTH the Paid and Unpaid tables via a small `Pager` (prev/next + "x–y of N"), auto-resets to page 1 on any filter change. Headers still show full totals. Webpack compiled 0 errors.
