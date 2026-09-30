@@ -121,7 +121,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
           {categories.slice(0, 12).map((cat) => (
             <Pressable key={cat.id} testID={`cat-${cat.slug}`} onPress={() => onCategory(cat.id)} style={({ pressed }) => ({ width: "30.5%", flexGrow: 1, maxWidth: "31.5%", ...card, padding: 12, alignItems: "center", transform: [{ translateY: pressed ? -2 : 0 }] })}>
               <View style={{ width: 56, height: 56, borderRadius: 16, overflow: "hidden", backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
-                {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: 56, height: 56 }} contentFit="cover" /> : <Zap size={24} color={PRIMARY[600]} />}
+                {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: 56, height: 56 }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={cat.id} /> : <Zap size={24} color={PRIMARY[600]} />}
               </View>
               <Text numberOfLines={2} style={{ marginTop: 8, fontSize: 12, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2, textAlign: "center", lineHeight: 15 }}>{cat.name}</Text>
             </Pressable>
@@ -137,7 +137,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
             {popular.map((s) => (
               <Pressable key={s.id} testID={`svc-${s.id}`} onPress={() => onService(s.id)} style={({ pressed }) => ({ flexDirection: "row", gap: 12, ...card, padding: 12, transform: [{ translateY: pressed ? -2 : 0 }] })}>
                 <View style={{ width: 64, height: 64, borderRadius: 12, overflow: "hidden", backgroundColor: c.surfaceAlt }}>
-                  {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: 64, height: 64 }} contentFit="cover" /> : null}
+                  {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: 64, height: 64 }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={s.id} /> : null}
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text numberOfLines={1} style={{ fontWeight: "600", fontSize: 14, color: c.text }}>{s.name}</Text>

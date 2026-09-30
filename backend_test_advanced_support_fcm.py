@@ -7,7 +7,7 @@ import json
 import time
 
 # Backend base URL from frontend/.env
-BASE_URL = "https://partner-fee-tracking.preview.emergentagent.com/api"
+BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
 
 # Test credentials (demo_mode)
 ADMIN_PHONE = "+919000000000"

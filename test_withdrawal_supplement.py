@@ -5,7 +5,7 @@ Supplementary test for withdrawal flow with balance
 import requests
 import sys
 
-BASE_URL = "https://partner-fee-tracking.preview.emergentagent.com/api"
+BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"

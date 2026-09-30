@@ -2,7 +2,7 @@
 
 ## Test Overview
 **Date**: 2026-09-14  
-**Environment**: https://partner-fee-tracking.preview.emergentagent.com/api  
+**Environment**: https://booking-flow-fix-20.preview.emergentagent.com/api  
 **Test Coverage**: All 4 toggle combinations + Historical immutability + Regression  
 **Result**: ✅ **90.5% PASS** (38/42 tests passed)
 

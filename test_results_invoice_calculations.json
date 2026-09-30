@@ -1,5 +1,5 @@
 {
-  "base_url": "https://partner-fee-tracking.preview.emergentagent.com/api",
+  "base_url": "https://booking-flow-fix-20.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Cancellation INV-2026-000014 (Chandan)",

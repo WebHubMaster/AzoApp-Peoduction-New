@@ -10,7 +10,7 @@ import time
 from typing import Dict, List, Any
 
 # Configuration
-BASE_URL = "https://partner-fee-tracking.preview.emergentagent.com/api"
+BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_RAJ_PHONE = "+919000000003"

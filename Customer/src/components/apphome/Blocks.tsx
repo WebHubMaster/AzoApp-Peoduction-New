@@ -50,7 +50,7 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
           <View style={{ width, paddingHorizontal: 20 }}>
             <Pressable testID={`hero-slide-${index}`} onPress={() => navigate(s.cta_link || "/services")} style={{ width: W, height: Math.round(W * 0.43), borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700] }}>
               <LinearGradient colors={[s.bg_color || VIOLET[500], s.bg_color2 || "#B69CFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} />
-              {s.image ? <Image source={{ uri: s.image }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} contentFit="cover" transition={250} /> : null}
+              {s.image ? <Image source={{ uri: s.image }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} contentFit="cover" transition={250} cachePolicy="memory-disk" priority={index === 0 ? "high" : "normal"} recyclingKey={String(index)} /> : null}
               {s.image ? <LinearGradient colors={["rgba(15,23,42,0.55)", "rgba(15,23,42,0.05)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} /> : null}
               <View style={{ padding: 20, width: "66%", flex: 1, justifyContent: "center" }}>
                 {s.badge ? <Text style={{ fontSize: 13, fontWeight: "600", color: s.text_color || "#fff", opacity: 0.95 }}>{s.badge}</Text> : null}
@@ -196,7 +196,7 @@ export function WhyChoose({ data }: { data: any }) {
             </View>
           ))}
         </View>
-        {data?.image ? <Image source={{ uri: data.image }} style={{ height: 120, width: "100%", borderRadius: 16, marginTop: 16 }} contentFit="cover" transition={200} /> : null}
+        {data?.image ? <Image source={{ uri: data.image }} style={{ height: 120, width: "100%", borderRadius: 16, marginTop: 16 }} contentFit="cover" transition={200} cachePolicy="memory-disk" /> : null}
       </LinearGradient>
     </View>
   );
@@ -240,7 +240,7 @@ export function OffersRow({ sec, navigate }: { sec: any; navigate: Nav }) {
           return (
             <Pressable key={o.id} testID={`app-offer-${o.id}`} onPress={async () => { if (o.code) { await Clipboard.setStringAsync(o.code); storage.setItem("azo_coupon", o.code); toast.success(`Code ${o.code} copied — apply at checkout`); } navigate(o.link || "/services"); }}>
               <LinearGradient colors={g as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 200, height: 132, borderRadius: 20, padding: 16, overflow: "hidden" }}>
-                {o.image ? <Image source={{ uri: o.image }} style={{ position: "absolute", right: -4, bottom: -4, width: 84, height: 84, borderRadius: 14, opacity: 0.9 }} contentFit="cover" /> : null}
+                {o.image ? <Image source={{ uri: o.image }} style={{ position: "absolute", right: -4, bottom: -4, width: 84, height: 84, borderRadius: 14, opacity: 0.9 }} contentFit="cover" cachePolicy="memory-disk" /> : null}
                 <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: fg, opacity: 0.9 }}>{o.title}</Text>
                 <Text style={{ fontSize: 22, fontWeight: "900", color: dark ? "#fff" : ROSE[600], marginTop: 4 }}>{o.discount_label || `${o.discount}% OFF`}</Text>
                 {o.subtitle ? <Text numberOfLines={1} style={{ fontSize: 11, color: fg, opacity: 0.85, marginTop: 2 }}>{o.subtitle}</Text> : null}
@@ -258,7 +258,7 @@ export function CustomBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
   const d = sec.data || {};
   return (
     <Pressable testID={`app-custom-${sec.key.split(":")[1]}`} onPress={() => navigate(d.link || "/services")} style={{ marginHorizontal: 20, marginBottom: 28, borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700], minHeight: 140 }}>
-      {d.image ? <Image source={{ uri: d.image }} style={{ width: "100%", height: 150 }} contentFit="cover" transition={200} /> : null}
+      {d.image ? <Image source={{ uri: d.image }} style={{ width: "100%", height: 150 }} contentFit="cover" transition={200} cachePolicy="memory-disk" /> : null}
       {d.title || d.subtitle ? <View style={{ padding: 16, position: d.image ? "absolute" : "relative", left: 0, right: 0, bottom: 0 }}>{d.title ? <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{d.title}</Text> : null}{d.subtitle ? <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 2 }}>{d.subtitle}</Text> : null}</View> : null}
     </Pressable>
   );

@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://partner-fee-tracking.preview.emergentagent.com",
+  "base_url": "https://booking-flow-fix-20.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://partner-fee-tracking.preview.emergentagent.com/api"
+BASE_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"
 

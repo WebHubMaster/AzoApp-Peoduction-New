@@ -12,7 +12,7 @@ from pymongo import MongoClient
 import os
 
 # Configuration
-BACKEND_URL = "https://partner-fee-tracking.preview.emergentagent.com/api"
+BACKEND_URL = "https://booking-flow-fix-20.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 MERCHANT_PHONE = "+919000000002"
