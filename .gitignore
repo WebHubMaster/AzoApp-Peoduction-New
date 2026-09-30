@@ -92,3 +92,9 @@ frontend/node_modules/.cache/default-development/5.pack
 credentials.json
 *.key
 .credentials
+
+# Uploaded app binaries are large (>100MB) — never commit; they belong in S3/object storage
+backend/uploads/**/*.apk
+backend/uploads/**/*.aab
+*.apk
+*.aab
