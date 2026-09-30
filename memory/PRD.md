@@ -245,3 +245,11 @@ FIX (verified 100% by testing agent, iteration_168):
 - APK upload path already targets S3 via storage_service (Integration Center AWS config) with local fallback; verified chunk=200, finish=400-validation (reachable, no more Failed to fetch).
 - Panel Customer APK label corrected app.azoapp.customer → app.azoapp.homeservice (AppManagement.jsx). app.json packages already correct (customer=app.azoapp.homeservice, partner=app.azoapp.partner) — no change needed.
 DATA NOTE: DB reset wiped Integration Center settings incl. AWS S3 — user must re-enter AWS S3 config for uploads to land in S3 (else local disk).
+
+---
+## Session (2026-06) — App Management: Delete APK button
+Added a Delete button (Customer + Partner) so admins can remove an uploaded APK — this also deletes the large local/S3 file so the GitHub push is not blocked by the >100MB APK.
+- Backend: DELETE /api/app-mgmt/admin/apk/{platform} → storage_service.delete_stored() removes the file (local /api/media/file or S3), clears apk_url/apk_size/apk_package/apk_version_name/apk_key, sets update_enabled=false. Upload now also stores apk_key.
+- storage_service.delete_stored(ref): deletes by stored URL (local/S3 proxy/public-base) or bare name.
+- Panel (AppManagement.jsx): red trash Delete button shown when apk_url set (data-testid apk-delete-btn-customer/partner), window.confirm, refresh on success.
+- Verified 100% by testing agent (iteration_169): delete works + persists for both platforms.
