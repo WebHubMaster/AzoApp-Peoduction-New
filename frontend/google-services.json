@@ -58,6 +58,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "960503871336-ocd2tldlnitgcfn46b8bj81j906c6n4e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "app.azoapp.partner",
+            "certificate_hash": "dd248b2ac74b788625551ac8c5eac999146082f1"
+          }
+        },
+        {
           "client_id": "960503871336-8hub5sskt14clo7ac0ll0m1ij409fh80.apps.googleusercontent.com",
           "client_type": 3
         }
