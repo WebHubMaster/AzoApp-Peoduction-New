@@ -169,7 +169,7 @@ const _androidSdk = (): number => Number(Platform.OS === "android" ? (Platform.V
 /** Android 14+ full-screen-intent permission screen for this app. */
 export async function openFullScreenIntentSettings() {
   if (Platform.OS !== "android") return;
-  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.customer";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
   try {
     await storage.setItem(FSI_ASKED_KEY, "1");
     await Linking.sendIntent("android.settings.MANAGE_APP_USE_FULL_SCREEN_INTENT", [{ key: "android.provider.extra.APP_PACKAGE", value: pkg }]);
@@ -183,7 +183,7 @@ export async function requestBatteryExemption() {
   const n = NotifeeApi();
   if (Platform.OS !== "android") return;
   try { await storage.setItem(BATTERY_ASKED_KEY, "1"); } catch { /* ignore */ }
-  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.customer";
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
   try {
     if (n && !(await n.isBatteryOptimizationEnabled())) return;
   } catch { /* ignore */ }

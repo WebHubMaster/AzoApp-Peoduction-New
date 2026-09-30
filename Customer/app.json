@@ -22,7 +22,7 @@
       }
     },
     "android": {
-      "package": "app.azoapp.customer",
+      "package": "app.azoapp.homeservice",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D47A1"

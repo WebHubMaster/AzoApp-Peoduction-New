@@ -10,11 +10,13 @@ import { api, mediaUrl } from "@/src/api/client";
 
 const PLATFORM = "partner";
 
-function req(name: string): any { try { return require(name); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoApplication(): any { try { return require("expo-application"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoFileSystem(): any { try { return require("expo-file-system"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoIntentLauncher(): any { try { return require("expo-intent-launcher"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
 
 function installedVersionCode(): number {
   if (Platform.OS === "web") return Number.MAX_SAFE_INTEGER;
-  const App = req("expo-application");
+  const App = expoApplication();
   const raw = App?.nativeBuildVersion ?? App?.default?.nativeBuildVersion;
   const n = parseInt(String(raw ?? ""), 10);
   return Number.isFinite(n) ? n : 0;
@@ -48,8 +50,8 @@ export default function AppUpdateGate() {
   const startUpdate = useCallback(async () => {
     setErr("");
     if (!cfg?.apk_url) { setErr("Update file is not available yet. Please try again later."); return; }
-    const FS = req("expo-file-system");
-    const IL = req("expo-intent-launcher");
+    const FS = expoFileSystem();
+    const IL = expoIntentLauncher();
     if (!FS || Platform.OS !== "android") { Linking.openURL(cfg.apk_url).catch(() => setErr("Could not start the download.")); return; }
     setDownloading(true); setPct(0); setGot(0);
     const dest = `${FS.cacheDirectory}azoapp-${PLATFORM}-${cfg.version_code}.apk`;

@@ -4,14 +4,14 @@
 import { Platform } from "react-native";
 import { api } from "@/src/api/client";
 
-function req(name: string): any { try { return require(name); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoApplication(): any { try { return require("expo-application"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
 
 let installed = false;
 
 /** Report a React render-tree crash (from an ErrorBoundary) or any caught error. */
 export function reportError(appType: "customer" | "partner", error: any, isFatal = true) {
   if (Platform.OS === "web") return;
-  const App = req("expo-application");
+  const App = expoApplication();
   try {
     api.post("/logs/client", {
       app: appType, level: isFatal ? "CRITICAL" : "ERROR",
@@ -28,7 +28,7 @@ export function reportError(appType: "customer" | "partner", error: any, isFatal
 export function initCrashReporter(appType: "customer" | "partner" = "partner") {
   if (installed || Platform.OS === "web") return;
   installed = true;
-  const App = req("expo-application");
+  const App = expoApplication();
   const meta = {
     app_version: App?.nativeApplicationVersion || App?.default?.nativeApplicationVersion || "",
     version_code: String(App?.nativeBuildVersion ?? App?.default?.nativeBuildVersion ?? ""),

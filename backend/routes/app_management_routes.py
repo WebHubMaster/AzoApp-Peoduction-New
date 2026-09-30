@@ -13,7 +13,7 @@ router = APIRouter(prefix="/app-mgmt", tags=["app-management"])
 ADMIN = require_role("admin")
 
 PLATFORMS = ("customer", "partner")
-EXPECTED_PACKAGE = {"customer": "app.azoapp.customer", "partner": "app.azoapp.partner"}
+EXPECTED_PACKAGE = {"customer": "app.azoapp.homeservice", "partner": "app.azoapp.partner"}
 _CHUNK_DIR = os.path.join(tempfile.gettempdir(), "azo_apk_uploads")
 os.makedirs(_CHUNK_DIR, exist_ok=True)
 
