@@ -151,7 +151,7 @@ export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate
   const count = compactNum(s.rating_count || s.booking_count);
   return (
     <Pressable testID={testID} onPress={() => navigate(`/service/${s.id}`)} style={{ ...card, width: compact ? 150 : 164, overflow: "hidden", borderRadius: 18 }}>
-      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 116, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" recyclingKey={s.id} />
+      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 120, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" recyclingKey={s.id} />
       <View style={{ padding: 12 }}>
         <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>{s.name}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>

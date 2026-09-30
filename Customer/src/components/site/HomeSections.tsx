@@ -159,7 +159,7 @@ export function ServiceCard({ s, navigate, badge, testID }: { s: any; navigate: 
   const dur = s.duration_min >= 60 ? `${Math.floor(s.duration_min / 60)}h${s.duration_min % 60 ? ` ${s.duration_min % 60}m` : ""}` : `${s.duration_min} min`;
   return (
     <Pressable testID={testID} onPress={() => navigate(`/(site)/service/${s.id}`)} style={{ width: 240, borderRadius: 24, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
-      <View style={{ height: 170, backgroundColor: TC.surfaceAlt }}>
+      <View style={{ height: 120, backgroundColor: TC.surfaceAlt }}>
         {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={s.id} /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wrench size={32} color={TC.textFaint} /></View>}
         <View style={{ position: "absolute", top: 12, left: 12, flexDirection: "row", gap: 6 }}>
           {off > 0 ? <Text style={{ backgroundColor: PRIMARY[700], color: "#fff", fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>{off}% OFF</Text> : null}

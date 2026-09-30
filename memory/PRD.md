@@ -257,3 +257,10 @@ Added a Delete button (Customer + Partner) so admins can remove an uploaded APK 
 ---
 ## Session (2026-06) — Customer app: All Services card image too tall
 Fixed image height on the "All Services" (Services tab) screen. services.tsx ServiceCard image container used aspectRatio 3/4 (~220px tall); changed to fixed height:120 to match the category detail screen (category/[id].tsx line 61). Native Expo app — verify on EAS build.
+
+---
+## Session (2026-06) — Home service cards image height aligned to 120
+For app-wide consistency, set service-card image height to 120:
+- HomeSections.tsx ServiceCard (Popular/Trending, width 240): 170 → 120.
+- Blocks.tsx ServiceTile (non-compact): 116 → 120.
+Now Home, All Services (services.tsx) and Category ([id].tsx) all use height 120. Native Expo — verify on build.
