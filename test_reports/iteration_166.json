@@ -1,0 +1,23 @@
+{
+  "summary": "Iter166 backend regression after Customer Android package rename to app.azoapp.homeservice. All 10 tests passed. Verified public /api/app-mgmt/config/{customer,partner} return correct apk_package values, admin GET returns both platforms, admin PUT /admin/config/customer saves and public GET reflects the changes (latest_version=1.6.0, version_code=16, update_enabled=true), and flags were reset to false at the end so preview app is not blocked. Live Logs (POST /api/logs/client + admin GET /admin/logs, /summary, /health) all healthy. Admin OTP login + /admin/dashboard regression OK.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_app_mgmt_pkg_iter166.py",
+    "/app/test_reports/pytest/iter166.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/routes/app_management_routes.py L173 falls back to EXPECTED_PACKAGE[platform] when apk_package is empty; that behaviour is what allowed customer public config to return 'app.azoapp.homeservice' even without an uploaded APK — good, keep it.",
+    "Admin PUT /admin/config/{platform} performs partial upsert without validating field types beyond version_code + booleans; consider a Pydantic model to guard against arbitrary keys leaking into app_config."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_app_mgmt_pkg_iter166.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A (skipped per request)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None. PUT test snapshots current customer config, applies test payload, then resets update_enabled/force_update/maintenance_enabled to false and restores latest_version/version_code from snapshot.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression suite for App Management + Live Logs lives at /app/backend/tests/test_app_mgmt_pkg_iter166.py (extends iter165). Confirms customer package is app.azoapp.homeservice and partner is app.azoapp.partner. Safe to re-run — final PUT resets flags."
+}
