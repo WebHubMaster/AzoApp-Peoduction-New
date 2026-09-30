@@ -253,3 +253,7 @@ Added a Delete button (Customer + Partner) so admins can remove an uploaded APK 
 - storage_service.delete_stored(ref): deletes by stored URL (local/S3 proxy/public-base) or bare name.
 - Panel (AppManagement.jsx): red trash Delete button shown when apk_url set (data-testid apk-delete-btn-customer/partner), window.confirm, refresh on success.
 - Verified 100% by testing agent (iteration_169): delete works + persists for both platforms.
+
+---
+## Session (2026-06) — Customer app: All Services card image too tall
+Fixed image height on the "All Services" (Services tab) screen. services.tsx ServiceCard image container used aspectRatio 3/4 (~220px tall); changed to fixed height:120 to match the category detail screen (category/[id].tsx line 61). Native Expo app — verify on EAS build.

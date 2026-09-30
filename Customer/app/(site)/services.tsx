@@ -20,7 +20,7 @@ function ServiceCard({ s, w }: { s: any; w: number }) {
   const off = disc ? Math.round((1 - s.discounted_price / s.base_price) * 100) : 0;
   return (
     <Pressable testID={`svc-${s.id}`} onPress={() => router.push(`/(site)/service/${s.id}` as any)} style={{ width: w, borderRadius: 16, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, overflow: "hidden" }}>
-      <View style={{ width: "100%", aspectRatio: 3 / 4, backgroundColor: TC.surfaceAlt }}>
+      <View style={{ width: "100%", height: 120, backgroundColor: TC.surfaceAlt }}>
         {s.image ? <Image source={{ uri: s.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={200} /> : null}
         {off > 0 ? <View style={{ position: "absolute", top: 8, left: 8, backgroundColor: PRIMARY[700], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{off}% OFF</Text></View> : null}
       </View>
