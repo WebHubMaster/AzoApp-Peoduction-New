@@ -34,7 +34,7 @@ async def _get(platform: str) -> dict:
     if not doc:
         doc = {
             "platform": platform, "latest_version": "", "version_code": 0,
-            "apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "",
+            "apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "", "apk_key": "",
             "playstore_url": "", "update_enabled": False, "force_update": False,
             "release_notes": "", "maintenance_enabled": False, "maintenance_title": "",
             "maintenance_image": "", "maintenance_icon": "", "maintenance_description": "",
@@ -111,10 +111,10 @@ async def finish_upload(platform: str, body: dict, user=Depends(ADMIN)):
                 status_code=400,
                 detail=f"This APK does not belong to the {platform.title()} App "
                        f"(found package '{pkg}', expected '{expected}').")
-        url = await storage_service._put(f"app-mgmt/{platform}/{expected}-{vcode}.apk",
-                                         raw, "application/vnd.android.package-archive")
+        apk_name = f"app-mgmt/{platform}/{expected}-{vcode}.apk"
+        url = await storage_service._put(apk_name, raw, "application/vnd.android.package-archive")
         upd = {"apk_url": url, "apk_size": len(raw), "apk_package": pkg,
-               "apk_version_name": vname, "updated_at": now_iso()}
+               "apk_version_name": vname, "apk_key": apk_name, "updated_at": now_iso()}
         # auto-fill the version fields from the APK if the admin left them blank
         cur = await _get(platform)
         if not cur.get("version_code"):
@@ -129,6 +129,28 @@ async def finish_upload(platform: str, body: dict, user=Depends(ADMIN)):
             os.remove(path)
         except OSError:
             pass
+
+
+@router.delete("/admin/apk/{platform}")
+async def delete_apk(platform: str, user=Depends(ADMIN)):
+    """Delete the uploaded APK for a platform: removes the stored file (S3 or local
+    disk) AND clears the version/apk fields so no update is served. Also turns
+    update_enabled OFF (there is nothing to update to)."""
+    _valid_platform(platform)
+    cur = await _get(platform)
+    ref = cur.get("apk_key") or cur.get("apk_url") or ""
+    deleted = False
+    if ref:
+        try:
+            deleted = await storage_service.delete_stored(ref)
+        except Exception:  # noqa: BLE001 — never let a storage hiccup block clearing the record
+            deleted = False
+    await db.app_config.update_one(
+        {"platform": platform},
+        {"$set": {"apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "",
+                  "apk_key": "", "update_enabled": False, "updated_at": now_iso()}},
+        upsert=True)
+    return {"ok": True, "file_deleted": deleted, **(await _get(platform))}
 
 
 def _parse_apk(raw: bytes):

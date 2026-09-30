@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Smartphone, Upload, CheckCircle2, Loader2, Wrench, Rocket, Image as ImageIcon } from "lucide-react";
+import { Smartphone, Upload, CheckCircle2, Loader2, Wrench, Rocket, Image as ImageIcon, Trash2 } from "lucide-react";
 import api, { API, mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,7 @@ function AppForm({ platform, cfg, onSaved }) {
   const [f, setF] = useState(cfg);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [pct, setPct] = useState(0);
   const fileRef = useRef(null);
   useEffect(() => { setF(cfg); }, [cfg]);
@@ -108,6 +109,17 @@ function AppForm({ platform, cfg, onSaved }) {
     if (fileRef.current) fileRef.current.value = "";
   };
 
+  const deleteApk = async () => {
+    if (!window.confirm(`Delete the uploaded ${platform.label} APK from the server? This removes the file and disables in-app updates until you upload a new APK.`)) return;
+    setDeleting(true);
+    try {
+      const { data } = await api.delete(`/app-mgmt/admin/apk/${platform.key}`);
+      toast.success(`${platform.label} APK deleted`);
+      onSaved(data);
+    } catch (err) { toast.error(err?.response?.data?.detail || "Delete failed"); }
+    setDeleting(false);
+  };
+
   return (
     <div className="grid lg:grid-cols-2 gap-5" data-testid={`appmgmt-form-${platform.key}`}>
       {/* Update settings */}
@@ -132,9 +144,16 @@ function AppForm({ platform, cfg, onSaved }) {
             </div>
           ) : <p className="mt-3 text-[12px] text-amber-600">No APK uploaded yet.</p>}
           <input ref={fileRef} data-testid={`apk-input-${platform.key}`} type="file" accept=".apk,application/vnd.android.package-archive" className="hidden" onChange={uploadApk} />
-          <Button data-testid={`apk-upload-btn-${platform.key}`} disabled={uploading} onClick={() => fileRef.current?.click()} className="mt-3 w-full bg-slate-800 hover:bg-slate-900 text-white">
-            {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading… {pct}%</> : <>Upload / Replace APK</>}
-          </Button>
+          <div className="mt-3 flex gap-2">
+            <Button data-testid={`apk-upload-btn-${platform.key}`} disabled={uploading || deleting} onClick={() => fileRef.current?.click()} className="flex-1 bg-slate-800 hover:bg-slate-900 text-white">
+              {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading… {pct}%</> : <>Upload / Replace APK</>}
+            </Button>
+            {f.apk_url ? (
+              <Button data-testid={`apk-delete-btn-${platform.key}`} disabled={uploading || deleting} onClick={deleteApk} variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950" title="Delete uploaded APK">
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+              </Button>
+            ) : null}
+          </div>
           {uploading ? <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-primary-600 transition-all" style={{ width: `${pct}%` }} /></div> : null}
         </div>
 

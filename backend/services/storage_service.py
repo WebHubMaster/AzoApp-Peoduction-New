@@ -256,6 +256,55 @@ async def _put(name: str, data: bytes, mime: str, base_hint: str = "") -> str:
     return f"{base}/{name}"
 
 
+async def delete_stored(ref: str) -> bool:
+    """Delete a previously-stored object given its stored URL or storage name.
+    Handles: local media URL (/api/media/file/<name>), S3 proxy URL
+    (/api/media/s3/<key>), S3 public-base URL, and a bare relative name. Returns
+    True if the object was removed (or already gone)."""
+    if not ref:
+        return False
+    ref = str(ref).strip()
+
+    def _rm_local(name: str) -> bool:
+        dest = UPLOAD_DIR / name
+        try:
+            if dest.exists():
+                dest.unlink()
+            return True
+        except OSError:
+            return False
+
+    if "/api/media/file/" in ref:
+        return _rm_local(ref.split("/api/media/file/", 1)[1].split("?")[0])
+
+    conf = await _s3_conf()
+    key = None
+    if "/api/media/s3/" in ref:
+        key = ref.split("/api/media/s3/", 1)[1].split("?")[0]
+    elif conf and conf.get("public_base") and ref.startswith(conf["public_base"]):
+        key = ref[len(conf["public_base"]):].lstrip("/")
+    elif "://" not in ref:
+        # bare relative storage name (e.g. "app-mgmt/customer/x.apk")
+        if conf:
+            key = _s3_key(conf, ref)
+        else:
+            return _rm_local(ref)
+
+    if conf and key:
+        import anyio
+        from botocore.exceptions import ClientError, BotoCoreError
+        client = _client(conf)
+
+        def _do():
+            client.delete_object(Bucket=conf["bucket"], Key=key)
+        try:
+            await anyio.to_thread.run_sync(_do)
+            return True
+        except (ClientError, BotoCoreError):
+            return False
+    return False
+
+
 async def save_image(raw: bytes, content_type: str, folder: str = "media",
                      max_side: int = 1600, thumb: bool = False, filename: str = "",
                      base_hint: str = "") -> dict:
