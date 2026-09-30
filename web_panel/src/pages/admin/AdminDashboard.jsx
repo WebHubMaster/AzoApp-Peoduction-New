@@ -27,6 +27,7 @@ import KycApprovals from "@/pages/admin/KycApprovals";
 import PeopleList from "@/pages/admin/people/PeopleList";
 import Person360 from "@/pages/admin/people/Person360";
 import TransactionsHub from "@/pages/admin/TransactionsHub";
+import RegistrationFeeReport from "@/pages/admin/RegistrationFeeReport";
 import RefundsHub from "@/pages/admin/RefundsHub";
 import SupportInbox from "@/pages/admin/SupportInbox";
 import FinancialReports from "@/pages/admin/FinancialReports";
@@ -87,6 +88,7 @@ const NAV = [
     { key: "kyc_approvals", label: "KYC Approvals", icon: ShieldCheck },
     { key: "pro_partners", label: "Pro Partner", icon: Crown },
     { key: "area_partners", label: "Area Partner", icon: MapPin },
+    { key: "registration_fee", label: "Registration Fee", icon: IndianRupee },
   ]},
   { key: "starter_kit_admin", label: "Starter Kit", icon: Package },
   { group: "Notifications", icon: Bell, items: [
@@ -349,6 +351,7 @@ export default function AdminDashboard() {
       {active === "kyc_approvals" && <KycApprovals />}
       {active === "pro_partners" && <PeopleList role="partner" pro onView={setViewUser} onCountsChanged={loadDots} />}
       {active === "area_partners" && <AreaPartners onView={setViewUser} />}
+      {active === "registration_fee" && <RegistrationFeeReport onView={setViewUser} />}
       {active === "partner_jobs" && <AdminJobRequests onOpen={setOpenBooking} />}
       {active === "dispatch_feed" && <AdminDispatchFeed />}
       {active === "realtime_settings" && <RealtimeSettings />}

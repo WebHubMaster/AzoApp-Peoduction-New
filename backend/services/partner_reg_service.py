@@ -331,6 +331,69 @@ async def partner_fee_state(user) -> dict:
     return {**fee, "already_paid": pay.get("status") == "paid", "payment": pay or None}
 
 
+async def admin_registration_fees(status: str = "all", q: str = "", date_from: str = "",
+                                  date_to: str = "", gateway: str = "", mode: str = "") -> dict:
+    """Admin Registration-Fee report: paid fee transactions (with advanced filters)
+    + unpaid partners + a collection summary. Data is scoped to registration fees ONLY."""
+    status = (status or "all").lower()
+    # ---- Paid transactions (from payment_transactions, purpose-scoped) ----
+    query = {"purpose": "partner_registration_fee"}
+    if gateway:
+        query["gateway"] = gateway
+    if mode:
+        query["mode"] = mode
+    if q:
+        rx = {"$regex": re.escape(q.strip()), "$options": "i"}
+        query["$or"] = [{"txn_ref": rx}, {"customer_name": rx}, {"customer_phone": rx},
+                        {"partner_code": rx}, {"gateway_payment_id": rx}, {"gateway_order_id": rx}]
+    if date_from or date_to:
+        rng = {}
+        if date_from:
+            rng["$gte"] = date_from
+        if date_to:
+            rng["$lte"] = date_to + "T23:59:59"
+        query["created_at"] = rng
+    txns = await db.payment_transactions.find(query, {"_id": 0}).sort("created_at", -1).to_list(5000)
+
+    # ---- Unpaid partners (approved/registered partners with no paid reg fee) ----
+    unpaid = []
+    if status in ("all", "unpaid"):
+        cursor = db.partner_profiles.find(
+            {"$or": [{"reg_fee_payment": {"$exists": False}},
+                     {"reg_fee_payment.status": {"$ne": "paid"}}]},
+            {"_id": 0, "user_id": 1, "basic": 1, "phone": 1, "partner_code": 1,
+             "status": 1, "created_at": 1, "reg_fee_pending_order": 1})
+        rows = await cursor.to_list(5000)
+        needle = (q or "").strip().lower()
+        for r in rows:
+            basic = r.get("basic") or {}
+            name = basic.get("full_name") or ""
+            phone = r.get("phone") or ""
+            code = r.get("partner_code") or ""
+            if needle and needle not in name.lower() and needle not in phone.lower() and needle not in code.lower():
+                continue
+            unpaid.append({
+                "partner_id": r.get("user_id"), "name": name or "Partner",
+                "phone": phone, "partner_code": code,
+                "kyc_status": r.get("status") or "", "created_at": r.get("created_at"),
+                "pending_order": bool(r.get("reg_fee_pending_order")),
+            })
+
+    fee = await reg_fee_config()
+    collected = round(sum(float(t.get("amount") or 0) for t in txns), 2)
+    summary = {
+        "collected": collected,
+        "paid_count": len(txns),
+        "unpaid_count": len(unpaid),
+        "fee_enabled": fee.get("enabled"),
+        "current_fee": fee.get("final_amount"),
+    }
+    out_txns = txns if status in ("all", "paid") else []
+    return {"fee_config": fee, "summary": summary, "transactions": out_txns,
+            "unpaid": unpaid, "status": status}
+
+
+
 async def create_fee_order(user) -> dict:
     fee = await reg_fee_config()
     if not fee["enabled"]:
@@ -396,7 +459,61 @@ async def confirm_fee_payment(user, body: dict) -> dict:
         {"user_id": user["id"]},
         {"$set": {"reg_fee_payment": payment, "updated_at": now_iso()},
          "$unset": {"reg_fee_pending_order": ""}})
+    # Record the registration-fee payment as a first-class transaction so it shows
+    # in Admin -> Transactions AND the dedicated Registration Fee report.
+    try:
+        await _record_reg_fee_txn(user, p, payment)
+    except Exception:  # noqa: BLE001
+        pass
     return {"ok": True, "payment": payment}
+
+
+async def _record_reg_fee_txn(user: dict, profile: dict, payment: dict) -> None:
+    """Insert a payment_transactions doc for a paid partner registration fee
+    (idempotent per order_id)."""
+    order_id = payment.get("order_id")
+    if order_id and await db.payment_transactions.find_one(
+            {"purpose": "partner_registration_fee", "gateway_order_id": order_id}):
+        return
+    basic = (profile.get("basic") or {})
+    name = basic.get("full_name") or user.get("name") or "Partner"
+    phone = profile.get("phone") or user.get("phone") or ""
+    amount = round(float(payment.get("amount") or 0), 2)
+    ts = now_iso()
+    doc = {
+        "id": new_id(),
+        "purpose": "partner_registration_fee",
+        "txn_ref": f"REGFEE-{(order_id or new_id())[:16]}",
+        "partner_id": user.get("id"),
+        "partner_code": user.get("partner_code") or profile.get("partner_code") or "",
+        "customer_id": user.get("id"),
+        "customer_name": name,
+        "customer_phone": phone,
+        "service_name": "Partner Registration Fee",
+        "category": "Registration",
+        "amount": amount,
+        "method": "online",
+        "method_label": (payment.get("gateway") or "Online").title(),
+        "status": "success",
+        "gateway": payment.get("gateway") or "",
+        "mode": payment.get("mode") or "test",
+        "gateway_payment_id": payment.get("payment_id"),
+        "gateway_order_id": order_id,
+        "order_created": True,
+        "booking_code": None,
+        "invoice": {
+            "lines": [{"label": "Partner Registration Fee", "amount": payment.get("original_price", amount)}]
+            + ([{"label": "Discount", "amount": -float(payment.get("discount_amount") or 0)}] if float(payment.get("discount_amount") or 0) else []),
+            "subtotal": payment.get("original_price", amount),
+            "tax": 0, "visiting": 0,
+            "discount": float(payment.get("discount_amount") or 0), "total": amount},
+        "timeline": [
+            {"at": payment.get("paid_at") or ts, "label": "Registration fee payment captured"},
+        ],
+        "created_at": payment.get("paid_at") or ts,
+        "updated_at": ts,
+    }
+    await db.payment_transactions.insert_one(doc)
 
 
 async def submit_profile(user) -> dict:

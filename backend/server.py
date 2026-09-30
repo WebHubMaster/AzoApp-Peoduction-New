@@ -257,7 +257,13 @@ async def startup():
     try:
         from services import cache_service as _cs
         await _cs.apply_saved_config()
-        logger.info("cache config applied: live=%s", _cs.cache.is_live())
+        # A redeploy leaves any EXTERNAL Redis (Upstash/Redis Cloud/etc.) holding the
+        # PREVIOUS build's cached public config — which is why a freshly-saved
+        # integration key appeared "not working" until it was re-saved (a save busts
+        # the cache, a redeploy did not). Flush the read-through caches on every boot
+        # so the newest saved settings/integration keys take effect immediately.
+        await _cs.bust_prefix("site:")
+        logger.info("cache config applied: live=%s (site cache flushed)", _cs.cache.is_live())
     except Exception as e:  # noqa: BLE001
         logger.warning("cache config apply skipped: %s", e)
 

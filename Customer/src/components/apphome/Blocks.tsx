@@ -88,7 +88,7 @@ export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any
         <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={{ width: tileW, alignItems: "center" }}>
           <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 18, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {c.more ? <Grip size={34} color={TC.text} strokeWidth={2.2} />
-              : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} />
+              : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} cachePolicy="memory-disk" recyclingKey={c.id} priority="high" />
               : c.icon ? <LucideByName name={c.icon} size={40} color={TC.primaryText} strokeWidth={1.6} /> : <Sparkles size={34} color={TC.primaryText} />}
           </View>
           <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "500", color: TC.text, textAlign: "center", marginTop: 10, lineHeight: 19, paddingHorizontal: 2 }}>{c.name}</Text>
@@ -109,7 +109,7 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
   return (
     <View testID="app-offer-banner" style={{ marginHorizontal: 20, marginBottom: 28 }}>
       <LinearGradient colors={["#FFF4E0", "#FFE9C7"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", minHeight: 200, borderWidth: 1, borderColor: AMBER[200] }}>
-        {(cfg.image || off.image) ? <Image source={{ uri: cfg.image || off.image }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "46%" }} contentFit="cover" contentPosition="bottom" transition={200} /> : null}
+        {(cfg.image || off.image) ? <Image source={{ uri: cfg.image || off.image }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "46%" }} contentFit="cover" contentPosition="bottom" transition={200} cachePolicy="memory-disk" priority="high" /> : null}
         {label ? <View style={{ position: "absolute", right: 14, top: 40, backgroundColor: ROSE[500], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 8, alignItems: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 14 }}>{label.split(" ")[0]}</Text><Text style={{ color: "#fff", fontWeight: "700", fontSize: 9 }}>{label.split(" ").slice(1).join(" ") || "OFF"}</Text></View> : null}
         <View style={{ padding: 20, width: "62%" }}>
           {cfg.eyebrow ? <View style={{ alignSelf: "flex-start", backgroundColor: ORANGE[500], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "800", letterSpacing: 0.8 }}>{cfg.eyebrow}</Text></View> : null}
@@ -151,7 +151,7 @@ export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate
   const count = compactNum(s.rating_count || s.booking_count);
   return (
     <Pressable testID={testID} onPress={() => navigate(`/service/${s.id}`)} style={{ ...card, width: compact ? 150 : 164, overflow: "hidden", borderRadius: 18 }}>
-      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 116, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
+      <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 116, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" recyclingKey={s.id} />
       <View style={{ padding: 12 }}>
         <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>{s.name}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 5 }}>

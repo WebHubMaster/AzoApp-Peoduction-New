@@ -141,7 +141,7 @@ export function CategoryCard({ c, onOpen, testID }: { c: any; onOpen: (c: any) =
   return (
     <Pressable testID={testID} onPress={() => onOpen(c)} style={{ width: 150, borderRadius: 24, backgroundColor: TC.surface, ...ring, padding: 10 }}>
       <View style={{ aspectRatio: 1, borderRadius: 16, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
-        {c.image ? <Image source={{ uri: mediaUrl(c.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : <LucideByName name={c.icon} size={36} />}
+        {c.image ? <Image source={{ uri: mediaUrl(c.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={c.id} /> : <LucideByName name={c.icon} size={36} />}
       </View>
       <View style={{ paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 }}>
         <Text numberOfLines={1} style={{ fontWeight: "600", color: TC.text, fontSize: 14 }}>{c.name}</Text>
@@ -160,7 +160,7 @@ export function ServiceCard({ s, navigate, badge, testID }: { s: any; navigate: 
   return (
     <Pressable testID={testID} onPress={() => navigate(`/(site)/service/${s.id}`)} style={{ width: 240, borderRadius: 24, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
       <View style={{ height: 170, backgroundColor: TC.surfaceAlt }}>
-        {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wrench size={32} color={TC.textFaint} /></View>}
+        {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={s.id} /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wrench size={32} color={TC.textFaint} /></View>}
         <View style={{ position: "absolute", top: 12, left: 12, flexDirection: "row", gap: 6 }}>
           {off > 0 ? <Text style={{ backgroundColor: PRIMARY[700], color: "#fff", fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>{off}% OFF</Text> : null}
           {badge ? <Text style={{ backgroundColor: TC.surface, color: TC.text, fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>{badge}</Text> : null}
@@ -223,7 +223,7 @@ export function BannersSection({ sec, navigate }: { sec: any; navigate: Nav }) {
         <Scroller testID="home-banners-row">
           {data.map((b: any) => (
             <Pressable key={b.id} testID={`home-banner-${b.id}`} onPress={() => (b.link || b.button_url) && navigate(b.link || b.button_url)} style={{ width: 320, height: 200, borderRadius: 24, overflow: "hidden", backgroundColor: SLATE[900], ...ring }}>
-              <Image source={{ uri: mediaUrl(b.mobile_image || b.desktop_image || b.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
+              <Image source={{ uri: mediaUrl(b.mobile_image || b.desktop_image || b.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={b.id} priority="high" />
               <LinearGradient colors={["rgba(15,23,42,0.8)", "rgba(15,23,42,0.3)", "transparent"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, padding: 24, justifyContent: "flex-end" }}>
                 <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20, lineHeight: 24 }}>{b.title}</Text>

@@ -7,7 +7,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, ActivityIndicator, useWindowDimensions } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
@@ -64,6 +64,15 @@ export default function Login() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const { return: returnTo } = useLocalSearchParams<{ return?: string }>();
+  // After sign-in, continue where the user came from (e.g. the booking flow) instead
+  // of always dropping them on the dashboard. Falls back to dashboard only when there
+  // is nowhere to return to.
+  const goAfterAuth = () => {
+    if (returnTo) { router.replace(returnTo as any); return; }
+    if (router.canGoBack()) { router.back(); return; }
+    router.replace("/(customer)");
+  };
   const toast = useToast();
   const { branding } = useSiteConfig();
   const { isDark } = useTheme();
@@ -82,7 +91,7 @@ export default function Login() {
   const { data: cfg } = useQuery({ queryKey: ["auth-config"], queryFn: () => api.get<any>("/auth/config", { auth: false }) });
   const [em, setEm] = useState({ email: "", password: "", name: "" });
 
-  useEffect(() => { if (user) { setRouting(true); router.replace("/(customer)"); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user) { setRouting(true); goAfterAuth(); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
@@ -97,7 +106,6 @@ export default function Login() {
     setRouting(true);
     await login(data.token, data.user);
     toast.success(greeting || `Welcome, ${data.user.name}!`);
-    router.replace("/(customer)");
     return true;
   };
 

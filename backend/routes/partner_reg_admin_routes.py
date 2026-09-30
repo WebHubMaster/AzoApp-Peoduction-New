@@ -172,6 +172,13 @@ async def delete_template(tid: str, admin=Depends(ADMIN)):
 
 
 # ---------------- Integration Center status snapshot ----------------
+@router.get("/registration-fees")
+async def registration_fees(status: str = "all", q: str = "", date_from: str = "",
+                            date_to: str = "", gateway: str = "", mode: str = "",
+                            admin=Depends(ADMIN)):
+    return await prs.admin_registration_fees(status, q, date_from, date_to, gateway, mode)
+
+
 @router.get("/integration-center")
 async def integration_center(admin=Depends(ADMIN)):
     from config.database import db, get_settings

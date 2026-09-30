@@ -22,7 +22,6 @@ export default function ServiceDetail() {
   const { addService, count } = useCart();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const [svc, setSvc] = useState(null);
-  const [addons, setAddons] = useState([]);
   const [tier, setTier] = useState(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -33,22 +32,19 @@ export default function ServiceDetail() {
       const ts = r.data.tiers || [];
       if (ts.length) { const bi = ts.findIndex((t) => t.badge); setTier(bi >= 0 ? bi : 0); }
     });
-    setAddons([]); setQty(1); setAdded(false);
+    setQty(1); setAdded(false);
   }, [id]);
-
-  const toggleAddon = (name) => setAddons((a) => (a.includes(name) ? a.filter((x) => x !== name) : [...a, name]));
 
   const unitPrice = useMemo(() => {
     if (!svc) return 0;
     let base;
     if (tier != null && svc.tiers?.[tier]) base = Number(svc.tiers[tier].price) || 0;
     else base = svc.discounted_price > 0 && svc.discounted_price < svc.base_price ? svc.discounted_price : svc.base_price;
-    const addonSum = addons.reduce((s, name) => { const a = (svc.addons || []).find((x) => x.name === name); return s + (a ? Number(a.price) || 0 : 0); }, 0);
-    return (Number(base) || 0) + addonSum;
-  }, [svc, tier, addons]);
+    return Number(base) || 0;
+  }, [svc, tier]);
 
   const addToBooking = (goCheckout = false) => {
-    addService(svc, { tier_index: tier, addons, qty });
+    addService(svc, { tier_index: tier, addons: [], qty });
     setAdded(true);
     if (goCheckout) navigate("/book");
     else toast.success(`${svc.name} added to your booking`);
@@ -161,24 +157,6 @@ export default function ServiceDetail() {
             ? <div className="text-slate-600 mt-4 leading-relaxed rt-editor" dangerouslySetInnerHTML={{ __html: svc.description }} />
             : <p className="text-slate-600 mt-4 leading-relaxed">{svc.description}</p>)}
 
-          {svc.addons?.length > 0 && (
-            <div className="mt-8">
-              <h3 className="font-heading font-bold text-lg text-slate-900 mb-3">Add-ons</h3>
-              <div className="space-y-2">
-                {svc.addons.map((a) => (
-                  <label key={a.name} data-testid={`addon-${a.name}`} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${addons.includes(a.name) ? "border-primary-700 bg-primary-50" : "border-slate-200 bg-white"}`}>
-                    <span className="flex items-center gap-3">
-                      <span className={`h-5 w-5 rounded-md border flex items-center justify-center ${addons.includes(a.name) ? "bg-primary-700 border-primary-700" : "border-slate-300"}`}>{addons.includes(a.name) && <Check className="h-4 w-4 text-white" />}</span>
-                      <span className="font-medium text-slate-800">{a.name}</span>
-                    </span>
-                    <span className="font-semibold text-slate-700">+{fmt(a.price)}</span>
-                    <input type="checkbox" className="hidden" checked={addons.includes(a.name)} onChange={() => toggleAddon(a.name)} />
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
-
           {(svc.faqs || []).length > 0 && (
             <div className="mt-8">
               <h3 className="font-heading font-bold text-lg text-slate-900 mb-3">Frequently asked questions</h3>
@@ -208,9 +186,6 @@ export default function ServiceDetail() {
 
             {tier != null && svc.tiers?.[tier] && (
               <div className="flex justify-between text-sm mt-3"><span className="text-slate-500">Pack</span><span className="font-medium text-slate-800">{svc.tiers[tier].label}</span></div>
-            )}
-            {addons.length > 0 && (
-              <div className="flex justify-between text-sm mt-1"><span className="text-slate-500">Add-ons</span><span className="font-medium text-slate-800 text-right max-w-[60%]">{addons.join(", ")}</span></div>
             )}
 
             <div className="flex items-baseline justify-between mt-4 pt-4 border-t border-slate-100">

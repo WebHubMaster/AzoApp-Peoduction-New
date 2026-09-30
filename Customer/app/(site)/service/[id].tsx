@@ -81,7 +81,6 @@ export default function ServiceDetail() {
   const toast = useToast();
   const { addService, count } = useCart();
   const [svc, setSvc] = useState<any>(null);
-  const [addons, setAddons] = useState<string[]>([]);
   const [tier, setTier] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
@@ -91,7 +90,7 @@ export default function ServiceDetail() {
   const gallery: string[] = svc ? [svc.image, ...(svc.gallery || [])].filter(Boolean) : [];
 
   useEffect(() => {
-    setSvc(null); setAddons([]); setQty(1); setAdded(false); setGalleryIdx(0);
+    setSvc(null); setQty(1); setAdded(false); setGalleryIdx(0);
     api.get<any>(`/catalog/services/${id}`, { auth: false }).then((d) => {
       setSvc(d);
       const ts = d.tiers || [];
@@ -99,15 +98,13 @@ export default function ServiceDetail() {
     }).catch(() => toast.error("Service not found"));
   }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const toggleAddon = (name: string) => setAddons((a) => (a.includes(name) ? a.filter((x) => x !== name) : [...a, name]));
   const unitPrice = useMemo(() => {
     if (!svc) return 0;
     const base = tier != null && svc.tiers?.[tier] ? Number(svc.tiers[tier].price) || 0 : (svc.discounted_price > 0 && svc.discounted_price < svc.base_price ? svc.discounted_price : svc.base_price);
-    const addonSum = addons.reduce((s, name) => { const a = (svc.addons || []).find((x: any) => x.name === name); return s + (a ? Number(a.price) || 0 : 0); }, 0);
-    return (Number(base) || 0) + addonSum;
-  }, [svc, tier, addons]);
+    return Number(base) || 0;
+  }, [svc, tier]);
   const addToBooking = (goCheckout = false) => {
-    addService(svc, { tier_index: tier, addons, qty });
+    addService(svc, { tier_index: tier, addons: [], qty });
     setAdded(true);
     if (goCheckout) router.push("/(site)/book" as any); else toast.success(`${svc.name} added to your booking`);
   };
@@ -143,7 +140,7 @@ export default function ServiceDetail() {
     <View style={{ flex: 1, backgroundColor: TC.bg }} testID="service-detail">
       {Header}
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-        <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 16, backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
+        <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 16, backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" priority="high" recyclingKey={String(id)} />
         {gallery.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 12 }}>{gallery.map((im: string, i: number) => <Pressable key={i} testID={`gallery-thumb-${i}`} onPress={() => setGalleryIdx(i)} style={{ height: 64, width: 96, borderRadius: 8, overflow: "hidden", borderWidth: 2, borderColor: i === galleryIdx ? PRIMARY[700] : "transparent" }}><Image source={{ uri: im }} style={{ width: "100%", height: "100%" }} contentFit="cover" /></Pressable>)}</ScrollView> : null}
         <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: "700", color: TC.primaryText, marginTop: 20 }}>{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</Text>
         {svc.is_subscription ? <View testID="subscription-badge" style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><CalendarClock size={12} color={EMERALD[700]} /><Text style={{ fontSize: 11, fontWeight: "700", color: EMERALD[700] }}>Recurring Subscription</Text></View> : null}
@@ -197,26 +194,6 @@ export default function ServiceDetail() {
         ) : null}
         {svc.description ? <Text style={{ color: TC.textMuted, marginTop: 16, lineHeight: 22, fontSize: 14 }}>{stripHtml(svc.description)}</Text> : null}
 
-        {svc.addons?.length ? (
-          <View style={{ marginTop: 28 }}>
-            <Text style={{ fontSize: 18, fontWeight: "700", color: TC.text, marginBottom: 12 }}>Add-ons</Text>
-            <View style={{ gap: 8 }}>
-              {svc.addons.map((a: any) => {
-                const on = addons.includes(a.name);
-                return (
-                  <Pressable key={a.name} testID={`addon-${a.name}`} onPress={() => toggleAddon(a.name)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 16, borderRadius: 12, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                      <View style={{ height: 20, width: 20, borderRadius: 6, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, backgroundColor: on ? PRIMARY[700] : TC.surface, alignItems: "center", justifyContent: "center" }}>{on ? <Check size={14} color="#fff" /> : null}</View>
-                      <Text style={{ fontWeight: "500", color: TC.text, fontSize: 15 }}>{a.name}</Text>
-                    </View>
-                    <Text style={{ fontWeight: "600", color: TC.text2 }}>+{fmt(a.price)}</Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-        ) : null}
-
         {(svc.faqs || []).length ? (
           <View style={{ marginTop: 28 }}>
             <Text style={{ fontSize: 18, fontWeight: "700", color: TC.text, marginBottom: 12 }}>Frequently asked questions</Text>
@@ -241,7 +218,6 @@ export default function ServiceDetail() {
             </View>
           </View>
           {tier != null && svc.tiers?.[tier] ? <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}><Text style={{ fontSize: 14, color: TC.textMuted }}>Pack</Text><Text style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{svc.tiers[tier].label}</Text></View> : null}
-          {addons.length ? <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 4 }}><Text style={{ fontSize: 14, color: TC.textMuted }}>Add-ons</Text><Text style={{ fontSize: 14, fontWeight: "500", color: TC.text, maxWidth: "60%", textAlign: "right" }}>{addons.join(", ")}</Text></View> : null}
           <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderTopColor: TC.borderSoft }}><Text style={{ fontSize: 14, color: TC.textMuted }}>Item total</Text><Text testID="item-total" style={{ fontSize: 24, fontWeight: "800", color: TC.text }}>{fmt(unitPrice * qty)}</Text></View>
           <Pressable testID="add-to-booking" onPress={() => addToBooking(false)} style={{ marginTop: 16, height: 48, borderRadius: 6, borderWidth: 2, borderColor: PRIMARY[600], backgroundColor: "transparent", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>{added ? <><Check size={16} color={PRIMARY[700]} /><Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 16 }}>Added · Book again</Text></> : <Text style={{ color: PRIMARY[700], fontWeight: "700", fontSize: 16 }}>Book Now</Text>}</Pressable>
           {count > 0 ? <Pressable testID="go-checkout" onPress={() => router.push("/(site)/book" as any)} style={{ marginTop: 8, height: 44, borderRadius: 12, borderWidth: 1, borderColor: PRIMARY[200], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Text style={{ color: TC.primaryText, fontWeight: "600" }}>Go to checkout ({count})</Text><ShoppingBag size={16} color={TC.primaryText} /></Pressable>

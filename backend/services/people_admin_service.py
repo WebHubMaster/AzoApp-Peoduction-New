@@ -587,6 +587,16 @@ async def overview(role: str, uid: str):
         stats["penalties"] = await db.partner_penalties.count_documents({"partner_id": uid})
         stats["incentives"] = await db.partner_incentive_awards.count_documents({"partner_id": uid})
         stats["starter_kit"] = u.get("starter_kit")
+        # Registration-fee snapshot for the admin 360 profile (paid / unpaid + details).
+        _rp = (prof_full or {}).get("reg_fee_payment") or {}
+        from services.partner_reg_service import reg_fee_config
+        _fee_cfg = await reg_fee_config()
+        out["reg_fee"] = {
+            "enabled": _fee_cfg.get("enabled"),
+            "current_fee": _fee_cfg.get("final_amount"),
+            "paid": _rp.get("status") == "paid",
+            "payment": _rp or None,
+        }
     if role == "merchant":
         out["profile"] = await db.merchant_profiles.find_one({"user_id": uid}, {"_id": 0})
         _enrich_user_from_merchant_profile(out["user"], out["profile"])
