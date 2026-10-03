@@ -312,7 +312,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 
 ## 2026-10 — Invoice Verify Page + admin login fix
 - QR on Tax Invoice encodes signed public URL /api/invoices/verify/{id}?s=HMAC → "Genuine Invoice" page (masked customer, amounts, CGST/SGST); invalid → 404 "Could Not Verify".
-- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://pm-backend-frontend.preview.emergentagent.com (was a different host → CORS block).
+- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://dispatch-excellence.preview.emergentagent.com (was a different host → CORS block).
 
 ## 2026-10 — Commission drawer tax preview
 - Configure Commission drawer shows tax calc: total commission (100-partner%) + platform fee = taxable, CGST/SGST, customer total, invoice page1/page2, internal merchant split (not on invoice).
@@ -334,7 +334,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 ---
 ## Session (2026-06) — Price Manager PREMIUM full-width redesign (web_panel)
 GOAL: Redesign Super Admin "Price Manager" into a premium, full-width enterprise pricing system WITHOUT breaking existing service/city/category/add-on/MRP/fees/rate-card logic or APIs.
-ENV NOTE: pod reset had wiped .env files again → restored /app/backend/.env (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL=https://pm-backend-frontend.preview.emergentagent.com) and /app/web_panel/.env; reinstalled web_panel node_modules; backend re-seeded.
+ENV NOTE: pod reset had wiped .env files again → restored /app/backend/.env (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL=https://dispatch-excellence.preview.emergentagent.com) and /app/web_panel/.env; reinstalled web_panel node_modules; backend re-seeded.
 BACKEND (city_pricing_service.py):
 - list_cities(): cities now come ONLY from ACTIVE service_areas (status!=inactive) + their city_pricing docs; never leaks non-area cities. Added fields status, total_services, improved priced_services (_sp_is_priced). include_all=True kept for seed_from_current.
 - admin_city(): now returns updated_at + updated_by.
@@ -361,3 +361,23 @@ VERIFIED: testing agent iteration_180 — backend 5/5 PASS, frontend 100%, no cr
 ## 2026-06 Native date inputs replaced by PremiumDatePicker (DateRangeMenu custom range, Subscriptions filter drawer, Person360 DOB). PremiumDatePicker now works inside Radix popovers/sheets (keepPremiumCal).
 
 ## 2026-06 Subscriptions lifecycle: month calendar attendance (SubCalendar), renewals panel + nudge (GET /subscriptions/admin/renewals, POST /admin/{id}/nudge, /admin/renewals/nudge), pause/resume (days shift to end), cancel w/ pro-rata refund via refund_service (GET cancel-quote, POST cancel). Service: backend/services/subscription_lifecycle_service.py. Template events subscription_renewal_reminder/paused/resumed/cancelled + SMS templates seeded. WhatsApp channel does not exist in notification system.
+
+---
+
+## Live Operations redesign (2026-10-03)
+Premium enterprise "operations command center" redesign of the Super Admin **Live Operations** page (`web_panel/src/pages/admin/adminSections.jsx` → `LiveOps`). Business rule enforced: the list shows **only `status === "searching"` bookings**; once a partner is assigned the card is removed immediately (optimistic) and KPIs/pagination update with no refresh.
+
+What was built:
+- Brand system `#0D47A1`, Plus Jakarta Sans, premium KPI command cards (Searching Jobs, Online Partners, Total Partners, Total Active Jobs), animated LIVE pill + connection-interrupted banner, skeleton loaders.
+- Premium searching-job cards: animated SEARCHING radar pill, dispatch progress (Wave, notified count, waiting timer, ring-countdown bar), "Waiting too long" warning, View Details + Assign Partner actions, framer-motion enter/exit.
+- Search + fixed "Status: Searching" + service/city filters + clear; pagination with rows-per-page (10/20/50) and page clamping.
+- New components: `components/admin/DispatchInspector.jsx` (right drawer: booking details + dispatch status grid + eligible-not-rung + partner response timeline + Assign footer; reused as the details drawer) and `components/admin/LiveOpsSearching.jsx` (SearchingCard, AssignDrawer, KpiCommand). `components/admin/PartnerCoverage.jsx` also added (coverage radar; currently unused).
+- Assignment drawer lists eligible partners (rating/distance/ETA/availability) → AssignConfirm → `POST /admin/bookings/{id}/assign` → success toast + instant removal.
+- All existing endpoints/data logic preserved: `/admin/bookings`, `/admin/users?role=partner`, `/admin/bookings/{id}/eligible-partners`, `/admin/bookings/{id}/assign`, `/admin/bookings/{id}/dispatch-timeline`, `/admin/settings`, SSE events.
+
+Verified (browser automation, admin login): desktop list (only searching shown), assign drawer (3 eligible), mobile 390px (no horizontal overflow), full assign flow (toast + card removal + KPI 1→0 + empty state), details drawer.
+
+Backlog / next:
+- Server-side pagination for `/admin/bookings` if dataset grows large (currently client-side over full list).
+- Optional "N new searching jobs" banner when on page 2+ (currently a toast only).
+- Wire `PartnerCoverage` panel into the page if a live map section is desired.

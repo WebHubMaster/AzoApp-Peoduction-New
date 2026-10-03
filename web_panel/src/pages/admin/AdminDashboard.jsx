@@ -410,7 +410,7 @@ export default function AdminDashboard() {
       {active === "blogs" && <BlogManagerPro />}
       {active === "faqs" && <FaqManagerPro />}
       {active === "sysusers" && <S.SystemUsersSection />}
-      {active === "liveops" && <S.LiveOps />}
+      {active === "liveops" && <S.LiveOps onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }} />}
       {active === "livemap" && <LivePartnerMap />}
       {active === "locations" && <S.CmsManager title="Location" endpoint="collection/locations"
         fields={[{ key: "name", label: "City / Area", required: true }, { key: "state", label: "State" }, { key: "pincode", label: "Pincode" }]}

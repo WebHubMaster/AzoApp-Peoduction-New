@@ -8,7 +8,7 @@ import io
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://pm-backend-frontend.preview.emergentagent.com/api"
+BASE_URL = "https://dispatch-excellence.preview.emergentagent.com/api"
 
 # Test credentials
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals

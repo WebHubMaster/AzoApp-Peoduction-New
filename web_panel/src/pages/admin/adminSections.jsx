@@ -1,7 +1,7 @@
 import HomeStatsControl from "@/pages/admin/HomeStatsControl";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import PremiumDatePicker from "@/components/ui/PremiumDatePicker";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Fragment } from "react";
 import { useRealtime } from "@/context/RealtimeContext";
 import { useNavigate } from "react-router-dom";
 import api, { fmt, fmtC, compact } from "@/lib/api";
@@ -23,13 +23,16 @@ import PartnerConsole from "@/pages/admin/PartnerConsole";
 import MerchantConsole from "@/pages/admin/MerchantConsole";
 import { KeywordsInput } from "@/pages/admin/adminSectionsPro";
 import SchedulePicker from "@/components/site/SchedulePicker";
-import { Star, IndianRupee, TrendingUp, ClipboardList, Package, Users, Wrench, AlertCircle, Ticket, Trash2, Eye, CheckCircle2, Plus, ArrowLeft, Phone, Mail, MapPin, Wallet, Store, ShieldCheck, FileText, Award, Activity, User as UserIcon, X, XCircle, ZoomIn, Loader2, Search, Ban, Send, Bell, Sparkles, Repeat, ShieldAlert, Clock, Heart, Building2, Globe2, CalendarClock, ToggleRight, Share2, Scale, MessageCircle, RefreshCw, ChevronLeft, ChevronRight, TrendingDown, Camera, Facebook, Instagram, Twitter, Youtube, Linkedin, Smartphone, Save, Globe, AlertTriangle } from "lucide-react";
+import { Star, IndianRupee, TrendingUp, ClipboardList, Package, Users, Wrench, AlertCircle, Ticket, Trash2, Eye, CheckCircle2, Plus, ArrowLeft, Phone, Mail, MapPin, Wallet, Store, ShieldCheck, FileText, Award, Activity, User as UserIcon, X, XCircle, ZoomIn, Loader2, Search, Ban, Send, Bell, Sparkles, Repeat, ShieldAlert, Clock, Heart, Building2, Globe2, CalendarClock, ToggleRight, Share2, Scale, MessageCircle, RefreshCw, ChevronLeft, ChevronRight, TrendingDown, Camera, Facebook, Instagram, Twitter, Youtube, Linkedin, Smartphone, Save, Globe, AlertTriangle, Radio, Radar } from "lucide-react";
 import WorkProofSection from "@/components/WorkProof";
 import DispatchTimeline from "@/components/admin/DispatchTimeline";
 import AssignConfirm, { busyLabel } from "@/components/admin/AssignConfirm";
 import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
 import { AreaChart as RAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RBarChart, Bar, Cell } from "recharts";
 import { toast } from "sonner";
+import { AnimatePresence } from "framer-motion";
+import DispatchInspector from "@/components/admin/DispatchInspector";
+import { SearchingCard, AssignDrawer, KpiCommand } from "@/components/admin/LiveOpsSearching";
 
 const SC = {
   searching: "bg-amber-100 text-amber-700", assigned: "bg-blue-100 text-blue-700",
@@ -2681,18 +2684,23 @@ const _ago = (iso) => {
   return `${Math.floor(s / 86400)}d ago`;
 };
 
-export const LiveOps = () => {
+export const LiveOps = ({ onNavigate }) => {
   const [b, setB] = useState([]);
   const [p, setP] = useState([]);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [statusF, setStatusF] = useState("all");
   const [cityF, setCityF] = useState("all");
+  const [svcF, setSvcF] = useState("all");
   const [auto, setAuto] = useState(true);
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
   const [refreshedAt, setRefreshedAt] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  const [ttl, setTtl] = useState(25);
+  const [detailsBooking, setDetailsBooking] = useState(null);
+  const [assignBooking, setAssignBooking] = useState(null);
   const { subscribe, connected } = useRealtime();
-  const PER = 6;
+  const LONG_WAIT = 180;
 
   const load = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -2709,9 +2717,22 @@ export const LiveOps = () => {
   }, []);
 
   useEffect(() => { load(); }, [load]);
-  // Instant live updates via SSE — refresh silently whenever a job or partner
-  // status changes (no page reload / no manual refresh needed).
+  // Ring-timeout config so the per-card countdown matches real dispatch behaviour.
+  useEffect(() => {
+    api.get("/admin/settings").then((r) => {
+      const t = Number((r.data?.business_config || {}).dispatch_offer_ttl_sec);
+      if (t) setTtl(t);
+    }).catch(() => {});
+  }, []);
+  // 1s tick drives the live waiting timers / countdown bars.
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+
+  // Instant live updates via SSE — silently resync whenever a job or partner
+  // status changes so assigned/cancelled bookings drop out with no page reload.
   useEffect(() => subscribe((ev) => {
+    if (ev?.type === "job_new" && (ev.data?.status === "searching" || !ev.data?.status)) {
+      toast("New booking is searching for a partner", { description: ev.data?.service_name || "", icon: "🔎" });
+    }
     if (["job_new", "job_update", "partner_status", "partner_location", "__resync__"].includes(ev?.type)) {
       load(true);
     }
@@ -2721,133 +2742,215 @@ export const LiveOps = () => {
     const t = setInterval(() => load(true), 15000);
     return () => clearInterval(t);
   }, [auto, load]);
-  useEffect(() => { setPage(1); }, [q, statusF, cityF]);
+  useEffect(() => { setPage(1); }, [q, cityF, svcF, perPage]);
 
-  const active = b.filter((x) => LIVE_STATES.includes(x.status));
+  // Only SEARCHING jobs belong in Live Operations — assigned/started/etc. are excluded.
+  const searching = b.filter((x) => x.status === "searching");
+  const activeAll = b.filter((x) => LIVE_STATES.includes(x.status));
   const online = p.filter((x) => x.partner_status === "online");
-  const cities = Array.from(new Set(active.map((x) => x.address?.city).filter(Boolean))).sort();
+  const cities = Array.from(new Set(searching.map((x) => x.address?.city).filter(Boolean))).sort();
+  const services = Array.from(new Set(searching.map((x) => x.service_name).filter(Boolean))).sort();
 
   const ql = q.trim().toLowerCase();
-  const filtered = active.filter((x) => {
-    if (statusF !== "all" && x.status !== statusF) return false;
-    if (cityF !== "all" && (x.address?.city || "") !== cityF) return false;
-    if (!ql) return true;
-    return [x.code, x.service_name, x.customer_name, x.customer_phone, x.partner_name, x.address?.city]
-      .some((v) => String(v || "").toLowerCase().includes(ql));
-  });
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PER));
+  const filtered = searching
+    .filter((x) => {
+      if (cityF !== "all" && (x.address?.city || "") !== cityF) return false;
+      if (svcF !== "all" && (x.service_name || "") !== svcF) return false;
+      if (!ql) return true;
+      return [x.code, x.service_name, x.customer_name, x.customer_phone, x.partner_name, x.address?.city]
+        .some((v) => String(v || "").toLowerCase().includes(ql));
+    })
+    // longest-waiting first (operational priority)
+    .sort((a, c) => new Date(a.dispatch_started_at || a.created_at || 0) - new Date(c.dispatch_started_at || c.created_at || 0));
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / perPage));
   const cur = Math.min(page, pageCount);
-  const pageRows = filtered.slice((cur - 1) * PER, cur * PER);
+  useEffect(() => { if (page > pageCount) setPage(pageCount); }, [pageCount, page]);
+  const from = filtered.length === 0 ? 0 : (cur - 1) * perPage + 1;
+  const to = Math.min(cur * perPage, filtered.length);
+  const pageRows = filtered.slice((cur - 1) * perPage, cur * perPage);
+
+  // Optimistic immediate removal once a partner is assigned (then silent resync).
+  const handleAssigned = useCallback((id) => {
+    setB((prev) => prev.filter((x) => x.id !== id));
+    setTimeout(() => load(true), 400);
+  }, [load]);
+
+  const hasFilter = ql || cityF !== "all" || svcF !== "all";
+  const clearFilters = () => { setQ(""); setCityF("all"); setSvcF("all"); };
 
   return (
-    <div data-testid="live-ops">
+    <div data-testid="live-ops" style={{ fontFamily: "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif" }}>
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-        <div>
-          <h2 className="font-heading font-bold text-xl text-slate-900 dark:text-white flex items-center gap-2">
-            <Activity className="h-5 w-5 text-primary-700" /> Live Operations
-          </h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Real-time view of active jobs & partners{refreshedAt ? ` · updated ${_ago(refreshedAt.toISOString())}` : ""}
-          </p>
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div className="flex items-start gap-3">
+          <span className="h-11 w-11 rounded-xl grid place-items-center bg-[#E6EDF8] text-[#0D47A1] dark:bg-[#0D47A1]/20 dark:text-[#3B82F6] shrink-0">
+            <Activity className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-[24px] font-extrabold text-[#172033] dark:text-[#F8FAFC] leading-tight">Live Operations</h2>
+            <p className="text-[13px] text-[#64748B] dark:text-[#94A3B8] mt-0.5">
+              Real-time view of bookings currently searching for partners
+              {refreshedAt ? ` · updated ${_ago(refreshedAt.toISOString())}` : ""}
+            </p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <button data-testid="liveops-auto" onClick={() => setAuto((a) => !a)}
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-lg text-sm font-medium border transition ${auto ? (connected ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300" : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300") : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700"}`}>
-            <span className={`h-2 w-2 rounded-full ${auto ? (connected ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-pulse") : "bg-slate-300"}`} /> {auto ? (connected ? "Live" : "Connecting…") : "Paused"}
+          <span data-testid="liveops-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-full border text-[12.5px] font-bold"
+            style={{ borderColor: connected ? "#A7F3D0" : "#FDE68A", color: connected ? "#15803D" : "#B45309", background: connected ? "#ECFDF5" : "#FFFBEB" }}>
+            <span className={`h-2 w-2 rounded-full ${connected ? "bg-[#16A34A] azo-live-dot" : "bg-[#F59E0B] animate-pulse"}`} />
+            {connected ? "LIVE" : "Reconnecting…"}
+          </span>
+          <button data-testid="liveops-auto" onClick={() => setAuto((a) => !a)} title="Toggle auto-refresh"
+            className={`h-9 px-3 rounded-lg text-[12.5px] font-semibold border transition-colors ${auto ? "bg-[#E6EDF8] text-[#0D47A1] border-[#0D47A1]/20" : "bg-white dark:bg-[#111827] text-[#64748B] border-[#E6EAF0] dark:border-[#1F2937]"}`}>
+            {auto ? "Auto-refresh on" : "Auto-refresh off"}
           </button>
-          <Button data-testid="liveops-refresh" size="sm" variant="outline" onClick={() => load()} disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Refresh"}
-          </Button>
+          <button data-testid="liveops-refresh" onClick={() => load()} disabled={loading}
+            className="h-9 w-9 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </button>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard label="Active Jobs" value={active.length} icon={ClipboardList} />
-        <StatCard label="Searching" value={b.filter((x) => x.status === "searching").length} icon={AlertCircle} tone="amber" />
-        <StatCard label="Online Partners" value={online.length} icon={Wrench} tone="green" />
-        <StatCard label="Total Partners" value={p.length} icon={Users} tone="slate" />
-      </div>
+      {/* Connection interrupted banner */}
+      {!connected && !loading && (
+        <div className="mb-4 rounded-xl border border-[#F59E0B]/40 bg-[#FFFBEB] px-4 py-2.5 flex items-center gap-2 text-[13px] text-[#B45309]" data-testid="liveops-disconnected">
+          <AlertTriangle className="h-4 w-4 shrink-0" /> Live connection interrupted — showing last known data.
+          <button onClick={() => load()} className="ml-auto font-bold underline underline-offset-2">Reconnect</button>
+        </div>
+      )}
 
-      {/* Toolbar: search + status + city */}
+      {/* KPI command center */}
+      {loading && b.length === 0 ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {[0, 1, 2, 3].map((i) => <div key={i} className="azo-skeleton rounded-2xl h-[108px]" />)}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <KpiCommand label="Searching Jobs" value={searching.length} desc="Currently looking for partners" icon={Radio} tone="amber" highlight />
+          <KpiCommand label="Online Partners" value={online.length} desc="Available right now" icon={Wrench} tone="green" />
+          <KpiCommand label="Total Partners" value={p.length} desc="Registered partners" icon={Users} tone="blue" />
+          <KpiCommand label="Total Active Jobs" value={activeAll.length} desc="Searching, assigned & in progress" icon={ClipboardList} tone="slate" />
+        </div>
+      )}
+
+      {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input data-testid="liveops-search" value={q} onChange={(e) => setQ(e.target.value)} className="pl-9"
-            placeholder="Search by code, service, customer, phone, partner or city…" />
+        <div className="relative flex-1 min-w-[240px]">
+          <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
+          <input data-testid="liveops-search" value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder="Search booking code, service, customer, phone or city…"
+            className="w-full h-11 pl-9 pr-3 rounded-xl border border-[#E6EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] text-[14px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
         </div>
-        <div className="w-52">
-          <Select value={statusF} onValueChange={setStatusF}>
-            <SelectTrigger data-testid="liveops-status"><SelectValue placeholder="All active" /></SelectTrigger>
+        <span className="hidden sm:inline-flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[#FEF5E7] text-[#B45309] text-[12.5px] font-bold border border-[#F59E0B]/30">
+          <span className="h-2 w-2 rounded-full bg-[#F59E0B]" /> Status: Searching
+        </span>
+        <div className="w-44">
+          <Select value={svcF} onValueChange={setSvcF}>
+            <SelectTrigger data-testid="liveops-service" className="h-11 rounded-xl"><SelectValue placeholder="All services" /></SelectTrigger>
             <SelectContent>
-              {["all", ...LIVE_STATES].map((s) => <SelectItem key={s} value={s}>{LIVE_STATE_LABELS[s]}</SelectItem>)}
+              <SelectItem value="all">All services</SelectItem>
+              {services.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
-        <div className="w-44">
+        <div className="w-40">
           <Select value={cityF} onValueChange={setCityF}>
-            <SelectTrigger data-testid="liveops-city"><SelectValue placeholder="All cities" /></SelectTrigger>
+            <SelectTrigger data-testid="liveops-city" className="h-11 rounded-xl"><SelectValue placeholder="All cities" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All cities</SelectItem>
               {cities.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
             </SelectContent>
           </Select>
         </div>
-        <span className="text-xs text-slate-400 whitespace-nowrap" data-testid="liveops-count">{filtered.length} live job{filtered.length === 1 ? "" : "s"}</span>
+        {hasFilter && (
+          <button data-testid="liveops-clear" onClick={clearFilters}
+            className="h-11 px-3 rounded-xl border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1.5 transition-colors">
+            <X className="h-4 w-4" /> Clear
+          </button>
+        )}
       </div>
 
+      <p className="text-[12.5px] text-[#64748B] dark:text-[#94A3B8] mb-3" data-testid="liveops-count">
+        Showing <b className="text-[#172033] dark:text-[#F8FAFC]">{from}–{to}</b> of {filtered.length} searching job{filtered.length === 1 ? "" : "s"}
+      </p>
+
       {/* Job list */}
-      {loading ? (
-        <div className="py-16 text-center text-slate-400"><Loader2 className="h-5 w-5 animate-spin inline" /> Loading live operations…</div>
+      {loading && b.length === 0 ? (
+        <div className="grid gap-3">
+          {[0, 1, 2].map((i) => <div key={i} className="azo-skeleton rounded-2xl h-[160px]" />)}
+        </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 p-12 text-center text-slate-400" data-testid="liveops-empty">
-          No live jobs match your filters right now
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-dashed border-[#E6EAF0] dark:border-[#1F2937] p-14 text-center" data-testid="liveops-empty">
+          <span className="h-16 w-16 rounded-2xl bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] grid place-items-center mx-auto mb-4">
+            <Radar className="h-8 w-8" />
+          </span>
+          <h3 className="text-[17px] font-extrabold text-[#172033] dark:text-[#F8FAFC]">No jobs searching for a partner</h3>
+          <p className="text-[13.5px] text-[#64748B] dark:text-[#94A3B8] mt-1.5 max-w-md mx-auto">
+            All active bookings currently have a partner assigned or are not awaiting partner assignment.
+          </p>
+          <button data-testid="liveops-view-bookings" onClick={() => onNavigate?.("bookings")}
+            className="mt-5 h-10 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors">
+            View Bookings <ChevronRight className="h-4 w-4" />
+          </button>
         </div>
       ) : (
         <>
           <div className="grid gap-3">
-            {pageRows.map((x) => (
-              <div key={x.id} data-testid={`liveops-row-${x.id}`}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex flex-wrap items-center gap-4 hover:shadow-card transition">
-                <div className="h-10 w-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 grid place-items-center shrink-0">
-                  <Wrench className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-[220px]">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-heading font-bold text-slate-900 dark:text-white">{x.service_name}</span>
-                    <span className="text-xs font-mono text-slate-400">#{x.code}</span>
-                    <SBadge s={x.status} />
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                    <span className="flex items-center gap-1"><UserIcon className="h-3.5 w-3.5" />{x.customer_name || "—"}</span>
-                    {x.address?.city && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{x.address.city}</span>}
-                    <span className="flex items-center gap-1"><Wrench className="h-3.5 w-3.5" />{x.partner_name || "Unassigned"}</span>
-                    <span className="flex items-center gap-1"><Activity className="h-3.5 w-3.5" />{_ago(x.created_at)}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-heading font-bold text-slate-900 dark:text-white">{fmt(x.pricing?.total || 0)}</p>
-                  <p className="text-[11px] text-slate-400 capitalize">{x.payment_status || x.booking_type || "—"}</p>
-                </div>
-              </div>
-            ))}
+            <AnimatePresence mode="popLayout" initial={false}>
+              {pageRows.map((x) => (
+                <SearchingCard key={x.id} x={x} now={now} ttl={ttl} longWaitSec={LONG_WAIT}
+                  onDetails={setDetailsBooking} onAssign={setAssignBooking} />
+              ))}
+            </AnimatePresence>
           </div>
 
-          {pageCount > 1 && (
-            <div className="flex items-center justify-between mt-5" data-testid="liveops-pagination">
-              <p className="text-xs text-slate-500">Page {cur} of {pageCount} · {filtered.length} live jobs</p>
-              <div className="flex items-center gap-1">
-                <Button size="sm" variant="outline" disabled={cur <= 1} onClick={() => setPage(cur - 1)} data-testid="liveops-prev">Prev</Button>
-                {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
-                  <button key={n} data-testid={`liveops-page-${n}`} onClick={() => setPage(n)}
-                    className={`h-8 w-8 rounded-lg text-sm font-semibold transition ${n === cur ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>{n}</button>
-                ))}
-                <Button size="sm" variant="outline" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)} data-testid="liveops-next">Next</Button>
-              </div>
+          {/* Pagination */}
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6" data-testid="liveops-pagination">
+            <div className="flex items-center gap-2 text-[12.5px] text-[#64748B] dark:text-[#94A3B8]">
+              <span>Rows per page</span>
+              <Select value={String(perPage)} onValueChange={(v) => setPerPage(Number(v))}>
+                <SelectTrigger data-testid="liveops-perpage" className="h-9 w-[76px] rounded-lg"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 50].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
-          )}
+            {pageCount > 1 && (
+              <div className="flex items-center gap-1">
+                <button data-testid="liveops-prev" disabled={cur <= 1} onClick={() => setPage(cur - 1)}
+                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
+                  <ChevronLeft className="h-4 w-4" /> Prev
+                </button>
+                {Array.from({ length: pageCount }, (_, i) => i + 1)
+                  .filter((n) => n === 1 || n === pageCount || Math.abs(n - cur) <= 1)
+                  .map((n, i, arr) => (
+                    <Fragment key={n}>
+                      {i > 0 && arr[i - 1] !== n - 1 && <span className="px-1 text-[#94A3B8]">…</span>}
+                      <button data-testid={`liveops-page-${n}`} onClick={() => setPage(n)}
+                        className={`h-9 w-9 rounded-lg text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937]"}`}>{n}</button>
+                    </Fragment>
+                  ))}
+                <button data-testid="liveops-next" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)}
+                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
+                  Next <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
         </>
+      )}
+
+      {/* Details drawer (reuses dispatch inspector) */}
+      {detailsBooking && (
+        <DispatchInspector bookingId={detailsBooking.id} booking={detailsBooking}
+          onClose={() => setDetailsBooking(null)}
+          onAssign={(bk) => { setDetailsBooking(null); setAssignBooking(bk); }} />
+      )}
+
+      {/* Assignment drawer */}
+      {assignBooking && (
+        <AssignDrawer booking={assignBooking} onClose={() => setAssignBooking(null)} onAssigned={handleAssigned} />
       )}
     </div>
   );
