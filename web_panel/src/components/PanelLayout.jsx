@@ -606,7 +606,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
           </div>
           <PartnerAlertsReminder role={user?.role} />
         </div>
-        <div className={`p-4 lg:p-6 xl:px-8 w-full ${appMode ? "pb-24 lg:pb-6" : ""}`}>{children}</div>
+        <div className={`panel-content p-4 lg:p-6 xl:px-8 w-full ${appMode ? "pb-24 lg:pb-6" : ""}`}>{children}</div>
       </main>
 
       {appMode && (

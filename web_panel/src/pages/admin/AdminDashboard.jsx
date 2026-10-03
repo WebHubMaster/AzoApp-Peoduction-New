@@ -241,6 +241,7 @@ const SOON_TITLES = {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  useEffect(() => { document.documentElement.classList.add("admin-ds"); return () => document.documentElement.classList.remove("admin-ds"); }, []);
   const isSuper = user?.is_super_admin !== false; // default true for legacy admins
   const perms = user?.permissions || null;
   const can = useCallback((mod, action = "view") => {

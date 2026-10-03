@@ -342,3 +342,91 @@ button, a, .transition-all { transition-duration: 150ms; }
     max-width: 420px !important;
   }
 }
+
+/* ===== AzoApp Admin design system — compact enterprise density (html.admin-ds) =====
+   Normalises the type scale, control sizes and spacing across every admin screen
+   (including dialogs/sheets rendered in portals). Scoped: toggled only while the
+   admin panel is mounted, so customer/partner/merchant UIs are untouched. */
+html.admin-ds { --ds-bg:#F7F8FA; --ds-text:#111827; --ds-muted:#6B7280; --ds-border:#E5E7EB; }
+html.admin-ds body { font-size:14px; color:var(--ds-muted); background:var(--ds-bg); }
+html.admin-ds .bg-\[\#F8F7FA\] { background-color:var(--ds-bg); }
+html.admin-ds .text-base { font-size:14px; line-height:1.45rem; }
+html.admin-ds .text-lg { font-size:16px; line-height:1.5rem; }
+html.admin-ds .text-xl { font-size:18px; line-height:1.6rem; }
+html.admin-ds .text-2xl { font-size:20px; line-height:1.75rem; }
+html.admin-ds .text-3xl { font-size:24px; line-height:2rem; }
+html.admin-ds .text-4xl { font-size:28px; line-height:2.25rem; }
+html.admin-ds .text-5xl { font-size:32px; line-height:2.5rem; }
+@media (min-width:640px) {
+  html.admin-ds .sm\:text-base { font-size:14px; line-height:1.45rem; }
+  html.admin-ds .sm\:text-lg { font-size:16px; line-height:1.5rem; }
+  html.admin-ds .sm\:text-xl { font-size:18px; line-height:1.6rem; }
+  html.admin-ds .sm\:text-2xl { font-size:20px; line-height:1.75rem; }
+  html.admin-ds .sm\:text-3xl { font-size:24px; line-height:2rem; }
+  html.admin-ds .sm\:text-4xl { font-size:28px; line-height:2.25rem; }
+  html.admin-ds .sm\:text-5xl { font-size:32px; line-height:2.5rem; }
+}
+@media (min-width:768px) {
+  html.admin-ds .md\:text-base { font-size:14px; line-height:1.45rem; }
+  html.admin-ds .md\:text-lg { font-size:16px; line-height:1.5rem; }
+  html.admin-ds .md\:text-xl { font-size:18px; line-height:1.6rem; }
+  html.admin-ds .md\:text-2xl { font-size:20px; line-height:1.75rem; }
+  html.admin-ds .md\:text-3xl { font-size:24px; line-height:2rem; }
+  html.admin-ds .md\:text-4xl { font-size:28px; line-height:2.25rem; }
+  html.admin-ds .md\:text-5xl { font-size:32px; line-height:2.5rem; }
+}
+@media (min-width:1024px) {
+  html.admin-ds .lg\:text-base { font-size:14px; line-height:1.45rem; }
+  html.admin-ds .lg\:text-lg { font-size:16px; line-height:1.5rem; }
+  html.admin-ds .lg\:text-xl { font-size:18px; line-height:1.6rem; }
+  html.admin-ds .lg\:text-2xl { font-size:20px; line-height:1.75rem; }
+  html.admin-ds .lg\:text-3xl { font-size:24px; line-height:2rem; }
+  html.admin-ds .lg\:text-4xl { font-size:28px; line-height:2.25rem; }
+  html.admin-ds .lg\:text-5xl { font-size:32px; line-height:2.5rem; }
+}
+@media (min-width:1280px) {
+  html.admin-ds .xl\:text-base { font-size:14px; line-height:1.45rem; }
+  html.admin-ds .xl\:text-lg { font-size:16px; line-height:1.5rem; }
+  html.admin-ds .xl\:text-xl { font-size:18px; line-height:1.6rem; }
+  html.admin-ds .xl\:text-2xl { font-size:20px; line-height:1.75rem; }
+  html.admin-ds .xl\:text-3xl { font-size:24px; line-height:2rem; }
+  html.admin-ds .xl\:text-4xl { font-size:28px; line-height:2.25rem; }
+  html.admin-ds .xl\:text-5xl { font-size:32px; line-height:2.5rem; }
+}
+@media (min-width:1536px) {
+  html.admin-ds .2xl\:text-base { font-size:14px; line-height:1.45rem; }
+  html.admin-ds .2xl\:text-lg { font-size:16px; line-height:1.5rem; }
+  html.admin-ds .2xl\:text-xl { font-size:18px; line-height:1.6rem; }
+  html.admin-ds .2xl\:text-2xl { font-size:20px; line-height:1.75rem; }
+  html.admin-ds .2xl\:text-3xl { font-size:24px; line-height:2rem; }
+  html.admin-ds .2xl\:text-4xl { font-size:28px; line-height:2.25rem; }
+  html.admin-ds .2xl\:text-5xl { font-size:32px; line-height:2.5rem; }
+}
+/* Controls: 14px text, 40-42px height */
+:where(html.admin-ds) :where(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]), select, textarea) { font-size:14px; }
+
+html.admin-ds input.h-11, html.admin-ds input.h-12, html.admin-ds input.h-14, html.admin-ds select.h-11, html.admin-ds select.h-12 { height:42px; }
+html.admin-ds button.h-11, html.admin-ds button.h-12, html.admin-ds button.h-14, html.admin-ds a.h-11, html.admin-ds a.h-12 { height:42px; }
+:where(html.admin-ds) :where(th) { font-size:12px; font-weight:600; }
+:where(html.admin-ds) :where(td) { font-size:13.5px; }
+html.admin-ds .py-4 > td, html.admin-ds td.py-4 { padding-top:12px; padding-bottom:12px; }
+/* Spacing: 8px rhythm, trims oversized padding/gaps */
+html.admin-ds main .p-8 { padding:24px; } html.admin-ds main .p-6 { padding:20px; }
+html.admin-ds main .px-8 { padding-left:24px; padding-right:24px; } html.admin-ds main .py-8 { padding-top:24px; padding-bottom:24px; }
+html.admin-ds main .gap-8 { gap:24px; } html.admin-ds main .gap-6 { gap:20px; }
+html.admin-ds main .space-y-8 > :not([hidden]) ~ :not([hidden]) { margin-top:24px; }
+html.admin-ds main .space-y-6 > :not([hidden]) ~ :not([hidden]) { margin-top:20px; }
+html.admin-ds main .mb-8 { margin-bottom:24px; } html.admin-ds main .mt-8 { margin-top:24px; }
+/* Sidebar: 13.5px items, compact rows */
+html.admin-ds aside nav button { font-size:13.5px; }
+html.admin-ds aside nav .py-2\.5 { padding-top:7px; padding-bottom:7px; }
+@media (min-width:1024px) { html.admin-ds .panel-content { padding:20px 24px; } }
+/* Commission & Refund micro-interactions */
+@keyframes cc-rise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@keyframes cc-pop { 0% { opacity:0; transform:scale(.7); } 60% { opacity:1; transform:scale(1.06); } 100% { transform:scale(1); } }
+@keyframes cc-grow { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+.cc-rise { animation:cc-rise .35s ease-out both; }
+.cc-pop { animation:cc-pop .4s ease-out both; }
+.cc-bar-seg { transform-origin:left; animation:cc-grow .5s ease-out both; transition:width .3s ease, opacity .15s; }
+.cc-bar-seg:hover { opacity:.8; }
+@media (prefers-reduced-motion: reduce) { .cc-rise, .cc-pop, .cc-bar-seg { animation:none; } }

@@ -24,6 +24,7 @@ class SettingsUpdate(BaseModel):
     alert_config: Optional[dict] = None
     job_auto_expiry_minutes: Optional[int] = None
     cancellation_reasons: Optional[list] = None
+    cancellation_reasons_meta: Optional[list] = None
     branding: Optional[dict] = None
     theme: Optional[dict] = None
     business_config: Optional[dict] = None
