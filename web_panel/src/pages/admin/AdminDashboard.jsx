@@ -44,6 +44,7 @@ import { SurgeRulesManager, ServiceAreasManager, LaunchDemandManager } from "@/p
 import AppManagement from "@/pages/admin/AppManagement";
 import CategoryCommissions from "@/pages/admin/CategoryCommissions";
 import HomepageBuilderPro from "@/pages/admin/HomepageBuilderPro";
+import BookingsPro from "@/pages/admin/BookingsPro";
 import { guardNav } from "@/lib/navGuard";
 import LogsMonitor from "@/pages/admin/LogsMonitor";
 import AdminDashboardHome from "@/pages/admin/AdminDashboardHome";
@@ -349,7 +350,7 @@ export default function AdminDashboard() {
       ) : (
       <>
       {active === "dashboard" && <AdminDashboardHome onOpenBooking={(b) => setBookingDetailId(b.id)} onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }} />}
-      {active === "bookings" && <S.BookingsSection onOpen={(b) => setBookingDetailId(b.id)} tab={bookingsTab} onTabChange={setBookingsTab} />}
+      {active === "bookings" && <BookingsPro onOpen={(b) => setBookingDetailId(b.id)} onOpenCustomer={(id) => setViewUser(id)} tab={bookingsTab} onTabChange={setBookingsTab} />}
       {active === "subscriptions" && <SubscriptionsAdmin />}
       {active === "payouts" && <S.PayoutsSection />}
       {active === "refunds" && <RefundsHub />}
