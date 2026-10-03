@@ -1,0 +1,29 @@
+{
+  "summary": "Iter181 Price Manager follow-up #2 tested end-to-end — all 4 new features work. Backend: 5/5 pytest cases pass (unconfigured city returns configured=false with empty prices/ratecards + populated templates; apply-across with include=['services','ratecards','fees'] propagates fees to targets; without 'fees' target fees are preserved; services+ratecards still enables the category on target). Frontend verified against Bakhri (unconfigured service area): (1) pm-new-city banner shown + pm-unsaved dirty state auto-set + Rate Card tab inputs pre-filled from category template (e.g. AC Split: 549 / 699 / … 6/6 filled). (2) pm-rc-preview opens customer-style RateCardModal titled 'AC Repair & Service · Bakhri' with AzoCover brand chip + groups. (3) pm-rc-bulk-pct=10 + pm-rc-bulk-apply scaled first row 549 → 604, kept Unsaved banner. (4) pm-rc-apply-across dialog shows all 3 scopes (services, ratecards, fees); confirm enabled after selecting Ranchi + fees scope. Regression: pm-rc-category switches card (AC → Electrician), pm-rc-use-template present. Saving Bakhri succeeded (toast 'Pricing updated for Bakhri'), pm-new-city cleared, pm-unsaved cleared.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Price Manager · Bakhri after Save", "issues": ["After saving an auto-inherited (brand-new) service area, the city still shows '0 / 16 priced' in the service-area chip because service prices are not auto-inherited (only rate-card overrides are, per spec). Behaviour matches the specification but is a potential user-confusion point — consider a hint telling the admin to also set service prices."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter181_price_manager_followup2.py",
+    "/app/test_reports/pytest/iter181.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "apply_across now correctly honours 'fees' scope: `fees = src.fees if 'fees' in inc else target_doc.fees` — target fees preserved when not included (verified by regression test).",
+    "PriceManager.load(): auto-inherit builds the seeded ratecards map from category templates for unconfigured cities, which flips `summary.rc` dirty and surfaces Save. Clean, minimal change.",
+    "RateCardPrices.applyPct(): correctly falls back to template default when the city override is empty (`raw = ov[k] || r[k]`). Rounding uses Math.round so 549×1.10=603.9 → 604 (shown).",
+    "buildCityCard() filters rows with empty service_charge and drops empty groups — matches the public apply_ratecard contract. Preview is read-only (no cart props passed)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter181_price_manager_followup2.py (new)"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 / OTP 123456. AC category_id d28bbb44-cb99-4a4e-ab07-2800c25c7d41. Unconfigured service area used: Bakhri.",
+  "seed_data_creation": "None (Bakhri got rate-card overrides saved during the Save step — safe, matches intended auto-inherit flow). All Patna/Ranchi snapshots were restored after apply-across tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter181 adds: GET /city/{c} for unconfigured service areas is already returning configured=false (handled in admin_city via `bool(doc)`), POST /apply-across now honours 'fees' in include, and the web_panel Rate Card tab has Preview + Bulk %, auto-inherit banner (pm-new-city), ApplyAcross fees scope. Unconfigured service areas still present after this run: Begusarai, Darbhanga, Khagaria, Mansi, Muzaffarpur, Vaishali (Bakhri is now configured by this run's Save)."
+}
