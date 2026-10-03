@@ -1,0 +1,19 @@
+{
+  "summary": "Backend-only testing of iteration features: (P1) surge removal, (P4) fee_info in site/config + admin settings persistence, (P5) partner-card response + confidential field redaction + 404 when no partner, (P7) /track returning distance_km/eta_minutes/eta_source with partner photo+rating (estimate fallback accepted), (P6) support tickets create/get/customer-message/admin-reply/typing endpoints. All 8 pytest cases pass against the public REACT_APP_BACKEND_URL.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iter_azo_feats.py", "/app/test_reports/pytest/iter_azo_feats.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is very large (>3900 lines) — consider splitting the partner_public_card and track_booking helpers into a smaller module as per 700-line guideline.",
+    "Several route files use /auth/send-otp and /auth/verify-otp (not /auth/otp/request|verify) — ensure mobile apps and docs are aligned; minor consistency note only."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter_azo_feats.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "test_credentials": "Admin +919000000000 / Customer +919000000004 / Partner +919000000003, OTP 123456",
+  "seed_data_creation": "Used existing seeded booking 3af4d793-e12e-4145-8720-cbeb97b20cce (status assigned, has partner_location + address lat/lng) and service b83ce001 in Patna.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Pytest file /app/backend/tests/test_iter_azo_feats.py covers P1 surge, P4 fee_info, P5 partner-card, P6 support realtime (HTTP side), P7 track ETA. ETA source is currently 'estimate' because Google Maps APIs (Routes / Distance Matrix) aren't enabled for the supplied key — this is the expected/accepted path. Use address city 'Patna' (seeded in city_pricing) for cart-quote calls; Delhi returns 400 not-available. Support message endpoints accept {text: ...} per models.support.MessageCreate.",
+  "rca of the issue": "N/A - all tests passed."
+}
