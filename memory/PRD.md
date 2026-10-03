@@ -309,3 +309,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 ## Backlog
 - P1: Partner GSTIN on partner receipt if partner is GST-registered; IGST for inter-state supply.
 - P2: Round-off line on invoice.
+
+## 2026-10 — Invoice Verify Page + admin login fix
+- QR on Tax Invoice encodes signed public URL /api/invoices/verify/{id}?s=HMAC → "Genuine Invoice" page (masked customer, amounts, CGST/SGST); invalid → 404 "Could Not Verify".
+- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://tax-invoice-system.preview.emergentagent.com (was a different host → CORS block).

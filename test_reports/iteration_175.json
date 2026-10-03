@@ -1,0 +1,28 @@
+{
+  "summary": "Verified admin login bug fix and new Invoice Verify page. All 4 demo-login buttons (admin→/admin, partner→/partner, merchant→/merchant, customer→/account) work without any 'Demo login failed' or 'Connection issue' toasts. Manual OTP flow (login-phone-input + send-otp-button + otp-box-0..5 + Verify OTP) also works. Verify page returns 200 with data-testid=verify-status-genuine and renders INV-2026-000001, partner receipt INV-2026-000001-P, masked customer 'P**** V****', CGST@9% ₹12.01, SGST@9% ₹12.00, Tax Invoice ₹157.38, Partner Receipt ₹433.48, Total Paid ₹590.86. Bad signature returns 404 with data-testid=verify-status-invalid. Mobile 390px layout has no horizontal overflow. Customer invoice /view HTML embeds a QR data URI that decodes (pyzbar) to the signed /api/invoices/verify/{id}?s={sig} URL and that URL in turn verifies as genuine. Preview sample has no verify_url (QR stays text as expected).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter175_verify_qr.py",
+    "/app/test_reports/pytest/iter175.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Verify signature is only 24 hex chars (truncated hash). This is fine for a public tamper check against invoice_id, but it is derived purely from JWT_SECRET + invoice_id so URLs never expire — consider adding an expiry/issued-at claim or rotating secret if long-lived public links are a concern.",
+    "Admin login breakage was caused by REACT_APP_BACKEND_URL mismatch between web_panel/.env and the user's host. Consider centralising this in a single env or deriving the API base from window.location when they match (production), to prevent future hosting-domain drift from killing demo logins."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter175_verify_qr.py (new)"
+  ],
+  "success_rate": {"backend": "100% (7/7 pytest)", "frontend": "100% (demo logins + manual OTP + verify page genuine/invalid + mobile layout)"},
+  "test_credentials": "Admin +919000000000 OTP 123456, Customer +919000000004, Partner +919000000003 (demo OTP 123456)",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter175 pytest in /app/backend/tests/test_iter175_verify_qr.py pins: (a) all three demo OTP logins return a token; (b) /api/invoices/verify/{id}?s=... returns 200 for the valid signature e00ad16b124d71d4bbbd1170 against invoice 4bc7ebb5-...-f25 and 404 for a wrong signature; (c) customer /api/invoices/{id}/view HTML includes a base64 PNG QR that decodes to the same signed verify URL. pyzbar+libzbar0 are installed in this env. The valid signature in /app/test_reports/verify_url.txt stays stable until JWT_SECRET changes.",
+  "rca of the issue": "Admin login failure RCA: /app/web_panel was built-time baked against a different preview host via REACT_APP_BACKEND_URL. Browser requests to /api/auth/send-otp went to the stale host → blocked by ingress → toast 'Connection issue. Reconnecting' and 'Demo login failed'. Fix (already applied by E1): unify REACT_APP_BACKEND_URL=https://tax-invoice-system.preview.emergentagent.com across backend/.env, frontend/.env and web_panel/.env and restart. Verified no more error toasts on any demo button and manual OTP."
+}
