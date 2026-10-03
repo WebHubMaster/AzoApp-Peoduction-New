@@ -581,6 +581,8 @@ async def _set_day(subscription_id, day_date, status, served_by=None,
     if idx is None:
         raise HTTPException(status_code=404, detail="No scheduled day for that date")
     day = schedule[idx]
+    if day.get("status") in ("paused", "cancelled"):
+        raise HTTPException(status_code=400, detail=f"This day is {day.get('status')}")
     if day.get("status") == "weekly_off" and status != "weekly_off":
         raise HTTPException(status_code=400, detail="This day is an agreed weekly off")
     if allowed_from and day.get("status") not in allowed_from:

@@ -181,6 +181,8 @@ async def startup():
         await seed_masters()
         from services.template_service import seed_templates
         await seed_templates()
+        from services.subscription_lifecycle_service import seed_templates as seed_sub_templates
+        await seed_sub_templates()
     except Exception as e:  # noqa: BLE001
         logger.warning("partner masters seed skipped: %s", e)
     # Advanced merchant panel demo data (reminders/network/commission/wallet)

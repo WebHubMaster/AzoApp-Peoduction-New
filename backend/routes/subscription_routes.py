@@ -5,6 +5,23 @@ from models.subscription import (SubscriptionCreate, SubscriptionPayVerify,
                                   SettlementActionRequest, StartDayRequest, CompleteDayRequest,
                                   ArriveRequest)
 from middleware.auth import require_role
+from pydantic import BaseModel
+from typing import List
+from services import subscription_lifecycle_service as life
+
+
+class PauseRequest(BaseModel):
+    from_date: str = ""
+    days: int
+    reason: str = ""
+
+
+class CancelRequest(BaseModel):
+    reason: str = ""
+
+
+class NudgeBulkRequest(BaseModel):
+    ids: List[str]
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 CUSTOMER = require_role("customer")
@@ -97,6 +114,47 @@ async def admin_stats(user=Depends(ADMIN)):
 @router.get("/admin/all")
 async def admin_list(status: str = None, q: str = None, user=Depends(ADMIN)):
     return await c.admin_list(status, q)
+
+
+@router.get("/admin/renewals")
+async def admin_renewals(days: int = 3, user=Depends(ADMIN)):
+    return await life.renewals(days)
+
+
+@router.post("/admin/renewals/nudge")
+async def admin_nudge_bulk(req: NudgeBulkRequest, user=Depends(ADMIN)):
+    out = []
+    for sid in req.ids[:200]:
+        try:
+            out.append(await life.nudge(sid))
+        except Exception as e:  # noqa: BLE001
+            out.append({"ok": False, "id": sid, "error": getattr(e, "detail", str(e))})
+    return {"sent": sum(1 for r in out if r.get("ok")), "results": out}
+
+
+@router.post("/admin/{subscription_id}/nudge")
+async def admin_nudge(subscription_id: str, user=Depends(ADMIN)):
+    return await life.nudge(subscription_id)
+
+
+@router.post("/admin/{subscription_id}/pause")
+async def admin_pause(subscription_id: str, req: PauseRequest, user=Depends(ADMIN)):
+    return await life.pause(subscription_id, req.from_date, req.days, req.reason)
+
+
+@router.post("/admin/{subscription_id}/resume")
+async def admin_resume(subscription_id: str, user=Depends(ADMIN)):
+    return await life.resume(subscription_id)
+
+
+@router.get("/admin/{subscription_id}/cancel-quote")
+async def admin_cancel_quote(subscription_id: str, user=Depends(ADMIN)):
+    return life.refund_quote(await life._get(subscription_id))
+
+
+@router.post("/admin/{subscription_id}/cancel")
+async def admin_cancel(subscription_id: str, req: CancelRequest, user=Depends(ADMIN)):
+    return await life.cancel(subscription_id, req.reason)
 
 
 @router.get("/admin/{subscription_id}/partners")

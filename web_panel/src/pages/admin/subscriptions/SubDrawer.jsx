@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, User, CalendarDays, Users, Wallet, TrendingUp, IndianRupee, CalendarCheck, FileText, Phone } from "lucide-react";
+import { Copy, User, CalendarDays, Users, Wallet, TrendingUp, IndianRupee, CalendarCheck, FileText, Phone, Settings2 } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,7 +8,9 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { inr, dParts, label } from "../bookings/shared";
 import { SubStatusBadge, SubPayBadge, SettleBadge } from "./SubBadges";
 import { setStatus, planDuration, fmtDate } from "./subShared";
-import { Sec, R, SubTimeline, AttendanceMini, DaySchedule, SettlementBox } from "./SubDrawerParts";
+import { Sec, R, SubTimeline, AttendanceMini, SettlementBox } from "./SubDrawerParts";
+import SubCalendar from "./SubCalendar";
+import SubLifecycle from "./SubLifecycle";
 
 function MaidAssign({ s, partners, busy, assign }) {
   const [pid, setPid] = useState(s.partner_id || "");
@@ -56,7 +58,7 @@ export default function SubDrawer({ id, focus, onClose, onChanged, onCopy, onInv
             <span className="font-mono">#{s?.code || "…"}</span>
             {s && <button type="button" onClick={() => onCopy(s.code)} aria-label="Copy subscription code" className="text-slate-400 hover:text-[#0D47A1]" data-testid="sub-drawer-copy"><Copy className="h-3.5 w-3.5" /></button>}
           </SheetTitle>
-          <SheetDescription asChild><div className="flex items-center gap-2 flex-wrap">{s && <><SubStatusBadge s={s.status} tid="sub-drawer-status" /><SubPayBadge s={s.payment_status} /><SettleBadge s={setStatus(s)} /></>}</div></SheetDescription>
+          <SheetDescription asChild><div className="flex items-center gap-2 flex-wrap">{s && <><SubStatusBadge s={s.status} tid="sub-drawer-status" />{s.pause?.active && s.status === "active" && <SubStatusBadge s="paused" tid="sub-drawer-paused" />}<SubPayBadge s={s.payment_status} /><SettleBadge s={setStatus(s)} /></>}</div></SheetDescription>
         </SheetHeader>
         {!s ? <Loading /> : (
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
@@ -103,9 +105,9 @@ export default function SubDrawer({ id, focus, onClose, onChanged, onCopy, onInv
             <Sec icon={IndianRupee} title="Settlement" id="sub-sec-settlement"><SettlementBox s={s} busy={busy} finalize={finalize} action={settle} /></Sec>
             <Sec icon={CalendarCheck} title="Attendance" id="sub-sec-attendance">
               <AttendanceMini s={s} />
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-[#6B7280] pt-2">Daily Schedule</p>
-              <DaySchedule s={s} busy={busy} markDay={markDay} />
+              <div className="pt-2"><SubCalendar key={s.id} s={s} busy={busy} markDay={markDay} /></div>
             </Sec>
+            <Sec icon={Settings2} title="Manage" id="sub-sec-manage"><SubLifecycle s={s} busy={busy} act={act} /></Sec>
             <section className="rounded-lg border border-[#E5E7EB] dark:border-slate-800 p-3">
               <p className="text-[11.5px] font-semibold uppercase tracking-wide text-[#6B7280] mb-2.5">Activity Timeline</p>
               <SubTimeline s={s} />

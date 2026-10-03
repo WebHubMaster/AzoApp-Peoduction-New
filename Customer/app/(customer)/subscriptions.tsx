@@ -22,6 +22,8 @@ const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   customer_cancel: { label: "Cancelled by you", color: "#D97706", bg: "#FFFBEB" },
   weekly_off: { label: "Weekly off", color: TC.textMuted, bg: "#F1F5F9" },
   scheduled: { label: "Upcoming", color: "#0659B2", bg: "#F0F7FE" },
+  paused: { label: "Paused", color: "#475569", bg: "#F1F5F9" },
+  cancelled: { label: "Plan cancelled", color: ROSE, bg: "#FFF1F2" },
 };
 
 function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => void; onDone: () => void }) {

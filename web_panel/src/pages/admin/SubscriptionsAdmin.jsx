@@ -12,6 +12,7 @@ import DateRangeMenu from "./bookings/DateRangeMenu";
 import { label, rangeBounds } from "./bookings/shared";
 import SubsTable from "./subscriptions/SubsTable";
 import SubDrawer from "./subscriptions/SubDrawer";
+import RenewalsPanel from "./subscriptions/RenewalsPanel";
 import SubFilterDrawer, { EMPTY_SUB_ADV, subAdvCount } from "./subscriptions/SubFilterDrawer";
 import { exportSubsCsv, paidOf, setStatus, SET_LABEL } from "./subscriptions/subShared";
 
@@ -84,9 +85,10 @@ export default function SubscriptionsAdmin({ onOpenCustomer }) {
   useEffect(() => { load(); }, [load]);
   const refresh = async () => {
     setRefreshing(true);
-    try { await fetchAll(); toast.success("Subscriptions refreshed"); } catch { toast.error("Unable to refresh subscriptions"); } finally { setRefreshing(false); }
+    try { await fetchAll(); setRk((k) => k + 1); toast.success("Subscriptions refreshed"); } catch { toast.error("Unable to refresh subscriptions"); } finally { setRefreshing(false); }
   };
-  const silent = useCallback(() => { fetchAll().catch(() => {}); }, [fetchAll]);
+  const [rk, setRk] = useState(0);
+  const silent = useCallback(() => { fetchAll().catch(() => {}); setRk((k) => k + 1); }, [fetchAll]);
 
   const all = useMemo(() => rows || [], [rows]);
   const counts = useMemo(() => all.reduce((m, s) => { m[s.status] = (m[s.status] || 0) + 1; return m; }, {}), [all]);
@@ -141,6 +143,8 @@ export default function SubscriptionsAdmin({ onOpenCustomer }) {
         </div>
 
         <StatCards stats={err ? {} : stats} />
+
+        <RenewalsPanel refreshKey={rk} onOpen={(s) => setView({ id: s.id })} />
 
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" role="tablist" data-testid="sub-status-tabs">
           {!rows && !err ? [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-28 rounded-lg shrink-0" />) : tabs.map((t) => (

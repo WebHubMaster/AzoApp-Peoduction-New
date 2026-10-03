@@ -2,7 +2,7 @@ import { tone, label } from "../bookings/shared";
 
 const SUB_TONE = { active: "blue", completed: "green", pending_payment: "amber", cancelled: "red", paused: "slate", expired: "slate" };
 const SET_TONE = { none: "slate", pending: "amber", review: "blue", approved: "indigo", paid: "green" };
-const PAY_TONE = { paid: "green", pending: "amber", failed: "red", refunded: "slate" };
+const PAY_TONE = { paid: "green", pending: "amber", failed: "red", refunded: "slate", partially_refunded: "slate" };
 export const SET_LABEL = { none: "Not Generated", pending: "Pending", review: "In Review", approved: "Approved", paid: "Settled" };
 
 export const subTone = (s) => tone(s, SUB_TONE);
@@ -19,7 +19,7 @@ export const fmtDate = (iso) => {
 };
 
 export function attendance(s) {
-  const days = (s.schedule || []).filter((d) => d.status !== "weekly_off");
+  const days = (s.schedule || []).filter((d) => !["weekly_off", "paused", "cancelled"].includes(d.status));
   const c = (st) => days.filter((d) => st.includes(d.status)).length;
   const completed = c(["completed", "replacement_completed"]);
   const missed = c(["maid_absent"]);

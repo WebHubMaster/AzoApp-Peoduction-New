@@ -35,6 +35,10 @@ EVENTS = [
     {"key": "spare_part_approval", "label": "Spare Part Approval Needed", "vars": ["booking_id"]},
     {"key": "additional_work", "label": "Additional Work Added", "vars": ["booking_id", "amount"]},
     {"key": "incentive_awarded", "label": "Incentive / Bonus Awarded", "vars": ["name", "amount"]},
+    {"key": "subscription_renewal_reminder", "label": "Subscription Renewal Reminder", "vars": ["name", "booking_id", "plan", "end_date"]},
+    {"key": "subscription_paused", "label": "Subscription Paused", "vars": ["name", "booking_id", "from", "to", "end_date"]},
+    {"key": "subscription_resumed", "label": "Subscription Resumed", "vars": ["name", "booking_id"]},
+    {"key": "subscription_cancelled", "label": "Subscription Cancelled", "vars": ["name", "booking_id", "amount"]},
     {"key": "general", "label": "General / Manual", "vars": ["name"]},
 ]
 

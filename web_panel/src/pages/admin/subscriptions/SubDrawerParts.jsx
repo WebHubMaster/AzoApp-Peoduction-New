@@ -1,8 +1,8 @@
-import { CheckCircle2, Circle, X, Clock } from "lucide-react";
+import { CheckCircle2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { inr, dParts, label } from "../bookings/shared";
+import { inr, dParts } from "../bookings/shared";
 import { SettleBadge } from "./SubBadges";
-import { attendance, setStatus, setAmount, fmtDate } from "./subShared";
+import { attendance, setStatus, setAmount } from "./subShared";
 
 export const Sec = ({ icon: Icon, title, id, right, children }) => (
   <section id={id} className="rounded-lg border border-[#E5E7EB] dark:border-slate-800 scroll-mt-4" data-testid={id}>
@@ -56,31 +56,6 @@ export function AttendanceMini({ s }) {
         {t.rate !== null && <span>Attendance rate <b className="text-[#111827] dark:text-white">{t.rate}%</b></span>}
       </div>
       {t.rate !== null && <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full rounded-full bg-[#16A34A] transition-all" style={{ width: `${t.rate}%` }} /></div>}
-    </div>
-  );
-}
-
-const DAY = {
-  scheduled: ["Scheduled", "bg-blue-50 text-[#1D4ED8]"], in_progress: ["In Progress", "bg-indigo-50 text-indigo-700"],
-  completed: ["Completed", "bg-green-50 text-[#15803D]"], replacement_completed: ["Replacement", "bg-violet-50 text-violet-700"],
-  maid_absent: ["Maid Absent", "bg-red-50 text-[#B91C1C]"], customer_cancel: ["Customer Cancel", "bg-amber-50 text-[#B45309]"],
-  weekly_off: ["Weekly Off", "bg-slate-100 text-slate-500"],
-};
-export function DaySchedule({ s, busy, markDay }) {
-  return (
-    <div className="space-y-1 max-h-72 overflow-y-auto pr-0.5" data-testid="sub-schedule">
-      {(s.schedule || []).map((d) => {
-        const [l, c] = DAY[d.status] || [label(d.status), "bg-slate-100 text-slate-600"];
-        const btn = (st, title, Icon, cls) => <button type="button" disabled={busy} title={title} aria-label={`${title} ${d.date}`} onClick={() => markDay(d.date, st)} className={`rounded p-1 disabled:opacity-40 ${cls}`} data-testid={`sub-day-${st}-${d.date}`}><Icon className="h-3.5 w-3.5" /></button>;
-        return (
-          <div key={d.date} className="flex items-center gap-2 text-[12.5px] border border-[#F1F2F4] dark:border-slate-800 rounded-md px-2 py-1.5">
-            <span className="font-medium text-slate-600 dark:text-slate-300 w-24 tabular-nums">{fmtDate(d.date)}</span>
-            <span className={`text-[11px] px-1.5 py-0.5 rounded ${c}`}>{l}</span>
-            <span className="ml-auto font-semibold tabular-nums text-slate-700 dark:text-slate-200">{d.status === "weekly_off" ? "—" : inr(d.earning || 0)}</span>
-            {d.status !== "weekly_off" && <span className="flex">{btn("completed", "Mark completed", CheckCircle2, "text-[#15803D] hover:bg-green-50")}{btn("maid_absent", "Mark maid absent", X, "text-[#B91C1C] hover:bg-red-50")}{btn("customer_cancel", "Mark customer cancel", Clock, "text-[#B45309] hover:bg-amber-50")}</span>}
-          </div>
-        );
-      })}
     </div>
   );
 }

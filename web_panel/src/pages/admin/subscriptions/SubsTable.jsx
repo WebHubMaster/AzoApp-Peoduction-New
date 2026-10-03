@@ -1,4 +1,4 @@
-import { ArrowUp, ArrowDown, ArrowUpDown, Copy, Eye, MoreHorizontal, UserRound, Users, CalendarCheck, IndianRupee, FileText } from "lucide-react";
+import { ArrowUp, ArrowDown, ArrowUpDown, Copy, Eye, MoreHorizontal, UserRound, Users, CalendarCheck, IndianRupee, FileText, PauseCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -36,6 +36,9 @@ function Actions({ s, a }) {
           <DropdownMenuItem onSelect={() => a.view(s, "settlement")} data-testid={`sub-menu-settlement-${s.code}`}>{I(IndianRupee)} Settlement</DropdownMenuItem>
           {s.payment_status === "paid" && <DropdownMenuItem onSelect={() => a.invoice(s)} data-testid={`sub-menu-invoice-${s.code}`}>{I(FileText)} Invoice</DropdownMenuItem>}
           {s.customer_id && a.canCustomer && <DropdownMenuItem onSelect={() => a.customer(s)}>{I(UserRound)} Customer Profile</DropdownMenuItem>}
+          {["active", "pending_payment"].includes(s.status) && <DropdownMenuSeparator />}
+          {s.status === "active" && <DropdownMenuItem onSelect={() => a.view(s, "manage")} data-testid={`sub-menu-pause-${s.code}`}>{I(PauseCircle)} {s.pause?.active ? "Resume" : "Pause"}</DropdownMenuItem>}
+          {["active", "pending_payment"].includes(s.status) && <DropdownMenuItem onSelect={() => a.view(s, "manage")} className="text-[#B91C1C] focus:text-[#B91C1C]" data-testid={`sub-menu-cancel-${s.code}`}>{I(XCircle)} Cancel</DropdownMenuItem>}
           <DropdownMenuSeparator />
           <DropdownMenuItem onSelect={() => a.copy(s.code)}>{I(Copy)} Copy Subscription Code</DropdownMenuItem>
         </DropdownMenuContent>
@@ -73,7 +76,7 @@ function Row({ s, a, sel, toggle }) {
       <td className="px-3 py-2.5 whitespace-nowrap text-[13px] text-slate-700 dark:text-slate-200">{fmtDate(s.end_date)}</td>
       <td className="px-3 py-2.5 text-right whitespace-nowrap"><p className="text-[13.5px] font-semibold tabular-nums text-[#111827] dark:text-white">{inr(paidOf(s))}</p><SubPayBadge s={s.payment_status} /></td>
       <td className="px-3 py-2.5 text-right whitespace-nowrap"><p className="text-[13.5px] font-semibold tabular-nums text-[#15803D]" data-testid={`sub-earned-${s.code}`}>{inr(s.accrued_earning)}</p><p className="text-[11px] text-slate-400">Net Earned</p></td>
-      <td className="px-3 py-2.5"><SubStatusBadge s={s.status} tid={`sub-status-${s.code}`} /></td>
+      <td className="px-3 py-2.5"><span className="flex flex-col items-start gap-1"><SubStatusBadge s={s.status} tid={`sub-status-${s.code}`} />{s.pause?.active && s.status === "active" && <SubStatusBadge s="paused" tid={`sub-paused-${s.code}`} />}</span></td>
       <td className="px-3 py-2.5 whitespace-nowrap"><SettleBadge s={st} tid={`sub-settle-${s.code}`} />{st !== "none" && <p className="text-[11.5px] text-slate-500 tabular-nums mt-0.5">{inr(setAmount(s))}</p>}</td>
       <td className="pl-3 pr-4 py-2.5"><Actions s={s} a={a} /></td>
     </tr>

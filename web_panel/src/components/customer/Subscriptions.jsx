@@ -25,6 +25,8 @@ const DAY_META = {
   customer_cancel: { label: "Cancelled by you", chip: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-400" },
   weekly_off: { label: "Weekly off", chip: "bg-slate-50 text-slate-500 border-slate-200", dot: "bg-slate-300" },
   scheduled: { label: "Upcoming", chip: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-400" },
+  paused: { label: "Paused", chip: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400" },
+  cancelled: { label: "Plan cancelled", chip: "bg-rose-50 text-rose-700 border-rose-200", dot: "bg-rose-400" },
 };
 const STATUS_TONE = { active: "green", paid: "green", completed: "blue", approved: "blue", pending: "amber", pending_payment: "amber", review: "violet", cancelled: "rose" };
 

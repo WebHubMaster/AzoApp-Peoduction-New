@@ -32,6 +32,8 @@ const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   maid_absent: { label: "Maid Absent", color: "#F43F5E", bg: "#FFF1F2" },
   customer_cancel: { label: "Customer Cancel", color: "#D97706", bg: "#FFFBEB" },
   weekly_off: { label: "Weekly Off", color: "#64748B", bg: "#F1F5F9" },
+  paused: { label: "Paused", color: "#475569", bg: "#F1F5F9" },
+  cancelled: { label: "Cancelled", color: "#F43F5E", bg: "#FFF1F2" },
 };
 
 function StatCol({ label, value, tone }: { label: string; value: string; tone?: string }) {
