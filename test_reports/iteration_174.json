@@ -1,0 +1,41 @@
+{
+  "summary": "Verified new 2-page GST invoice model + tax rule (GST only on platform commission + platform fee). Backend: 8/8 passed, 1 skipped (ledger lookup — commission_ledger admin endpoint required; non-blocking). Frontend: admin Invoice Configuration page shows new 'GST Invoice' field group + signature upload card; PNG signature uploads, Save succeeds (toast 'Business configuration saved'), live preview iframe renders both TAX INVOICE (page 1) and RECEIPT (PARTNER RECEIPT) (page 2) with CGST @9%/SGST @9%, QR, and uploaded signature image.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_notes": {
+    "cart_quote_schedule": "service_net=398.00, platform_commission=79.60, partner_share=318.40, tax_base=104.60, gst=18.83 (=round(104.60*18%,2)), cgst+sgst=gst, total=441.83 (service_net+platform_fee+gst). GST is NOT on total.",
+    "cart_quote_emergency": "+99 to service side: service_net=497.00, platform_commission=99.40, tax_base=124.40, gst=22.39.",
+    "coupon_discount": "10% coupon on 398 => discount=39.80, platform_fee untouched (25), service_net=358.20, commission computed after discount (71.64).",
+    "preview_sample": "GET /api/invoices/preview/sample returns gst_invoice block with platform{sac, cgst, sgst, total_tax} + partner{sac, subtotal}; p1.subtotal + p2.subtotal == grand_total.",
+    "render_pdf": "POST /api/invoices/render/pdf with preview payload returns a valid 2-page application/pdf (verified via pypdf).",
+    "existing_invoice_customer_view": "Invoice 4bc7ebb5… HTML contains data-testid='gst-invoice-page-platform' + data-testid='gst-invoice-page-partner', CGST @9% & SGST @9%. /pdf returns 2 pages.",
+    "existing_invoice_partner_view": "Partner view does NOT include gst-invoice-page-platform (partner earnings template served instead).",
+    "admin_invoice_config_ui": "All required testids present: bizcfg-sac_platform, bizcfg-sac_service, bizcfg-signatory_name, invoice-signature-card, invoice-signature-upload-btn, invoice-signature-input, bizcfg-save. 'GST Invoice' group label present. Signature PNG uploaded + saved; live preview iframe shows both pages + signature image + QR."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter174_gst_two_page_invoice.py",
+    "/app/test_reports/pytest/iter174.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "engines.py commission_base_excl_tax() docstring still says 'coupon added back so partner earns on full pre-coupon amount' — but new finalize() applies coupon via DISCOUNT_KEYS BEFORE partner_share split, so partner now absorbs the coupon too. Behaviour matches new product spec (coupon on service side pre-commission); update the stale docstring to avoid confusing future readers.",
+    "gst_invoice_service.build_block() recomputes `taxable = total - gst - partner_share` rather than reading pricing.taxable/tax_base directly; this works but creates a parallel calc path. Prefer reading pr['taxable'] when present for a single source of truth.",
+    "invoice_routes._sample_gst passes gst_pct=18 default but settings.gst_pct is admin-configurable; preview_sample subtotal/tax calc also hardcodes different sample numbers (1499/150) than the gst_invoice sample (259+99+99). Fine for a demo but inconsistent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter174_gst_two_page_invoice.py (new)"
+  ],
+  "success_rate": {"backend": "100% (8/8 run, 1 skipped due to optional endpoint)", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 OTP 123456, Customer +919000000004, Partner +919000000003 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "Transient admin settings tweak (platform_fee=25, visiting=99, emergency=99, gst_pct=18) and a transient TESTGST* coupon created+deleted inside tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter174_gst_two_page_invoice.py pins the new tax formula: tax_base = commission + platform_fee, gst = tax_base * pct, total = service_net + platform_fee + gst. OLD tests that assert GST on full total or coupon added back to partner base (per iteration_1..iteration_173 pattern) are intentionally wrong under this new model and should be ignored. Admin UI path: /login → OTP → /admin → use sidebar 'Search menu' input (direct scroll to 'Integration Center' is painful because the sidebar is long), then click 'Integration Center' → Configure invoice."
+}

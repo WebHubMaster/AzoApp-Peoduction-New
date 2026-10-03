@@ -299,3 +299,13 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 ## 2026-06 Business Settings fee change
 - Removed Apply Convenience Fee (UI + backend; always 0)
 - Platform Fee: always-on flat ₹ input in Business Settings, default ₹10, applied once per booking/order (engines.PricingEngine.platform_fee_amount)
+
+## 2026-10 — GST / Commission / 2-page Invoice rework
+- Tax rule: GST only on (Platform Commission + Platform Fee). Commission = category % (100 − partner%) of service_net (service + add-ons + visiting + quick/emergency + surge − discounts). Discounts never touch platform fee.
+- Pricing keys added: service_net, commission_pct, platform_commission, partner_share, tax_base, cgst, sgst (engines.PricingEngine.finalize).
+- Booking invoice = 2 pages (services/gst_invoice_service.py): Page 1 TAX INVOICE (Customer↔Platform, SAC 999799, CGST/SGST, QR text, signature), Page 2 PARTNER RECEIPT (Customer↔Partner, SAC 999729).
+- Admin Invoice Configuration: SAC codes, signatory name, signature upload.
+- Partners keep their earnings invoice template (no 2-page GST doc).
+## Backlog
+- P1: Partner GSTIN on partner receipt if partner is GST-registered; IGST for inter-state supply.
+- P2: Round-off line on invoice.
