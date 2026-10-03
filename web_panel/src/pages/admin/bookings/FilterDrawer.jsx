@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import DateRangeMenu from "./DateRangeMenu";
+import { keepPremiumCal } from "@/components/ui/PremiumDatePicker";
 import { label } from "./shared";
 
 export const EMPTY_ADV = { status: "", type: "", service: "", category: "", customer: "", partner: "", payment: "", min: "", max: "", date: { key: "all" } };
@@ -23,7 +24,7 @@ export default function FilterDrawer({ value, options, onApply, onClose }) {
   const n = advCount(a);
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-[420px] p-0 flex flex-col gap-0 text-[14px]" data-testid="bk-filter-drawer">
+      <SheetContent side="right" className="w-full sm:max-w-[420px] p-0 flex flex-col gap-0 text-[14px]" data-testid="bk-filter-drawer" onInteractOutside={keepPremiumCal}>
         <SheetHeader className="px-5 py-4 border-b border-[#E5E7EB] dark:border-slate-800 text-left space-y-0.5">
           <SheetTitle className="text-[17px] font-semibold">Filter Bookings {n > 0 && <span className="ml-1 text-[11.5px] font-semibold text-[#0D47A1] bg-blue-50 rounded px-1.5 py-0.5 align-middle">{n} active</span>}</SheetTitle>
           <SheetDescription className="text-[12.5px]">Combine filters to narrow down the booking list.</SheetDescription>

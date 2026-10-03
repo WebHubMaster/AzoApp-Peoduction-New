@@ -7,6 +7,7 @@ const MONTHS = ["January", "February", "March", "April", "May", "June", "July", 
 const DOW = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
 const pad = (n) => String(n).padStart(2, "0");
+export const keepPremiumCal = (e) => { if (e.target?.closest?.("[data-premium-cal]")) e.preventDefault(); };
 const toISO = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const parseISO = (s) => {
   if (!s) return null;
@@ -149,16 +150,16 @@ export default function PremiumDatePicker({
 
   const cal = isMobile ? (
     <>
-      <div className="fixed inset-0 z-[9998] bg-black/30" onClick={() => setOpen(false)} />
-      <div ref={popRef} data-testid={testId ? `${testId}-cal` : undefined}
+      <div data-premium-cal="" style={{ pointerEvents: "auto" }} className="fixed inset-0 z-[9998] bg-black/30" onClick={() => setOpen(false)} />
+      <div ref={popRef} data-testid={testId ? `${testId}-cal` : undefined} data-premium-cal="" style={{ pointerEvents: "auto" }}
         className="fixed inset-x-0 bottom-0 z-[9999] rounded-t-2xl bg-white dark:bg-slate-900 shadow-2xl border-t border-slate-200 dark:border-slate-700 p-4 animate-[slideUp_.18s_ease]">
         {calInner}
       </div>
     </>
   ) : (
-    <div ref={popRef} data-testid={testId ? `${testId}-cal` : undefined}
+    <div ref={popRef} data-testid={testId ? `${testId}-cal` : undefined} data-premium-cal=""
       className="fixed z-[9999] w-[300px] rounded-2xl bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-black/5 dark:ring-white/10 border border-slate-200 dark:border-slate-700 p-3"
-      style={rect ? { top: Math.min(rect.bottom + 6, window.innerHeight - 360), left: Math.min(rect.left, window.innerWidth - 312) } : {}}>
+      style={{ pointerEvents: "auto", ...(rect ? { top: Math.min(rect.bottom + 6, window.innerHeight - 360), left: Math.min(rect.left, window.innerWidth - 312) } : {}) }}>
       {calInner}
     </div>
   );

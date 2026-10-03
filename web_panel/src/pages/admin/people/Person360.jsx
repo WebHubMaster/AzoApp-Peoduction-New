@@ -1,4 +1,5 @@
 import PremiumSelect from "@/components/ui/PremiumSelect";
+import PremiumDatePicker from "@/components/ui/PremiumDatePicker";
 /* Person360 — complete 360° profile for a Customer / Partner / Merchant (admin view).
    All data is the same underlying real data the user panels read; sections are server-paginated. */
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -861,6 +862,8 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
                   <label className="text-xs font-semibold text-slate-500">{lbl}</label>
                   {opt?.options
                     ? <PremiumSelect data-testid={`edit-${k}`} value={form[k] ?? ""} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder="Select…" className="w-full rounded-xl"><option value="">Select…</option>{opt.options.map((o) => <option key={o.value || o} value={o.value || o}>{o.label || o}</option>)}</PremiumSelect>
+                    : opt?.type === "date"
+                    ? <PremiumDatePicker data-testid={`edit-${k}`} value={(form[k] || "").slice(0, 10)} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder={lbl} className="rounded-xl" />
                     : <Inp data-testid={`edit-${k}`} type={opt?.type || "text"} value={form[k] ?? ""} onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))} placeholder={lbl} />}
                 </div>))}</div>
             </div>))}

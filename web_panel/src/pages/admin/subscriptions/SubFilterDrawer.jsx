@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import PremiumDatePicker, { keepPremiumCal } from "@/components/ui/PremiumDatePicker";
 import { label } from "../bookings/shared";
 import { SET_LABEL } from "./subShared";
 
@@ -16,7 +17,15 @@ const Sel = ({ id, value, onChange, opts, all, fmt = label }) => (
   </select>
 );
 const F = ({ l, id, children }) => <div><label htmlFor={id} className="block text-[13px] font-medium text-slate-700 dark:text-slate-200 mb-1">{l}</label>{children}</div>;
-const Pair = ({ a, set, k1, k2, type = "date", p1, p2, l }) => (
+const DatePair = ({ a, set, k1, k2, l }) => (
+  <F l={l} id={k1}>
+    <div className="grid grid-cols-2 gap-3">
+      <PremiumDatePicker id={k1} className="!text-[14px]" placeholder="From" value={a[k1]} max={a[k2] || undefined} onChange={(e) => set(k1)(e.target.value)} data-testid={`sub-adv-${k1}`} />
+      <PremiumDatePicker className="!text-[14px]" placeholder="To" value={a[k2]} min={a[k1] || undefined} onChange={(e) => set(k2)(e.target.value)} data-testid={`sub-adv-${k2}`} aria-label={`${l} to`} />
+    </div>
+  </F>
+);
+const Pair = ({ a, set, k1, k2, type, p1, p2, l }) => (
   <F l={l} id={k1}>
     <div className="grid grid-cols-2 gap-3">
       <Input id={k1} type={type} min="0" className="h-10 rounded-lg" placeholder={p1} value={a[k1]} onChange={(e) => set(k1)(e.target.value)} data-testid={`sub-adv-${k1}`} />
@@ -31,7 +40,7 @@ export default function SubFilterDrawer({ value, options, onApply, onClose }) {
   const n = subAdvCount(a);
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-[420px] p-0 flex flex-col gap-0 text-[14px]" data-testid="sub-filter-drawer">
+      <SheetContent side="right" className="w-full sm:max-w-[420px] p-0 flex flex-col gap-0 text-[14px]" data-testid="sub-filter-drawer" onInteractOutside={keepPremiumCal}>
         <SheetHeader className="px-5 py-4 border-b border-[#E5E7EB] dark:border-slate-800 text-left space-y-0.5">
           <SheetTitle className="text-[17px] font-semibold">Filter Subscriptions {n > 0 && <span className="ml-1 text-[11.5px] font-semibold text-[#0D47A1] bg-blue-50 rounded px-1.5 py-0.5 align-middle">{n} active</span>}</SheetTitle>
           <SheetDescription className="text-[12.5px]">Combine filters to narrow down the subscription list.</SheetDescription>
@@ -47,8 +56,8 @@ export default function SubFilterDrawer({ value, options, onApply, onClose }) {
             <F l="Payment Status" id="payment"><Sel id="payment" value={a.payment} onChange={set("payment")} opts={options.payment} all="All" /></F>
             <F l="Settlement Status" id="settlement"><Sel id="settlement" value={a.settlement} onChange={set("settlement")} opts={options.settlement} all="All" fmt={(x) => SET_LABEL[x] || label(x)} /></F>
           </div>
-          <Pair a={a} set={set} k1="startFrom" k2="startTo" l="Start Date (from – to)" />
-          <Pair a={a} set={set} k1="endFrom" k2="endTo" l="End Date (from – to)" />
+          <DatePair a={a} set={set} k1="startFrom" k2="startTo" l="Start Date" />
+          <DatePair a={a} set={set} k1="endFrom" k2="endTo" l="End Date" />
           <Pair a={a} set={set} k1="min" k2="max" type="number" p1="Min" p2="Max" l="Amount Range (₹)" />
         </div>
         <div className="px-5 py-3 border-t border-[#E5E7EB] dark:border-slate-800 flex justify-between gap-2">

@@ -1,0 +1,27 @@
+{
+  "summary": "Full frontend regression of redesigned Admin Subscriptions page. Logged in via one-click 'Login as Admin', navigated Admin → Bookings → Subscriptions. Verified summary cards (Active=4, Completed=1, Settle Pending=0, In Review=1, Approved=0), status tabs with counts (all=6, active=4, completed=1, pending_payment=1), search by code/customer, plan + settlement selects, Filters drawer with sub-adv-maid='unassigned' producing count badge=1 and filtering to 3 rows, sort header click, pagination showing text, Export dropdown with CSV/all items, Refresh button + 'Subscriptions refreshed' toast (table not blanked), copy icon toast 'Subscription code copied.', row 3-dot menu items (maid/attendance/settlement/invoice), detail drawer loads all sections (customer/plan/maid/payment/earnings/settlement/attendance + timeline), assign maid flow (SUBN90KLS → Amit Singh, toast 'Maid assigned', row updates), settlement approve → pay flow on SUB1TYC8J (In Review → Approved → Settled, 'Settlement paid' toast, In Review stat decremented 1→0), bulk selection bar renders with Export+Clear, mobile 390px renders mobile card list with NO horizontal overflow (scrollWidth=clientWidth=390). All targeted data-testids resolved. Backend not retested (unchanged per request).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_183.json"],
+  "action_items": [
+    "Minor code-quality: React hydration warning 'In HTML, <span> cannot be a child of <option>' from SubDrawer.jsx line ~20 inside MaidAssign <select>. The visual-edit wrapper injects a <span style={{display:'contents'}}> inside each <option>'s children. Browser works but logs a hydration warning. If this component is wrapped by a visual-edit instrumentation that auto-injects spans, consider rendering plain {p.name} without additional children fragments or whitelisting <option> in the instrumentation."
+  ],
+  "critical_code_review_comments": [
+    "SubscriptionsAdmin.jsx (221 lines) is well under 700-line budget and cleanly delegates to SubsTable/SubDrawer/SubFilterDrawer — good separation.",
+    "sub-copy-{code} buttons use opacity-0 group-hover:opacity-100 — invisible until row hover; tests must hover first (works correctly).",
+    "Drawer loads async; tests should wait for sub-sec-customer rather than sub-detail-drawer to avoid Loading-state false negatives.",
+    "Hydration warning (span inside option) noted above — only observable issue."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested, unchanged)", "frontend": "100% (all targeted flows passed)"},
+  "test_credentials": "Super Admin: +919000000000 OTP 123456, or /login one-click 'Login as Admin'",
+  "seed_data_creation": "None. Used existing 6 Priya Verma subscriptions. State mutated during test: SUBN90KLS now assigned to maid Amit Singh; SUB1TYC8J moved to Settled (In Review stat is now 0). Re-run of settlement flow will need a fresh In-Review subscription.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Settlement test consumed the only In Review sub (SUB1TYC8J); it is now Settled. SUBN90KLS is now assigned. Other data unchanged. Hydration warning about span-in-option originates from auto-injected visual-edit span wrappers around {p.name} in MaidAssign's <select>; not a functional bug.",
+  "rca of the issue": "N/A - no bugs reproduced."
+}
