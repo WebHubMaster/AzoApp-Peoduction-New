@@ -1,6 +1,6 @@
-import { X, Star, Phone, MessageSquare, MapPin, Clock, AlertTriangle, Briefcase, History,
-  CheckCircle2, Navigation, IndianRupee, User, Route as RouteIcon } from "lucide-react";
-import { STATUS, statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partnerSim";
+import { X, Star, Phone, MessageSquare, Clock, AlertTriangle, Briefcase, History,
+  CheckCircle2, Navigation, User } from "lucide-react";
+import { statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partnerSim";
 
 function StatusPill({ status }) {
   const c = statusColor(status);

@@ -826,7 +826,7 @@ export const ServiceWizard = () => {
         <div className="flex gap-1.5">
           <button onClick={() => duplicate(s)} title="Duplicate" data-testid={`dup-svc-${s.id}`} className="h-9 w-9 rounded-[10px] text-slate-500 bg-slate-50 dark:bg-slate-700/50 hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/30 flex items-center justify-center transition-colors"><Copy className="h-4 w-4" /></button>
           <button onClick={() => openEdit(s.id)} title="Edit" data-testid={`edit-svc-${s.id}`} className="h-9 w-9 rounded-[10px] text-primary-700 bg-slate-50 dark:bg-slate-700/50 hover:bg-primary-50 dark:hover:bg-primary-900/30 flex items-center justify-center transition-colors"><Pencil className="h-4 w-4" /></button>
-          <button onClick={() => del(s)} title="Delete" className="h-9 w-9 rounded-[10px] text-red-500 bg-slate-50 dark:bg-slate-700/50 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
+          <button onClick={() => del(s)} title="Delete" data-testid={`del-svc-${s.id}`} className="h-9 w-9 rounded-[10px] text-red-500 bg-slate-50 dark:bg-slate-700/50 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
         </div>
       ) },
     ];

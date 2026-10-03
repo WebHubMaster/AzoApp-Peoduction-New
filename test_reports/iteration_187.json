@@ -1,0 +1,31 @@
+{
+  "summary": "Frontend verification for Live Partner Map toast-bug fix + Services premium UI redesign on preview URL. Primary bug CONFIRMED FIXED: watched Live Partner Map for 15s continuously — zero auto status-change toasts (no 'accepted a job', no 'Available → On Job'). Manual Refresh produced exactly one expected 'Live data refreshed' toast. All map elements, counters, partner list, city filter (Patna + all 15 cities present), status chips, drawer open, and partner-row click work. Services page renders premium header ('Services', '16 total · Search, filter & manage', Add New Service button). DataTable shows redesigned columns Service(image+slug) / Price / Rating / Featured(star) / Status(pill) / Actions(dup+edit+delete icons). Add New Service opens multi-step wizard (Basics/Category/Media/Variants & Plans/Highlights & FAQs/SEO/Publish). Search, 3 filter dropdowns, duplicate buttons (10), edit buttons (10) all present with correct data-testids. No uncaught console errors (only Google Maps advisory warnings).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ServicesTable delete action", "issue": "Delete icon button has no data-testid (edit-svc-* and dup-svc-* exist; no del-svc-* / delete-svc-*). Functionality visually present but not testable via testid.", "selector": "actions column third icon", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Live Partner Map", "issues": ["Google Maps uses deprecated google.maps.Marker (console warning) and loaded without loading=async — non-blocking advisory"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional) Add data-testid='del-svc-{id}' to the delete icon in the Services actions column for parity with edit-svc / dup-svc.",
+    "(Optional) Address Google Maps advisories: use loading=async and migrate to AdvancedMarkerElement."
+  ],
+  "critical_code_review_comments": [
+    "LivePartnerMap toast simulation loop correctly removed — verified by 15s observation window with zero toasts.",
+    "Real-data path + demo fallback working; counters (200 partners · 170 online) populated.",
+    "Services wizard list view: all core testids preserved after redesign (add-service-btn, dt-search, dt-filter-*, edit-svc-*, dup-svc-*)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% on requested checks"},
+  "test_credentials": "Admin +919000000000 / OTP 123456 via /api/auth/send-otp + verify-otp (worked).",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Primary bug (auto status-change toasts on Live Partner Map) is fixed and verified. Services premium redesign retains all functional testids. Minor missing data-testid on delete button in services actions — not a blocker. All 15 city options present in livemap-city-filter including Patna.",
+  "rca of the issue": "N/A — bug fix verified; no new issue to RCA."
+}

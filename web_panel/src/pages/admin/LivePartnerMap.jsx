@@ -432,7 +432,6 @@ export default function LivePartnerMap() {
       historyRef.current = new maps.Polyline({ map, path: [{ lat: p.lat, lng: p.lng }, ...path], strokeColor: "#1976D2", strokeOpacity: 0.7, strokeWeight: 3 });
       map.panTo({ lat: p.lat, lng: p.lng });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [historyId, ready]);
 
   /* ---------------- controls ---------------- */

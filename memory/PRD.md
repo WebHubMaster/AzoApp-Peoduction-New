@@ -395,3 +395,17 @@ Premium real-time "dispatch command center" redesign of `AdminDispatchFeed` + `N
 - Reused `components/admin/DispatchInspector.jsx` (timeline) + `AssignDrawer`. Dark-mode classes throughout.
 
 Verified (browser automation): desktop (Action Required + Control Center + KPIs render), assign flow (toast + card removal + empty-state table), mobile 390px (full-screen assign drawer, table horizontal-scroll, no page overflow). ESLint 0 errors.
+
+## [2026-06] Admin UI Upgrades — Live Partner Map + Services
+### Live Partner Map (/admin?tab=livemap) — web_panel/src/pages/admin/LivePartnerMap.jsx
+- Premium real-time "Partner Operations Command Center": Google Maps (key in web_panel/.env), status markers, marker clustering (dominant-status bubbles), status counters, city/category/status/search filters (combine + auto city zoom), side list, detail drawer, legend, overlays (coverage/density/customers/traffic), fit/zoom/fullscreen/satellite controls, dark mode, responsive bottom-sheet.
+- Data: consumes REAL /api/admin/partners/live + SSE (RealtimeContext) + 15s poll; falls back to ~200 simulated partners (src/lib/partnerSim.js) only when no real partners. mapLivePartner()/deriveStatus() map real payloads; rating null-safe.
+- BUGFIX: removed the recurring simulated status-change toasts that overlapped the top search bar (verified via testing agent iteration_187).
+- Assets: src/pages/admin/livemap/mapAssets.js (icons + light/dark styles), PartnerDrawer.jsx.
+
+### Services (/admin?tab=services) — UI-only redesign (adminSectionsPro.jsx ServiceWizard + components/admin/DataTable.jsx)
+- Premium header card (icon + title + count + prominent Add New Service), redesigned columns (bordered service image+slug, bold price, rating, gold featured star w/ bg, status pill, icon action buttons w/ colored hover + tooltips + del-svc testid), taller rows, wider search. ALL logic/APIs unchanged.
+
+### Env restored this session
+- backend/.env recreated (MONGO_URL, DB_NAME=azoapp, CORS_ORIGINS) — was missing after pod restart.
+- web_panel/.env created (CHOKIDAR_USEPOLLING to fix inotify ENOSPC, REACT_APP_GOOGLE_MAPS_API_KEY).
