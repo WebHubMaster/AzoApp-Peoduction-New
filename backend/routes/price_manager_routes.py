@@ -26,3 +26,9 @@ async def save_city(city: str, data: dict = Body(...), admin=Depends(ADMIN)):
 async def copy_city(data: dict = Body(...), admin=Depends(ADMIN)):
     return await svc.copy_city(data.get("from"), data.get("to"), data.get("adjust_pct") or 0,
                                admin, data.get("include"))
+
+
+@router.post("/apply-across")
+async def apply_across(data: dict = Body(...), admin=Depends(ADMIN)):
+    return await svc.apply_across(data.get("from"), data.get("category_id"), data.get("cities") or [],
+                                  admin, data.get("include"))

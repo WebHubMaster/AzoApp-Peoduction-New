@@ -27,6 +27,20 @@ export const inr = (v) => (v == null || v === "" ? "—" : `₹${Math.round(Numb
 
 export const pct = (done, total) => (total ? Math.round((done / total) * 100) : 0);
 
+// Build the city-override value map from a global rate card's TEMPLATE defaults.
+export function rateTemplateValues(card) {
+  const out = {};
+  (card?.groups || []).forEach((g) => (g.rows || []).forEach((r) => {
+    if (!r.id) return;
+    out[r.id] = {
+      service_charge: r.service_charge ? String(r.service_charge) : "",
+      labour_charge: r.labour_charge ? String(r.labour_charge) : "",
+      original_charge: r.original_charge ? String(r.original_charge) : "",
+    };
+  }));
+  return out;
+}
+
 export function relTime(iso) {
   if (!iso) return null;
   const d = new Date(iso);

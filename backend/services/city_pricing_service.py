@@ -226,9 +226,15 @@ async def admin_city(city: str):
                           "is_subscription": bool(s.get("is_subscription")),
                           "plans": [{"plan_type": p.get("plan_type"), "label": p.get("label") or p.get("plan_type")}
                                     for p in (s.get("subscription_plans") or [])]} for s in svcs],
-        "rate_cards": [{"id": c.get("id"), "title": c.get("title"), "category_id": c.get("category_id"),
-                        "groups": [{"id": g.get("id"), "name": g.get("name"),
-                                    "rows": [{"id": r.get("id"), "description": r.get("description")}
+        "rate_cards": [{"id": c.get("id"), "title": c.get("title"), "subtitle": c.get("subtitle"),
+                        "brand_label": c.get("brand_label"), "accent_color": c.get("accent_color") or "#0D47A1",
+                        "intro": c.get("intro"), "footer_note": c.get("footer_note"), "status": c.get("status"),
+                        "category_id": c.get("category_id"), "category_name": c.get("category_name"),
+                        "groups": [{"id": g.get("id"), "name": g.get("name"), "note": g.get("note"),
+                                    "rows": [{"id": r.get("id"), "description": r.get("description"),
+                                              "service_charge": r.get("service_charge") or "", "labour_charge": r.get("labour_charge") or "",
+                                              "original_charge": r.get("original_charge") or "", "warranty": r.get("warranty") or "",
+                                              "note": r.get("note") or "", "discount_pct": r.get("discount_pct") or 0}
                                              for r in g.get("rows") or []]} for g in c.get("groups") or []]}
                        for c in cards],
     }
@@ -287,6 +293,44 @@ async def copy_city(src: str, dst: str, pct: float = 0, admin: dict = None, incl
     if "ratecards" in inc:
         payload["ratecards"] = s.get("ratecards") or {}
     return await save_city(dst, payload, admin)
+
+
+async def apply_across(src: str, category_id: str, cities: list, admin: dict = None, include=None):
+    """Push one category's config from `src` city to several target cities at once."""
+    from fastapi import HTTPException
+    s = await get_doc(src)
+    if not s:
+        raise HTTPException(404, "Source city has no prices")
+    if not category_id:
+        raise HTTPException(400, "Category is required")
+    inc = set(include) if include else {"services", "ratecards"}
+    svc_ids = {x["id"] for x in await db.services.find({"category_id": category_id}, {"_id": 0, "id": 1}).to_list(5000)}
+    card = await db.rate_cards.find_one({"category_id": category_id}, {"_id": 0})
+    row_ids = {r.get("id") for g in (card or {}).get("groups") or [] for r in g.get("rows") or [] if r.get("id")}
+    src_services = s.get("services") or {}
+    src_rc = s.get("ratecards") or {}
+    applied = []
+    for city in cities:
+        if key(city) == key(src):
+            continue
+        doc = await get_doc(city) or {}
+        services = dict(doc.get("services") or {})
+        rc = dict(doc.get("ratecards") or {})
+        cats = list(doc.get("categories") or [])
+        if "services" in inc:
+            for sid in svc_ids:
+                if sid in src_services:
+                    services[sid] = copy.deepcopy(src_services[sid])
+            if category_id not in cats:
+                cats.append(category_id)
+        if "ratecards" in inc:
+            for rid in row_ids:
+                if rid in src_rc:
+                    rc[rid] = copy.deepcopy(src_rc[rid])
+        await save_city(city, {"services": services, "ratecards": rc, "categories": cats,
+                               "fees": doc.get("fees") or {}}, admin)
+        applied.append(city)
+    return {"applied": applied, "count": len(applied)}
 
 
 async def _bust_public():

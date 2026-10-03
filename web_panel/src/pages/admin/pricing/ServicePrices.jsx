@@ -8,14 +8,13 @@ import CategoryRateCardPanel from "./CategoryRateCardPanel";
 import BulkUpdateBar from "./BulkUpdateBar";
 import { isPriced, pct } from "./pricingUtils";
 
-export default function ServicePrices({ data, edit, setPrices, setRatecards, onGoRateCards }) {
+export default function ServicePrices({ data, edit, setPrices, setRatecards, onGoRateCards, selectedCat, setSelectedCat }) {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("all");
   const [onlyMissing, setOnlyMissing] = useState(false);
   const [selectMode, setSelectMode] = useState(false);
   const [sel, setSel] = useState(() => new Set());
   const [collapsed, setCollapsed] = useState(() => new Set());
-  const [selectedCat, setSelectedCat] = useState(() => data.all_categories[0]?.id || "");
 
   const enabledCats = new Set(edit.categories);
 

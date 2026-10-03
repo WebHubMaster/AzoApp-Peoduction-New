@@ -45,6 +45,7 @@ export default function PriceManager({ onNavigate }) {
   const [tab, setTab] = useState("services");
   const [busy, setBusy] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
+  const [selectedCat, setSelectedCat] = useState("");
 
   const loadCities = useCallback(() => api.get("/admin/price-manager/cities").then((r) => {
     setCities(r.data);
@@ -58,6 +59,7 @@ export default function PriceManager({ onNavigate }) {
     const { data: d } = await api.get(`/admin/price-manager/city/${encodeURIComponent(c)}`);
     setData(d);
     setEdit({ categories: d.categories, fees: d.fees, prices: d.prices, ratecards: d.ratecards });
+    setSelectedCat((sc) => sc || d.all_categories[0]?.id || "");
   }, []);
   useEffect(() => { load(city); }, [city, load]);
 
@@ -146,10 +148,10 @@ export default function PriceManager({ onNavigate }) {
               ))}
             </div>
             <div className="p-3.5 lg:p-4">
-              {tab === "services" && <ServicePrices data={data} edit={edit} setPrices={patch("prices")} setRatecards={patch("ratecards")} onGoRateCards={() => setTab("ratecards")} />}
+              {tab === "services" && <ServicePrices data={data} edit={edit} setPrices={patch("prices")} setRatecards={patch("ratecards")} onGoRateCards={() => setTab("ratecards")} selectedCat={selectedCat} setSelectedCat={setSelectedCat} />}
               {tab === "categories" && <CityCategories data={data} selected={edit.categories} setSelected={patch("categories")} />}
               {tab === "fees" && <CityFees city={city} defaults={data.fee_defaults} fees={edit.fees} setFees={patch("fees")} />}
-              {tab === "ratecards" && <RateCardPrices cards={data.rate_cards} values={edit.ratecards} setValues={patch("ratecards")} />}
+              {tab === "ratecards" && <RateCardPrices cards={data.rate_cards} values={edit.ratecards} setValues={patch("ratecards")} selectedCat={selectedCat} setSelectedCat={setSelectedCat} city={city} cities={cities} onApplied={() => { load(city); loadCities(); }} />}
             </div>
           </div>
         </>

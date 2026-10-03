@@ -1,10 +1,12 @@
-import { Receipt, ArrowRight } from "lucide-react";
+import { Receipt, ArrowRight, Wand2 } from "lucide-react";
 import { PriceInput } from "./ServicePriceRow";
+import { rateTemplateValues } from "./pricingUtils";
 
 // Sticky right panel: shows the rate card for the currently selected category and
 // lets the admin edit it inline (writes into edit.ratecards — saved with the city).
 export default function CategoryRateCardPanel({ card, categoryName, values, setValues, onGoRateCards }) {
   const set = (id, k, v) => setValues((o) => ({ ...(o || {}), [id]: { ...((o || {})[id] || {}), [k]: v === "" ? "" : String(v) } }));
+  const useTemplate = () => { if (card) setValues((o) => ({ ...(o || {}), ...rateTemplateValues(card) })); };
 
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden" data-testid="pm-ratecard-panel">
@@ -14,6 +16,11 @@ export default function CategoryRateCardPanel({ card, categoryName, values, setV
           <p className="text-[11px] uppercase tracking-wide text-slate-400 font-semibold">Rate Card</p>
           <p className="text-[15px] font-bold text-slate-800 dark:text-slate-100 truncate">{categoryName || "Select a category"}</p>
         </div>
+        {card && (
+          <button onClick={useTemplate} className="ml-auto inline-flex items-center gap-1 text-[11px] font-semibold text-[#0D47A1] hover:underline shrink-0" data-testid="pm-panel-use-template">
+            <Wand2 className="h-3 w-3" />Template
+          </button>
+        )}
       </div>
 
       {!card ? (
@@ -35,9 +42,9 @@ export default function CategoryRateCardPanel({ card, categoryName, values, setV
                   <div key={r.id} className="rounded-lg border border-slate-100 dark:border-slate-800 px-2.5 py-2">
                     <p className="text-[13px] text-slate-700 dark:text-slate-200 mb-1.5 truncate">{r.description}</p>
                     <div className="flex items-center gap-1.5">
-                      <PriceInput value={values?.[r.id]?.service_charge} onChange={(v) => set(r.id, "service_charge", v)} placeholder="Service" tid={`pm-rc-${r.id}`} w="flex-1" />
-                      <PriceInput value={values?.[r.id]?.labour_charge} onChange={(v) => set(r.id, "labour_charge", v)} placeholder="Labour" w="flex-1" />
-                      <PriceInput value={values?.[r.id]?.original_charge} onChange={(v) => set(r.id, "original_charge", v)} placeholder="MRP" w="flex-1" />
+                      <PriceInput value={values?.[r.id]?.service_charge} onChange={(v) => set(r.id, "service_charge", v)} placeholder={r.service_charge || "Service"} tid={`pm-rc-${r.id}`} w="flex-1" />
+                      <PriceInput value={values?.[r.id]?.labour_charge} onChange={(v) => set(r.id, "labour_charge", v)} placeholder={r.labour_charge || "Labour"} w="flex-1" />
+                      <PriceInput value={values?.[r.id]?.original_charge} onChange={(v) => set(r.id, "original_charge", v)} placeholder={r.original_charge || "MRP"} w="flex-1" />
                     </div>
                   </div>
                 ))}
