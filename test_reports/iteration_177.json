@@ -1,0 +1,20 @@
+{
+  "summary": "Verified the new partner-assigned cancellation money-math end-to-end: _compute_cancellation, GET /api/bookings/{id}/cancellation-preview, POST /api/bookings/{id}/cancel, commission_ledger row and the 2-page GST cancellation invoice. Verified both UI surfaces: Customer cancel modal (CustomerDashboard) and Admin booking detail Commission Flow (flow-cancel). All four items from the review request PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iter177_cancellation_math.py", "/app/test_reports/pytest/iter177.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "_compute_cancellation returns both cancel_charge and cancellation_fee (same value) + both platform_gross and cancellation_commission (same value). Legacy duplicates increase payload bloat and risk drift. Consider deprecating one of each pair.",
+    "In the customer preview response, `retained_from_you` = original − refund = fee + tax. That matches the UI 'Total cancellation charge' row. OK, but the field has no `gst_pct` echoed so UIs that need to show '(incl. GST)' must look at `cancellation_tax` separately — minor API ergonomics nit.",
+    "The customer UI gates `canCancel` on `['searching','assigned','arrived_shop','arrived_customer']` while the backend allows cancel for anything except started/completed/paid/cancelled (including 'accepted'). A booking in 'accepted' state (payment pending OR paid) can still be cancelled via API but the UI hides the button — minor inconsistency the main agent may want to reconcile."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter177_cancellation_math.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "100% (customer modal + admin flow)"},
+  "test_credentials": "Admin +919000000000 / Customer +919000000004 / Partner +919000000003 — demo OTP 123456",
+  "seed_data_creation": "Seeded TEST177-* bookings (customer Priya + partner Raj, Electrician commission 80/15/3/2, total 488.29) for both partner-assigned paid and unassigned paid branches; cleaned up after run (7 deleted). One UI-only booking BKUI4ae0 was seeded and left for the UI step then cancelled via the modal workflow.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Numbers verified for Electrician 80/15/3/2 @ total 488.29: service_amount 443.9, cancellation_fee 88.78, cancellation_commission (platform_gross) 17.76, cancellation_tax 3.2, refund 396.31, partner_cut 71.02, merchant_referral 2.66, platform_earning 15.1. Preview response field name is `cancellation_fee`/`cancellation_tax`; ledger row (kind=cancellation) stores partner_earning/platform_earning/merchant_referral/tax/base. Customer modal selector: [data-testid=cancel-{code}] opens dialog with rows 'Cancellation fee (X% of service)', 'Est. Govt. Taxes on fee', 'Total cancellation charge', 'You'll get back' (data-testid=cancel-refund-amount). Admin: flow-cancel step shows 'Cancellation fee', 'GST on fee commission (commission only)', 'Total refund to customer', 'Total retained'. Reusable existing fixtures in /app/test_reports/cancel_inv_ids.json cover both invoice templates.",
+  "rca of the issue": "N/A — spec implemented correctly. Preview tax (3.2) ≈ expected 3.19 — rounding difference caused by exact service_net value: spec example used 442.86, our seed used 443.9 so fee came out 88.78 vs 88.57. All invariants (fee+tax+refund=total; tax=commission×GST%; commission=fee×platform_total%; partner_cut=fee×partner%) hold to the paisa."
+}

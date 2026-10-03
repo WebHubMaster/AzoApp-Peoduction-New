@@ -316,3 +316,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 
 ## 2026-10 — Commission drawer tax preview
 - Configure Commission drawer shows tax calc: total commission (100-partner%) + platform fee = taxable, CGST/SGST, customer total, invoice page1/page2, internal merchant split (not on invoice).
+
+## 2026-10 — Cancellation rule on new tax model
+- Partner assigned: fee = Partner Cancellation % of service_net; commission = fee x (100-partner%); GST only on that commission; partner = fee - commission; merchant shares from commission; refund = paid - (fee + tax) (platform fee + original GST refunded).
+- No partner: 100% refund. Cancellation invoice with fee uses 2-page GST template (TAX INVOICE (CANCELLATION FEE) + Cancellation Charge receipt).
