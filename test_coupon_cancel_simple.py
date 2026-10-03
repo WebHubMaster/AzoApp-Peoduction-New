@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://dispatch-excellence.preview.emergentagent.com/api"
+BASE = "https://partner-control-4.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

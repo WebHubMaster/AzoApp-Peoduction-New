@@ -312,7 +312,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 
 ## 2026-10 — Invoice Verify Page + admin login fix
 - QR on Tax Invoice encodes signed public URL /api/invoices/verify/{id}?s=HMAC → "Genuine Invoice" page (masked customer, amounts, CGST/SGST); invalid → 404 "Could Not Verify".
-- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://dispatch-excellence.preview.emergentagent.com (was a different host → CORS block).
+- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://partner-control-4.preview.emergentagent.com (was a different host → CORS block).
 
 ## 2026-10 — Commission drawer tax preview
 - Configure Commission drawer shows tax calc: total commission (100-partner%) + platform fee = taxable, CGST/SGST, customer total, invoice page1/page2, internal merchant split (not on invoice).
@@ -334,7 +334,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 ---
 ## Session (2026-06) — Price Manager PREMIUM full-width redesign (web_panel)
 GOAL: Redesign Super Admin "Price Manager" into a premium, full-width enterprise pricing system WITHOUT breaking existing service/city/category/add-on/MRP/fees/rate-card logic or APIs.
-ENV NOTE: pod reset had wiped .env files again → restored /app/backend/.env (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL=https://dispatch-excellence.preview.emergentagent.com) and /app/web_panel/.env; reinstalled web_panel node_modules; backend re-seeded.
+ENV NOTE: pod reset had wiped .env files again → restored /app/backend/.env (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL=https://partner-control-4.preview.emergentagent.com) and /app/web_panel/.env; reinstalled web_panel node_modules; backend re-seeded.
 BACKEND (city_pricing_service.py):
 - list_cities(): cities now come ONLY from ACTIVE service_areas (status!=inactive) + their city_pricing docs; never leaks non-area cities. Added fields status, total_services, improved priced_services (_sp_is_priced). include_all=True kept for seed_from_current.
 - admin_city(): now returns updated_at + updated_by.

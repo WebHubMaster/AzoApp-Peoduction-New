@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://dispatch-excellence.preview.emergentagent.com/api"
+BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"  # Raj Kumar
 CUSTOMER_PHONE = "+919000000004"  # Priya Verma
 OTP = "123456"

@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://dispatch-excellence.preview.emergentagent.com/api"
+BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"
