@@ -320,3 +320,13 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 ## 2026-10 — Cancellation rule on new tax model
 - Partner assigned: fee = Partner Cancellation % of service_net; commission = fee x (100-partner%); GST only on that commission; partner = fee - commission; merchant shares from commission; refund = paid - (fee + tax) (platform fee + original GST refunded).
 - No partner: 100% refund. Cancellation invoice with fee uses 2-page GST template (TAX INVOICE (CANCELLATION FEE) + Cancellation Charge receipt).
+
+## 2026-10 — Price Manager (city-wise pricing)
+- db.city_pricing (one doc per city): categories[], fees{platform_fee, global_visiting_charge, min_service_amount_for_visiting, emergency_fee, min_labour_charge}, services{id:{enabled,price,mrp,tiers,addons,plans}}, ratecards{row_id:{...}}.
+- City from X-City header (web api.js / Customer client.ts send localStorage/location city) or address.city for quote/booking. Configured city = strict (unpriced service / disabled category hidden). Unconfigured city = nothing shown. No city = legacy global prices. 6-digit pincode resolved to city via service_areas.
+- Engine charges selling price = discounted_price if < base_price (base_price = MRP).
+- Startup one-time seed copies current global prices into every serviced city (Patna, Ranchi, Samastipur).
+- Admin: sidebar "Price Manager" (web_panel/src/pages/admin/pricing/*): city chips, add city, tabs Service Prices / Categories / Fees / Rate Card, search, category filter, only-missing, bulk %, copy from city (+/- %).
+- Service wizard: price fields removed (service, variant, subscription plan) → note to use Price Manager.
+## Backlog
+- CSV import/export of city prices; validate rate-card custom_price server-side against city price; customer "not available in your city" empty state.

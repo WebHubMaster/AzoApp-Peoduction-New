@@ -1,0 +1,33 @@
+{
+  "summary": "Iter178 — City-wise Price Manager. Backend fully verified (14/14 PASS): X-City switching (Patna→16 svcs/7 cats, Delhi→[], no header→legacy), per-city service pricing (Fan Installation: Ranchi 399/499, Patna 299), cart-quote using address.city (Ranchi base 399/platform_fee 30, Patna 299/25), admin Price Manager endpoints (cities list, get/put city, copy with +10%), service enable/disable hiding it from catalog + refusing booking with HTTP 400, category disable hiding its services, rate card public endpoint applies city overrides. Patna state restored at end. Frontend admin Price Manager UI could NOT be exercised because the web_panel was not built in this preview env and after rebuild (bash /app/web_panel/build_panel.sh) the panel's internal auth flow failed (Send OTP → 405 'Method Not Allowed' toast); unable to reach /admin?tab=price_manager because Protected guard flashes to /login during initial auth loading. Direct injection of azo_token into localStorage followed by navigation also redirected to login. All required data-testids exist in source (/app/web_panel/src/pages/admin/pricing/*) but rendering could not be verified end-to-end in the browser.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Web panel admin login", "issue": "Panel's internal Send OTP call returns 405 (toast 'Method Not Allowed') despite direct backend /api/auth/send-otp accepting the same payload and returning sent:true. UI never reaches OTP input step. Could be a stale built chunk calling a wrong path or missing CSRF.", "affected_selectors": ["login phone/OTP form", "all /api/panel/admin routes"]},
+      {"flow": "Protected admin route", "issue": "On first paint before AuthContext.loadMe resolves, Protected redirects to /login (no 'loading' gate). Pre-setting azo_token in localStorage still routes to /login because the redirect happens before loadMe completes.", "affected_selectors": ["<Protected role=\"admin\">"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_iter178_price_manager.py", "/app/test_reports/pytest/iter178.xml"],
+  "action_items": [
+    "Add `yarn build` to startup/postinstall or supervisor init for /app/web_panel — the panel was not built, so /api/panel/ returned 'Web panel is not built' until I ran build manually.",
+    "Investigate 405 'Method Not Allowed' from panel's Send OTP call — the UI shows a Method Not Allowed toast even though POST /api/auth/send-otp works via curl. Possibly a stale axios call to GET /api/auth/send-otp from a cached chunk, or trailing slash /api/auth/send-otp/.",
+    "Protected route should respect `loading` from AuthContext — show a splash/spinner instead of redirecting to /login so a hard-refresh on /admin?tab=price_manager doesn't drop logged-in admins.",
+    "Add a one-click 'Admin' button to the panel's own /api/panel/login (parity with frontend /login) to make admin e2e testing easier."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/src/pages/admin/pricing/PriceManager.jsx looks sound; data-testids are present and city doc endpoints are correct.",
+    "backend/services/city_pricing_service.py apply_service correctly hides a service when it has no city price, no enabled tiers, or an inactive category — verified with API tests.",
+    "cart-quote correctly reads address.city via _city_ctx middleware fallback (test_ranchi_quote/test_patna_quote both pass).",
+    "/api/auth/me returns admin profile correctly, but web_panel's AuthContext redirects via Protected without honoring `loading`, causing a flash to /login on every hard refresh of an admin page — a UX bug that also made automated UI testing of Price Manager impossible without a built panel + working UI login."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter178_price_manager.py", "/app/web_panel/build/** (rebuilt panel bundle)"],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "0% — could not reach UI due to panel build + 405 Send OTP toast; data-testids verified only in source"},
+  "test_credentials": "Admin +919000000000 / Customer +919000000004 / Partner +919000000003 — demo OTP 123456",
+  "seed_data_creation": "Created a 'TestCityIter178' city doc via copy_city (+10% from Patna) during test_copy_city. This is harmless (no bookings), but can be deleted by admin if desired. Patna fully restored to original state at end of each test and verified by final re-run (16 services, 7 categories).",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests at /app/backend/tests/test_iter178_price_manager.py (run with `pytest -o addopts=''`). Admin token via POST /api/auth/send-otp then /api/auth/verify-otp with +919000000000/123456. Web panel is served at {BASE}/api/panel/ and must be built (bash /app/web_panel/build_panel.sh) before UI testing. Price Manager routes via /admin?tab=price_manager (query param, basename=/api/panel). Fan Installation svc id 0fc1d006-b3ca-4bf0-8cda-2b9a35f882e5. Ranchi price 399/MRP 499/platform_fee 30; Patna 299/platform_fee 25. The spec's 'https://.../login' route (frontend/, not panel) has one-click Admin which routes to /admin — but that /admin path belongs to the SEPARATE main React app at port 3000 and does not render the Price Manager; the Price Manager is in web_panel ONLY.",
+  "rca of the issue": "Price Manager backend is fully correct and functional. Frontend UI testing is blocked by two separate panel-level issues: (1) web_panel/build/ was absent (serving a stub message), (2) the panel's login shows a 405 toast when calling Send OTP so admin cannot authenticate through the UI, and (3) Protected route redirects admins to /login during the brief AuthContext loading window. Fix 1 (ensure yarn build runs) and 2 (investigate the 405 — likely a wrong HTTP method or path in a cached chunk) + add loading gate to Protected."
+}

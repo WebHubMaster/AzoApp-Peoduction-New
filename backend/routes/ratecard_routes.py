@@ -22,7 +22,18 @@ async def by_service(service_id: str):
 
 @router.get("/search")
 async def search(q: str = ""):
-    return await rc.search_rows(q)
+    from services.city_pricing_service import active_doc
+    rows = await rc.search_rows(q)
+    doc = await active_doc()
+    if not doc:
+        return rows
+    rp = doc.get("ratecards") or {}
+    out = []
+    for r in rows:
+        o = rp.get(r.get("row_id")) or {}
+        if o.get("service_charge"):
+            out.append({**r, **{k: str(o.get(k) or "") for k in ("service_charge", "labour_charge", "original_charge")}})
+    return out
 
 
 # ---------- ADMIN ----------
