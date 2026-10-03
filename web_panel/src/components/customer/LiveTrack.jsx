@@ -3,6 +3,8 @@ import { Navigation, Clock, MapPin, Star, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import MapView from "@/components/MapView";
 import BookingChat from "@/components/booking/BookingChat";
+import HelpSOS from "@/components/booking/HelpSOS";
+import PartnerProfileModal from "@/components/customer/PartnerProfileModal";
 
 const ENROUTE = ["assigned", "arrived_shop", "arrived_customer", "started"];
 
@@ -14,6 +16,7 @@ const ENROUTE = ["assigned", "arrived_shop", "arrived_customer", "started"];
 export default function LiveTrack({ booking }) {
   const [data, setData] = useState(null);
   const [tick, setTick] = useState(0);          // forces re-render each second
+  const [showProfile, setShowProfile] = useState(false);
   const arriveAtRef = useRef(null);             // epoch-ms target arrival time
 
   const poll = useCallback(async () => {
@@ -63,6 +66,31 @@ export default function LiveTrack({ booking }) {
 
   return (
     <div className="mt-3 rounded-2xl border border-primary-200 dark:border-primary-800 bg-primary-50/60 dark:bg-primary-900/20 overflow-hidden" data-testid={`livetrack-${booking.code}`} data-tick={tick}>
+      {p?.name && (
+        <button
+          type="button"
+          onClick={() => setShowProfile(true)}
+          data-testid="livetrack-partner-card"
+          className="w-full flex items-center gap-3 px-3.5 py-3 border-b border-primary-100 dark:border-primary-900/40 hover:bg-primary-100/40 dark:hover:bg-primary-900/30 transition text-left"
+        >
+          {p.photo || p.avatar ? (
+            <img src={p.photo || p.avatar} alt={p.name} className="h-11 w-11 rounded-full object-cover shrink-0" data-testid="livetrack-partner-photo" />
+          ) : (
+            <div className="h-11 w-11 rounded-full grid place-items-center bg-primary-600 text-white font-black shrink-0" data-testid="livetrack-partner-photo">
+              {(p.name || "P").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              {p.rating ? <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {p.rating}</span> : <span>New pro</span>}
+              {p.reviews_count ? <span>· {p.reviews_count} reviews</span> : null}
+              {p.jobs_completed ? <span>· {p.jobs_completed} jobs</span> : null}
+            </p>
+          </div>
+          <span className="text-xs font-semibold text-primary-600 dark:text-primary-300 shrink-0">View profile ›</span>
+        </button>
+      )}
       <div className="p-3.5 flex items-center gap-3">
         <div className={`h-12 w-12 rounded-2xl grid place-items-center text-white shrink-0 ${arrived ? "bg-emerald-500" : "bg-primary-600"}`}>
           <Navigation className="h-6 w-6" />
@@ -96,6 +124,13 @@ export default function LiveTrack({ booking }) {
 
       {/* Chat & Call — available after full payment, once the partner is on the way */}
       <BookingChat booking={booking} role="customer" />
+      {/* Help & SOS — appears once the job has started (spec 6) */}
+      {data.status === "started" && (
+        <div className="px-3.5 pb-3.5">
+          <HelpSOS booking={booking} role="customer" />
+        </div>
+      )}
+      {showProfile && <PartnerProfileModal bookingId={booking.id} onClose={() => setShowProfile(false)} />}
     </div>
   );
 }

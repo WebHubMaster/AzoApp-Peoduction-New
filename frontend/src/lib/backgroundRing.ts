@@ -115,24 +115,13 @@ export async function startBackgroundJobListener(): Promise<void> {
   setBgListenerActive(true);
   try {
     await setupAndroidChannels();
-    const fgsType = mod.AndroidForegroundServiceType?.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
-    await n.displayNotification({
-      id: ONLINE_FGS_ID,
-      title: "AzoApp — you're online",
-      body: "Listening for new job requests",
-      android: {
-        channelId: CHANNELS.online,
-        asForegroundService: true,
-        ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
-        ongoing: true,
-        smallIcon: "ic_notification",
-        color: "#0D47A1",
-        importance: mod.AndroidImportance.LOW,
-        pressAction: { id: "default", launchActivity: "default" },
-      },
-    } as any);
-  } catch { /* FGS may be rejected on some OEMs — SSE below still tries */ }
-  _connect();   // drive the stream directly (kept alive by the service above)
+    // Persistent foreground-service notification ("you're online / listening for
+    // job requests") has been REMOVED per product decision — it must never be shown
+    // to the partner. New-job alerts still arrive via server-side FCM push (works
+    // even with the app closed), and the SSE stream below keeps in-app realtime
+    // updates flowing while the app is active. No ongoing/visible notification.
+  } catch { /* channel setup best-effort */ }
+  _connect();   // drive the stream directly
 }
 
 /** Stop the background listener (call when the app returns to the foreground or the

@@ -98,6 +98,12 @@ async def create_ticket(user, data: dict):
     await db.support_tickets.insert_one(dict(doc))
     doc.pop("_id", None)
     await _notify_admins(doc, f"New support ticket {doc['code']}: {subject}")
+    try:
+        from services import realtime as rt
+        rt.emit_admin("support_ticket_new", {"ticket_id": doc["id"], "code": doc["code"],
+                                             "subject": subject, "priority": priority})
+    except Exception:
+        pass
     return doc
 
 
@@ -126,6 +132,19 @@ async def set_typing(tid, actor):
     """Record a typing ping. actor = 'user' or 'agent'."""
     field = "typing_user_at" if actor == "user" else "typing_agent_at"
     await db.support_tickets.update_one({"id": tid}, {"$set": {field: now_iso()}})
+    # Live typing indicator (WhatsApp-style) over SSE — user types → notify admins;
+    # agent types → notify the ticket owner. Clients show "typing…" instantly.
+    try:
+        from services import realtime as rt
+        t = await db.support_tickets.find_one({"id": tid}, {"_id": 0, "user_id": 1, "code": 1})
+        if t:
+            payload = {"ticket_id": tid, "code": t.get("code"), "actor": actor, "typing": True}
+            if actor == "user":
+                rt.emit_admin("support_typing", payload)
+            elif t.get("user_id"):
+                rt.emit_user(t["user_id"], "support_typing", payload)
+    except Exception:
+        pass
     return {"ok": True}
 
 
@@ -170,6 +189,12 @@ async def add_user_message(user, tid, data: dict):
         upd["$set"]["status"] = "in_progress"
     await db.support_tickets.update_one({"id": tid}, upd)
     await _notify_admins(t, f"New reply on {t['code']}")
+    try:
+        from services import realtime as rt
+        rt.emit_admin("support_message", {"ticket_id": tid, "code": t.get("code"),
+                                          "sender_role": "user", "message": m})
+    except Exception:
+        pass
     return await db.support_tickets.find_one({"id": tid}, {"_id": 0})
 
 
@@ -281,6 +306,14 @@ async def admin_reply(admin, tid, data: dict):
         sets["status"] = "in_progress"
     await db.support_tickets.update_one({"id": tid}, {"$push": {"messages": m}, "$set": sets})
     await _notify_user(t, f"Support replied on {t['code']}")
+    try:
+        from services import realtime as rt
+        if t.get("user_id"):
+            rt.emit_user(t["user_id"], "support_message",
+                         {"ticket_id": tid, "code": t.get("code"),
+                          "sender_role": "admin", "message": m})
+    except Exception:
+        pass
     return await db.support_tickets.find_one({"id": tid}, {"_id": 0})
 
 

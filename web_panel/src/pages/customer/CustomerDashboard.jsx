@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import CustomerShell from "@/components/customer/CustomerShell";
+import FeeInfoTip from "@/components/FeeInfoTip";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 import MyCustomJobs from "@/components/customer/MyCustomJobs";
 import { MySubscriptions } from "@/components/customer/Subscriptions";
@@ -1362,7 +1363,7 @@ function PaymentSummary({ b }) {
         {Number(p.emergency_fee || 0) > 0 && <DRow k="Emergency Fee" v={fmt(p.emergency_fee)} />}
         {visiting > 0 && <DRow k="Visiting Charge" v={fmt(visiting)} />}
         {Number(p.discount || 0) > 0 && <DRow k="Discount" v={`- ${fmt(p.discount)}`} />}
-        {Number(p.gst || 0) > 0 && <DRow k="Est. Govt. Taxes" v={fmt(p.gst)} />}
+        {Number(p.gst || 0) > 0 && <DRow k={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(p.gst)} />}
         <div className="border-t border-slate-100 dark:border-slate-800 pt-2"><DRow k="Total" v={fmt(p.total)} strong /></div>
         <DRow k="Payment status" v={(b.payment_status || "pending").toUpperCase()} />
       </>
@@ -1373,7 +1374,7 @@ function PaymentSummary({ b }) {
     <>
       <DRow k="Service Amount" v={fmt(bd.services_subtotal)} />
       {(bd.additional_charges || []).map((c) => (
-        <DRow key={c.key} k={c.label} v={fmt(c.amount)} />
+        <DRow key={c.key} k={c.key === "platform_fee" ? <>{c.label} <FeeInfoTip kind="platform_fee" /></> : c.label} v={fmt(c.amount)} />
       ))}
       {hasCharges && (
         <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
@@ -1384,7 +1385,7 @@ function PaymentSummary({ b }) {
         <DRow k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(bd.discount)}`} />
       )}
       {Number(bd.tax || 0) > 0 && (
-        <DRow k="Est. Govt. Taxes" v={fmt(bd.tax)} />
+        <DRow k={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(bd.tax)} />
       )}
       <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
         <DRow k="Total Booking Amount" v={fmt(bd.total)} strong />
@@ -1639,7 +1640,7 @@ function InvoiceDrawer({ b, open, onClose }) {
         {Number(bd?.discount ?? p.discount ?? 0) > 0 && (
           <DRow k={`Coupon Discount${bd?.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(bd?.discount ?? p.discount)}`} />
         )}
-        {Number(bd?.tax ?? p.gst ?? 0) > 0 && <DRow k="Est. Govt. Taxes" v={fmt(bd?.tax ?? p.gst)} />}
+        {Number(bd?.tax ?? p.gst ?? 0) > 0 && <DRow k={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(bd?.tax ?? p.gst)} />}
         <div className="border-t border-slate-200 dark:border-slate-700 pt-2"><DRow k="Grand Total" v={fmt(bd?.total ?? p.total)} strong /></div>
         <DRow k="Paid Amount" v={fmt((b.payment_status === "paid" || b.payment_status === "completed" || b.payment_status === "refunded") ? (bd?.total ?? p.total) : 0)} />
         {bd?.refund ? (

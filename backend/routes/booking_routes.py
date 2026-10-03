@@ -275,6 +275,13 @@ async def track(booking_id: str, user=Depends(get_current_user)):
     return await c.track_booking(user, booking_id)
 
 
+@router.get("/{booking_id}/partner-card")
+async def partner_card(booking_id: str, user=Depends(get_current_user)):
+    """Public (non-confidential) profile + reviews of the partner assigned to this
+    booking. Visible to the booking's customer, its partner, or admin."""
+    return await c.partner_public_card(user, booking_id)
+
+
 @router.get("/chats/summary")
 async def chats_summary(user=Depends(get_current_user)):
     """Chat list: latest message + unread count per open thread (badges)."""

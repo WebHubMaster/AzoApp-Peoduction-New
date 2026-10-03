@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { runPayment, openCheckout } from "@/lib/payments";
+import FeeInfoTip from "@/components/FeeInfoTip";
 import { getMerchantRefCode } from "@/lib/merchantRef";
 
 import { useAuth } from "@/context/AuthContext";
@@ -1012,13 +1013,13 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
           {totals.emergency_fee > 0 && <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} />}
           {totals.visiting_charge > 0 && <Row l="Visiting charge" v={fmt(totals.visiting_charge)} />}
           {totals.convenience_fee > 0 && <Row l="Convenience fee" v={fmt(totals.convenience_fee)} />}
-          {totals.platform_fee > 0 && <Row l="Platform fee" v={fmt(totals.platform_fee)} />}
+          {totals.platform_fee > 0 && <Row l={<>Platform fee <FeeInfoTip kind="platform_fee" /></>} v={fmt(totals.platform_fee)} />}
           {totals.discount > 0 && <Row l="Coupon discount" v={"- " + fmt(totals.discount)} green />}
           {totals.membership_discount > 0 && <Row l={`Member discount${totals.membership_plan ? ` (${totals.membership_plan})` : ""}`} v={"- " + fmt(totals.membership_discount)} green />}
           {totals.membership_visit_waiver > 0 && <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green />}
           {totals.loyalty_discount > 0 && <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green />}
           {totals.referral_discount > 0 && <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green />}
-          {totals.gst > 0 && <div data-testid="checkout-gst"><Row l="Est. Govt. Taxes" v={fmt(totals.gst)} /></div>}
+          {totals.gst > 0 && <div data-testid="checkout-gst"><Row l={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(totals.gst)} /></div>}
           <div className="pt-2 mt-1 border-t border-slate-100"><Row l="Total payable" v={fmt(totals.total)} bold /></div>
           <MemberSavingsBadge totals={totals} />
         </div>
@@ -1129,13 +1130,13 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
           {totals.emergency_fee > 0 && <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} />}
           {totals.visiting_charge > 0 && <Row l="Visiting charge" v={fmt(totals.visiting_charge)} />}
           {totals.convenience_fee > 0 && <Row l="Convenience fee" v={fmt(totals.convenience_fee)} />}
-          {totals.platform_fee > 0 && <Row l="Platform fee" v={fmt(totals.platform_fee)} />}
+          {totals.platform_fee > 0 && <Row l={<>Platform fee <FeeInfoTip kind="platform_fee" /></>} v={fmt(totals.platform_fee)} />}
           {totals.discount > 0 && <Row l="Coupon discount" v={"- " + fmt(totals.discount)} green />}
           {totals.membership_discount > 0 && <Row l={`Member discount${totals.membership_plan ? ` (${totals.membership_plan})` : ""}`} v={"- " + fmt(totals.membership_discount)} green />}
           {totals.membership_visit_waiver > 0 && <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green />}
           {totals.loyalty_discount > 0 && <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green />}
           {totals.referral_discount > 0 && <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green />}
-          {totals.gst > 0 && <div data-testid="checkout-gst"><Row l="Est. Govt. Taxes" v={fmt(totals.gst)} /></div>}
+          {totals.gst > 0 && <div data-testid="checkout-gst"><Row l={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(totals.gst)} /></div>}
           <div className="pt-2 mt-1 border-t border-slate-100"><Row l="Total payable" v={fmt(totals.total)} bold /></div>
           <MemberSavingsBadge totals={totals} />
         </div>
@@ -1180,8 +1181,8 @@ const OrderSidebar = ({ items, lineTotal, totals, displayTotal, navigate, showFu
           {totals.ready && totals.visiting_charge > 0 && <Row l="Visiting Charge" v={fmt(totals.visiting_charge)} />}
           {totals.ready && totals.emergency_fee > 0 && <Row l="Emergency Charge" v={fmt(totals.emergency_fee)} />}
           {totals.ready && totals.convenience_fee > 0 && <Row l="Convenience Fee" v={fmt(totals.convenience_fee)} />}
-          {totals.ready && totals.platform_fee > 0 && <Row l="Platform Fee" v={fmt(totals.platform_fee)} />}
-          {totals.ready && totals.gst > 0 && <Row l="Est. Govt. Taxes" v={fmt(totals.gst)} />}
+          {totals.ready && totals.platform_fee > 0 && <Row l={<>Platform Fee <FeeInfoTip kind="platform_fee" /></>} v={fmt(totals.platform_fee)} />}
+          {totals.ready && totals.gst > 0 && <Row l={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(totals.gst)} />}
           <div className="flex justify-between pt-2 border-t border-slate-100 font-heading font-extrabold text-lg text-slate-900"><span>Total</span><span>{fmt(displayTotal)}</span></div>
         </>
       )}

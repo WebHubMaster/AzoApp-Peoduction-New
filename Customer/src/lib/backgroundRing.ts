@@ -124,23 +124,12 @@ export async function startBackgroundAlertListener(): Promise<void> {
   setBgListenerActive(true);
   try {
     await setupAndroidChannels();
-    const fgsType = mod.AndroidForegroundServiceType?.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
-    await n.displayNotification({
-      id: ONLINE_FGS_ID,
-      title: "AzoApp",
-      body: "Waiting for booking updates",
-      android: {
-        channelId: CHANNELS.online,
-        asForegroundService: true,
-        ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
-        ongoing: true,
-        smallIcon: "ic_notification",
-        color: "#1666D3",
-        importance: mod.AndroidImportance.LOW,
-        pressAction: { id: "default", launchActivity: "default" },
-      },
-    } as any);
-  } catch { /* FGS may be rejected on some OEMs — SSE below still tries */ }
+    // Persistent "Waiting for booking updates" foreground-service notification has
+    // been REMOVED per product decision — it must never be shown to the user. Booking
+    // alerts still arrive via server-side FCM push (works even with the app closed /
+    // uninstalled-independent), and the SSE stream below keeps the in-app realtime
+    // updates flowing while the app is active. No ongoing/visible notification.
+  } catch { /* channel setup best-effort */ }
   _connect();
 }
 

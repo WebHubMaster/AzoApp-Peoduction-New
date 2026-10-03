@@ -79,48 +79,10 @@ class PricingEngine:
 
     @staticmethod
     async def _surge(service: dict, address: dict, subtotal: float) -> tuple:
-        """Sum every active surge rule that matches this service + address (and is
-        inside its peak window). Supports percentage / fixed ₹ / multiplier (×)."""
-        rules = await PricingEngine._active_surge_rules()
-        city = (address or {}).get("city", "").strip().lower()
-        pin = str((address or {}).get("pincode", "")).strip()
-        svc_cat = str(service.get("category_name", "")).strip().lower()
-        amt, applied = 0.0, []
-        for r in rules:
-            scope = (r.get("scope") or "all").strip().lower()
-            mv = str(r.get("match_value", "")).strip().lower()
-            cat = r.get("service_category")
-            if cat:
-                if isinstance(cat, list):
-                    cats = [str(x).strip().lower() for x in cat if str(x).strip()]
-                    if cats and svc_cat not in cats:
-                        continue
-                elif str(cat).strip().lower() != svc_cat:
-                    continue
-            if scope == "city" and mv != city:
-                continue
-            if scope == "pincode" and mv != pin:
-                continue
-            if scope == "category" and mv and mv != svc_cat:
-                continue
-            if not PricingEngine._rule_active_now(r):
-                continue
-            st = (r.get("surge_type") or "percentage").strip().lower()
-            val = float(r.get("surge_value", 0) or 0)
-            if st == "fixed":
-                amt = money.add(amt, val)
-            elif st == "multiplier":
-                amt = money.add(amt, money.money(subtotal * max(0.0, val - 1.0)))  # 1.5× ⇒ +50%
-            else:  # percentage
-                amt = money.add(amt, money.pct(subtotal, val))
-            if r.get("name"):
-                applied.append(r["name"])
-        # Dynamic AUTO-SURGE (supply vs demand) — admin-toggleable.
-        auto_amt, auto_name = await PricingEngine._auto_surge(address, subtotal)
-        if auto_amt > 0:
-            amt = money.add(amt, auto_amt)
-            applied.append(auto_name)
-        return money.money(amt), (", ".join(applied) if applied else None)
+        """Surge pricing has been PERMANENTLY REMOVED from AzoApp. No booking ever
+        incurs a surge charge — this always returns (0, None) so the customer bill,
+        the quote and every invoice stay surge-free regardless of any legacy rules."""
+        return 0.0, None
 
     @staticmethod
     async def auto_surge_pct(city: str) -> tuple:
@@ -326,7 +288,6 @@ class PricingEngine:
     # Partner, Merchant, Admin panels AND invoices all use identical wording/order.
     CHARGE_LABELS = [
         ("emergency_fee", "Emergency Fee"),
-        ("surge", "Surge Charge"),
         ("visiting_charge", "Visiting Charge"),
         ("convenience_fee", "Convenience Fee"),
         ("platform_fee", "Platform Fee"),

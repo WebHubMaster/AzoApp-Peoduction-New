@@ -3143,6 +3143,7 @@ const BRAND_C = "#0D47A1";
 const GEN_SECTIONS = [
   { key: "identity", label: "Business Identity", icon: Building2 },
   { key: "localization", label: "Localization", icon: Globe2 },
+  { key: "fees", label: "Fees & Taxes", icon: AlertCircle },
   { key: "social", label: "Social & Apps", icon: Share2 },
   { key: "history", label: "Change History", icon: Clock },
 ];
@@ -3166,9 +3167,14 @@ const GEN_TEXT = {
     { key: "default_language", label: "Default Language", type: "select", options: ["en", "hi", "ta", "te", "kn", "mr", "bn"] },
     { key: "date_format", label: "Date Format", type: "select", options: ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"] },
   ],
+  fees: [
+    { key: "tax_info", label: "Tax Info (shown on ⓘ next to Tax)", type: "textarea", full: true,
+      ph: "e.g. GST @ 18% is charged on the platform commission and platform fee as per government norms." },
+    { key: "platform_fee_info", label: "Platform Fee Info (shown on ⓘ next to Platform Fee)", type: "textarea", full: true,
+      ph: "e.g. A small platform fee helps us run secure payments, support and quality checks." },
+  ],
   social: [
-    { key: "facebook_url", label: "Facebook", icon: Facebook, validate: "url" },
-    { key: "instagram_url", label: "Instagram", icon: Instagram, validate: "url" },
+    { key: "facebook_url", label: "Facebook", icon: Facebook, validate: "url" },    { key: "instagram_url", label: "Instagram", icon: Instagram, validate: "url" },
     { key: "twitter_url", label: "Twitter / X", icon: Twitter, validate: "url" },
     { key: "linkedin_url", label: "LinkedIn", icon: Linkedin, validate: "url" },
     { key: "youtube_url", label: "YouTube", icon: Youtube, validate: "url" },
@@ -3179,7 +3185,7 @@ const GEN_TEXT = {
 const GEN_SEARCH_INDEX = (() => {
   const idx = [];
   const sectionLabel = (k) => (GEN_SECTIONS.find((s) => s.key === k) || {}).label || k;
-  ["identity", "localization", "social"].forEach((sec) => {
+  ["identity", "localization", "fees", "social"].forEach((sec) => {
     (GEN_TEXT[sec] || []).forEach((f) => idx.push({ key: f.key, label: f.label, tab: sec, section: sectionLabel(sec) }));
   });
   return idx;
@@ -3363,6 +3369,26 @@ export const GeneralSettingsAdvanced = () => {
             {[["Currency", fmtMoney], ["Date", fmtDate], ["Time", fmtTime], ["Country", g.country || "—"], ["Language", g.default_language || "en"]].map(([l, v]) => (
               <div key={l} className="flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-2.5"><span className="text-xs text-slate-400">{l}</span><span className="font-semibold text-slate-800 dark:text-slate-100 text-sm">{v}</span></div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {tab === "fees" && (
+        <div className="grid xl:grid-cols-3 gap-5">
+          <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
+            <div className="grid grid-cols-1 gap-4">{GEN_TEXT.fees.map(renderText)}</div>
+            <p className="text-[11px] text-slate-400 mt-4">This text appears in the small ⓘ info tooltip shown next to <b>Tax</b> and <b>Platform Fee</b> in the customer & partner apps and on the web. Leave blank to hide the tooltip.</p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 h-fit space-y-4" data-testid="gen-fees-preview">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tooltip Preview</p>
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-3">
+              <p className="text-xs font-bold text-slate-500 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Tax</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{g.tax_info || "No info added yet."}</p>
+            </div>
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800 px-4 py-3">
+              <p className="text-xs font-bold text-slate-500 flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Platform Fee</p>
+              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{g.platform_fee_info || "No info added yet."}</p>
+            </div>
           </div>
         </div>
       )}

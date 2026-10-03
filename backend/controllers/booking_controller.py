@@ -3904,6 +3904,60 @@ def _lerp(a, b, t):
     return a + (b - a) * t
 
 
+async def partner_public_card(user, booking_id):
+    """Non-confidential public profile of the partner assigned to a booking, shown to
+    the customer (photo, name, rating, experience, skills, recent reviews). NEVER
+    exposes confidential data (phone, email, address, bank, documents, earnings)."""
+    b = await _get_booking(booking_id)
+    _authorize(user, b)
+    pid = b.get("partner_id")
+    if not pid:
+        raise HTTPException(status_code=404, detail="No partner assigned yet")
+    pu = await db.users.find_one(
+        {"id": pid},
+        {"_id": 0, "name": 1, "rating": 1, "jobs_completed": 1, "reviews_count": 1,
+         "photo": 1, "avatar": 1, "vehicle": 1, "skills": 1, "city": 1,
+         "created_at": 1, "verified": 1, "kyc_status": 1, "premium_partner": 1})
+    if not pu:
+        raise HTTPException(status_code=404, detail="Partner not found")
+    # Recent reviews for this partner (from completed bookings), newest first.
+    rows = await db.bookings.find(
+        {"partner_id": pid, "review": {"$ne": None}},
+        {"_id": 0, "review": 1}).sort("review.at", -1).to_list(300)
+    reviews = []
+    for r in rows:
+        rv = r.get("review") or {}
+        if rv.get("rating"):
+            reviews.append({
+                "rating": rv.get("rating"),
+                "comment": rv.get("comment") or "",
+                "at": rv.get("at"),
+                "customer_name": rv.get("customer_name") or "Customer",
+                "service_name": rv.get("service_name") or "",
+            })
+    ratings = [rv["rating"] for rv in reviews]
+    avg = round(sum(ratings) / len(ratings), 1) if ratings else round(float(pu.get("rating", 0) or 0), 1)
+    dist = {str(s): sum(1 for x in ratings if int(round(x)) == s) for s in range(1, 6)}
+    member_since = (pu.get("created_at") or "")[:7]
+    return {
+        "id": pid,
+        "name": pu.get("name"),
+        "photo": pu.get("photo") or pu.get("avatar") or "",
+        "rating": avg,
+        "jobs_completed": int(pu.get("jobs_completed", 0) or 0),
+        "reviews_count": len(reviews) or int(pu.get("reviews_count", 0) or 0),
+        "skills": pu.get("skills") or [],
+        "vehicle": pu.get("vehicle"),
+        "city": pu.get("city"),
+        "verified": bool(pu.get("verified") or pu.get("kyc_status") == "approved"),
+        "premium": bool(pu.get("premium_partner")),
+        "member_since": member_since,
+        "rating_distribution": dist,
+        "reviews": reviews[:50],
+    }
+
+
+
 async def track_booking(user, booking_id):
     b = await _get_booking(booking_id)
     _authorize(user, b)  # customer owner, assigned partner, or admin
@@ -3931,8 +3985,6 @@ async def track_booking(user, booking_id):
     if b.get("partner_id") and status in _ENROUTE_STATES:
         if real_fresh:
             partner_loc = {"lat": float(real["lat"]), "lng": float(real["lng"])}
-            d = _haversine_km(partner_loc["lat"], partner_loc["lng"], cust["lat"], cust["lng"])
-            eta_minutes = max(1, int(round(d / 0.4)))  # ~24 km/h city speed
         elif demo_mode:
             demo = True
             dt = b.get("demo_track")
@@ -3985,19 +4037,34 @@ async def track_booking(user, booking_id):
     if b.get("partner_id"):
         pu = await db.users.find_one({"id": b["partner_id"]},
                                      {"_id": 0, "name": 1, "phone": 1, "rating": 1,
-                                      "jobs_completed": 1, "vehicle": 1, "avatar": 1})
+                                      "jobs_completed": 1, "vehicle": 1, "avatar": 1,
+                                      "photo": 1, "reviews_count": 1})
         if pu:
             partner = {
                 "id": b["partner_id"], "name": pu.get("name"), "phone": pu.get("phone"),
                 "rating": round(float(pu.get("rating", 0) or 0), 1),
                 "jobs_completed": pu.get("jobs_completed", 0),
-                "vehicle": pu.get("vehicle"), "avatar": pu.get("avatar"),
+                "reviews_count": int(pu.get("reviews_count", 0) or 0),
+                "vehicle": pu.get("vehicle"),
+                "avatar": pu.get("avatar") or pu.get("photo"),
+                "photo": pu.get("photo") or pu.get("avatar"),
             }
 
     distance_km = None
-    if partner_loc:
-        distance_km = round(_haversine_km(partner_loc["lat"], partner_loc["lng"],
-                                          cust["lat"], cust["lng"]), 2)
+    eta_source = None
+    if partner_loc and status not in ("arrived_customer", "started"):
+        from services import geo_service
+        road = await geo_service.road_eta(partner_loc["lat"], partner_loc["lng"],
+                                          cust["lat"], cust["lng"])
+        distance_km = road.get("distance_km")
+        eta_source = road.get("source")
+        # Google Distance Matrix driving time (the SAME minutes Google Maps shows) is
+        # authoritative for the arrival ETA. Fall back to the local estimate only when
+        # Google is unavailable.
+        if road.get("duration_min"):
+            eta_minutes = road["duration_min"]
+    elif partner_loc:
+        distance_km = 0.0
 
     if status in ("arrived_customer", "started"):
         eta_text = "Professional has arrived"
@@ -4021,7 +4088,7 @@ async def track_booking(user, booking_id):
         "customer_location": cust,
         "address_line": (b.get("address") or {}).get("line") or (b.get("address") or {}).get("full_address") or "",
         "eta_minutes": eta_minutes, "eta_text": eta_text,
-        "distance_km": distance_km,
+        "distance_km": distance_km, "eta_source": eta_source,
         "timeline": timeline,
         "demo": demo,
         "schedule": sched_st,

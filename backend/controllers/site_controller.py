@@ -82,6 +82,10 @@ async def _public_site_config():
         "currency": s.get("currency", "INR"),
         "maps_api_key": ((s.get("integrations", {}) or {}).get("google_maps_api_key") or ""),
         "cancellation_reasons": s.get("cancellation_reasons", []),
+        "fee_info": {
+            "tax": general.get("tax_info", "") or "",
+            "platform_fee": general.get("platform_fee_info", "") or "",
+        },
         "apps": {"playstore": general.get("playstore_url", ""), "appstore": general.get("appstore_url", "")},
         "business": {
             "site_name": general.get("site_name") or site_name,

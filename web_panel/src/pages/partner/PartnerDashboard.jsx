@@ -25,6 +25,7 @@ import { LifeBuoy } from "lucide-react";
 import SupportCenter from "@/components/SupportCenter";
 import JobWizard from "@/components/partner/JobWizard";
 import BookingChat from "@/components/booking/BookingChat";
+import HelpSOS from "@/components/booking/HelpSOS";
 import { useChatUnread, UnreadPill } from "@/context/ChatContext";
 import ScheduledCard from "@/components/booking/ScheduledCard";
 import ScheduleAlerts from "@/components/booking/ScheduleAlerts";
@@ -571,6 +572,10 @@ const ActiveJob = ({ b, onUpdate }) => {
             </Button>
           )}
         </div>
+
+        {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && (
+          <HelpSOS booking={b} role="partner" />
+        )}
 
         {showResched && (
           <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center bg-black/50 p-4" onClick={() => setShowResched(false)}>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import api from "@/lib/api";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtime } from "@/context/RealtimeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -170,6 +171,25 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
 
   useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => { const iv = setInterval(refresh, 3000); return () => clearInterval(iv); }, [refresh]);
+  // Real-time (WhatsApp-style): instantly refresh on a live support_message frame and
+  // show "Support is typing" the moment an agent typing frame arrives — no 3s wait.
+  const { subscribe } = useRealtime();
+  const agentTypingTimer = useRef(null);
+  useEffect(() => {
+    if (!subscribe) return undefined;
+    const off1 = subscribe("support_message", (d) => {
+      if (d && d.ticket_id === ticket.id) refresh();
+    });
+    const off2 = subscribe("support_typing", (d) => {
+      if (d && d.ticket_id === ticket.id && d.actor === "agent") {
+        setT((prev) => ({ ...(prev || {}), agent_typing: true }));
+        clearTimeout(agentTypingTimer.current);
+        agentTypingTimer.current = setTimeout(
+          () => setT((prev) => ({ ...(prev || {}), agent_typing: false })), 4000);
+      }
+    });
+    return () => { off1 && off1(); off2 && off2(); clearTimeout(agentTypingTimer.current); };
+  }, [subscribe, ticket.id, refresh]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [t.messages?.length, t.agent_typing]);
 
   const pickFiles = async (e) => {

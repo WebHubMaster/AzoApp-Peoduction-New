@@ -6,20 +6,101 @@ Nominatim when no key is set or Google is unreachable. Best-effort throughout: i
 everything upstream fails we still return the raw coordinates so GPS auto-detect
 degrades gracefully. Serviceability rules are admin-configurable via Service Areas.
 """
+import os
+import math
 import httpx
 from config.database import db
 
 NOMINATIM = "https://nominatim.openstreetmap.org/reverse"
 NOMINATIM_SEARCH = "https://nominatim.openstreetmap.org/search"
 GOOGLE_GEOCODE = "https://maps.googleapis.com/maps/api/geocode/json"
+GOOGLE_DISTANCE_MATRIX = "https://maps.googleapis.com/maps/api/distancematrix/json"
 
 
 async def _google_key() -> str:
+    """Admin-configured Google Maps key (Integration Center) with an env fallback so
+    live map ETA/distance keeps working even before the key is saved in settings."""
     try:
         s = await db.settings.find_one({}) or {}
-        return ((s.get("integrations") or {}).get("google_maps_api_key") or "").strip()
+        key = ((s.get("integrations") or {}).get("google_maps_api_key") or "").strip()
+        if key:
+            return key
     except Exception:
-        return ""
+        pass
+    return (os.environ.get("GOOGLE_MAPS_API_KEY") or "").strip()
+
+
+def _haversine_km(lat1, lon1, lat2, lon2) -> float:
+    r = 6371.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dp, dl = math.radians(lat2 - lat1), math.radians(lon2 - lon1)
+    a = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
+
+
+async def road_eta(olat: float, olng: float, dlat: float, dlng: float) -> dict:
+    """Real driving distance + duration between two points using the Google Distance
+    Matrix API (the SAME numbers Google Maps shows). Falls back to a straight-line
+    haversine estimate (~22 km/h city speed) when no key is set or Google is
+    unreachable, so the customer always sees a sensible ETA.
+
+    Returns {distance_km, duration_min, source} where source is 'google' | 'estimate'."""
+    try:
+        olat, olng, dlat, dlng = float(olat), float(olng), float(dlat), float(dlng)
+    except (TypeError, ValueError):
+        return {"distance_km": None, "duration_min": None, "source": "none"}
+    key = await _google_key()
+    if key:
+        # 1) Modern Routes API (routes.googleapis.com) — Google's current recommended API.
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                r = await client.post(
+                    "https://routes.googleapis.com/directions/v2:computeRoutes",
+                    headers={"Content-Type": "application/json", "X-Goog-Api-Key": key,
+                             "X-Goog-FieldMask": "routes.duration,routes.distanceMeters"},
+                    json={"origin": {"location": {"latLng": {"latitude": olat, "longitude": olng}}},
+                          "destination": {"location": {"latLng": {"latitude": dlat, "longitude": dlng}}},
+                          "travelMode": "DRIVE", "routingPreference": "TRAFFIC_AWARE"})
+                d = r.json()
+            routes = d.get("routes") or []
+            if routes:
+                dist_m = routes[0].get("distanceMeters")
+                dur_s = routes[0].get("duration")  # e.g. "845s"
+                secs = None
+                if isinstance(dur_s, str) and dur_s.endswith("s"):
+                    try:
+                        secs = float(dur_s[:-1])
+                    except ValueError:
+                        secs = None
+                if dist_m is not None and secs is not None:
+                    return {"distance_km": round(dist_m / 1000.0, 2),
+                            "duration_min": max(1, int(round(secs / 60.0))),
+                            "source": "google"}
+        except Exception:
+            pass
+        # 2) Legacy Distance Matrix API (fallback for projects still using it).
+        try:
+            async with httpx.AsyncClient(timeout=8) as client:
+                r = await client.get(GOOGLE_DISTANCE_MATRIX, params={
+                    "origins": f"{olat},{olng}", "destinations": f"{dlat},{dlng}",
+                    "mode": "driving", "departure_time": "now",
+                    "units": "metric", "key": key})
+                d = r.json()
+            if d.get("status") == "OK":
+                el = (((d.get("rows") or [{}])[0].get("elements") or [{}])[0])
+                if el.get("status") == "OK":
+                    dist_m = (el.get("distance") or {}).get("value")
+                    dur = (el.get("duration_in_traffic") or el.get("duration") or {}).get("value")
+                    if dist_m is not None and dur is not None:
+                        return {"distance_km": round(dist_m / 1000.0, 2),
+                                "duration_min": max(1, int(round(dur / 60.0))),
+                                "source": "google"}
+        except Exception:
+            pass
+    # Fallback: straight-line distance, ~22 km/h effective city driving speed.
+    km = round(_haversine_km(olat, olng, dlat, dlng), 2)
+    return {"distance_km": km, "duration_min": max(1, int(round(km / 22.0 * 60))),
+            "source": "estimate"}
 
 
 def _g_components(result: dict) -> dict:
