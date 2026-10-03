@@ -31,6 +31,9 @@ def normalize_addons(raw):
     return out
 
 
+DEFAULT_PLATFORM_FEE = 10
+
+
 class PricingEngine:
     @staticmethod
     async def _active_surge_rules():
@@ -148,6 +151,11 @@ class PricingEngine:
         return money.pct(subtotal, pct), reason
 
     @staticmethod
+    def platform_fee_amount(biz: dict) -> float:
+        v = biz.get("platform_fee")
+        return float(DEFAULT_PLATFORM_FEE if v is None or v == "" else v)
+
+    @staticmethod
     async def compute(service: dict, settings: dict, schedule_type: str,
                       addon_names: list, coupon: dict = None, address: dict = None,
                       cart_service_total: float = None, apply_visiting: bool = True,
@@ -183,13 +191,9 @@ class PricingEngine:
         if apply_visiting and vc_amount > 0 and (vc_min <= 0 or threshold < vc_min):
             visiting_charge = vc_amount
         subtotal = money.add(service_value, emergency_fee, surge, visiting_charge)
-        # Convenience & Platform fees apply only when enabled in Business Settings.
+        # Convenience fee removed; Platform fee always applies (once per order).
         convenience_fee = 0.0
-        if biz.get("apply_convenience_fee"):
-            convenience_fee = money.pct(subtotal, biz.get("convenience_fee_pct", 0) or 0)
-        platform_fee = 0.0
-        if biz.get("apply_platform_fee") and apply_visiting:
-            platform_fee = float(biz.get("platform_fee", 0) or 0)
+        platform_fee = PricingEngine.platform_fee_amount(biz) if apply_visiting else 0.0
         gross = money.add(subtotal, convenience_fee, platform_fee)
         discount = PricingEngine.coupon_discount(coupon, gross, visiting_charge)
         pricing = {

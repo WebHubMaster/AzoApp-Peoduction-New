@@ -189,6 +189,7 @@ DEFAULT_SETTINGS = {
         "min_service_amount_for_visiting": 500,     # visiting charge applies only when service amount below this
         "max_distance_km": 15,                      # search radius for nearby providers
         "distance_unit": "km",                      # km | mile
+        "platform_fee": 10,
     },
     # Invoice / billing document configuration (admin-editable, used on every invoice).
     "invoice_config": {

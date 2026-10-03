@@ -1733,10 +1733,7 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
     min_service_amount_for_visiting: biz.min_service_amount_for_visiting ?? "",
     emergency_fee: defaultEmergencyFee ?? "",
     max_distance_km: biz.max_distance_km ?? "",
-    apply_convenience_fee: !!biz.apply_convenience_fee,
-    convenience_fee_pct: biz.convenience_fee_pct ?? "",
-    apply_platform_fee: !!biz.apply_platform_fee,
-    platform_fee: biz.platform_fee ?? "",
+    platform_fee: biz.platform_fee ?? 10,
     min_labour_charge: biz.min_labour_charge ?? "",
   });
   const [busy, setBusy] = useState(false);
@@ -1751,10 +1748,10 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           global_visiting_charge: Number(f.global_visiting_charge) || 0,
           min_service_amount_for_visiting: Number(f.min_service_amount_for_visiting) || 0,
           max_distance_km: Number(f.max_distance_km) || 0,
-          apply_convenience_fee: !!f.apply_convenience_fee,
-          convenience_fee_pct: Number(f.convenience_fee_pct) || 0,
-          apply_platform_fee: !!f.apply_platform_fee,
-          platform_fee: Number(f.platform_fee) || 0,
+          apply_convenience_fee: false,
+          convenience_fee_pct: 0,
+          apply_platform_fee: true,
+          platform_fee: f.platform_fee === "" ? 10 : Math.max(0, Number(f.platform_fee) || 0),
           min_labour_charge: Number(f.min_labour_charge) || 0,
         },
       });
@@ -1788,23 +1785,9 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
             <p className="text-[11px] text-slate-400 mt-1">Applied only when a customer books a Rate Card service that has NO labour charge (product-only). If the rate-card row already includes a labour charge, this is not applied.</p>
           </div>
 
-          {/* Extra booking fees (optional) */}
           <div className="pt-3 border-t border-slate-100">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Extra Booking Fees</p>
-            <div className="flex items-center justify-between py-1.5">
-              <span className="text-sm text-slate-700">Apply Convenience Fee</span>
-              <input type="checkbox" data-testid="biz-apply-convenience" checked={f.apply_convenience_fee} onChange={(e) => set("apply_convenience_fee", e.target.checked)} />
-            </div>
-            {f.apply_convenience_fee && (
-              <L label="Convenience Fee (% of order)"><Input data-testid="biz-convenience-pct" type="number" value={f.convenience_fee_pct} onChange={(e) => set("convenience_fee_pct", e.target.value)} placeholder="e.g. 2" /></L>
-            )}
-            <div className="flex items-center justify-between py-1.5">
-              <span className="text-sm text-slate-700">Apply Platform Fee</span>
-              <input type="checkbox" data-testid="biz-apply-platform" checked={f.apply_platform_fee} onChange={(e) => set("apply_platform_fee", e.target.checked)} />
-            </div>
-            {f.apply_platform_fee && (
-              <L label="Platform Fee (₹ flat)"><Input data-testid="biz-platform-fee" type="number" value={f.platform_fee} onChange={(e) => set("platform_fee", e.target.value)} placeholder="e.g. 20" /></L>
-            )}
+            <L label="Platform Fee (₹)"><Input data-testid="biz-platform-fee" type="number" min="0" value={f.platform_fee} onChange={(e) => set("platform_fee", e.target.value)} placeholder="e.g. 10" /></L>
+            <p className="text-[11px] text-slate-400 mt-1">Flat platform fee added to every booking (once per order). Default ₹10.</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-3">

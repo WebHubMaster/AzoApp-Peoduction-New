@@ -16,7 +16,7 @@ import json
 import sys
 from typing import Dict, Any, List, Tuple
 
-BASE_URL = "https://commission-manager-22.preview.emergentagent.com/api"
+BASE_URL = "https://admin-fee-settings.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

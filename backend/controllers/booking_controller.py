@@ -500,11 +500,7 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
     subtotal = money.add(services_total, emergency_fee, surge_total, visiting_charge)
 
     convenience_fee = 0.0
-    if biz.get("apply_convenience_fee") and apply_platform:
-        convenience_fee = money.pct(subtotal, biz.get("convenience_fee_pct", 0) or 0)
-    platform_fee = 0.0
-    if biz.get("apply_platform_fee") and apply_platform:
-        platform_fee = float(biz.get("platform_fee", 0) or 0)
+    platform_fee = PricingEngine.platform_fee_amount(biz) if apply_platform else 0.0
 
     # 3) Coupon on the FULL pre-tax charges (once), then GST on what remains.
     coupon = await _load_coupon(coupon_code, subtotal)

@@ -10,7 +10,7 @@ import time
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://commission-manager-22.preview.emergentagent.com/api"
+BASE_URL = "https://admin-fee-settings.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

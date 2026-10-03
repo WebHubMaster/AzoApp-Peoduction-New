@@ -295,3 +295,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 - Client-side search/filters/sort/pagination over GET /admin/bookings; CSV export (filtered/all/selected); "Manage" opens existing BookingDetailPage; customer click → UserProfile360.
 - Toolbar: compact search (220px, 260px ≥2xl) + filters + Export kept on ONE line at ≥1280px (user request).
 - Tested: iteration_173 — 100%.
+
+## 2026-06 Business Settings fee change
+- Removed Apply Convenience Fee (UI + backend; always 0)
+- Platform Fee: always-on flat ₹ input in Business Settings, default ₹10, applied once per booking/order (engines.PricingEngine.platform_fee_amount)
