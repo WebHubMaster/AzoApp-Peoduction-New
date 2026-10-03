@@ -41,6 +41,20 @@ export function rateTemplateValues(card) {
   return out;
 }
 
+// Build a customer-style card (matches public apply_ratecard): city override values
+// replace template charges; rows with no city service_charge are hidden; empty groups dropped.
+export function buildCityCard(card, values) {
+  if (!card) return null;
+  const groups = (card.groups || []).map((g) => ({
+    ...g,
+    rows: (g.rows || []).filter((r) => (values?.[r.id]?.service_charge || "") !== "").map((r) => {
+      const ov = values[r.id] || {};
+      return { ...r, service_charge: ov.service_charge, labour_charge: ov.labour_charge || "", original_charge: ov.original_charge || "" };
+    }),
+  })).filter((g) => g.rows.length);
+  return { ...card, groups };
+}
+
 export function relTime(iso) {
   if (!iso) return null;
   const d = new Date(iso);

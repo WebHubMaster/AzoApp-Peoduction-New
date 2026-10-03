@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Save, Loader2, Copy, Tags, Layers, Receipt, Wallet, Clock } from "lucide-react";
+import { Save, Loader2, Copy, Tags, Layers, Receipt, Wallet, Clock, Sparkles } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import CityCategories from "./CityCategories";
 import CityFees from "./CityFees";
 import RateCardPrices from "./RateCardPrices";
 import CopyCityDialog from "./CopyCityDialog";
-import { relTime } from "./pricingUtils";
+import { relTime, rateTemplateValues } from "./pricingUtils";
 
 const TABS = [
   { k: "services", label: "Service Prices", icon: Tags },
@@ -46,6 +46,7 @@ export default function PriceManager({ onNavigate }) {
   const [busy, setBusy] = useState(false);
   const [copyOpen, setCopyOpen] = useState(false);
   const [selectedCat, setSelectedCat] = useState("");
+  const [newCity, setNewCity] = useState(false);
 
   const loadCities = useCallback(() => api.get("/admin/price-manager/cities").then((r) => {
     setCities(r.data);
@@ -58,7 +59,12 @@ export default function PriceManager({ onNavigate }) {
     setData(null);
     const { data: d } = await api.get(`/admin/price-manager/city/${encodeURIComponent(c)}`);
     setData(d);
-    setEdit({ categories: d.categories, fees: d.fees, prices: d.prices, ratecards: d.ratecards });
+    // Auto-inherit: a brand-new (unconfigured) city starts from the category rate-card templates.
+    const seededRc = !d.configured && (d.rate_cards || []).length
+      ? Object.assign({}, ...d.rate_cards.map(rateTemplateValues))
+      : d.ratecards;
+    setNewCity(!d.configured);
+    setEdit({ categories: d.categories, fees: d.fees, prices: d.prices, ratecards: seededRc });
     setSelectedCat((sc) => sc || d.all_categories[0]?.id || "");
   }, []);
   useEffect(() => { load(city); }, [city, load]);
@@ -81,6 +87,7 @@ export default function PriceManager({ onNavigate }) {
         categories: edit.categories, fees: edit.fees, services: edit.prices, ratecards: edit.ratecards });
       setData(d);
       setEdit({ categories: d.categories, fees: d.fees, prices: d.prices, ratecards: d.ratecards });
+      setNewCity(false);
       toast.success(`Pricing updated for ${city}`);
       loadCities();
     } catch (e) { toast.error(e?.response?.data?.detail || "Save failed"); }
@@ -121,6 +128,14 @@ export default function PriceManager({ onNavigate }) {
       </div>
 
       <CityNav cities={cities} city={city} setCity={switchCity} onManageAreas={goAreas} />
+
+      {newCity && data && (
+        <div className="flex flex-wrap items-center gap-2 text-[13px] text-sky-800 bg-sky-50 border border-sky-200 rounded-xl px-3.5 py-2.5" data-testid="pm-new-city">
+          <Sparkles className="h-4 w-4 text-sky-500" />
+          <span className="font-semibold">New service area.</span>
+          <span className="text-sky-700">Rate cards were pre-filled from the category templates — review and <b>Save Changes</b> to activate pricing here.</span>
+        </div>
+      )}
 
       {dirty && (
         <div className="flex flex-wrap items-center gap-2 text-[13px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3.5 py-2.5" data-testid="pm-unsaved">

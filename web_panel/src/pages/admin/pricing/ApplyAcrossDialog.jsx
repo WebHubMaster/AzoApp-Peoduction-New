@@ -39,7 +39,7 @@ export default function ApplyAcrossDialog({ cities, fromCity, categoryId, catego
         <div>
           <p className="text-[13px] font-semibold text-slate-600 mb-1.5">What to apply</p>
           <div className="flex gap-1.5">
-            {[["services", "Service prices"], ["ratecards", "Rate card"]].map(([k, l]) => (
+            {[["services", "Service prices"], ["ratecards", "Rate card"], ["fees", "Fees & charges"]].map(([k, l]) => (
               <label key={k} data-testid={`pm-across-scope-${k}`}
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[13px] cursor-pointer ${scopes.has(k) ? "border-[#0D47A1]/40 bg-[#0D47A1]/[0.05]" : "border-slate-200 dark:border-slate-700"}`}>
                 <input type="checkbox" checked={scopes.has(k)} onChange={() => toggleScope(k)} className="h-4 w-4 rounded border-slate-300 text-[#0D47A1]" />{l}
@@ -76,7 +76,7 @@ export default function ApplyAcrossDialog({ cities, fromCity, categoryId, catego
 
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[12px] text-amber-800">
           <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-500" />
-          This overwrites the {categoryName} prices/rate-card in the selected cities. Other categories stay untouched.
+          This overwrites the selected {categoryName} items (prices/rate-card{scopes.has("fees") ? "/fees" : ""}) in the chosen cities. Other categories stay untouched.
         </div>
 
         <div className="flex justify-end gap-2">

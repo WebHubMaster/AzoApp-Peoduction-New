@@ -327,8 +327,9 @@ async def apply_across(src: str, category_id: str, cities: list, admin: dict = N
             for rid in row_ids:
                 if rid in src_rc:
                     rc[rid] = copy.deepcopy(src_rc[rid])
+        fees = copy.deepcopy(s.get("fees") or {}) if "fees" in inc else (doc.get("fees") or {})
         await save_city(city, {"services": services, "ratecards": rc, "categories": cats,
-                               "fees": doc.get("fees") or {}}, admin)
+                               "fees": fees}, admin)
         applied.append(city)
     return {"applied": applied, "count": len(applied)}
 
