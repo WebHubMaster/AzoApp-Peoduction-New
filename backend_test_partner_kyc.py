@@ -10,7 +10,7 @@ import sys
 import io
 
 # Base URL from frontend/.env
-BASE_URL = "https://admin-fee-settings.preview.emergentagent.com/api"
+BASE_URL = "https://tax-invoice-system.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

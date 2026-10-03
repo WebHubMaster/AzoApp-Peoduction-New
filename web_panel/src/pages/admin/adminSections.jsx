@@ -380,7 +380,7 @@ export const BookingDetailModal = ({ booking, onClose, onChanged }) => {
             {p.membership_visit_waiver > 0 && <Row l="Free visiting (Member)" v={"-" + fmt(p.membership_visit_waiver)} />}
             {p.loyalty_discount > 0 && <Row l="Loyalty discount" v={"-" + fmt(p.loyalty_discount)} />}
             {p.referral_discount > 0 && <Row l="Referral discount" v={"-" + fmt(p.referral_discount)} />}
-            <div data-testid="modal-taxable"><Row l="Taxable Amount" v={fmt(p.taxable ?? p.commissionable_base ?? 0)} /></div>
+            <div data-testid="modal-taxable"><Row l="Tax Base (Commission + Platform Fee)" v={fmt(p.tax_base ?? p.taxable ?? 0)} /></div>
             {p.gst > 0 && <Row l={`Tax${p.gst_pct ? ` (${p.gst_pct}%)` : ""}`} v={fmt(p.gst)} />}
             <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700 font-bold"><span>Total</span><span>{fmt(p.total)}</span></div>
           </div>
@@ -961,7 +961,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
               {p.membership_visit_waiver > 0 && <Row l="Free visiting (Member)" v={"-" + fmt(p.membership_visit_waiver)} />}
               {p.loyalty_discount > 0 && <Row l="Loyalty discount" v={"-" + fmt(p.loyalty_discount)} />}
               {p.referral_discount > 0 && <Row l="Referral discount" v={"-" + fmt(p.referral_discount)} />}
-              <div data-testid="pay-taxable"><Row l="Taxable Amount" v={fmt(p.taxable ?? p.commissionable_base ?? 0)} /></div>
+              <div data-testid="pay-taxable"><Row l="Tax Base (Commission + Platform Fee)" v={fmt(p.tax_base ?? p.taxable ?? 0)} /></div>
               {p.gst > 0 && <Row l={`Tax${p.gst_pct ? ` (${p.gst_pct}%)` : ""}`} v={fmt(p.gst)} />}
               <div className="flex justify-between pt-2 mt-1 border-t border-slate-200 dark:border-slate-700 font-bold text-slate-900 dark:text-white"><span>Total</span><span>{fmt(p.total)}</span></div>
             </div>

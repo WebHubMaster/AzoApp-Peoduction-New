@@ -1384,10 +1384,7 @@ function PaymentSummary({ b }) {
         <DRow k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(bd.discount)}`} />
       )}
       {Number(bd.tax || 0) > 0 && (
-        <>
-          <DRow k="Taxable Amount" v={fmt(bd.taxable)} />
-          <DRow k="Est. Govt. Taxes" v={fmt(bd.tax)} />
-        </>
+        <DRow k="Est. Govt. Taxes" v={fmt(bd.tax)} />
       )}
       <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
         <DRow k="Total Booking Amount" v={fmt(bd.total)} strong />

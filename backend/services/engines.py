@@ -194,19 +194,26 @@ class PricingEngine:
         # Convenience fee removed; Platform fee always applies (once per order).
         convenience_fee = 0.0
         platform_fee = PricingEngine.platform_fee_amount(biz) if apply_visiting else 0.0
-        gross = money.add(subtotal, convenience_fee, platform_fee)
-        discount = PricingEngine.coupon_discount(coupon, gross, visiting_charge)
+        discount = PricingEngine.coupon_discount(coupon, subtotal, visiting_charge)
         pricing = {
             "base": base, "addons_total": addon_total, "emergency_fee": emergency_fee,
             "surge": surge, "surge_rule": surge_rule, "visiting_charge": visiting_charge,
             "subtotal": subtotal, "convenience_fee": convenience_fee,
             "platform_fee": platform_fee, "discount": discount,
+            "commission_pct": await PricingEngine.commission_pct(settings, service.get("category_id")),
         }
         return PricingEngine.finalize(pricing, settings["gst_pct"])
 
     @staticmethod
+    async def commission_pct(settings: dict, category_id) -> float:
+        """Platform commission % for a category = 100 − partner share (category-wise, else global)."""
+        from services import category_commission_service as _ccs
+        cm = await _ccs.resolve(settings, category_id)
+        return round(max(0.0, 100.0 - float(cm.get("partner_pct", 60))), 4)
+
+    @staticmethod
     def coupon_discount(coupon: dict, gross_charges: float, visiting_charge: float) -> float:
-        """Coupon discount on the FULL pre-tax charges (service + every fee)."""
+        """Coupon discount on the SERVICE-side charges (service + visiting + quick/surge)."""
         if not coupon:
             return 0.0
         dt = coupon.get("discount_type")
@@ -249,10 +256,12 @@ class PricingEngine:
         Convenience Fee & Platform Fee are 100% AzoApp PLATFORM revenue — they are
         EXCLUDED here so they are NEVER part of the partner/merchant commissionable base
         (i.e. partner/merchant payout never includes these platform-only charges)."""
+        pricing = pricing or {}
+        if pricing.get("service_net") is not None:
+            return money.money(pricing.get("service_net") or 0)
         base = PricingEngine.paid_excl_tax(pricing)
-        coupon = money.money((pricing or {}).get("discount") or 0)
         platform_only = PricingEngine.platform_only_fees(pricing)
-        return money.money(max(0.0, money.add(base, coupon, -platform_only)))
+        return money.money(max(0.0, money.add(base, -platform_only)))
 
     @staticmethod
     def platform_only_fees(pricing: dict) -> float:
@@ -266,17 +275,18 @@ class PricingEngine:
     @staticmethod
     def finalize(pricing: dict, gst_pct) -> dict:
         """Single source of truth for the customer bill (mutates + returns `pricing`):
-          gross_charges  = service + add-ons + emergency + surge + visiting + convenience + platform fee
-          taxable        = gross_charges − ALL discounts (coupon/membership/loyalty/referral)
-          gst            = taxable × gst%          (tax only on what the customer actually pays)
-          total          = taxable + gst
-          commissionable_base = taxable            (commission is split on the tax-excluded amount)
-        Discounts are capped so they can never exceed the charges."""
-        charges = money.add(pricing.get("base", 0), pricing.get("addons_total", 0),
-                            pricing.get("emergency_fee", 0), pricing.get("surge", 0),
-                            pricing.get("visiting_charge", 0), pricing.get("convenience_fee", 0),
-                            pricing.get("platform_fee", 0))
-        remaining = charges
+          service_charges = service + add-ons + quick/emergency + surge + visiting
+          service_net     = service_charges − ALL discounts (discounts never touch platform fee)
+          platform_commission = service_net × commission_pct   (partner_share = the rest)
+          tax_base        = platform_commission + platform fee (+ convenience fee)
+          gst             = tax_base × gst%  → CGST/SGST = gst / 2 each
+          total           = service_net + platform fee + gst"""
+        service_charges = money.add(pricing.get("base", 0), pricing.get("addons_total", 0),
+                                    pricing.get("emergency_fee", 0), pricing.get("surge", 0),
+                                    pricing.get("visiting_charge", 0))
+        platform_only = money.add(money.money(pricing.get("convenience_fee") or 0),
+                                  money.money(pricing.get("platform_fee") or 0))
+        remaining = service_charges
         for k in PricingEngine.DISCOUNT_KEYS:
             if k not in pricing:
                 continue
@@ -284,19 +294,23 @@ class PricingEngine:
             v = min(v, remaining) if v > 0 else 0.0
             pricing[k] = v
             remaining = money.add(remaining, -v)
-        taxable = money.money(remaining)
-        gst = money.pct(taxable, gst_pct)
-        # commissionable_base = the SERVICE-side taxable amount the partner/merchant split
-        # is computed on. Convenience & Platform fees are 100% platform revenue, so they
-        # are removed from this base (they never reach partner/merchant payout).
-        platform_only = money.add(money.money(pricing.get("convenience_fee") or 0),
-                                  money.money(pricing.get("platform_fee") or 0))
-        commissionable_base = money.money(max(0.0, money.add(taxable, -platform_only)))
+        service_net = money.money(remaining)
+        cpct = float(pricing.get("commission_pct") or 0)
+        partner_share = money.pct(service_net, max(0.0, 100.0 - cpct))
+        commission = money.money(max(0.0, money.add(service_net, -partner_share)))
+        tax_base = money.add(commission, platform_only)
+        gst = money.pct(tax_base, gst_pct)
+        cgst = money.money(gst / 2)
+        taxable = money.add(service_net, platform_only)
         pricing.update({
-            "gross_charges": charges, "total_discount": money.add(charges, -taxable),
+            "gross_charges": money.add(service_charges, platform_only),
+            "total_discount": money.add(service_charges, -service_net),
             "taxable": taxable, "gst_pct": float(gst_pct or 0), "gst": gst, "tax": gst,
-            "total": money.add(taxable, gst), "commissionable_base": commissionable_base,
-            "platform_only_fees": platform_only,
+            "cgst": cgst, "sgst": money.add(gst, -cgst),
+            "total": money.add(taxable, gst), "commissionable_base": service_net,
+            "service_net": service_net, "commission_pct": cpct,
+            "platform_commission": commission, "partner_share": partner_share,
+            "tax_base": tax_base, "platform_only_fees": platform_only,
         })
         return pricing
 
@@ -434,6 +448,10 @@ class PricingEngine:
             "taxable": taxable,
             "gst_pct": gst_pct,
             "tax": tax,
+            "tax_base": r2(pr.get("tax_base")) if pr.get("tax_base") is not None else None,
+            "cgst": r2(pr.get("cgst")) if pr.get("cgst") is not None else money.money(tax / 2),
+            "sgst": r2(pr.get("sgst")) if pr.get("sgst") is not None else money.add(tax, -money.money(tax / 2)),
+            "platform_commission": r2(pr.get("platform_commission")),
             "total": total,
             "paid": money.money(paid),
             "payment_status": pay_status,
@@ -513,10 +531,9 @@ class PricingEngine:
         if removed <= 0:
             return bd
         new_add = [c for c in add if c.get("key") not in ("convenience_fee", "platform_fee")]
-        gst_pct = float(bd.get("gst_pct") or 0)
         new_subtotal = money.money(max(0.0, money.add(bd.get("subtotal", 0), -removed)))
         new_taxable = money.money(max(0.0, money.add(bd.get("taxable", 0), -removed)))
-        new_tax = money.pct(new_taxable, gst_pct)
+        new_tax = 0.0  # GST is levied only on platform commission + platform fee
         new_total = money.add(new_taxable, new_tax)
         bd["additional_charges"] = new_add
         bd["charges_total"] = money.add(*[money.money(c.get("amount") or 0) for c in new_add]) if new_add else 0.0

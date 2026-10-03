@@ -504,8 +504,15 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
 
     # 3) Coupon on the FULL pre-tax charges (once), then GST on what remains.
     coupon = await _load_coupon(coupon_code, subtotal)
-    gross = money.add(subtotal, convenience_fee, platform_fee)
-    discount = PricingEngine.coupon_discount(coupon, gross, visiting_charge)
+    discount = PricingEngine.coupon_discount(coupon, subtotal, visiting_charge)
+    # Category-wise commission % (weighted by each category's total) → tax base.
+    _w_sum, _w_pct = 0.0, 0.0
+    for cc in category_charges:
+        _ct = float(cc["category_total"] or 0)
+        _w_sum += _ct
+        _w_pct += _ct * await PricingEngine.commission_pct(settings, cc.get("category_id"))
+    commission_pct = round(_w_pct / _w_sum, 4) if _w_sum > 0 else \
+        await PricingEngine.commission_pct(settings, None)
 
     pricing = PricingEngine.finalize({
         "base": money.money(services_total), "addons_total": 0.0,
@@ -513,6 +520,7 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
         "visiting_charge": money.money(visiting_charge),
         "convenience_fee": money.money(convenience_fee), "platform_fee": money.money(platform_fee),
         "subtotal": subtotal, "discount": money.money(discount),
+        "commission_pct": commission_pct,
     }, settings["gst_pct"])
     # Active membership → automatic % discount on top (platform-absorbed).
     # Skipped for guests (user is None) — applied once they log in.
@@ -1951,11 +1959,8 @@ async def _apportion_group_quote(customer, cart_items, items, schedule_type, cou
     for lbl in ("membership_plan", "membership_discount_pct", "membership_free_visits_left"):
         if fp.get(lbl) is not None and (p.get("membership_discount") or p.get("membership_visit_waiver")):
             p[lbl] = fp.get(lbl)
+    # tax is recomputed per order on its OWN commission + platform fee (category-wise)
     PricingEngine.finalize(p, settings["gst_pct"])
-    # tax split by the same rule so Σ tax == preview tax exactly (avoids per-order rounding drift)
-    gst = _apportion(fp.get("gst"), weights, idx)
-    p["gst"] = p["tax"] = gst
-    p["total"] = money.add(p["taxable"], gst)
     mine["pricing"] = p
     mine["coupon_applied"] = bool(full.get("coupon_applied"))
     mine["breakdown"] = PricingEngine.build_breakdown({

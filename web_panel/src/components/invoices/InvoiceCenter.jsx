@@ -381,8 +381,9 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
                   {Number(drawerFull.breakdown.discount) > 0 ? <KV k={`Coupon Discount${drawerFull.breakdown.coupon_code ? ` (${drawerFull.breakdown.coupon_code})` : ""}`} v={"−" + money(drawerFull.breakdown.discount, drawerInv.currency)} /> : null}
                   {Number(drawerFull.breakdown.tax) > 0 ? (
                     <>
-                      <KV k="Taxable Amount" v={money(drawerFull.breakdown.taxable, drawerInv.currency)} />
                       <KV k="Est. Govt. Taxes" v={money(drawerFull.breakdown.tax, drawerInv.currency)} />
+                      {drawerFull.breakdown.cgst != null ? <KV k={`CGST @${(drawerFull.breakdown.gst_pct || 18) / 2}%`} v={money(drawerFull.breakdown.cgst, drawerInv.currency)} /> : null}
+                      {drawerFull.breakdown.sgst != null ? <KV k={`SGST @${(drawerFull.breakdown.gst_pct || 18) / 2}%`} v={money(drawerFull.breakdown.sgst, drawerInv.currency)} /> : null}
                     </>
                   ) : null}
                 </>
@@ -392,7 +393,6 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
                   {Number(drawerInv.visiting_charge) > 0 ? <KV k="Visiting Charge" v={money(drawerInv.visiting_charge, drawerInv.currency)} /> : null}
                   {Number(drawerInv.fees) - Number(drawerInv.visiting_charge || 0) > 0.001 ? <KV k="Platform / Service Fees" v={money(Number(drawerInv.fees) - Number(drawerInv.visiting_charge || 0), drawerInv.currency)} /> : null}
                   {drawerInv.discount ? <KV k="Discount" v={"−" + money(drawerInv.discount, drawerInv.currency)} /> : null}
-                  {drawerInv.tax ? <KV k="Taxable Amount" v={money(drawerInv.taxable ?? (Number(drawerInv.subtotal || 0) + Math.max(0, Number(drawerInv.fees || 0) - Number(drawerInv.visiting_charge || 0))), drawerInv.currency)} /> : null}
                   {drawerInv.tax ? <KV k="Est. Govt. Taxes" v={money(drawerInv.tax, drawerInv.currency)} /> : null}
                 </>
               )}

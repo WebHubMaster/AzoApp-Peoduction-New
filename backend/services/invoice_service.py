@@ -71,7 +71,19 @@ def business_snapshot(settings: dict) -> dict:
         "accent": resolve_theme(icfg.get("invoice_theme")).get("accent"),
         "accent_dark": resolve_theme(icfg.get("invoice_theme")).get("accent_dark"),
         "letterhead": icfg.get("letterhead") or "classic",
+        "signature": icfg.get("signature_url") or "",
+        "signatory_name": icfg.get("signatory_name") or "",
     }
+
+
+async def _gst_block_for(booking: dict, settings: dict, invoice_number: str) -> dict:
+    from services import gst_invoice_service as _gis
+    from services.engines import CommissionEngine as _CE
+    partner = await _user(booking.get("partner_id")) if booking.get("partner_id") else {}
+    share = None
+    if (booking.get("pricing") or {}).get("partner_share") is None:
+        share = _CE.compute_split(booking, settings).get("partner_earning")
+    return _gis.build_block(booking, settings, partner, invoice_number, share)
 
 
 def _addr_str(a: dict) -> str:
@@ -126,7 +138,7 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
     # Taxable Amount (spec #3 — shown on the document): the portion GST is charged on =
     # service + emergency + surge + convenience + platform fee, EXCLUDING the untaxed
     # visiting charge. Prefer the stored value; fall back for legacy invoices.
-    taxable_amt = pr.get("taxable")
+    taxable_amt = pr.get("tax_base") if pr.get("tax_base") is not None else pr.get("taxable")
     if taxable_amt is None:
         taxable_amt = round(subtotal + float(pr.get("convenience_fee") or 0) + float(pr.get("platform_fee") or 0), 2)
     else:
@@ -282,6 +294,8 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
         "updated_at": now_iso(),
     }
     inv.update(canc_fields)
+    if itype == "booking":
+        inv["gst_invoice"] = await _gst_block_for(booking, settings, inv["invoice_number"])
     try:
         await db.invoices.insert_one(dict(inv))
     except DuplicateKeyError:
@@ -333,6 +347,7 @@ def _partner_facing_invoice(inv: dict) -> dict:
     """Return a COPY of the invoice with the 100%-platform Convenience/Platform fees
     stripped from the canonical breakdown so a partner/merchant NEVER sees them."""
     doc = dict(inv)
+    doc.pop("gst_invoice", None)
     bd = inv.get("breakdown") or {}
     if bd:
         stripped = PricingEngine.strip_platform_fees_breakdown(bd)
@@ -1025,7 +1040,14 @@ async def fill_live_branding(inv: dict, force_theme: bool = True):
     if force_theme or not snap.get("letterhead"):
         snap["letterhead"] = live.get("letterhead")
 
+    snap["signature"] = live.get("signature")
+    snap["signatory_name"] = live.get("signatory_name")
     inv["business_snapshot"] = snap
+    if inv.get("invoice_type") == "booking" and not inv.get("gst_invoice") and inv.get("booking_id"):
+        bk = await db.bookings.find_one({"id": inv["booking_id"]}, {"_id": 0})
+        if bk:
+            inv["gst_invoice"] = await _gst_block_for(bk, await get_settings(), inv.get("invoice_number") or "")
+            await db.invoices.update_one({"id": inv["id"]}, {"$set": {"gst_invoice": inv["gst_invoice"]}})
     return inv
 
 
@@ -1324,6 +1346,8 @@ async def get_invoice(user: dict, invoice_id: str):
     inv = await _attach_bill_to(inv, role)
     inv = _mask_customer_pii(inv, role)
     inv = _strip_platform_fees_invoice(inv, role)
+    if role in ("partner", "merchant"):
+        inv.pop("gst_invoice", None)
     return strip_for_role(inv, role)
 
 

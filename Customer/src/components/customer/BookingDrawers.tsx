@@ -128,7 +128,7 @@ function PaymentSummary({ b }: { b: any }) {
     {(bd.additional_charges || []).map((x: any) => <DRow key={x.key} k={x.label} v={fmt(x.amount)} />)}
     {hasCharges ? <><Sep /><DRow k="Subtotal" v={fmt(bd.subtotal)} /></> : null}
     {Number(bd.discount || 0) > 0 ? <DRow k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(bd.discount)}`} /> : null}
-    {Number(bd.tax || 0) > 0 ? <><DRow k="Taxable Amount" v={fmt(bd.taxable)} /><DRow k="Est. Govt. Taxes" v={fmt(bd.tax)} /></> : null}
+    {Number(bd.tax || 0) > 0 ? <DRow k="Est. Govt. Taxes" v={fmt(bd.tax)} /> : null}
     <Sep /><DRow k="Total Booking Amount" v={fmt(bd.total)} strong />
     <DRow k="Payment status" v={(bd.payment_status || b.payment_status || "pending").toUpperCase()} />
   </>;

@@ -99,7 +99,23 @@ async def preview_sample(admin: dict = Depends(require_role("admin"))):
         "business_snapshot": biz,
         "notes": "Thank you for your business.",
         "issue_date": now_iso(),
+        "gst_invoice": _sample_gst(settings),
     }
+
+
+def _sample_gst(settings: dict) -> dict:
+    """Sample: Service 259 + Visiting 99 + Quick 99, Platform Fee 25, Commission 20%."""
+    from services import gst_invoice_service as gis
+    from services.engines import PricingEngine
+    pr = PricingEngine.finalize({"base": 259, "visiting_charge": 99, "emergency_fee": 99,
+                                 "platform_fee": 25, "commission_pct": 20},
+                                settings.get("gst_pct") or 18)
+    booking = {"pricing": pr, "category_name": "Electrician", "partner_name": "Raj Kumar",
+               "address": {"line": "12 Kankarbagh Main Road", "city": "Patna", "state": "Bihar", "pincode": "800020"}}
+    icfg = settings.get("invoice_config") or {}
+    num = f"{icfg.get('prefix', 'INV')}-2026-{str(icfg.get('start_number', 1)).zfill(int(icfg.get('pad', 6)))}"
+    return gis.build_block(booking, settings, {"name": "Raj Kumar", "address": {
+        "line": "House 21, Boring Road", "city": "Patna", "state": "Bihar", "pincode": "800001"}}, num)
 
 
 @router.get("/report/gst")

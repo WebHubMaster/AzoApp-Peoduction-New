@@ -10,7 +10,7 @@ import requests
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://admin-fee-settings.preview.emergentagent.com/api"
+BASE_URL = "https://tax-invoice-system.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo accounts

@@ -1018,7 +1018,6 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
           {totals.membership_visit_waiver > 0 && <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green />}
           {totals.loyalty_discount > 0 && <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green />}
           {totals.referral_discount > 0 && <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green />}
-          {totals.taxable != null && <div data-testid="checkout-taxable"><Row l="Taxable amount" v={fmt(totals.taxable)} /></div>}
           {totals.gst > 0 && <div data-testid="checkout-gst"><Row l="Est. Govt. Taxes" v={fmt(totals.gst)} /></div>}
           <div className="pt-2 mt-1 border-t border-slate-100"><Row l="Total payable" v={fmt(totals.total)} bold /></div>
           <MemberSavingsBadge totals={totals} />
@@ -1136,7 +1135,6 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
           {totals.membership_visit_waiver > 0 && <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green />}
           {totals.loyalty_discount > 0 && <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green />}
           {totals.referral_discount > 0 && <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green />}
-          {totals.taxable != null && <div data-testid="checkout-taxable"><Row l="Taxable amount" v={fmt(totals.taxable)} /></div>}
           {totals.gst > 0 && <div data-testid="checkout-gst"><Row l="Est. Govt. Taxes" v={fmt(totals.gst)} /></div>}
           <div className="pt-2 mt-1 border-t border-slate-100"><Row l="Total payable" v={fmt(totals.total)} bold /></div>
           <MemberSavingsBadge totals={totals} />
@@ -1183,7 +1181,6 @@ const OrderSidebar = ({ items, lineTotal, totals, displayTotal, navigate, showFu
           {totals.ready && totals.emergency_fee > 0 && <Row l="Emergency Charge" v={fmt(totals.emergency_fee)} />}
           {totals.ready && totals.convenience_fee > 0 && <Row l="Convenience Fee" v={fmt(totals.convenience_fee)} />}
           {totals.ready && totals.platform_fee > 0 && <Row l="Platform Fee" v={fmt(totals.platform_fee)} />}
-          {totals.ready && totals.taxable != null && <Row l="Taxable amount" v={fmt(totals.taxable)} />}
           {totals.ready && totals.gst > 0 && <Row l="Est. Govt. Taxes" v={fmt(totals.gst)} />}
           <div className="flex justify-between pt-2 border-t border-slate-100 font-heading font-extrabold text-lg text-slate-900"><span>Total</span><span>{fmt(displayTotal)}</span></div>
         </>

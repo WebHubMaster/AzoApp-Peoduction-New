@@ -1,7 +1,7 @@
 ## TESTING AGENT REPORT: Cancellation Coupon Funding + Accept-Streak on Completion
 
 ### Test Date: 2026-09-12
-### Base URL: https://admin-fee-settings.preview.emergentagent.com/api
+### Base URL: https://tax-invoice-system.preview.emergentagent.com/api
 ### Test Credentials: Customer +919000000004, Partner +919000000003, Admin +919000000000, OTP 123456
 
 ---

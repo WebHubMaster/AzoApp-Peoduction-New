@@ -26,6 +26,7 @@ distro==1.9.0
 dnspython==2.8.0
 ecdsa==0.19.2
 email-validator==2.3.0
+emergentintegrations==0.2.2
 execnet==2.1.2
 fastapi==0.110.1
 fastuuid==0.14.0
@@ -112,6 +113,7 @@ python-multipart==0.0.32
 pytokens==0.4.1
 pywebpush==2.0.3
 PyYAML==6.0.3
+qrcode==8.2
 razorpay==2.0.1
 redis==8.1.0
 referencing==0.37.0

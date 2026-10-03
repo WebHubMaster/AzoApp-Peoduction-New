@@ -95,7 +95,6 @@ export const PriceRows = ({ totals, items, lineTotal, estimate, review }: { tota
     {totals.membership_visit_waiver > 0 ? <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green /> : null}
     {totals.loyalty_discount > 0 ? <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green /> : null}
     {totals.referral_discount > 0 ? <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green /> : null}
-    {totals.taxable != null ? <Row testID="checkout-taxable" l="Taxable amount" v={fmt(totals.taxable)} /> : null}
     {totals.gst > 0 ? <Row testID="checkout-gst" l="Est. Govt. Taxes" v={fmt(totals.gst)} /> : null}
     <View style={{ paddingTop: 8, marginTop: 4, borderTopWidth: 1, borderTopColor: TC.borderSoft }}><Row testID="checkout-total" l="Total payable" v={fmt(totals.total)} bold /></View>
     <MemberSavingsBadge totals={totals} />

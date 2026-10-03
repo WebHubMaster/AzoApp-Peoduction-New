@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://admin-fee-settings.preview.emergentagent.com/api"
+BASE = "https://tax-invoice-system.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

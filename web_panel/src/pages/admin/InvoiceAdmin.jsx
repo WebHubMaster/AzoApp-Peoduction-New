@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Save, Eye, Loader2, Download, Building2, Palette } from "lucide-react";
+import { Save, Eye, Loader2, Download, Building2, Palette, Upload, Trash2, PenLine } from "lucide-react";
 import api from "@/lib/api";
+import { uploadImage } from "@/lib/imageUpload";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,11 @@ const FIELDS = [
     { k: "tax_id", label: "Tax ID" },
     { k: "pan", label: "PAN" },
     { k: "cin", label: "Company Registration No. (CIN)" },
+  ]},
+  { group: "GST Invoice (2-page: Tax Invoice + Partner Receipt)", cols: 2, items: [
+    { k: "sac_platform", label: "SAC — Commission & Platform Fee (Page 1)", ph: "999799" },
+    { k: "sac_service", label: "SAC — Partner Service Charge (Page 2)", ph: "999729" },
+    { k: "signatory_name", label: "Authorized Signatory Name", full: true },
   ]},
   { group: "Invoice Settings", cols: 3, items: [
     { k: "prefix", label: "Invoice Prefix" },
@@ -215,6 +221,8 @@ export function BusinessConfigSettings() {
             <p className="text-[11px] text-slate-400 mt-3">Logo aapke Branding &amp; Theme (uploaded logo) se automatically invoice par aata hai.</p>
           </div>
 
+          <SignatureUpload value={cfg.signature_url} onChange={(v) => set("signature_url", v)} />
+
           {FIELDS.map((sec) => (
             <div key={sec.group} className="rounded-xl border border-slate-200 bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">{sec.group}</p>
@@ -226,7 +234,7 @@ export function BusinessConfigSettings() {
                       <textarea value={cfg[f.k] || ""} onChange={(e) => set(f.k, e.target.value)} rows={2}
                         className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" data-testid={`bizcfg-${f.k}`} />
                     ) : (
-                      <Input type={f.type || "text"} value={cfg[f.k] ?? ""} onChange={(e) => set(f.k, f.type === "number" ? Number(e.target.value) : e.target.value)}
+                      <Input type={f.type || "text"} placeholder={f.ph || ""} value={cfg[f.k] ?? ""} onChange={(e) => set(f.k, f.type === "number" ? Number(e.target.value) : e.target.value)}
                         className="mt-1 h-9" data-testid={`bizcfg-${f.k}`} />
                     )}
                   </div>
@@ -253,6 +261,50 @@ export function BusinessConfigSettings() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------- Signature upload (shown on Tax Invoice) */
+function SignatureUpload({ value, onChange }) {
+  const [busy, setBusy] = useState(false);
+  const inputRef = useRef(null);
+  const pick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setBusy(true);
+    try {
+      const data = await uploadImage(api, file, { folder: "invoice", compress: false });
+      onChange(data.url);
+      toast.success("Signature uploaded — Save dabakar apply karein");
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || err?.message || "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-4" data-testid="invoice-signature-card">
+      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5"><PenLine className="h-3.5 w-3.5" /> Authorized Signature</p>
+      <div className="flex items-center gap-4">
+        <div className="h-20 w-48 rounded-lg border border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden">
+          {value ? <img src={value} alt="signature" className="max-h-full max-w-full object-contain" data-testid="invoice-signature-preview" />
+            : <span className="text-[11px] text-slate-400">No signature</span>}
+        </div>
+        <div className="flex flex-col gap-2">
+          <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} data-testid="invoice-signature-input" />
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => inputRef.current?.click()} data-testid="invoice-signature-upload-btn">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Upload className="h-4 w-4 mr-1" />} Upload
+          </Button>
+          {value ? (
+            <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")} data-testid="invoice-signature-remove-btn">
+              <Trash2 className="h-4 w-4 mr-1" /> Remove
+            </Button>
+          ) : null}
+        </div>
+      </div>
+      <p className="text-[11px] text-slate-400 mt-3">Transparent PNG best rahega. Yeh signature Tax Invoice (page 1) par QR ke saath dikhega.</p>
     </div>
   );
 }
