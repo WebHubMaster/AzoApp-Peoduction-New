@@ -43,6 +43,8 @@ import { AdminJobRequests, AreaPartners, RealtimeSettings, AdminDispatchFeed } f
 import { SurgeRulesManager, ServiceAreasManager, LaunchDemandManager } from "@/pages/admin/serviceOpsSections";
 import AppManagement from "@/pages/admin/AppManagement";
 import CategoryCommissions from "@/pages/admin/CategoryCommissions";
+import HomepageBuilderPro from "@/pages/admin/HomepageBuilderPro";
+import { guardNav } from "@/lib/navGuard";
 import LogsMonitor from "@/pages/admin/LogsMonitor";
 import AdminDashboardHome from "@/pages/admin/AdminDashboardHome";
 import PerformanceCenter from "@/pages/admin/PerformanceCenter";
@@ -336,7 +338,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <PanelLayout title={isSuper ? "Super Admin" : "Admin"} nav={visibleNav} active={active} badges={badges} dots={peopleDots} onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }}>
+    <PanelLayout title={isSuper ? "Super Admin" : "Admin"} nav={visibleNav} active={active} badges={badges} dots={peopleDots} onNavigate={(k) => guardNav(() => { setViewUser(null); setBookingDetailId(null); setActive(k); })}>
       <OnboardingTour />
       {viewUser && typeof viewUser === "object" ? (
         <Person360 role={viewUser.role} uid={viewUser.id} onBack={() => setViewUser(null)} onCountsChanged={() => { loadDots(); loadPending(); }} onOpenUser={setViewUser} />
@@ -375,7 +377,7 @@ export default function AdminDashboard() {
       {active === "addons" && <P.AddonsManager />}
       {active === "custom_jobs" && <CustomJobsAdmin />}
       {active === "ratings" && <RatingsReviews />}
-      {active === "homepage" && <P.HomepageBuilder />}
+      {active === "homepage" && <HomepageBuilderPro />}
       {active === "app_home" && <AppHomeManager />}
       {active === "media" && <P.MediaManager />}
       {active === "branding" && <P.BrandingSettings />}
