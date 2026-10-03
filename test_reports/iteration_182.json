@@ -1,0 +1,27 @@
+{
+  "summary": "Frontend-only testing of login bug fix and Pin Favourite Cities feature on admin Price Manager at https://pm-backend-frontend.preview.emergentagent.com. All critical flows PASS: all 4 one-click demo logins (admin/partner/customer/merchant) route to their respective panels with no 'Demo login failed' or 'Connection issue' toasts; backend /api/auth/demo-status, send-otp, verify-otp all return 200 with dev OTP 123456. Pin feature works end-to-end: pin icon reveals on hover (data-testid pm-city-pin-{key}), clicking pin moves city to FRONT of pm-city-scroller without changing the selected city, pins stack in order (first-pinned first), localStorage key pm_pinned_cities is set/updated, pins persist after reload, unpin returns city to its default order, chip click still selects (window.confirm 'unsaved pricing changes' auto-accepted and selection switched correctly), right scroll arrow (pm-city-scroll-right) scrolls horizontally (0 -> 170px). Mobile 390px renders Price Manager and scroller correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin → Price Manager → Service Areas chip row (mobile 390px)", "issues": ["Pin icon uses 'opacity-0 group-hover:opacity-100' and shows opacity=0 on touch devices (no hover state). An unpinned city's pin icon is effectively invisible on mobile. Consider showing it at low opacity (e.g. opacity-60) on touch devices or always-visible on <md breakpoint. CityNav.jsx lines ~19-24."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Optional UX: make pin icon visible on touch/mobile breakpoints in web_panel/src/pages/admin/pricing/CityNav.jsx (currently opacity-0 w/o hover)."
+  ],
+  "critical_code_review_comments": [
+    "CityNav.jsx: pin icon relies on group-hover which does not fire on touch devices; the pin becomes unreachable on mobile for currently-unpinned cities. Suggest a sm:opacity-0 sm:group-hover:opacity-100 pattern so mobile shows it statically.",
+    "Login.jsx quickLogin flow silently swallows errors but current backend returns 200 — no issue in this preview URL. Earlier 'Demo login failed' toast was caused by stale REACT_APP_BACKEND_URL in web_panel/.env; now fixed. Recommend asserting on config load somewhere (healthcheck) to surface misconfig earlier."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "+919000000000/123456 (admin), +919000000003 (partner), +919000000004 (customer), +919000000002 (merchant); dev OTP 123456",
+  "seed_data_creation": "None (used existing 10 demo service areas incl. 8 with demo_scroll:true)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Price Manager is mounted inside AdminDashboard controlled by ?tab=price_manager query param (useTabParam hook). Direct navigation: /admin?tab=price_manager after login. 10 cities seeded; pin uses localStorage key pm_pinned_cities. Clicking city chip while unsaved pricing changes exist triggers window.confirm — accept it in Playwright via page.on('dialog', lambda d: d.accept()).",
+  "rca of the issue": "Login bug was due to REACT_APP_BACKEND_URL in web_panel/.env pointing to an old preview host; after main agent updated it to https://pm-backend-frontend.preview.emergentagent.com and restarted frontend, all auth endpoints respond 200 and demo logins succeed. No code bug in Login.jsx or quickLogin."
+}

@@ -354,3 +354,5 @@ Follow-up to the premium redesign. User asks implemented:
 VERIFIED: testing agent iteration_180 — backend 5/5 PASS, frontend 100%, no critical/UI bugs (1 LOW note: Use Template shows no unsaved when city already equals template = correct no-diff behaviour). Panel rebuilt (PUBLIC_URL=/api/panel yarn build).
 
 ## 2026-06 Service Areas chip row: mouse drag-scroll, wheel→horizontal, left/right arrow buttons (CityNav.jsx). Fresh-import setup: created backend/.env, frontend/.env, web_panel/.env; installed web_panel deps + backend requirements.
+
+## 2026-06 Pin favourite cities in Price Manager Service Areas row (localStorage pm_pinned_cities). Fixed login: env URLs updated to pm-backend-frontend.preview.emergentagent.com.

@@ -19,7 +19,7 @@ function CityTab({ c, active, onClick, pinned, onTogglePin }) {
         <span role="button" tabIndex={0} data-testid={`pm-city-pin-${c.city_key}`} title={pinned ? "Unpin city" : "Pin to front"}
           onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onTogglePin(); } }}
-          className={`ml-auto p-0.5 rounded transition-opacity ${pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"} ${active ? "text-white hover:bg-white/15" : pinned ? "text-amber-500 hover:bg-amber-50" : "text-slate-400 hover:text-[#0D47A1] hover:bg-slate-100"}`}>
+          className={`ml-auto p-0.5 rounded transition-opacity ${pinned ? "opacity-100" : "opacity-60 md:opacity-0 md:group-hover:opacity-100"} ${active ? "text-white hover:bg-white/15" : pinned ? "text-amber-500 hover:bg-amber-50" : "text-slate-400 hover:text-[#0D47A1] hover:bg-slate-100"}`}>
           <Pin className={`h-3 w-3 ${pinned ? "fill-current" : ""}`} />
         </span>
         <span className={`h-1.5 w-1.5 rounded-full ${c.status === "inactive" ? "bg-slate-300" : "bg-emerald-400"}`} title={c.status === "inactive" ? "Inactive area" : "Active area"} />
