@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapPin, Search, ArrowRight, CheckCircle2, AlertTriangle, MapPinOff, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Search, ArrowRight, CheckCircle2, AlertTriangle, MapPinOff, ChevronLeft, ChevronRight, Pin } from "lucide-react";
 import { pct } from "./pricingUtils";
 
-function CityTab({ c, active, onClick }) {
+function CityTab({ c, active, onClick, pinned, onTogglePin }) {
   const done = c.priced_services || 0;
   const total = c.total_services || 0;
   const full = total > 0 && done >= total;
@@ -16,7 +16,13 @@ function CityTab({ c, active, onClick }) {
       <div className="flex items-center gap-1.5">
         <MapPin className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-[#0D47A1]"}`} />
         <span className={`text-[14px] font-semibold truncate ${active ? "text-white" : "text-slate-800 dark:text-slate-100"}`}>{c.city}</span>
-        <span className={`ml-auto h-1.5 w-1.5 rounded-full ${c.status === "inactive" ? "bg-slate-300" : "bg-emerald-400"}`} title={c.status === "inactive" ? "Inactive area" : "Active area"} />
+        <span role="button" tabIndex={0} data-testid={`pm-city-pin-${c.city_key}`} title={pinned ? "Unpin city" : "Pin to front"}
+          onClick={(e) => { e.stopPropagation(); onTogglePin(); }}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); onTogglePin(); } }}
+          className={`ml-auto p-0.5 rounded transition-opacity ${pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"} ${active ? "text-white hover:bg-white/15" : pinned ? "text-amber-500 hover:bg-amber-50" : "text-slate-400 hover:text-[#0D47A1] hover:bg-slate-100"}`}>
+          <Pin className={`h-3 w-3 ${pinned ? "fill-current" : ""}`} />
+        </span>
+        <span className={`h-1.5 w-1.5 rounded-full ${c.status === "inactive" ? "bg-slate-300" : "bg-emerald-400"}`} title={c.status === "inactive" ? "Inactive area" : "Active area"} />
       </div>
       <div className={`mt-1.5 flex items-center gap-1 text-[11px] font-medium ${active ? "text-white/85" : full ? "text-emerald-600" : none ? "text-amber-600" : "text-slate-500"}`}>
         {full ? <CheckCircle2 className="h-3 w-3" /> : none ? <AlertTriangle className="h-3 w-3" /> : null}
@@ -78,9 +84,28 @@ function ArrowBtn({ dir, onClick }) {
   );
 }
 
+const PIN_KEY = "pm_pinned_cities";
+
+function usePinnedCities() {
+  const [pins, setPins] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(PIN_KEY)) || []; } catch { return []; }
+  });
+  const toggle = (key) => setPins((p) => {
+    const next = p.includes(key) ? p.filter((k) => k !== key) : [...p, key];
+    localStorage.setItem(PIN_KEY, JSON.stringify(next));
+    return next;
+  });
+  return [pins, toggle];
+}
+
 export default function CityNav({ cities, city, setCity, onManageAreas }) {
   const [q, setQ] = useState("");
-  const shown = useMemo(() => cities.filter((c) => !q || c.city.toLowerCase().includes(q.toLowerCase())), [cities, q]);
+  const [pins, togglePin] = usePinnedCities();
+  const shown = useMemo(() => {
+    const list = cities.filter((c) => !q || c.city.toLowerCase().includes(q.toLowerCase()));
+    const rank = (c) => { const i = pins.indexOf(c.city_key); return i < 0 ? Infinity : i; };
+    return list.map((c, i) => [c, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([c]) => c);
+  }, [cities, q, pins]);
   const { ref, handlers, edges, scrollBy } = useDragScroll(shown.length);
 
   if (!cities.length) return (
@@ -118,7 +143,8 @@ export default function CityNav({ cities, city, setCity, onManageAreas }) {
         {edges.l && <ArrowBtn dir={-1} onClick={() => scrollBy(-1)} />}
         <div ref={ref} {...handlers} data-testid="pm-city-scroller"
           className="flex gap-2 overflow-x-auto pb-1 -mb-1 cursor-grab active:cursor-grabbing select-none [scrollbar-width:thin]">
-          {shown.map((c) => <CityTab key={c.city_key} c={c} active={city === c.city} onClick={() => setCity(c.city)} />)}
+          {shown.map((c) => <CityTab key={c.city_key} c={c} active={city === c.city} onClick={() => setCity(c.city)}
+            pinned={pins.includes(c.city_key)} onTogglePin={() => togglePin(c.city_key)} />)}
           {!shown.length && <p className="text-[13px] text-slate-400 py-3">No city matches “{q}”.</p>}
         </div>
         {edges.r && <ArrowBtn dir={1} onClick={() => scrollBy(1)} />}
