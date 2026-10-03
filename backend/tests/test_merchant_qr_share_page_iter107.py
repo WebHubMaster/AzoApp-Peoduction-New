@@ -5,7 +5,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://partner-control-4.preview.emergentagent.com",
+    "https://azo-admin-modernize.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 VALID_CODE = "XZ6SV49"

@@ -9,7 +9,7 @@ import json
 import sys
 
 # Base URL from frontend/.env
-BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
+BASE_URL = "https://azo-admin-modernize.preview.emergentagent.com/api"
 
 # Test credentials (demo accounts with OTP 123456)
 ADMIN_PHONE = "+919000000000"

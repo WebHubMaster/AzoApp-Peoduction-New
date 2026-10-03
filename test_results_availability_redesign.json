@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://partner-control-4.preview.emergentagent.com",
+  "base_url": "https://azo-admin-modernize.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

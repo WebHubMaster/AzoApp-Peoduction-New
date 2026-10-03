@@ -9,6 +9,10 @@ import api from "@/lib/api";
 import { toast } from "sonner";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import PremiumDatePicker from "@/components/ui/PremiumDatePicker";
+import {
+  PageHeader, Toolbar, SearchInput, ChipBar, Pagination, EmptyState,
+  DataPanel, Th, Td, TableHead, TableBody, Tr, ViewButton, SecondaryButton, TableSkeleton,
+} from "@/components/admin/ModuleKit";
 
 const STATUS_STYLE = {
   pending: { label: "Pending", cls: "bg-amber-100 text-amber-700" },
@@ -26,12 +30,17 @@ function StatusBadge({ s }) {
   return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>;
 }
 
+const CAT_LABELS = { "": "All categories" };
+const STATUS_LABELS = { pending: "Pending", under_review: "Under Review", converted_to_service: "Converted", rejected: "Rejected", closed: "Closed" };
+
 export default function CustomJobsAdmin() {
   const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cats, setCats] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [filters, setFilters] = useState({ status: "", category_id: "", q: "", pincode: "", date_from: "", date_to: "" });
 
@@ -44,6 +53,7 @@ export default function CustomJobsAdmin() {
   }, [filters]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { setPage(1); }, [filters]);
   useEffect(() => { api.get("/catalog/admin/categories").then((r) => setCats(r.data || [])).catch(() => {}); }, []);
 
   if (selectedId) {
@@ -51,90 +61,104 @@ export default function CustomJobsAdmin() {
       onConverted={() => load()} navigate={navigate} />;
   }
 
-  const inp = "h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 dark:bg-slate-800 text-sm outline-none focus:border-primary-500";
+  const setF = (patch) => setFilters((f) => ({ ...f, ...patch }));
+  const reset = () => setFilters({ status: "", category_id: "", q: "", pincode: "", date_from: "", date_to: "" });
+  const hasFilters = Object.values(filters).some(Boolean);
+
+  const catName = (id) => cats.find((c) => c.id === id)?.name || id;
+  const fmtDay = (d) => { try { return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }); } catch { return d; } };
+  const chips = [];
+  if (filters.q) chips.push({ key: "q", label: `Search: ${filters.q}`, onRemove: () => setF({ q: "" }) });
+  if (filters.status) chips.push({ key: "status", label: `Status: ${STATUS_LABELS[filters.status] || filters.status}`, onRemove: () => setF({ status: "" }) });
+  if (filters.category_id) chips.push({ key: "cat", label: `Category: ${catName(filters.category_id)}`, onRemove: () => setF({ category_id: "" }) });
+  if (filters.pincode) chips.push({ key: "pin", label: `Pincode: ${filters.pincode}`, onRemove: () => setF({ pincode: "" }) });
+  if (filters.date_from) chips.push({ key: "from", label: `From: ${fmtDay(filters.date_from)}`, onRemove: () => setF({ date_from: "" }) });
+  if (filters.date_to) chips.push({ key: "to", label: `To: ${fmtDay(filters.date_to)}`, onRemove: () => setF({ date_to: "" }) });
+
+  const total = rows.length;
+  const paged = rows.slice((page - 1) * pageSize, page * pageSize);
 
   return (
-    <div data-testid="custom-jobs-admin">
-      <div className="flex items-end justify-between gap-3 mb-4">
-        <div>
-          <h1 className="font-heading font-black text-2xl text-slate-900 dark:text-white flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-primary-600" /> Custom Job Requests
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">Customer service requests awaiting review & conversion.</p>
-        </div>
-        <button onClick={load} className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-primary-700 flex items-center gap-1 text-sm">
-          <RefreshCcw className="h-4 w-4" /> Refresh
-        </button>
-      </div>
+    <div className="space-y-5 az-rise" data-testid="custom-jobs-admin">
+      <PageHeader icon={Wrench} title="Custom Job Requests" description="Customer service requests awaiting review & conversion."
+        actions={<SecondaryButton onClick={load} data-testid="cja-refresh"><RefreshCcw className="h-4 w-4" /> Refresh</SecondaryButton>} />
 
-      {/* filters */}
-      <div className="flex flex-wrap gap-2 mb-4" data-testid="cja-filters">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input className={`${inp} pl-9 w-full`} placeholder="Search ID, customer, work…"
-            value={filters.q} onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))} />
+      {/* Filter command bar */}
+      <Toolbar>
+        <div className="space-y-3" data-testid="cja-filters">
+          <SearchInput value={filters.q} onChange={(e) => setF({ q: e.target.value })}
+            placeholder="Search request ID, customer, work…" data-testid="cja-search" />
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+            <PremiumSelect value={filters.status} onChange={(e) => setF({ status: e.target.value })} placeholder="All statuses" data-testid="cja-status">
+              <option value="">All statuses</option>
+              <option value="pending">Pending</option>
+              <option value="under_review">Under Review</option>
+              <option value="converted_to_service">Converted</option>
+              <option value="rejected">Rejected</option>
+              <option value="closed">Closed</option>
+            </PremiumSelect>
+            <PremiumSelect value={filters.category_id} onChange={(e) => setF({ category_id: e.target.value })} placeholder="All categories" data-testid="cja-category">
+              <option value="">All categories</option>
+              {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </PremiumSelect>
+            <input className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400"
+              placeholder="Pincode" value={filters.pincode} data-testid="cja-pincode"
+              onChange={(e) => setF({ pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} />
+            <PremiumDatePicker value={filters.date_from} onChange={(e) => setF({ date_from: e.target.value })} placeholder="From date" data-testid="cja-date-from" />
+            <PremiumDatePicker value={filters.date_to} onChange={(e) => setF({ date_to: e.target.value })} placeholder="To date" data-testid="cja-date-to" />
+          </div>
+          {(chips.length > 0) && (
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <ChipBar chips={chips} />
+              <button onClick={reset} data-testid="cja-reset" className="text-xs font-semibold text-slate-500 hover:text-rose-500 underline underline-offset-2 shrink-0">Reset all</button>
+            </div>
+          )}
         </div>
-        <PremiumSelect className={`${inp} rounded-md`} value={filters.status} onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}>
-          <option value="">All statuses</option>
-          <option value="pending">Pending</option>
-          <option value="under_review">Under Review</option>
-          <option value="converted_to_service">Converted</option>
-          <option value="rejected">Rejected</option>
-          <option value="closed">Closed</option>
-        </PremiumSelect>
-        <PremiumSelect className={`${inp} rounded-md`} value={filters.category_id} onChange={(e) => setFilters((f) => ({ ...f, category_id: e.target.value }))}>
-          <option value="">All categories</option>
-          {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </PremiumSelect>
-        <input className={`${inp} w-28`} placeholder="Pincode" value={filters.pincode}
-          onChange={(e) => setFilters((f) => ({ ...f, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) }))} />
-        <PremiumDatePicker className={`${inp} rounded-md`} value={filters.date_from} onChange={(e) => setFilters((f) => ({ ...f, date_from: e.target.value }))} placeholder="From date" />
-        <PremiumDatePicker className={`${inp} rounded-md`} value={filters.date_to} onChange={(e) => setFilters((f) => ({ ...f, date_to: e.target.value }))} placeholder="To date" />
-      </div>
+      </Toolbar>
 
       {loading ? (
-        <div className="py-20 grid place-items-center text-slate-400"><Loader2 className="h-7 w-7 animate-spin" /></div>
+        <DataPanel><TableSkeleton rows={6} cols={7} /></DataPanel>
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-12 text-center text-slate-400" data-testid="cja-empty">
-          <FileText className="h-10 w-10 mx-auto mb-3 opacity-50" />
-          No custom job requests found.
-        </div>
+        <DataPanel>
+          <EmptyState icon={FileText} title="No custom job requests found" data-testid="cja-empty"
+            description="Customer service requests matching your current filters will appear here."
+            action={hasFilters ? <button onClick={reset} className="h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm">Clear Filters</button> : null} />
+        </DataPanel>
       ) : (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-900">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 text-xs uppercase tracking-wider">
-                <tr>
-                  {["Request ID", "Customer", "Mobile", "Category", "Work Name", "Budget", "Pincode", "Area", "Submitted", "Status", ""].map((h) => (
-                    <th key={h} className="text-left font-semibold px-3 py-2.5 whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {rows.map((r) => (
-                  <tr key={r.id} data-testid={`cja-row-${r.request_id}`} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <td className="px-3 py-2.5 font-mono text-xs font-semibold text-primary-700">{r.request_id}</td>
-                    <td className="px-3 py-2.5 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap">{r.customer_name_snapshot}</td>
-                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{r.customer_mobile_snapshot}</td>
-                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{r.category_name}</td>
-                    <td className="px-3 py-2.5 text-slate-700 dark:text-slate-200 max-w-[180px] truncate" title={r.work_name}>{r.work_name}</td>
-                    <td className="px-3 py-2.5 font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{rupee(r.expected_budget)}</td>
-                    <td className="px-3 py-2.5 text-slate-500">{r.pincode}</td>
-                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{r.city || "—"}</td>
-                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap text-xs">{fmtDate(r.created_at)}</td>
-                    <td className="px-3 py-2.5"><StatusBadge s={r.display_status || r.status} /></td>
-                    <td className="px-3 py-2.5">
-                      <button onClick={() => setSelectedId(r.id)} data-testid={`cja-view-${r.request_id}`}
-                        className="h-8 px-3 rounded-lg bg-primary-50 text-primary-700 hover:bg-primary-100 font-semibold text-xs flex items-center gap-1">
-                        <Eye className="h-3.5 w-3.5" /> View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataPanel>
+          <table className="w-full text-sm">
+            <TableHead>
+              <tr>
+                <Th>Request ID</Th><Th>Customer</Th><Th>Requested Work</Th><Th>Category</Th>
+                <Th align="right">Budget</Th><Th>Location</Th><Th>Submitted</Th><Th>Status</Th><Th align="right">Action</Th>
+              </tr>
+            </TableHead>
+            <TableBody>
+              {paged.map((r) => (
+                <Tr key={r.id} data-testid={`cja-row-${r.request_id}`} className="cursor-pointer" onClick={() => setSelectedId(r.id)}>
+                  <Td><span className="font-mono text-xs font-bold text-primary-700 dark:text-primary-400">{r.request_id}</span></Td>
+                  <Td>
+                    <p className="font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">{r.customer_name_snapshot}</p>
+                    <p className="text-[11px] text-slate-400">{r.customer_mobile_snapshot}</p>
+                  </Td>
+                  <Td><span className="block max-w-[200px] truncate text-slate-700 dark:text-slate-200" title={r.work_name}>{r.work_name}</span></Td>
+                  <Td><span className="text-slate-500 whitespace-nowrap">{r.category_name}</span></Td>
+                  <Td align="right"><span className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">{rupee(r.expected_budget)}</span></Td>
+                  <Td>
+                    <p className="text-slate-600 dark:text-slate-300 flex items-center gap-1 whitespace-nowrap"><MapPin className="h-3.5 w-3.5 text-slate-400" />{r.pincode}</p>
+                    <p className="text-[11px] text-slate-400">{r.city || "—"}</p>
+                  </Td>
+                  <Td><span className="text-xs text-slate-500 whitespace-nowrap">{fmtDate(r.created_at)}</span></Td>
+                  <Td><StatusBadge s={r.display_status || r.status} /></Td>
+                  <Td align="right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex justify-end"><ViewButton onClick={() => setSelectedId(r.id)} data-testid={`cja-view-${r.request_id}`} /></div>
+                  </Td>
+                </Tr>
+              ))}
+            </TableBody>
+          </table>
+          {total > 0 && <Pagination page={page} pageSize={pageSize} total={total} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />}
+        </DataPanel>
       )}
     </div>
   );

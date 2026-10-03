@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
+BASE_URL = "https://azo-admin-modernize.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 

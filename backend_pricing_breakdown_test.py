@@ -16,7 +16,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
+BASE_URL = "https://azo-admin-modernize.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"

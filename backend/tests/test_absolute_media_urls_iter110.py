@@ -13,7 +13,7 @@ import pytest
 import requests
 from PIL import Image
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-control-4.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://azo-admin-modernize.preview.emergentagent.com").rstrip("/")
 
 
 def _tiny_png_bytes() -> bytes:

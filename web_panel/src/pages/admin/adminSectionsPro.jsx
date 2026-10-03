@@ -13,6 +13,11 @@ import { toast } from "sonner";
 import { applySiteTheme, useSiteConfig } from "@/context/SiteConfigContext";
 import DataTable from "@/components/admin/DataTable";
 import BannersManagerPro from "@/components/marketing/BannersManager";
+import {
+  SectionCard, Field as KField, CharCounter, DataPanel, Th, Td, TableHead, TableBody, Tr,
+  EditButton, DeleteButton, StatusBadge as KStatusBadge, CountBadge, Pagination as KPagination,
+  EmptyState, PrimaryButton, SecondaryButton, ConfirmDialog, SearchInput,
+} from "@/components/admin/ModuleKit";
 
 /* =============== Reusable: Image Upload (S3-ready via /media/upload) =============== */
 export const ImageUpload = ({ value, onChange, label, folder = "media", hint }) => {
@@ -177,9 +182,9 @@ const AdvancedSeoSection = ({ seo = {}, onChange, name, slug, description, fallb
         <span>Fields marked * are mandatory for Google ranking. A rich-result schema (CollectionPage + Breadcrumb) is generated automatically so this page ranks high and shows first in search.</span>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
-        <Field label="SEO Title *"><Input maxLength={255} value={seo.title || ""} onChange={(e) => set("title", e.target.value)} /></Field>
+        <Field label={<span className="flex items-center justify-between w-full">SEO Title * <CharCounter value={seo.title} max={60} /></span>}><Input maxLength={255} value={seo.title || ""} onChange={(e) => set("title", e.target.value)} /></Field>
         <Field label="Meta Keywords *"><KeywordsInput placeholder="e.g. ac repair, ac service near me" value={seo.keywords || ""} onChange={(v) => set("keywords", v)} /></Field>
-        <div className="md:col-span-2"><Field label="Meta Description * (max 160 chars ideal)"><Textarea maxLength={500} value={seo.description || ""} onChange={(e) => set("description", e.target.value)} /></Field></div>
+        <div className="md:col-span-2"><Field label={<span className="flex items-center justify-between w-full">Meta Description * (max 160 chars ideal) <CharCounter value={seo.description} max={160} /></span>}><Textarea maxLength={500} value={seo.description || ""} onChange={(e) => set("description", e.target.value)} /></Field></div>
         <Field label="Canonical URL"><Input value={seo.canonical || ""} onChange={(e) => set("canonical", e.target.value)} /></Field>
         <Field label="OG Title"><Input value={seo.og_title || ""} onChange={(e) => set("og_title", e.target.value)} /></Field>
         <div className="md:col-span-2"><Field label="OG Description"><Textarea value={seo.og_description || ""} onChange={(e) => set("og_description", e.target.value)} /></Field></div>
@@ -203,6 +208,10 @@ export const CategoriesManagerPro = () => {
   const [edit, setEdit] = useState(null);
   const blank = { name: "", slug: "", icon: "wrench", image: "", description: "", required_skill: "", is_featured: false, show_on_home: true, order: 0, status: "active", seo: {} };
   const [f, setF] = useState(blank);
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [confirm, setConfirm] = useState(null);
   const load = () => api.get("/catalog/admin/categories").then((r) => setRows(r.data));
   useEffect(() => { load(); }, []);
   const catSlug = f.slug || slugify(f.name);
@@ -224,52 +233,70 @@ export const CategoriesManagerPro = () => {
   };
   const toggle = async (c) => { await api.put(`/catalog/categories/${c.id}`, { status: c.status === "active" ? "inactive" : "active" }); load(); };
   const del = async (c) => {
-    if (!window.confirm(`Delete "${c.name}"? This removes its sub-categories & services permanently.`)) return;
-    try { await api.delete(`/catalog/categories/${c.id}`); toast.success("Deleted"); load(); }
+    try { await api.delete(`/catalog/categories/${c.id}`); toast.success("Deleted"); setConfirm(null); load(); }
     catch (e) { toast.error(e?.response?.data?.detail || "Failed"); }
   };
   const editRow = (c) => { setEdit(c.id); setF({ ...blank, ...c, seo: c.seo || {} }); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const filtered = rows.filter((c) => !q || c.name?.toLowerCase().includes(q.toLowerCase()));
+  const total = filtered.length;
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
   return (
-    <div className="grid xl:grid-cols-5 gap-5">
+    <div className="grid xl:grid-cols-5 gap-5 items-start">
       <div className="xl:col-span-2 space-y-4">
-        <Section title={edit ? "Edit Category" : "Add Category"}>
-          <Field label="Name"><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-          <Field label="URL Slug"><div className="flex items-center gap-2"><span className="text-xs text-slate-400">/category/</span><Input value={f.slug} placeholder={slugify(f.name) || "auto-generated"} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div></Field>
+        <SectionCard title={edit ? "Edit Category" : "Add Category"} icon={Layers} description="Manage service categories, visibility and SEO.">
+          <KField label="Name" required><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></KField>
+          <KField label="URL Slug"><div className="flex items-center gap-2"><span className="text-xs text-slate-400 shrink-0">/category/</span><Input value={f.slug} placeholder={slugify(f.name) || "auto-generated"} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div></KField>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Required Skill"><Input placeholder="e.g. ac" value={f.required_skill} onChange={(e) => setF({ ...f, required_skill: e.target.value })} /></Field>
-            <Field label="Display Order"><Input type="number" value={f.order} onChange={(e) => setF({ ...f, order: Number(e.target.value) })} /></Field>
+            <KField label="Required Skill"><Input placeholder="e.g. ac" value={f.required_skill} onChange={(e) => setF({ ...f, required_skill: e.target.value })} /></KField>
+            <KField label="Display Order"><Input type="number" value={f.order} onChange={(e) => setF({ ...f, order: Number(e.target.value) })} /></KField>
           </div>
           <ImageUpload label="Category Image" folder="category" value={f.image} onChange={(v) => setF({ ...f, image: v })} />
-          <Field label="Description"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-600 dark:text-slate-300">Featured</span><Switch checked={f.is_featured} onCheckedChange={(v) => setF({ ...f, is_featured: v })} /></div>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-600 dark:text-slate-300">Show on Homepage</span><Switch checked={f.show_on_home} onCheckedChange={(v) => setF({ ...f, show_on_home: v })} /></div>
-        </Section>
-        <Section title="Advanced SEO (rank #1 on Google)"><AdvancedSeoSection seo={f.seo} onChange={(v) => setF({ ...f, seo: v })} name={f.name} slug={catSlug} description={f.description} fallbackImage={f.image} /></Section>
+          <KField label="Description"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></KField>
+          <div className="space-y-2 pt-1">
+            <ToggleRow label="Featured" hint="Highlight across the marketplace" checked={f.is_featured} onChange={(v) => setF({ ...f, is_featured: v })} />
+            <ToggleRow label="Show on Homepage" hint="Display in the customer app home" checked={f.show_on_home} onChange={(v) => setF({ ...f, show_on_home: v })} />
+          </div>
+        </SectionCard>
+        <SectionCard title="Advanced SEO" icon={Globe} description="Rank #1 on Google with rich structured data."><AdvancedSeoSection seo={f.seo} onChange={(v) => setF({ ...f, seo: v })} name={f.name} slug={catSlug} description={f.description} fallbackImage={f.image} /></SectionCard>
         <div className="flex gap-2">
-          <Button onClick={save} className="bg-primary-700 hover:bg-primary-800 flex-1">{edit ? "Update Category" : "Create Category"}</Button>
-          {edit && <Button variant="outline" onClick={() => { setEdit(null); setF(blank); }}>Cancel</Button>}
+          <PrimaryButton onClick={save} className="flex-1">{edit ? "Update Category" : "Create Category"}</PrimaryButton>
+          {edit && <SecondaryButton onClick={() => { setEdit(null); setF(blank); }}>Cancel</SecondaryButton>}
         </div>
       </div>
       <div className="xl:col-span-3">
-        <Tbl>
-          <thead className="bg-slate-50 dark:bg-slate-900/40 text-slate-500 text-left"><tr>{["Category", "Services", "Subs", "Featured", "Status", ""].map((h) => <th key={h} className="px-4 py-3 font-semibold whitespace-nowrap">{h}</th>)}</tr></thead>
-          <tbody>
-            {rows.map((c) => (
-              <tr key={c.id} className="border-t border-slate-100 dark:border-slate-700">
-                <td className="px-4 py-3"><div className="flex items-center gap-2">{c.image && <img src={c.image} alt="" className="h-8 w-8 rounded object-cover" />}<span className="font-medium text-slate-800 dark:text-slate-100">{c.name}</span></div></td>
-                <td className="px-4 py-3 text-slate-500">{c.service_count ?? 0}</td>
-                <td className="px-4 py-3 text-slate-500">{c.subcategory_count ?? 0}</td>
-                <td className="px-4 py-3">{c.is_featured ? <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> : "—"}</td>
-                <td className="px-4 py-3"><button onClick={() => toggle(c)}><StatusPill s={c.status} /></button></td>
-                <td className="px-4 py-3"><div className="flex gap-2"><button onClick={() => editRow(c)} className="text-primary-700"><Pencil className="h-4 w-4" /></button><button onClick={() => del(c)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></div></td>
-              </tr>
-            ))}
-          </tbody>
-        </Tbl>
+        <DataPanel toolbar={<div className="p-3 border-b border-slate-100 dark:border-slate-800"><SearchInput value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search categories…" data-testid="cat-search" /></div>}>
+          <table className="w-full text-sm">
+            <TableHead><tr><Th>Category</Th><Th align="center">Services</Th><Th align="center">Subs</Th><Th align="center">Featured</Th><Th>Status</Th><Th align="right">Actions</Th></tr></TableHead>
+            <TableBody>
+              {paged.length === 0 && <tr><td colSpan={6}><EmptyState icon={Layers} title="No categories found" description="Create your first category using the form on the left." /></td></tr>}
+              {paged.map((c) => (
+                <Tr key={c.id}>
+                  <Td><div className="flex items-center gap-3">{c.image ? <img src={mediaSrc(c.image)} alt="" className="h-9 w-9 rounded-lg object-cover border border-slate-100 dark:border-slate-700" /> : <span className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300"><ImageIcon className="h-4 w-4" /></span>}<span className="font-semibold text-slate-800 dark:text-slate-100">{c.name}</span></div></Td>
+                  <Td align="center"><CountBadge value={c.service_count ?? 0} /></Td>
+                  <Td align="center"><CountBadge value={c.subcategory_count ?? 0} /></Td>
+                  <Td align="center">{c.is_featured ? <Star className="h-4 w-4 fill-amber-400 text-amber-400 mx-auto" /> : <span className="text-slate-300">—</span>}</Td>
+                  <Td><KStatusBadge active={c.status === "active"} onClick={() => toggle(c)} /></Td>
+                  <Td align="right"><div className="flex justify-end gap-1"><EditButton onClick={() => editRow(c)} data-testid={`cat-edit-${c.id}`} /><DeleteButton onClick={() => setConfirm(c)} data-testid={`cat-del-${c.id}`} /></div></Td>
+                </Tr>
+              ))}
+            </TableBody>
+          </table>
+          {total > 0 && <KPagination page={page} pageSize={pageSize} total={total} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />}
+        </DataPanel>
       </div>
+      <ConfirmDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)} title={`Delete "${confirm?.name}"?`}
+        description="This permanently removes the category along with its sub-categories & services. This action cannot be undone."
+        confirmLabel="Delete" onConfirm={() => del(confirm)} />
     </div>
   );
 };
+
+const ToggleRow = ({ label, hint, checked, onChange }) => (
+  <div className="flex items-center justify-between rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 px-3.5 py-2.5">
+    <div><p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{label}</p>{hint && <p className="text-[11px] text-slate-400">{hint}</p>}</div>
+    <Switch checked={checked} onCheckedChange={onChange} />
+  </div>
+);
 
 /* =============== SUB-CATEGORIES =============== */
 export const SubCategoriesManager = () => {
@@ -278,6 +305,10 @@ export const SubCategoriesManager = () => {
   const [edit, setEdit] = useState(null);
   const blank = { category_id: "", name: "", slug: "", image: "", description: "", is_featured: false, order: 0, status: "active", seo: {} };
   const [f, setF] = useState(blank);
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [confirm, setConfirm] = useState(null);
   const load = () => { api.get("/catalog/admin/categories").then((r) => setCats(r.data)); api.get("/catalog/admin/subcategories").then((r) => setRows(r.data)); };
   useEffect(() => { load(); }, []);
   const subSlug = f.slug || slugify(f.name);
@@ -296,47 +327,55 @@ export const SubCategoriesManager = () => {
     setF(blank); setEdit(null); load();
   };
   const toggle = async (s) => { await api.put(`/catalog/subcategories/${s.id}`, { status: s.status === "active" ? "inactive" : "active" }); load(); };
-  const del = async (s) => { if (!window.confirm(`Delete "${s.name}"?`)) return; await api.delete(`/catalog/subcategories/${s.id}`); load(); };
+  const del = async (s) => { try { await api.delete(`/catalog/subcategories/${s.id}`); toast.success("Deleted"); setConfirm(null); load(); } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); } };
   const editRow = (s) => { setEdit(s.id); setF({ ...blank, ...s, seo: s.seo || {} }); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const filtered = rows.filter((s) => !q || s.name?.toLowerCase().includes(q.toLowerCase()) || s.category_name?.toLowerCase().includes(q.toLowerCase()));
+  const total = filtered.length;
+  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
   return (
-    <div className="grid xl:grid-cols-5 gap-5">
+    <div className="grid xl:grid-cols-5 gap-5 items-start">
       <div className="xl:col-span-2 space-y-4">
-        <Section title={edit ? "Edit Sub-category" : "Add Sub-category"}>
-          <Field label="Parent Category">
+        <SectionCard title={edit ? "Edit Sub-category" : "Add Sub-category"} icon={Layers} description="Nest services under a parent category with full SEO.">
+          <KField label="Parent Category" required>
             <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
               <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
               <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
             </Select>
-          </Field>
+          </KField>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Name"><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-            <Field label="Order"><Input type="number" value={f.order} onChange={(e) => setF({ ...f, order: Number(e.target.value) })} /></Field>
+            <KField label="Name" required><Input value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></KField>
+            <KField label="Display Order"><Input type="number" value={f.order} onChange={(e) => setF({ ...f, order: Number(e.target.value) })} /></KField>
           </div>
-          <Field label="URL Slug"><div className="flex items-center gap-2"><span className="text-xs text-slate-400">/category/</span><Input value={f.slug} placeholder={slugify(f.name) || "auto-generated"} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div></Field>
+          <KField label="URL Slug"><div className="flex items-center gap-2"><span className="text-xs text-slate-400 shrink-0">/category/</span><Input value={f.slug} placeholder={slugify(f.name) || "auto-generated"} onChange={(e) => setF({ ...f, slug: slugify(e.target.value) })} /></div></KField>
           <ImageUpload label="Image" folder="subcategory" value={f.image} onChange={(v) => setF({ ...f, image: v })} />
-          <Field label="Description"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-600 dark:text-slate-300">Featured</span><Switch checked={f.is_featured} onCheckedChange={(v) => setF({ ...f, is_featured: v })} /></div>
-        </Section>
-        <Section title="Advanced SEO (rank #1 on Google)"><AdvancedSeoSection seo={f.seo} onChange={(v) => setF({ ...f, seo: v })} name={f.name} slug={subSlug} description={f.description} fallbackImage={f.image} /></Section>
-        <div className="flex gap-2"><Button onClick={save} className="bg-primary-700 hover:bg-primary-800 flex-1">{edit ? "Update" : "Create"}</Button>{edit && <Button variant="outline" onClick={() => { setEdit(null); setF(blank); }}>Cancel</Button>}</div>
+          <KField label="Description"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></KField>
+          <ToggleRow label="Featured" hint="Highlight this sub-category" checked={f.is_featured} onChange={(v) => setF({ ...f, is_featured: v })} />
+        </SectionCard>
+        <SectionCard title="Advanced SEO" icon={Globe} description="Rank #1 on Google with rich structured data."><AdvancedSeoSection seo={f.seo} onChange={(v) => setF({ ...f, seo: v })} name={f.name} slug={subSlug} description={f.description} fallbackImage={f.image} /></SectionCard>
+        <div className="flex gap-2"><PrimaryButton onClick={save} className="flex-1">{edit ? "Update Sub-category" : "Create Sub-category"}</PrimaryButton>{edit && <SecondaryButton onClick={() => { setEdit(null); setF(blank); }}>Cancel</SecondaryButton>}</div>
       </div>
       <div className="xl:col-span-3">
-        <Tbl>
-          <thead className="bg-slate-50 dark:bg-slate-900/40 text-slate-500 text-left"><tr>{["Sub-category", "Parent", "Services", "Status", ""].map((h) => <th key={h} className="px-4 py-3 font-semibold">{h}</th>)}</tr></thead>
-          <tbody>
-            {rows.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-400">No sub-categories yet</td></tr>}
-            {rows.map((s) => (
-              <tr key={s.id} className="border-t border-slate-100 dark:border-slate-700">
-                <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{s.name}</td>
-                <td className="px-4 py-3 text-slate-500">{s.category_name}</td>
-                <td className="px-4 py-3 text-slate-500">{s.service_count ?? 0}</td>
-                <td className="px-4 py-3"><button onClick={() => toggle(s)}><StatusPill s={s.status} /></button></td>
-                <td className="px-4 py-3"><div className="flex gap-2"><button onClick={() => editRow(s)} className="text-primary-700"><Pencil className="h-4 w-4" /></button><button onClick={() => del(s)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></div></td>
-              </tr>
-            ))}
-          </tbody>
-        </Tbl>
+        <DataPanel toolbar={<div className="p-3 border-b border-slate-100 dark:border-slate-800"><SearchInput value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search sub-categories…" data-testid="subcat-search" /></div>}>
+          <table className="w-full text-sm">
+            <TableHead><tr><Th>Sub-category</Th><Th>Parent</Th><Th align="center">Services</Th><Th>Status</Th><Th align="right">Actions</Th></tr></TableHead>
+            <TableBody>
+              {paged.length === 0 && <tr><td colSpan={5}><EmptyState icon={Layers} title="No sub-categories yet" description="Create your first sub-category using the form on the left." /></td></tr>}
+              {paged.map((s) => (
+                <Tr key={s.id}>
+                  <Td><div className="flex items-center gap-3">{s.image ? <img src={mediaSrc(s.image)} alt="" className="h-9 w-9 rounded-lg object-cover border border-slate-100 dark:border-slate-700" /> : <span className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300"><ImageIcon className="h-4 w-4" /></span>}<span className="font-semibold text-slate-800 dark:text-slate-100">{s.name}</span></div></Td>
+                  <Td><span className="text-slate-500">{s.category_name}</span></Td>
+                  <Td align="center"><CountBadge value={s.service_count ?? 0} /></Td>
+                  <Td><KStatusBadge active={s.status === "active"} onClick={() => toggle(s)} /></Td>
+                  <Td align="right"><div className="flex justify-end gap-1"><EditButton onClick={() => editRow(s)} data-testid={`subcat-edit-${s.id}`} /><DeleteButton onClick={() => setConfirm(s)} data-testid={`subcat-del-${s.id}`} /></div></Td>
+                </Tr>
+              ))}
+            </TableBody>
+          </table>
+          {total > 0 && <KPagination page={page} pageSize={pageSize} total={total} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />}
+        </DataPanel>
       </div>
+      <ConfirmDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)} title={`Delete "${confirm?.name}"?`}
+        description="This permanently removes the sub-category. This action cannot be undone." confirmLabel="Delete" onConfirm={() => del(confirm)} />
     </div>
   );
 };
@@ -347,6 +386,10 @@ export const AddonsManager = () => {
   const [rows, setRows] = useState([]);
   const [edit, setEdit] = useState(null);
   const [filterCat, setFilterCat] = useState("all");
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [confirm, setConfirm] = useState(null);
   const blank = { category_id: "", name: "", price: 0, description: "", status: "active" };
   const [f, setF] = useState(blank);
   const load = () => {
@@ -365,52 +408,65 @@ export const AddonsManager = () => {
     } catch (e) { toast.error(e?.response?.data?.detail || "Failed to save"); }
   };
   const toggle = async (a) => { await api.put(`/catalog/addons/${a.id}`, { status: a.status === "active" ? "inactive" : "active" }); load(); };
-  const del = async (a) => { if (!window.confirm(`Delete add-on "${a.name}"?`)) return; try { await api.delete(`/catalog/addons/${a.id}`); toast.success("Deleted"); load(); } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); } };
+  const del = async (a) => { try { await api.delete(`/catalog/addons/${a.id}`); toast.success("Deleted"); setConfirm(null); load(); } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); } };
   const editRow = (a) => { setEdit(a.id); setF({ ...blank, ...a }); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const shown = rows.filter((r) => filterCat === "all" || r.category_id === filterCat);
+  const shown = rows.filter((r) => (filterCat === "all" || r.category_id === filterCat) && (!q || r.name?.toLowerCase().includes(q.toLowerCase())));
+  const total = shown.length;
+  const paged = shown.slice((page - 1) * pageSize, page * pageSize);
   return (
-    <div className="grid xl:grid-cols-5 gap-5">
+    <div className="grid xl:grid-cols-5 gap-5 items-start">
       <div className="xl:col-span-2 space-y-4">
-        <Section title={edit ? "Edit Add-on" : "Add Add-on Service"}>
-          <p className="text-xs text-slate-400 mb-3">Create reusable add-ons per category. When creating a service in that category you can attach these, and customers see them under <b>&ldquo;Frequently Added&rdquo;</b> / <b>&ldquo;Add-ons&rdquo;</b> at booking.</p>
-          <Field label="Category">
+        <SectionCard title={edit ? "Edit Add-on" : "Add Add-on Service"} icon={Plus}
+          description='Create reusable add-ons per category. Customers see them under "Frequently Added" at booking.'>
+          <KField label="Category" required>
             <Select value={f.category_id} onValueChange={(v) => setF({ ...f, category_id: v })}>
               <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
               <SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
             </Select>
-          </Field>
+          </KField>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Add-on Name"><Input placeholder="e.g. MCB Replace" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
-            <Field label="Price (₹)"><Input type="number" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></Field>
+            <KField label="Add-on Name" required><Input placeholder="e.g. MCB Replace" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></KField>
+            <KField label="Price (₹)"><Input type="number" value={f.price} onChange={(e) => setF({ ...f, price: e.target.value })} /></KField>
           </div>
-          <Field label="Description (optional)"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></Field>
-          <div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-600 dark:text-slate-300">Active</span><Switch checked={f.status === "active"} onCheckedChange={(v) => setF({ ...f, status: v ? "active" : "inactive" })} /></div>
-        </Section>
-        <div className="flex gap-2"><Button onClick={save} className="bg-primary-700 hover:bg-primary-800 flex-1">{edit ? "Update Add-on" : "Create Add-on"}</Button>{edit && <Button variant="outline" onClick={() => { setEdit(null); setF(blank); }}>Cancel</Button>}</div>
+          <KField label="Description" hint="Optional — shown to customers at booking"><Textarea value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} /></KField>
+          <ToggleRow label="Active" hint="Available to attach to services" checked={f.status === "active"} onChange={(v) => setF({ ...f, status: v ? "active" : "inactive" })} />
+        </SectionCard>
+        <div className="flex gap-2"><PrimaryButton onClick={save} className="flex-1">{edit ? "Update Add-on" : "Create Add-on"}</PrimaryButton>{edit && <SecondaryButton onClick={() => { setEdit(null); setF(blank); }}>Cancel</SecondaryButton>}</div>
       </div>
-      <div className="xl:col-span-3 space-y-3">
-        <div className="w-56">
-          <Select value={filterCat} onValueChange={setFilterCat}>
-            <SelectTrigger><SelectValue placeholder="Filter by category" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">All categories</SelectItem>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
-        <Tbl>
-          <thead className="bg-slate-50 dark:bg-slate-900/40 text-slate-500 text-left"><tr>{["Add-on", "Category", "Price", "Status", ""].map((h) => <th key={h} className="px-4 py-3 font-semibold whitespace-nowrap">{h}</th>)}</tr></thead>
-          <tbody>
-            {shown.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-400">No add-ons yet. Create your first add-on on the left.</td></tr>}
-            {shown.map((a) => (
-              <tr key={a.id} className="border-t border-slate-100 dark:border-slate-700">
-                <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{a.name}</td>
-                <td className="px-4 py-3 text-slate-500">{a.category_name}</td>
-                <td className="px-4 py-3 text-slate-700 dark:text-slate-200 whitespace-nowrap">₹{Number(a.price) || 0}</td>
-                <td className="px-4 py-3"><button onClick={() => toggle(a)}><StatusPill s={a.status} /></button></td>
-                <td className="px-4 py-3"><div className="flex gap-2"><button onClick={() => editRow(a)} className="text-primary-700"><Pencil className="h-4 w-4" /></button><button onClick={() => del(a)} className="text-red-500"><Trash2 className="h-4 w-4" /></button></div></td>
-              </tr>
-            ))}
-          </tbody>
-        </Tbl>
+      <div className="xl:col-span-3">
+        <DataPanel toolbar={
+          <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row gap-2.5">
+            <SearchInput value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search add-ons…" className="flex-1" data-testid="addon-search" />
+            <div className="w-full sm:w-56 shrink-0">
+              <Select value={filterCat} onValueChange={(v) => { setFilterCat(v); setPage(1); }}>
+                <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Filter by category" /></SelectTrigger>
+                <SelectContent><SelectItem value="all">All categories</SelectItem>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>}>
+          <table className="w-full text-sm">
+            <TableHead><tr><Th>Add-on</Th><Th>Category</Th><Th align="right">Price</Th><Th>Status</Th><Th align="right">Actions</Th></tr></TableHead>
+            <TableBody>
+              {paged.length === 0 && <tr><td colSpan={5}><EmptyState icon={Plus} title="No add-ons yet" description="Create your first add-on using the form on the left." /></td></tr>}
+              {paged.map((a) => (
+                <Tr key={a.id}>
+                  <Td>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">{a.name}</p>
+                    {a.description && <p className="text-[11px] text-slate-400 max-w-[220px] truncate">{a.description}</p>}
+                  </Td>
+                  <Td><span className="text-slate-500">{a.category_name}</span></Td>
+                  <Td align="right"><span className="font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap tabular-nums">₹{Number(a.price) || 0}</span></Td>
+                  <Td><KStatusBadge active={a.status === "active"} onClick={() => toggle(a)} /></Td>
+                  <Td align="right"><div className="flex justify-end gap-1"><EditButton onClick={() => editRow(a)} data-testid={`addon-edit-${a.id}`} /><DeleteButton onClick={() => setConfirm(a)} data-testid={`addon-del-${a.id}`} /></div></Td>
+                </Tr>
+              ))}
+            </TableBody>
+          </table>
+          {total > 0 && <KPagination page={page} pageSize={pageSize} total={total} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />}
+        </DataPanel>
       </div>
+      <ConfirmDialog open={!!confirm} onOpenChange={(o) => !o && setConfirm(null)} title={`Delete add-on "${confirm?.name}"?`}
+        description="This permanently removes the add-on. This action cannot be undone." confirmLabel="Delete" onConfirm={() => del(confirm)} />
     </div>
   );
 };

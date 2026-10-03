@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://partner-control-4.preview.emergentagent.com/api"
+BASE_URL = "https://azo-admin-modernize.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):
