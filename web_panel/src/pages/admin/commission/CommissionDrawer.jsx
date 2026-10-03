@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Loader2, CheckCircle2, ChevronDown, Calculator } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, CheckCircle2, ChevronDown, Calculator, Receipt } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +75,71 @@ function Preview({ f }) {
         <div className="flex items-center text-[12.5px] text-slate-500"><span>Partner cancellation charge</span><b className="ml-auto tabular-nums text-slate-700 dark:text-slate-200" data-testid="cc-sim-pcancel">{inr(share("partner_cancellation_pct"))}</b></div>
       </div>
       <p className="text-[11.5px] text-slate-400 mt-2.5 leading-snug">GST excluded. If a merchant share isn&apos;t applicable, it is absorbed by Platform.</p>
+      <TaxPreview f={f} a={a} />
     </section>
+  );
+}
+
+function L({ l, v, tid, strong, muted, minus }) {
+  return (
+    <div className={`flex items-center text-[12.5px] ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`} data-testid={tid}>
+      <span>{l}</span>
+      <b className={`ml-auto tabular-nums ${strong ? "text-[#111827] dark:text-white text-[13.5px]" : ""}`}>{minus ? "− " : ""}{inr(v)}</b>
+    </div>
+  );
+}
+
+/* Mirrors backend PricingEngine.finalize: GST only on (total commission + platform fee). */
+function TaxPreview({ f, a }) {
+  const [cfg, setCfg] = useState({ pf: 0, gst: 18 });
+  useEffect(() => {
+    api.get("/admin/settings").then((r) => setCfg({
+      pf: Number(r.data?.business_config?.platform_fee ?? 10) || 0,
+      gst: Number(r.data?.gst_pct ?? 18) || 0,
+    })).catch(() => {});
+  }, []);
+  const pct = (k) => Number(f[k]) || 0;
+  const partner = round2((a * pct("partner_pct")) / 100);
+  const comm = round2(a - partner);
+  const mRef = round2((a * pct("merchant_partner_referral_pct")) / 100);
+  const mCust = round2((a * pct("merchant_customer_pct")) / 100);
+  const base = round2(comm + cfg.pf);
+  const gst = round2((base * cfg.gst) / 100);
+  const cgst = round2(gst / 2);
+  const sgst = round2(gst - cgst);
+  const half = round2(cfg.gst / 2);
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-3" data-testid="cc-tax-preview">
+      <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"><Receipt className="h-4 w-4 text-[#2563EB]" /> Tax calculation (customer bill)</p>
+      <div className="space-y-1">
+        <L l={`Total Commission (${round2(100 - pct("partner_pct"))}% = Platform + Merchant shares)`} v={comm} tid="cc-tax-commission" />
+        <L l="+ Platform Fee" v={cfg.pf} tid="cc-tax-platform-fee" />
+        <L l="Taxable Amount (Commission + Platform Fee)" v={base} tid="cc-tax-base" strong />
+        <L l={`CGST @${half}%`} v={cgst} tid="cc-tax-cgst" />
+        <L l={`SGST @${half}%`} v={sgst} tid="cc-tax-sgst" />
+        <L l={`Est. Govt. Taxes (${cfg.gst}%)`} v={gst} tid="cc-tax-gst" strong />
+      </div>
+      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 space-y-1">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">Customer pays</p>
+        <L l="Service amount" v={a} />
+        <L l="Platform Fee" v={cfg.pf} />
+        <L l="Est. Govt. Taxes" v={gst} />
+        <L l="Total amount" v={round2(a + cfg.pf + gst)} tid="cc-tax-customer-total" strong />
+      </div>
+      <div className="rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5 space-y-1">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">Invoice (2 pages)</p>
+        <L l="Page 1 · Tax Invoice (Commission + Platform Fee + GST)" v={round2(base + gst)} tid="cc-tax-page1" />
+        <L l="Page 2 · Partner Receipt (Partner Earnings)" v={partner} tid="cc-tax-page2" />
+      </div>
+      <div className="rounded-lg border border-dashed border-amber-300 bg-amber-50/60 dark:bg-amber-900/10 p-2.5 space-y-1" data-testid="cc-tax-internal">
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-amber-700">Internal split of commission (not on invoice)</p>
+        <L l="Total Commission collected" v={comm} />
+        <L l="Merchant · Partner Referral (if partner referred)" v={mRef} minus />
+        <L l="Merchant · Customer (if booked via merchant)" v={mCust} minus />
+        <L l="Platform keeps (min.)" v={round2(comm - mRef - mCust)} strong />
+        <p className="text-[11px] text-slate-400 leading-snug">Merchant shares are paid out of the commission. Agar merchant applicable nahi hai to wo hissa platform ke paas rehta hai. Invoice par sirf Total Commission dikhega.</p>
+      </div>
+    </div>
   );
 }
 
