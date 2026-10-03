@@ -1,5 +1,4 @@
-import { X, Star, Phone, MessageSquare, Clock, AlertTriangle, Briefcase, History,
-  CheckCircle2, Navigation, User } from "lucide-react";
+import { X, Star, Clock, AlertTriangle, Briefcase, CheckCircle2, Navigation } from "lucide-react";
 import { statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partnerSim";
 
 function StatusPill({ status }) {
@@ -47,7 +46,7 @@ function Action({ icon: Icon, label, onClick, tone = "default", testid }) {
   );
 }
 
-export default function PartnerDrawer({ partner: p, onClose, onToggleHistory, historyOn, onLocate }) {
+export default function PartnerDrawer({ partner: p, onClose, onLocate }) {
   if (!p) return null;
   const working = isWorking(p.status);
   const job = p.activeJob;
@@ -139,13 +138,8 @@ export default function PartnerDrawer({ partner: p, onClose, onToggleHistory, hi
           </div>
 
           {/* quick actions (contextual) */}
-          <div className="grid grid-cols-2 gap-2">
-            <Action testid="action-profile" icon={User} label="View Profile" tone="primary" onClick={() => {}} />
-            <Action testid="action-locate" icon={Navigation} label="Locate" onClick={() => onLocate?.(p)} />
-            {working && <Action testid="action-job" icon={Briefcase} label="Active Job" onClick={() => {}} />}
-            <Action testid="action-call" icon={Phone} label="Call" onClick={() => { window.location.href = `tel:${p.phone.replace(/\s/g, "")}`; }} />
-            <Action testid="action-message" icon={MessageSquare} label="Message" onClick={() => {}} />
-            <Action testid="action-history" icon={History} label={historyOn ? "Hide History" : "Location History"} tone="ghost" onClick={() => onToggleHistory?.(p)} />
+          <div className="grid grid-cols-1 gap-2">
+            <Action testid="action-locate" icon={Navigation} label="Locate" tone="primary" onClick={() => onLocate?.(p)} />
           </div>
         </div>
       </aside>
