@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { MapPin, Search, ArrowRight, CheckCircle2, AlertTriangle, MapPinOff } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MapPin, Search, ArrowRight, CheckCircle2, AlertTriangle, MapPinOff, ChevronLeft, ChevronRight } from "lucide-react";
 import { pct } from "./pricingUtils";
 
 function CityTab({ c, active, onClick }) {
@@ -29,9 +29,59 @@ function CityTab({ c, active, onClick }) {
   );
 }
 
+function useDragScroll(count) {
+  const ref = useRef(null);
+  const drag = useRef({ down: false, x: 0, left: 0, moved: false });
+  const [edges, setEdges] = useState({ l: false, r: false });
+  const update = () => {
+    const el = ref.current;
+    if (!el) return;
+    const l = el.scrollLeft > 2, r = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+    setEdges((p) => (p.l === l && p.r === r ? p : { l, r }));
+  };
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    update();
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && el.scrollWidth > el.clientWidth) { e.preventDefault(); el.scrollLeft += e.deltaY; }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("resize", update);
+    return () => { el.removeEventListener("wheel", onWheel); window.removeEventListener("resize", update); };
+  }, [count]);
+  const handlers = {
+    onMouseDown: (e) => { drag.current = { down: true, x: e.pageX, left: ref.current.scrollLeft, moved: false }; },
+    onMouseMove: (e) => {
+      const d = drag.current;
+      if (!d.down) return;
+      const dx = e.pageX - d.x;
+      if (Math.abs(dx) > 5) d.moved = true;
+      if (d.moved) { e.preventDefault(); ref.current.scrollLeft = d.left - dx; }
+    },
+    onMouseUp: () => { drag.current.down = false; },
+    onMouseLeave: () => { drag.current.down = false; },
+    onClickCapture: (e) => { if (drag.current.moved) { e.stopPropagation(); e.preventDefault(); drag.current.moved = false; } },
+    onScroll: update,
+  };
+  const scrollBy = (dir) => ref.current?.scrollBy({ left: dir * ref.current.clientWidth * 0.7, behavior: "smooth" });
+  return { ref, handlers, edges, scrollBy };
+}
+
+function ArrowBtn({ dir, onClick }) {
+  const Icon = dir < 0 ? ChevronLeft : ChevronRight;
+  return (
+    <button type="button" onClick={onClick} data-testid={`pm-city-scroll-${dir < 0 ? "left" : "right"}`}
+      className={`absolute top-1/2 -translate-y-1/2 ${dir < 0 ? "left-0" : "right-0"} z-10 h-8 w-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md flex items-center justify-center text-slate-600 hover:text-[#0D47A1] hover:border-[#0D47A1]/60 transition-colors`}>
+      <Icon className="h-4 w-4" />
+    </button>
+  );
+}
+
 export default function CityNav({ cities, city, setCity, onManageAreas }) {
   const [q, setQ] = useState("");
   const shown = useMemo(() => cities.filter((c) => !q || c.city.toLowerCase().includes(q.toLowerCase())), [cities, q]);
+  const { ref, handlers, edges, scrollBy } = useDragScroll(shown.length);
 
   if (!cities.length) return (
     <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-8 text-center" data-testid="pm-no-areas">
@@ -64,9 +114,14 @@ export default function CityNav({ cities, city, setCity, onManageAreas }) {
           </button>
         </div>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
-        {shown.map((c) => <CityTab key={c.city_key} c={c} active={city === c.city} onClick={() => setCity(c.city)} />)}
-        {!shown.length && <p className="text-[13px] text-slate-400 py-3">No city matches “{q}”.</p>}
+      <div className="relative">
+        {edges.l && <ArrowBtn dir={-1} onClick={() => scrollBy(-1)} />}
+        <div ref={ref} {...handlers} data-testid="pm-city-scroller"
+          className="flex gap-2 overflow-x-auto pb-1 -mb-1 cursor-grab active:cursor-grabbing select-none [scrollbar-width:thin]">
+          {shown.map((c) => <CityTab key={c.city_key} c={c} active={city === c.city} onClick={() => setCity(c.city)} />)}
+          {!shown.length && <p className="text-[13px] text-slate-400 py-3">No city matches “{q}”.</p>}
+        </div>
+        {edges.r && <ArrowBtn dir={1} onClick={() => scrollBy(1)} />}
       </div>
     </div>
   );

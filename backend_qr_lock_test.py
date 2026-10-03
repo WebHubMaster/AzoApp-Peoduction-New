@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Base URL from frontend/.env
-BASE_URL = "https://pricing-hub-99.preview.emergentagent.com/api"
+BASE_URL = "https://pm-backend-frontend.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

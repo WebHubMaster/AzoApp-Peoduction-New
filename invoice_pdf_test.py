@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://pricing-hub-99.preview.emergentagent.com/api"
+BASE_URL = "https://pm-backend-frontend.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials
