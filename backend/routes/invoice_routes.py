@@ -354,3 +354,72 @@ async def get_invoice(invoice_id: str, user: dict = Depends(get_current_user)):
     if res == "forbidden":
         raise HTTPException(403, "You are not allowed to view this invoice")
     return res
+
+
+def _mask_name(n: str) -> str:
+    return " ".join((w[0] + "*" * max(1, len(w) - 1)) if len(w) > 1 else w for w in str(n or "").split())
+
+
+@router.get("/verify/{invoice_id}", response_class=HTMLResponse)
+async def invoice_verify_page(invoice_id: str, s: str = Query(default="")):
+    """PUBLIC page opened by scanning the invoice QR — confirms the invoice is genuine."""
+    inv = None
+    if s and hmac.compare_digest(s, inv_svc.verify_sig(invoice_id)):
+        inv = await inv_svc.get_invoice_public(invoice_id)
+    return HTMLResponse(content=_verify_html(inv, invoice_id), status_code=200 if inv else 404)
+
+
+def _verify_html(inv, invoice_id: str) -> str:
+    from services.invoice_html_service import _money, _fmt_date
+    ok = bool(inv)
+    biz = (inv or {}).get("business_snapshot") or {}
+    g = (inv or {}).get("gst_invoice") or {}
+    p1, p2 = g.get("platform") or {}, g.get("partner") or {}
+    cur = (inv or {}).get("currency") or "INR"
+    m = lambda v: _money(v, cur)  # noqa: E731
+    brand = _esc(str(biz.get("name") or "AzoApp"))
+    rows = []
+    if ok:
+        status = str(inv.get("payment_status") or inv.get("status") or "").replace("_", " ").title()
+        rows = [("Invoice No.", p1.get("number") or inv.get("invoice_number")),
+                ("Partner Receipt No.", p2.get("number")),
+                ("Invoice Date", _fmt_date(inv.get("issue_date"))),
+                ("Booking ID", inv.get("booking_code")),
+                ("Customer", _mask_name((inv.get("customer_snapshot") or {}).get("name"))),
+                ("Service", g.get("category") or inv.get("service_name")),
+                ("Issued By", biz.get("legal_name") or biz.get("name")),
+                ("GSTIN", biz.get("gst")),
+                ("Payment Status", status)]
+        if p1:
+            rows += [("Tax Invoice Amount", m(p1.get("subtotal"))),
+                     (f"CGST @{p1.get('cgst_pct', 9):g}%", m(p1.get("cgst"))),
+                     (f"SGST @{p1.get('sgst_pct', 9):g}%", m(p1.get("sgst"))),
+                     ("Partner Receipt Amount", m(p2.get("subtotal")))]
+        rows.append(("Total Paid", m(g.get("grand_total") or inv.get("total_amount"))))
+    trs = "".join(f'<tr><td class="k">{_esc(k)}</td><td class="v" data-testid="verify-{_esc(k).lower().replace(" ", "-").replace(".", "").replace("@", "").replace("%", "")}">{_esc(v)}</td></tr>'
+                  for k, v in rows if v not in (None, ""))
+    if ok:
+        head = f"""<div class="badge ok" data-testid="verify-status-genuine">
+          <svg viewBox="0 0 24 24" width="44" height="44"><circle cx="12" cy="12" r="11" fill="#059669"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div><div class="t">Genuine Invoice</div><div class="st">This invoice was issued by {brand} and its details are verified.</div></div></div>"""
+    else:
+        head = """<div class="badge bad" data-testid="verify-status-invalid">
+          <svg viewBox="0 0 24 24" width="44" height="44"><circle cx="12" cy="12" r="11" fill="#dc2626"/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg>
+          <div><div class="t">Could Not Verify</div><div class="st">This QR code is invalid or the invoice does not exist. Please contact support.</div></div></div>"""
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/><title>Invoice Verification · {brand}</title>
+<style>
+*{{box-sizing:border-box}} body{{margin:0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:#f1f5f9;color:#0f172a}}
+.wrap{{max-width:560px;margin:0 auto;padding:20px 16px 40px}}
+.brand{{font-weight:800;font-size:18px;margin:6px 0 16px}}
+.card{{background:#fff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(15,23,42,.07)}}
+.badge{{display:flex;gap:14px;align-items:center;padding:20px}} .badge.ok{{background:#ecfdf5;border-bottom:1px solid #a7f3d0}}
+.badge.bad{{background:#fef2f2}} .t{{font-size:20px;font-weight:800}} .ok .t{{color:#047857}} .bad .t{{color:#b91c1c}}
+.st{{font-size:13px;color:#475569;margin-top:2px}}
+table{{width:100%;border-collapse:collapse}} td{{padding:11px 20px;border-bottom:1px solid #f1f5f9;font-size:14px}}
+.k{{color:#64748b}} .v{{text-align:right;font-weight:600}} tr:last-child td{{border-bottom:0;font-size:16px;font-weight:800}}
+.foot{{text-align:center;color:#94a3b8;font-size:12px;margin-top:16px}}
+</style></head><body><div class="wrap" data-testid="invoice-verify-page">
+<div class="brand">{brand}</div><div class="card">{head}<table>{trs}</table></div>
+<div class="foot">Verification ID: {_esc(invoice_id[:8])} · Verified securely by {brand}</div>
+</div></body></html>"""

@@ -19,6 +19,19 @@ def _uid():
     return str(uuid.uuid4())
 
 
+def verify_sig(invoice_id: str) -> str:
+    import hmac
+    import hashlib
+    from middleware.auth import SECRET
+    return hmac.new(SECRET.encode(), f"invoice-verify:{invoice_id}".encode(), hashlib.sha256).hexdigest()[:24]
+
+
+def verify_url(invoice_id: str) -> str:
+    import os
+    base = (os.environ.get("REACT_APP_BACKEND_URL") or os.environ.get("PUBLIC_APP_URL") or "").rstrip("/")
+    return f"{base}/api/invoices/verify/{invoice_id}?s={verify_sig(invoice_id)}"
+
+
 # ---------------------------------------------------------------- number gen
 async def next_invoice_number(settings: dict) -> str:
     icfg = settings.get("invoice_config") or {}
@@ -1043,6 +1056,8 @@ async def fill_live_branding(inv: dict, force_theme: bool = True):
     snap["signature"] = live.get("signature")
     snap["signatory_name"] = live.get("signatory_name")
     inv["business_snapshot"] = snap
+    if inv.get("id") and inv.get("id") != "sample":
+        inv["verify_url"] = verify_url(inv["id"])
     if inv.get("invoice_type") == "booking" and not inv.get("gst_invoice") and inv.get("booking_id"):
         bk = await db.bookings.find_one({"id": inv["booking_id"]}, {"_id": 0})
         if bk:

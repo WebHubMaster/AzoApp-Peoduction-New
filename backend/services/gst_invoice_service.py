@@ -142,7 +142,8 @@ def build_html(inv: dict) -> str:
     biz_addr = ", ".join([x for x in [_ba] + [biz.get(k) for k in ("city", "zip")] if x and (x == _ba or str(x) not in _ba)])
     biz_state = state_with_code(biz.get("state"))
     sign = logo_to_data_uri(biz.get("signature") or "")
-    qr = _qr_data_uri(f"Invoice No: {p1.get('number')} | Amount: INR {p1.get('subtotal', 0):.2f}")
+    qr = _qr_data_uri(inv.get("verify_url") or
+                      f"Invoice No: {p1.get('number')} | Amount: INR {p1.get('subtotal', 0):.2f}")
     brand = (f'<img class="logo" src="{logo}"/>' if logo else "") + \
         f'<span class="bname">{_esc(biz.get("name") or "AzoApp")}</span>'
 
