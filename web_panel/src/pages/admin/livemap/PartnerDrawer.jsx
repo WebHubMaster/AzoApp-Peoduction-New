@@ -1,4 +1,4 @@
-import { X, Star, Clock, AlertTriangle, Briefcase, CheckCircle2, Navigation } from "lucide-react";
+import { X, Star, Clock, AlertTriangle, Briefcase, CheckCircle2 } from "lucide-react";
 import { statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partnerSim";
 
 function StatusPill({ status }) {
@@ -32,21 +32,7 @@ function Row({ label, value }) {
   );
 }
 
-function Action({ icon: Icon, label, onClick, tone = "default", testid }) {
-  const tones = {
-    default: "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800",
-    primary: "bg-primary-600 border-primary-600 text-white hover:bg-primary-700",
-    ghost: "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800",
-  };
-  return (
-    <button data-testid={testid} onClick={onClick}
-      className={`flex items-center justify-center gap-2 text-sm font-semibold px-3 py-2.5 rounded-xl border transition-colors ${tones[tone]}`}>
-      <Icon className="h-4 w-4" /> {label}
-    </button>
-  );
-}
-
-export default function PartnerDrawer({ partner: p, onClose, onLocate }) {
+export default function PartnerDrawer({ partner: p, onClose }) {
   if (!p) return null;
   const working = isWorking(p.status);
   const job = p.activeJob;
@@ -135,11 +121,6 @@ export default function PartnerDrawer({ partner: p, onClose, onLocate }) {
             <Row label="Today's Jobs" value={p.todayJobs} />
             <Row label="Today's Earnings" value={inr(p.todayEarnings)} />
             <Row label="Online Duration" value={p.online ? `${Math.floor((Date.now() - p.onlineSince) / 3600000)}h ${Math.floor(((Date.now() - p.onlineSince) % 3600000) / 60000)}m` : "—"} />
-          </div>
-
-          {/* quick actions (contextual) */}
-          <div className="grid grid-cols-1 gap-2">
-            <Action testid="action-locate" icon={Navigation} label="Locate" tone="primary" onClick={() => onLocate?.(p)} />
           </div>
         </div>
       </aside>
