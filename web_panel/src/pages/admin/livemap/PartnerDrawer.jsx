@@ -70,7 +70,7 @@ export default function PartnerDrawer({ partner: p, onClose, onToggleHistory, hi
               <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">{p.name}</h3>
               <p className="text-sm text-primary-600 dark:text-primary-400 font-semibold">{p.category}</p>
               <div className="flex items-center gap-2 mt-1">
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-500"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {p.rating}</span>
+                {p.rating != null && <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-500"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> {p.rating}</span>}
                 <StatusPill status={p.status} />
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function PartnerDrawer({ partner: p, onClose, onToggleHistory, hi
             <Row label="Category" value={p.categories.join(", ")} />
             <Row label="City" value={p.city} />
             <Row label="Coordinates" value={`${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}`} />
-            <Row label="Rating" value={<span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{p.rating}</span>} />
+            <Row label="Rating" value={p.rating != null ? <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{p.rating}</span> : "—"} />
             <Row label="Completed Jobs" value={p.completedJobs.toLocaleString("en-IN")} />
             <Row label="Today's Jobs" value={p.todayJobs} />
             <Row label="Today's Earnings" value={inr(p.todayEarnings)} />

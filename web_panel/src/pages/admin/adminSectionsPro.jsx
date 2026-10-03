@@ -805,21 +805,28 @@ export const ServiceWizard = () => {
     const columns = [
       { key: "name", label: "Service", sortable: true, render: (s) => (
         <div className="flex items-center gap-3">
-          {s.image ? <img src={s.image} alt="" className="h-10 w-10 rounded-lg object-cover shrink-0" /> : <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0"><ImageIcon className="h-4 w-4 text-slate-300" /></div>}
-          <div className="min-w-0"><p className="font-medium text-slate-800 dark:text-slate-100 truncate">{s.name}</p><p className="text-[11px] text-slate-400 truncate">/{s.slug || "—"}</p></div>
+          {s.image
+            ? <img src={s.image} alt="" className="h-11 w-11 rounded-[10px] object-cover shrink-0 border border-slate-200 dark:border-slate-700" />
+            : <div className="h-11 w-11 rounded-[10px] bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0"><ImageIcon className="h-4 w-4 text-slate-300" /></div>}
+          <div className="min-w-0"><p className="font-semibold text-[14.5px] text-slate-800 dark:text-slate-100 truncate leading-tight">{s.name}</p><p className="text-[12px] text-slate-400 truncate">/{s.slug || "—"}</p></div>
         </div>
       ) },
       { key: "base_price", label: "Price", sortable: true, render: (s) => (
-        <span className="whitespace-nowrap">{fmt(s.discounted_price || s.base_price)}{s.discounted_price > 0 && s.discounted_price < s.base_price && <span className="text-slate-400 line-through ml-1 text-xs">{fmt(s.base_price)}</span>}</span>
+        <span className="whitespace-nowrap font-semibold text-slate-900 dark:text-white">{fmt(s.discounted_price || s.base_price)}{s.discounted_price > 0 && s.discounted_price < s.base_price && <span className="text-slate-400 line-through ml-1 text-xs font-normal">{fmt(s.base_price)}</span>}</span>
       ), exportValue: (s) => s.discounted_price || s.base_price },
-      { key: "review_count", label: "Rating", sortable: true, render: (s) => s.review_count > 0 ? <span className="flex items-center gap-1 text-xs text-slate-500"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{s.rating} <span className="text-slate-400">({Number(s.review_count).toLocaleString("en-IN")})</span></span> : <span className="text-slate-300">—</span> },
-      { key: "is_featured", label: "Featured", render: (s) => <button onClick={() => toggle(s, "is_featured")} title="Toggle featured">{s.is_featured ? <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> : <Star className="h-4 w-4 text-slate-300" />}</button> },
+      { key: "review_count", label: "Rating", sortable: true, render: (s) => s.review_count > 0 ? <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-slate-700 dark:text-slate-200"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />{s.rating} <span className="text-slate-400 font-normal">({Number(s.review_count).toLocaleString("en-IN")})</span></span> : <span className="text-slate-300">—</span> },
+      { key: "is_featured", label: "Featured", render: (s) => (
+        <button onClick={() => toggle(s, "is_featured")} title={s.is_featured ? "Featured — click to unfeature" : "Not featured — click to feature"}
+          className={`h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors ${s.is_featured ? "bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100" : "hover:bg-slate-100 dark:hover:bg-slate-700"}`}>
+          {s.is_featured ? <Star className="h-4 w-4 fill-amber-400 text-amber-400" /> : <Star className="h-4 w-4 text-slate-300 dark:text-slate-500" />}
+        </button>
+      ) },
       { key: "status", label: "Status", render: (s) => <button onClick={() => toggle(s, "status")}><StatusPill s={s.status} /></button> },
-      { key: "_actions", label: "", render: (s) => (
+      { key: "_actions", label: "Actions", render: (s) => (
         <div className="flex gap-1.5">
-          <button onClick={() => duplicate(s)} title="Duplicate" data-testid={`dup-svc-${s.id}`} className="h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"><Copy className="h-4 w-4" /></button>
-          <button onClick={() => openEdit(s.id)} title="Edit" data-testid={`edit-svc-${s.id}`} className="h-8 w-8 rounded-lg text-primary-700 hover:bg-primary-50 flex items-center justify-center"><Pencil className="h-4 w-4" /></button>
-          <button onClick={() => del(s)} title="Delete" className="h-8 w-8 rounded-lg text-red-500 hover:bg-red-50 flex items-center justify-center"><Trash2 className="h-4 w-4" /></button>
+          <button onClick={() => duplicate(s)} title="Duplicate" data-testid={`dup-svc-${s.id}`} className="h-9 w-9 rounded-[10px] text-slate-500 bg-slate-50 dark:bg-slate-700/50 hover:bg-primary-50 hover:text-primary-700 dark:hover:bg-primary-900/30 flex items-center justify-center transition-colors"><Copy className="h-4 w-4" /></button>
+          <button onClick={() => openEdit(s.id)} title="Edit" data-testid={`edit-svc-${s.id}`} className="h-9 w-9 rounded-[10px] text-primary-700 bg-slate-50 dark:bg-slate-700/50 hover:bg-primary-50 dark:hover:bg-primary-900/30 flex items-center justify-center transition-colors"><Pencil className="h-4 w-4" /></button>
+          <button onClick={() => del(s)} title="Delete" className="h-9 w-9 rounded-[10px] text-red-500 bg-slate-50 dark:bg-slate-700/50 hover:bg-red-50 dark:hover:bg-red-900/30 flex items-center justify-center transition-colors"><Trash2 className="h-4 w-4" /></button>
         </div>
       ) },
     ];
@@ -830,12 +837,15 @@ export const ServiceWizard = () => {
     ];
     return (
       <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="font-heading font-extrabold text-xl text-slate-900 dark:text-white">Services</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{list.length} total · search, filter &amp; manage</p>
+        <div className="flex flex-wrap justify-between items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-4 shadow-[0_1px_3px_rgba(15,23,42,0.04)]">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-xl bg-primary-700 text-white flex items-center justify-center shadow-primarybtn shrink-0"><Layers className="h-5 w-5" /></div>
+            <div>
+              <h2 className="font-heading font-extrabold text-[22px] leading-tight text-slate-900 dark:text-white">Services</h2>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400">{list.length} total · Search, filter &amp; manage</p>
+            </div>
           </div>
-          <Button onClick={openNew} data-testid="add-service-btn" className="bg-primary-700 hover:bg-primary-800 gap-2"><Plus className="h-4 w-4" />Add New Service</Button>
+          <Button onClick={openNew} data-testid="add-service-btn" className="bg-primary-700 hover:bg-primary-800 active:scale-[0.98] transition-all gap-2 h-11 px-5 rounded-xl shadow-primarybtn font-semibold"><Plus className="h-4 w-4" />Add New Service</Button>
         </div>
         <DataTable title="All Services" rows={list} columns={columns} filters={filters}
           searchKeys={["name", "category_name", "slug"]} pageSize={10} exportName="services"

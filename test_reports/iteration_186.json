@@ -1,0 +1,35 @@
+{
+  "summary": "Design-only frontend verification of the Super Admin Live Partner Operations Command Center (/admin?tab=livemap). Authenticated programmatically via send-otp + verify-otp, injected azo_token, and ran a comprehensive Playwright test covering: page load, Google Map canvas, LIVE badge, 6 status counters, 200 partner rows of ALL statuses, drawer open/close, city filter (Patna + auto summary), category combine (Electrician), status chip filter, clear-filters, debounced search chip, all map controls (zoom/fit/fullscreen/layers overlay-menu with coverage/heatmap/traffic toggles, roadmap/satellite), legend, real-time updates every ~2.5s (counters mutated: 79->81), and dark-class propagation. All 25+ assertions passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "LivePartnerMap", "issues": ["Minor: Google Maps JS warning in console — 'loaded directly without loading=async' and 'google.maps.Marker is deprecated, use AdvancedMarkerElement'. Not functional, but worth upgrading loader to async + migrating to AdvancedMarkerElement to future-proof."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "LivePartnerMap.jsx is 655 lines — large but cohesive; could be split into subcomponents (StatCard/Chip/SummaryCard/ListPanel/OverlayMenu already inline) into own files for maintainability.",
+    "Google Maps loader uses legacy sync pattern — add loading=async and migrate google.maps.Marker -> AdvancedMarkerElement to avoid future breakage.",
+    "The required status cards exclude 'busy' (6 cards: available/on_job/travelling/delayed/offline/total) but 'busy' partners still count in total (observed sum=184 across 5 status cards + 16 busy = 200 total); legend shows Busy correctly. Confirm with product whether a Busy stat card is desired for parity."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "Admin phone +919000000000, OTP 123456 (loaded from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None (dataset is client-side simulated in partnerSim.js)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Live Partner Map is fully simulated client-side. Counters mutate every 2.5s so hard-coded numeric assertions must read live DOM. Patna had 34 partners; Patna+Electrician had 4 at test time (will vary). Available-only filter returned 80. 200 partner rows render by default including all statuses (not just available). Drawer, filters, chips, overlays, map controls all functional with testids as specified.",
+  "evidence": {
+    "partner_rows_default": 200,
+    "stat_total": "200 (172 online)",
+    "patna_total": 34,
+    "patna_electrician": 4,
+    "after_clear": 200,
+    "available_only": 80,
+    "realtime_counter_before_after": "79 -> 81 within 6s",
+    "drawer_open_then_close": "ok via data-testid='drawer-close'"
+  }
+}

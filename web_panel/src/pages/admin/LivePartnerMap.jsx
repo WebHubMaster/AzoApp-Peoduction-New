@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import { loadGoogleMaps as loadMaps } from "@/lib/gmaps";
+import api from "@/lib/api";
+import { useRealtime } from "@/context/RealtimeContext";
 import {
   generatePartners, simulateTick, CITIES, CATEGORIES, STATUS_ORDER,
   statusColor, statusLabel, isOnline, isWorking, timeAgo,
@@ -17,6 +19,56 @@ import PartnerDrawer from "@/pages/admin/livemap/PartnerDrawer";
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyBOfVVQzn1ggzK97kP2TEfN8Ogq_uDwZms";
 const CITY_MAP = Object.fromEntries(CITIES.map((c) => [c.name, c]));
+
+/* Derive a UI status from a REAL /admin/partners/live partner record. */
+function deriveStatus(p) {
+  if (p.online === false || !p.live_location) return "offline";
+  const aj = p.active_job;
+  if (aj) {
+    if (aj.delayed) return "delayed";
+    if (aj.status === "assigned") return "travelling";
+    if (aj.status === "arrived_shop" || aj.status === "arrived_customer") return "busy";
+    return "on_job";
+  }
+  return "available";
+}
+
+/* Map a REAL partner payload into the UI partner model used across this page. */
+function mapLivePartner(p) {
+  const loc = p.live_location || {};
+  const cc = CITY_MAP[p.city];
+  const aj = p.active_job;
+  const etaNum = aj ? (parseInt(aj.eta_label, 10) || aj.eta_min || 15) : 0;
+  return {
+    id: p.id,
+    partnerId: p.partner_code || p.id,
+    name: p.name || "Partner",
+    phone: p.phone || "",
+    avatar: p.photo || p.avatar || `https://i.pravatar.cc/120?u=${encodeURIComponent(p.id || Math.random())}`,
+    category: p.category || (p.categories && p.categories[0]) || "Service",
+    categories: (p.categories && p.categories.length) ? p.categories : (p.category ? [p.category] : []),
+    city: p.city || "",
+    cityCenter: cc ? { lat: cc.lat, lng: cc.lng } : (loc.lat != null ? { lat: loc.lat, lng: loc.lng } : { lat: 22.9, lng: 80 }),
+    status: deriveStatus(p),
+    online: p.online !== false && !!p.live_location,
+    lat: loc.lat, lng: loc.lng,
+    heading: Math.random() * Math.PI * 2,
+    rating: p.rating != null ? Number(p.rating) : null,
+    completedJobs: p.completed_jobs || 0,
+    todayJobs: p.today_jobs || 0,
+    todayEarnings: p.today_earnings || 0,
+    onlineSince: p.online_since ? Date.parse(p.online_since) : Date.now(),
+    coverageRadiusKm: p.radius_km || 5,
+    lastUpdate: p.live_location_at ? Date.parse(p.live_location_at) : Date.now(),
+    activeJob: aj ? {
+      service: aj.service_name || "Service", bookingCode: aj.code || "",
+      customer: aj.customer_name || "—", startedAt: aj.started_at ? Date.parse(aj.started_at) : Date.now(),
+      etaMin: etaNum, promisedMin: aj.promised_min || Math.max(1, etaNum - 5),
+      distanceKm: aj.distance_km != null ? aj.distance_km : 0,
+      custOffset: { dlat: 0.012, dlng: 0.012 },
+    } : null,
+  };
+}
 
 function haversine(a, b) {
   const R = 6371, toRad = (d) => (d * Math.PI) / 180;
@@ -37,6 +89,8 @@ const useDark = () => {
 
 export default function LivePartnerMap() {
   const dark = useDark();
+  const { subscribe } = useRealtime();
+  const [mode, setMode] = useState("demo"); // "real" once live partners load
   const [partners, setPartners] = useState(() => generatePartners(200));
   const [cityF, setCityF] = useState("all");
   const [catF, setCatF] = useState("all");
@@ -113,20 +167,56 @@ export default function LivePartnerMap() {
   const visKey = useMemo(() => filtered.map((p) => `${p.id}:${p.status}`).join("|") + `#${selectedId}#${overlays.partners}`, [filtered, selectedId, overlays.partners]);
   const filteredIds = useMemo(() => new Set(filtered.map((p) => p.id)), [filtered]);
 
-  /* ---------------- live simulation ---------------- */
+  /* ---------------- real data: fetch + realtime + poll ---------------- */
+  const fetchLive = useCallback(() => {
+    return api.get("/admin/partners/live").then((r) => {
+      const mapped = (r.data?.partners || []).map(mapLivePartner).filter((p) => p.lat != null && p.lng != null);
+      if (mapped.length) {
+        mapped.forEach((p) => targetRef.current.set(p.id, { lat: p.lat, lng: p.lng }));
+        setPartners(mapped);
+        setMode("real");
+        setLastSync(Date.now());
+      }
+    }).catch(() => {});
+  }, []);
+  useEffect(() => { fetchLive(); }, [fetchLive]);
+
+  // SSE live updates — move markers / refresh roster with no page reload
+  useEffect(() => subscribe((ev) => {
+    if (!ev) return;
+    if (ev.type === "partner_location" && ev.data?.id) {
+      targetRef.current.set(ev.data.id, { lat: ev.data.lat, lng: ev.data.lng });
+      setPartners((prev) => {
+        const i = prev.findIndex((p) => p.id === ev.data.id);
+        if (i === -1) { fetchLive(); return prev; }
+        const next = prev.slice();
+        next[i] = { ...next[i], lat: ev.data.lat, lng: ev.data.lng, lastUpdate: Date.now() };
+        return next;
+      });
+      setLastSync(Date.now());
+    } else if (["partner_status", "job_new", "job_update", "__resync__"].includes(ev.type)) {
+      fetchLive();
+    }
+  }), [subscribe, fetchLive]);
+
+  // poll every 15s once we are showing real data
   useEffect(() => {
+    if (mode !== "real") return undefined;
+    const id = setInterval(fetchLive, 15000);
+    return () => clearInterval(id);
+  }, [mode, fetchLive]);
+
+  /* ---------------- demo simulation (fallback only, no toasts) ---------------- */
+  useEffect(() => {
+    if (mode !== "demo") return undefined;
     const id = setInterval(() => {
-      const { partners: next, events } = simulateTick(partnersRef.current);
+      const { partners: next } = simulateTick(partnersRef.current);
       next.forEach((p) => targetRef.current.set(p.id, { lat: p.lat, lng: p.lng }));
       setPartners(next);
       setLastSync(Date.now());
-      events.forEach((e) => {
-        const c = statusColor(e.to);
-        toast(e.text, { description: `${statusLabel(e.from)} → ${statusLabel(e.to)}`, duration: 2600, style: { borderLeft: `4px solid ${c}` } });
-      });
     }, 2500);
     return () => clearInterval(id);
-  }, []);
+  }, [mode]);
 
   /* ---------------- map init ---------------- */
   useEffect(() => {
@@ -179,7 +269,7 @@ export default function LivePartnerMap() {
           <img src="${p.avatar}" width="38" height="38" style="border-radius:10px;object-fit:cover"/>
           <div><div style="font-weight:700;color:#0f172a">${p.name}</div><div style="font-size:12px;color:#1d4ed8;font-weight:600">${p.category}</div></div>
         </div>
-        <div style="margin-top:6px;font-size:12px;color:#334155">★ ${p.rating} · <span style="color:${c};font-weight:700">${statusLabel(p.status)}</span></div>
+        <div style="margin-top:6px;font-size:12px;color:#334155">${p.rating != null ? `★ ${p.rating} · ` : ""}<span style="color:${c};font-weight:700">${statusLabel(p.status)}</span></div>
         <div style="font-size:12px;color:#64748b">${p.city} · ${haversine(ref, p).toFixed(1)} km away</div>
         <div style="font-size:11px;color:#94a3b8">Updated ${timeAgo(p.lastUpdate)}</div>
         <button id="popup-view-${id}" data-testid="popup-view-${id}" style="margin-top:8px;width:100%;padding:7px;border:none;border-radius:9px;background:#0D47A1;color:#fff;font-weight:600;font-size:12px;cursor:pointer">View Details</button>
@@ -636,7 +726,7 @@ function ListPanel({ filtered, selectedId, onSelect, onHover, counts, embedded }
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{p.name}</p>
-                  <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-500"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span>
+                  {p.rating != null && <span className="inline-flex items-center gap-0.5 text-[11px] font-bold text-amber-500"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span>}
                 </div>
                 <p className="text-xs text-slate-500 truncate">{p.category} · {p.city}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
