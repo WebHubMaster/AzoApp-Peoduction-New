@@ -1,0 +1,30 @@
+{
+  "summary": "Frontend-only verification of the redesigned Super Admin 'Homepage Builder' (/admin?tab=homepage). All 13 spec items pass. Verified: initial load (hp-count=7, hp-stat-sections=7, hp-stat-active=7, hp-status=LIVE; API GET /api/admin/homepage-sections returns 7 sections in order hero_banner, popular_categories, featured_services, trending_services, coupons, faq, blog — cards render in the same order). Add flow: hp-add-type opens hp-type-menu, hp-type-search 'promo' narrows to promo_banner, hp-type-promo_banner selects it, hp-add-title/hp-add-subtitle filled, hp-add-submit POSTs with config.limit=8 and new card appears at end (title TEST_PROMO_SECTION, count 7→8). Expand: hp-expand-0 opens hp-body-0 with hp-title-0 / hp-subtitle-0 / hp-limit-0; typing marks hp-dirty-0 and hp-unsaved pill; hp-discard reverts and clears pill. Toggle: hp-toggle-0 marks hp-unsaved; hp-filter-disabled shows the toggled card, hp-filter-active hides it, hp-filter-all restores. Reorder via menu: hp-menu-0 → hp-menu-down-0 reorders in draft, hp-save PUTs with new order field — GET confirms order changed from ['hero_banner', 'popular_categories',...] to ['popular_categories', 'hero_banner',...]; restoration back to original succeeded. hp-sort with hp-sort-recent/type and hp-search non-empty display the 'Reordering is available in Default order...' hint (drag disabled). Drawer: hp-menu-edit-0 opens hp-drawer with hp-drawer-status, hp-drawer-title, hp-drawer-subtitle, hp-drawer-save; drawer save persists immediately (PUT) and GET confirms subtitle update. Duplicate: hp-menu-duplicate-6 (Blog) creates 'Latest from our blog (copy)' at end (count 7→8). Delete: hp-del-{i} opens hp-delete-confirm, hp-delete-confirm-btn removes it (count 8→7 back). Unsaved nav guard: making an edit then clicking the Dashboard sidebar item shows hp-leave-confirm; hp-leave-stay keeps user on builder. Preview: hp-preview-btn opens hp-preview-dialog with hp-preview-frame iframe loading '/'; hp-preview-desktop/tablet/mobile all switch active state. Mobile 390: hp-tab-sections / hp-tab-add present and switch panels; add panel visible after hp-tab-add; no document-level horizontal overflow (scrollWidth <= clientWidth). Regression: Commission & Refund (/admin?tab=category_commission) still loads; home-stats-live-toggle still present in Homepage Trust Stats below the builder. Final state restored: 7 sections, titles/subtitles/enabled all back to their original values; no TEST_ sections left on server. The 'Turn on alerts' toast overlays bottom-right but does not block any tested interaction.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "HomepageBuilderPro.jsx is ~297 lines and well below the 700 LoC threshold. Logic is split cleanly into AddSectionPanel/SectionCard/SectionDrawer/PreviewDialog/MiniPreview/TypePicker — good modularization.",
+    "saveAll uses Promise.all over per-section PUTs; a single failing diff rolls back nothing — consider a toast per-section failure or a bulk endpoint. Low priority (no observed failure).",
+    "sectionDiff uses JSON.stringify equality — ok here since config is plain JSON, but field-order sensitivity could create spurious diffs if a key is reinserted. Not observed.",
+    "merge() in HomepageBuilderPro keeps draft order for ids still present then appends new server ids — correctly preserves pending reorder across background loads.",
+    "AddSectionPanel initial state uses limit=8 string via Number(add.limit) on POST — OK but hp-add-limit accepts negative or 0 (type=number min=1 but min is not enforced on submit). Server likely ignores but consider parseInt and clamp. Minor.",
+    "SectionCard's draggable attribute is only true when canDrag is true; drop indicator (hp-drop-indicator) correctly flips above/below based on index comparison.",
+    "'[data-testid^=\"hp-section-\"]' pattern collides with 'hp-sections-panel' when authors query by prefix in tests — not a bug, just a testing note; consider renaming the panel testid to 'hp-sections-container' to avoid prefix collision.",
+    "Nav guard wires setNavGuard on mount and cleans up on unmount; beforeunload also registered — good.",
+    "No horizontal overflow at 390px; mobile tabs correctly swap Sections/Add panels using lg:hidden + hidden lg:block.",
+    "PreviewDialog iframe uses relative '/' which depends on same-origin preview — works in this environment."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only; all API calls under test returned 2xx)", "frontend": "100% of listed test flows"},
+  "test_credentials": "Admin +919000000000 role=admin OTP 123456 (POST /api/auth/verify-otp, token stored in localStorage 'azo_token')",
+  "seed_data_creation": "Transient only. Created and removed one TEST_PROMO_SECTION (promo_banner) and one 'Latest from our blog (copy)' section during testing. Temporarily swapped order of hero_banner <-> popular_categories and set hero_banner subtitle to ' DX'; all reverted at the end. Final state matches the pre-test baseline: 7 sections in the original order with original titles/subtitles/enabled flags.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Homepage Builder is fully functional via testids hp-*. Watch out when using prefix matches: '[data-testid^=\"hp-section-\"]' also matches 'hp-sections-panel' — use `:not([data-testid=\"hp-sections-panel\"])` or regex ^hp-section-\\d+$. hero_banner has empty title/subtitle in seed (shows 'untitled' placeholder). 'Modified By' now reads 'AzoApp Admin' for sections edited via the new UI (updated_by set from user.name). The 'Turn on alerts' toast persists bottom-right — dismiss with its close button if needed. Public URL has ~1-3s latency; use timeouts >=10s for first load."
+}

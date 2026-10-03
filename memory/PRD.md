@@ -281,3 +281,11 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 - Global admin design system: `html.admin-ds` (toggled by AdminDashboard mount) in index.css — compact type scale (text-base→14 … text-5xl→32 incl. responsive variants), 14px controls, 42px max control height, trimmed p-6/p-8/gap/space-y, compact sidebar, 20/24px content padding. Customer site unaffected.
 - Late Cancellation / No-show cards are placeholders ("Coming soon") — no backend rule yet.
 - Tested: iteration_171 — 100% frontend flows.
+
+## Update — Homepage Builder premium redesign (2026-06)
+- New `pages/admin/HomepageBuilderPro.jsx` + `pages/admin/homepage/` (meta, TypePicker (searchable, icon+desc), AddSectionPanel (sticky), SectionCard (collapsible, drag handle, mini preview, status pill, ⋮ menu), SectionDrawer (right Sheet, reuses SectionConfig), PreviewDialog (iframe '/', desktop/tablet/mobile), MiniPreview).
+- Draft workflow client-side: inline edits/toggles/reorder → "Unsaved Changes" → Save Changes PUTs diffs + order; Reset discards; drawer Save Section, Add, Duplicate, Delete (confirm) persist immediately. Sections now also store `updated_at`/`updated_by` (frontend-sent).
+- `lib/navGuard.js`: sidebar navigation guarded while dirty (Stay / Leave Without Saving) + beforeunload.
+- Old HomepageBuilder removed from adminSectionsPro (helpers exported). HomeStatsControl kept below builder.
+- No backend publish/draft flag exists → "LIVE" status is derived from active sections.
+- Tested: iteration_172 — 100%.
