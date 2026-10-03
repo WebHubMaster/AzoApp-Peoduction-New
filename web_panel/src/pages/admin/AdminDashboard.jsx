@@ -353,7 +353,7 @@ export default function AdminDashboard() {
       <>
       {active === "dashboard" && <AdminDashboardHome onOpenBooking={(b) => setBookingDetailId(b.id)} onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }} />}
       {active === "bookings" && <BookingsPro onOpen={(b) => setBookingDetailId(b.id)} onOpenCustomer={(id) => setViewUser(id)} tab={bookingsTab} onTabChange={setBookingsTab} />}
-      {active === "subscriptions" && <SubscriptionsAdmin />}
+      {active === "subscriptions" && <SubscriptionsAdmin onOpenCustomer={(id) => setViewUser(id)} />}
       {active === "payouts" && <S.PayoutsSection />}
       {active === "refunds" && <RefundsHub />}
       {active === "partners" && <PeopleList role="partner" onView={setViewUser} onCountsChanged={loadDots} />}
