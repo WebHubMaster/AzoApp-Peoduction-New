@@ -157,8 +157,7 @@ export default function Services() {
     api.get(`/catalog/category/${slug}`).then((r) => setCatMeta(r.data || null)).catch(() => setCatMeta(null));
   }, [slug]);
 
-  // Lookup maps so cards + section headings can show the admin-set category icon/desc.
-  const catById = useMemo(() => Object.fromEntries(cats.map((c) => [c.id, c])), [cats]);
+  // Lookup map so section headings can show the admin-set category icon/desc.
   const catByName = useMemo(() => Object.fromEntries(cats.map((c) => [c.name, c])), [cats]);
 
   const filtered = useMemo(() => services.filter((s) =>

@@ -1,7 +1,7 @@
 import CityPage from "@/pages/customer/CityPage";
 import "@/App.css";
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -51,6 +51,13 @@ const Protected = ({ role, children }) => {
   return children;
 };
 
+// Re-keyed on every route change so each screen plays a subtle app-like
+// enter transition (slide-up + fade) — gives the web experience a native feel.
+const RouteTransition = ({ children }) => {
+  const location = useLocation();
+  return <div className="app-page" key={location.pathname}>{children}</div>;
+};
+
 function App() {
   return (
     <div className="App">
@@ -64,6 +71,7 @@ function App() {
           <MaintenanceBanner />
           <MerchantRefCatcher />
           <Suspense fallback={<RouteFallback />}>
+          <RouteTransition>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/services" element={<Services />} />
@@ -90,6 +98,7 @@ function App() {
             <Route path="/admin/user/:id" element={<Protected role="admin"><UserDetail /></Protected>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </RouteTransition>
           </Suspense>
           <CustomJobFAB />
         </BrowserRouter>
