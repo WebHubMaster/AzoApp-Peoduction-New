@@ -18,14 +18,16 @@ export default function ServicePrices({ data, edit, setPrices, setRatecards, onG
   const [selectedCat, setSelectedCat] = useState(() => data.all_categories[0]?.id || "");
 
   const enabledCats = new Set(edit.categories);
-  const ql = q.toLowerCase();
-  const matchQ = (s) => !q || s.name.toLowerCase().includes(ql) ||
-    (s.category_name || "").toLowerCase().includes(ql) ||
-    (s.addons || []).some((a) => a.toLowerCase().includes(ql));
 
-  const list = useMemo(() => data.all_services.filter((s) =>
-    (cat === "all" || s.category_id === cat) && matchQ(s) &&
-    (!onlyMissing || !isPriced(s, edit.prices[s.id]))), [data, cat, q, onlyMissing, edit.prices]);
+  const list = useMemo(() => {
+    const ql = q.toLowerCase();
+    const matchQ = (s) => !q || s.name.toLowerCase().includes(ql) ||
+      (s.category_name || "").toLowerCase().includes(ql) ||
+      (s.addons || []).some((a) => a.toLowerCase().includes(ql));
+    return data.all_services.filter((s) =>
+      (cat === "all" || s.category_id === cat) && matchQ(s) &&
+      (!onlyMissing || !isPriced(s, edit.prices[s.id])));
+  }, [data, cat, q, onlyMissing, edit.prices]);
 
   const missingCount = data.all_services.filter((s) => !isPriced(s, edit.prices[s.id])).length;
   const groups = data.all_categories

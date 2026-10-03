@@ -330,3 +330,15 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 - Service wizard: price fields removed (service, variant, subscription plan) → note to use Price Manager.
 ## Backlog
 - CSV import/export of city prices; validate rate-card custom_price server-side against city price; customer "not available in your city" empty state.
+
+---
+## Session (2026-06) — Price Manager PREMIUM full-width redesign (web_panel)
+GOAL: Redesign Super Admin "Price Manager" into a premium, full-width enterprise pricing system WITHOUT breaking existing service/city/category/add-on/MRP/fees/rate-card logic or APIs.
+ENV NOTE: pod reset had wiped .env files again → restored /app/backend/.env (MONGO_URL local, DB_NAME=azoapp_database, JWT_SECRET, CACHE_ENCRYPTION_KEY, CORS, REACT_APP_BACKEND_URL=https://pricing-hub-99.preview.emergentagent.com) and /app/web_panel/.env; reinstalled web_panel node_modules; backend re-seeded.
+BACKEND (city_pricing_service.py):
+- list_cities(): cities now come ONLY from ACTIVE service_areas (status!=inactive) + their city_pricing docs; never leaks non-area cities. Added fields status, total_services, improved priced_services (_sp_is_priced). include_all=True kept for seed_from_current.
+- admin_city(): now returns updated_at + updated_by.
+- copy_city(): accepts optional include scopes [services,addons,mrp,fees,categories,ratecards]; default=all (back-compat). price_manager_routes /copy passes include.
+FRONTEND (web_panel/src/pages/admin/pricing/): full rewrite — PriceManager.jsx (full-width, premium header, unsaved-change summary, beforeunload guard, onNavigate→service_areas), CityNav.jsx (service-area city tabs w/ status dot + X/Y priced progress + Manage Service Areas link; NO '+ Add city'; empty state), PricingSummary.jsx (6 real-value cards), ServicePrices.jsx (two-panel: category-grouped list w/ progress + search/filter/only-missing/fix-missing + bulk select; sticky category-aware Rate Card panel), ServicePriceRow.jsx (compact row, status badge, add-on/variant expand, live savings preview), CategoryRateCardPanel.jsx (sticky, editable), BulkUpdateBar.jsx (inc/dec%/set/mrp/enable/disable w/ preview), CopyCityDialog.jsx (2-step scopes+review+overwrite warning), CityCategories/CityFees/RateCardPrices restyled compact. pricingUtils.js (isPriced/svcStatus/bump/inr/pct/relTime). AdminDashboard.jsx renders <PriceManager onNavigate={setActive}/>.
+BUILD: cd /app/web_panel && PUBLIC_URL=/api/panel yarn build (served by FastAPI at /api/panel).
+VERIFIED: testing agent iteration_179 — backend 7/7 PASS, all frontend flows PASS, no bugs. Full-width, 0 horizontal overflow desktop; mobile stacks.

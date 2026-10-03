@@ -1,0 +1,34 @@
+{
+  "summary": "Iter179 — Full backend + frontend verification of the redesigned premium Price Manager in web_panel. Backend 7/7 PASS: (a) GET /api/admin/price-manager/cities returns active-service-area cities only (patna, ranchi, samastipur) with all required fields (city, city_key, configured, status, priced_services, total_services, categories, updated_at); the stale 'TestCityIter178' doc does NOT leak since it has no active area. (b) GET /api/admin/price-manager/city/Patna returns updated_at, updated_by, categories, fees, fee_defaults, prices, ratecards, all_categories, all_services and rate_cards (each with category_id). (c) PUT round-trip: modifying one service's base price persists and does not corrupt other services. (d) POST /copy with include=['services'] correctly leaves destination fees + ratecards untouched while adjusting services by +10%; full-include and no-include defaults also work. Frontend: logged in by minting /api/auth/verify-otp token and injecting into localStorage.azo_token, navigated to /api/panel/admin?tab=price_manager. All critical data-testids present (price-manager, pm-city-nav/-patna/-ranchi, pm-manage-areas, pm-tab-services/-categories/-fees/-ratecards, pm-search, pm-cat-filter, pm-only-missing, pm-bulk-toggle/-action/-value/-apply, pm-copy-btn/-dialog/-from/-review/-confirm/-scope-*, pm-save-btn, pm-ratecard-panel, pm-unsaved). Confirmed: NO '+ Add city' input anywhere, city tabs come from Service Areas with 'Fully priced' status dot, Manage Service Areas link navigates to tab=service_areas, summary cards render real values (16/16/0/7/33/₹693), editing a price marks pm-unsaved + enables pm-save-btn + Save Changes persists (toast appears, banner clears), Search filter narrows groups, Only-missing toggle works, selecting a different category header swaps the sticky Rate Card panel (AC Repair & Service → Electrician), Bulk Update enters select mode with 13 row selectors, Copy From City dialog opens with 6 scopes + pct input + Review Changes → Apply Copy flow.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter179_price_manager_premium.py",
+    "/app/test_reports/pytest/iter179.xml"
+  ],
+  "action_items": [
+    "Minor UX: when AuthContext finishes loading and no token exists, Protected still works correctly; but there is no fallback UI if the mint-token helper is needed. Consider exposing a one-click 'Admin' quick login on /api/panel/login for easier testing (same as /app/frontend/.../login).",
+    "The spec listed 'pm-tab-ratecard' but the code uses 'pm-tab-ratecards' (plural). Not a bug, but keep docs in sync."
+  ],
+  "critical_code_review_comments": [
+    "PricingSummary.jsx initially missed data-testid on 4 of the 6 summary cards (Total Services, Categories, Add-ons, Average Price). Added them so automated tests can read values. See /app/web_panel/src/pages/admin/pricing/PricingSummary.jsx.",
+    "city_pricing_service.list_cities correctly joins active service_areas with city_pricing docs and never leaks non-area cities (verified by TestCitiesList.test_cities_derived_from_active_areas_only).",
+    "copy_city respects the include set: services-only copy preserves destination fees and ratecards (verified end-to-end against live backend)."
+  ],
+  "updated_files": [
+    "/app/web_panel/src/pages/admin/pricing/PricingSummary.jsx (added data-testid to Total/Categories/Add-ons/Avg cards)",
+    "/app/web_panel/build/** (rebuilt via `cd /app/web_panel && PUBLIC_URL=/api/panel yarn build`)",
+    "/app/backend/tests/test_iter179_price_manager_premium.py (new)"
+  ],
+  "success_rate": {"backend": "100% (7/7)", "frontend": "100% of enumerated flows verified"},
+  "test_credentials": "Admin OTP: phone +919000000000, OTP 123456, role=admin. Panel URL: {BACKEND}/api/panel/admin?tab=price_manager. Mint token via POST /api/auth/verify-otp and store in localStorage.azo_token.",
+  "seed_data_creation": "No new seed data. Patna/Ranchi state is restored at the end of every mutating test (PUT and copy flows).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend regression at /app/backend/tests/test_iter179_price_manager_premium.py — run with `REACT_APP_BACKEND_URL=<panel_base> pytest ... -o addopts=''`. UI access path: mint token via /api/auth/verify-otp, inject into localStorage.azo_token on /api/panel/login, then navigate to /api/panel/admin?tab=price_manager. All critical data-testids are present (see summary). When rebuilding web_panel, use `cd /app/web_panel && PUBLIC_URL=/api/panel yarn build`. Spec listed pm-tab-ratecard but actual key is pm-tab-ratecards (plural). Copy dialog uses two-step: pm-copy-review (step 1) then pm-copy-confirm appears on step 2.",
+  "rca of the issue": "No bugs found. The only gap was 4 summary cards lacking data-testid attributes — a testability gap, not a functional defect. Fixed and rebuilt. All other spec items verified against live backend and live UI."
+}

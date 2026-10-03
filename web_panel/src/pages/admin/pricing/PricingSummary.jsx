@@ -23,12 +23,12 @@ export default function PricingSummary({ data, edit }) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3" data-testid="pm-summary">
-      <Card icon={Package} label="Total Services" value={all.length} ring="text-slate-400" />
+      <Card icon={Package} label="Total Services" value={all.length} ring="text-slate-400" tid="pm-summary-total" />
       <Card icon={CheckCircle2} label="Priced" value={priced} tone="text-emerald-600" ring="text-emerald-500" tid="pm-summary-priced" />
       <Card icon={AlertTriangle} label="Missing Price" value={missing} tone={missing ? "text-amber-600" : "text-slate-900 dark:text-white"} ring={missing ? "text-amber-500" : "text-slate-400"} tid="pm-summary-missing" />
-      <Card icon={Layers} label="Categories" value={edit.categories.length} ring="text-[#0D47A1]" />
-      <Card icon={Tag} label="Add-ons" value={addonTotal} ring="text-indigo-500" />
-      <Card icon={IndianRupee} label="Average Price" value={avg ? inr(avg) : "—"} ring="text-[#2563EB]" />
+      <Card icon={Layers} label="Categories" value={edit.categories.length} ring="text-[#0D47A1]" tid="pm-summary-categories" />
+      <Card icon={Tag} label="Add-ons" value={addonTotal} ring="text-indigo-500" tid="pm-summary-addons" />
+      <Card icon={IndianRupee} label="Average Price" value={avg ? inr(avg) : "—"} ring="text-[#2563EB]" tid="pm-summary-avg" />
     </div>
   );
 }
