@@ -65,6 +65,27 @@ h1, h2, h3, h4, h5, .font-heading {
 .no-scrollbar::-webkit-scrollbar { display: none !important; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ── Premium skeleton shimmer (used by the All Services loading grid) ── */
+.shimmer-block {
+    position: relative;
+    overflow: hidden;
+    background-color: rgb(226 232 240 / 0.8); /* slate-200 */
+}
+.dark .shimmer-block { background-color: rgb(51 65 85 / 0.6); } /* slate-700 */
+.shimmer-block::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.55), transparent);
+    animation: azo-shimmer 1.4s infinite;
+}
+.dark .shimmer-block::after {
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.08), transparent);
+}
+@keyframes azo-shimmer { 100% { transform: translateX(100%); } }
+
+
 /* ── Mobile safety: never let the WHOLE app scroll sideways ──────────────────
    Root cause of the "panel drags left/right on mobile" report: scrollbars are
    hidden globally (above), so any stray full-width element let the entire page

@@ -7,7 +7,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://booking-surge-fix.preview.emergentagent.com/api"
+BASE_URL = "https://services-marketplace-15.preview.emergentagent.com/api"
 OTP = "123456"
 
 CUSTOMER_PHONE = "+919000000004"

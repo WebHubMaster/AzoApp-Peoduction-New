@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://booking-surge-fix.preview.emergentagent.com/api"
+BASE_URL = "https://services-marketplace-15.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

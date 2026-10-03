@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://booking-surge-fix.preview.emergentagent.com  
+**App URL:** https://services-marketplace-15.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary
