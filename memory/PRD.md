@@ -381,3 +381,17 @@ Backlog / next:
 - Server-side pagination for `/admin/bookings` if dataset grows large (currently client-side over full list).
 - Optional "N new searching jobs" banner when on page 2+ (currently a toast only).
 - Wire `PartnerCoverage` panel into the page if a live map section is desired.
+
+---
+
+## Live Dispatch Feed redesign (2026-10-03)
+Premium real-time "dispatch command center" redesign of `AdminDispatchFeed` + `NoPartnerAlerts` + `DispatchTuning` in `web_panel/src/pages/admin/adminRealtimeSections.jsx`. All dispatch/SSE/assign logic preserved.
+
+- Premium header (broadcast icon, subtitle, animated LIVE pill, "Updated Ns ago", refresh) + connection-interrupted banner.
+- Action Required command card (subtle red gradient, count badge, booking row with category/customer/location/amount/wave) → premium searchable AssignDrawer (reused) → assign removes card + success toast, no refresh.
+- Dispatch Control Center: 4 premium gradient-fill sliders (Wave Size / Ring Timeout / Max Waves / Nearby Radius) + premium Switch toggle with info tooltip + "Live configuration" badge.
+- KPI command cards (Total / Pending / Accepted / Rejected / Avg Response) click-to-filter with pop animation.
+- Dispatch Activity table: search + status filter + refresh, sticky header, 9 columns (When/Booking/Partner/Source/Push/Seen/Response/Speed/Status), RESPONSE + distinct STATUS stage badges, row-click → DispatchInspector timeline drawer, rows-per-page pagination (10/20/50/100), skeleton loaders, premium radar empty state, "N new dispatch attempts · View latest" banner when on page 2+, real-time row highlight + accept toast.
+- Reused `components/admin/DispatchInspector.jsx` (timeline) + `AssignDrawer`. Dark-mode classes throughout.
+
+Verified (browser automation): desktop (Action Required + Control Center + KPIs render), assign flow (toast + card removal + empty-state table), mobile 390px (full-screen assign drawer, table horizontal-scroll, no page overflow). ESLint 0 errors.

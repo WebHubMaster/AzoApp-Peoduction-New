@@ -6,12 +6,17 @@ import { useRealtime } from "@/context/RealtimeContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Radio, RefreshCw, Users, Layers, MapPin, Search, Bell, Volume2, ShieldCheck,
   Briefcase, CheckCircle2, Clock, XCircle, Star, Filter, X, ChevronLeft, ChevronRight,
   SlidersHorizontal, AlertTriangle, UserPlus, BellRing, Loader2,
+  Gauge, Timer, Info, Wifi, WifiOff, Send, Eye, Activity, Radar, ChevronDown, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
+import DispatchInspector from "@/components/admin/DispatchInspector";
+import { AssignDrawer } from "@/components/admin/LiveOpsSearching";
 
 /* ================= shared bits ================= */
 const LiveDot = ({ connected }) => (
@@ -443,21 +448,30 @@ function timeAgo(iso) {
   if (s < 86400) return `${Math.round(s / 3600)}h ago`;
   return new Date(iso).toLocaleString();
 }
-/* ── Dispatch Tuning: live sliders for wave size / ring timeout / max waves ── */
-const TuneSlider = ({ k, label, min, max, step = 1, unit, help, value, disabled, onDrag, onCommit }) => (
-  <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</span>
-      <span className="text-sm font-extrabold text-primary-700 dark:text-primary-300">{value}{unit}</span>
+/* ── Dispatch Control Center: premium live sliders ── */
+const JK_FONT = "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif";
+const ControlCard = ({ k, icon: Icon, label, min, max, step = 1, unit, help, value, disabled, onDrag, onCommit }) => {
+  const pct = Math.max(0, Math.min(100, Math.round(((value - min) / (max - min)) * 100)));
+  return (
+    <div className="rounded-2xl border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] p-4 transition-shadow hover:shadow-[0_10px_28px_-12px_rgba(13,71,161,.25)]" style={{ fontFamily: JK_FONT }}>
+      <div className="flex items-center justify-between mb-3">
+        <span className="inline-flex items-center gap-2 text-[13px] font-bold text-[#334155] dark:text-[#F8FAFC]">
+          <span className="h-8 w-8 rounded-lg bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] grid place-items-center"><Icon className="h-4 w-4" /></span>
+          {label}
+        </span>
+        <span className="text-[20px] font-extrabold text-[#0D47A1] dark:text-[#3B82F6] tabular-nums leading-none">{value}<span className="text-[12px] font-bold text-[#64748B] ml-0.5">{unit}</span></span>
+      </div>
+      <input data-testid={`tune-${k}`} type="range" min={min} max={max} step={step} value={value}
+        onChange={(e) => onDrag(Number(e.target.value))}
+        onMouseUp={(e) => onCommit(Number(e.target.value))}
+        onTouchEnd={(e) => onCommit(Number(e.target.value))}
+        disabled={disabled} className="azo-range" aria-label={label}
+        style={{ background: `linear-gradient(90deg,#0D47A1 ${pct}%, #E5EAF0 ${pct}%)` }} />
+      <div className="flex justify-between text-[10px] text-[#94A3B8] mt-1.5"><span>{min}{unit}</span><span>{max}{unit}</span></div>
+      <p className="text-[11.5px] text-[#64748B] dark:text-[#94A3B8] mt-2 leading-relaxed">{help}</p>
     </div>
-    <input data-testid={`tune-${k}`} type="range" min={min} max={max} step={step} value={value}
-      onChange={(e) => onDrag(Number(e.target.value))}
-      onMouseUp={(e) => onCommit(Number(e.target.value))}
-      onTouchEnd={(e) => onCommit(Number(e.target.value))}
-      className="w-full accent-primary-600 cursor-pointer" disabled={disabled} />
-    <p className="text-[11px] text-slate-500 mt-1.5">{help}</p>
-  </div>
-);
+  );
+};
 
 function DispatchTuning() {
   const [cfg, setCfg] = useState(null);
@@ -493,50 +507,55 @@ function DispatchTuning() {
   const drag = (k) => (v) => setCfg((c) => ({ ...c, [k]: v }));
   const commit = (k) => (v) => save({ [k]: v });
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-900/40 p-4 mb-5" data-testid="dispatch-tuning">
-      <div className="flex items-center gap-2 mb-3 text-sm font-heading font-bold text-slate-900 dark:text-white">
-        <SlidersHorizontal className="h-4 w-4 text-primary-700" /> Dispatch Tuning
-        <span className="text-[11px] font-normal text-slate-400">— live, applies to new bookings</span>
+    <div className="rounded-2xl border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] p-5 mb-5" data-testid="dispatch-tuning" style={{ fontFamily: JK_FONT }}>
+      <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+        <div className="flex items-start gap-3">
+          <span className="h-10 w-10 rounded-xl bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] grid place-items-center shrink-0"><SlidersHorizontal className="h-5 w-5" /></span>
+          <div>
+            <h3 className="text-[17px] font-extrabold text-[#172033] dark:text-[#F8FAFC] leading-tight">Dispatch Control Center</h3>
+            <p className="text-[12.5px] text-[#64748B] dark:text-[#94A3B8] mt-0.5">Configure how new bookings are distributed to nearby partners</p>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#15803D] bg-[#E9F8EF] px-2.5 py-1 rounded-full">
+          <span className="h-2 w-2 rounded-full bg-[#16A34A] azo-live-dot" /> Live configuration
+        </span>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <TuneSlider k="dispatch_wave_size" label="Wave size" min={1} max={10} unit=" partners"
-          help="How many nearest partners are alerted per wave." value={cfg.dispatch_wave_size}
+        <ControlCard k="dispatch_wave_size" icon={Users} label="Wave Size" min={1} max={10} unit=" partner"
+          help="How many nearest eligible partners are alerted in each dispatch wave." value={cfg.dispatch_wave_size}
           disabled={saving} onDrag={drag("dispatch_wave_size")} onCommit={commit("dispatch_wave_size")} />
-        <TuneSlider k="dispatch_offer_ttl_sec" label="Ring timeout" min={10} max={180} step={5} unit="s"
-          help="Seconds a wave rings before auto-escalating to the next ring." value={cfg.dispatch_offer_ttl_sec}
+        <ControlCard k="dispatch_offer_ttl_sec" icon={Timer} label="Ring Timeout" min={10} max={180} step={5} unit="s"
+          help="How long a dispatch wave waits for a partner response before escalating." value={cfg.dispatch_offer_ttl_sec}
           disabled={saving} onDrag={drag("dispatch_offer_ttl_sec")} onCommit={commit("dispatch_offer_ttl_sec")} />
-        <TuneSlider k="dispatch_max_waves" label="Max waves" min={1} max={20} unit=" waves"
-          help="Safety cap on how many rings we escalate through." value={cfg.dispatch_max_waves}
+        <ControlCard k="dispatch_max_waves" icon={Radio} label="Max Waves" min={1} max={20} unit=" waves"
+          help="Maximum number of dispatch waves before manual escalation." value={cfg.dispatch_max_waves}
           disabled={saving} onDrag={drag("dispatch_max_waves")} onCommit={commit("dispatch_max_waves")} />
-        <div className="flex flex-col gap-1.5">
-          <TuneSlider k="nearby_assign_radius_km" label="Nearby assign radius" min={2} max={50} unit=" km"
-            help="Fallback zone when nobody in the customer's own pincode is free."
-            value={cfg.nearby_assign_radius_km} disabled={saving}
-            onDrag={drag("nearby_assign_radius_km")} onCommit={commit("nearby_assign_radius_km")} />
-          <label className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 cursor-pointer select-none px-1" data-testid="tune-nearby-wave-toggle">
-            <input type="checkbox" className="h-3.5 w-3.5 accent-primary-700" checked={cfg.dispatch_nearby_wave}
-              disabled={saving} onChange={(e) => save({ dispatch_nearby_wave: e.target.checked })} />
-            Auto-ring nearby-area partners as the last wave
-          </label>
+        <ControlCard k="nearby_assign_radius_km" icon={MapPin} label="Nearby Assign Radius" min={2} max={50} unit=" km"
+          help="Fallback search radius when no partner is available in the customer's primary area." value={cfg.nearby_assign_radius_km}
+          disabled={saving} onDrag={drag("nearby_assign_radius_km")} onCommit={commit("nearby_assign_radius_km")} />
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-[#E5EAF0] dark:border-[#1F2937] bg-[#F5F7FB] dark:bg-[#0B1220] px-4 py-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[13px] font-semibold text-[#334155] dark:text-[#F8FAFC]">Auto-ring nearby-area partners as the final wave</span>
+          <span className="relative group shrink-0" data-testid="tune-nearby-info">
+            <Info className="h-3.5 w-3.5 text-[#94A3B8] cursor-help" />
+            <span className="pointer-events-none absolute left-0 bottom-full mb-2 w-max max-w-[260px] rounded-lg bg-[#172033] text-white text-[11.5px] leading-snug px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity z-20 shadow-lg">
+              Automatically search nearby service areas when no eligible partner is available within the customer's primary zone.
+            </span>
+          </span>
         </div>
+        <Switch data-testid="tune-nearby-wave-toggle" checked={cfg.dispatch_nearby_wave} disabled={saving}
+          onCheckedChange={(v) => save({ dispatch_nearby_wave: v })} />
       </div>
     </div>
   );
 }
 
-/* ── No-Partner Alert: bookings stuck with no reachable partner + one-tap assign ── */
-// Online & free first, then on-a-job, then offline; within a group in-area before nearby, then fastest ETA.
-const AVAIL_RANK = { online: 0, busy: 1, offline: 2 };
-const sortAssignable = (list) => [...list].sort((a, b) =>
-  (AVAIL_RANK[a.availability] ?? 3) - (AVAIL_RANK[b.availability] ?? 3)
-  || (a.nearby ? 1 : 0) - (b.nearby ? 1 : 0)
-  || (a.eta_min ?? 1e9) - (b.eta_min ?? 1e9)
-  || (b.rating || 0) - (a.rating || 0));
+/* ── Action Required: bookings stuck with no reachable partner + premium assign drawer ── */
 function NoPartnerAlerts() {
   const { subscribe } = useRealtime();
   const [rows, setRows] = useState([]);
-  const [assigning, setAssigning] = useState("");
-  const [confirm, setConfirm] = useState(null); // {booking, partner}
+  const [assignBk, setAssignBk] = useState(null);
   const load = useCallback(async () => {
     try {
       const { data } = await api.get("/admin/dispatch-attention");
@@ -551,74 +570,55 @@ function NoPartnerAlerts() {
     return () => { off?.(); off2?.(); clearInterval(iv); };
   }, [subscribe, load]);
 
-  const pick = useCallback((b, partnerId) => {
-    if (!partnerId) return;
-    const p = (b.eligible_partners || []).find((x) => x.id === partnerId);
-    setConfirm({ booking: b, partner: p || { id: partnerId } });
-  }, []);
-  const assign = useCallback(async (bookingId, partnerId) => {
-    if (!partnerId) return;
-    setAssigning(bookingId);
-    try {
-      await api.post(`/admin/bookings/${bookingId}/assign`, { partner_id: partnerId });
-      toast.success("Partner assigned");
-      setConfirm(null);
-      setRows((r) => r.filter((x) => x.id !== bookingId));
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not assign");
-    } finally { setAssigning(""); }
+  const handleAssigned = useCallback((bookingId) => {
+    setRows((r) => r.filter((x) => x.id !== bookingId));
   }, []);
 
   if (!rows.length) return null;
   return (
     <>
-    {confirm && <AssignConfirm partner={confirm.partner} booking={confirm.booking} busy={assigning === confirm.booking.id}
-      onConfirm={() => assign(confirm.booking.id, confirm.partner.id)} onCancel={() => setConfirm(null)} />}
-    <div className="rounded-2xl border-2 border-red-200 dark:border-red-900/50 bg-red-50/70 dark:bg-red-900/10 p-4 mb-5" data-testid="no-partner-alerts">
-      <div className="flex items-center gap-2 mb-3 text-sm font-heading font-bold text-red-700 dark:text-red-300">
-        <AlertTriangle className="h-4 w-4" /> No partner available — needs manual assignment ({rows.length})
-      </div>
-      <div className="space-y-2">
-        {rows.map((b) => (
-          <div key={b.id} data-testid={`attention-${b.code}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-slate-800 border border-red-100 dark:border-red-900/30 px-4 py-3">
-            <div className="min-w-0">
-              <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm">#{b.code} · {b.service_name}{b.category_name ? <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 align-middle">{b.category_name}</span> : null}</p>
-              <p className="text-[11px] text-slate-500">{b.customer_name || "Customer"} · {[b.city, b.pincode].filter(Boolean).join(" ") || "—"} · {fmt(b.total)} · wave {b.wave}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <UserPlus className="h-4 w-4 text-slate-400" />
-              <PremiumSelect data-testid={`assign-${b.code}`} defaultValue="" placeholder="Assign a partner…" searchable
-                onChange={(e) => pick(b, e.target.value)} disabled={assigning === b.id}
-                className="h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm w-full sm:w-[560px]"
-                options={[
-                  { value: "", label: assigning === b.id ? "Assigning…" : "Assign a partner…" },
-                  ...sortAssignable(b.eligible_partners || []).map((p) => {
-                    const avail = p.availability === "busy" ? (busyLabel(p) || "On a job") : p.availability === "online" ? "Online" : "Offline";
-                    const cls = p.availability === "busy" ? "bg-amber-100 text-amber-700" : p.availability === "online" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300";
-                    const eta = p.eta_min != null ? `~${p.eta_min} min` : (p.distance_km != null ? `${p.distance_km} km` : "");
-                    const cat = p.category || (p.categories || []).slice(0, 2).join("/") || "—";
-                    return {
-                      value: p.id,
-                      label: `${p.name} · ${cat} · ${p.area || "—"}${p.nearby ? " (nearby)" : ""} · ${avail}${eta ? ` · ${eta}` : ""}`,
-                      keywords: `${p.phone || ""} ${p.city || ""}`,
-                      node: (
-                        <span className="flex items-center gap-2 min-w-0">
-                          <span className={`h-2 w-2 rounded-full shrink-0 ${p.availability === "online" ? "bg-emerald-500" : p.availability === "busy" ? "bg-amber-500" : "bg-slate-400"}`} />
-                          <span className="font-semibold text-slate-800 dark:text-slate-100 truncate">{p.name}</span>
-                          <span className="text-slate-500 truncate">· {cat} · {p.area || "—"}</span>
-                          {p.nearby && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 shrink-0">Nearby</span>}
-                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0 ${cls}`}>{avail}</span>
-                          {eta && <span className="text-xs text-primary-700 dark:text-primary-300 shrink-0">{eta}</span>}
-                        </span>
-                      ),
-                    };
-                  }),
-                ]} />
-            </div>
+      {assignBk && <AssignDrawer booking={assignBk} onClose={() => setAssignBk(null)} onAssigned={handleAssigned} />}
+      <div className="rounded-2xl border border-[#DC2626]/25 bg-gradient-to-br from-[#FEF2F2] to-[#FFF7F7] dark:border-[#7F1D1D]/40 dark:from-[#1C1114] dark:to-[#1A0F12] p-5 mb-5" data-testid="no-partner-alerts" style={{ fontFamily: JK_FONT }}>
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="h-9 w-9 rounded-xl bg-[#FDECEC] dark:bg-[#7F1D1D]/30 text-[#DC2626] grid place-items-center shrink-0 azo-search-dot"><AlertTriangle className="h-5 w-5" /></span>
+          <div>
+            <h3 className="text-[15px] font-extrabold text-[#991B1B] dark:text-[#FCA5A5] leading-tight flex items-center gap-2">
+              Action Required
+              <span className="text-[11px] font-bold text-white bg-[#DC2626] px-2 py-0.5 rounded-full" data-testid="attention-count">{rows.length}</span>
+            </h3>
+            <p className="text-[12.5px] text-[#B91C1C]/80 dark:text-[#FCA5A5]/70">No partner available — manual assignment required</p>
           </div>
-        ))}
+        </div>
+        <div className="space-y-2.5">
+          <AnimatePresence initial={false}>
+            {rows.map((b) => (
+              <motion.div key={b.id} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 40, transition: { duration: 0.22 } }}
+                data-testid={`attention-${b.code}`}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white dark:bg-[#111827] border border-[#FADCDC] dark:border-[#7F1D1D]/30 px-4 py-3.5">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-[12px] font-bold text-[#0D47A1] dark:text-[#3B82F6]">#{b.code}</span>
+                    <span className="text-[14px] font-bold text-[#172033] dark:text-[#F8FAFC]">{b.service_name}</span>
+                    {b.category_name && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#EEF2F7] dark:bg-[#1F2937] text-[#64748B] dark:text-[#94A3B8]">{b.category_name}</span>}
+                  </div>
+                  <div className="text-[12px] text-[#64748B] dark:text-[#94A3B8] mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{b.customer_name || "Customer"}</span>
+                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{[b.city, b.pincode].filter(Boolean).join(" ") || "—"}</span>
+                    <span className="font-semibold text-[#172033] dark:text-[#F8FAFC]">{fmt(b.total)}</span>
+                    <span className="inline-flex items-center gap-1"><Radio className="h-3 w-3" />Wave {b.wave}</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FEF5E7] text-[#B45309]">Manual Assignment Required</span>
+                  </div>
+                </div>
+                <button data-testid={`assign-${b.code}`} onClick={() => setAssignBk({ id: b.id, code: b.code, service_name: b.service_name })}
+                  className="h-10 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors shrink-0">
+                  <UserPlus className="h-4 w-4" /> Assign a Partner <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
     </>
   );
 }
@@ -669,6 +669,43 @@ export function TestRingButton({ partnerId, partnerName, className = "" }) {
   );
 }
 
+const STAGE_PILL = {
+  pending: { label: "Pending", cls: "bg-[#FEF5E7] text-[#B45309]" },
+  sent: { label: "Sent", cls: "bg-[#E8F1FD] text-[#1D4ED8]" },
+  seen: { label: "Seen", cls: "bg-[#EEF0FE] text-[#4F46E5]" },
+  accepted: { label: "Accepted", cls: "bg-[#E9F8EF] text-[#15803D]" },
+  rejected: { label: "Rejected", cls: "bg-[#FDECEC] text-[#DC2626]" },
+  timeout: { label: "Expired", cls: "bg-[#EEF2F7] text-[#64748B]" },
+  superseded: { label: "Taken", cls: "bg-[#EEF2F7] text-[#64748B]" },
+};
+const stageOf = (r) => {
+  if (["accepted", "rejected", "timeout", "superseded"].includes(r.response)) return r.response;
+  if (r.seen_at) return "seen";
+  if ((r.push_success || 0) > 0) return "sent";
+  return "pending";
+};
+const KPI_T = {
+  blue: { fg: "#0D47A1", bg: "#E6EDF8" }, amber: { fg: "#B45309", bg: "#FEF5E7" },
+  green: { fg: "#15803D", bg: "#E9F8EF" }, red: { fg: "#DC2626", bg: "#FDECEC" },
+  violet: { fg: "#4F46E5", bg: "#EEF0FE" },
+};
+const DispatchKpi = ({ label, value, icon: Icon, tone = "blue", onClick, active }) => {
+  const t = KPI_T[tone];
+  return (
+    <button type="button" onClick={onClick} data-testid={`dispatch-kpi-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`}
+      className={`text-left rounded-2xl bg-white dark:bg-[#111827] border p-4 flex items-start justify-between transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_rgba(13,71,161,.25)] ${active ? "ring-2 ring-[#0D47A1]/30" : ""}`}
+      style={{ fontFamily: JK_FONT, borderColor: active ? t.fg : "#E5EAF0" }}>
+      <div>
+        <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-[#64748B] dark:text-[#94A3B8]">{label}</p>
+        <p key={value} className="azo-kpi-pop text-[28px] font-extrabold leading-none mt-2 text-[#172033] dark:text-[#F8FAFC]">{value}</p>
+      </div>
+      <span className="h-10 w-10 rounded-xl grid place-items-center shrink-0" style={{ background: t.bg, color: t.fg }}><Icon className="h-5 w-5" /></span>
+    </button>
+  );
+};
+
+const clockOf = (iso) => iso ? new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true }) : "—";
+
 export function AdminDispatchFeed() {
   const { subscribe, connected } = useRealtime();
   const [rows, setRows] = useState([]);
@@ -676,6 +713,15 @@ export function AdminDispatchFeed() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("");                 // "" | pending | accepted | rejected
   const [refreshTick, setRefreshTick] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
+  const [openId, setOpenId] = useState(null);
+  const [lastSync, setLastSync] = useState(Date.now());
+  const [, setNowTick] = useState(0);
+  const [pendingNew, setPendingNew] = useState(0);
+  const pageRef = React.useRef(1);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -683,22 +729,25 @@ export function AdminDispatchFeed() {
       const { data } = await api.get(`/admin/dispatch-feed?limit=200${tab ? `&status=${tab}` : ""}`);
       setRows(data.rows || []);
       setTotals(data.totals || {});
+      setLastSync(Date.now());
     } catch (e) {
       toast.error(e?.response?.data?.detail || "Failed to load dispatch feed");
-    } finally { setLoading(false); }
+    } finally { setLoading(false); setRefreshing(false); }
   }, [tab]);
   useEffect(() => { load(); }, [load, refreshTick]);
+  useEffect(() => { const t = setInterval(() => setNowTick((n) => n + 1), 5000); return () => clearInterval(t); }, []);
+  useEffect(() => { setPage(1); }, [q, tab, perPage]);
 
   // Live SSE — merge in new / updated rows without a full refetch.
   useEffect(() => {
     const off1 = subscribe("dispatch_new", (r) => {
-      if (tab && tab !== "pending") return;         // filter tab respects live pushes
+      if (tab && tab !== "pending") return;
       setRows((prev) => [{ ...r, __new: true }, ...prev.filter((x) => x.id !== r.id)].slice(0, 300));
-      setTotals((t) => ({
-        ...t, total: (t.total || 0) + 1,
-        pending: (t.pending || 0) + 1,
-        pushed: (t.pushed || 0) + ((r.push_success || 0) > 0 ? 1 : 0),
-      }));
+      setTotals((t) => ({ ...t, total: (t.total || 0) + 1, pending: (t.pending || 0) + 1,
+        pushed: (t.pushed || 0) + ((r.push_success || 0) > 0 ? 1 : 0) }));
+      setLastSync(Date.now());
+      if (pageRef.current > 1) setPendingNew((n) => n + 1);
+      else toast("New dispatch attempt", { description: `${r.booking_code || ""} · ${r.partner_name || ""}`, icon: "📡" });
     });
     const off2 = subscribe("dispatch_response", (r) => {
       setRows((prev) => {
@@ -708,11 +757,9 @@ export function AdminDispatchFeed() {
         next[idx] = { ...prev[idx], ...r, __flash: r.response };
         return next;
       });
-      setTotals((t) => ({
-        ...t,
-        pending: Math.max(0, (t.pending || 0) - 1),
-        [r.response]: (t[r.response] || 0) + 1,
-      }));
+      setTotals((t) => ({ ...t, pending: Math.max(0, (t.pending || 0) - 1), [r.response]: (t[r.response] || 0) + 1 }));
+      setLastSync(Date.now());
+      if (r.response === "accepted") toast.success("Partner accepted", { description: `${r.partner_name || "Partner"} accepted ${r.booking_code || "the job"}` });
     });
     const off3 = subscribe("dispatch_seen", (r) => {
       setRows((prev) => {
@@ -726,103 +773,190 @@ export function AdminDispatchFeed() {
     return () => { off1?.(); off2?.(); off3?.(); };
   }, [subscribe, tab]);
 
+  const ql = q.trim().toLowerCase();
+  const filtered = ql ? rows.filter((r) => [r.booking_code, r.service_name, r.partner_name, r.partner_phone, SOURCE_LABEL[r.source] || r.source]
+    .some((v) => String(v || "").toLowerCase().includes(ql))) : rows;
+  const pageCount = Math.max(1, Math.ceil(filtered.length / perPage));
+  const cur = Math.min(page, pageCount);
+  useEffect(() => { pageRef.current = cur; if (cur === 1 && pendingNew) setPendingNew(0); }, [cur, pendingNew]);
+  const from = filtered.length === 0 ? 0 : (cur - 1) * perPage + 1;
+  const to = Math.min(cur * perPage, filtered.length);
+  const pageRows = filtered.slice((cur - 1) * perPage, cur * perPage);
+
+  const doRefresh = () => { setRefreshing(true); setRefreshTick((n) => n + 1); };
+
+  const KPIS = [
+    { label: "Total Dispatches", value: totals.total ?? 0, icon: Radio, tone: "blue", t: "" },
+    { label: "Pending", value: totals.pending ?? 0, icon: Clock, tone: "amber", t: "pending" },
+    { label: "Accepted", value: totals.accepted ?? 0, icon: CheckCircle2, tone: "green", t: "accepted" },
+    { label: "Rejected", value: totals.rejected ?? 0, icon: XCircle, tone: "red", t: "rejected" },
+    { label: "Avg Response", value: totals.avg_response_ms ? `${(totals.avg_response_ms / 1000).toFixed(1)}s` : "—", icon: Zap, tone: "violet", t: null },
+  ];
+
   return (
-    <div data-testid="admin-dispatch-feed">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-xl font-heading font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <Radio className="h-5 w-5 text-primary-700" /> Live Dispatch Feed
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">Real-time log of every partner-alert attempt · SSE-powered</p>
+    <div data-testid="admin-dispatch-feed" style={{ fontFamily: JK_FONT }}>
+      {openId && <DispatchInspector bookingId={openId} onClose={() => setOpenId(null)} />}
+
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
+        <div className="flex items-start gap-3">
+          <span className="h-11 w-11 rounded-xl grid place-items-center bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] shrink-0"><Radio className="h-5 w-5" /></span>
+          <div>
+            <h2 className="text-[24px] font-extrabold text-[#172033] dark:text-[#F8FAFC] leading-tight">Live Dispatch Feed</h2>
+            <p className="text-[13px] text-[#64748B] dark:text-[#94A3B8] mt-0.5">Real-time partner dispatch activity and response monitoring · <span className="text-[#94A3B8]">SSE-powered</span></p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <LiveDot connected={connected} />
-          <button onClick={() => setRefreshTick((n) => n + 1)} className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><RefreshCw className="h-4 w-4 text-slate-500" /></button>
+          <span data-testid="dispatch-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-full border text-[12.5px] font-bold"
+            style={{ borderColor: connected ? "#A7F3D0" : "#FDE68A", color: connected ? "#15803D" : "#B45309", background: connected ? "#ECFDF5" : "#FFFBEB" }}>
+            <span className={`h-2 w-2 rounded-full ${connected ? "bg-[#16A34A] azo-live-dot" : "bg-[#F59E0B] animate-pulse"}`} />
+            {connected ? "Live" : "Reconnecting…"}
+          </span>
+          <span className="hidden sm:inline text-[12px] text-[#94A3B8]" data-testid="dispatch-updated">Updated {timeAgo(new Date(lastSync).toISOString())}</span>
+          <button onClick={doRefresh} disabled={refreshing} title="Refresh dispatch feed" data-testid="dispatch-refresh"
+            className="h-9 w-9 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30">
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          </button>
         </div>
       </div>
+
+      {!connected && !loading && (
+        <div className="mb-4 rounded-xl border border-[#F59E0B]/40 bg-[#FFFBEB] px-4 py-2.5 flex items-center gap-2 text-[13px] text-[#B45309]" data-testid="dispatch-disconnected">
+          <WifiOff className="h-4 w-4 shrink-0" /> Connection interrupted — attempting to reconnect. Showing last known data.
+          <button onClick={doRefresh} className="ml-auto font-bold underline underline-offset-2">Reconnect</button>
+        </div>
+      )}
 
       <NoPartnerAlerts />
       <DispatchTuning />
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-        <KpiCard label="Total dispatches" value={totals.total ?? 0} icon={Radio} tone="slate" onClick={() => setTab("")} active={tab === ""} />
-        <KpiCard label="Pending" value={totals.pending ?? 0} icon={Clock} tone="amber" onClick={() => setTab("pending")} active={tab === "pending"} />
-        <KpiCard label="Accepted" value={totals.accepted ?? 0} icon={CheckCircle2} tone="emerald" onClick={() => setTab("accepted")} active={tab === "accepted"} />
-        <KpiCard label="Rejected" value={totals.rejected ?? 0} icon={XCircle} tone="red" onClick={() => setTab("rejected")} active={tab === "rejected"} />
-        <KpiCard label="Avg response" value={totals.avg_response_ms ? `${(totals.avg_response_ms / 1000).toFixed(1)}s` : "—"} icon={Bell} tone="blue" />
-      </div>
+      {/* KPI command center */}
+      {loading && rows.length === 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">{[0, 1, 2, 3, 4].map((i) => <div key={i} className="azo-skeleton rounded-2xl h-[92px]" />)}</div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-5">
+          {KPIS.map((k) => <DispatchKpi key={k.label} {...k} onClick={k.t === null ? undefined : () => setTab(k.t)} active={k.t !== null && tab === k.t} />)}
+        </div>
+      )}
 
-      <div className="rounded-2xl border border-slate-100 bg-white dark:bg-slate-900 overflow-hidden">
+      {/* Dispatch Activity table */}
+      <div className="rounded-2xl border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-[#EEF2F7] dark:border-[#1F2937]">
+          <div>
+            <h3 className="text-[15px] font-extrabold text-[#172033] dark:text-[#F8FAFC]">Dispatch Activity</h3>
+            <p className="text-[12px] text-[#64748B] dark:text-[#94A3B8]">Every partner-alert attempt in real time</p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+              <input data-testid="dispatch-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search booking, partner or service…"
+                className="h-10 w-full sm:w-64 pl-9 pr-3 rounded-xl border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#0B1220] text-[13.5px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
+            </div>
+            <Select value={tab || "all"} onValueChange={(v) => setTab(v === "all" ? "" : v)}>
+              <SelectTrigger data-testid="dispatch-status-filter" className="h-10 w-36 rounded-xl"><SelectValue placeholder="All status" /></SelectTrigger>
+              <SelectContent>
+                {["all", "pending", "accepted", "rejected"].map((s) => <SelectItem key={s} value={s} className="capitalize">{s === "all" ? "All status" : s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <button onClick={doRefresh} title="Refresh" className="h-10 w-10 rounded-xl border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+          </div>
+        </div>
+
+        {pendingNew > 0 && cur > 1 && (
+          <button onClick={() => setPage(1)} data-testid="dispatch-new-banner"
+            className="w-full bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] text-[13px] font-bold py-2 flex items-center justify-center gap-2 hover:bg-[#dbe6f6] transition-colors">
+            <Zap className="h-4 w-4" /> {pendingNew} new dispatch attempt{pendingNew > 1 ? "s" : ""} · View latest
+          </button>
+        )}
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase tracking-wider">
+            <thead className="sticky top-0 z-10 bg-[#F5F7FB] dark:bg-[#0B1220] text-[#64748B] dark:text-[#94A3B8] text-[11px] uppercase tracking-wider">
               <tr>
-                <th className="text-left font-semibold px-4 py-3">When</th>
-                <th className="text-left font-semibold px-4 py-3">Booking</th>
-                <th className="text-left font-semibold px-4 py-3">Partner</th>
-                <th className="text-left font-semibold px-4 py-3">Source</th>
-                <th className="text-left font-semibold px-4 py-3">Push</th>
-                <th className="text-left font-semibold px-4 py-3">Seen</th>
-                <th className="text-left font-semibold px-4 py-3">Response</th>
-                <th className="text-left font-semibold px-4 py-3">Speed</th>
+                {["When", "Booking", "Partner", "Source", "Push", "Seen", "Response", "Speed", "Status"].map((h) => (
+                  <th key={h} className="text-left font-bold px-4 py-3 whitespace-nowrap">{h}</th>
+                ))}
               </tr>
             </thead>
-            <tbody>
-              {loading && rows.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400"><RefreshCw className="h-5 w-5 mx-auto animate-spin" /></td></tr>
+            <tbody className="divide-y divide-[#F1F5F9] dark:divide-[#1F2937]">
+              {loading && rows.length === 0 && [0, 1, 2, 3, 4].map((i) => (
+                <tr key={i}><td colSpan={9} className="px-4 py-3"><div className="azo-skeleton h-8 rounded-lg" /></td></tr>
+              ))}
+              {!loading && filtered.length === 0 && (
+                <tr><td colSpan={9} className="px-4 py-16 text-center" data-testid="dispatch-empty">
+                  <span className="h-16 w-16 rounded-2xl bg-[#E6EDF8] dark:bg-[#0D47A1]/20 text-[#0D47A1] dark:text-[#3B82F6] grid place-items-center mx-auto mb-4"><Radar className="h-8 w-8" /></span>
+                  <h4 className="text-[16px] font-extrabold text-[#172033] dark:text-[#F8FAFC]">No dispatch attempts yet</h4>
+                  <p className="text-[13px] text-[#64748B] dark:text-[#94A3B8] mt-1.5 max-w-sm mx-auto">Dispatch activity will appear here automatically when a booking starts searching for a partner.</p>
+                </td></tr>
               )}
-              {!loading && rows.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-10 text-center text-slate-400">No dispatch attempts yet. Book something to see the feed light up.</td></tr>
-              )}
-              {rows.map((r) => {
+              {!loading && pageRows.map((r) => {
                 const pill = RESP_PILL[r.response] || RESP_PILL.pending;
+                const st = STAGE_PILL[stageOf(r)];
                 const pushBadge = (r.push_success || 0) > 0
-                  ? <span className="text-emerald-700 text-xs font-semibold">✓ {r.push_success}</span>
-                  : r.push_skipped
-                    ? <span className="text-slate-400 text-xs">skip: {r.push_skipped}</span>
-                    : (r.push_failure || 0) > 0
-                      ? <span className="text-red-600 text-xs font-semibold">✗ {r.push_failure}</span>
-                      : <span className="text-slate-400 text-xs">SSE only</span>;
+                  ? <span className="inline-flex items-center gap-1 text-[#15803D] text-[12px] font-semibold"><Send className="h-3 w-3" />Sent</span>
+                  : r.push_skipped ? <span className="text-[#94A3B8] text-[11px]">{r.push_skipped}</span>
+                    : (r.push_failure || 0) > 0 ? <span className="text-[#DC2626] text-[12px] font-semibold">Failed</span>
+                      : <span className="text-[#94A3B8] text-[11px]">SSE</span>;
                 return (
-                  <tr key={r.id} className={`border-t border-slate-50 dark:border-slate-800 hover:bg-slate-50/40 dark:hover:bg-slate-800/40 transition ${r.__new ? "bg-amber-50/50 animate-pulse-slow" : ""} ${r.__flash === "accepted" ? "bg-emerald-50/40" : r.__flash === "rejected" ? "bg-red-50/40" : ""}`}>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="text-xs text-slate-500">{timeAgo(r.dispatched_at)}</div>
+                  <tr key={r.id} onClick={() => r.booking_id && setOpenId(r.booking_id)} data-testid={`dispatch-row-${r.id}`}
+                    className={`cursor-pointer transition-colors hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937]/50 ${r.__new ? "azo-row-new bg-[#E6EDF8]/40" : ""} ${r.__flash === "accepted" ? "bg-[#E9F8EF]/50" : r.__flash === "rejected" ? "bg-[#FDECEC]/50" : ""}`}>
+                    <td className="px-4 py-3 whitespace-nowrap text-[12px] text-[#64748B] dark:text-[#94A3B8] tabular-nums">{clockOf(r.dispatched_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-[12px] font-bold text-[#0D47A1] dark:text-[#3B82F6]">{r.booking_code}</div>
+                      <div className="text-[11.5px] text-[#64748B] dark:text-[#94A3B8] truncate max-w-[160px]">{r.service_name}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-800 dark:text-slate-100 text-xs">{r.booking_code}</div>
-                      <div className="text-[11px] text-slate-500 truncate max-w-[180px]">{r.service_name}</div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-slate-800 dark:text-slate-100 text-sm flex items-center gap-1.5">
+                      <div className="font-semibold text-[#172033] dark:text-[#F8FAFC] text-[13px] flex items-center gap-1.5">
                         {r.partner_name || "—"}
-                        {r.partner_id && r.booking_id && <RingAgainButton bookingId={r.booking_id} bookingCode={r.booking_code} partnerId={r.partner_id} partnerName={r.partner_name} onDone={load} />}
+                        {r.partner_id && r.booking_id && <span onClick={(e) => e.stopPropagation()}><RingAgainButton bookingId={r.booking_id} bookingCode={r.booking_code} partnerId={r.partner_id} partnerName={r.partner_name} onDone={load} /></span>}
                       </div>
-                      <div className="text-[11px] text-slate-500">{r.partner_phone} · was {r.partner_status_at_dispatch}</div>
-                      {(r.eta_min != null || r.distance_km != null) && (
-                        <div className="text-[11px] text-primary-600 font-semibold">
-                          {r.eta_min != null ? `~${r.eta_min} min` : ""}{r.distance_km != null ? ` · ${r.distance_km} km` : ""}
-                        </div>
-                      )}
+                      <div className="text-[11px] text-[#94A3B8]">{r.partner_phone}{r.distance_km != null ? ` · ${r.distance_km} km` : ""}</div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-600">{SOURCE_LABEL[r.source] || r.source}</td>
+                    <td className="px-4 py-3 text-[12px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap">{SOURCE_LABEL[r.source] || r.source}</td>
                     <td className="px-4 py-3">{pushBadge}</td>
-                    <td className="px-4 py-3">
-                      {r.seen_at
-                        ? <span className="text-emerald-600 text-xs font-semibold" title={new Date(r.seen_at).toLocaleString()}>👁 Seen</span>
-                        : <span className="text-slate-300 text-xs">—</span>}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${pill.cls}`}>{pill.label}</span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">
-                      {r.response_ms ? `${(r.response_ms / 1000).toFixed(1)}s` : "—"}
-                    </td>
+                    <td className="px-4 py-3">{r.seen_at
+                      ? <span className="inline-flex items-center gap-1 text-[#4F46E5] text-[12px] font-semibold" title={new Date(r.seen_at).toLocaleString()}><Eye className="h-3.5 w-3.5" />Seen</span>
+                      : <span className="text-[#CBD5E1] text-[12px]">—</span>}</td>
+                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${pill.cls}`}>{pill.label}</span></td>
+                    <td className="px-4 py-3 text-[12px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap tabular-nums">{r.response_ms ? `${(r.response_ms / 1000).toFixed(1)}s` : "—"}</td>
+                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+
+        {!loading && filtered.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-t border-[#EEF2F7] dark:border-[#1F2937]">
+            <div className="flex items-center gap-3 text-[12.5px] text-[#64748B] dark:text-[#94A3B8]">
+              <span>Showing <b className="text-[#172033] dark:text-[#F8FAFC]">{from}–{to}</b> of {filtered.length} attempts</span>
+              <span className="flex items-center gap-2">· Rows
+                <Select value={String(perPage)} onValueChange={(v) => setPerPage(Number(v))}>
+                  <SelectTrigger data-testid="dispatch-perpage" className="h-8 w-[72px] rounded-lg"><SelectValue /></SelectTrigger>
+                  <SelectContent>{[10, 20, 50, 100].map((n) => <SelectItem key={n} value={String(n)}>{n}</SelectItem>)}</SelectContent>
+                </Select>
+              </span>
+            </div>
+            {pageCount > 1 && (
+              <div className="flex items-center gap-1">
+                <button data-testid="dispatch-prev" disabled={cur <= 1} onClick={() => setPage(cur - 1)}
+                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" /> Prev</button>
+                {Array.from({ length: pageCount }, (_, i) => i + 1).filter((n) => n === 1 || n === pageCount || Math.abs(n - cur) <= 1).map((n, i, arr) => (
+                  <React.Fragment key={n}>
+                    {i > 0 && arr[i - 1] !== n - 1 && <span className="px-1 text-[#94A3B8]">…</span>}
+                    <button data-testid={`dispatch-page-${n}`} onClick={() => setPage(n)}
+                      className={`h-9 w-9 rounded-lg text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937]"}`}>{n}</button>
+                  </React.Fragment>
+                ))}
+                <button data-testid="dispatch-next" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)}
+                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1">Next <ChevronRight className="h-4 w-4" /></button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
