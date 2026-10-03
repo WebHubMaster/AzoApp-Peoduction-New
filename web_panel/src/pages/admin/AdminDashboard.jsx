@@ -54,7 +54,12 @@ import CustomJobsAdmin from "@/pages/admin/CustomJobsAdmin";
 import QRConfig, { AgentPayouts } from "@/pages/admin/QRConfig";
 import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
 
+// Sidebar order = business workflow & usage frequency (Daily Operations →
+// Business/Entity Management → Finance → Growth & Engagement → Content & Digital
+// → Support & Reporting → Configuration & Administration). Parents keep their
+// children; nothing is renamed, removed, or re-keyed — only the order changes.
 const NAV = [
+  // ── Daily operations (most frequently accessed) ──
   { group: "Overview", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
 
   { group: "Bookings", icon: ClipboardList, items: [
@@ -71,6 +76,7 @@ const NAV = [
     { key: "livemap", label: "Live Partner Map", icon: MapPin },
   ]},
 
+  // ── Business & entity management ──
   { group: "Services", icon: Layers, items: [
     { key: "services", label: "Services", icon: ClipboardList },
     { key: "addons", label: "Add-on Services", icon: Plus },
@@ -96,10 +102,6 @@ const NAV = [
     { key: "registration_fee", label: "Registration Fee", icon: IndianRupee },
   ]},
   { key: "starter_kit_admin", label: "Starter Kit", icon: Package },
-  { group: "Notifications", icon: Bell, items: [
-    { key: "notifications", label: "Add Notification", icon: Send },
-    { key: "realtime_settings", label: "Real-time & Alerts", icon: Radio },
-  ]},
   { group: "Partner Growth", icon: TrendingUp, items: [
     { key: "partner_performance", label: "Performance", icon: TrendingUp },
     { key: "pm_incentives", label: "Incentives", icon: Gift },
@@ -126,6 +128,7 @@ const NAV = [
     { key: "qr_agent_payouts", label: "Agent Withdraw", icon: Banknote },
   ]},
 
+  // ── Financial management ──
   { key: "price_manager", label: "Price Manager", icon: Tag },
   { key: "category_commission", label: "Commission & Refund", icon: Percent },
 
@@ -137,6 +140,7 @@ const NAV = [
     { key: "fin_reports", label: "Financial Reports", icon: BarChart3 },
   ]},
 
+  // ── Growth & engagement ──
   { group: "Marketing", icon: Megaphone, items: [
     { key: "coupons", label: "Coupons", icon: Tag },
     { key: "offers", label: "Offers", icon: BadgePercent },
@@ -144,7 +148,12 @@ const NAV = [
     { key: "memberships", label: "Membership", icon: Crown },
     { key: "growth", label: "Growth Center", icon: Sparkles },
   ]},
+  { group: "Notifications", icon: Bell, items: [
+    { key: "notifications", label: "Add Notification", icon: Send },
+    { key: "realtime_settings", label: "Real-time & Alerts", icon: Radio },
+  ]},
 
+  // ── Content & digital ──
   { group: "Mobile App", icon: Smartphone, items: [
     { key: "app_home", label: "Customer App Home", icon: Smartphone },
   ]},
