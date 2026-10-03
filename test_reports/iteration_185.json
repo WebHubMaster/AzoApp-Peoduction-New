@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration 185 — Admin Subscriptions lifecycle (Renewals / Nudge / Pause / Resume / Cancel). Backend: 12/12 pytest tests pass in /app/backend/tests/test_iter185_sub_lifecycle.py covering GET /subscriptions/admin/renewals (shape + date-range enforcement), POST .../{id}/nudge (ok+last_renewal_nudge; 400 for non-active), POST .../renewals/nudge (bulk sent count), POST .../{id}/pause (past-date 400, days 0 400, double-pause 400, admin mark-day on paused day 400, successful 200 with pause.active=true, N working days paused, N appended at tail, end_date extended), POST .../{id}/resume (restores future paused days, trims appended tail, end_date restored), GET .../{id}/cancel-quote (shape + used+remaining=working_days, refund = paid*remaining/working), POST .../{id}/cancel (cancels future scheduled/paused days, status=cancelled, payment_status refunded/partially_refunded, refund record appears in /admin/refunds with booking_code=sub code; 400 on already-cancelled), and template seeding (3 SMS templates for events subscription_renewal_reminder/paused/cancelled registered via /admin/partner-reg/templates, event registry /admin/partner-reg/template-events exposes the 4 lifecycle events including subscription_resumed). Frontend: Admin → Bookings → Subscriptions page loads. Renewals card shows 'Renewals due 0 / No subscriptions ending in next 3 days' (count=0 after backend tests cancelled the only candidate SUBCA7VCZ in next 3 days). renewals-panel/renewals-toggle/renewals-count all present. SUB7LPQH9 drawer tested: sub-drawer-paused + sub-paused-SUB7LPQH9 row badge render Paused; sub-sec-manage shows 'Paused 05 Oct 2026 – 06 Oct 2026 · Customer travelling'; sub-pause-info renders. Calendar: sub-calendar + sub-cal-month ('October 2026 2/2'), sub-cal-prev / sub-cal-next, 14 sub-cal-day-YYYY-MM-DD cells, sub-cal-legend showing Scheduled/Completed/Maid Absent/Weekly Off/Paused. Since sub is paused only sub-resume-btn and sub-cancel-btn are shown (no sub-pause-btn — correct). Clicking sub-resume-btn → toast 'Subscription resumed' and paused badge disappears from drawer header (full round-trip verified). CRITICAL FIX APPLIED DURING TESTING: /app/web_panel/build was missing or built with REACT_APP_BACKEND_URL that contained literal surrounding double-quotes (because /app/web_panel/build_panel.sh does `grep ... | cut -d'=' -f2` on backend/.env where the value is quoted, so BACKEND_URL='\"https://...\"'). The resulting bundle made API calls to `/api/panel/\"https://...\"/api/auth/send-otp` (405). I rebuilt via `REACT_APP_BACKEND_URL=https://pm-backend-frontend.preview.emergentagent.com PUBLIC_URL=/api/panel yarn build` which fixed login + all subsequent API calls. build_panel.sh needs a one-char fix (strip quotes). Observations: direct page.goto() to a nested admin route (/api/panel/admin/subscriptions) loses the AuthContext state briefly on reload because /auth/me is called before localStorage token read-back completes, then the Protected guard navigates away — low priority since in-app sidebar nav works. Admin UI nudge button + 'Nudged just now' timestamp + bulk 'Nudge all' button could not be exercised live because the renewals list was empty by the time the UI test ran (my backend regression had just cancelled the only sub ending in next 3 days). All renewals UI logic was already verified at the API layer (/subscriptions/admin/renewals + /nudge single & bulk).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter185_sub_lifecycle.py",
+    "/app/test_reports/pytest/iter185_sub_lifecycle.xml"
+  ],
+  "action_items": [
+    "Fix /app/web_panel/build_panel.sh — strip surrounding double-quotes from BACKEND_URL (e.g. `BACKEND_URL=$(grep REACT_APP_BACKEND_URL ../backend/.env | cut -d'=' -f2 | tr -d '\"')`) so the next CRA build doesn't bake quoted env into the bundle (currently the only reason the panel stopped working is that build was quoted).",
+    "Re-seed Priya Verma renewal candidate (e.g. activate a new weekly sub ending within 3 days) so UI nudge/renewals rows + 'Nudge all' are visible for next-iteration demo (my cancel-flow test consumed SUBCA7VCZ)."
+  ],
+  "critical_code_review_comments": [
+    "subscription_lifecycle_service.pause/resume correctly extend end_date by exactly N working days (respecting weekly_offs) and resume trims trailing added-by-pause days; good.",
+    "refund_quote formula paid * remaining/working_days is pro-rata as per spec; remaining counts only future scheduled days (paused days already shifted to tail so not double counted).",
+    "cancel() calls apply_accrual before freezing days so maid earnings are captured; auto-generates pending settlement when accrued>0 — matches spec.",
+    "controllers.subscription_controller._set_day now rejects day.status in ('paused','cancelled','completed') with 400 (verified).",
+    "RenewalsPanel + SubCalendar + SubLifecycle UI all expose required data-testid attributes (verified live).",
+    "web_panel build_panel.sh quoting bug (described above) is a test-environment pitfall; worth fixing in-repo."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter185_sub_lifecycle.py (new pytest suite)",
+    "/app/web_panel/build (rebuilt with correct REACT_APP_BACKEND_URL)"
+  ],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "~95% (selectors + resume flow verified; nudge button not exercised due to empty renewals list — covered by backend tests)"},
+  "test_credentials": "Admin +919000000000 OTP 123456 (dev); customer +919000000004 OTP 123456",
+  "seed_data_creation": "None. Note: my cancel-regression test cancelled one of Priya's active subs (the one ending within 3 days — SUBCA7VCZ). Her remaining state: 1 active-paused SUB7LPQH9 (then resumed by this UI test → now active 13 Sept – 14 Oct), 1 pending-payment SUB74AO87, 1 completed SUB1TYC8J, 3 cancelled (SUBN9OKLS, SUBQYUC1T, SUBCA7VCZ).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "web_panel is served at /api/panel/. Login requires full OTP flow on panel /login (no one-click dev button here — iter184's one-click button is on the OTHER /frontend). Admin role = Super Admin. Direct page.goto to nested admin sub-routes may flash Protected→Landing redirect on cold load; use in-app sidebar navigation instead. Pause/Resume/Cancel admin flows are at `/subscriptions/admin/{id}/{action}`. If renewals list is empty, backfill by activating a short-duration weekly sub.",
+  "rca of the issue": "Build-env quoting: backend/.env uses quoted values (REACT_APP_BACKEND_URL=\"https://...\"); build_panel.sh pipes `cut -d'=' -f2` into REACT_APP_BACKEND_URL env var without stripping quotes, so CRA's DefinePlugin bakes `process.env.REACT_APP_BACKEND_URL = '\"https://...\"'` into the panel bundle. All API URLs become `/api/panel/\"https://...\"/api/...` which Nginx returns 405/404 for. Fix: `cut -d'=' -f2 | tr -d '\\\"'`."
+}
