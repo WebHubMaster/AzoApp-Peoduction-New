@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only verification of redesigned Super Admin 'Commission & Refund' page (/admin?tab=category_commission) and global admin typography (html.admin-ds). All testids from the spec are present and wired to the right APIs. Verified: page load, 4 stat cards match GET /api/admin/category-commissions (7 total / 3 configured / 4 pending / 65.33% avg partner at start), info banner, red config alert, search (plumb -> 1 row), filters All/Configured/Rate Required reorder & switch style to #0D47A1, Sort dropdown with 4 options, Bulk Configure drawer with cc-bulk-picker preselecting all 3 unconfigured, Configure Now switches filter to Rate Required and opens drawer with first unconfigured category (Appliance Repair). CommissionDrawer: all 6 inputs (cc-partner_pct, cc-platform_pct, cc-merchant_partner_referral_pct, cc-merchant_customer_pct, cc-customer_refund_pct, cc-partner_cancellation_pct) accept decimals; cc-comm-total and cc-canc-total switch green at 100% / red otherwise; live calc cc-sim-partner_pct = ₹700 when amount=1000, 70%; cc-save disabled when any total != 100 and enabled when both totals = 100; save shows cc-save-success overlay, closes drawer, table/stats refresh (Rate Required -> 3 after single, -> 0 after bulk). Policy section: cc-policy-customer-edit and cc-policy-partner-edit open 'Platform Default Split' drawer (PUT /api/admin/settings {commission}). Export (cc-export) downloads commission-by-category-2026-10-03.csv. Cancellation Reasons: add/edit/toggle/delete with confirm all persist via PUT /api/admin/settings; inactive reasons are excluded from GET /api/site/config.cancellation_reasons but kept in settings.cancellation_reasons_meta with active=false. Mobile 390: rows render as cards (cc-list has 7 children), drawer takes full width (390px), no document horizontal overflow. Spot-checked Dashboard, Bookings, Services, Partners and General Settings at 1920 — html.admin-ds is applied on all admin pages with no page-level horizontal overflow. Customer site (/) does NOT carry the admin-ds class (removed on unmount). Original 6 cancellation reasons restored after testing.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CategoryCommissions.jsx is a thin orchestrator (64 lines) splitting into HeaderStats/CategoryTable/CommissionDrawer/PolicySection/CancellationReasons — good separation; no file exceeds the 700-line guideline.",
+    "CancellationReasons.persist() does optimistic update with rollback on error (toast via errMsg) — handled correctly.",
+    "CommissionDrawer.save() in 'single' mode optionally does a follow-up POST /bulk when 'Also apply to' is picked; both calls run sequentially — consider wrapping in a single bulk payload server-side to avoid partial-success state if the second request fails (minor; not reproduced here).",
+    "In Bulk mode, when 'Select all' is toggled off and then re-toggled while opening the picker, scroll-into-view may miss on narrow drawer at 1920 because overlay disables scroll; not blocking (user picks via per-row cc-apply-{id}).",
+    "COMM.k='merchant_customer_pct' uses teal #14B8A6; label on live-calc 'Merchant · Customer' is clear. Picker legend inside the drawer uses the same color map — consistent."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only run; API calls under test all returned 2xx)", "frontend": "100% of listed test flows"},
+  "test_credentials": "Admin +919000000000 role=admin OTP 123456 (POST /api/auth/verify-otp, token in localStorage 'azo_token')",
+  "seed_data_creation": "Configured the remaining 4 pending categories (Appliance Repair via single-save, Carpentry/Maid Services/Plumbing via bulk-save) during the run. All 7 categories now configured. Cancellation reasons list unchanged (original 6 restored after add/edit/toggle/delete flow). No destructive data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 7 categories are now configured (previously 3). Pending stat is 0 so the red cc-pending-banner and cc-configure-now button will not render until a category is reset to unconfigured. To re-test cc-configure-now, DELETE /api/admin/category-commissions/{category_id} or wipe category_commissions collection for one category. REACT_APP_BACKEND_URL via public URL has ~5s latency; use timeout>=15s for selector waits. Site viewport width at 1920 keeps bulk drawer scrollable; 'Select all' checkbox inside cc-bulk-picker may land outside viewport if drawer scrolled — scroll inside the drawer or use per-row cc-apply-{id} checkboxes."
+}

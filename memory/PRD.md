@@ -274,3 +274,10 @@ Implemented:
 - Tested: iteration_170 — backend 12/12, frontend 100%.
 Env: recreated backend/.env, web_panel/.env, frontend/.env, Customer/.env; installed backend reqs + web_panel node_modules.
 Backlog: show category rates to partners in job offer earning preview; audit log for rate changes; require rate when creating a category.
+
+## Update — Premium redesign of Commission & Refund + global admin density (2026-06)
+- Page split into `pages/admin/commission/` (HeaderStats, CategoryTable, CommissionDrawer (right Sheet; single/bulk/platform-default modes, live ₹ calc), PolicySection, CancellationReasons (table, status toggle, drag reorder, add/edit modal, delete confirm), SplitBar, shared).
+- Reasons now also stored as `settings.cancellation_reasons_meta` [{id,text,active,updated_at}]; `cancellation_reasons` = active texts only (consumers unchanged). Model field added in models/finance.py.
+- Global admin design system: `html.admin-ds` (toggled by AdminDashboard mount) in index.css — compact type scale (text-base→14 … text-5xl→32 incl. responsive variants), 14px controls, 42px max control height, trimmed p-6/p-8/gap/space-y, compact sidebar, 20/24px content padding. Customer site unaffected.
+- Late Cancellation / No-show cards are placeholders ("Coming soon") — no backend rule yet.
+- Tested: iteration_171 — 100% frontend flows.
