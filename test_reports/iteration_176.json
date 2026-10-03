@@ -1,0 +1,23 @@
+{
+  "summary": "Verified new TaxPreview block (data-testid=cc-tax-preview) in Admin > Commission & Refund > Configure Commission drawer (cc-modal) for Electrician. Live calculation (cc-simulator) now shows GST calc identical to billing. All expected numbers matched exactly at steady state (after /admin/settings resolves).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "TaxPreview fires /admin/settings on every drawer mount. For a brief moment pf renders as 0 (initial state) until the fetch resolves, which caused a transient mismatch in our first read. Consider showing a skeleton for the tax rows while the settings fetch is pending, or hoist platform_fee / gst_pct into a shared context so the drawer opens with correct values immediately.",
+  "Platform Fee default fallback in TaxPreview is 10 (useState({pf:0, gst:18}) + ?? 10 on fetch); if /admin/settings 404s the UI would silently show pf=0 (not 10) because the catch() swallows the error. Minor inconsistency between stated default and visible fallback."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 OTP 123456 (via data-testid=demo-admin)",
+  "seed_data_creation": "None. Electrician settings restored to partner 80 / platform 15 / merchant_ref 3 / merchant_cust 2 after test (and saved via cc-save).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Scenario A (desktop 1920 & mobile 390, Electrician 80/15/3/2, platform_fee=25, gst_pct=18, amount=1000): cc-tax-commission ₹200, cc-tax-platform-fee ₹25, cc-tax-base ₹225, cc-tax-cgst ₹20.25, cc-tax-sgst ₹20.25, cc-tax-gst ₹40.5, cc-tax-customer-total ₹1,065.5, cc-tax-page1 ₹265.5, cc-tax-page2 ₹800; cc-tax-internal shows merchant·ref −₹30, merchant·cust −₹20, platform keeps ₹150 — ALL MATCH. Scenario B (amount=259, 80/20/0/0): cc-tax-commission ₹51.8, cc-tax-base ₹76.8, cc-tax-gst ₹13.82, cgst/sgst ₹6.91 each — matches spec. Mobile 390: modal scrollWidth==clientWidth==389, no horizontal overflow. cc-save works (toast 'Commission saved for Electrician'). IMPORTANT: TaxPreview reads /admin/settings on mount asynchronously; wait >=1s after opening the drawer before asserting cc-tax-* values, otherwise pf shows ₹0 transiently.",
+  "rca of the issue": "N/A — feature works end to end."
+}
