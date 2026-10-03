@@ -19,7 +19,7 @@ const MembershipBadge = ({ size = 40, className = "", animate = true, ...rest })
       {...rest}
     >
       <img
-        src="/membership-crown.png?v=3"
+        src="/membership-crown.png?v=4"
         alt="Membership"
         width={size}
         height={size}
