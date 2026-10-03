@@ -117,14 +117,14 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
 
         <section className="bg-white dark:bg-slate-900 rounded-xl border border-[#E5E7EB] dark:border-slate-800 overflow-hidden" data-testid="bk-card">
           <div className="flex flex-col xl:flex-row xl:items-center gap-3 px-4 py-3 border-b border-[#E5E7EB] dark:border-slate-800">
-            <div className="min-w-0 xl:mr-auto">
+            <div className="min-w-0 xl:flex-1">
               <h2 className="text-[16px] font-semibold text-[#111827] dark:text-white">{tab && tab !== "all" ? `${label(tab)} Bookings` : "All Bookings"}</h2>
               <p className="text-[12.5px] text-[#6B7280]" data-testid="bk-count">View and manage customer bookings · {filtered.length} {tab && tab !== "all" ? label(tab).toLowerCase() : "total"} bookings</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative w-full sm:w-[320px]">
+            <div className="flex flex-wrap xl:flex-nowrap items-center gap-2 xl:shrink-0">
+              <div className="relative w-full sm:w-[220px] 2xl:w-[260px] shrink-0">
                 <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by booking code, service, customer..." className="h-9 pl-9 pr-8 text-[13.5px] rounded-lg" data-testid="bk-search" aria-label="Search bookings" />
+                <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search code, service, customer..." className="h-9 pl-9 pr-8 text-[13.5px] rounded-lg" data-testid="bk-search" aria-label="Search bookings" />
                 {q && <button type="button" onClick={() => setQ("")} aria-label="Clear search" className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>}
               </div>
               <SelectBox value={qs} onChange={setQs} opts={options.status} all="All Status" tid="bk-filter-status" />

@@ -289,3 +289,9 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 - Old HomepageBuilder removed from adminSectionsPro (helpers exported). HomeStatsControl kept below builder.
 - No backend publish/draft flag exists → "LIVE" status is derived from active sections.
 - Tested: iteration_172 — 100%.
+
+## Update — Bookings page premium redesign (2026-06)
+- New `pages/admin/BookingsPro.jsx` + `pages/admin/bookings/` (shared, Badges, BookingsTable+Pager, BookingDrawer quick view w/ timeline, FilterDrawer advanced filters, DateRangeMenu presets/custom). Replaces S.BookingsSection in AdminDashboard (old component left in adminSections, unused).
+- Client-side search/filters/sort/pagination over GET /admin/bookings; CSV export (filtered/all/selected); "Manage" opens existing BookingDetailPage; customer click → UserProfile360.
+- Toolbar: compact search (220px, 260px ≥2xl) + filters + Export kept on ONE line at ≥1280px (user request).
+- Tested: iteration_173 — 100%.
