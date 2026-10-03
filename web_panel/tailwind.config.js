@@ -8,8 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        heading: ['Public Sans', 'system-ui', 'sans-serif'],
-        sans: ['Public Sans', 'system-ui', 'sans-serif']
+        heading: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif']
       },
       boxShadow: {
         card: '0 0.1875rem 0.75rem 0 rgba(47, 43, 61, 0.1)',

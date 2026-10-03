@@ -170,7 +170,7 @@ export default function PremiumDatePicker({
     <>
       <button type="button" ref={triggerRef} onClick={() => (open ? setOpen(false) : openCal())} disabled={disabled}
         data-testid={testId} {...rest}
-        className={`w-full h-10 px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
+        className={`w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
         <CalIcon className="h-4 w-4 text-slate-400 shrink-0" />
         <span className={`flex-1 text-left truncate ${label ? "text-slate-700 dark:text-slate-100" : "text-slate-400"}`}>{label || placeholder}</span>
       </button>

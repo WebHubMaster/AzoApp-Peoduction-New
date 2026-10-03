@@ -439,7 +439,7 @@ export const AddonsManager = () => {
             <SearchInput value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Search add-ons…" className="flex-1" data-testid="addon-search" />
             <div className="w-full sm:w-56 shrink-0">
               <Select value={filterCat} onValueChange={(v) => { setFilterCat(v); setPage(1); }}>
-                <SelectTrigger className="h-11 rounded-xl"><SelectValue placeholder="Filter by category" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Filter by category" /></SelectTrigger>
                 <SelectContent><SelectItem value="all">All categories</SelectItem>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
               </Select>
             </div>

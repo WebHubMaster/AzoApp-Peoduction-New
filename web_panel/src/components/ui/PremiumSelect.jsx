@@ -169,7 +169,7 @@ export default function PremiumSelect({
     <>
       <button type="button" ref={triggerRef} onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={onKeyDown} disabled={disabled} data-testid={testId} {...rest}
-        className={`group w-full h-10 px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-500"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
+        className={`group w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-500"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
         <span className={`flex-1 text-left truncate ${selected && selected.label ? "text-slate-700 dark:text-slate-100" : "text-slate-400"}`}>
           {loading ? "Loading..." : (selected && selected.label) ? selected.label : placeholder}
         </span>

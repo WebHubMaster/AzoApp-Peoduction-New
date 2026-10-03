@@ -215,7 +215,7 @@ export default function PremiumDateRangePicker({
   return (
     <>
       <button type="button" ref={triggerRef} data-testid={testId} onClick={() => (open ? setOpen(false) : openCal())}
-        className={`h-10 inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:border-slate-300 transition ${className}`}>
+        className={`h-[42px] inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:border-slate-300 transition ${className}`}>
         <CalIcon className="h-4 w-4" style={{ color: accent }} />
         <span className="truncate max-w-[220px]">{label}</span>
       </button>

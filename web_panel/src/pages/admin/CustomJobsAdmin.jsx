@@ -101,7 +101,7 @@ export default function CustomJobsAdmin() {
               <option value="">All categories</option>
               {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </PremiumSelect>
-            <input className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-400"
+            <input className="h-[42px] px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
               placeholder="Pincode" value={filters.pincode} data-testid="cja-pincode"
               onChange={(e) => setF({ pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} />
             <PremiumDatePicker value={filters.date_from} onChange={(e) => setF({ date_from: e.target.value })} placeholder="From date" data-testid="cja-date-from" />

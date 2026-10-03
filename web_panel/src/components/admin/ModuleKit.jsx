@@ -138,7 +138,7 @@ export const SearchInput = ({ value, onChange, placeholder = "Search…", classN
       onChange={onChange}
       placeholder={placeholder}
       data-testid={testId}
-      className="w-full h-11 pl-9 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 focus:border-primary-400 focus:bg-white dark:focus:bg-slate-800"
+      className="w-full h-[42px] pl-9 pr-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 focus:border-primary-400 focus:bg-white dark:focus:bg-slate-800"
     />
     {value ? (
       <button type="button" aria-label="Clear search" data-testid={testId ? `${testId}-clear` : undefined}
