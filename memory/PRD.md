@@ -264,3 +264,13 @@ For app-wide consistency, set service-card image height to 120:
 - HomeSections.tsx ServiceCard (Popular/Trending, width 240): 170 → 120.
 - Blocks.tsx ServiceTile (non-compact): 116 → 120.
 Now Home, All Services (services.tsx) and Category ([id].tsx) all use height 120. Native Expo — verify on build.
+
+## Feature — Category-wise Commission & Refund (2026-06)
+Ask (Hindi): Integration Center ke Commission & Refund Settings ko category-wise banao; alag admin menu; har dynamic category ka apna Partner/Platform/Merchant·Partner Referral/Merchant·Customer % + Cancellation & Refund (customer refund / partner cancellation).
+User choices: standalone sidebar menu over existing catalog categories; rate mandatory per category (unconfigured = "Rate required"; backend falls back to global settings.commission); cancellation reasons stay global in the new menu; old bookings unaffected.
+Implemented:
+- Backend: `services/category_commission_service.py` (collection `category_commissions`, validate both splits = 100, resolve/settings_for_category), `routes/category_commission_routes.py` (GET /admin/category-commissions, PUT /{category_id}, POST /bulk). `_build_booking` snapshots category rates into `commission_config.commission` (source category|global) → completion split + cancellation refund use it. invoice_service uses booking snapshot; subscriptions use category rates; deleting a category deletes its rate.
+- Admin web: `CategoryCommissions.jsx` (stats, required banner, search/filter, per-category rows, edit modal with live split preview + "Also apply to", global Cancellation Reasons). Nav key `category_commission` (module finance). Commission card/modal removed from Integration Center.
+- Tested: iteration_170 — backend 12/12, frontend 100%.
+Env: recreated backend/.env, web_panel/.env, frontend/.env, Customer/.env; installed backend reqs + web_panel node_modules.
+Backlog: show category rates to partners in job offer earning preview; audit log for rate changes; require rate when creating a category.

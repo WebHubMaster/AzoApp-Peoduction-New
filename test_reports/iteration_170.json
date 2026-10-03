@@ -1,0 +1,30 @@
+{
+  "summary": "Verified new Category-wise Commission & Refund feature end-to-end. 12/12 backend pytest cases pass (GET list, PUT upsert with 6 validation branches, bulk apply, non-admin forbidden, 404 unknown category, booking commission_config snapshot source=category with exact category rates). Admin UI: standalone sidebar menu 'Commission & Refund' present, /admin?tab=category_commission page renders stats, pending banner, search, filters, rows with status/edit testids, modal with 6 inputs, live totals, save disabled on invalid totals and enabled when both sum to 100, save persists and updates configured counts, Cancellation Reasons editor present. Integration Center no longer renders intg-card-commission while 25 other cards still render.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "cc-modal", "issues": ["Radix DialogContent missing Description/aria-describedby (a11y warning, non-blocking)"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_category_commission.py",
+    "/app/test_reports/pytest/category_commission.xml"
+  ],
+  "action_items": [
+    "Optional: add DialogDescription or aria-describedby on CategoryCommissions cc-modal to silence a11y warning."
+  ],
+  "critical_code_review_comments": [
+    "category_commission_service.resolve() correctly merges category rates onto global settings.commission block, falls back to source='global' when unconfigured — bookings cannot break.",
+    "booking_controller._build_booking snapshots ccfg['commission'] = resolve(settings, svc.category_id) at creation time, so later rate changes do not alter in-flight bookings.",
+    "Routes use require_role('admin'); non-admin requests return 403."
+  ],
+  "updated_files": ["/app/backend/tests/test_category_commission.py"],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "100% of listed UI assertions"},
+  "test_credentials": "Admin +919000000000 role=admin OTP 123456; customer +919111100001 OTP 123456",
+  "seed_data_creation": "Configured 3 categories' rates via test flows (AC Repair, first two by bulk, Home Cleaning via UI). Idempotent upserts, no destructive data created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Service areas restricted to Patna/Ranchi — use lat/lng 25.5941/85.1376 pincode 800001 city 'Patna' for booking tests. REACT_APP_BACKEND_URL via public URL ~5s latency; use timeout>=60. pytest.ini pins xdist loadscope -n 2; run serial with -n 0 (NOT -p no:xdist)."
+}

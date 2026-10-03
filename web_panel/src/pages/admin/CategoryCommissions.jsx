@@ -159,7 +159,7 @@ function RateDialog({ cat, others, onClose, onSaved }) {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto" data-testid="cc-modal">
+      <DialogContent aria-describedby={undefined} className="max-w-lg max-h-[88vh] overflow-y-auto" data-testid="cc-modal">
         <DialogHeader><DialogTitle className="flex items-center gap-2"><Percent className="h-5 w-5 text-emerald-600" /> {cat.name} · Commission &amp; Refund</DialogTitle></DialogHeader>
         <SplitSection title="Commission Split" hint="(of service cost, GST excluded)" total={commTotal} tid="cc-comm-total">
           {COMM.map(([k, label]) => <Field key={k} k={k} label={label} f={f} set={set} />)}
