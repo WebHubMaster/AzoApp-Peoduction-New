@@ -37,7 +37,7 @@ def _addr(a) -> str:
 
 
 def build_block(booking: dict, settings: dict, partner: dict, invoice_number: str,
-                partner_share: float = None) -> dict:
+                partner_share: float = None, kind: str = "booking") -> dict:
     """Authoritative GST split from stored pricing. Page1 + Page2 == customer total."""
     pr = booking.get("pricing") or {}
     icfg = settings.get("invoice_config") or {}
@@ -55,13 +55,16 @@ def build_block(booking: dict, settings: dict, partner: dict, invoice_number: st
     cust_state = state_with_code(addr.get("state") if isinstance(addr, dict) else "")
     p_addr = (partner or {}).get("address")
     p_state = (p_addr.get("state") if isinstance(p_addr, dict) else "") or (partner or {}).get("state") or ""
+    canc = kind == "cancellation"
     return {
+        "kind": kind,
         "category": category,
         "place_of_supply": cust_state,
         "customer_state": cust_state,
         "platform": {
             "number": invoice_number,
-            "desc": f"Commission & Platform Fee - {category}",
+            "desc": (f"Cancellation Fee Commission - {category}" if canc
+                     else f"Commission & Platform Fee - {category}"),
             "sac": icfg.get("sac_platform") or "999799",
             "gross": taxable, "discount": 0.0, "taxable": taxable,
             "commission": money.money(pr.get("platform_commission") or max(0.0, money.add(
@@ -74,7 +77,7 @@ def build_block(booking: dict, settings: dict, partner: dict, invoice_number: st
         },
         "partner": {
             "number": f"{invoice_number}-P",
-            "desc": f"Service Charge - {category}",
+            "desc": f"Cancellation Charge - {category}" if canc else f"Service Charge - {category}",
             "sac": icfg.get("sac_service") or "999729",
             "gross": partner_share, "discount": 0.0, "subtotal": partner_share,
             "name": (partner or {}).get("name") or booking.get("partner_name") or "Service Partner",
@@ -188,7 +191,7 @@ def build_html(inv: dict) -> str:
     signatory = biz.get("signatory_name") or ""
     page1 = f"""
     <div class="page" data-testid="gst-invoice-page-platform">
-      <table class="hd"><tr><td>{brand}</td><td class="ttl">TAX INVOICE</td></tr></table>
+      <table class="hd"><tr><td>{brand}</td><td class="ttl">{"TAX INVOICE (CANCELLATION FEE)" if g.get("kind") == "cancellation" else "TAX INVOICE"}</td></tr></table>
       {to_block("Invoice No.", p1.get("number"))}
       <div class="from"><div class="lbl">From</div>
         <div class="nm">{_esc(legal)}</div>{gstin_row}

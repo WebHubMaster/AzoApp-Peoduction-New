@@ -3433,25 +3433,23 @@ def _compute_cancellation(b: dict, settings: dict, partner: dict = None) -> dict
         commission_charge = 0.0
         split = CommissionEngine.split(0, cm, None, None)
     else:
+        # Partner assigned: a cancellation FEE (Partner Cancellation % of the service
+        # amount) is retained and treated like a mini-booking — commission (100 − partner%)
+        # is taken from it, GST is levied only on that commission, the partner gets the
+        # rest and merchants get their share out of the commission. Everything else
+        # (incl. platform fee and the original GST) is refunded.
         refund_pct = float(cm.get("customer_refund_pct", 80))
         partner_cancel_pct = float(cm.get("partner_cancellation_pct", 20))
-        service_refund = money.pct(base, refund_pct)
-        gst_refund = money.pct(gst, refund_pct)
-        refund_amt = money.add(service_refund, gst_refund)
-        # Retained portion is the exact remainder so refund + retained == paid (no leak).
-        cancel_charge = money.add(base, -service_refund)
-        gst_retained = money.add(gst, -gst_refund)
-        # Split base = the retained cancellation charge WITH the coupon added back
-        # (proportional to the cancellation %). This is what the partner/merchant/platform
-        # split runs on, so the partner earns as if no coupon were used.
-        # Convenience & Platform fees are 100% platform revenue: the partner/merchant
-        # split runs on the SERVICE-side retained charge only (fees excluded) so a
-        # cancellation never pays partner/merchant any part of these platform fees.
-        _pf = PricingEngine.platform_only_fees(pricing)
-        base_service = money.money(max(0.0, money.add(base, -_pf)))
-        cancel_charge_service = money.add(base_service, -money.pct(base_service, refund_pct))
-        commission_charge = money.add(cancel_charge_service, money.pct(coupon_disc, partner_cancel_pct))
-        split = CommissionEngine.split(commission_charge, cm, merchant_partner_id, merchant_customer_id)
+        gst_pct = float(pricing.get("gst_pct") or settings.get("gst_pct") or 0)
+        service_net = PricingEngine.commission_base_excl_tax(pricing)
+        cancel_charge = money.pct(service_net, partner_cancel_pct)
+        split = CommissionEngine.split(cancel_charge, cm, merchant_partner_id, merchant_customer_id)
+        gst_retained = money.pct(split["platform_gross"], gst_pct)
+        retained = min(total_paid, money.add(cancel_charge, gst_retained))
+        refund_amt = money.add(total_paid, -retained)
+        service_refund = money.money(max(0.0, money.add(base, -cancel_charge)))
+        gst_refund = money.money(max(0.0, money.add(gst, -gst_retained)))
+        commission_charge = cancel_charge
     item_refunds = []
     for it in (b.get("items") or []):
         iqty = max(1, int(it.get("qty", 1) or 1))
@@ -3490,6 +3488,8 @@ def _compute_cancellation(b: dict, settings: dict, partner: dict = None) -> dict
         "merchant_customer_pct": split["rates"]["merchant_customer_pct"],
         "partner_pct": split["rates"]["partner_pct"], "platform_pct": split["rates"]["platform_pct"],
         "retained_amount": money.add(cancel_charge, gst_retained),
+        "cancellation_fee": cancel_charge, "cancellation_tax": gst_retained,
+        "cancellation_commission": split["platform_gross"],
         "total_adjustment": money.add(original_amount, -refund_amt),
         "item_refunds": item_refunds, "currency": settings.get("currency", "INR"),
     }
@@ -3522,11 +3522,13 @@ async def cancellation_preview(customer, booking_id):
         "refund": calc["refund"],
         "service_refund": calc["service_refund"], "gst_refund": calc["gst_refund"],
         "discount": calc["discount"],
+        "partner_cancellation_pct": calc["partner_cancellation_pct"],
+        "cancellation_fee": calc["cancellation_fee"], "cancellation_tax": calc["cancellation_tax"],
         "retained_from_you": money.add(calc["original_amount"], -calc["refund"]),
         "item_refunds": calc["item_refunds"],
         "reason": ("Full refund — no professional was assigned yet."
                    if not calc["partner_was_assigned"]
-                   else f"A professional was already assigned, so {calc['refund_pct']:g}% of the service amount is refunded."),
+                   else f"A professional was already assigned, so a {calc['partner_cancellation_pct']:g}% cancellation fee (+ tax on its commission) is charged. The rest is refunded."),
     }
 
 
@@ -3655,6 +3657,9 @@ async def cancel_booking(customer, booking_id, reason=""):
                                    "service_refund": service_refund, "gst_refund": gst_refund,
                                    "partner_cancellation_pct": partner_cancel_pct,
                                    "cancel_charge": cancel_charge, "penalty": cancel_charge,
+                                   "cancellation_fee": cancel_charge,
+                                   "cancellation_tax": calc["cancellation_tax"],
+                                   "cancellation_commission": calc["cancellation_commission"],
                                    "commission_charge": commission_charge,
                                    "admin_cut": admin_cut, "partner_cut": partner_cut,
                                    "platform_gross": calc["platform_gross"], "gst_retained": calc["gst_retained"],

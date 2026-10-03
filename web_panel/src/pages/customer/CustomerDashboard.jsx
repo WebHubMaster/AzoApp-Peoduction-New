@@ -1142,12 +1142,12 @@ const CancelDialog = ({ booking, onClose, onConfirm }) => {
                 <Row k="Original amount" v={fmt(preview.original_amount)} />
                 {preview.partner_was_assigned && (
                   <>
-                    <Row k={`Service refund (${(preview.refund_pct || 0)}% of ${fmt(preview.service_amount)})`} v={fmt(preview.service_refund)} />
-                    <Row k={`Est. Govt. Taxes refund (${(preview.refund_pct || 0)}% of ${fmt(preview.tax)})`} v={fmt(preview.gst_refund)} />
+                    <Row k={`Cancellation fee (${(preview.partner_cancellation_pct || 0)}% of service)`} v={`- ${fmt(preview.cancellation_fee)}`} muted />
+                    <Row k="Est. Govt. Taxes on fee" v={`- ${fmt(preview.cancellation_tax)}`} muted />
                   </>
                 )}
                 {Number(preview.retained_from_you) > 0 && (
-                  <Row k="Cancellation charge" v={`- ${fmt(preview.retained_from_you)}`} muted />
+                  <Row k="Total cancellation charge" v={`- ${fmt(preview.retained_from_you)}`} muted />
                 )}
                 <div className="flex items-center justify-between pt-2 mt-1 border-t border-slate-200 dark:border-slate-700">
                   <span className="font-semibold text-slate-700 dark:text-slate-200">You&apos;ll get back</span>

@@ -95,13 +95,11 @@ export function CommissionFlow({ comm, couponCode }) {
       {isCancel && (
         <>
           <Arrow />
-          <Step n={4} title={comm.partner_was_assigned ? `Cancellation — Customer refund ${comm.customer_refund_pct}%` : "Cancellation — no partner assigned → 100% refund"} tone="rose" testId="flow-cancel">
+          <Step n={4} title={comm.partner_was_assigned ? `Cancellation — ${comm.partner_cancellation_pct}% cancellation fee` : "Cancellation — no partner assigned → 100% refund"} tone="rose" testId="flow-cancel">
             <Line l="Amount customer actually paid" v={fmt(comm.original_amount)} strong />
-            <Line l={`Service share refunded (${comm.customer_refund_pct}% of ${fmt(comm.service_amount)})`} v={fmt(comm.service_refund)} minus />
-            <Line l={`Tax refunded proportionally (${comm.customer_refund_pct}% of ${fmt(comm.tax)})`} v={fmt(comm.gst_refund)} minus />
+            <Line l={`Cancellation fee (${comm.partner_cancellation_pct}% of service)`} v={fmt(comm.partner_cancellation_amount)} />
+            <Line l="GST on fee commission (commission only)" v={fmt(comm.gst_retained)} />
             <Line l="Total refund to customer" v={fmt(comm.customer_refund)} strong testId="flow-refund" />
-            <Line l={`Retained · service share (${comm.partner_cancellation_pct}%)`} v={fmt(comm.partner_cancellation_amount)} />
-            <Line l="Retained · tax (stays as tax liability)" v={fmt(comm.gst_retained)} />
             <Line l="Total retained" v={fmt(comm.retained_amount)} strong testId="flow-retained" />
           </Step>
           {comm.partner_was_assigned && (<><Arrow /><SplitSteps c={comm} base={comm.partner_cancellation_amount} startStep={5} baseLabel="Retained share" /></>)}

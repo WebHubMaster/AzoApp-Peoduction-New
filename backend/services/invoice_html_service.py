@@ -208,7 +208,7 @@ def _fmt_date(iso) -> str:
 def build_invoice_html(inv: dict) -> str:
     """Return a complete, self-contained A4 invoice HTML document."""
     inv = inv or {}
-    if inv.get("gst_invoice") and inv.get("invoice_type") == "booking":
+    if inv.get("gst_invoice") and inv.get("invoice_type") in ("booking", "cancellation"):
         from services.gst_invoice_service import build_html
         return build_html(inv)
     biz = inv.get("business_snapshot") or {}

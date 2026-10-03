@@ -93,6 +93,16 @@ async def _gst_block_for(booking: dict, settings: dict, invoice_number: str) -> 
     from services import gst_invoice_service as _gis
     from services.engines import CommissionEngine as _CE
     partner = await _user(booking.get("partner_id")) if booking.get("partner_id") else {}
+    if booking.get("status") == "cancelled":
+        c = booking.get("cancellation") or {}
+        if not c.get("cancellation_fee"):
+            return None
+        pr = {"total": round(float(c["cancellation_fee"]) + float(c.get("cancellation_tax") or 0), 2),
+              "gst": c.get("cancellation_tax") or 0, "partner_share": c.get("partner_cut") or 0,
+              "platform_fee": 0, "platform_commission": c.get("cancellation_commission") or 0,
+              "gst_pct": (booking.get("pricing") or {}).get("gst_pct")}
+        return _gis.build_block({**booking, "pricing": pr}, settings, partner, invoice_number,
+                                kind="cancellation")
     share = None
     if (booking.get("pricing") or {}).get("partner_share") is None:
         share = _CE.compute_split(booking, settings).get("partner_earning")
@@ -307,8 +317,9 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
         "updated_at": now_iso(),
     }
     inv.update(canc_fields)
-    if itype == "booking":
-        inv["gst_invoice"] = await _gst_block_for(booking, settings, inv["invoice_number"])
+    _gb = await _gst_block_for(booking, settings, inv["invoice_number"])
+    if _gb:
+        inv["gst_invoice"] = _gb
     try:
         await db.invoices.insert_one(dict(inv))
     except DuplicateKeyError:
@@ -1058,7 +1069,7 @@ async def fill_live_branding(inv: dict, force_theme: bool = True):
     inv["business_snapshot"] = snap
     if inv.get("id") and inv.get("id") != "sample":
         inv["verify_url"] = verify_url(inv["id"])
-    if inv.get("invoice_type") == "booking" and not inv.get("gst_invoice") and inv.get("booking_id"):
+    if inv.get("invoice_type") in ("booking", "cancellation") and "gst_invoice" not in inv and inv.get("booking_id"):
         bk = await db.bookings.find_one({"id": inv["booking_id"]}, {"_id": 0})
         if bk:
             inv["gst_invoice"] = await _gst_block_for(bk, await get_settings(), inv.get("invoice_number") or "")

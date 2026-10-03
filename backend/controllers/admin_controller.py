@@ -973,7 +973,7 @@ async def booking_detail(booking_id):
                                    else money.add(gst_c, -gst_refund))
         rows = [{"role": "customer", "name": b.get("customer_name"), "pct": float(canc.get("refund_pct") or 0),
                  "amount": cust_amt, "eligible": True,
-                 "note": "Refunded to customer (service share + proportional tax)"}]
+                 "note": "Refunded to customer (paid amount − cancellation fee − tax on fee)"}]
         rows += _rows(split, base_c,
                       "Partner cancellation compensation" if partner_was_assigned else "No partner assigned — no charge",
                       partner_was_assigned)
