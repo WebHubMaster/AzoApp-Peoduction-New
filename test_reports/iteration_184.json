@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend regression for the PremiumDatePicker replacement of native date inputs. Logged in via /login one-click 'Login as Admin'. Verified all 6 scenarios: (T1) Admin → Bookings → Subscriptions bk-date → bk-date-custom → premium calendar (bk-date-from-cal / bk-date-to-cal) opens, picking bk-date-from-day-5 and bk-date-to-day-20 KEEPS bk-date-menu open, End calendar day-1 has disabled attribute (min=Start enforced), bk-date-apply closes menu and the trigger shows '05 Oct – 20 Oct'. (T2) sub-filter-drawer: sub-adv-startFrom / startTo / endFrom / endTo are all premium calendar buttons; selecting sub-adv-startFrom-day-10 keeps drawer open, trigger label becomes 'Oct 10, 2026'; min/max cross-constraint between startFrom/startTo works (startTo day-5 disabled after startFrom=10); Apply produces sub-filters-count badge '4', Reset+Apply clears badge. (T3) Admin → Bookings → Bookings page bk-date custom range works identically; menu stays open after both day picks, apply yields '03 Oct – 25 Oct'. (T4) bk-filters-btn drawer: inner Date Range → Custom → picking bk-date-from-day-7 inside premium calendar keeps bk-filter-drawer open. (T5) Admin → Customers → open Priya Verma → Edit profile: edit-dob opens premium calendar (edit-dob-cal), picking edit-dob-day-1 sets DOB to 'Oct 1, 2026'. (T6) Mobile 390x844: sub-filter-drawer premium calendar renders as bottom sheet (bounding box x=0 y=517 w=390 h=327), day pick keeps drawer open and sets 'Oct 12, 2026'. keepPremiumCal onInteractOutside pattern is working correctly across both Popover and Sheet. No console errors besides pre-existing Recharts width/height warnings (unrelated to this change).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_184.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PremiumDatePicker.jsx cleanly supports min/max constraints, keepPremiumCal export is used in all 3 call sites (DateRangeMenu PopoverContent, FilterDrawer SheetContent, SubFilterDrawer SheetContent) via onInteractOutside — pattern is consistent.",
+    "Mobile bottom-sheet overlay (z-9998) and popup (z-9999) are explicit; works correctly within the right Sheet drawer at 390px.",
+    "Minor: boolean 'disabled' attribute on day buttons returns '' (empty string) not 'true'. This is standard HTML; no fix needed.",
+    "No regression observed in rest of Subscriptions/Bookings pages."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested, frontend-only change)", "frontend": "100% (6/6 scenarios pass)"},
+  "test_credentials": "/login one-click 'Login as Admin' (Super Admin +919000000000 OTP 123456)",
+  "seed_data_creation": "None. Used existing 6 Priya Verma subscriptions. DOB on first customer was updated to Oct 1, 2026 during Person360 test but Save was not clicked (modal cancelled implicitly on next navigation).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All PremiumDatePicker swap-in points verified. If any new native <input type='date'> is added elsewhere, same pattern (PremiumDatePicker + keepPremiumCal on parent interactive container) should be used. Mobile view uses bottom-sheet variant which also respects keepPremiumCal.",
+  "rca of the issue": "N/A - no bugs reproduced."
+}

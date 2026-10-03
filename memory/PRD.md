@@ -356,3 +356,6 @@ VERIFIED: testing agent iteration_180 — backend 5/5 PASS, frontend 100%, no cr
 ## 2026-06 Service Areas chip row: mouse drag-scroll, wheel→horizontal, left/right arrow buttons (CityNav.jsx). Fresh-import setup: created backend/.env, frontend/.env, web_panel/.env; installed web_panel deps + backend requirements.
 
 ## 2026-06 Pin favourite cities in Price Manager Service Areas row (localStorage pm_pinned_cities). Fixed login: env URLs updated to pm-backend-frontend.preview.emergentagent.com.
+
+## 2026-06 Subscriptions admin redesign (Bookings design system): stat cards, tabs w/ counts, toolbar+filters drawer, full table, details drawer (customer/plan/maid assign/payment+invoice/earnings/settlement actions/attendance+schedule/timeline), bulk export, pager, empty/error/skeleton. Files: pages/admin/SubscriptionsAdmin.jsx + pages/admin/subscriptions/*. Test data: scripts/seed_test_subscriptions.py.
+## 2026-06 Native date inputs replaced by PremiumDatePicker (DateRangeMenu custom range, Subscriptions filter drawer, Person360 DOB). PremiumDatePicker now works inside Radix popovers/sheets (keepPremiumCal).
