@@ -58,7 +58,7 @@ const GlobalSearch = ({ onNavigate }) => {
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       <input data-testid="global-search" value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => res && setOpen(true)}
         placeholder="Search users, services, bookings…"
-        className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white dark:focus:bg-slate-800" />
+        className="w-full h-[42px] pl-9 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white dark:focus:bg-slate-800" />
       {open && res && (
         <div className="absolute top-11 left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-96 overflow-y-auto z-50 p-2">
           {(res.groups || []).length === 0 && <p className="text-sm text-slate-400 px-3 py-4 text-center">No results for {res.query}</p>}
@@ -423,7 +423,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
               value={menuQuery}
               onChange={(e) => setMenuQuery(e.target.value)}
               placeholder="Search menu…"
-              className="w-full h-9 pl-8 pr-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className="w-full h-[42px] pl-8 pr-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
             {menuQuery && <button onClick={() => setMenuQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>}
           </div>

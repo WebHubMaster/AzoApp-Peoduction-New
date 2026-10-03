@@ -30,7 +30,6 @@ function StatusBadge({ s }) {
   return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>;
 }
 
-const CAT_LABELS = { "": "All categories" };
 const STATUS_LABELS = { pending: "Pending", under_review: "Under Review", converted_to_service: "Converted", rejected: "Rejected", closed: "Closed" };
 
 export default function CustomJobsAdmin() {
