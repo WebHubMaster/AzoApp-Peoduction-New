@@ -312,7 +312,7 @@ Backlog: show category rates to partners in job offer earning preview; audit log
 
 ## 2026-10 — Invoice Verify Page + admin login fix
 - QR on Tax Invoice encodes signed public URL /api/invoices/verify/{id}?s=HMAC → "Genuine Invoice" page (masked customer, amounts, CGST/SGST); invalid → 404 "Could Not Verify".
-- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://tax-invoice-system.preview.emergentagent.com (was a different host → CORS block).
+- Admin login "Connection issue" fixed: REACT_APP_BACKEND_URL in web_panel/frontend/backend .env now = https://pricing-hub-99.preview.emergentagent.com (was a different host → CORS block).
 
 ## 2026-10 — Commission drawer tax preview
 - Configure Commission drawer shows tax calc: total commission (100-partner%) + platform fee = taxable, CGST/SGST, customer total, invoice page1/page2, internal merchant split (not on invoice).

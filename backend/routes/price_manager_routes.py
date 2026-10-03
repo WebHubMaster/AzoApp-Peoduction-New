@@ -24,4 +24,5 @@ async def save_city(city: str, data: dict = Body(...), admin=Depends(ADMIN)):
 
 @router.post("/copy")
 async def copy_city(data: dict = Body(...), admin=Depends(ADMIN)):
-    return await svc.copy_city(data.get("from"), data.get("to"), data.get("adjust_pct") or 0, admin)
+    return await svc.copy_city(data.get("from"), data.get("to"), data.get("adjust_pct") or 0,
+                               admin, data.get("include"))

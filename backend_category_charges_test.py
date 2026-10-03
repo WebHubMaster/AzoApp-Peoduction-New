@@ -16,7 +16,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://tax-invoice-system.preview.emergentagent.com/api"
+BASE_URL = "https://pricing-hub-99.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

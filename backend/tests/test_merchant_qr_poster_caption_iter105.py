@@ -14,7 +14,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://tax-invoice-system.preview.emergentagent.com",
+    "https://pricing-hub-99.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -44,7 +44,7 @@ CAPTION_MULTILINE = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link to book now:\n"
-    "https://tax-invoice-system.preview.emergentagent.com/?ref=XZ6SV49"
+    "https://pricing-hub-99.preview.emergentagent.com/?ref=XZ6SV49"
 )
 
 

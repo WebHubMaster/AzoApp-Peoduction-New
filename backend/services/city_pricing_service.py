@@ -153,23 +153,50 @@ async def apply_ratecard(card: dict, city=None) -> dict:
     return card
 
 
+def _sp_is_priced(sp: dict) -> bool:
+    """A service entry counts as priced when it is enabled and has at least one positive price."""
+    if not isinstance(sp, dict) or sp.get("enabled") is False:
+        return False
+    if (_num(sp.get("price")) or 0) > 0:
+        return True
+    for t in (sp.get("tiers") or {}).values():
+        if isinstance(t, dict) and (_num(t.get("price")) or 0) > 0:
+            return True
+    for v in (sp.get("plans") or {}).values():
+        if (_num(v) or 0) > 0:
+            return True
+    return False
+
+
 # ------------------------------------------------------------------ admin
-async def list_cities():
-    areas = await db.service_areas.find({}, {"_id": 0, "city": 1}).to_list(2000)
-    names = {}
+async def list_cities(include_all: bool = False):
+    """Cities come ONLY from active Service Areas (source of truth). Inactive/removed
+    areas are not offered for pricing. `include_all=True` keeps legacy behaviour for seeding."""
+    q = {} if include_all else {"status": {"$ne": "inactive"}}
+    areas = await db.service_areas.find(q, {"_id": 0, "city": 1, "status": 1}).to_list(2000)
+    names, status = {}, {}
     for a in areas:
-        if (a.get("city") or "").strip():
-            names.setdefault(key(a["city"]), a["city"].strip())
+        c = (a.get("city") or "").strip()
+        if not c:
+            continue
+        k = key(c)
+        names.setdefault(k, c)
+        if a.get("status") != "inactive":
+            status[k] = "active"
+        else:
+            status.setdefault(k, "inactive")
+    total_services = await db.services.count_documents({})
     docs = {d["city_key"]: d async for d in db.city_pricing.find({}, {"_id": 0, "city_key": 1, "city": 1,
-                                                                      "services": 1, "categories": 1, "updated_at": 1})}
-    for k, d in docs.items():
-        names.setdefault(k, d.get("city"))
+                                                                      "services": 1, "categories": 1, "fees": 1,
+                                                                      "updated_at": 1, "updated_by": 1})}
     out = []
-    for k, n in sorted(names.items(), key=lambda x: x[1]):
+    for k, n in sorted(names.items(), key=lambda x: x[1].lower()):
         d = docs.get(k) or {}
-        priced = sum(1 for v in (d.get("services") or {}).values() if v.get("enabled", True))
-        out.append({"city": n, "city_key": k, "configured": bool(d), "priced_services": priced,
-                    "categories": len(d.get("categories") or []), "updated_at": d.get("updated_at")})
+        priced = sum(1 for v in (d.get("services") or {}).values() if _sp_is_priced(v))
+        out.append({"city": n, "city_key": k, "configured": bool(d), "status": status.get(k, "active"),
+                    "priced_services": priced, "total_services": total_services,
+                    "categories": len(d.get("categories") or []), "updated_at": d.get("updated_at"),
+                    "updated_by": d.get("updated_by")})
     return out
 
 
@@ -188,6 +215,7 @@ async def admin_city(city: str):
     defaults["emergency_fee"] = settings.get("emergency_fee")
     return {
         "city": doc.get("city") or city, "configured": bool(doc),
+        "updated_at": doc.get("updated_at"), "updated_by": doc.get("updated_by"),
         "categories": doc.get("categories") or [], "fees": doc.get("fees") or {}, "fee_defaults": defaults,
         "prices": doc.get("services") or {}, "ratecards": doc.get("ratecards") or {},
         "all_categories": cats,
@@ -221,12 +249,13 @@ async def save_city(city: str, data: dict, admin: dict = None):
     return await admin_city(city)
 
 
-async def copy_city(src: str, dst: str, pct: float = 0, admin: dict = None):
+async def copy_city(src: str, dst: str, pct: float = 0, admin: dict = None, include=None):
     s = await get_doc(src)
     if not s:
         from fastapi import HTTPException
         raise HTTPException(404, "Source city has no prices")
     f = 1 + float(pct or 0) / 100
+    inc = set(include) if include else {"services", "addons", "mrp", "fees", "categories", "ratecards"}
 
     def adj(v):
         n = _num(v)
@@ -238,12 +267,26 @@ async def copy_city(src: str, dst: str, pct: float = 0, admin: dict = None):
         return o
     services = {}
     for sid, sp in (s.get("services") or {}).items():
-        sp = walk(sp)
-        sp["addons"] = {n: adj(v) for n, v in (sp.get("addons") or {}).items()}
+        sp = walk(copy.deepcopy(sp))
+        if "mrp" not in inc:
+            src_sp = (s.get("services") or {}).get(sid) or {}
+            sp.pop("mrp", None)
+            for tk, tv in (sp.get("tiers") or {}).items():
+                if isinstance(tv, dict):
+                    tv.pop("mrp", None)
+        sp["addons"] = {n: adj(v) for n, v in (sp.get("addons") or {}).items()} if "addons" in inc else {}
         sp["plans"] = {n: adj(v) for n, v in (sp.get("plans") or {}).items()}
         services[sid] = sp
-    return await save_city(dst, {"categories": s.get("categories") or [], "fees": s.get("fees") or {},
-                                 "services": services, "ratecards": s.get("ratecards") or {}}, admin)
+    payload = {}
+    if "services" in inc:
+        payload["services"] = services
+    if "categories" in inc:
+        payload["categories"] = s.get("categories") or []
+    if "fees" in inc:
+        payload["fees"] = s.get("fees") or {}
+    if "ratecards" in inc:
+        payload["ratecards"] = s.get("ratecards") or {}
+    return await save_city(dst, payload, admin)
 
 
 async def _bust_public():
@@ -283,7 +326,7 @@ async def seed_from_current():
     fees = {k: biz.get(k) for k in FEE_KEYS if biz.get(k) is not None}
     fees["emergency_fee"] = settings.get("emergency_fee")
     n = 0
-    for c in await list_cities():
+    for c in await list_cities(include_all=True):
         await db.city_pricing.update_one({"city_key": c["city_key"]}, {"$set": {
             "city": c["city"], "city_key": c["city_key"], "categories": cats, "fees": fees,
             "services": services, "ratecards": ratecards, "updated_at": now_iso(), "seeded": True}}, upsert=True)

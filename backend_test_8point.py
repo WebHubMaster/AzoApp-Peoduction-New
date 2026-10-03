@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://tax-invoice-system.preview.emergentagent.com/api"
+BASE_URL = "https://pricing-hub-99.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

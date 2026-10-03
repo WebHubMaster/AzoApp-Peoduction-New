@@ -1,5 +1,5 @@
 {
-  "base_url": "https://tax-invoice-system.preview.emergentagent.com/api",
+  "base_url": "https://pricing-hub-99.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Chandan Cancellation (AZO9HWVU1)",

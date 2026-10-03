@@ -393,7 +393,7 @@ export default function AdminDashboard() {
       {active === "refund" && <PageEditorPro pageKey="refund" title="Refund Policy" subtitle="Your refund/cancellation policy — rendered on /refund." />}
       {active === "commission" && <S.CommissionSettings />}
       {active === "category_commission" && <CategoryCommissions />}
-      {active === "price_manager" && <PriceManager />}
+      {active === "price_manager" && <PriceManager onNavigate={setActive} />}
       {active === "surge" && <SurgeRulesManager />}
       {active === "app_mgmt" && <AppManagement />}
       {active === "logs_monitor" && <LogsMonitor />}
