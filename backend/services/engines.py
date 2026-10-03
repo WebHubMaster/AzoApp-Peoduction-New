@@ -10,6 +10,13 @@ _IST = timezone(timedelta(hours=5, minutes=30))
 _WD = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
 
+def selling_price(svc: dict) -> float:
+    """Charged unit price: discounted price when it is a real discount, else base price."""
+    b = float(svc.get("base_price") or 0)
+    d = float(svc.get("discounted_price") or 0)
+    return d if 0 < d < b else b
+
+
 def normalize_addons(raw):
     """Canonical add-on shape → list of {name, qty}.
 
@@ -160,7 +167,7 @@ class PricingEngine:
                       addon_names: list, coupon: dict = None, address: dict = None,
                       cart_service_total: float = None, apply_visiting: bool = True,
                       apply_emergency: bool = True) -> dict:
-        base = float(service.get("base_price", 0))
+        base = selling_price(service)
         # Add-on quantity is INDEPENDENT of the main service quantity. Each selected
         # add-on carries its own qty (default 1); the price is add-on price × add-on
         # qty — it is NEVER multiplied by the main service quantity.

@@ -43,6 +43,7 @@ import { AdminJobRequests, AreaPartners, RealtimeSettings, AdminDispatchFeed } f
 import { SurgeRulesManager, ServiceAreasManager, LaunchDemandManager } from "@/pages/admin/serviceOpsSections";
 import AppManagement from "@/pages/admin/AppManagement";
 import CategoryCommissions from "@/pages/admin/CategoryCommissions";
+import PriceManager from "@/pages/admin/pricing/PriceManager";
 import HomepageBuilderPro from "@/pages/admin/HomepageBuilderPro";
 import BookingsPro from "@/pages/admin/BookingsPro";
 import { guardNav } from "@/lib/navGuard";
@@ -125,6 +126,7 @@ const NAV = [
     { key: "qr_agent_payouts", label: "Agent Withdraw", icon: Banknote },
   ]},
 
+  { key: "price_manager", label: "Price Manager", icon: Tag },
   { key: "category_commission", label: "Commission & Refund", icon: Percent },
 
   { group: "Finance", icon: Wallet, items: [
@@ -204,7 +206,7 @@ const GROUP_MODULE = {
   "Website / CMS": "website_cms", "Mobile App": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
   "Access Control": "access_control", "System": "system", "Platform": "system",
 };
-const ITEM_MODULE = { category_commission: "finance", tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
+const ITEM_MODULE = { price_manager: "services", category_commission: "finance", tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
 // reverse: nav key -> module (for guarding the active section)
 const KEY_MODULE = (() => {
   const m = { ...ITEM_MODULE };
@@ -225,7 +227,7 @@ const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pr
   "merchant_services","merchant_orders","merchant_settlements","taxes","settlements","fin_reports","offers","pages",
   "seo_dashboard","global_seo","category_seo","service_seo","sitemap","schema","redirects","channels",
   "reports_overview","export_center","login_activity","settings_general","storage_settings",
-  "integration_center","category_commission","reg_templates","reg_kyc_pending","reg_kyc_approved","reg_kyc_rejected",
+  "integration_center","category_commission","price_manager","reg_templates","reg_kyc_pending","reg_kyc_approved","reg_kyc_rejected",
   "reg_education","reg_experience","reg_notifications","area_partners","realtime_settings","dispatch_feed","sys_performance"]);
 
 const SOON_TITLES = {
@@ -305,7 +307,7 @@ export default function AdminDashboard() {
     custom_jobs: "Custom Job Requests",
     kyc_approvals: "KYC Approvals",
     pro_partners: "Pro Partners (AzoApp Pro)",
-    commission: "Rate Card & Commission Rules", category_commission: "Commission & Refund", customers: "Customers", ledger: "Transactions & Ledger",
+    commission: "Rate Card & Commission Rules", category_commission: "Commission & Refund", price_manager: "Price Manager", customers: "Customers", ledger: "Transactions & Ledger",
     surge: "Surge Rules", launch_demand: "Launch Demand", coverage_map: "Coverage Map",
     coupons: "Promo Codes", notifications: "Notifications", tickets: "User Queries", banners: "Sliders / Banners",
     blogs: "Blog", faqs: "FAQs", plans: "Subscription Plans", sysusers: "System Users", ai: "AI Insights",
@@ -391,6 +393,7 @@ export default function AdminDashboard() {
       {active === "refund" && <PageEditorPro pageKey="refund" title="Refund Policy" subtitle="Your refund/cancellation policy — rendered on /refund." />}
       {active === "commission" && <S.CommissionSettings />}
       {active === "category_commission" && <CategoryCommissions />}
+      {active === "price_manager" && <PriceManager />}
       {active === "surge" && <SurgeRulesManager />}
       {active === "app_mgmt" && <AppManagement />}
       {active === "logs_monitor" && <LogsMonitor />}

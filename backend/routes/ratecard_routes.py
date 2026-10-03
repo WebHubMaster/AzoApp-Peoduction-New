@@ -10,12 +10,14 @@ ADMIN = require_role("admin")
 # ---------- PUBLIC ----------
 @router.get("/by-category/{slug_or_id}")
 async def by_category(slug_or_id: str):
-    return await rc.public_by_category(slug_or_id)
+    from services.city_pricing_service import apply_ratecard
+    return await apply_ratecard(await rc.public_by_category(slug_or_id))
 
 
 @router.get("/by-service/{service_id}")
 async def by_service(service_id: str):
-    return await rc.public_by_service(service_id)
+    from services.city_pricing_service import apply_ratecard
+    return await apply_ratecard(await rc.public_by_service(service_id))
 
 
 @router.get("/search")

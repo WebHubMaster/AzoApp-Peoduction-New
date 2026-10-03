@@ -424,7 +424,7 @@ const WIZ_STEPS = [
   { key: "basics", label: "Basics", icon: Info },
   { key: "category", label: "Category", icon: Layers },
   { key: "media", label: "Media", icon: ImageIcon },
-  { key: "variants", label: "Variants & Pricing", icon: Tag },
+  { key: "variants", label: "Variants & Plans", icon: Tag },
   { key: "highlights", label: "Highlights & FAQs", icon: Sparkles },
   { key: "seo", label: "SEO", icon: Globe },
   { key: "publish", label: "Publish", icon: Check },
@@ -460,9 +460,6 @@ function SubscriptionPlanEditor({ plans, onChange }) {
         <div key={p.plan_type} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm font-bold text-slate-700 dark:text-slate-200 w-20 capitalize">{p.label || p.plan_type}</span>
-            <label className="text-xs text-slate-500">Price (₹)
-              <Input type="number" data-testid={`sub-price-${p.plan_type}`} value={p.price} onChange={(e) => upd(i, { price: Number(e.target.value) })} className="h-8 w-28 mt-1" />
-            </label>
             <label className="text-xs text-slate-500">Duration (days)
               <Input type="number" value={p.duration_days} onChange={(e) => upd(i, { duration_days: Number(e.target.value) })} className="h-8 w-24 mt-1" />
             </label>
@@ -555,8 +552,6 @@ const VariantEditor = ({ tiers, onChange }) => {
                   <div className="col-span-2 md:col-span-2"><L>Variant name *</L><Input placeholder="e.g. 2 ACs / Full body / 60 min" value={t.label} onChange={(e) => upd(i, { label: e.target.value })} /></div>
                   <div><L>Badge</L><Input placeholder="e.g. Bestseller" value={t.badge} onChange={(e) => upd(i, { badge: e.target.value })} /></div>
                   <div><L>Quantity</L><Input type="number" placeholder="e.g. 2" value={t.qty} onChange={(e) => upd(i, { qty: Number(e.target.value) })} /></div>
-                  <div><L>Selling price (₹) *</L><Input type="number" placeholder="e.g. 1098" value={t.price} onChange={(e) => upd(i, { price: Number(e.target.value) })} /></div>
-                  <div><L>Original price (₹)</L><Input type="number" placeholder="e.g. 1198" value={t.original_price} onChange={(e) => upd(i, { original_price: Number(e.target.value) })} /></div>
                   <div><L>Rating (0-5)</L><Input type="number" step="0.1" max="5" placeholder="e.g. 4.8" value={t.rating} onChange={(e) => upd(i, { rating: Number(e.target.value) })} /></div>
                   <div><L>Reviews count</L><Input type="number" placeholder="e.g. 2900000" value={t.review_count} onChange={(e) => upd(i, { review_count: Number(e.target.value) })} /></div>
                   <div className="col-span-2 md:col-span-4"><L>Short line</L><Input placeholder="e.g. Foam-jet deep clean · 2 pros · 60 min" value={t.description} onChange={(e) => upd(i, { description: e.target.value })} /></div>
@@ -918,16 +913,15 @@ export const ServiceWizard = () => {
             </Section>
           )}
           {step === 3 && (
-            <Section title="Variants & Pricing">
+            <Section title="Variants & Plans">
               <Field label="Price Type">
                 <Select value={f.price_type} onValueChange={(v) => setF({ ...f, price_type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>{[["fixed", "Fixed"], ["per_hour", "Hourly"], ["per_person", "Per Person"], ["per_sqft", "Per Sq Ft"]].map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
                 </Select>
               </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Original Price (₹)"><Input type="number" value={f.base_price} onChange={(e) => setF({ ...f, base_price: e.target.value })} /></Field>
-                <Field label="Discounted Price (₹)"><Input type="number" value={f.discounted_price} onChange={(e) => setF({ ...f, discounted_price: e.target.value })} /></Field>
+              <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200" data-testid="svc-price-manager-note">
+                Price yahan set nahi hota. Service, variants, add-ons aur subscription plans ka price <b>Admin → Price Manager</b> me city-wise set karein. Jis city me price set nahi hoga, wahan yeh service nahi dikhegi.
               </div>
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">Taxes (from Integration Center)</label>

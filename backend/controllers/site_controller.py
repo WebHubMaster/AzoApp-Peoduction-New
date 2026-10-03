@@ -135,7 +135,8 @@ def _visible(svc, ac, asub):
 async def homepage(city: str = ""):
     """Return ordered, enabled sections with resolved data. Fully admin-controlled.
     Read-through cached (45s) — the storefront's hottest, heaviest public query."""
-    city = (city or "").strip().lower()[:60]
+    from services.city_pricing_service import current_city
+    city = (city or current_city.get() or "").strip().lower()[:60]
     key = f"site:homepage:c:{city}" if city else "site:homepage"
     return await cache_service.cached(key, 45, lambda: _homepage(city))
 
@@ -158,6 +159,8 @@ async def _homepage(city: str = ""):
     ac, asub = await _active_sets()
     all_services = await db.services.find({}, {"_id": 0}).sort("created_at", -1).to_list(2000)
     visible = [s for s in all_services if _visible(s, ac, asub)]
+    from services import city_pricing_service as _cp
+    visible = await _cp.filter_services(visible, city or None)
     demand = await _service_demand(city)
     global_demand = await _service_demand("") if city else demand
     for s in visible:
@@ -167,6 +170,7 @@ async def _homepage(city: str = ""):
     for s in visible:
         per_cat[s.get("category_id")] = per_cat.get(s.get("category_id"), 0) + 1
     cats = await db.categories.find({"status": "active"}, {"_id": 0}).sort("order", 1).to_list(500)
+    cats = await _cp.filter_categories(cats, city or None)
     for c in cats:
         c["service_count"] = per_cat.get(c["id"], 0)
     banners = await db.banners.find({"status": "active"}, {"_id": 0}).sort("order", 1).to_list(100)

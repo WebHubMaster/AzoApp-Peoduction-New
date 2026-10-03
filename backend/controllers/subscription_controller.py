@@ -21,7 +21,11 @@ async def _service_or_404(service_id):
     s = await db.services.find_one({"id": service_id}, {"_id": 0})
     if not s:
         raise HTTPException(status_code=404, detail="Service not found")
-    return s
+    from services.city_pricing_service import price_one
+    p = await price_one(s)
+    if not p:
+        raise HTTPException(status_code=400, detail="This service is not available in your city")
+    return p
 
 
 # ---------------- CUSTOMER ----------------

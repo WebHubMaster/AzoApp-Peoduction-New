@@ -39,6 +39,8 @@ const api = axios.create({
 api.interceptors.request.use((cfg) => {
   const t = localStorage.getItem("azo_token");
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
+  const c = localStorage.getItem("azo_location");
+  if (c && c !== "Your area") cfg.headers["X-City"] = c.split(",")[0].trim();
   return cfg;
 });
 

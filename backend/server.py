@@ -55,6 +55,7 @@ from routes.legal_routes import router as legal_router  # noqa: E402
 from routes.app_management_routes import router as app_mgmt_router  # noqa: E402
 from routes.logs_routes import router as logs_router  # noqa: E402
 from routes.category_commission_routes import router as category_commission_router  # noqa: E402
+from routes.price_manager_routes import router as price_manager_router  # noqa: E402
 from middleware.log_middleware import LogMiddleware  # noqa: E402
 from services import logbus  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
@@ -78,7 +79,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router, category_commission_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router, category_commission_router, price_manager_router]:
     api_router.include_router(r)
 
 app.include_router(api_router)
@@ -141,6 +142,13 @@ app.add_middleware(
 # Outermost: measure end-to-end latency of every /api request for the
 # Super Admin -> Performance page (records into services.perf_service).
 app.add_middleware(PerfMiddleware)
+
+
+@app.middleware("http")
+async def _city_ctx(request, call_next):
+    from services.city_pricing_service import current_city
+    current_city.set((request.headers.get("x-city") or request.query_params.get("city") or "").strip())
+    return await call_next(request)
 # Structured request logging (Request-ID + level) → Admin Live Logs dashboard.
 app.add_middleware(LogMiddleware)
 
@@ -160,6 +168,13 @@ async def startup():
         await seed_maid_sub()
     except Exception as e:  # noqa: BLE001
         logger.warning("maid subscription seed skipped: %s", e)
+    try:
+        from services.city_pricing_service import seed_from_current
+        n = await seed_from_current()
+        if n:
+            logger.info("price manager: seeded %s cities from current prices", n)
+    except Exception as e:  # noqa: BLE001
+        logger.warning("price manager seed skipped: %s", e)
     # Partner registration masters (education/experience defaults)
     try:
         from services.partner_reg_service import seed_masters

@@ -80,7 +80,8 @@ def _svc_card(s, demand):
 
 
 async def public_home(city: str = ""):
-    city = (city or "").strip().lower()[:60]
+    from services.city_pricing_service import current_city
+    city = (city or current_city.get() or "").strip().lower()[:60]
     key = f"{CACHE}:c:{city}" if city else CACHE
     return await cache_service.cached(key, 45, lambda: _public_home(city))
 
@@ -90,12 +91,15 @@ async def _public_home(city: str):
     ac, asub = await sc._active_sets()
     all_services = await db.services.find({}, {"_id": 0}).sort("created_at", -1).to_list(2000)
     visible = [s for s in all_services if sc._visible(s, ac, asub)]
+    from services import city_pricing_service as _cp
+    visible = await _cp.filter_services(visible, city or None)
     demand = await sc._service_demand("")
     local = await sc._service_demand(city) if city else demand
     per_cat = {}
     for s in visible:
         per_cat[s.get("category_id")] = per_cat.get(s.get("category_id"), 0) + 1
     cats = await db.categories.find({"status": "active"}, {"_id": 0}).sort("order", 1).to_list(500)
+    cats = await _cp.filter_categories(cats, city or None)
     cats = [{"id": c["id"], "name": c["name"], "slug": c.get("slug"), "icon": c.get("icon"), "image": c.get("image"),
              "service_count": per_cat.get(c["id"], 0)} for c in cats if c.get("show_on_home", True)]
     promos = await sc.promotions()

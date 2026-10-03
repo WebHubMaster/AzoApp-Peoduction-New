@@ -4,6 +4,7 @@
  * Base URL comes from EXPO_PUBLIC_BACKEND_URL; the ingress routes /api → backend.
  */
 import { secureStorage } from "@/src/utils/storage";
+import { getLocationName } from "@/src/lib/location";
 
 const RAW = process.env.EXPO_PUBLIC_BACKEND_URL || "";
 export const API_BASE = `${RAW.replace(/\/+$/, "")}/api`;
@@ -59,6 +60,8 @@ async function request<T = any>(path: string, opts: RequestOpts = {}, attempt = 
   if (auth) {
     const t = await getToken();
     if (t) headers.Authorization = `Bearer ${t}`;
+    const _c = getLocationName();
+    if (_c && _c !== "Your area") headers["X-City"] = _c.split(",")[0].trim();
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);

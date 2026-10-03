@@ -10,7 +10,8 @@ ADMIN = require_role("admin")
 # ---------- PUBLIC ----------
 @router.get("/categories")
 async def categories():
-    return await c.list_categories()
+    from services.city_pricing_service import filter_categories
+    return await filter_categories(await c.list_categories())
 
 
 @router.get("/category/{slug_or_id}")
@@ -26,7 +27,8 @@ async def subcategories(category_id: str = None):
 @router.get("/services")
 async def services(category_id: str = None, subcategory_id: str = None, q: str = None,
                    featured: bool = None, trending: bool = None):
-    return await c.list_services(category_id, subcategory_id, q, featured, trending)
+    from services.city_pricing_service import filter_services
+    return await filter_services(await c.list_services(category_id, subcategory_id, q, featured, trending))
 
 
 @router.get("/upsell")
@@ -37,7 +39,12 @@ async def upsell(service_ids: str = ""):
 
 @router.get("/services/{service_id}")
 async def service(service_id: str):
-    return await c.get_service(service_id, public=True)
+    from fastapi import HTTPException
+    from services.city_pricing_service import price_one
+    out = await price_one(await c.get_service(service_id, public=True))
+    if not out:
+        raise HTTPException(status_code=404, detail="This service is not available in your city")
+    return out
 
 
 # ---------- ADMIN listing (all records) ----------

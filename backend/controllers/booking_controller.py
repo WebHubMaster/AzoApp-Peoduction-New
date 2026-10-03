@@ -201,7 +201,18 @@ async def _service_or_404(service_id):
     svc = await db.services.find_one({"id": service_id}, {"_id": 0})
     if not svc:
         raise HTTPException(status_code=404, detail="Service not found")
-    return svc
+    from services import city_pricing_service as _cp
+    priced = await _cp.price_one(svc)
+    if not priced:
+        raise HTTPException(status_code=400, detail=f"{svc.get('name') or 'This service'} is not available in your city")
+    return priced
+
+
+async def _city_settings(address=None):
+    from services import city_pricing_service as _cp
+    if address and isinstance(address, dict) and address.get("city"):
+        _cp.current_city.set(address["city"])
+    return await _cp.settings_for(await get_settings())
 
 
 def _synth_service(name, price, category_id="", category_name=""):
@@ -348,7 +359,7 @@ async def _load_coupon(coupon_code, subtotal=None):
 async def quote(service_id, schedule_type, addons, coupon_code=None, tier_index=None):
     svc = await _service_or_404(service_id)
     svc, tier_label = _apply_tier(svc, tier_index)
-    settings = await get_settings()
+    settings = await _city_settings()
     pricing = await PricingEngine.compute(svc, settings, schedule_type, addons, None)
     coupon = await _load_coupon(coupon_code, pricing.get("subtotal"))
     if coupon:
@@ -368,7 +379,7 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
     This mirrors exactly what booking creation charges (emergency/visiting/platform go
     on the first booking only), so displayed total == amount charged."""
     items = items or []
-    settings = await get_settings()
+    settings = await _city_settings(address)
     schedule_type = (schedule_type or "schedule").lower()
     if schedule_type == "now":
         schedule_type = "schedule"
@@ -406,7 +417,8 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
         addons_norm = normalize_addons(addons)
         addon_qty = {a["name"]: a["qty"] for a in addons_norm}
         qty = max(1, int(it.get("qty", 1) or 1))
-        base = float(svc.get("base_price", 0))
+        from services.engines import selling_price
+        base = selling_price(svc)
         # Main service = base × main qty. Add-ons are priced INDEPENDENTLY with their
         # OWN quantity (default 1) — an add-on is NEVER multiplied by the main qty.
         line_base_total = money.money(base * qty)
@@ -565,7 +577,9 @@ async def _build_booking(customer, svc, address, schedule_type, addons, notes,
         raise HTTPException(status_code=400, detail="Invalid schedule type")
     if schedule_type == "schedule" and not scheduled_at:
         raise HTTPException(status_code=400, detail="Please pick a date & time for your scheduled booking")
-    settings = await get_settings()
+    settings = await _city_settings(address)
+    if not svc.get("is_custom") and svc.get("id"):
+        svc = await _service_or_404(svc["id"])
     # Scheduled bookings must land on the configured slot grid (default 30-min interval).
     # Emergency/instant bookings are exempt (their time is immediate, not a chosen slot).
     if schedule_type == "schedule" and scheduled_at:
