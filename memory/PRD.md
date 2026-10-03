@@ -38,3 +38,20 @@
 - **Mobile UI mirrors** for P4 (ⓘ tooltip), P5 (partner card + profile screen), P6 (Help & SOS + realtime support thread) in Customer/Partner Expo apps. Backend endpoints ready; needs Expo screens wired (not previewable here).
 - Admin SupportInbox: add live subscription to `support_message`/`support_typing` for instant agent view (customer side already live).
 - Optional: remove now-inert admin "Surge Rules" config UI.
+
+---
+## 2026-06 — Premium "All Services" Page Redesign (web_panel)
+**Scope:** Frontend-only visual redesign of `web_panel/src/pages/customer/Services.jsx` (customer All Services marketplace page). No API/data/route/logic changes.
+
+**Env note:** backend `.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp, JWT_SECRET, CORS_ORIGINS) and `web_panel/.env` (REACT_APP_BACKEND_URL) were MISSING and were restored; DB re-seeded on boot (16 services / 7 categories).
+
+**What changed (visual layer only):**
+- Widened content container to max-w-[1440px]; eliminated empty right-side; full-width responsive grid (2 / md:3 / lg:4 / 2xl:5 columns).
+- Premium hero band (white) with large heading + subtitle + big 56px search bar (icon + clear button).
+- Icon-based category navigation (admin `category.icon` mapped to lucide icons); horizontal scroll on mobile; selected = blue.
+- Redesigned service cards: 4:3 landscape image, premium icon placeholder for missing images, rating badge, review count (only when data>0), duration, "Starting from" price, OFF badge, full-width solid-blue "Book Now →" CTA with hover elevation + entrance animation.
+- Category section headers with icon chip, admin description subtitle, and "View all" link (All view).
+- Premium shimmer skeleton grid (`.shimmer-block` in index.css), premium empty state with "Clear filters".
+- Full dark-mode styling.
+
+**Preserved (verified by testing agent, 100% pass):** card click → /service/:id, Book Now quick-add → cart + view-booking-bar, live search, rate-card search (/ratecards/search), category filtering, pricing/ratings, SEO, cart bar, MobileBottomNav. Shared SiteNavbar/SiteFooter untouched.

@@ -50,7 +50,7 @@ const ServiceCard = ({ s, navigate, i }) => {
       className="group cursor-pointer flex flex-col text-left rounded-2xl border border-[#E5EAF0] dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-[0_1px_2px_rgba(16,24,40,0.04)] hover:shadow-[0_14px_40px_-12px_rgba(13,71,161,0.28)] hover:border-primary-200 dark:hover:border-primary-500/40 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200">
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
         {s.image ? (
-          <SmartImage src={s.image} alt={s.name} width={480} className="group-hover:scale-[1.06] transition-transform duration-[450ms] ease-out" />
+          <SmartImage src={s.image} alt={s.name} width={480} className="group-hover:scale-[1.06] transition-transform duration-500 ease-out" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-50 to-slate-100 dark:from-slate-800 dark:to-slate-900">
             <Ic className="h-10 w-10 text-primary-300 dark:text-slate-600" strokeWidth={1.5} />
