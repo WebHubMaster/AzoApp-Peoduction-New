@@ -369,6 +369,7 @@ async def delete_category(category_id):
     if active_bookings:
         raise HTTPException(status_code=400, detail=f"{active_bookings} active booking(s) depend on this category. Deactivate instead.")
     await db.categories.delete_one({"id": category_id})
+    await db.category_commissions.delete_one({"category_id": category_id})
     await db.subcategories.delete_many({"category_id": category_id})
     await db.services.delete_many({"category_id": category_id})
     await _after_write("category_delete")

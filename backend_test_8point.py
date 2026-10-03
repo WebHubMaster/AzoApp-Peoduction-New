@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://boring-haibt-13.preview.emergentagent.com/api"
+BASE_URL = "https://commission-manager-22.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

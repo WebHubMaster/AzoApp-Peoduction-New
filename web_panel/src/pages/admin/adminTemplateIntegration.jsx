@@ -3,7 +3,7 @@ const DND_TIME_OPTS = Array.from({ length: 48 }, (_, i) => { const h = Math.floo
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Mail, MessageSquare, Bell, Plus, Pencil, Copy, Send, Trash2, Eye, Loader2,
-  Power, Settings2, KeyRound, Percent, GraduationCap, Award, CheckCircle2, Check,
+  Power, Settings2, KeyRound, GraduationCap, Award, CheckCircle2, Check,
   Cloud, CreditCard, Chrome, Phone, ScanLine, X, Save, Coins, Globe, Wallet, Banknote, MapPin, Download,
   Volume2, Music, Play, Moon, Upload, Gift, Zap, Calendar, UserPlus, Wrench, AlertTriangle, Star, Search, QrCode, Sparkles,
 } from "lucide-react";
@@ -747,10 +747,9 @@ export function IntegrationCenter({ onNavigate }) {
   const [data, setData] = useState(null);
   const [integ, setInteg] = useState({});
   const [configuring, setConfiguring] = useState(null);
-  const [commission, setCommission] = useState(null);
 
   const load = useCallback(() => {
-    api.get("/admin/partner-reg/integration-center").then((r) => { setData(r.data); setInteg(r.data.integrations || {}); setCommission(r.data.commission); });
+    api.get("/admin/partner-reg/integration-center").then((r) => { setData(r.data); setInteg(r.data.integrations || {}); });
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -871,15 +870,6 @@ export function IntegrationCenter({ onNavigate }) {
         {/* Active gateway router */}
         <ActiveGatewayCard integ={integ} options={activeGatewayOptions} onSaved={load} />
 
-        {/* Commission card */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col" data-testid="intg-card-commission">
-          <div className="h-10 w-10 rounded-xl bg-emerald-50 grid place-items-center"><Percent className="h-5 w-5 text-emerald-600" /></div>
-          <p className="font-heading font-bold text-slate-800 mt-3">Commission &amp; Refund</p>
-          <p className="text-sm text-slate-500 flex-1">Commission split &amp; cancellation refund %</p>
-          <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Partner {commission?.partner_pct}% · Platform {commission?.platform_pct}% · Refund {commission?.customer_refund_pct}%</p>
-          <Button variant="outline" size="sm" data-testid="intg-config-commission" className="mt-3" onClick={() => setConfiguring({ key: "commission" })}><Settings2 className="h-4 w-4 mr-1" /> Configure</Button>
-        </div>
-
         {/* Referral Program card */}
         <ReferralCard onNavigate={onNavigate} />
 
@@ -970,9 +960,6 @@ export function IntegrationCenter({ onNavigate }) {
         ))}
       </div>
 
-      {configuring && configuring.key === "commission" && (
-        <CommissionModal commission={commission} onClose={() => setConfiguring(null)} onSaved={() => { setConfiguring(null); load(); }} />
-      )}
       {configuring && configuring.key === "tax" && (
         <TaxModal onClose={() => setConfiguring(null)} />
       )}
@@ -1281,131 +1268,6 @@ function ConfigModal({ card, integ, onClose, onSaved }) {
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button data-testid="intg-save" onClick={save} disabled={busy} className="bg-primary-700 hover:bg-primary-800">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4 mr-1" /> Save</>}</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function CommissionModal({ commission, onClose, onSaved }) {
-  const init = {
-    platform_pct: commission?.platform_pct ?? 32,
-    partner_pct: commission?.partner_pct ?? 60,
-    merchant_partner_referral_pct: commission?.merchant_partner_referral_pct ?? 5,
-    merchant_customer_pct: commission?.merchant_customer_pct ?? 3,
-    customer_refund_pct: commission?.customer_refund_pct ?? 80,
-    partner_cancellation_pct: commission?.partner_cancellation_pct ?? 20,
-  };
-  const [f, setF] = useState(init);
-  const [busy, setBusy] = useState(false);
-  const [reasons, setReasons] = useState([]);
-  useEffect(() => {
-    api.get("/admin/settings").then((r) => setReasons(r.data?.cancellation_reasons || [])).catch(() => {});
-  }, []);
-  const set = (k, v) => setF((o) => ({ ...o, [k]: Number(v) || 0 }));
-  const setReason = (i, v) => setReasons((o) => o.map((x, idx) => (idx === i ? v : x)));
-  const addReason = () => setReasons((o) => [...o, ""]);
-  const removeReason = (i) => setReasons((o) => o.filter((_, idx) => idx !== i));
-
-  const commFields = [
-    ["partner_pct", "Partner Commission %"],
-    ["platform_pct", "Platform Commission %"],
-    ["merchant_partner_referral_pct", "Merchant · Partner Referral %"],
-    ["merchant_customer_pct", "Merchant · Customer %"],
-  ];
-  const commTotal = commFields.reduce((s, [k]) => s + (Number(f[k]) || 0), 0);
-  const cancTotal = (Number(f.customer_refund_pct) || 0) + (Number(f.partner_cancellation_pct) || 0);
-  const commOk = Math.abs(commTotal - 100) < 0.01;
-  const cancOk = Math.abs(cancTotal - 100) < 0.01;
-
-  const save = async () => {
-    if (!commOk) return toast.error("Commission split must total 100%");
-    if (!cancOk) return toast.error("Cancellation split must total 100%");
-    setBusy(true);
-    try {
-      await api.put("/admin/settings", { commission: f, cancellation_reasons: reasons.map((r) => r.trim()).filter(Boolean) });
-      toast.success("Commission & refund settings saved");
-      onSaved();
-    } catch (e) {
-      toast.error(e?.response?.data?.detail || "Save failed");
-    } finally { setBusy(false); }
-  };
-
-  return (
-    <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-lg max-h-[88vh] overflow-y-auto" data-testid="intg-modal-commission">
-        <DialogHeader><DialogTitle className="flex items-center gap-2"><Percent className="h-5 w-5 text-emerald-600" /> Commission &amp; Refund Settings</DialogTitle></DialogHeader>
-
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-slate-700">Commission Split <span className="font-normal text-slate-400">(of service cost, GST excluded)</span></p>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${commOk ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`} data-testid="comm-total">Total {commTotal}%</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            {commFields.map(([k, label]) => <L key={k} label={label}><Input type="number" data-testid={`comm-${k}`} value={f[k] ?? 0} onChange={(e) => set(k, e.target.value)} /></L>)}
-          </div>
-          {!commOk && <p className="text-xs text-rose-600 mt-1">Must total 100%. Platform absorbs any commission a merchant is not eligible for.</p>}
-
-          {/* Live split simulator — on a ₹100 service (GST excluded) */}
-          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3" data-testid="commission-simulator">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-bold text-slate-600">Live split preview</p>
-              <span className="text-[11px] text-slate-400">on a <b className="text-slate-600">₹100</b> service (GST excluded)</span>
-            </div>
-            <div className="flex h-3 w-full overflow-hidden rounded-full mb-2.5 bg-slate-200" data-testid="sim-bar">
-              <div style={{ width: `${Math.max(0, Number(f.partner_pct) || 0)}%` }} className="bg-emerald-500 transition-all duration-300" />
-              <div style={{ width: `${Math.max(0, Number(f.platform_pct) || 0)}%` }} className="bg-blue-600 transition-all duration-300" />
-              <div style={{ width: `${Math.max(0, Number(f.merchant_partner_referral_pct) || 0)}%` }} className="bg-amber-500 transition-all duration-300" />
-              <div style={{ width: `${Math.max(0, Number(f.merchant_customer_pct) || 0)}%` }} className="bg-violet-500 transition-all duration-300" />
-            </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11.5px]">
-              {[["bg-emerald-500", "Partner", f.partner_pct, "sim-partner"],
-                ["bg-blue-600", "Platform", f.platform_pct, "sim-platform"],
-                ["bg-amber-500", "Merchant · Partner Referral", f.merchant_partner_referral_pct, "sim-mref"],
-                ["bg-violet-500", "Merchant · Customer", f.merchant_customer_pct, "sim-mcust"]].map(([c, label, val, tid]) => (
-                <span key={tid} data-testid={tid} className="flex items-center gap-1.5 text-slate-600">
-                  <span className={`h-2.5 w-2.5 rounded-sm shrink-0 ${c}`} />
-                  <span className="truncate">{label}</span>
-                  <b className="ml-auto tabular-nums text-slate-800">₹{Number(val) || 0}</b>
-                </span>
-              ))}
-            </div>
-            <p className="text-[10.5px] text-slate-400 mt-2.5 leading-snug">Partner always earns their %. If a merchant referral isn&apos;t applicable, that ₹ share is absorbed by Platform.</p>
-          </div>
-        </div>
-
-        <div className="space-y-1 pt-3 border-t border-slate-100">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-slate-700">Cancellation &amp; Refund <span className="font-normal text-slate-400">(before work starts)</span></p>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cancOk ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`} data-testid="canc-total">Total {cancTotal}%</span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 pt-1">
-            <L label="Customer Refund %"><Input type="number" data-testid="comm-customer_refund_pct" value={f.customer_refund_pct ?? 0} onChange={(e) => set("customer_refund_pct", e.target.value)} /></L>
-            <L label="Partner Cancellation %"><Input type="number" data-testid="comm-partner_cancellation_pct" value={f.partner_cancellation_pct ?? 0} onChange={(e) => set("partner_cancellation_pct", e.target.value)} /></L>
-          </div>
-          {!cancOk && <p className="text-xs text-rose-600 mt-1">Customer Refund % + Partner Cancellation % must total 100%.</p>}
-        </div>
-
-        <div className="space-y-2 pt-3 border-t border-slate-100" data-testid="cancel-reasons-editor">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-slate-700">Cancellation Reasons <span className="font-normal text-slate-400">(shown to customers)</span></p>
-            <Button type="button" variant="outline" size="sm" data-testid="add-cancel-reason" onClick={addReason}><Plus className="h-3.5 w-3.5 mr-1" /> Add</Button>
-          </div>
-          <p className="text-xs text-slate-400">Customers pick one of these when cancelling. An &quot;Other&quot; free-text option is always added automatically.</p>
-          <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-            {reasons.length === 0 && <p className="text-xs text-slate-400 italic">No reasons yet — add a few so customers can pick one.</p>}
-            {reasons.map((r, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <Input data-testid={`cancel-reason-input-${i}`} value={r} onChange={(e) => setReason(i, e.target.value)} placeholder={`Reason ${i + 1}`} />
-                <Button type="button" variant="ghost" size="icon" className="text-rose-500 shrink-0" data-testid={`remove-cancel-reason-${i}`} onClick={() => removeReason(i)}><Trash2 className="h-4 w-4" /></Button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={save} disabled={busy || !commOk || !cancOk} className="bg-emerald-600 hover:bg-emerald-700">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}</Button>
         </div>
       </DialogContent>
     </Dialog>

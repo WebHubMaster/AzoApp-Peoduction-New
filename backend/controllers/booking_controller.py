@@ -635,7 +635,8 @@ async def _build_booking(customer, svc, address, schedule_type, addons, notes,
     ccfg = {k: settings[k] for k in ("platform_commission_pct", "partner_commission_pct",
             "merchant_referral_pct", "merchant_booking_pct", "referral_base")}
     # snapshot the canonical commission block so later rate changes don't alter this booking
-    ccfg["commission"] = dict(settings.get("commission", {}))
+    from services import category_commission_service as _ccs
+    ccfg["commission"] = await _ccs.resolve(settings, svc.get("category_id"))
     eligible = await MatchingEngine.eligible_partners(svc, settings, address)
     booking = {
         "id": new_id(), "code": await _unique_code(),

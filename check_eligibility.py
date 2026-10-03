@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://boring-haibt-13.preview.emergentagent.com/api"
+BASE_URL = "https://commission-manager-22.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

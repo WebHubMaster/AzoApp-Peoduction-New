@@ -1,5 +1,5 @@
 const puppeteer = require('/tmp/node_modules/puppeteer-core');
-const BASE = 'https://boring-haibt-13.preview.emergentagent.com';
+const BASE = 'https://commission-manager-22.preview.emergentagent.com';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 (async () => {
   const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new',

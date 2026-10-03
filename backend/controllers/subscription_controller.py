@@ -29,7 +29,8 @@ async def get_plans(service_id):
     service = await _service_or_404(service_id)
     if not service.get("is_subscription"):
         raise HTTPException(status_code=400, detail="This service is not a subscription service")
-    settings = await get_settings()
+    from services import category_commission_service as _ccs
+    settings = await _ccs.settings_for_category(await get_settings(), service.get("category_id"))
     plans = await svc.plan_preview(service, settings)
     return {"service_id": service_id, "service_name": service.get("name"),
             "category_name": service.get("category_name"), "plans": plans}
@@ -68,7 +69,8 @@ async def create_subscription(user, req):
     working_days = max(1, int(working_days))
     end = start + timedelta(days=duration - 1)
 
-    settings = await get_settings()
+    from services import category_commission_service as _ccs
+    settings = await _ccs.settings_for_category(await get_settings(), service.get("category_id"))
     commission_pct = svc.commission_pct_for(settings)
     tax_pct = float(service.get("tax_pct") or 0)
     fin = svc.compute_financials(price, commission_pct, tax_pct, working_days)

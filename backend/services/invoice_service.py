@@ -132,7 +132,8 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
     else:
         taxable_amt = round(float(taxable_amt), 2)
 
-    comm = settings.get("commission") or {}
+    from services.engines import CommissionEngine as _CE
+    comm = _CE._cm(booking.get("commission_config") or settings)
     base_c = float(pr.get("commissionable_base") or subtotal)
     platform_commission = round(base_c * float(comm.get("platform_pct") or 0) / 100, 2)
 
