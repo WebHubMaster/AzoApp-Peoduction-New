@@ -9,6 +9,7 @@ import { StatusChip } from "./ux";
 import { statusText, statusTone, DONE_STATES, bkDate } from "./nav";
 import { fmt } from "../../lib/format";
 import { UnreadPill } from "./BookingChat";
+import { HelpSOS } from "./HelpSOS";
 
 export const fmtTs = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
 export const relTime = (iso?: string) => {
@@ -285,6 +286,7 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
 
       {b.otps?.start && ["assigned", "arrived_shop", "arrived_customer"].includes(b.status) ? <OtpBanner kind="start" code={b.otps.start} bcode={b.code} /> : null}
       {b.otps?.completion && b.status === "started" ? <OtpBanner kind="complete" code={b.otps.completion} bcode={b.code} /> : null}
+      {b.status === "started" ? <HelpSOS booking={b} /> : null}
       {assigned ? <CurrentStepCard b={b} /> : null}
       {showSchedule ? <ScheduledCard schedule={sched} /> : null}
 

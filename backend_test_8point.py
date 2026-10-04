@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://kare-health.preview.emergentagent.com/api"
+BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

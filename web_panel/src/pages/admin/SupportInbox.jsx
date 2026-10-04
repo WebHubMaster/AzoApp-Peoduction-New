@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useRealtime } from "@/context/RealtimeContext";
 import api from "@/lib/api";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import { useAuth } from "@/context/AuthContext";
@@ -122,6 +123,12 @@ const Thread = ({ tid, onChanged, onBack }) => {
 
   useEffect(() => { setT(null); refresh(); }, [refresh]);
   useEffect(() => { const iv = setInterval(refresh, 3000); return () => clearInterval(iv); }, [refresh]);
+  const { subscribe } = useRealtime();
+  useEffect(() => {
+    const off1 = subscribe("support_message", (d) => { if (d?.ticket_id === tid) refresh(); });
+    const off2 = subscribe("support_typing", (d) => { if (d?.ticket_id === tid) refresh(); });
+    return () => { off1 && off1(); off2 && off2(); };
+  }, [subscribe, tid, refresh]);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [t?.messages?.length, t?.user_typing]);
 
   const pickFiles = async (e) => {
@@ -397,6 +404,11 @@ export default function SupportInbox() {
   useEffect(() => { loadStats(); }, [loadStats]);
   useEffect(() => { const id = setTimeout(loadList, 250); return () => clearTimeout(id); }, [loadList]);
   useEffect(() => { if (active) return; const iv = setInterval(loadList, 5000); return () => clearInterval(iv); }, [active, loadList]);
+  const { subscribe } = useRealtime();
+  useEffect(() => {
+    const offs = ["support_ticket_new", "support_message"].map((ev) => subscribe(ev, () => { loadList(); loadStats(); }));
+    return () => offs.forEach((o) => o && o());
+  }, [subscribe, loadList, loadStats]);
 
   const refreshAll = () => { loadList(); loadStats(); };
 

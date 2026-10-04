@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://kare-health.preview.emergentagent.com"
+BASE_URL = "https://unified-vip-member.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

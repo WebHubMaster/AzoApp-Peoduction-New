@@ -54,7 +54,7 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
 
   const finishLogin = async (d: any) => {
     if (!d?.token || !d?.user) throw new Error(d?.detail || "Verification failed. Please try again.");
-    if (!isCustomer(d.user)) { setOtp(""); setStep(1); fail("This number belongs to a partner/merchant account. Please use a customer mobile number."); return false; }
+    if (!isCustomer(d.user)) { setOtp(""); setStep(1); fail("Account already exists"); return false; }
     await login(d.token, d.user);
     toast.success(`Welcome${d.user.name ? `, ${d.user.name}` : ""}! Number verified — continue with your booking.`);
     onSuccess?.();

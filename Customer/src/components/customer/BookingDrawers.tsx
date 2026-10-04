@@ -1,5 +1,6 @@
 import { TC } from "@/src/theme";
 /** BookingDetailsDrawer + InvoiceDrawer + WorkProof — ports from CustomerDashboard.jsx / WorkProof.jsx. */
+import { HelpSOS } from "./HelpSOS";
 import React, { useState } from "react";
 import { View, Text, Pressable, Modal, Linking } from "react-native";
 import { Image } from "expo-image";
@@ -150,6 +151,7 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
       <DBlock icon={Wrench} title="Service Information"><DRow k="Service" v={b.service_name} strong /><DRow k="Category" v={b.category_name} /><DRow k="Status" v={statusText(b.status)} /></DBlock>
       {((bd && (bd.service_items || []).length > 0) || (b.items || []).length > 0) ? <DBlock icon={Package} title="Services"><ServiceBreakdown booking={b} title="Services in this order" /></DBlock> : null}
       {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && b.partner_id ? <DBlock icon={NavIcon} title="Live Tracking"><LiveTrackCard booking={b} /></DBlock> : null}
+      {b.status === "started" ? <DBlock icon={ShieldCheck} title="Help & SOS"><HelpSOS booking={b} testPrefix="drawer-" /></DBlock> : null}
       {b.checkin?.selfie_url ? <DBlock icon={ShieldCheck} title="Partner Check-in"><PartnerCheckin checkin={b.checkin} partnerName={b.partner_name} /></DBlock> : null}
       {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0) ? <DBlock icon={Camera} title="Work Proof Photos & Videos"><WorkProofSection evidence={b.evidence} /></DBlock> : null}
       <DBlock icon={Package} title="Booking Information">

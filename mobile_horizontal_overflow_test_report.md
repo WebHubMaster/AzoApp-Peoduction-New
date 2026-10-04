@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://kare-health.preview.emergentagent.com  
+**App URL:** https://unified-vip-member.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary

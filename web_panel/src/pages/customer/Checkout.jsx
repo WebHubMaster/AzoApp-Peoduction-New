@@ -855,7 +855,7 @@ const StepContact = ({ user, refresh, savedAddresses, selectedId, pickAddress, a
           <p className="text-sm text-slate-500 mt-0.5">We'll send an OTP to confirm your number and save your bookings.</p>
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 max-w-md">
-          <OtpLogin onSuccess={() => refresh()} />
+          <OtpLogin customerOnly onSuccess={() => refresh()} />
         </div>
       </div>
     );

@@ -27,6 +27,7 @@ import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
 import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
 import LiveTrack from "@/components/customer/LiveTrack";
+import HelpSOS from "@/components/booking/HelpSOS";
 import { AddressForm, emptyAddress } from "@/components/AddressForm";
 import BookingChat from "@/components/booking/BookingChat";
 import { useChatUnread, UnreadPill } from "@/context/ChatContext";
@@ -653,6 +654,8 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
       {b.otps?.completion && b.status === "started" && (
         <OtpBanner kind="complete" code={b.otps.completion} bcode={b.code} />
       )}
+
+      {b.status === "started" && <div className="mt-3" data-testid={`help-sos-card-${b.code}`}><HelpSOS booking={b} role="customer" compact /></div>}
 
       {assigned && <CurrentStepCard b={b} onCall={callPartner} onChat={chatPartner} commLocked={commLocked} />}
 
@@ -1417,6 +1420,11 @@ function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
       {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && b.partner_id && (
         <DBlock icon={Navigation} title="Live Tracking">
           <LiveTrack booking={b} />
+        </DBlock>
+      )}
+      {b.status === "started" && (
+        <DBlock icon={ShieldCheck} title="Help & SOS">
+          <HelpSOS booking={b} role="customer" compact idPrefix="drawer-" />
         </DBlock>
       )}
       {b.checkin?.selfie_url && (

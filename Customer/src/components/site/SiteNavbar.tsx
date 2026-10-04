@@ -119,7 +119,7 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
           )}
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 36, height: 36 }} contentFit="contain" /></Pressable>
+        <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", borderWidth: 1, borderColor: "#FDE68A", alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 32, height: 32 }} contentFit="contain" /></Pressable>
         <LocationButton testID="nav-location" iconOnly />
         <Pressable testID="nav-cart" onPress={() => router.push("/(site)/book")} style={{ width: 40, height: 40, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
           <ShoppingBag size={20} color={TC.text2} />

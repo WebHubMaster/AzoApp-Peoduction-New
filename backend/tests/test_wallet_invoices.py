@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://kare-health.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://unified-vip-member.preview.emergentagent.com').rstrip('/')
 PHONE = "+919000000004"
 OTP = "123456"
 

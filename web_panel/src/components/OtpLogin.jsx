@@ -8,8 +8,9 @@ import { Input } from "@/components/ui/input";
 import { onlyDigits, onlyAlpha, isPhone10 } from "@/lib/validation";
 import { toast } from "sonner";
 
-export const OtpLogin = ({ onSuccess, registerRole = null }) => {
+export const OtpLogin = ({ onSuccess, registerRole = null, customerOnly = false }) => {
   const { login } = useAuth();
+  const [roleErr, setRoleErr] = useState("");
   const [step, setStep] = useState(1);
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
@@ -104,6 +105,11 @@ export const OtpLogin = ({ onSuccess, registerRole = null }) => {
         setBusy(false);
         return;
       }
+      if (customerOnly && data.user?.role !== "customer") {
+        setOtp(""); setStep(1); setRoleErr("Account already exists"); toast.error("Account already exists");
+        setBusy(false);
+        return;
+      }
       // Existing user → direct login → their dashboard.
       login(data.token, data.user);
       toast.success(`Welcome, ${data.user.name}!`);
@@ -139,13 +145,14 @@ export const OtpLogin = ({ onSuccess, registerRole = null }) => {
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" strokeWidth={1.5} />
             <Input data-testid="login-phone-input" className="pl-9 h-11" placeholder="Enter 10-digit mobile number"
               inputMode="numeric" maxLength={10}
-              value={phone} onChange={(e) => setPhone(onlyDigits(e.target.value, 10))}
+              value={phone} onChange={(e) => { setPhone(onlyDigits(e.target.value, 10)); setRoleErr(""); }}
               onKeyDown={(e) => e.key === "Enter" && send()} />
           </div>
           <Button data-testid="send-otp-button" onClick={send} disabled={busy}
             className="w-full bg-primary-700 hover:bg-primary-800 h-11">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Send OTP <ArrowRight className="h-4 w-4 ml-1" /></>}
           </Button>
+          {roleErr && <p data-testid="otp-role-error" className="text-sm font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2">{roleErr}</p>}
           <p className="text-xs text-slate-400 text-center">We&apos;ll take you to the right panel based on your number.</p>
         </motion.div>
       )}

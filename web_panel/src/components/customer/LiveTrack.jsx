@@ -3,7 +3,6 @@ import { Navigation, Clock, MapPin, Star, Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import MapView from "@/components/MapView";
 import BookingChat from "@/components/booking/BookingChat";
-import HelpSOS from "@/components/booking/HelpSOS";
 import PartnerProfileModal from "@/components/customer/PartnerProfileModal";
 
 const ENROUTE = ["assigned", "arrived_shop", "arrived_customer", "started"];
@@ -124,12 +123,6 @@ export default function LiveTrack({ booking }) {
 
       {/* Chat & Call — available after full payment, once the partner is on the way */}
       <BookingChat booking={booking} role="customer" />
-      {/* Help & SOS — appears once the job has started (spec 6) */}
-      {data.status === "started" && (
-        <div className="px-3.5 pb-3.5">
-          <HelpSOS booking={booking} role="customer" />
-        </div>
-      )}
       {showProfile && <PartnerProfileModal bookingId={booking.id} onClose={() => setShowProfile(false)} />}
     </div>
   );

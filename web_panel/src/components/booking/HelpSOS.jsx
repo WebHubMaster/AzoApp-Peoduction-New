@@ -10,7 +10,8 @@ import { useRealtime } from "@/context/RealtimeContext";
  * team (same tickets backend the admin Support Inbox uses). SOS raises an URGENT
  * ticket; Help raises a normal one. Live messages + "Support is typing" via SSE.
  */
-export default function HelpSOS({ booking, role = "customer", compact = false }) {
+export default function HelpSOS({ booking, role = "customer", compact = false, idPrefix = "" }) {
+  const tid = (k) => `${idPrefix}${k}`;
   const [open, setOpen] = useState(false);
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -106,14 +107,14 @@ export default function HelpSOS({ booking, role = "customer", compact = false })
   return (
     <>
       <div className={`flex items-center gap-2 ${compact ? "" : "mt-2"}`}>
-        <button data-testid="help-btn" onClick={() => openChat("help")}
+        <button data-testid={tid("help-btn")} onClick={() => openChat("help")}
           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-sm font-bold hover:bg-primary-100 transition">
           <LifeBuoy className="h-4 w-4" /> Help
         </button>
-        <button data-testid="sos-btn" onClick={() => openChat("sos")}
+        <a data-testid={tid("sos-btn")} href="tel:112" onClick={(e) => { if (!window.confirm("Call emergency number 112?")) e.preventDefault(); }}
           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-red-600 text-white px-3 py-2 text-sm font-bold hover:bg-red-700 transition">
-          <AlertTriangle className="h-4 w-4" /> SOS
-        </button>
+          <AlertTriangle className="h-4 w-4" /> SOS · 112
+        </a>
       </div>
 
       {open && (

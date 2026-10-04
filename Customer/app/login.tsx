@@ -21,7 +21,7 @@ import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
 import { LegalConsent } from "@/src/components/site/LegalConsent";
 
 const OTP_LEN = 6;
-const ROLE_BLOCKED = "Only Customers can sign in to the Customer App. Partners & Merchants please use their own app.";
+const ROLE_BLOCKED = "Account already exists";
 const HERO = require("../assets/login-hero.webp");
 const HERO_RATIO = 449 / 596; // reference crop (girl + blue disc), sits flush to the right edge
 const NAVY = "#000A35";
