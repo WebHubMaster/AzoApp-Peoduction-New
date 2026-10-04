@@ -15,12 +15,14 @@ export interface SiteConfig {
   apps?: Record<string, any>;
   seo?: Record<string, any>;
   cancellation_reasons?: string[];
+  fee_info?: { tax?: string; platform_fee?: string };
 }
 
 const DEFAULTS: SiteConfig = {
   branding: { site_name: "AzoApp", tagline: "Service at Your Door Steps" },
   theme: { primary: "#0659B2", secondary: "#1E7AD6", accent: "#F59E0B", default_mode: "light" },
   stats: {},
+  fee_info: {},
 };
 
 const Ctx = createContext<SiteConfig>(DEFAULTS);
@@ -43,6 +45,7 @@ export function useSiteConfigQuery() {
         theme: { ...DEFAULTS.theme, ...(raw.theme || {}) },
         stats: raw.stats || {}, apps: raw.apps || {}, seo: raw.seo || {},
         cancellation_reasons: raw.cancellation_reasons || [],
+        fee_info: raw.fee_info || {},
       } as SiteConfig;
     },
     staleTime: 5 * 60 * 1000,

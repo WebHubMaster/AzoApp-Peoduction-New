@@ -10,6 +10,7 @@ import { lineEstimate } from "../../context/CartContext";
 import { useToast } from "../Toast";
 import { PRIMARY, SLATE, AMBER, EMERALD } from "../../theme";
 import { SchedulePicker } from "../customer/SchedulePicker";
+import { FeeInfoTip } from "./FeeInfoTip";
 
 export const STEPS = [
   { key: "services", label: "Services", icon: ShoppingBag }, { key: "details", label: "Details", icon: Tag }, { key: "schedule", label: "Schedule", icon: CalendarClock },
@@ -63,8 +64,14 @@ export const SectionCard = ({ title, icon: Icon, onEdit, children, testID }: { t
   </View>
 );
 
-export const Row = ({ l, v, green, bold, testID }: { l: string; v: string; green?: boolean; bold?: boolean; testID?: string }) => (
-  <View testID={testID} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 14, color: bold ? SLATE[900] : TC.textMuted, fontWeight: bold ? "600" : "400", flex: 1 }}>{l}</Text><Text style={{ fontSize: 14, color: green ? EMERALD[600] : bold ? SLATE[900] : TC.text2, fontWeight: green ? "500" : bold ? "700" : "400" }}>{v}</Text></View>
+export const Row = ({ l, v, green, bold, testID, info }: { l: string; v: string; green?: boolean; bold?: boolean; testID?: string; info?: "tax" | "platform_fee" }) => (
+  <View testID={testID} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+      <Text style={{ fontSize: 14, color: bold ? SLATE[900] : TC.textMuted, fontWeight: bold ? "600" : "400" }}>{l}</Text>
+      {info ? <FeeInfoTip kind={info} /> : null}
+    </View>
+    <Text style={{ fontSize: 14, color: green ? EMERALD[600] : bold ? SLATE[900] : TC.text2, fontWeight: green ? "500" : bold ? "700" : "400" }}>{v}</Text>
+  </View>
 );
 
 export const MemberSavingsBadge = ({ totals }: { totals: any }) => {
@@ -89,13 +96,13 @@ export const PriceRows = ({ totals, items, lineTotal, estimate, review }: { tota
     {totals.emergency_fee > 0 ? <Row l="Quick Services fee" v={fmt(totals.emergency_fee)} /> : null}
     {totals.visiting_charge > 0 ? <Row l="Visiting charge" v={fmt(totals.visiting_charge)} /> : null}
     {totals.convenience_fee > 0 ? <Row l="Convenience fee" v={fmt(totals.convenience_fee)} /> : null}
-    {totals.platform_fee > 0 ? <Row l="Platform fee" v={fmt(totals.platform_fee)} /> : null}
+    {totals.platform_fee > 0 ? <Row l="Platform fee" v={fmt(totals.platform_fee)} info="platform_fee" /> : null}
     {totals.discount > 0 ? <Row l="Coupon discount" v={"- " + fmt(totals.discount)} green /> : null}
     {totals.membership_discount > 0 ? <Row l={`Member discount${totals.membership_plan ? ` (${totals.membership_plan})` : ""}`} v={"- " + fmt(totals.membership_discount)} green /> : null}
     {totals.membership_visit_waiver > 0 ? <Row l="Free visiting charge (Member)" v={"- " + fmt(totals.membership_visit_waiver)} green /> : null}
     {totals.loyalty_discount > 0 ? <Row l="Loyalty points" v={"- " + fmt(totals.loyalty_discount)} green /> : null}
     {totals.referral_discount > 0 ? <Row l="Referral discount" v={"- " + fmt(totals.referral_discount)} green /> : null}
-    {totals.gst > 0 ? <Row testID="checkout-gst" l="Est. Govt. Taxes" v={fmt(totals.gst)} /> : null}
+    {totals.gst > 0 ? <Row testID="checkout-gst" l="Est. Govt. Taxes" v={fmt(totals.gst)} info="tax" /> : null}
     <View style={{ paddingTop: 8, marginTop: 4, borderTopWidth: 1, borderTopColor: TC.borderSoft }}><Row testID="checkout-total" l="Total payable" v={fmt(totals.total)} bold /></View>
     <MemberSavingsBadge totals={totals} />
   </View>

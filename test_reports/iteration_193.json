@@ -1,0 +1,22 @@
+{
+  "summary": "Verified FeeInfoTip tooltip CSS change on customer Checkout 'Price details' (web_panel). After demo-customer login → add Full-time Maid → Checkout → walk through Services/Details/Schedule/YourInfo to the Summary step, both ⓘ icons (data-testid fee-info-platform_fee / fee-info-tax) render (count=2 each: one in Price details, one implicitly only in main card — sidebar had plain ⓘ icons that are not FeeInfoTip component but 2 FeeInfoTip renders on summary page). On hover, the tooltip (data-testid fee-info-tip-platform_fee / fee-info-tip-tax) is visible with the new WHITE background (computed background-color rgb(255,255,255)) and DARK slate text (computed color rgb(51,65,85) = text-slate-700). Arrow border-top is rgb(255,255,255) (border-t-white). Admin-configured text displays: 'A small fee to run secure payments & support.' and 'GST @18% on platform commission & platform fee.'. No regression: Price details rows (Services ₹400, Visiting charge ₹100, Platform fee ₹10, Est. Govt. Taxes ₹37.8, Total payable ₹547.8) and Review order CTA all render.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "FeeInfoTip still lacks keyboard focus handlers (onFocus/onBlur) for a11y — tooltip is mouse/tap only (noted prior iteration, still applies).",
+    "Tooltip inner <span> arrow uses border-t-white; good contrast against white bg of card maintained via ring-1 ring-slate-200."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Demo customer button on /login (data-testid=demo-customer).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Flow: /login → click [data-testid=demo-customer] → /services → Book Now on Full-time Maid → Checkout button → /book → click 'Continue' 4 times to reach Summary step where FeeInfoTip tooltips appear in Price details card. Computed styles verified: bg rgb(255,255,255), color rgb(51,65,85), arrow border-top rgb(255,255,255)."
+}
