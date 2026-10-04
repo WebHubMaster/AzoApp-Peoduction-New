@@ -209,7 +209,7 @@ async def partners_live():
     partners = await db.users.find(
         {"role": "partner", "partner_status": "online"},
         {"_id": 0, "id": 1, "name": 1, "phone": 1, "live_location": 1, "live_location_at": 1,
-         "rating": 1, "partner_status": 1, "city": 1, "skills": 1}).to_list(1000)
+         "rating": 1, "partner_status": 1, "city": 1, "skills": 1, "photo": 1, "avatar": 1}).to_list(1000)
     # Reverse map: canonical skill key -> active category name (for per-partner
     # category tagging so the map's category filter works for available partners too).
     cat_rows = await db.categories.find(

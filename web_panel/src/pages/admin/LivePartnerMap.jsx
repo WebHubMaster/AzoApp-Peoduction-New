@@ -17,6 +17,14 @@ import {
 import { LIGHT_STYLE, DARK_STYLE, partnerIcon, customerIcon, makeClusterRenderer } from "@/pages/admin/livemap/mapAssets";
 import PartnerDrawer from "@/pages/admin/livemap/PartnerDrawer";
 
+// Partner's own profile photo; generic placeholder when none is set.
+const DUMMY_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#E2E8F0"/><circle cx="32" cy="25" r="11" fill="#94A3B8"/><path d="M12 56c2-11 10-17 20-17s18 6 20 17" fill="#94A3B8"/></svg>');
+const partnerPhoto = (u) => {
+  if (!u) return DUMMY_AVATAR;
+  if (/^(https?:|data:|blob:)/.test(u)) return u;
+  return `${process.env.REACT_APP_BACKEND_URL}${u.startsWith("/") ? "" : "/"}${u}`;
+};
+
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "AIzaSyBOfVVQzn1ggzK97kP2TEfN8Ogq_uDwZms";
 const CITY_MAP = Object.fromEntries(CITIES.map((c) => [c.name, c]));
 
@@ -44,7 +52,7 @@ function mapLivePartner(p) {
     partnerId: p.partner_code || p.id,
     name: p.name || "Partner",
     phone: p.phone || "",
-    avatar: p.photo || p.avatar || `https://i.pravatar.cc/120?u=${encodeURIComponent(p.id || Math.random())}`,
+    avatar: partnerPhoto(p.photo || p.avatar),
     category: p.category || (p.categories && p.categories[0]) || "Service",
     categories: (p.categories && p.categories.length) ? p.categories : (p.category ? [p.category] : []),
     city: p.city || "",
@@ -719,7 +727,7 @@ function ListPanel({ filtered, selectedId, onSelect, onHover, counts, embedded }
               onMouseEnter={() => onHover?.(p.id, true)}
               className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${sel ? "bg-primary-50/70 dark:bg-primary-900/20" : "hover:bg-slate-50 dark:hover:bg-slate-800/60"}`}>
               <div className="relative shrink-0">
-                <img src={p.avatar} alt="" className="h-11 w-11 rounded-xl object-cover" />
+                <img src={p.avatar} alt="" data-testid={`partner-avatar-${p.id}`} onError={(e) => { e.currentTarget.src = DUMMY_AVATAR; }} className="h-11 w-11 rounded-xl object-cover bg-slate-200" />
                 <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-slate-900" style={{ background: c }} />
               </div>
               <div className="min-w-0 flex-1">
