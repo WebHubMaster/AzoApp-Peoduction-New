@@ -8,7 +8,7 @@ import { useToast } from "../../src/components/Toast";
 import { fmt, fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "../../src/theme";
-import { StatTile, EmptyState, SearchInput, OptionMenu, DateRangePicker, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, EmptyState, SearchInput, OptionMenu, DateRangePicker, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
 
 const TYPES = [{ value: "all", label: "All types" }, { value: "credit", label: "Credits" }, { value: "debit", label: "Debits" }];
 const ALL_RANGE: DateRange = { preset: "All", from: null, to: null };
@@ -57,9 +57,13 @@ export default function WalletScreen() {
           <Text testID="wallet-balance" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 36, fontWeight: "900", color: "#fff", marginTop: 6 }}>{fmtC(wallet?.balance || 0)}</Text>
           <WalletTopup onDone={reload} toast={toast} />
         </LinearGradient>
-        <View style={{ gap: 12 }}>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="w-credits" label="Total Added" value={fmtC(credits)} icon={TrendingUp} tone="green" /><StatTile testID="w-debits" label="Total Spent" value={fmtC(debits)} icon={IndianRupee} tone="rose" /></View>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="w-count" label="Transactions" value={txns.length} count icon={Receipt} tone="primary" /><StatTile testID="w-bal" label="Balance" value={fmtC(wallet?.balance || 0)} icon={Wallet} tone="amber" /></View>
+        <View>
+          <StatSlider testID="wallet-stats-slider">
+            <View style={{ width: CARD_W }}><StatTile testID="w-credits" label="Total Added" value={fmtC(credits)} icon={TrendingUp} tone="green" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="w-debits" label="Total Spent" value={fmtC(debits)} icon={IndianRupee} tone="rose" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="w-count" label="Transactions" value={txns.length} count icon={Receipt} tone="primary" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="w-bal" label="Balance" value={fmtC(wallet?.balance || 0)} icon={Wallet} tone="amber" /></View>
+          </StatSlider>
         </View>
       </View>
 

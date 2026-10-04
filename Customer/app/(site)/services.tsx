@@ -1,16 +1,18 @@
 /** Services — 1:1 port of web Services.jsx: search, category chips, rate-card item results, services grouped by category, quick-add, "View your booking" bar. */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Search, Star, Clock, ShoppingBag, X, Plus, Check, ChevronRight, Sparkles } from "lucide-react-native";
+import { ArrowLeft, Search, Star, Clock, ShoppingBag, X, Plus, Check, ChevronRight, Sparkles, Mic, MicOff } from "lucide-react-native";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, AMBER, EMERALD, TC, useTheme } from "../../src/theme";
+import { PRIMARY, SLATE, AMBER, EMERALD, ROSE, TC, useTheme } from "../../src/theme";
 import { fmt } from "../../src/lib/format";
 import { useCart } from "../../src/context/CartContext";
 import { useToast } from "../../src/components/Toast";
+import { useVoiceSearch } from "../../src/lib/voice";
+import { VoiceSearchOverlay } from "../../src/components/apphome/VoiceSearchOverlay";
 import { Sk } from "../../src/components/site/ui";
 
 function ServiceCard({ s, w }: { s: any; w: number }) {
@@ -62,6 +64,18 @@ export default function ServicesPage() {
   }, [q]);
   const bookRateItem = (it: any) => { addCustom({ description: it.description, service_charge: it.service_charge, labour_charge: it.labour_charge, category_id: it.category_id, category_name: it.category_name, row_id: it.row_id }); toast.success(`Added "${it.description}" — taking you to checkout…`); router.push("/(site)/book" as any); };
   const chip = (on: boolean) => ({ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: on ? PRIMARY[700] : TC.surface, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border });
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [heard, setHeard] = useState("");
+  const startedRef = useRef(false);
+  const voice = useVoiceSearch((text, final) => { setQ(text); setHeard(text); if (final && text.trim()) setVoiceOpen(false); });
+  useEffect(() => { if (voice.listening) startedRef.current = true; }, [voice.listening]);
+  useEffect(() => {
+    if (!voiceOpen || !startedRef.current || voice.listening || voice.error) return;
+    const t = setTimeout(() => setVoiceOpen(false), 300);
+    return () => clearTimeout(t);
+  }, [voice.listening, voiceOpen, voice.error]);
+  const startVoice = () => { if (!voice.supported) { toast.error("Voice search needs the installed AzoApp build (not available in Expo Go)."); return; } setHeard(""); startedRef.current = false; setVoiceOpen(true); voice.start(); };
+  const cancelVoice = () => { voice.stop(); setVoiceOpen(false); };
 
   return (
     <View style={{ flex: 1, backgroundColor: TC.bg }} testID="services-page">
@@ -75,9 +89,12 @@ export default function ServicesPage() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: count > 0 ? 160 : 100 }} keyboardShouldPersistTaps="handled">
         <Text style={{ fontSize: 14, color: TC.textMuted }}>Browse and book verified home-service experts near you.</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", height: 40, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, paddingHorizontal: 14, gap: 8, marginTop: 20 }}>
-          <Search size={16} color={TC.textFaint} /><TextInput testID="services-search" value={q} onChangeText={setQ} placeholder="Search services…" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 14, color: TC.text, height: 38, outlineStyle: "none" } as any} />
-          {q ? <Pressable testID="services-search-clear" onPress={() => setQ("")}><X size={16} color={TC.textFaint} /></Pressable> : null}
+        <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, paddingLeft: 14, paddingRight: 8, gap: 8, marginTop: 20 }}>
+          <Search size={16} color={TC.textFaint} /><TextInput testID="services-search" value={q} onChangeText={setQ} placeholder="Search services…" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 14, color: TC.text, height: 42, outlineStyle: "none" } as any} />
+          {q ? <Pressable testID="services-search-clear" onPress={() => setQ("")} hitSlop={6}><X size={16} color={TC.textFaint} /></Pressable> : null}
+          <Pressable testID="services-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 34, width: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
+            {voice.listening ? <MicOff size={18} color={ROSE[600]} /> : <Mic size={18} color={voice.supported ? PRIMARY[700] : TC.border} strokeWidth={2.2} />}
+          </Pressable>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 16 }}>
           {loading ? [0, 1, 2, 3, 4].map((i) => <Sk key={i} style={{ width: 90, height: 36, borderRadius: 6 }} />) : <>
@@ -120,6 +137,7 @@ export default function ServicesPage() {
           </Pressable>
         </View>
       ) : null}
+      <VoiceSearchOverlay visible={voiceOpen} heard={heard} error={voice.error} onCancel={cancelVoice} />
     </View>
   );
 }

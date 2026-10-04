@@ -4,7 +4,7 @@ import { PlainList } from "../../src/components/customer/ux";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { Receipt, Clock, CheckCircle2, IndianRupee, Search } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
-import { StatTile, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "../../src/components/customer/ux";
 import { fmt, fmtC } from "../../src/lib/format";
 import { PRIMARY, SLATE, TC, useTheme } from "../../src/theme";
 
@@ -36,9 +36,13 @@ export default function RefundsScreen() {
   const header = (
     <View>
       {loading && refunds.length === 0 ? <StatSkeleton /> : (
-        <View style={{ gap: 12, marginBottom: 16 }}>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="rf-total" label="Total Refunds" value={refunds.length} count icon={Receipt} tone="primary" /><StatTile testID="rf-pending" label="Pending" value={refunds.filter((r: any) => pendingSet.includes(r.status)).length} count icon={Clock} tone="amber" /></View>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="rf-done" label="Completed" value={refunds.filter((r: any) => r.status === "processed").length} count icon={CheckCircle2} tone="green" /><StatTile testID="rf-amt" label="Refunded Amount" value={fmtC(Math.round(totalRefunded))} icon={IndianRupee} tone="violet" /></View>
+        <View style={{ marginBottom: 16 }}>
+          <StatSlider testID="refund-stats-slider">
+            <View style={{ width: CARD_W }}><StatTile testID="rf-total" label="Total Refunds" value={refunds.length} count icon={Receipt} tone="primary" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="rf-pending" label="Pending" value={refunds.filter((r: any) => pendingSet.includes(r.status)).length} count icon={Clock} tone="amber" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="rf-done" label="Completed" value={refunds.filter((r: any) => r.status === "processed").length} count icon={CheckCircle2} tone="green" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="rf-amt" label="Refunded Amount" value={fmtC(Math.round(totalRefunded))} icon={IndianRupee} tone="violet" /></View>
+          </StatSlider>
         </View>
       )}
       <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, gap: 8 }}>

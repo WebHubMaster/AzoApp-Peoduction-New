@@ -7,6 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Camera, User as UserIcon } from "lucide-react-native";
 import { PRIMARY, SLATE, useTheme } from "../../theme";
+import { mediaUrl } from "../../api/client";
 import { useToast } from "../Toast";
 
 export function ProfilePhotoPicker({ value, onChange, disabled = false, size = 80, testID = "profile-photo" }: { value?: string; onChange: (dataUrl: string) => void; disabled?: boolean; size?: number; testID?: string }) {
@@ -34,7 +35,7 @@ export function ProfilePhotoPicker({ value, onChange, disabled = false, size = 8
   return (
     <View style={{ width: size, height: size }}>
       <View testID={testID} style={{ width: size, height: size, borderRadius: size / 2, overflow: "hidden", backgroundColor: c.primarySoft, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}>
-        {value ? <Image source={{ uri: value }} style={{ width: size, height: size }} contentFit="cover" /> : <UserIcon size={size * 0.4} color={TC.primaryText} />}
+        {value ? <Image source={{ uri: mediaUrl(value) }} style={{ width: size, height: size }} contentFit="cover" cachePolicy="memory-disk" transition={150} /> : <UserIcon size={size * 0.4} color={TC.primaryText} />}
       </View>
       {!disabled ? (
         <Pressable testID={`${testID}-label`} onPress={pick} disabled={busy} style={({ pressed }) => ({ position: "absolute", bottom: -4, right: -4, height: 32, width: 32, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", boxShadow: "0px 2px 6px rgba(0,0,0,0.2)" } as any)}>

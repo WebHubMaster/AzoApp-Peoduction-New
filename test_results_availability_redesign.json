@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://expo-mobile-test-3.preview.emergentagent.com",
+  "base_url": "https://wallet-slider.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

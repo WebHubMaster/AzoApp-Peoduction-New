@@ -126,7 +126,7 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
           <ShoppingBag size={20} color={TC.text2} />
           {cartCount > 0 ? <View style={{ position: "absolute", top: -6, right: -6, height: 20, minWidth: 20, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{cartCount}</Text></View> : null}
         </Pressable>
-        <Pressable testID={user ? "nav-account-mobile" : "nav-login-mobile"} onPress={account} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center" })}><User size={20} color="#fff" /></Pressable>
+        <Pressable testID={user ? "nav-account-mobile" : "nav-login-mobile"} onPress={account} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center" })}><User size={20} color="#fff" /></Pressable>
       </View>
     </View>
   );

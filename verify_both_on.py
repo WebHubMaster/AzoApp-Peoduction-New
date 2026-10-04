@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://expo-mobile-test-3.preview.emergentagent.com/api"
+BASE_URL = "https://wallet-slider.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

@@ -14,7 +14,7 @@ import requests
 BASE_URL = (
     os.environ.get("REACT_APP_BACKEND_URL")
     or os.environ.get("EXPO_PUBLIC_BACKEND_URL")
-    or "https://aad65148-3f80-4937-ba69-18bdb89cc174.preview.emergentagent.com"
+    or "https://wallet-slider.preview.emergentagent.com"
 ).rstrip("/")
 
 API = f"{BASE_URL}/api"

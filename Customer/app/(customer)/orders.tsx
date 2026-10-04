@@ -119,7 +119,7 @@ export default function OrdersScreen() {
   return (
     <View testID="orders-page">
       {/* SectionHeader */}
-      <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 20, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
+      <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ alignSelf: "flex-start", height: 46, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Booking</Text></Pressable>
 
       {/* KPI slider (swipeable) */}
       {loading && bookings.length === 0 ? <StatSkeleton /> : (

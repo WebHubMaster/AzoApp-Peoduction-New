@@ -129,3 +129,24 @@ Verification: web_panel preview compiles & loads (200); buttons, search boxes an
 ### Backlog / follow-up
 - Embed additional-work line items into the FORMAL generated PDF/Invoice Center documents (currently additional work shows in the in-app booking breakdown of all apps with correct tax, not yet in the 2-page GST PDF).
 - Optional: add a manual product-cost entry field in the rate-card add sheet.
+
+---
+## Customer App — UI/UX fixes + custom-job flow (June 2026)
+Scope: all changes in /app/Customer (Expo RN app).
+
+Done:
+- Home (HomeView): Explore Services redesigned as 3-col cards (space-between, no lone-card stretch); StatTile label forced single-line so Total Bookings card height matches siblings.
+- Bookings (orders.tsx) & Profile (profile.tsx): "+ Booking" CTA changed from full-width to compact left-aligned pill (New Booking, radius 12, press-scale).
+- Wallet, Refunds, Refer&Earn: 2x2 stat grids converted to swipeable StatSlider with uniform CARD_W tiles (fixes uneven last card).
+- Profile photo: ProfilePhotoPicker now resolves stored path via mediaUrl() (was passing raw path -> blank circle).
+- Support: "New Ticket" button no longer stretches full width; compact pill.
+- All customer pages: CustomerShell scroll paddingBottom 112 -> 140 (extra bottom space).
+- Site navbar: profile icon borderRadius 20 -> 6 to match the other squared nav icons.
+- Site categories (Blocks CategoriesGrid): proper bordered cards, 3 per row.
+- Site Services page search: added mic + VoiceSearchOverlay (same voice behavior as home AppSearchBar).
+- Custom job: "View my requests" now routes to /(customer)/custom_jobs. Guest OTP+auto-login verified already working in wizard (verify-otp create_if_new default true -> token -> login()).
+
+Open / needs repro:
+- Custom-job -> service visibility on web panel. Backend (catalog_controller) already treats a converted custom-job service with custom_job_visibility="all" + status active + approved as a NORMAL service in all public list/detail endpoints both frontends use. No backend code bug found. Could not reproduce here (pod DB empty, backend/.env missing). Likely cause: service visibility left as requester_only, or stale web-panel cache.
+
+Env note: this pod has empty Mongo + missing backend/.env, so backend/web-panel can't serve data here; Customer Expo app runs on device via EXPO_PUBLIC_BACKEND_URL. Verification was static (eslint clean on all 14 edited files).

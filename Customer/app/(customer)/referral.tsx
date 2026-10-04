@@ -11,7 +11,7 @@ import { useToast } from "../../src/components/Toast";
 import { api, API_BASE } from "../../src/api/client";
 import { fmt, fmtC } from "../../src/lib/format";
 import { PRIMARY, SLATE, EMERALD, useTheme, shadowElev, TC } from "../../src/theme";
-import { StatTile, StatusChip, EmptyState, SkeletonList } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList } from "../../src/components/customer/ux";
 import { FInput } from "../../src/components/customer/FormControls";
 
 const ORIGIN = API_BASE.replace(/\/api$/, "");
@@ -126,9 +126,13 @@ export default function ReferralScreen() {
 
   return (
     <View testID="referral-page" style={{ gap: 20 }}>
-      <View style={{ gap: 12 }}>
-        <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="ref-invited" label="Total Invited" value={stats.invited} count icon={Gift} tone="primary" /><StatTile testID="ref-joined" label="Joined" value={stats.joined} count icon={CheckCircle2} tone="green" /></View>
-        <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="ref-earned" label="Rewards Earned" value={fmtC(stats.earned)} icon={TrendingUp} tone="amber" /><StatTile testID="ref-pending" label="Pending" value={fmtC(stats.pending)} icon={Clock} tone="slate" /></View>
+      <View>
+        <StatSlider testID="referral-stats-slider">
+          <View style={{ width: CARD_W }}><StatTile testID="ref-invited" label="Total Invited" value={stats.invited} count icon={Gift} tone="primary" /></View>
+          <View style={{ width: CARD_W }}><StatTile testID="ref-joined" label="Joined" value={stats.joined} count icon={CheckCircle2} tone="green" /></View>
+          <View style={{ width: CARD_W }}><StatTile testID="ref-earned" label="Rewards Earned" value={fmtC(stats.earned)} icon={TrendingUp} tone="amber" /></View>
+          <View style={{ width: CARD_W }}><StatTile testID="ref-pending" label="Pending" value={fmtC(stats.pending)} icon={Clock} tone="slate" /></View>
+        </StatSlider>
       </View>
 
       <ReferralShareCard code={code} reward={reward} discount={discount} link={link} card={sum?.card} copy={copy} />
