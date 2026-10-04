@@ -115,13 +115,34 @@ export async function startBackgroundJobListener(): Promise<void> {
   setBgListenerActive(true);
   try {
     await setupAndroidChannels();
-    // Persistent foreground-service notification ("you're online / listening for
-    // job requests") has been REMOVED per product decision — it must never be shown
-    // to the partner. New-job alerts still arrive via server-side FCM push (works
-    // even with the app closed), and the SSE stream below keeps in-app realtime
-    // updates flowing while the app is active. No ongoing/visible notification.
-  } catch { /* channel setup best-effort */ }
-  _connect();   // drive the stream directly
+    // Start an Android FOREGROUND SERVICE to keep the JS process + SSE stream alive
+    // while the app is backgrounded / the screen is locked / the app is swiped away
+    // (aggressive OEMs like MIUI/Xiaomi kill plain background JS otherwise, which is
+    // exactly why the FCM-independent ring needs this). Android LEGALLY requires a
+    // notification for an FGS — so we post the MINIMAL possible one on the MIN-
+    // importance "azo-online-v2" channel (no status-bar icon, no sound, hidden from
+    // the lock screen, collapsed at the bottom of the shade). The partner/customer
+    // is NOT disturbed, yet the full-screen job ring works 100% in every state.
+    const fgsType = mod.AndroidForegroundServiceType?.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
+    await n.displayNotification({
+      id: ONLINE_FGS_ID,
+      title: "AzoApp",
+      body: "Ready for new job requests",
+      android: {
+        channelId: CHANNELS.online,
+        asForegroundService: true,
+        ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
+        ongoing: true,
+        smallIcon: "ic_notification",
+        color: "#0D47A1",
+        importance: mod.AndroidImportance.MIN,
+        visibility: mod.AndroidVisibility.SECRET,
+        showTimestamp: false,
+        pressAction: { id: "default", launchActivity: "default" },
+      },
+    } as any);
+  } catch { /* FGS may be rejected on some OEMs — SSE below still tries */ }
+  _connect();   // drive the stream directly (kept alive by the service above)
 }
 
 /** Stop the background listener (call when the app returns to the foreground or the

@@ -34,11 +34,11 @@ export const CHANNELS = {
   chat: "azo-chat-v3",
   account: "account",
   default: "default",
-  online: "azo-online-v1",
+  online: "azo-online-v2",
 } as const;
 
 /** Old channel ids to delete so their stale (silent) settings can't linger. */
-const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat"];
+const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat", "azo-online-v1"];
 
 /** Raw Android sound resource copied by plugins/withJobRingAndroid.js */
 export const JOB_RING_SOUND = "job_ring";
@@ -226,7 +226,13 @@ export async function setupAndroidChannels() {
   await n.createChannel({ id: CHANNELS.bookings, name: "Booking Updates", importance: AndroidImportance.HIGH, vibration: true, vibrationPattern: [250, 250, 250, 250] });
   await n.createChannel({ id: CHANNELS.account, name: "Account Alerts", importance: AndroidImportance.DEFAULT });
   await n.createChannel({ id: CHANNELS.default, name: "General", importance: AndroidImportance.DEFAULT });
-  await n.createChannel({ id: CHANNELS.online, name: "Online — job listener", importance: AndroidImportance.LOW, visibility: AndroidVisibility.PUBLIC });
+  // Background job-listener foreground service channel. A foreground service on
+  // Android MUST have a notification, but IMPORTANCE_MIN + SECRET visibility makes
+  // it the least intrusive possible: NO status-bar icon, NO sound/vibration, NOT
+  // shown on the lock screen, collapsed at the very bottom of the shade. This keeps
+  // the partner/customer undisturbed while the service stays alive so the
+  // full-screen job ring fires reliably when backgrounded/locked/closed.
+  await n.createChannel({ id: CHANNELS.online, name: "Background service", description: "Keeps AzoApp ready to receive job & booking alerts", importance: AndroidImportance.MIN, visibility: AndroidVisibility.SECRET, badge: false, vibration: false });
 }
 
 export async function getPermissionStatus(): Promise<{ granted: boolean; canAskAgain: boolean }> {
