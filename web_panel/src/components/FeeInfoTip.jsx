@@ -37,10 +37,10 @@ export default function FeeInfoTip({ kind = "tax", text: textProp }) {
       {open && (
         <span role="tooltip" data-testid={`fee-info-tip-${kind}`}
           className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 max-w-[70vw] z-50
-                     rounded-lg bg-slate-900 text-white text-[11px] leading-snug font-normal
-                     px-3 py-2 shadow-xl normal-case tracking-normal">
+                     rounded-lg bg-white text-slate-700 text-[11px] leading-snug font-normal
+                     px-3 py-2 shadow-xl ring-1 ring-slate-200 normal-case tracking-normal">
           {text}
-          <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-slate-900" />
+          <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-white" />
         </span>
       )}
     </span>

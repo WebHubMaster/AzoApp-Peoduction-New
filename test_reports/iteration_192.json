@@ -1,0 +1,29 @@
+{
+  "summary": "Verified the FeeInfoTip (ⓘ info tooltip) fix on the customer-facing Checkout 'Price details' section. Logged in as demo customer, added Full-time Maid, stepped through Services → Details → Schedule → Your Info → Summary. The ⓘ icons appear next to both 'Platform fee' and 'Est. Govt. Taxes' rows in both the main Price details card and the right-side 'Your order' sidebar. Hovering reveals the admin-configured tooltip text. Regression line items (Services, Visiting charge, Platform fee, Est. Govt. Taxes, Total payable) and totals (₹547.8) render correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "SiteConfigContext.jsx setCfg list is a single-line object — fine but hard to diff; consider formatting across lines for easier future field additions.",
+    "FeeInfoTip only opens on hover/click but has no keyboard focus handling (onFocus/onBlur) — minor accessibility gap for keyboard users."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Demo customer button on /login (data-testid=demo-customer). OTP demo phones +919000000004 / +919100000000 / +919100000001 with OTP 123456 also available.",
+  "seed_data_creation": "None. fee_info already seeded in general.tax_info / general.platform_fee_info with non-empty text.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The customer booking flow is /services → add service → /book (multi-step). Price details with FeeInfoTip renders on the 'Summary' step (not /checkout). Use demo-customer login for fast path. Tooltips verified via hover; data-testids fee-info-platform_fee / fee-info-tax / fee-info-tip-platform_fee / fee-info-tip-tax all functional.",
+  "verified_behavior": {
+    "fee-info-platform_fee_count": 2,
+    "fee-info-tax_count": 2,
+    "platform_fee_tooltip_text": "A small fee to run secure payments & support.",
+    "tax_tooltip_text": "GST @18% on platform commission & platform fee.",
+    "price_details_rows": ["Services ₹400", "Visiting charge ₹100", "Platform fee ₹10", "Est. Govt. Taxes ₹37.8", "Total payable ₹547.8"]
+  }
+}
