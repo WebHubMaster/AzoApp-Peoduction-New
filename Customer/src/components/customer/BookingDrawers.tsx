@@ -189,7 +189,7 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
   const [busy, setBusy] = useState(false); const [sharing, setSharing] = useState(false);
   if (!b) return null;
   const p = b.pricing || {}; const bd = b.breakdown || null;
-  const rawLogo = branding?.email_logo || branding?.logo_light || branding?.logo_dark || "";
+  const rawLogo = branding?.logo_light || branding?.email_logo || branding?.logo_dark || "";
   const logoUrl = rawLogo ? mediaUrl(rawLogo) : "";
   const brandName = branding?.brand_name || branding?.site_name || branding?.name || "AzoApp";
   const paid = ["paid", "completed", "refunded"].includes(b.payment_status);

@@ -126,23 +126,6 @@ export default function ReferralScreen() {
 
   return (
     <View testID="referral-page" style={{ gap: 20 }}>
-      <View style={{ borderRadius: 6, overflow: "hidden", ...shadowElev }}>
-        <LinearGradient colors={[PRIMARY[800], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 24 }}>
-          <Gift size={40} color="#fff" />
-          <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900", marginTop: 12 }}>Refer friends, earn ₹{reward} each</Text>
-          <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, marginTop: 4 }}>Share your code — your friend gets ₹{discount} off their first booking and you earn ₹{reward} when they complete it.</Text>
-          <View style={{ marginTop: 20, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-            <View style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 6, paddingHorizontal: 20, paddingVertical: 12 }}>
-              <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 0.8 }}>Your code</Text>
-              <Text testID="referral-code" style={{ color: "#fff", fontSize: 24, fontWeight: "900", letterSpacing: 3 }}>{code}</Text>
-            </View>
-            <WhiteBtn testID="copy-referral" label="Copy code" icon={Copy} onPress={() => copy(code, "Referral code copied!")} />
-            <WhiteBtn testID="copy-referral-link" label="Copy link" icon={Copy} ghost onPress={() => copy(link, "Referral link copied!")} />
-            <WhiteBtn testID="share-referral" label="Share" icon={Share2} ghost onPress={share} />
-          </View>
-        </LinearGradient>
-      </View>
-
       <View style={{ gap: 12 }}>
         <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="ref-invited" label="Total Invited" value={stats.invited} count icon={Gift} tone="primary" /><StatTile testID="ref-joined" label="Joined" value={stats.joined} count icon={CheckCircle2} tone="green" /></View>
         <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="ref-earned" label="Rewards Earned" value={fmtC(stats.earned)} icon={TrendingUp} tone="amber" /><StatTile testID="ref-pending" label="Pending" value={fmtC(stats.pending)} icon={Clock} tone="slate" /></View>

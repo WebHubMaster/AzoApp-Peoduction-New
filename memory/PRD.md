@@ -65,3 +65,11 @@ Changes done (per user screenshots 1-5):
 5. Booking Details (BookingDrawers PartnerCheckin): 'Within 50m of address' + 'View arrival location' hidden when status completed/paid (new done prop).
 
 Verification: esbuild tsx parse OK on all 60 swept files. (Expo app not on running web preview; no browser test.)
+
+## Customer App — UI change session 2 (2026-10-04)
+1. Invoice logo (BookingDrawers InvoiceDrawer): ab colored logo (logo_light) prefer karta hai taaki white invoice par visible rahe. Header logo already isDark-aware (light->logo_light colored, dark->logo_dark white) — admin ko dark white logo upload karna hoga.
+2. Subscriptions browse card (subscriptions.tsx): richer full-width card — icon + name + category + plans badge + full-width 'Choose a plan' button.
+3. Tab buttons square: SegTabs radius 5->6; refunds/subscriptions/services tabs already 6 from prior sweep.
+4. Refer & Earn (referral.tsx): top duplicate gradient hero card hata diya (code/copy/share neeche share-card me already hai).
+5. Support chat (SupportThread.tsx): full-height chat panel (viewport fill) with composer bottom; ticket details/attachments/other-tickets ab header ke (i) Info button se Modal me khulte hain; real-time polling (3s) + auto-scroll to latest intact.
+Verified: esbuild tsx parse OK (8/8). Expo app not on running web preview; no browser test.

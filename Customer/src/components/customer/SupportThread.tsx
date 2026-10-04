@@ -3,9 +3,10 @@ import { TC } from "@/src/theme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
 import { useKeyboardState } from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { ArrowLeft, ShieldCheck, MoreVertical, X, Send, Paperclip, CheckCircle2, Check, CheckCheck, Hash, Tag, AlertCircle, CalendarDays, Clock, FileText } from "lucide-react-native";
+import { ArrowLeft, ShieldCheck, MoreVertical, X, Send, Paperclip, CheckCircle2, Check, CheckCheck, Hash, Tag, AlertCircle, CalendarDays, Clock, FileText, Info } from "lucide-react-native";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
 import { PRIMARY, SLATE, EMERALD, useTheme } from "../../theme";
@@ -34,10 +35,13 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
+  const [infoOpen, setInfoOpen] = useState(false);
   const { height: winH } = useWindowDimensions();
   const kbH = useKeyboardState((k) => (k.isVisible ? k.height : 0));
-  // Keyboard open → shrink the chat panel so the composer stays above the keyboard.
-  const panelH = kbH > 0 ? Math.max(240, Math.min(520, winH - kbH - 190)) : 520;
+  // Full-height chat (fills the viewport between the app header and bottom nav); shrinks when the keyboard opens.
+  const fullH = Math.max(380, winH - insets.top - insets.bottom - 56 - 64 - 32);
+  const panelH = kbH > 0 ? Math.max(240, Math.min(fullH, winH - kbH - 150)) : fullH;
   const lastTypingSent = useRef(0);
   const closed = t.status === "closed";
 
@@ -97,6 +101,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ fontSize: 11, color: TC.textFaint }}>Updated {ago(t.updated_at)}</Text><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 11, color: EMERALD[500] }}>Live</Text></View>
           </View>
           <Badge testID="thread-status" style={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
+          <Pressable testID="support-thread-info" onPress={() => setInfoOpen(true)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><Info size={18} color={c.text} /></Pressable>
           {!closed ? <Pressable testID="support-thread-menu" onPress={() => setMenuOpen((v) => !v)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><MoreVertical size={16} color={c.text} /></Pressable> : null}
         </View>
         {menuOpen ? (
@@ -171,29 +176,39 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
         )}
       </View>
 
-      {/* info panel */}
-      <View testID="support-ticket-info" style={panel}>
-        <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
-          <Text style={sec}>Ticket details</Text>
-          <InfoRow icon={Hash} label="Ticket ID" value={t.code} testID="info-code" />
-          <InfoRow icon={Tag} label="Department" value={<Text style={{ fontSize: 12, fontWeight: "500", color: c.text, textTransform: "capitalize" }}>{t.category}</Text>} />
-          <InfoRow icon={AlertCircle} label="Priority" value={<Badge style={PRIORITY_STYLE[t.priority]}>{t.priority}</Badge>} />
-          <InfoRow icon={CheckCircle2} label="Status" value={<Badge style={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>} />
-          <InfoRow icon={CalendarDays} label="Created" value={dateFull(t.created_at)} />
-          <InfoRow icon={Clock} label="Updated" value={dateFull(t.updated_at)} />
-          {t.assigned_name ? <InfoRow icon={ShieldCheck} label="Agent" value={t.assigned_name} /> : null}
+      {/* info panel — opened from the header (i) button */}
+      <Modal visible={infoOpen} transparent animationType="slide" onRequestClose={() => setInfoOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <Pressable style={{ flex: 1 }} onPress={() => setInfoOpen(false)} />
+          <View testID="support-ticket-info" style={{ backgroundColor: c.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: "85%", paddingBottom: insets.bottom }}>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
+              <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Ticket details</Text>
+              <Pressable testID="support-info-close" onPress={() => setInfoOpen(false)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt }}><X size={18} color={TC.textFaint} /></Pressable>
+            </View>
+            <ScrollView contentContainerStyle={{ paddingBottom: 16 }}>
+              <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
+                <InfoRow icon={Hash} label="Ticket ID" value={t.code} testID="info-code" />
+                <InfoRow icon={Tag} label="Department" value={<Text style={{ fontSize: 12, fontWeight: "500", color: c.text, textTransform: "capitalize" }}>{t.category}</Text>} />
+                <InfoRow icon={AlertCircle} label="Priority" value={<Badge style={PRIORITY_STYLE[t.priority]}>{t.priority}</Badge>} />
+                <InfoRow icon={CheckCircle2} label="Status" value={<Badge style={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>} />
+                <InfoRow icon={CalendarDays} label="Created" value={dateFull(t.created_at)} />
+                <InfoRow icon={Clock} label="Updated" value={dateFull(t.updated_at)} />
+                {t.assigned_name ? <InfoRow icon={ShieldCheck} label="Agent" value={t.assigned_name} /> : null}
+              </View>
+              <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
+                <Text style={sec}>Attachments · {allAttachments.length}</Text>
+                {allAttachments.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>No attachments yet — use the clip icon to add screenshots.</Text> : <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{allAttachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View>}
+              </View>
+              <View style={{ padding: 16 }}>
+                <Text style={sec}>Your other tickets · {others.length}</Text>
+                {others.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>This is your only ticket.</Text> : (
+                  <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 10, paddingVertical: 6 }}><Text numberOfLines={1} style={{ fontSize: 12, color: c.text, flex: 1 }}>{p.subject}</Text><Badge style={STATUS_STYLE[p.status]}>{STATUS_LABEL[p.status]}</Badge></View>)}</View>
+                )}
+              </View>
+            </ScrollView>
+          </View>
         </View>
-        <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
-          <Text style={sec}>Attachments · {allAttachments.length}</Text>
-          {allAttachments.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>No attachments yet — use the clip icon to add screenshots.</Text> : <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{allAttachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View>}
-        </View>
-        <View style={{ padding: 16 }}>
-          <Text style={sec}>Your other tickets · {others.length}</Text>
-          {others.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>This is your only ticket.</Text> : (
-            <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 10, paddingVertical: 6 }}><Text numberOfLines={1} style={{ fontSize: 12, color: c.text, flex: 1 }}>{p.subject}</Text><Badge style={STATUS_STYLE[p.status]}>{STATUS_LABEL[p.status]}</Badge></View>)}</View>
-          )}
-        </View>
-      </View>
+      </Modal>
 
       <CenterDialog open={confirmClose} onClose={() => setConfirmClose(false)} testID="support-close-dialog">
         <Text style={{ fontSize: 18, fontWeight: "600", color: c.text }}>Close this ticket?</Text>

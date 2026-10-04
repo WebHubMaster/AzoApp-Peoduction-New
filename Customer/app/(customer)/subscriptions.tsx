@@ -355,15 +355,24 @@ export default function SubscriptionsScreen() {
           ) : (
             <View style={{ gap: 12 }}>
               {services.map((s) => (
-                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, padding: 14, backgroundColor: c.surface }}>
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, backgroundColor: c.surface, overflow: "hidden" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16 }}>
+                    <View style={{ height: 52, width: 52, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+                      <CalendarHeart size={26} color={TC.primaryText} />
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.name}</Text>
-                      <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>{s.category_name} · {(s.subscription_plans || []).length} plans</Text>
+                      <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>{s.category_name}</Text>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6 }}>
+                        <View style={{ backgroundColor: EMERALD[50], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
+                          <Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 11 }}>{(s.subscription_plans || []).length} plans</Text>
+                        </View>
+                        <Text style={{ color: TC.textFaint, fontSize: 11 }}>Daily · Weekly · Monthly</Text>
+                      </View>
                     </View>
-                    <View style={{ backgroundColor: TC.primarySoft, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 }}>
-                      <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>Choose plan</Text>
-                    </View>
+                  </View>
+                  <View style={{ marginHorizontal: 16, marginBottom: 16, height: 44, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
+                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Choose a plan</Text>
                   </View>
                 </Pressable>
               ))}
