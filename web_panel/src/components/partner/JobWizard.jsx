@@ -49,11 +49,25 @@ export function OtpBoxes({ value, onChange, len = 4, testid = "otp-boxes" }) {
   const refs = useRef([]);
   const digits = Array.from({ length: len }, (_, i) => (value || "")[i] || "");
   const setAt = (i, d) => { const arr = (value || "").padEnd(len, " ").split(""); arr[i] = d || " "; onChange(arr.join("").replace(/ /g, "").slice(0, len)); if (d && refs.current[i + 1]) refs.current[i + 1].focus(); };
+  // Paste / keyboard-suggested code → spread digits across the boxes from box i.
+  const fillFrom = (i, digitsStr) => {
+    const arr = (value || "").padEnd(len, " ").split("");
+    digitsStr.slice(0, len - i).split("").forEach((c, k) => { arr[i + k] = c; });
+    const next = arr.join("").replace(/ /g, "").slice(0, len);
+    onChange(next);
+    refs.current[Math.min(len - 1, i + digitsStr.length)]?.focus();
+  };
+  const onBoxChange = (i, raw, d) => {
+    const t = raw.replace(/\D/g, "");
+    if (t.length > 2 || (t.length === 2 && !d)) return fillFrom(t.length >= len ? 0 : i, t);
+    setAt(i, t.slice(-1));
+  };
   return (
-    <div className="flex gap-2.5 justify-center" data-testid={testid}>
+    <div className="flex gap-2.5 justify-center" data-testid={testid}
+      onPaste={(e) => { const t = (e.clipboardData.getData("text") || "").replace(/\D/g, ""); if (t) { e.preventDefault(); fillFrom(t.length >= len ? 0 : Math.max(0, refs.current.indexOf(document.activeElement)), t); } }}>
       {digits.map((d, i) => (
-        <input key={i} ref={(el) => (refs.current[i] = el)} inputMode="numeric" maxLength={1} value={d} data-testid={`otp-box-${i}`}
-          onChange={(e) => setAt(i, e.target.value.replace(/\D/g, "").slice(-1))}
+        <input key={i} ref={(el) => (refs.current[i] = el)} inputMode="numeric" autoComplete={i === 0 ? "one-time-code" : "off"} maxLength={len} value={d} data-testid={`otp-box-${i}`}
+          onChange={(e) => onBoxChange(i, e.target.value, d)}
           onKeyDown={(e) => { if (e.key === "Backspace" && !d && i > 0) { e.preventDefault(); setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
           onFocus={(e) => { e.target.select(); setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 250); }}
           className="h-14 w-14 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-2xl font-extrabold text-slate-900 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition" />

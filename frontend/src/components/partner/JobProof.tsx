@@ -99,6 +99,18 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
     onChange(arr.join("").replace(/ /g, "").slice(0, len));
     if (d && refs.current[i + 1]) refs.current[i + 1]?.focus();
   };
+  // Paste / keyboard-suggested code → spread digits across the boxes from box i.
+  const fillFrom = (i: number, t: string) => {
+    const arr = (value || "").padEnd(len, " ").split("");
+    t.slice(0, len - i).split("").forEach((c, k) => { arr[i + k] = c; });
+    onChange(arr.join("").replace(/ /g, "").slice(0, len));
+    refs.current[Math.min(len - 1, i + t.length)]?.focus();
+  };
+  const onBoxChange = (i: number, raw: string, d: string) => {
+    const t = raw.replace(/\D/g, "");
+    if (t.length > 2 || (t.length === 2 && !d)) return fillFrom(t.length >= len ? 0 : i, t);
+    setAt(i, t.slice(-1));
+  };
   return (
     <View style={{ flexDirection: "row", gap: 10, justifyContent: "center" }} testID={testID || "otp-boxes"}>
       {digits.map((d, i) => (
@@ -108,8 +120,10 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
           testID={`otp-box-${i}`}
           value={d}
           keyboardType="number-pad"
-          maxLength={1}
-          onChangeText={(t) => setAt(i, t.replace(/\D/g, "").slice(-1))}
+          maxLength={len}
+          textContentType={i === 0 ? "oneTimeCode" : "none"}
+          autoComplete={i === 0 ? "sms-otp" : "off"}
+          onChangeText={(t) => onBoxChange(i, t, d)}
           onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && i > 0) { setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
           selectTextOnFocus
           style={{ width: 56, height: 56, borderRadius: 14, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}

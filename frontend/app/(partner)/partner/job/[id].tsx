@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { HelpSOS } from "@/src/components/partner/HelpSOS";
 import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -450,6 +451,7 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
         <View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text><Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5 }}>{startedAt ? `Started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text></View>
         <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>{elapsed}</Text>
       </LinearGradient>
+      <HelpSOS booking={b} testPrefix="wizard-" />
       <Card testID="wizard-after-proof">
         <SectionTitle icon="camera-outline" title="After work proof" />
         <ProofGrid items={after} onPhoto={onPhoto} onVideo={onVideo} onRemove={onRemove} busy={!!busy && String(busy).startsWith("after")} progress={progress} testID={`after-ev-${b.code}`} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { LifeBuoy, AlertTriangle, X, Send, ShieldCheck, Loader2 } from "lucide-react";
+import { LifeBuoy, AlertTriangle, X, Send, ShieldCheck, Loader2, Paperclip } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
 import { useRealtime } from "@/context/RealtimeContext";
@@ -18,6 +18,8 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef(null);
   const endRef = useRef(null);
   const typingTimer = useRef(null);
   const lastTyping = useRef(0);
@@ -102,6 +104,36 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
     finally { setSending(false); }
   };
 
+  const getPos = () => new Promise((res) => {
+    if (!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition((p) => res({ lat: p.coords.latitude, lng: p.coords.longitude }), () => res(null), { timeout: 4000, maximumAge: 60000 });
+  });
+
+  const sos = async () => {
+    if (!window.confirm("SOS: alert our support team and call emergency number 112?")) return;
+    const pos = await getPos();
+    try {
+      const { data } = await api.post("/support/sos", { booking_code: code, ...(pos || {}) });
+      setTicket(data);
+      toast.success("SOS sent — support team alerted");
+    } catch (e) { toast.error(e?.response?.data?.detail || "Could not alert support"); }
+    window.location.href = "tel:112";
+  };
+
+  const sendPhoto = async (e) => {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f || !ticket?.id) return;
+    setUploading(true);
+    try {
+      const fd = new FormData(); fd.append("file", f);
+      const { data: att } = await api.post("/support/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      const { data } = await api.post(`/support/tickets/${ticket.id}/messages`, { text: "", attachments: [att] });
+      setTicket(data);
+    } catch (err) { toast.error(err?.response?.data?.detail || "Could not send photo"); }
+    finally { setUploading(false); }
+  };
+
   const msgs = (ticket?.messages || []).filter((m) => !m.internal);
 
   return (
@@ -111,10 +143,10 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-sm font-bold hover:bg-primary-100 transition">
           <LifeBuoy className="h-4 w-4" /> Help
         </button>
-        <a data-testid={tid("sos-btn")} href="tel:112" onClick={(e) => { if (!window.confirm("Call emergency number 112?")) e.preventDefault(); }}
+        <button type="button" data-testid={tid("sos-btn")} onClick={sos}
           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-red-600 text-white px-3 py-2 text-sm font-bold hover:bg-red-700 transition">
           <AlertTriangle className="h-4 w-4" /> SOS · 112
-        </a>
+        </button>
       </div>
 
       {open && (
@@ -143,7 +175,10 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
                   <div key={m.id || i} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[78%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-primary-600 text-white rounded-br-sm" : "bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-bl-sm border border-slate-100 dark:border-slate-700"}`}>
                       {!mine && <p className="text-[10px] font-bold text-primary-600 mb-0.5">{m.sender_name || "Support"}</p>}
-                      {m.text}
+                      {(m.attachments || []).filter((a) => a.kind !== "pdf").map((a, j) => (
+                        <a key={j} href={a.url} target="_blank" rel="noreferrer"><img src={a.thumb_url || a.url} alt={a.name || "photo"} data-testid="help-sos-msg-photo" className="mt-1 max-h-48 rounded-lg object-cover" /></a>
+                      ))}
+                      {m.text && <p className="whitespace-pre-wrap break-words">{m.text}</p>}
                     </div>
                   </div>
                 );
@@ -159,6 +194,11 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
             </div>
 
             <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} data-testid="help-sos-file" />
+              <button type="button" data-testid="help-sos-attach" onClick={() => fileRef.current?.click()} disabled={!ticket || uploading}
+                className="h-11 w-11 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40">
+                {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
+              </button>
               <input data-testid="help-sos-input" value={text}
                 onChange={(e) => { setText(e.target.value); pingTyping(); }}
                 onKeyDown={(e) => { if (e.key === "Enter") send(); }}

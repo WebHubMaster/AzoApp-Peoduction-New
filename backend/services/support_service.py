@@ -405,3 +405,48 @@ async def _notify_user(ticket, body):
             "read_by": [], "link": "support", "ref_id": ticket["id"]})
     except Exception:
         pass
+
+
+async def raise_sos(user, data: dict):
+    """SOS pressed on an active job → urgent ticket + live admin alert with job details & location."""
+    code = (data.get("booking_code") or "").strip()
+    b = await db.bookings.find_one({"code": code}, {"_id": 0})
+    if not b or user["id"] not in (b.get("customer_id"), b.get("partner_id")):
+        raise HTTPException(status_code=404, detail="Booking not found")
+    addr = b.get("address") or {}
+    lat, lng = data.get("lat"), data.get("lng")
+    live = lat is not None and lng is not None
+    if not live:
+        lat, lng = addr.get("lat"), addr.get("lng")
+    addr_txt = ", ".join(str(addr[k]) for k in ("line", "city", "state", "pincode") if addr.get(k))
+    maps = f"https://maps.google.com/?q={lat},{lng}" if lat is not None and lng is not None else ""
+    who = "Partner" if user["id"] == b.get("partner_id") else "Customer"
+    text = (f"SOS ALERT by {who} {user.get('name') or ''} ({user.get('phone', '')})\n"
+            f"Job: {b.get('service_name', '')} · Booking {code} · Status {b.get('status', '')}\n"
+            f"Customer: {b.get('customer_name', '')} · Partner: {b.get('partner_name') or '—'}\n"
+            f"Address: {addr_txt or '—'}\n"
+            f"Location ({'live' if live else 'booking address'}): {maps or 'unavailable'}")
+    t = await db.support_tickets.find_one({"user_id": user["id"], "booking_code": code, "status": {"$ne": "closed"}}, {"_id": 0})
+    if t:
+        m = _msg(user, text, [])
+        await db.support_tickets.update_one({"id": t["id"]}, {
+            "$push": {"messages": m},
+            "$set": {"priority": "urgent", "last_message_at": m["at"], "updated_at": m["at"],
+                     "unread_admin": (t.get("unread_admin", 0) or 0) + 1, "sos": True}})
+        tid = t["id"]
+    else:
+        t = await create_ticket(user, {"subject": f"SOS · Booking {code}", "category": "booking",
+                                       "priority": "urgent", "message": text, "booking_code": code})
+        tid = t["id"]
+        await db.support_tickets.update_one({"id": tid}, {"$set": {"sos": True}})
+    t = await db.support_tickets.find_one({"id": tid}, {"_id": 0})
+    await _notify_admins(t, f"SOS ALERT · {code} · {who} {user.get('name') or ''}")
+    try:
+        from services import realtime as rt
+        payload = {"ticket_id": tid, "code": t.get("code"), "booking_code": code, "by": who,
+                   "name": user.get("name"), "phone": user.get("phone"), "maps": maps, "address": addr_txt}
+        rt.emit_admin("support_sos", payload)
+        rt.emit_admin("support_message", {"ticket_id": tid, "code": t.get("code"), "sender_role": "user"})
+    except Exception:
+        pass
+    return t

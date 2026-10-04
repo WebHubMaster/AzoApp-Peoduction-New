@@ -63,6 +63,11 @@ async def close_ticket(tid: str, user=Depends(ANY_USER)):
     return await svc.close_by_user(user, tid)
 
 
+@router.post("/support/sos")
+async def raise_sos(data: dict, user=Depends(ANY_USER)):
+    return await svc.raise_sos(user, data)
+
+
 @router.post("/support/tickets/{tid}/typing")
 async def user_typing(tid: str, user=Depends(ANY_USER)):
     return await svc.set_typing_user(user, tid)

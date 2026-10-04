@@ -29,7 +29,7 @@ import Person360 from "@/pages/admin/people/Person360";
 import TransactionsHub from "@/pages/admin/TransactionsHub";
 import RegistrationFeeReport from "@/pages/admin/RegistrationFeeReport";
 import RefundsHub from "@/pages/admin/RefundsHub";
-import SupportInbox from "@/pages/admin/SupportInbox";
+import SupportInbox, { SosAlertListener } from "@/pages/admin/SupportInbox";
 import FinancialReports from "@/pages/admin/FinancialReports";
 import MembershipManager from "@/pages/admin/MembershipManager";
 import GrowthCenter from "@/pages/admin/GrowthCenter";
@@ -350,6 +350,7 @@ export default function AdminDashboard() {
   return (
     <PanelLayout title={isSuper ? "Super Admin" : "Admin"} nav={visibleNav} active={active} badges={badges} dots={peopleDots} onNavigate={(k) => guardNav(() => { setViewUser(null); setBookingDetailId(null); setActive(k); })}>
       <OnboardingTour />
+      <SosAlertListener onOpen={() => { setViewUser(null); setBookingDetailId(null); setActive("tickets"); }} />
       {viewUser && typeof viewUser === "object" ? (
         <Person360 role={viewUser.role} uid={viewUser.id} onBack={() => setViewUser(null)} onCountsChanged={() => { loadDots(); loadPending(); }} onOpenUser={setViewUser} />
       ) : viewUser ? (

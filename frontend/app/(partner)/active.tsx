@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { HelpSOS } from "@/src/components/partner/HelpSOS";
 import * as Location from "expo-location";
 import { View, Text, Pressable, Linking, Modal, ScrollView, Alert, Platform, RefreshControl } from "react-native";
 import { CalendarSlotPicker } from "@/src/components/CalendarSlotPicker";
@@ -574,6 +575,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
             <Text style={{ color: inProgress ? "#047857" : colors.primary, fontWeight: "800", fontSize: 15 }}>{fmt(b.breakdown?.total || b.total || 0)}</Text>
           </View>
         </Pressable>
+
+        {inProgress ? <HelpSOS booking={b} /> : null}
 
         {/* Customer location */}
         <View style={{ flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 14, paddingVertical: 12 }}>

@@ -382,6 +382,17 @@ const Thread = ({ tid, onChanged, onBack }) => {
 };
 
 /* ---------------- inbox (list) ---------------- */
+export function SosAlertListener({ onOpen }) {
+  const { subscribe } = useRealtime();
+  useEffect(() => subscribe("support_sos", (d) => {
+    toast.error(`SOS ALERT · Booking ${d?.booking_code || ""}`, {
+      description: `${d?.by || "User"} ${d?.name || ""} ${d?.phone || ""}${d?.address ? ` · ${d.address}` : ""}`,
+      duration: 60000, action: { label: "Open", onClick: onOpen },
+    });
+  }), [subscribe, onOpen]);
+  return null;
+}
+
 export default function SupportInbox() {
   const [stats, setStats] = useState(null);
   const [rows, setRows] = useState([]);
