@@ -89,26 +89,26 @@ function BatchesTab() {
             <input type="number" min={1} max={500} value={count}
               data-testid="batch-count-input"
               onChange={(e) => setCount(e.target.value)}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+              className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           </div>
           <div className="sm:col-span-2">
             <label className="text-xs text-slate-500">Batch name (optional)</label>
             <input value={name}
               data-testid="batch-name-input"
               onChange={(e) => setName(e.target.value)} placeholder="e.g. Ranchi Field Kit — Aug"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+              className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           </div>
           <div>
             <label className="text-xs text-slate-500">Prefix</label>
             <input value={prefix}
               data-testid="batch-prefix-input"
               onChange={(e) => setPrefix(e.target.value.toUpperCase().slice(0, 6))} placeholder="PQR"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+              className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           </div>
         </div>
         <button onClick={create} disabled={creating}
           data-testid="batch-create-btn"
-          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0b3c8a] disabled:opacity-60">
+          className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-[#0D47A1] text-white text-sm font-semibold hover:bg-[#0b3c8a] disabled:opacity-60">
           {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Generate stickers
         </button>
         <p className="mt-2 text-xs text-slate-400">Max 500 per batch. Each sticker gets a unique token encoding the booking link.</p>
@@ -134,12 +134,12 @@ function BatchesTab() {
               <div className="mt-3 flex flex-wrap gap-2">
                 <button onClick={() => openPoster(b.batch_id)}
                   data-testid="batch-poster-btn"
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white font-semibold hover:bg-[#0b3c8a]">
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-[#0D47A1] text-white font-semibold hover:bg-[#0b3c8a]">
                   <Printer className="w-3.5 h-3.5" /> Print poster (4×6)
                 </button>
                 <button onClick={() => openPrint(b.batch_id)}
                   data-testid="batch-print-btn"
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200">
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200">
                   <Printer className="w-3.5 h-3.5" /> Print A4 sheet
                 </button>
               </div>
@@ -163,8 +163,8 @@ function PrintSheet({ data, onClose }) {
           <h3 className="font-semibold text-slate-800">Print sheet — {data.batch_name} ({data.qrs.length})</h3>
           <div className="flex gap-2">
             <button onClick={() => window.print()} data-testid="print-now-btn"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white text-sm"><Printer className="w-4 h-4" /> Print</button>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100"><X className="w-5 h-5" /></button>
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0D47A1] text-white text-sm"><Printer className="w-4 h-4" /> Print</button>
+            <button onClick={onClose} className="p-1.5 rounded-md hover:bg-slate-100"><X className="w-5 h-5" /></button>
           </div>
         </div>
         <div className="qr-print-area flex-1 overflow-auto p-4">
@@ -269,12 +269,12 @@ function PosterSheet({ data, onClose }) {
               {Object.entries(POSTER_SIZES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </PremiumSelect>
             <button onClick={downloadPdf} disabled={busy} data-testid="poster-pdf-btn"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#0D47A1] text-[#0D47A1] text-sm font-semibold disabled:opacity-60">
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[#0D47A1] text-[#0D47A1] text-sm font-semibold disabled:opacity-60">
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />} Download PDF
             </button>
             <button onClick={() => window.print()} data-testid="poster-print-now-btn"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0D47A1] text-white text-sm"><Printer className="w-4 h-4" /> Print</button>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100"><X className="w-5 h-5" /></button>
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0D47A1] text-white text-sm"><Printer className="w-4 h-4" /> Print</button>
+            <button onClick={onClose} className="p-1.5 rounded-md hover:bg-slate-100"><X className="w-5 h-5" /></button>
           </div>
         </div>
         <div className="flex-1 overflow-auto">
@@ -337,7 +337,7 @@ function RegistryTab() {
           <input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }}
             data-testid="registry-search"
             placeholder="Search token / merchant / code"
-            className="pl-9 pr-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 w-64 max-w-full" />
+            className="pl-9 pr-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 w-64 max-w-full" />
         </div>
       </div>
 
@@ -368,13 +368,13 @@ function RegistryTab() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => setDetail(r.token)} data-testid="registry-history-btn"
-                        className="p-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500" title="History"><History className="w-4 h-4" /></button>
+                        className="p-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500" title="History"><History className="w-4 h-4" /></button>
                       {r.status !== "disabled" ? (
                         <button onClick={() => act(r.token, "disable")} data-testid="registry-disable-btn"
-                          className="p-1.5 rounded-lg border border-rose-300 text-rose-600" title="Disable"><Ban className="w-4 h-4" /></button>
+                          className="p-1.5 rounded-md border border-rose-300 text-rose-600" title="Disable"><Ban className="w-4 h-4" /></button>
                       ) : (
                         <button onClick={() => act(r.token, "enable")} data-testid="registry-enable-btn"
-                          className="p-1.5 rounded-lg border border-emerald-300 text-emerald-600" title="Enable"><CheckCircle2 className="w-4 h-4" /></button>
+                          className="p-1.5 rounded-md border border-emerald-300 text-emerald-600" title="Enable"><CheckCircle2 className="w-4 h-4" /></button>
                       )}
                     </div>
                   </td>
@@ -387,9 +387,9 @@ function RegistryTab() {
 
       {data.total > data.page_size && (
         <div className="flex items-center justify-center gap-3 text-sm">
-          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 disabled:opacity-40">Prev</button>
+          <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 disabled:opacity-40">Prev</button>
           <span className="text-slate-500">Page {page} of {Math.ceil(data.total / data.page_size)}</span>
-          <button disabled={page >= Math.ceil(data.total / data.page_size)} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 disabled:opacity-40">Next</button>
+          <button disabled={page >= Math.ceil(data.total / data.page_size)} onClick={() => setPage((p) => p + 1)} className="px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 disabled:opacity-40">Next</button>
         </div>
       )}
 
@@ -408,7 +408,7 @@ function HistoryDrawer({ token, onClose }) {
       <div className="w-full max-w-md bg-white dark:bg-slate-900 h-full overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2"><History className="w-4 h-4" /> {token}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5" /></button>
         </div>
         {!d && <Loader2 className="w-5 h-5 animate-spin text-slate-400" />}
         {d?.qr && (
@@ -493,13 +493,13 @@ function AgentsTab() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Agent name"
             data-testid="agent-name-input"
-            className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone e.g. +9190000000XX"
             data-testid="agent-phone-input"
-            className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <button onClick={create} disabled={creating}
             data-testid="agent-create-btn"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#0D47A1] text-white text-sm font-semibold disabled:opacity-60">
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-[#0D47A1] text-white text-sm font-semibold disabled:opacity-60">
             {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Create agent
           </button>
         </div>
@@ -552,7 +552,7 @@ function AgentsTab() {
               {batches.length === 0 && <span className="text-xs text-slate-400">Create a batch first.</span>}
             </div>
             <button onClick={() => setDetailAgent(a.id)} data-testid="agent-view-history"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200">
+              className="mt-3 inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200">
               <History className="w-3.5 h-3.5" /> View history &amp; details
             </button>
           </div>
@@ -617,7 +617,7 @@ function AgentDetailDrawer({ agentId, onClose, onChanged }) {
       <div className="w-full max-w-lg bg-white dark:bg-slate-900 h-full overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2"><Users className="w-4 h-4" /> {d?.agent?.name || "Agent"}</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5" /></button>
+          <button onClick={onClose} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><X className="w-5 h-5" /></button>
         </div>
         {!d && <Loader2 className="w-5 h-5 animate-spin text-slate-400" />}
         {d && (
@@ -642,8 +642,8 @@ function AgentDetailDrawer({ agentId, onClose, onChanged }) {
                   <div className="font-mono">{bank.account_number} · {bank.ifsc}</div>
                   {bank.bank_name && <div className="text-xs text-slate-400">{bank.bank_name}</div>}
                   {!bank.verified
-                    ? <button onClick={() => verifyBank(true)} data-testid="agent-verify-bank" className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white">Verify bank</button>
-                    : <button onClick={() => verifyBank(false)} className="mt-2 text-xs px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-500">Un-verify</button>}
+                    ? <button onClick={() => verifyBank(true)} data-testid="agent-verify-bank" className="mt-2 text-xs px-3 py-1.5 rounded-md bg-emerald-600 text-white">Verify bank</button>
+                    : <button onClick={() => verifyBank(false)} className="mt-2 text-xs px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-500">Un-verify</button>}
                 </div>
               )}
             </div>
@@ -760,9 +760,9 @@ export function AgentPayouts() {
                     {w.status === "pending" ? (
                       <div className="flex items-center justify-end gap-2">
                         <button disabled={busy === w.id} onClick={() => process(w.id, "approve")} data-testid="agent-wd-approve"
-                          className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white disabled:opacity-50">Approve</button>
+                          className="text-xs px-3 py-1.5 rounded-md bg-emerald-600 text-white disabled:opacity-50">Approve</button>
                         <button disabled={busy === w.id} onClick={() => process(w.id, "reject")} data-testid="agent-wd-reject"
-                          className="text-xs px-3 py-1.5 rounded-lg border border-rose-300 text-rose-600 disabled:opacity-50">Reject</button>
+                          className="text-xs px-3 py-1.5 rounded-md border border-rose-300 text-rose-600 disabled:opacity-50">Reject</button>
                       </div>
                     ) : (
                       <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{w.status}</span>

@@ -174,7 +174,7 @@ export const OtpLogin = ({ onSuccess, registerRole = null, customerOnly = false 
                 onChange={(e) => setOtpDigit(i, e.target.value)}
                 onKeyDown={(e) => onOtpKeyDown(i, e)}
                 onFocus={(e) => e.target.select()}
-                className="flex-1 min-w-0 h-12 text-center text-xl font-bold rounded-xl border-2 border-slate-200 bg-white text-slate-800 outline-none transition focus:border-primary-600 focus:ring-2 focus:ring-primary-100"
+                className="flex-1 min-w-0 h-12 text-center text-xl font-bold rounded-md border-2 border-slate-200 bg-white text-slate-800 outline-none transition focus:border-primary-600 focus:ring-2 focus:ring-primary-100"
               />
             ))}
           </div>

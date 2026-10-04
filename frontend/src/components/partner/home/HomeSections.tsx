@@ -127,7 +127,7 @@ export function WalletCard({ wallet, nav }: { wallet: any; nav: Nav }) {
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
         <Text style={{ color: TW.slate400, fontSize: 12 }}>Total withdrawn</Text><Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "600" }}>{fmtC(wallet.total_withdrawn)}</Text>
       </View>
-      <Pressable testID="ph-withdraw" disabled={!canW} onPress={() => nav("wallet")} style={{ marginTop: 16, height: 44, borderRadius: 12, backgroundColor: colors.primaryHover, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: canW ? 1 : 0.4 }}>
+      <Pressable testID="ph-withdraw" disabled={!canW} onPress={() => nav("wallet")} style={{ marginTop: 16, height: 44, borderRadius: 6, backgroundColor: colors.primaryHover, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: canW ? 1 : 0.4 }}>
         <Icon name="arrow-top-right" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>{canW ? "Withdraw" : "Nothing to withdraw"}</Text>
       </Pressable>
     </Card>

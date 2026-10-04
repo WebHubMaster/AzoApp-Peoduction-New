@@ -208,7 +208,7 @@ export function BusinessConfigSettings() {
                 return (
                   <button key={l.key} type="button" onClick={() => set("letterhead", l.key)}
                     data-testid={`letterhead-${l.key}`}
-                    className={`text-left rounded-lg border p-3 transition-all ${active ? "border-slate-800 bg-slate-50" : "border-slate-200 hover:border-slate-300"}`}>
+                    className={`text-left rounded-md border p-3 transition-all ${active ? "border-slate-800 bg-slate-50" : "border-slate-200 hover:border-slate-300"}`}>
                     <div className="flex items-center gap-2">
                       <span className="inline-block h-5 w-8 rounded-sm" style={l.key === "band" ? { backgroundColor: accent } : { borderBottom: `3px solid ${accent}`, background: "#fff", boxShadow: "inset 0 0 0 1px #e2e8f0" }} />
                       <span className="text-sm font-semibold text-slate-800">{l.label}</span>
@@ -232,7 +232,7 @@ export function BusinessConfigSettings() {
                     <label className="text-[11px] font-medium text-slate-500">{f.label}</label>
                     {f.area ? (
                       <textarea value={cfg[f.k] || ""} onChange={(e) => set(f.k, e.target.value)} rows={2}
-                        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" data-testid={`bizcfg-${f.k}`} />
+                        className="mt-1 w-full rounded-md border border-slate-200 px-3 py-2 text-sm" data-testid={`bizcfg-${f.k}`} />
                     ) : (
                       <Input type={f.type || "text"} placeholder={f.ph || ""} value={cfg[f.k] ?? ""} onChange={(e) => set(f.k, f.type === "number" ? Number(e.target.value) : e.target.value)}
                         className="mt-1 h-9" data-testid={`bizcfg-${f.k}`} />

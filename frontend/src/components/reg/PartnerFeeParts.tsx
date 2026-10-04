@@ -254,7 +254,7 @@ export function PayBar({ amount, busy, retry, onPay, payMethods, bottomInset, on
         backgroundColor: "#fff", borderTopWidth: 1, borderTopColor: C.line, boxShadow: "0px -6px 20px rgba(11,27,51,0.06)" }}>
       <Pressable testID="fee-pay-btn" onPress={onPay} disabled={busy} accessibilityRole="button" accessibilityLabel={busy ? "Processing payment" : label}
         accessibilityState={{ disabled: busy, busy }}
-        style={({ pressed }) => ({ height: 56, borderRadius: 10, backgroundColor: busy ? C.blueDeep : C.blue, alignItems: "center", justifyContent: "center",
+        style={({ pressed }) => ({ height: 56, borderRadius: 6, backgroundColor: busy ? C.blueDeep : C.blue, alignItems: "center", justifyContent: "center",
           flexDirection: "row", gap: 8, opacity: busy ? 0.85 : 1, transform: [{ scale: pressed && !busy ? 0.98 : 1 }],
           boxShadow: busy ? "none" : "0px 8px 18px rgba(13,71,161,0.28)" })}>
         {busy ? (

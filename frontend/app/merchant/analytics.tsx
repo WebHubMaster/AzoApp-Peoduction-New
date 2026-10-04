@@ -163,7 +163,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
                       <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "500", color: P[700] }}>Apply</Text>
                     </Pressable>
                     <Pressable testID="custom-close" onPress={() => { setShowCustom(false); setPreset("30d"); }}
-                      style={({ pressed }) => ({ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.15)" })}>
+                      style={({ pressed }) => ({ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.15)" })}>
                       <X size={16} color="#fff" />
                     </Pressable>
                   </View>

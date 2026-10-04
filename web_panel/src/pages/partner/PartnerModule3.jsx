@@ -619,10 +619,10 @@ export function AvailabilitySection() {
       <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-sm" data-testid="availability-calendar">
         <div className="flex items-center justify-between mb-4">
           <button data-testid="cal-prev" disabled={!canGoPrev} onClick={() => setMonth(new Date(y, m - 1, 1))}
-            className="h-10 w-10 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition"><ChevronLeft className="h-5 w-5" /></button>
+            className="h-10 w-10 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-30 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition"><ChevronLeft className="h-5 w-5" /></button>
           <p className="font-heading font-black text-lg sm:text-xl text-slate-900 dark:text-white" data-testid="cal-month">{monthLabel}</p>
           <button data-testid="cal-next" onClick={() => setMonth(new Date(y, m + 1, 1))}
-            className="h-10 w-10 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition"><ChevronRight className="h-5 w-5" /></button>
+            className="h-10 w-10 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition"><ChevronRight className="h-5 w-5" /></button>
         </div>
         <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-1.5">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => (
@@ -699,7 +699,7 @@ export function AvailabilitySection() {
           <div role="dialog" aria-modal="true"
             className="relative w-full sm:w-[92%] sm:max-w-[520px] bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl p-5 sm:p-6 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:pb-6 animate-in slide-in-from-bottom sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto m-0 sm:mx-3">
             <button aria-label="Close" data-testid="popup-close" onClick={() => !busy && setPicked(null)}
-              className="absolute top-3.5 right-3.5 h-9 w-9 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-400"><XCircle className="h-5 w-5" /></button>
+              className="absolute top-3.5 right-3.5 h-9 w-9 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-primary-400"><XCircle className="h-5 w-5" /></button>
             <div className="sm:hidden mx-auto mb-3 h-1.5 w-10 rounded-full bg-slate-200 dark:bg-slate-700" />
             <p className="text-[11px] font-black uppercase tracking-wider text-primary-600">Availability</p>
             <h3 className="font-heading font-black text-lg text-slate-900 dark:text-white mt-0.5">Are you available on this date?</h3>

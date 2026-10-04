@@ -159,7 +159,7 @@ function AppForm({ platform, cfg, onSaved }) {
 
         <ToggleRow testId={`update-enabled-${platform.key}`} label="Update Enabled" desc="Turn the in-app update check on/off" value={f.update_enabled} onChange={(v) => set("update_enabled", v)} />
         <ToggleRow testId={`force-update-${platform.key}`} label="Force Update" desc="Blocking mandatory update (no close button)" value={f.force_update} onChange={(v) => set("force_update", v)} />
-        <Field label="Release Notes (optional)"><textarea data-testid={`release-notes-${platform.key}`} value={f.release_notes || ""} onChange={(e) => set("release_notes", e.target.value)} rows={3} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent p-2 text-sm text-slate-900 dark:text-white" placeholder={"New features\nBug fixes"} /></Field>
+        <Field label="Release Notes (optional)"><textarea data-testid={`release-notes-${platform.key}`} value={f.release_notes || ""} onChange={(e) => set("release_notes", e.target.value)} rows={3} className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-transparent p-2 text-sm text-slate-900 dark:text-white" placeholder={"New features\nBug fixes"} /></Field>
       </div>
 
       {/* Maintenance */}
@@ -169,7 +169,7 @@ function AppForm({ platform, cfg, onSaved }) {
         {f.maintenance_enabled ? (
           <div className="space-y-3" data-testid={`maint-fields-${platform.key}`}>
             <Field label="Maintenance Title"><Input data-testid={`maint-title-${platform.key}`} value={f.maintenance_title || ""} onChange={(e) => set("maintenance_title", e.target.value)} placeholder="We’ll be back soon" /></Field>
-            <Field label="Maintenance Description"><textarea data-testid={`maint-desc-${platform.key}`} value={f.maintenance_description || ""} onChange={(e) => set("maintenance_description", e.target.value)} rows={3} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent p-2 text-sm text-slate-900 dark:text-white" placeholder="App is under maintenance. Please try again later." /></Field>
+            <Field label="Maintenance Description"><textarea data-testid={`maint-desc-${platform.key}`} value={f.maintenance_description || ""} onChange={(e) => set("maintenance_description", e.target.value)} rows={3} className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-transparent p-2 text-sm text-slate-900 dark:text-white" placeholder="App is under maintenance. Please try again later." /></Field>
             <div className="grid grid-cols-2 gap-3">
               {[["maintenance_image", "Image"], ["maintenance_icon", "Icon"]].map(([key, lbl]) => (
                 <Field key={key} label={lbl}>
@@ -212,7 +212,7 @@ export default function AppManagement() {
       <div className="flex gap-2">
         {PLATFORMS.map((p) => (
           <button key={p.key} data-testid={`appmgmt-tab-${p.key}`} onClick={() => setTab(p.key)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold ${tab === p.key ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
+            className={`px-4 py-2 rounded-md text-sm font-semibold ${tab === p.key ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
             {p.label}
           </button>
         ))}

@@ -94,7 +94,7 @@ export default function VideoCapture({ open, title = "Record video", onClose, on
         {error ? (
           <div className="text-center px-6">
             <p className="text-white/90 mb-4" data-testid="video-error">{error}</p>
-            <button onClick={start} className="inline-flex items-center gap-2 px-4 h-11 rounded-xl bg-white text-slate-900 font-semibold"><RefreshCw className="h-4 w-4" /> Try again</button>
+            <button onClick={start} className="inline-flex items-center gap-2 px-4 h-11 rounded-md bg-white text-slate-900 font-semibold"><RefreshCw className="h-4 w-4" /> Try again</button>
           </div>
         ) : clip ? (
           <video src={clip.url} controls playsInline className="max-h-full max-w-full object-contain" data-testid="video-preview" />
@@ -113,8 +113,8 @@ export default function VideoCapture({ open, title = "Record video", onClose, on
       <div className="px-4 py-5 flex items-center justify-center gap-6 bg-black">
         {clip ? (
           <>
-            <button onClick={retake} disabled={uploading} data-testid="video-retake" className="inline-flex items-center gap-2 px-5 h-12 rounded-xl bg-white/10 text-white font-semibold disabled:opacity-50"><RotateCcw className="h-5 w-5" /> Re-record</button>
-            <button onClick={confirm} disabled={uploading} data-testid="video-confirm" className="inline-flex items-center gap-2 px-6 h-12 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold disabled:opacity-60">
+            <button onClick={retake} disabled={uploading} data-testid="video-retake" className="inline-flex items-center gap-2 px-5 h-12 rounded-md bg-white/10 text-white font-semibold disabled:opacity-50"><RotateCcw className="h-5 w-5" /> Re-record</button>
+            <button onClick={confirm} disabled={uploading} data-testid="video-confirm" className="inline-flex items-center gap-2 px-6 h-12 rounded-md bg-emerald-500 hover:bg-emerald-600 text-white font-bold disabled:opacity-60">
               {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />} {uploading ? `Uploading… ${progress}%` : "Use video"}
             </button>
           </>

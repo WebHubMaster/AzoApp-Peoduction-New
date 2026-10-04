@@ -241,7 +241,7 @@ export default function MerchantScanQr() {
                   <View testID="poster-preview" onLayout={(e) => setBoxW(Math.max(200, e.nativeEvent.layout.width - 32))} style={{ borderRadius: 10, backgroundColor: dark ? "rgba(30,41,59,0.6)" : SLATE[100], borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16, alignItems: "center", overflow: "hidden" }}>
                     <View style={{ flexDirection: "row", gap: 4, alignSelf: "flex-end", marginBottom: 12 }}>
                       {([["zoom-out", "magnify-minus-outline", () => setZoom((z) => Math.max(0.5, z - 0.15))], ["zoom-fit", "arrow-expand-all", () => setZoom(1)], ["zoom-in", "magnify-plus-outline", () => setZoom((z) => Math.min(2, z + 0.15))]] as [string, any, () => void][]).map(([id, ic, fn]) => (
-                        <Pressable key={id} testID={id} onPress={fn} style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: dark ? SLATE[900] : "#fff", borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}>
+                        <Pressable key={id} testID={id} onPress={fn} style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: dark ? SLATE[900] : "#fff", borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}>
                           <Icon name={ic} size={16} color={SLATE[500]} />
                         </Pressable>
                       ))}
@@ -282,7 +282,7 @@ export default function MerchantScanQr() {
             </View>
             <Text style={{ fontSize: 12, color: SLATE[500], marginBottom: 8 }}>Edit the message before sharing (your booking link is already included):</Text>
             <TextInput testID="share-message" multiline value={waMsg} onChangeText={setWaMsg} style={{ minHeight: 120, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], borderRadius: 6, padding: 12, color: heading, fontSize: 14, lineHeight: 20, textAlignVertical: "top", backgroundColor: dark ? SLATE[900] : "#fff" }} />
-            <Pressable testID="share-save-poster" onPress={() => downloadPoster("png")} disabled={!!busy} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: P[300], backgroundColor: dark ? "rgba(13,71,161,0.2)" : `${P[50]}99`, paddingVertical: 8, paddingHorizontal: 12, opacity: busy ? 0.6 : 1 }}>
+            <Pressable testID="share-save-poster" onPress={() => downloadPoster("png")} disabled={!!busy} style={{ marginTop: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: P[300], backgroundColor: dark ? "rgba(13,71,161,0.2)" : `${P[50]}99`, paddingVertical: 8, paddingHorizontal: 12, opacity: busy ? 0.6 : 1 }}>
               {busy === "png" ? <ActivityIndicator size="small" color={P[700]} /> : <Icon name="download" size={16} color={P[700]} />}
               <Text style={{ color: dark ? P[300] : P[700], fontSize: 12, fontWeight: "600" }}>Save designed poster to attach with your message</Text>
             </Pressable>

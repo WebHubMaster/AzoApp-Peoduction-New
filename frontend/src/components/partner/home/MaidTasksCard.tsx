@@ -95,12 +95,12 @@ export function MaidTasksCard() {
               <Text style={{ color: "#94A3B8", fontSize: 11 }}>{t.code}{t.time ? ` · ${t.time}` : ""} · {money(t.earning)}/day</Text>
             </View>
             {t.date === todayIso() ? (
-              <Pressable testID={`maid-task-arrive-${t.subId}-${t.date}`} disabled={arriving === `${t.subId}-${t.date}` || arrive.isPending} onPress={() => onArrive(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, opacity: arriving === `${t.subId}-${t.date}` ? 0.6 : 1 }}>
+              <Pressable testID={`maid-task-arrive-${t.subId}-${t.date}`} disabled={arriving === `${t.subId}-${t.date}` || arrive.isPending} onPress={() => onArrive(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 6, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, opacity: arriving === `${t.subId}-${t.date}` ? 0.6 : 1 }}>
                 <Icon name="map-pin" size={12} color="#fff" />
                 <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{arriving === `${t.subId}-${t.date}` ? "Locating…" : "I Have Arrived"}</Text>
               </Pressable>
             ) : markable ? (
-              <Pressable testID={`maid-task-done-${t.subId}-${t.date}`} disabled={complete.isPending} onPress={() => complete.mutate(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+              <Pressable testID={`maid-task-done-${t.subId}-${t.date}`} disabled={complete.isPending} onPress={() => complete.mutate(t)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Mark done</Text>
               </Pressable>
             ) : (

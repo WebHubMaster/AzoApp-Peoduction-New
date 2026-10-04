@@ -240,11 +240,11 @@ export default function TestimonialsManager() {
                   </span>
                   {/* actions */}
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
-                    <button onClick={() => toggle(t)} title={t.status === "active" ? "Hide" : "Show"} className="h-8 px-2 rounded-lg bg-white shadow border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50">
+                    <button onClick={() => toggle(t)} title={t.status === "active" ? "Hide" : "Show"} className="h-8 px-2 rounded-md bg-white shadow border border-slate-200 text-[11px] font-semibold text-slate-600 hover:bg-slate-50">
                       {t.status === "active" ? "Hide" : "Show"}
                     </button>
-                    <button onClick={() => setEditing(t)} className="h-8 w-8 rounded-lg bg-white shadow border border-slate-200 flex items-center justify-center text-primary-600 hover:bg-primary-50"><Pencil className="h-4 w-4" /></button>
-                    <button onClick={() => del(t.id)} className="h-8 w-8 rounded-lg bg-white shadow border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => setEditing(t)} className="h-8 w-8 rounded-md bg-white shadow border border-slate-200 flex items-center justify-center text-primary-600 hover:bg-primary-50"><Pencil className="h-4 w-4" /></button>
+                    <button onClick={() => del(t.id)} className="h-8 w-8 rounded-md bg-white shadow border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
               ))}

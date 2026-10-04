@@ -112,7 +112,7 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
           return (
             <View key={i} style={{ width: `${100 / 7}%`, height: 40, paddingHorizontal: 2, justifyContent: "center" }}>
               <Pressable testID={`cal-day-${d.getDate()}`} onPress={() => pickDay(d)} disabled={past}
-                style={{ height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: selected ? primary : "transparent" }}>
+                style={{ height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: selected ? primary : "transparent" }}>
                 <Text style={{ fontSize: 14, fontWeight: selected ? "700" : "500", color: selected ? "#fff" : past ? "#CBD5E1" : text }}>{d.getDate()}</Text>
                 {isToday && !selected ? <View style={{ position: "absolute", bottom: 3, width: 4, height: 4, borderRadius: 2, backgroundColor: primary }} /> : null}
               </Pressable>
@@ -132,7 +132,7 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
           return (
             <View key={t} style={{ width: "33.3333%", padding: 4 }}>
               <Pressable testID={`slot-${t}`} onPress={() => pickSlot(t)} disabled={dis}
-                style={{ paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: active ? primary : dis ? "#F1F5F9" : border, backgroundColor: active ? primary : surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                style={{ paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: active ? primary : dis ? "#F1F5F9" : border, backgroundColor: active ? primary : surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
                 {active ? <Icon name="check" size={12} color="#fff" /> : null}
                 <Text style={{ fontSize: 12, fontWeight: "600", color: active ? "#fff" : dis ? "#CBD5E1" : text, textDecorationLine: dis ? "line-through" : "none" }}>{to12(t)}{full ? " ·Full" : ""}</Text>
               </Pressable>

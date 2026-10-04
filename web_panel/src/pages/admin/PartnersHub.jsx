@@ -195,10 +195,10 @@ export default function PartnersHub({ onView, premiumOnly = false }) {
             <span data-testid="partners-page-info">{(curPage - 1) * pageSize + 1}–{Math.min(curPage * pageSize, rows.length)} of {rows.length}</span>
             <div className="flex items-center gap-1">
               <button data-testid="partners-prev" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={curPage === 1}
-                className="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
+                className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
               <span className="px-3 font-medium text-slate-700 dark:text-slate-200">{curPage} / {pageCount}</span>
               <button data-testid="partners-next" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={curPage === pageCount}
-                className="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
+                className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
             </div>
           </div>
         )}

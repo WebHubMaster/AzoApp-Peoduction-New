@@ -34,7 +34,7 @@ export default function BlogDetail() {
       <div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-24">
         <h1 className="font-heading font-black text-2xl text-slate-900">Article not found</h1>
         <p className="text-slate-500 mt-2">This post may have been moved or unpublished.</p>
-        <button onClick={() => navigate("/blog")} className="mt-6 h-11 px-5 rounded-xl bg-[#0D47A1] text-white font-bold">Back to blog</button>
+        <button onClick={() => navigate("/blog")} className="mt-6 h-11 px-5 rounded-md bg-[#0D47A1] text-white font-bold">Back to blog</button>
       </div>
       <SiteFooter />
     </div>

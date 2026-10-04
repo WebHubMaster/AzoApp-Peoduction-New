@@ -102,7 +102,7 @@ function Sheet({ open, onClose, title, subtitle, children, testID }: { open: boo
 const Btn = ({ title, onPress, outline, disabled, testID, flex = true, small }: { title: string; onPress?: () => void; outline?: boolean; disabled?: boolean; testID?: string; flex?: boolean; small?: boolean }) => {
   const { colors } = useTheme();
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={disabled} style={{ flex: flex ? 1 : undefined, height: small ? 40 : 44, paddingHorizontal: 16, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: outline ? "transparent" : colors.primary, borderWidth: outline ? 1 : 0, borderColor: colors.border, opacity: disabled ? 0.5 : 1 }}>
+    <Pressable testID={testID} onPress={onPress} disabled={disabled} style={{ flex: flex ? 1 : undefined, height: small ? 40 : 44, paddingHorizontal: 16, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: outline ? "transparent" : colors.primary, borderWidth: outline ? 1 : 0, borderColor: colors.border, opacity: disabled ? 0.5 : 1 }}>
       <Text style={{ color: outline ? colors.textSecondary : "#fff", fontWeight: "600", fontSize: 14 }}>{title}</Text>
     </Pressable>
   );
@@ -200,7 +200,7 @@ export default function PartnerWallet() {
                   </View>
                 ))}
               </View>
-              <Pressable testID="withdraw-btn" onPress={startWithdraw} style={{ marginTop: 24, height: 48, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)", elevation: 4 }}>
+              <Pressable testID="withdraw-btn" onPress={startWithdraw} style={{ marginTop: 24, height: 48, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)", elevation: 4 }}>
                 <Icon name="cash" size={20} color={colors.primaryDark} /><Text style={{ color: colors.primaryDark, fontWeight: "700", fontSize: 16 }}>Withdraw Money</Text>
               </Pressable>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12 }}>
@@ -218,7 +218,7 @@ export default function PartnerWallet() {
                     <Text style={{ color: "#B45309", fontSize: 13, marginTop: 4, lineHeight: 18 }}>Pending: {fin.blockers.join(", ") || "verification"}</Text>
                   </View>
                 </View>
-                <Pressable testID="wallet-complete-kyc" onPress={gotoKyc} style={{ marginTop: 14, height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Complete Bank & KYC</Text></Pressable>
+                <Pressable testID="wallet-complete-kyc" onPress={gotoKyc} style={{ marginTop: 14, height: 44, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Complete Bank & KYC</Text></Pressable>
               </Surface>
             ) : null}
 
@@ -265,7 +265,7 @@ export default function PartnerWallet() {
                   </View>
                   <View style={{ flexDirection: "row", gap: 6 }}>
                     {[["", "All types"], ["credit", "Credit"], ["debit", "Debit"]].map(([v, l]) => (
-                      <Pressable key={v} testID={`wallet-tx-direction-${v || "all"}`} onPress={() => { setDir(v); setPage(1); }} style={{ height: 36, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: dir === v ? colors.primary : colors.border, backgroundColor: dir === v ? colors.primarySubtle : colors.surface, alignItems: "center", justifyContent: "center" }}>
+                      <Pressable key={v} testID={`wallet-tx-direction-${v || "all"}`} onPress={() => { setDir(v); setPage(1); }} style={{ height: 36, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: dir === v ? colors.primary : colors.border, backgroundColor: dir === v ? colors.primarySubtle : colors.surface, alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: dir === v ? colors.primary : colors.textSecondary, fontSize: 13, fontWeight: "600" }}>{l}</Text>
                       </Pressable>
                     ))}
@@ -414,7 +414,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
             {[500, 1000, 2000, 5000].map((q) => (
               <Pressable key={q} testID={`withdraw-quick-${q}`} disabled={q > maxAllowed} onPress={() => setAmount(String(q))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: q > maxAllowed ? 0.4 : 1 }}><Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "600" }}>₹{q >= 1000 ? q / 1000 + "k" : q}</Text></Pressable>
             ))}
-            <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>Max</Text></Pressable>
+            <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontSize: 12, fontWeight: "700" }}>Max</Text></Pressable>
           </View>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}><Btn title="Cancel" outline onPress={onClose} /><Btn title="Continue" testID="withdraw-next-1" disabled={!amt || !!amtError} onPress={() => setStep(2)} /></View>
         </View>

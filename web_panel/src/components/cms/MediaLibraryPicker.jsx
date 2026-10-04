@@ -49,10 +49,10 @@ export default function MediaLibraryPicker({ open, onClose, onSelect, folder = "
           <div className="relative flex-1">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search media…" data-testid="media-search"
-              className="w-full h-10 pl-9 pr-3 rounded-lg bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/40" />
+              className="w-full h-10 pl-9 pr-3 rounded-md bg-slate-50 dark:bg-slate-800 ring-1 ring-slate-200 dark:ring-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/40" />
           </div>
           <button onClick={() => fileRef.current?.click()} disabled={busy} data-testid="media-upload-btn"
-            className="h-10 px-4 rounded-lg bg-[#0D47A1] hover:bg-[#0b3c88] text-white text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-70">
+            className="h-10 px-4 rounded-md bg-[#0D47A1] hover:bg-[#0b3c88] text-white text-sm font-semibold inline-flex items-center gap-2 disabled:opacity-70">
             {busy ? <><Loader2 className="h-4 w-4 animate-spin" />{pct || 1}%</> : <><UploadCloud className="h-4 w-4" />Upload</>}
           </button>
           <input ref={fileRef} type="file" accept="image/*,.svg" className="hidden" onChange={pick} />

@@ -45,9 +45,9 @@ const Month = ({ view, from, to, hover, onPick, onHover, onNav, showNav, onYear 
   return (
     <div className="w-full sm:w-[272px]">
       <div className="flex items-center justify-between mb-2">
-        {showNav.left ? <div className="flex"><button onClick={() => onNav(-12)} className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="Previous year"><ChevronsLeft className="h-4 w-4" /></button><button onClick={() => onNav(-1)} data-testid="cal-prev" className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><ChevronLeft className="h-4 w-4" /></button></div> : <span className="w-16" />}
+        {showNav.left ? <div className="flex"><button onClick={() => onNav(-12)} className="h-8 w-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="Previous year"><ChevronsLeft className="h-4 w-4" /></button><button onClick={() => onNav(-1)} data-testid="cal-prev" className="h-8 w-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><ChevronLeft className="h-4 w-4" /></button></div> : <span className="w-16" />}
         <button onClick={onYear} className="text-sm font-bold text-slate-800 dark:text-white hover:text-primary-600" data-testid="cal-title">{MONTHS[m]} {y}</button>
-        {showNav.right ? <div className="flex"><button onClick={() => onNav(1)} data-testid="cal-next" className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><ChevronRight className="h-4 w-4" /></button><button onClick={() => onNav(12)} className="h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="Next year"><ChevronsRight className="h-4 w-4" /></button></div> : <span className="w-16" />}
+        {showNav.right ? <div className="flex"><button onClick={() => onNav(1)} data-testid="cal-next" className="h-8 w-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><ChevronRight className="h-4 w-4" /></button><button onClick={() => onNav(12)} className="h-8 w-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center" title="Next year"><ChevronsRight className="h-4 w-4" /></button></div> : <span className="w-16" />}
       </div>
       <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400 mb-1">{DOW.map((d) => <span key={d}>{d}</span>)}</div>
       <div className="grid grid-cols-7 gap-y-0.5">
@@ -103,11 +103,11 @@ export default function RangeCalendar({ value, onChange, label = "Date", classNa
       {mobile && <div className="mx-auto mt-2 mb-1 h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />}
       <div className={`flex ${mobile ? "flex-col overflow-y-auto" : "flex-row"}`}>
         <div className={`${mobile ? "px-4 pt-2 flex gap-2 overflow-x-auto no-scrollbar" : "w-40 p-3 border-r border-slate-100 dark:border-slate-800 flex flex-col gap-0.5"}`}>
-          {PRESETS.map((p) => <button key={p.key} data-testid={`preset-${p.key}`} onClick={() => applyPreset(p)} className={`${mobile ? "shrink-0 h-8 px-3 rounded-full text-xs" : "text-left h-8 px-2.5 rounded-lg text-sm"} font-medium transition ${preset === p.key || (!preset && lbl === p.label) ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p.label}</button>)}
+          {PRESETS.map((p) => <button key={p.key} data-testid={`preset-${p.key}`} onClick={() => applyPreset(p)} className={`${mobile ? "shrink-0 h-8 px-3 rounded-full text-xs" : "text-left h-8 px-2.5 rounded-md text-sm"} font-medium transition ${preset === p.key || (!preset && lbl === p.label) ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p.label}</button>)}
         </div>
         <div className="p-4">
           {yearMode ? (
-            <div className="grid grid-cols-4 gap-2 w-full sm:w-[560px]">{years.map((y) => <button key={y} onClick={() => { setView(new Date(y, view.getMonth(), 1)); setYearMode(false); }} className={`h-10 rounded-lg text-sm font-semibold ${y === view.getFullYear() ? "bg-primary-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{y}</button>)}</div>
+            <div className="grid grid-cols-4 gap-2 w-full sm:w-[560px]">{years.map((y) => <button key={y} onClick={() => { setView(new Date(y, view.getMonth(), 1)); setYearMode(false); }} className={`h-10 rounded-md text-sm font-semibold ${y === view.getFullYear() ? "bg-primary-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{y}</button>)}</div>
           ) : (
             <div className={`flex ${mobile ? "flex-col gap-6" : "flex-row gap-6"}`}>
               <Month view={view} from={from} to={to} hover={hover} onPick={pick} onHover={setHover} onNav={nav} showNav={{ left: true, right: mobile }} onYear={() => setYearMode(true)} />
@@ -122,11 +122,11 @@ export default function RangeCalendar({ value, onChange, label = "Date", classNa
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-slate-100 dark:border-slate-800 pb-[max(12px,env(safe-area-inset-bottom))]">
-        <button onClick={() => { const t = strip(new Date()); setView(t); setFrom(t); setTo(t); setPreset("today"); }} data-testid="cal-today" className="h-9 px-3 rounded-lg text-sm font-semibold text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/30">Today</button>
+        <button onClick={() => { const t = strip(new Date()); setView(t); setFrom(t); setTo(t); setPreset("today"); }} data-testid="cal-today" className="h-9 px-3 rounded-md text-sm font-semibold text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/30">Today</button>
         <div className="flex items-center gap-2">
-          <button onClick={clear} data-testid="cal-clear" className="h-9 px-3 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Clear</button>
-          <button onClick={() => setOpen(false)} data-testid="cal-cancel" className="h-9 px-3 rounded-lg text-sm font-semibold ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
-          <button onClick={apply} disabled={!from} data-testid="cal-apply" className="h-9 px-4 rounded-lg text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 shadow-sm">Apply</button>
+          <button onClick={clear} data-testid="cal-clear" className="h-9 px-3 rounded-md text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Clear</button>
+          <button onClick={() => setOpen(false)} data-testid="cal-cancel" className="h-9 px-3 rounded-md text-sm font-semibold ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800">Cancel</button>
+          <button onClick={apply} disabled={!from} data-testid="cal-apply" className="h-9 px-4 rounded-md text-sm font-bold bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 shadow-sm">Apply</button>
         </div>
       </div>
     </div>
@@ -141,7 +141,7 @@ export default function RangeCalendar({ value, onChange, label = "Date", classNa
   return (
     <>
       <button ref={ref} type="button" onClick={openIt} data-testid={testId}
-        className={`inline-flex items-center gap-2 h-10 px-3 rounded-xl ring-1 text-sm font-medium bg-white dark:bg-slate-900 transition ${lbl ? "ring-primary-300 text-primary-800 dark:text-primary-200 bg-primary-50/40" : "ring-slate-200 dark:ring-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"} ${className}`}>
+        className={`inline-flex items-center gap-2 h-10 px-3 rounded-md ring-1 text-sm font-medium bg-white dark:bg-slate-900 transition ${lbl ? "ring-primary-300 text-primary-800 dark:text-primary-200 bg-primary-50/40" : "ring-slate-200 dark:ring-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"} ${className}`}>
         <CalIcon className="h-4 w-4 shrink-0" /><span className="truncate max-w-[220px]">{lbl || label}</span>
         {lbl && <span role="button" onClick={(e) => { e.stopPropagation(); clear(); }} className="ml-1 h-5 w-5 rounded-full hover:bg-primary-100 flex items-center justify-center" data-testid={`${testId}-clear-inline`}><X className="h-3 w-3" /></span>}
       </button>

@@ -150,7 +150,7 @@ function GroupBlock({ group, q, forceOpen, index, accent, innerRef, onAdd, added
                           <button
                             onClick={() => cartApi.inc(r)}
                             data-testid={`ratecard-add-${r.id}`}
-                            className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold rounded-lg px-3 py-1.5 text-white transition hover:opacity-90 active:scale-[0.98]"
+                            className="mt-2 inline-flex items-center gap-1 text-[12px] font-bold rounded-md px-3 py-1.5 text-white transition hover:opacity-90 active:scale-[0.98]"
                             style={{ background: accent }}>
                             <Plus className="h-3.5 w-3.5" /> Add
                           </button>
@@ -163,7 +163,7 @@ function GroupBlock({ group, q, forceOpen, index, accent, innerRef, onAdd, added
                           <button
                             onClick={() => onAdd(r, group)}
                             data-testid={`ratecard-add-${r.id}`}
-                            className={`mt-2 inline-flex items-center gap-1 text-[12px] font-bold rounded-lg px-3 py-1.5 transition hover:opacity-90 active:scale-[0.98] ${added ? "text-white bg-emerald-600" : "text-white"}`}
+                            className={`mt-2 inline-flex items-center gap-1 text-[12px] font-bold rounded-md px-3 py-1.5 transition hover:opacity-90 active:scale-[0.98] ${added ? "text-white bg-emerald-600" : "text-white"}`}
                             style={added ? undefined : { background: accent }}>
                             {added ? <><Check className="h-3.5 w-3.5" /> Added · add again</> : <><Plus className="h-3.5 w-3.5" /> Add</>}
                           </button>
@@ -258,7 +258,7 @@ export function RateCardModal({ card, onClose, onAdd, cartApi, minLabour = 0 }) 
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Search a repair, part or price…"
-              className="w-full h-11 rounded-xl bg-white text-slate-800 placeholder:text-slate-400 pl-10 pr-9 text-sm border border-slate-200 outline-none focus:ring-2 transition"
+              className="w-full h-11 rounded-md bg-white text-slate-800 placeholder:text-slate-400 pl-10 pr-9 text-sm border border-slate-200 outline-none focus:ring-2 transition"
               style={{ "--tw-ring-color": hexA(accent, "55") }} />
             {q && (
               <button onClick={() => setQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
@@ -320,7 +320,7 @@ export function RateCardModal({ card, onClose, onAdd, cartApi, minLabour = 0 }) 
                 : "Tap Add on any item to add it as extra work"}
             </p>
             <button onClick={onClose} data-testid="ratecard-done"
-              className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
+              className="ml-auto inline-flex items-center gap-1.5 rounded-md px-5 py-2.5 text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
               style={{ background: accent }}>
               <Check className="h-4 w-4" /> Done · Close
             </button>

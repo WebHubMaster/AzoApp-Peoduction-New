@@ -308,7 +308,7 @@ function TxRow({ t, onOpen, card }) {
   const credit = t.direction === "credit";
   return (
     <button onClick={onOpen} data-testid={`wallet-tx-item-${t.id}`}
-      className={`w-full min-w-0 flex items-start gap-3 text-left rounded-xl px-2 py-2.5 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${card ? "border border-slate-100 dark:border-slate-800" : ""}`}>
+      className={`w-full min-w-0 flex items-start gap-3 text-left rounded-md px-2 py-2.5 overflow-hidden hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${card ? "border border-slate-100 dark:border-slate-800" : ""}`}>
       <span className={`h-9 w-9 rounded-xl grid place-items-center shrink-0 ${credit ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40" : "bg-rose-50 text-rose-500 dark:bg-rose-950/40"}`}>{credit ? <ArrowDownRight className="h-4 w-4" /> : <ArrowUpRight className="h-4 w-4" />}</span>
       <div className="flex-1 min-w-0"><p className="text-sm font-medium text-slate-800 dark:text-slate-100 break-words leading-snug">{t.note}</p><p className="text-[11px] text-slate-400 break-words leading-snug mt-0.5">{shortDate(t.created_at)} · <span className="capitalize">{t.status}</span></p></div>
       <p className={`font-bold text-sm tabular-nums shrink-0 whitespace-nowrap pl-1 ${credit ? "text-emerald-600" : "text-rose-500"}`}>{credit ? "+" : "−"}{money(t.amount)}</p>
@@ -317,7 +317,7 @@ function TxRow({ t, onOpen, card }) {
 }
 function WdRow({ w, onOpen }) {
   return (
-    <button onClick={onOpen} data-testid={`wd-item-${w.id}`} className="w-full flex items-center gap-3 text-left rounded-xl border border-slate-100 dark:border-slate-800 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+    <button onClick={onOpen} data-testid={`wd-item-${w.id}`} className="w-full flex items-center gap-3 text-left rounded-md border border-slate-100 dark:border-slate-800 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
       <span className="h-9 w-9 rounded-xl grid place-items-center bg-primary-50 text-primary-700 dark:bg-primary-900/30 shrink-0"><Banknote className="h-4 w-4" /></span>
       <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-800 dark:text-slate-100">WD-{w.id.slice(0, 6).toUpperCase()}</p><p className="text-[11px] text-slate-400">{shortDate(w.requested_at)} · {w.method?.toUpperCase()}</p></div>
       <div className="text-right shrink-0"><p className="font-bold text-sm tabular-nums">{money(w.amount)}</p><div className="mt-1"><StatusBadge status={w.status} /></div></div>
@@ -384,9 +384,9 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone }) {
             <div className="grid grid-cols-5 gap-2 mt-4">
               {[500, 1000, 2000, 5000].map((q) => (
                 <button key={q} disabled={q > maxAllowed} onClick={() => setAmount(String(q))} data-testid={`withdraw-quick-${q}`}
-                  className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40">₹{q >= 1000 ? q / 1000 + "k" : q}</button>
+                  className="h-10 rounded-md border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:border-primary-400 hover:text-primary-700 disabled:opacity-40">₹{q >= 1000 ? q / 1000 + "k" : q}</button>
               ))}
-              <button onClick={() => setAmount(String(Math.floor(maxAllowed)))} data-testid="withdraw-quick-max" className="h-10 rounded-xl border border-primary-200 bg-primary-50 dark:bg-primary-900/30 text-xs font-bold text-primary-700 dark:text-primary-300">Max</button>
+              <button onClick={() => setAmount(String(Math.floor(maxAllowed)))} data-testid="withdraw-quick-max" className="h-10 rounded-md border border-primary-200 bg-primary-50 dark:bg-primary-900/30 text-xs font-bold text-primary-700 dark:text-primary-300">Max</button>
             </div>
             <div className="flex gap-2 mt-6">
               <Button variant="outline" onClick={onClose} className="h-11 flex-1">Cancel</Button>

@@ -73,7 +73,7 @@ function Input({ value, onChangeText, placeholder, mono, upper, keyboardType, ma
 /* label: text-xs font-bold uppercase tracking-wide text-slate-400 */
 const Label = ({ children }: { children: string }) => <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.3, color: SLATE[400] }}>{children}</Text>;
 const IconBtn = ({ icon, color, onPress, testID }: { icon: MdiName; color: string; onPress: () => void; testID?: string }) => (
-  <Pressable testID={testID} onPress={onPress} hitSlop={4} style={({ pressed }) => ({ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? "rgba(255,255,255,0.8)" : "transparent" })}><Icon name={icon} size={16} color={color} /></Pressable>
+  <Pressable testID={testID} onPress={onPress} hitSlop={4} style={({ pressed }) => ({ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? "rgba(255,255,255,0.8)" : "transparent" })}><Icon name={icon} size={16} color={color} /></Pressable>
 );
 
 /* Surface section title: h-8 w-8 rounded-lg bg-primary-50 icon + font-heading font-bold */
@@ -352,7 +352,7 @@ export default function MerchantBankKyc() {
       <Modal visible={!!preview} transparent animationType="fade" onRequestClose={() => setPreview(null)}>
         <Pressable testID="mfk-preview-modal" onPress={() => setPreview(null)} style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.7)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <View style={{ width: "100%", maxWidth: 512 }}>
-            <Pressable testID="mfk-preview-close" onPress={() => setPreview(null)} hitSlop={8} style={{ alignSelf: "flex-end", marginBottom: 4, height: 36, width: 36, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
+            <Pressable testID="mfk-preview-close" onPress={() => setPreview(null)} hitSlop={8} style={{ alignSelf: "flex-end", marginBottom: 4, height: 36, width: 36, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
             {preview ? <Image source={{ uri: mediaUrl(preview) }} style={{ width: "100%", height: Math.min(width - 48, 512) * 0.7, borderRadius: 10, backgroundColor: "#0f172a" }} contentFit="contain" /> : null}
           </View>
         </Pressable>

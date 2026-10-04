@@ -22,7 +22,7 @@ function Toolbar({ q, setQ, filter, setFilter, sort, setSort, counts, onBulk }) 
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
         {FILTERS.map(([k, l]) => (
           <button key={k} data-testid={`cc-filter-${k}`} onClick={() => setFilter(k)}
-            className={`h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap border transition-colors ${filter === k ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 hover:text-slate-900"}`}>
+            className={`h-8 px-3 rounded-md text-[13px] font-medium whitespace-nowrap border transition-colors ${filter === k ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 hover:text-slate-900"}`}>
             {l} <span className={`ml-1 tabular-nums text-[11.5px] ${filter === k ? "text-white/75" : "text-slate-400"}`}>{counts[k]}</span>
           </button>
         ))}

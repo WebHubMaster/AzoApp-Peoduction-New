@@ -104,8 +104,8 @@ export default function DispatchTimeline({ bookingId }) {
     <div className="flex items-center justify-between pt-2 text-[11px] text-slate-500" data-testid={testid}>
       <span>{label} {count} · page {cur}/{total}</span>
       <div className="inline-flex items-center gap-1">
-        <button type="button" data-testid={`${testid}-prev`} disabled={cur <= 1} onClick={() => onChange(cur - 1)} className="h-7 w-7 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
-        <button type="button" data-testid={`${testid}-next`} disabled={cur >= total} onClick={() => onChange(cur + 1)} className="h-7 w-7 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
+        <button type="button" data-testid={`${testid}-prev`} disabled={cur <= 1} onClick={() => onChange(cur - 1)} className="h-7 w-7 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40"><ChevronLeft className="h-3.5 w-3.5" /></button>
+        <button type="button" data-testid={`${testid}-next`} disabled={cur >= total} onClick={() => onChange(cur + 1)} className="h-7 w-7 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40"><ChevronRight className="h-3.5 w-3.5" /></button>
       </div>
     </div>
   );

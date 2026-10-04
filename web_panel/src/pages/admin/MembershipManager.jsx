@@ -47,7 +47,7 @@ function PlanPreviewCard({ plan, device = "desktop" }) {
           {(p.free_visits > 0) && <Benefit text={`${p.free_visits} free visiting charges`} />}
           {p.priority_support && <Benefit text="Priority customer support" />}
           {(p.benefits || []).filter(Boolean).map((b, i) => <Benefit key={i} text={b} />)}
-          <button className="w-full mt-3 h-10 rounded-xl text-white text-sm font-bold" style={{ background: p.color || BRAND }}>
+          <button className="w-full mt-3 h-10 rounded-md text-white text-sm font-bold" style={{ background: p.color || BRAND }}>
             Get {p.name || "Plan"}
           </button>
         </div>
@@ -192,7 +192,7 @@ export default function MembershipManager() {
 
             <div className="grid sm:grid-cols-3 gap-4">
               <Field label="Badge" hint="e.g. Most Popular"><PInput value={form.badge} onChange={(e) => set("badge", e.target.value)} /></Field>
-              <Field label="Accent colour"><input type="color" value={form.color} onChange={(e) => set("color", e.target.value)} className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-transparent cursor-pointer" /></Field>
+              <Field label="Accent colour"><input type="color" value={form.color} onChange={(e) => set("color", e.target.value)} className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-transparent cursor-pointer" /></Field>
               <Field label="Sort order"><PInput type="number" value={form.sort_order} onChange={(e) => set("sort_order", e.target.value)} /></Field>
             </div>
 
@@ -296,7 +296,7 @@ export default function MembershipManager() {
 
 const IconBtn = ({ children, title, danger, ...rest }) => (
   <button {...rest} title={title}
-    className={`h-8 w-8 grid place-items-center rounded-lg transition ${danger ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+    className={`h-8 w-8 grid place-items-center rounded-md transition ${danger ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
     {children}
   </button>
 );

@@ -15,7 +15,7 @@ export default function PosterControls({ config, setConfig, adminLogo }) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {TEMPLATES.map((t) => (
             <button key={t.id} data-testid={`tpl-${t.id}`} onClick={() => set({ template: t.id, primary: t.primary, preset: "template" })}
-              className={`relative rounded-xl border-2 p-2 text-left transition ${config.template === t.id ? "border-primary-600" : "border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}>
+              className={`relative rounded-md border-2 p-2 text-left transition ${config.template === t.id ? "border-primary-600" : "border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}>
               <div className="h-10 rounded-lg mb-1.5" style={{ background: t.variant === "gradient" ? `linear-gradient(135deg, ${t.primary}, ${t.primary2 || "#2563eb"})` : t.variant === "solid" ? t.primary : t.variant === "luxe" ? "linear-gradient(135deg,#1f2a44,#0B1220)" : t.variant === "cream" ? "linear-gradient(135deg,#FAF7F0,#EAD9A8)" : "#f1f5f9", border: t.variant.match(/light|minimal|soft|band|print|cream/) ? `1px solid ${t.primary}33` : "none" }} />
               <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">{t.label}</span>
               {config.template === t.id && <span className="absolute top-1 right-1 h-4 w-4 rounded-full bg-primary-600 text-white grid place-items-center"><Check className="h-2.5 w-2.5" /></span>}
@@ -30,7 +30,7 @@ export default function PosterControls({ config, setConfig, adminLogo }) {
         <div className="flex items-center gap-2 flex-wrap">
           {COLOR_PRESETS.map((c) => (
             <button key={c.id} data-testid={`color-${c.id}`} onClick={() => set({ preset: c.id, primary: c.primary })}
-              className={`h-9 w-9 rounded-xl border-2 transition ${config.primary === c.primary ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
+              className={`h-9 w-9 rounded-md border-2 transition ${config.primary === c.primary ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
               style={{ background: c.primary }} title={c.label} />
           ))}
           <label className="h-9 w-9 rounded-xl border-2 border-dashed border-slate-300 grid place-items-center cursor-pointer text-slate-400" title="Custom colour">

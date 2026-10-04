@@ -113,10 +113,10 @@ export default function SchedulePicker({ value, onChange }) {
       {/* Calendar */}
       <div className="flex items-center justify-between mb-3">
         <button type="button" data-testid="cal-prev" disabled={!canPrev} onClick={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))}
-          className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
+          className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
         <p className="font-heading font-bold text-slate-900">{MONTHS[view.getMonth()]} {view.getFullYear()}</p>
         <button type="button" data-testid="cal-next" disabled={!canNext} onClick={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))}
-          className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50"><ChevronRight className="h-4 w-4" /></button>
+          className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 disabled:opacity-30 hover:bg-slate-50"><ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">{DOW.map((d, i) => <div key={i} className="text-center text-[11px] font-bold text-slate-400 py-1">{d}</div>)}</div>
       <div className="grid grid-cols-7 gap-1">
@@ -129,7 +129,7 @@ export default function SchedulePicker({ value, onChange }) {
           return (
             <button key={i} type="button" disabled={past} data-testid={`cal-day-${iso(d)}`} onClick={() => pickDay(d)}
               title={isTodayCell && todayExhausted ? "No slots left for today" : undefined}
-              className={`h-9 rounded-lg text-sm font-medium transition-all relative ${isSel ? "bg-primary-700 text-white shadow-md shadow-primary-700/30" : past ? "text-slate-300 cursor-not-allowed" : "text-slate-700 hover:bg-primary-50"}`}>
+              className={`h-9 rounded-md text-sm font-medium transition-all relative ${isSel ? "bg-primary-700 text-white shadow-md shadow-primary-700/30" : past ? "text-slate-300 cursor-not-allowed" : "text-slate-700 hover:bg-primary-50"}`}>
               {d.getDate()}
               {isTodayCell && !isSel && <span className={`absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full ${todayExhausted ? "bg-slate-300" : "bg-primary-600"}`} />}
             </button>
@@ -168,7 +168,7 @@ export default function SchedulePicker({ value, onChange }) {
               const isFull = fullSlots.includes(t);
               return (
                 <button key={t} type="button" disabled={dis} data-testid={`slot-${t}`} onClick={() => pickTime(t)}
-                  className={`py-2 rounded-lg text-xs font-semibold border flex items-center justify-center gap-1 transition-all ${active ? "border-primary-700 bg-primary-700 text-white" : dis ? "border-slate-100 text-slate-300 cursor-not-allowed line-through" : "border-slate-200 text-slate-700 hover:border-primary-300"}`}>
+                  className={`py-2 rounded-md text-xs font-semibold border flex items-center justify-center gap-1 transition-all ${active ? "border-primary-700 bg-primary-700 text-white" : dis ? "border-slate-100 text-slate-300 cursor-not-allowed line-through" : "border-slate-200 text-slate-700 hover:border-primary-300"}`}>
                   {active && <Check className="h-3 w-3" />}{to12(t)}{isFull ? " ·Full" : ""}
                 </button>
               );

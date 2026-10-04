@@ -78,7 +78,7 @@ export default function PurchaseDrawer({ purchase, kitTitle, onClose, onUpdateSt
                   <p className="text-xs text-slate-500">{p.user_phone}</p>
                 </div>
               </div>
-              <button onClick={onClose} data-testid="sk-drawer-close" className="h-9 w-9 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center transition-colors"><X className="h-5 w-5" /></button>
+              <button onClick={onClose} data-testid="sk-drawer-close" className="h-9 w-9 rounded-md hover:bg-slate-100 text-slate-500 flex items-center justify-center transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">

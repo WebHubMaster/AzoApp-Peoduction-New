@@ -58,7 +58,7 @@ export default function ApplyAcrossDialog({ cities, fromCity, categoryId, catego
           {targets.length > 6 && (
             <div className="relative mb-2">
               <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search city…" className="h-9 w-full pl-8 pr-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px]" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search city…" className="h-9 w-full pl-8 pr-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px]" />
             </div>
           )}
           <div className="max-h-56 overflow-y-auto grid grid-cols-2 gap-1.5">

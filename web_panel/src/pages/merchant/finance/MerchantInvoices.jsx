@@ -186,12 +186,12 @@ export default function MerchantInvoices({ shopName = "My Shop", role = "merchan
       {!desktop && <div className="space-y-2.5">
         <div className="flex items-center gap-2">
           <SearchBox value={searchRaw} onChange={setSearchRaw} searching={searching} className="flex-1" autoFocus={mobileSearch} />
-          <button onClick={() => setShowFilters(true)} aria-label="Filters" data-testid="invoice-filters-btn-m" className="relative h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition">
+          <button onClick={() => setShowFilters(true)} aria-label="Filters" data-testid="invoice-filters-btn-m" className="relative h-11 w-11 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition">
             <SlidersHorizontal className="h-[18px] w-[18px]" />
             {nFilters > 0 && <span className="absolute -top-1 -right-1 h-5 min-w-5 px-1 rounded-full bg-[#0D47A1] text-white text-[10px] font-bold grid place-items-center ring-2 ring-white dark:ring-slate-950">{nFilters}</span>}
           </button>
           <SortMenu sort={sort} onChange={setSort} compact />
-          <button onClick={() => load(true)} aria-label="Refresh" data-testid="invoice-refresh-m" className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition"><RefreshCw className={`h-[18px] w-[18px] ${loading ? "animate-spin" : ""}`} /></button>
+          <button onClick={() => load(true)} aria-label="Refresh" data-testid="invoice-refresh-m" className="h-11 w-11 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition"><RefreshCw className={`h-[18px] w-[18px] ${loading ? "animate-spin" : ""}`} /></button>
         </div>
       </div>}
 
@@ -260,7 +260,7 @@ function SortMenu({ sort, onChange, compact }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         {compact
-          ? <button aria-label="Sort" data-testid="invoice-sort-btn-m" className="h-11 w-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition"><ArrowUpDown className="h-[18px] w-[18px]" /></button>
+          ? <button aria-label="Sort" data-testid="invoice-sort-btn-m" className="h-11 w-11 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 grid place-items-center text-slate-600 dark:text-slate-300 active:scale-95 transition"><ArrowUpDown className="h-[18px] w-[18px]" /></button>
           : <Button variant="outline" className="h-11 rounded-xl border-slate-200 dark:border-slate-700" data-testid="invoice-sort-btn"><ArrowUpDown className="h-4 w-4 mr-1.5" /> <span className="max-w-[130px] truncate">{label}</span></Button>}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 rounded-xl">

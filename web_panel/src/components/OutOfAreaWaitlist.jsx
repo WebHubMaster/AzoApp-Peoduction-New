@@ -91,7 +91,7 @@ export default function OutOfAreaWaitlist({ city = "", pincode = "", servicedCit
           value={pin}
           onChange={(e) => setPin(e.target.value.replace(/[^a-zA-Z0-9\s]/g, "").toUpperCase().slice(0, 10))}
           placeholder="Your pincode (e.g. 834001)"
-          className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+          className="w-full h-11 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
         />
         <input
           data-testid="waitlist-phone"
@@ -99,7 +99,7 @@ export default function OutOfAreaWaitlist({ city = "", pincode = "", servicedCit
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="Mobile (optional — for launch alert)"
-          className="w-full h-11 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
+          className="w-full h-11 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
         />
         {err && <p className="text-xs text-red-600" data-testid="waitlist-error">{err}</p>}
         <Button data-testid="waitlist-submit" onClick={submit} disabled={status === "sending"} className="w-full h-11 bg-primary-700 hover:bg-primary-800">

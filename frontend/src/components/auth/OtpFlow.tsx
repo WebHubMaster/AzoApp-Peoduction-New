@@ -25,7 +25,7 @@ function GradButton({ title, icon, busy, onPress, grad, testID, disabled }: { ti
   const off = busy || disabled;
   return (
     <Pressable testID={testID} onPress={onPress} disabled={off} style={({ pressed }) => ({ transform: [{ scale: pressed && !off ? 0.98 : 1 }] })}>
-      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 10, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: off ? 0.5 : 1 }}>
+      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 6, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: off ? 0.5 : 1 }}>
         {busy ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: FS.label, fontWeight: "800" }}>{title}</Text><Icon name={icon} size={22} color="#fff" /></>}
       </LinearGradient>
     </Pressable>
@@ -115,7 +115,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   };
 
   const ac = accent;
-  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: FS.input, color: AUTH.ink } as const;
+  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: FS.input, color: AUTH.ink } as const;
 
   if (step === "phone") {
     return (
@@ -125,7 +125,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
             <Icon name="cellphone" size={22} color={AUTH.ink} />
             <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Mobile Number</Text>
           </View>
-          <View testID="country-code-pill" style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: AUTH.line, backgroundColor: "#fff" }}>
+          <View testID="country-code-pill" style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: AUTH.line, backgroundColor: "#fff" }}>
             <View style={{ width: 22, height: 15, borderRadius: 2, overflow: "hidden" }}><View style={{ flex: 1, backgroundColor: "#FF9933" }} /><View style={{ flex: 1, backgroundColor: "#fff" }} /><View style={{ flex: 1, backgroundColor: "#138808" }} /></View>
             <Text style={{ color: AUTH.ink, fontSize: FS.subtitle, fontWeight: "700" }}>+91</Text>
             <Icon name="chevron-down" size={18} color={AUTH.muted} />
@@ -155,7 +155,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
             {Array.from({ length: 6 }).map((_, i) => {
               const active = i === Math.min(otp.length, 5); const filled = i < otp.length;
               return (
-                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, height: 56, borderRadius: 10, borderWidth: 1.5, borderColor: active ? ac.main : filled ? "#CBD5E1" : AUTH.line, backgroundColor: active ? ac.soft : "#F8FAFC", alignItems: "center", justifyContent: "center" }}>
+                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, height: 56, borderRadius: 6, borderWidth: 1.5, borderColor: active ? ac.main : filled ? "#CBD5E1" : AUTH.line, backgroundColor: active ? ac.soft : "#F8FAFC", alignItems: "center", justifyContent: "center" }}>
                   <Text style={{ fontSize: 22, fontWeight: "800", color: AUTH.ink }}>{otp[i] || ""}</Text>
                 </View>
               );

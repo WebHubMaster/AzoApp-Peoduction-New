@@ -105,7 +105,7 @@ export default function PermissionCenter() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: spacing.lg, paddingBottom: 12, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-        <Pressable testID="perm-back" onPress={() => router.back()} hitSlop={10} style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}>
+        <Pressable testID="perm-back" onPress={() => router.back()} hitSlop={10} style={{ width: 38, height: 38, borderRadius: 6, backgroundColor: colors.background, alignItems: "center", justifyContent: "center" }}>
           <Icon name="arrow-left" size={22} color={colors.text} />
         </Pressable>
         <View style={{ flex: 1 }}>
@@ -193,7 +193,7 @@ export default function PermissionCenter() {
           </View>
           <Text style={{ color: colors.textMuted, fontSize: 11.5, lineHeight: 17 }}>Send a real test to this phone. For the ring test, lock your screen or minimise the app first, then tap — it should ring like a call.</Text>
           <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable testID="test-ring-btn" onPress={() => sendTest("ring")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+            <Pressable testID="test-ring-btn" onPress={() => sendTest("ring")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
               {testing === "ring" ? <ActivityIndicator size="small" color="#fff" /> : <><Icon name="phone-ring" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: fontSize.xs }}>Test Job Ring</Text></>}
             </Pressable>
             <Pressable testID="test-push-btn" onPress={() => sendTest("push")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>

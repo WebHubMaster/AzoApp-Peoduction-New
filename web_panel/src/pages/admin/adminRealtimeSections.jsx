@@ -191,10 +191,10 @@ function Pager({ page, totalPages, total, size, onPrev, onNext, testid }) {
       <span className="text-slate-500 dark:text-slate-400">Showing <b className="text-slate-700 dark:text-slate-200">{from}–{to}</b> of {total}</span>
       <div className="flex items-center gap-2">
         <button data-testid={`${testid}-prev`} disabled={page <= 1} onClick={onPrev}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700"><ChevronLeft className="h-4 w-4" /></button>
+          className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-600 text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700"><ChevronLeft className="h-4 w-4" /></button>
         <span className="text-slate-600 dark:text-slate-300 font-medium">Page {page} / {totalPages}</span>
         <button data-testid={`${testid}-next`} disabled={page >= totalPages} onClick={onNext}
-          className="h-8 w-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-600 text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700"><ChevronRight className="h-4 w-4" /></button>
+          className="h-8 w-8 flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-600 text-slate-500 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-700"><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -611,7 +611,7 @@ function NoPartnerAlerts() {
                   </div>
                 </div>
                 <button data-testid={`assign-${b.code}`} onClick={() => setAssignBk({ id: b.id, code: b.code, service_name: b.service_name })}
-                  className="h-10 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors shrink-0">
+                  className="h-10 px-5 rounded-md bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors shrink-0">
                   <UserPlus className="h-4 w-4" /> Assign a Partner <ChevronDown className="h-3.5 w-3.5" />
                 </button>
               </motion.div>
@@ -814,7 +814,7 @@ export function AdminDispatchFeed() {
           </span>
           <span className="hidden sm:inline text-[12px] text-[#94A3B8]" data-testid="dispatch-updated">Updated {timeAgo(new Date(lastSync).toISOString())}</span>
           <button onClick={doRefresh} disabled={refreshing} title="Refresh dispatch feed" data-testid="dispatch-refresh"
-            className="h-9 w-9 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30">
+            className="h-9 w-9 rounded-md border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30">
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
           </button>
         </div>
@@ -850,7 +850,7 @@ export function AdminDispatchFeed() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
               <input data-testid="dispatch-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search booking, partner or service…"
-                className="h-10 w-full sm:w-64 pl-9 pr-3 rounded-xl border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#0B1220] text-[13.5px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
+                className="h-10 w-full sm:w-64 pl-9 pr-3 rounded-md border border-[#E5EAF0] dark:border-[#1F2937] bg-white dark:bg-[#0B1220] text-[13.5px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
             </div>
             <Select value={tab || "all"} onValueChange={(v) => setTab(v === "all" ? "" : v)}>
               <SelectTrigger data-testid="dispatch-status-filter" className="h-10 w-36 rounded-xl"><SelectValue placeholder="All status" /></SelectTrigger>
@@ -858,7 +858,7 @@ export function AdminDispatchFeed() {
                 {["all", "pending", "accepted", "rejected"].map((s) => <SelectItem key={s} value={s} className="capitalize">{s === "all" ? "All status" : s}</SelectItem>)}
               </SelectContent>
             </Select>
-            <button onClick={doRefresh} title="Refresh" className="h-10 w-10 rounded-xl border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
+            <button onClick={doRefresh} title="Refresh" className="h-10 w-10 rounded-md border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
@@ -943,16 +943,16 @@ export function AdminDispatchFeed() {
             {pageCount > 1 && (
               <div className="flex items-center gap-1">
                 <button data-testid="dispatch-prev" disabled={cur <= 1} onClick={() => setPage(cur - 1)}
-                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" /> Prev</button>
+                  className="h-9 min-w-[44px] px-3 rounded-md border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" /> Prev</button>
                 {Array.from({ length: pageCount }, (_, i) => i + 1).filter((n) => n === 1 || n === pageCount || Math.abs(n - cur) <= 1).map((n, i, arr) => (
                   <React.Fragment key={n}>
                     {i > 0 && arr[i - 1] !== n - 1 && <span className="px-1 text-[#94A3B8]">…</span>}
                     <button data-testid={`dispatch-page-${n}`} onClick={() => setPage(n)}
-                      className={`h-9 w-9 rounded-lg text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937]"}`}>{n}</button>
+                      className={`h-9 w-9 rounded-md text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E5EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937]"}`}>{n}</button>
                   </React.Fragment>
                 ))}
                 <button data-testid="dispatch-next" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)}
-                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1">Next <ChevronRight className="h-4 w-4" /></button>
+                  className="h-9 min-w-[44px] px-3 rounded-md border border-[#E5EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F5F7FB] dark:hover:bg-[#1F2937] inline-flex items-center gap-1">Next <ChevronRight className="h-4 w-4" /></button>
               </div>
             )}
           </div>

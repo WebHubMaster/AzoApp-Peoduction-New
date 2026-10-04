@@ -117,11 +117,11 @@ export default function DispatchInspector({ bookingId, booking, onClose, onAssig
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <button onClick={load} title="Refresh" data-testid="inspector-refresh"
-                  className="h-8 w-8 rounded-lg hover:bg-white/15 flex items-center justify-center transition-colors">
+                  className="h-8 w-8 rounded-md hover:bg-white/15 flex items-center justify-center transition-colors">
                   <RefreshCw className="h-4 w-4" />
                 </button>
                 <button onClick={onClose} title="Close" data-testid="inspector-close"
-                  className="h-8 w-8 rounded-lg hover:bg-white/15 flex items-center justify-center transition-colors">
+                  className="h-8 w-8 rounded-md hover:bg-white/15 flex items-center justify-center transition-colors">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -232,7 +232,7 @@ export default function DispatchInspector({ bookingId, booking, onClose, onAssig
             {onAssign && (
               <div className="shrink-0 border-t border-[#E6EAF0] bg-white px-5 py-4">
                 <button onClick={() => onAssign(booking)} data-testid="inspector-assign"
-                  className="w-full h-11 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-colors">
+                  className="w-full h-11 rounded-md bg-[#0D47A1] hover:bg-[#083A87] text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-colors">
                   <UserPlus className="h-5 w-5" /> Assign Partner <ChevronRight className="h-4 w-4" />
                 </button>
               </div>

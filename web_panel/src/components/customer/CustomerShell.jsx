@@ -42,7 +42,7 @@ function NotificationBell({ testId = "notif-btn" }) {
   return (
     <Popover open={open} onOpenChange={(v) => { setOpen(v); if (v) load(); }}>
       <PopoverTrigger asChild>
-        <button data-testid={testId} aria-label="Notifications" className="relative h-10 w-10 grid place-items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 azo-press">
+        <button data-testid={testId} aria-label="Notifications" className="relative h-10 w-10 grid place-items-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 azo-press">
           <Bell className="h-5 w-5" />
           {unread > 0 && <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold grid place-items-center azo-pop">{unread > 9 ? "9+" : unread}</span>}
         </button>
@@ -79,7 +79,7 @@ function ThemeToggle() {
   const { isDark, toggle } = useTheme();
   return (
     <button data-testid="theme-toggle" onClick={toggle} aria-label="Toggle dark mode"
-      className="h-10 w-10 grid place-items-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 azo-press">
+      className="h-10 w-10 grid place-items-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 azo-press">
       {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
@@ -90,7 +90,7 @@ function AvatarMenu({ user, onNavigate }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button data-testid="avatar-menu" className="flex items-center gap-2 pl-1 pr-2 h-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 azo-press">
+        <button data-testid="avatar-menu" className="flex items-center gap-2 pl-1 pr-2 h-10 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 azo-press">
           <Avatar user={user} />
           <div className="hidden lg:block text-left leading-tight">
             <p className="text-sm font-bold text-slate-800 dark:text-white max-w-[120px] truncate">{user?.name || "Customer"}</p>
@@ -162,7 +162,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input data-testid="menu-search" value={menuQ} onChange={(e) => setMenuQ(e.target.value)} placeholder="Search menu…"
-                className="w-full h-9 pl-9 pr-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
+                className="w-full h-9 pl-9 pr-3 rounded-md bg-slate-100 dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
             </div>
           </div>
         )}
@@ -173,7 +173,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
             const badge = badges[n.key];
             return (
               <button key={n.key} data-testid={`nav-${n.key}`} onClick={() => go(n.key)} title={collapsed ? n.label : undefined}
-                className={`group relative w-full flex items-center gap-3 h-11 rounded-xl px-3 text-sm font-semibold azo-press transition-colors ${on ? "bg-primary-700 text-white shadow-primarybtn" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"} ${collapsed ? "justify-center" : ""}`}>
+                className={`group relative w-full flex items-center gap-3 h-11 rounded-md px-3 text-sm font-semibold azo-press transition-colors ${on ? "bg-primary-700 text-white shadow-primarybtn" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"} ${collapsed ? "justify-center" : ""}`}>
                 <n.icon className={`h-[18px] w-[18px] shrink-0 ${on ? "text-white" : "text-slate-400 group-hover:text-primary-600"}`} />
                 {!collapsed && <span className="truncate">{n.label}</span>}
                 {badge > 0 && (
@@ -188,11 +188,11 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
 
         <div className="border-t border-slate-100 dark:border-slate-800 p-2.5 space-y-1">
           <button data-testid="sidebar-collapse" onClick={() => setCollapsed((c) => !c)}
-            className={`w-full flex items-center gap-3 h-10 rounded-xl px-3 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 azo-press ${collapsed ? "justify-center" : ""}`}>
+            className={`w-full flex items-center gap-3 h-10 rounded-md px-3 text-sm font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 azo-press ${collapsed ? "justify-center" : ""}`}>
             {collapsed ? <ChevronRight className="h-[18px] w-[18px]" /> : <><ChevronLeft className="h-[18px] w-[18px]" /> Collapse</>}
           </button>
           <button data-testid="logout-btn" onClick={logout}
-            className={`w-full flex items-center gap-3 h-10 rounded-xl px-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 azo-press ${collapsed ? "justify-center" : ""}`}>
+            className={`w-full flex items-center gap-3 h-10 rounded-md px-3 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 azo-press ${collapsed ? "justify-center" : ""}`}>
             <LogOut className="h-[18px] w-[18px]" />{!collapsed && "Logout"}
           </button>
         </div>
@@ -307,7 +307,7 @@ function GlobalSearch({ nav, onNavigate }) {
         onFocus={() => setOpen(true)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         placeholder="Search bookings, invoices, services…"
-        className="w-full h-10 pl-9 pr-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
+        className="w-full h-10 pl-9 pr-3 rounded-md bg-slate-100 dark:bg-slate-800 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40"
       />
       {open && results.length > 0 && (
         <div className="absolute top-12 left-0 right-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl overflow-hidden azo-scale-in z-50">

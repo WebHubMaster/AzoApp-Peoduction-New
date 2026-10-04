@@ -245,7 +245,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
       ) : null}
       {!value && !uploading ? (
         <Pressable testID="live-photo-start" disabled={!editable} onPress={run}
-          style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 12, backgroundColor: pressed ? P[700] : P[600], opacity: editable ? 1 : 0.6 })}>
+          style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 6, backgroundColor: pressed ? P[700] : P[600], opacity: editable ? 1 : 0.6 })}>
           <Camera size={20} color="#fff" /><Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>Open camera</Text>
         </Pressable>
       ) : null}
@@ -313,7 +313,7 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
       ) : null}
       {!value && !busy ? (
         <Pressable testID="gps-photo-start" disabled={!editable} onPress={run}
-          style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 12, backgroundColor: pressed ? TW.amber700 : TW.amber600, opacity: editable ? 1 : 0.6 })}>
+          style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 16, borderRadius: 6, backgroundColor: pressed ? TW.amber700 : TW.amber600, opacity: editable ? 1 : 0.6 })}>
           <Camera size={20} color="#fff" /><Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>Open GPS Camera</Text>
         </Pressable>
       ) : null}

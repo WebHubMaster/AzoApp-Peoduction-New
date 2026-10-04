@@ -157,7 +157,7 @@ export const ErrorState = ({ error, onRetry }) => (
     <div className="h-12 w-12 rounded-2xl bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center mb-3"><AlertTriangle className="h-5 w-5 text-rose-500" /></div>
     <p className="font-semibold text-slate-700 dark:text-slate-200">Unable to load</p>
     <p className="text-sm text-slate-400 mt-1">{String(error)}</p>
-    {onRetry && <button onClick={onRetry} data-testid="retry-btn" className="mt-4 inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700"><RefreshCw className="h-4 w-4" />Retry</button>}
+    {onRetry && <button onClick={onRetry} data-testid="retry-btn" className="mt-4 inline-flex items-center gap-2 h-9 px-4 rounded-md bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700"><RefreshCw className="h-4 w-4" />Retry</button>}
   </div>
 );
 
@@ -179,10 +179,10 @@ export const Pager = ({ page = 1, pages = 1, total = 0, pageSize = 25, onPage, o
         {onPageSize && <PremiumSelect data-testid="page-size" value={pageSize} onChange={(e) => onPageSize(Number(e.target.value))} searchable={false} className="!w-[104px] !h-8 rounded-lg text-xs">{sizes.map((s) => <option key={s} value={s}>{s} / page</option>)}</PremiumSelect>}
       </div>
       <div className="flex items-center gap-1">
-        <button data-testid="pager-prev" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 rounded-lg ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
+        <button data-testid="pager-prev" disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 rounded-md ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
         {nums.map((n, i) => n === "…" ? <span key={`e${i}`} className="px-1 text-slate-400">…</span> :
-          <button key={n} data-testid={`pager-${n}`} onClick={() => onPage(n)} className={`h-9 min-w-[36px] px-2 rounded-lg text-sm font-semibold ${n === page ? "bg-primary-600 text-white shadow" : "ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"}`}>{n}</button>)}
-        <button data-testid="pager-next" disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 rounded-lg ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
+          <button key={n} data-testid={`pager-${n}`} onClick={() => onPage(n)} className={`h-9 min-w-[36px] px-2 rounded-md text-sm font-semibold ${n === page ? "bg-primary-600 text-white shadow" : "ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"}`}>{n}</button>)}
+        <button data-testid="pager-next" disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 rounded-md ring-1 ring-slate-200 dark:ring-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -195,7 +195,7 @@ export const Tabs = ({ tabs, value, onChange, counts = {}, dots = {} }) => (
       const on = value === t.key;
       return (
         <button key={t.key} role="tab" data-testid={`tab-${t.key}`} onClick={() => onChange(t.key)}
-          className={`relative shrink-0 snap-start inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${on ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"}`}>
+          className={`relative shrink-0 snap-start inline-flex items-center gap-1.5 h-10 px-3.5 rounded-md text-sm font-semibold whitespace-nowrap transition-all ${on ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"}`}>
           {t.icon && <t.icon className="h-4 w-4" />}{t.label}
           {counts[t.key] != null && <span className={`ml-0.5 px-1.5 rounded-full text-[10px] ${on ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"}`}>{counts[t.key]}</span>}
           {dots[t.key] && <RedDot className="ml-0.5" />}
@@ -217,7 +217,7 @@ export const Drawer = ({ open, onClose, title, subtitle, children, footer, width
         {mobile && <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />}
         <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <div className="min-w-0"><h3 className="font-bold text-slate-900 dark:text-white truncate">{title}</h3>{subtitle && <p className="text-xs text-slate-400 mt-0.5 truncate">{subtitle}</p>}</div>
-          <button onClick={onClose} data-testid={`${testId}-close`} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} data-testid={`${testId}-close`} className="h-9 w-9 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><X className="h-4 w-4" /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
         {footer && <div className="px-5 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 pb-[max(12px,env(safe-area-inset-bottom))]">{footer}</div>}
@@ -291,13 +291,13 @@ export const SearchBox = ({ value, onChange, placeholder, testId = "search" }) =
   <div className="relative flex-1 min-w-[200px]">
     <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
     <input data-testid={testId} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-      className="h-10 w-full pl-9 pr-9 rounded-xl bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 placeholder:text-slate-400" />
+      className="h-10 w-full pl-9 pr-9 rounded-md bg-white dark:bg-slate-900 ring-1 ring-slate-200 dark:ring-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300 placeholder:text-slate-400" />
     {value && <button onClick={() => onChange("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
   </div>
 );
 export const Btn = ({ children, variant = "ghost", className = "", ...r }) => {
   const v = { ghost: "ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800", primary: "bg-primary-600 text-white hover:bg-primary-700 shadow-sm shadow-primary-600/30", danger: "bg-rose-600 text-white hover:bg-rose-700", soft: "bg-primary-50 text-primary-700 hover:bg-primary-100 dark:bg-primary-900/30 dark:text-primary-200" }[variant];
-  return <button className={`inline-flex items-center justify-center gap-2 h-10 px-3.5 rounded-xl text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${v} ${className}`} {...r}>{children}</button>;
+  return <button className={`inline-flex items-center justify-center gap-2 h-10 px-3.5 rounded-md text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${v} ${className}`} {...r}>{children}</button>;
 };
 export const Chip = ({ children, onRemove }) => (
   <span className="inline-flex items-center gap-1 h-7 pl-2.5 pr-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-200 text-xs font-semibold ring-1 ring-primary-100 dark:ring-primary-800">{children}{onRemove && <button onClick={onRemove} className="h-4 w-4 rounded-full hover:bg-primary-200/60 flex items-center justify-center"><X className="h-3 w-3" /></button>}</span>

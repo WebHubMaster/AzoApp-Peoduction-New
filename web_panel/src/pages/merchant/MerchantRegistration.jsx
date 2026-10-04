@@ -67,7 +67,7 @@ function Combo({ value, display, onSelect, options, labelKey = "name", placehold
     <div className="relative" ref={boxRef}>
       <button type="button" data-testid={testid} disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
-        className={`w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-3 text-left text-sm transition
+        className={`w-full flex items-center justify-between gap-2 rounded-md border px-3.5 py-3 text-left text-sm transition
           ${disabled ? "bg-slate-100 dark:bg-slate-800/60 text-slate-400 border-slate-200 dark:border-slate-700 cursor-not-allowed"
             : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-primary-400 text-slate-800 dark:text-slate-100"}`}>
         <span className={display ? "" : "text-slate-400"}>{display || placeholder}</span>
@@ -529,7 +529,7 @@ function UseCurrentLocation({ addr, setAddr, editable }) {
   return (
     <div className="space-y-3">
       <button type="button" disabled={!editable || locating} onClick={useCurrent} data-testid="use-current-location"
-        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-primary-700 text-white font-semibold hover:bg-primary-800 disabled:opacity-60">
+        className="w-full flex items-center justify-center gap-2 py-3.5 rounded-md bg-primary-700 text-white font-semibold hover:bg-primary-800 disabled:opacity-60">
         {locating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Navigation className="h-5 w-5" />}
         {locating ? "Detecting location…" : "📍 Use Current Location"}
       </button>

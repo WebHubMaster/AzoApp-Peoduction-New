@@ -249,7 +249,7 @@ export function DateRangePicker({ value, onChange, testId = "date-range" }) {
       type="button"
       data-testid={`${testId}-trigger`}
       onClick={() => setOpen(true)}
-      className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press"
+      className="inline-flex items-center gap-2 h-10 px-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press"
     >
       <CalIcon className="h-4 w-4 text-primary-600" />
       <span className="truncate max-w-[140px]">{rangeLabel(value)}</span>
@@ -264,7 +264,7 @@ export function DateRangePicker({ value, onChange, testId = "date-range" }) {
             key={p}
             data-testid={`preset-${p.replace(/\s+/g, "-").toLowerCase()}`}
             onClick={() => applyPreset(p)}
-            className={`whitespace-nowrap text-left text-sm px-3 py-2 rounded-lg transition-colors ${value?.preset === p ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+            className={`whitespace-nowrap text-left text-sm px-3 py-2 rounded-md transition-colors ${value?.preset === p ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             {p}
           </button>
@@ -311,7 +311,7 @@ export function SortMenu({ value, options, onChange, testId = "sort" }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button type="button" data-testid={`${testId}-trigger`} className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press">
+        <button type="button" data-testid={`${testId}-trigger`} className="inline-flex items-center gap-2 h-10 px-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press">
           <ArrowUpDown className="h-4 w-4 text-primary-600" />
           <span className="truncate max-w-[120px]">{cur?.label || "Sort"}</span>
         </button>
@@ -319,7 +319,7 @@ export function SortMenu({ value, options, onChange, testId = "sort" }) {
       <PopoverContent align="end" className="w-52 p-1.5 azo-scale-in">
         {options.map((o) => (
           <button key={o.value} data-testid={`${testId}-${o.value}`} onClick={() => { onChange(o.value); setOpen(false); }}
-            className={`w-full flex items-center justify-between text-left text-sm px-3 py-2 rounded-lg ${value === o.value ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+            className={`w-full flex items-center justify-between text-left text-sm px-3 py-2 rounded-md ${value === o.value ? "bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-semibold" : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
             {o.label}{value === o.value && <Check className="h-4 w-4" />}
           </button>
         ))}
@@ -332,7 +332,7 @@ export function SortMenu({ value, options, onChange, testId = "sort" }) {
 export function FilterButton({ activeCount = 0, onClick, testId = "filters-btn" }) {
   return (
     <button type="button" data-testid={testId} onClick={onClick}
-      className="inline-flex items-center gap-2 h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press">
+      className="inline-flex items-center gap-2 h-10 px-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-400 azo-press">
       <SlidersHorizontal className="h-4 w-4 text-primary-600" />
       Filters{activeCount > 0 && <span className="ml-0.5 grid place-items-center h-5 min-w-[20px] px-1 rounded-full bg-primary-700 text-white text-[10px] font-bold">{activeCount}</span>}
     </button>
@@ -367,9 +367,9 @@ export function Paginator({ page, pageSize, total, onPage, onPageSize, sizes = [
       <div className="flex items-center justify-between mt-4" data-testid={`${testId}-mobile`}>
         <span className="text-xs text-slate-500">{from}–{to} of {total}</span>
         <div className="flex items-center gap-1">
-          <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronLeft className="h-4 w-4" /></button>
+          <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronLeft className="h-4 w-4" /></button>
           <span className="text-sm font-semibold px-2">{page} / {pages}</span>
-          <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronRight className="h-4 w-4" /></button>
+          <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronRight className="h-4 w-4" /></button>
         </div>
       </div>
     );
@@ -395,13 +395,13 @@ export function Paginator({ page, pageSize, total, onPage, onPageSize, sizes = [
         )}
       </div>
       <div className="flex items-center gap-1">
-        <button disabled={page <= 1} onClick={() => onPage(1)} className="h-9 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm disabled:opacity-40 azo-press">First</button>
-        <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronLeft className="h-4 w-4" /></button>
+        <button disabled={page <= 1} onClick={() => onPage(1)} className="h-9 px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-sm disabled:opacity-40 azo-press">First</button>
+        <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronLeft className="h-4 w-4" /></button>
         {withGaps.map((n, i) => n === "…"
           ? <span key={`g${i}`} className="px-2 text-slate-400">…</span>
-          : <button key={n} onClick={() => onPage(n)} className={`h-9 min-w-9 px-2 rounded-lg text-sm font-medium azo-press ${n === page ? "bg-primary-700 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>{n}</button>)}
-        <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronRight className="h-4 w-4" /></button>
-        <button disabled={page >= pages} onClick={() => onPage(pages)} className="h-9 px-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm disabled:opacity-40 azo-press">Last</button>
+          : <button key={n} onClick={() => onPage(n)} className={`h-9 min-w-9 px-2 rounded-md text-sm font-medium azo-press ${n === page ? "bg-primary-700 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>{n}</button>)}
+        <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 azo-press"><ChevronRight className="h-4 w-4" /></button>
+        <button disabled={page >= pages} onClick={() => onPage(pages)} className="h-9 px-2.5 rounded-md border border-slate-200 dark:border-slate-700 text-sm disabled:opacity-40 azo-press">Last</button>
       </div>
     </div>
   );

@@ -51,7 +51,7 @@ export default function ServicePrices({ data, edit, setPrices, setRatecards, onG
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search service, add-on or category…" className="pl-9 h-10 text-[14px]" data-testid="pm-search" />
         </div>
         <select value={cat} onChange={(e) => { setCat(e.target.value); if (e.target.value !== "all") setSelectedCat(e.target.value); }} data-testid="pm-cat-filter"
-          className="h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px]">
+          className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px]">
           <option value="all">All Categories</option>
           {data.all_categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>

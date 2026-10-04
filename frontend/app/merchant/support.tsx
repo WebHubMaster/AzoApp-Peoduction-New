@@ -41,7 +41,7 @@ const Label = ({ children }: { children: string }) => <Text style={{ fontSize: 1
 const Section = ({ children }: { children: string }) => <Text style={{ fontSize: 11, lineHeight: 14, textTransform: "uppercase", letterSpacing: 0.55, color: SLATE[400], fontWeight: "700", marginBottom: 8 }}>{children}</Text>;
 const IconBtn = ({ icon, onPress, testID, disabled }: { icon: React.ReactNode; onPress: () => void; testID?: string; disabled?: boolean }) => {
   const { dark } = useFin();
-  return <Pressable testID={testID} onPress={onPress} disabled={disabled} hitSlop={4} style={({ pressed }) => ({ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? (dark ? SLATE[800] : SLATE[100]) : "transparent" })}>{icon}</Pressable>;
+  return <Pressable testID={testID} onPress={onPress} disabled={disabled} hitSlop={4} style={({ pressed }) => ({ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? (dark ? SLATE[800] : SLATE[100]) : "transparent" })}>{icon}</Pressable>;
 };
 function Avatar({ size, icon }: { size: number; icon: number }) {
   const { P } = useFin();
@@ -233,13 +233,13 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
                   <View key={i} style={{ position: "relative" }}>
                     {a.kind === "pdf" ? <View style={{ height: 64, width: 64, borderRadius: 8, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", backgroundColor: SLATE[50] }}><FileText size={24} color="#ef4444" /></View>
                       : <Image source={{ uri: mediaUrl(a.thumb_url || a.url) }} style={{ height: 64, width: 64, borderRadius: 8, borderWidth: 1, borderColor: border }} contentFit="cover" />}
-                    <Pressable testID={`support-pending-remove-${i}`} onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, height: 20, width: 20, borderRadius: 10, backgroundColor: SLATE[800], alignItems: "center", justifyContent: "center" }}><X size={12} color="#fff" /></Pressable>
+                    <Pressable testID={`support-pending-remove-${i}`} onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, height: 20, width: 20, borderRadius: 6, backgroundColor: SLATE[800], alignItems: "center", justifyContent: "center" }}><X size={12} color="#fff" /></Pressable>
                   </View>
                 ))}
               </View>
             ) : null}
             <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], padding: 8 }}>
-              <Pressable testID="support-attach-btn" onPress={() => setPick(true)} disabled={uploading} style={({ pressed }) => ({ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? (dark ? SLATE[800] : SLATE[100]) : "transparent" })}>
+              <Pressable testID="support-attach-btn" onPress={() => setPick(true)} disabled={uploading} style={({ pressed }) => ({ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? (dark ? SLATE[800] : SLATE[100]) : "transparent" })}>
                 {uploading ? <ActivityIndicator size="small" color={SLATE[500]} /> : <Paperclip size={16} color={SLATE[500]} />}
               </Pressable>
               <TextInput testID="support-reply-input" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={SLATE[400]} multiline

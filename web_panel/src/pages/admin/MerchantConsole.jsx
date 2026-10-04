@@ -181,7 +181,7 @@ export default function MerchantConsole({ userId, onBack }) {
             <div className="space-y-2">
               <textarea data-testid="mc-kyc-reason" value={kycReason} onChange={(e) => setKycReason(e.target.value)} rows={2}
                 placeholder="Reason for rejection (shown to the merchant in their panel)…"
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
+                className="w-full rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
               <div className="flex gap-2">
                 <Button data-testid="mc-kyc-reject-confirm" onClick={doKycReject} disabled={kycBusy} className="flex-1 bg-red-600 hover:bg-red-700">
                   {kycBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Rejection"}

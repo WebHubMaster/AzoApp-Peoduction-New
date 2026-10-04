@@ -179,18 +179,18 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
                 </View>
                 {canComplete(d) ? (
                   <Pressable testID={`sub-complete-${d.date}`} disabled={complete.isPending} onPress={() => { setCompleteFor(d.date); setPhoto(null); setNote(""); }}
-                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 6, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Complete</Text>
                   </Pressable>
                 ) : canStart(d) ? (
                   <Pressable testID={`sub-arrive-${d.date}`} disabled={arriving === d.date || arrive.isPending} onPress={() => onArrive(d.date)}
-                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 5, opacity: arriving === d.date ? 0.6 : 1 }}>
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 5, opacity: arriving === d.date ? 0.6 : 1 }}>
                     <Icon name="map-pin" size={13} color="#fff" />
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{arriving === d.date ? "Locating…" : "I Have Arrived"}</Text>
                   </Pressable>
                 ) : canMarkPast(d) ? (
                   <Pressable testID={`sub-markdone-${d.date}`} disabled={complete.isPending} onPress={() => complete.mutate({ date: d.date, note: "", photo: null })}
-                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+                    style={{ height: 34, paddingHorizontal: 12, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Mark done</Text>
                   </Pressable>
                 ) : (
@@ -219,13 +219,13 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
               <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>{photo ? "Change photo" : "Add photo proof"}</Text>
             </Pressable>
             <TextInput testID="sub-complete-note" value={note} onChangeText={setNote} placeholder="Note (optional)" placeholderTextColor={SLATE}
-              style={{ marginTop: 10, height: 42, borderWidth: 1, borderColor: colors.surfaceSubtle, borderRadius: 12, paddingHorizontal: 12, color: colors.text }} />
+              style={{ marginTop: 10, height: 42, borderWidth: 1, borderColor: colors.surfaceSubtle, borderRadius: 6, paddingHorizontal: 12, color: colors.text }} />
             <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
               <Pressable testID="sub-complete-cancel" onPress={() => setCompleteFor(null)} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: SLATE, fontWeight: "700" }}>Cancel</Text>
               </Pressable>
               <Pressable testID="sub-complete-confirm" disabled={complete.isPending} onPress={() => completeFor && complete.mutate({ date: completeFor, note, photo })}
-                style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
+                style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: "#059669", alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#fff", fontWeight: "700" }}>{complete.isPending ? "…" : "Mark Completed"}</Text>
               </Pressable>
             </View>

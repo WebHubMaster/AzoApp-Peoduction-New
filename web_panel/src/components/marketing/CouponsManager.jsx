@@ -116,7 +116,7 @@ export default function CouponsManager() {
           <h1 className="font-heading font-black text-2xl sm:text-3xl text-slate-900 dark:text-white">Coupons</h1>
           <p className="text-sm text-slate-500 mt-1">Create, manage and monitor promotional coupon codes.</p>
         </div>
-        <button data-testid="create-coupon-btn" onClick={() => setEditor({})} className="h-11 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-bold inline-flex items-center gap-2 transition-colors"><Plus className="h-4.5 w-4.5" /> Create Coupon</button>
+        <button data-testid="create-coupon-btn" onClick={() => setEditor({})} className="h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-bold inline-flex items-center gap-2 transition-colors"><Plus className="h-4.5 w-4.5" /> Create Coupon</button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
@@ -189,7 +189,7 @@ export default function CouponsManager() {
 }
 
 const IconBtn = ({ children, onClick, title, danger }) => (
-  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-lg text-slate-400 transition-colors", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
+  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-md text-slate-400 transition-colors", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
 );
 
 /* ------------------------------------------------------------ editor modal */
@@ -233,7 +233,7 @@ function CouponEditor({ coupon, onClose, onSaved }) {
       <div className="w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-bold text-lg text-slate-900 dark:text-white">{isNew ? "Create Coupon" : `Edit ${coupon.code}`}</h3>
-          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-5 grid lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 space-y-4">
@@ -245,7 +245,7 @@ function CouponEditor({ coupon, onClose, onSaved }) {
                   {f.code && <button onClick={copyCode} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600"><ClipboardCopy className="h-4 w-4" /></button>}
                 </div>
                 <input value={prefix} onChange={(e) => setPrefix(e.target.value.toUpperCase())} placeholder="Prefix" className={cn(inp, "!w-24")} />
-                <button onClick={() => set("code", randomCode(prefix))} className="h-10 px-3 rounded-xl bg-primary-50 text-primary-700 font-semibold text-sm inline-flex items-center gap-1.5 shrink-0 hover:bg-primary-100"><RefreshCw className="h-4 w-4" /> Generate</button>
+                <button onClick={() => set("code", randomCode(prefix))} className="h-10 px-3 rounded-md bg-primary-50 text-primary-700 font-semibold text-sm inline-flex items-center gap-1.5 shrink-0 hover:bg-primary-100"><RefreshCw className="h-4 w-4" /> Generate</button>
               </div>
             </Field>
             <Field label="Title / Internal name"><Input value={f.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Monsoon Sale" /></Field>
@@ -280,7 +280,7 @@ function CouponEditor({ coupon, onClose, onSaved }) {
           </div>
         </div>
         <div className="sticky bottom-0 bg-white dark:bg-slate-900 flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
-          <button onClick={onClose} className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
+          <button onClick={onClose} className="h-11 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
           <SaveBtn onClick={save} busy={busy} testId="coupon-save">{isNew ? "Create Coupon" : "Save Changes"}</SaveBtn>
         </div>
       </div>
@@ -303,7 +303,7 @@ function CouponDrawer({ couponId, onClose }) {
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white dark:bg-slate-900 shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <div><h3 className="font-heading font-black text-primary-700 dark:text-primary-300">{c?.code || "…"}</h3><p className="text-xs text-slate-400">{c?.title || "Coupon details"}</p></div>
-          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         </div>
         {!data ? <div className="p-10 text-center text-slate-400">Loading…</div> : (
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
@@ -378,8 +378,8 @@ function AbsorptionReport() {
           <PremiumDatePicker value={from} onChange={(e) => setFrom(e.target.value)} className="!h-9 !w-36 text-xs rounded-lg" data-testid="absorb-from" />
           <span className="text-xs text-slate-400">to</span>
           <PremiumDatePicker value={to} onChange={(e) => setTo(e.target.value)} className="!h-9 !w-36 text-xs rounded-lg" data-testid="absorb-to" />
-          <button onClick={load} className="h-9 w-9 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Refresh"><RefreshCw className={cn("h-4 w-4", busy && "animate-spin")} /></button>
-          <button onClick={() => setOpen((o) => !o)} className="h-9 px-3 rounded-lg text-xs font-semibold text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20">{open ? "Hide" : "Show"}</button>
+          <button onClick={load} className="h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Refresh"><RefreshCw className={cn("h-4 w-4", busy && "animate-spin")} /></button>
+          <button onClick={() => setOpen((o) => !o)} className="h-9 px-3 rounded-md text-xs font-semibold text-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900/20">{open ? "Hide" : "Show"}</button>
         </div>
       </div>
       {open && (

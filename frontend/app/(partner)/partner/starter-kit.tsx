@@ -106,7 +106,7 @@ export default function PartnerStarterKit() {
               <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>{r.expired ? "Your AzoApp Pro membership has expired" : `Membership valid till ${new Date(r.expires_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}</Text>
               {!r.expired && r.days_left != null ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>{r.days_left} day(s) left{r.expiring_soon ? " — renew soon to keep your perks" : ""}</Text> : null}
             </View>
-            {r.expired || r.expiring_soon ? <Pressable onPress={purchase} disabled={buying} style={{ height: 36, paddingHorizontal: 14, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{buying ? "…" : "Renew now"}</Text></Pressable> : null}
+            {r.expired || r.expiring_soon ? <Pressable onPress={purchase} disabled={buying} style={{ height: 36, paddingHorizontal: 14, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{buying ? "…" : "Renew now"}</Text></Pressable> : null}
           </View>
         ) : null}
       </Wrap>
@@ -141,7 +141,7 @@ export default function PartnerStarterKit() {
           {pct > 0 ? <View style={{ backgroundColor: "#10B981", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{pct}% OFF</Text></View> : null}
         </View>
         {savings > 0 ? <Text style={{ color: "#6EE7B7", fontSize: 14, fontWeight: "600", marginTop: 4 }}>You save {fmtINR(savings)} today</Text> : null}
-        <Pressable testID="starter-kit-buy-btn" onPress={purchase} disabled={buying} style={{ alignSelf: "flex-start", marginTop: 24, height: 48, paddingHorizontal: 28, borderRadius: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, boxShadow: "0px 8px 20px rgba(0,0,0,0.25)" }}>
+        <Pressable testID="starter-kit-buy-btn" onPress={purchase} disabled={buying} style={{ alignSelf: "flex-start", marginTop: 24, height: 48, paddingHorizontal: 28, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, boxShadow: "0px 8px 20px rgba(0,0,0,0.25)" }}>
           <Text style={{ color: colors.primaryDark, fontSize: 16, fontWeight: "700" }}>{buying ? "Processing…" : "Get your Starter Kit"}</Text>{!buying ? <Icon name="arrow-right" size={20} color={colors.primaryDark} /> : null}
         </Pressable>
         <View style={{ flexDirection: "row", gap: 16, marginTop: 16 }}><Trust icon="shield-check-outline" t="Secure payment" /><Trust icon="truck-outline" t="Kit delivered to you" /></View>
@@ -171,7 +171,7 @@ export default function PartnerStarterKit() {
               </View>
             ))}
           </View>
-          <Pressable onPress={purchase} disabled={buying} style={{ alignSelf: "center", marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
+          <Pressable onPress={purchase} disabled={buying} style={{ alignSelf: "center", marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
             <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>{buying ? "Processing…" : `Join AzoApp Pro — ${fmtINR(price)}`}</Text>{!buying ? <Icon name="arrow-right" size={18} color="#fff" /> : null}
           </Pressable>
         </LinearGradient>

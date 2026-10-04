@@ -77,9 +77,9 @@ export default function ServiceDetail() {
       />
       <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/60">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} data-testid="back-btn" className="h-9 w-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary-700"><ArrowLeft className="h-5 w-5" /></button>
+          <button onClick={() => navigate(-1)} data-testid="back-btn" className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary-700"><ArrowLeft className="h-5 w-5" /></button>
           <BrandLogo to="/" />
-          <button data-testid="nav-cart" onClick={() => navigate("/book")} className="ml-auto relative h-10 px-3 rounded-xl border border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-700 hover:border-primary-300">
+          <button data-testid="nav-cart" onClick={() => navigate("/book")} className="ml-auto relative h-10 px-3 rounded-md border border-slate-200 flex items-center gap-2 text-sm font-semibold text-slate-700 hover:border-primary-300">
             <ShoppingBag className="h-4 w-4 text-primary-700" /> Booking
             {count > 0 && <span data-testid="cart-count" className="absolute -top-2 -right-2 h-5 min-w-5 px-1 rounded-full bg-primary-700 text-white text-[11px] font-bold flex items-center justify-center">{count}</span>}
           </button>
@@ -236,7 +236,7 @@ const ServiceGallery = ({ svc }) => {
       {imgs.length > 1 && (
         <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
           {imgs.map((im, i) => (
-            <button key={i} onClick={() => setActive(i)} className={`h-16 w-24 rounded-lg overflow-hidden border-2 shrink-0 ${i === active ? "border-primary-700" : "border-transparent"}`}><img src={im} alt="" className="h-full w-full object-cover" /></button>
+            <button key={i} onClick={() => setActive(i)} className={`h-16 w-24 rounded-md overflow-hidden border-2 shrink-0 ${i === active ? "border-primary-700" : "border-transparent"}`}><img src={im} alt="" className="h-full w-full object-cover" /></button>
           ))}
         </div>
       )}

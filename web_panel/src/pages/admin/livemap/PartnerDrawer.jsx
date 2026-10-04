@@ -44,7 +44,7 @@ export default function PartnerDrawer({ partner: p, onClose }) {
         <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-start justify-between mb-4">
             <span className="text-[11px] font-bold uppercase tracking-widest text-primary-600 dark:text-primary-400">Partner Profile</span>
-            <button data-testid="drawer-close" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+            <button data-testid="drawer-close" onClick={onClose} className="p-1.5 rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">

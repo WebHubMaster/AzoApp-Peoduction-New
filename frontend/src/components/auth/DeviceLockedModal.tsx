@@ -22,7 +22,7 @@ export function DeviceLockedModal({ visible, onClose }: { visible: boolean; onCl
             This account is registered on another device. Please contact Support for help.
           </Text>
 
-          <Pressable testID="device-locked-support" onPress={openSupport} style={({ pressed }) => ({ marginTop: 18, width: "100%", height: 54, borderRadius: 10, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+          <Pressable testID="device-locked-support" onPress={openSupport} style={({ pressed }) => ({ marginTop: 18, width: "100%", height: 54, borderRadius: 6, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
             <Icon name="headset" size={22} color="#fff" />
             <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Contact Support</Text>
           </Pressable>

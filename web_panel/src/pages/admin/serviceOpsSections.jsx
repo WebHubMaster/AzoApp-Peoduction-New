@@ -221,7 +221,7 @@ function SurgeRuleForm({ onCreated }) {
               const on = f.days.includes(d.value);
               return (
                 <button type="button" key={d.value} data-testid={`surge-day-${d.value}`} onClick={() => toggleDay(d.value)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${on ? "bg-primary-600 text-white border-primary-600" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary-300"}`}>
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold border transition ${on ? "bg-primary-600 text-white border-primary-600" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary-300"}`}>
                   {d.label}
                 </button>
               );

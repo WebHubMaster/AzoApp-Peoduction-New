@@ -166,7 +166,7 @@ function SubDetail({ sub, onBack, reload }) {
                 </div>
                 {canStart(d) && startFor !== d.date && (
                   <button data-testid={`partner-sub-start-${d.date}`} onClick={() => { setStartFor(d.date); setOtpVal(""); }}
-                    className="w-full h-8 rounded-lg bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
+                    className="w-full h-8 rounded-md bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
                     <Play className="h-3.5 w-3.5" /> Start Service
                   </button>
                 )}
@@ -174,16 +174,16 @@ function SubDetail({ sub, onBack, reload }) {
                   <div className="flex gap-1.5" data-testid={`partner-sub-otp-row-${d.date}`}>
                     <input data-testid={`partner-sub-otp-input-${d.date}`} value={otpVal} onChange={(e) => setOtpVal(e.target.value.replace(/\D/g, "").slice(0, 4))}
                       placeholder="Customer OTP" inputMode="numeric"
-                      className="flex-1 h-8 px-2 rounded-lg border border-primary-300 text-sm font-bold tracking-widest text-center outline-none focus:ring-2 focus:ring-primary-200" />
+                      className="flex-1 h-8 px-2 rounded-md border border-primary-300 text-sm font-bold tracking-widest text-center outline-none focus:ring-2 focus:ring-primary-200" />
                     <button data-testid={`partner-sub-otp-confirm-${d.date}`} disabled={otpVal.length !== 4 || busy} onClick={() => startDay(d.date)}
-                      className="h-8 px-3 rounded-lg bg-primary-700 text-white text-xs font-semibold disabled:opacity-50">
+                      className="h-8 px-3 rounded-md bg-primary-700 text-white text-xs font-semibold disabled:opacity-50">
                       {busy ? "…" : "Start"}
                     </button>
                   </div>
                 )}
                 {canComplete(d) && completeFor !== d.date && (
                   <button data-testid={`partner-sub-complete-${d.date}`} onClick={() => { setCompleteFor(d.date); setPhotoData(null); }}
-                    className="w-full h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
+                    className="w-full h-8 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" /> Complete Service
                   </button>
                 )}
@@ -194,14 +194,14 @@ function SubDetail({ sub, onBack, reload }) {
                       <input data-testid={`partner-sub-photo-${d.date}`} type="file" accept="image/*" className="hidden" onChange={onPhoto} />
                     </label>
                     <button data-testid={`partner-sub-confirm-${d.date}`} disabled={busy} onClick={() => completeDay(d.date, photoData)}
-                      className="w-full h-8 rounded-lg bg-emerald-600 text-white text-xs font-semibold disabled:opacity-50">
+                      className="w-full h-8 rounded-md bg-emerald-600 text-white text-xs font-semibold disabled:opacity-50">
                       {busy ? "…" : "Mark Completed"}
                     </button>
                   </div>
                 )}
                 {canMarkPast(d) && (
                   <button data-testid={`partner-sub-markdone-${d.date}`} disabled={busy === "done-" + d.date} onClick={() => completeDay(d.date)}
-                    className="w-full h-8 rounded-lg bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold disabled:opacity-50">
+                    className="w-full h-8 rounded-md bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold disabled:opacity-50">
                     {busy === "done-" + d.date ? "…" : "Mark done"}
                   </button>
                 )}
@@ -244,7 +244,7 @@ export default function PartnerSubscriptions() {
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-x-6 divide-y-0">
             {upcoming.map((t) => (
               <button key={`${t.subId}-${t.date}`} data-testid={`partner-task-${t.subId}-${t.date}`} onClick={() => setOpenId(t.subId)}
-                className="w-full flex items-center gap-3 py-2 text-left hover:bg-slate-50 rounded-lg px-2">
+                className="w-full flex items-center gap-3 py-2 text-left hover:bg-slate-50 rounded-md px-2">
                 <span className={`text-[11px] font-bold px-2 py-1 rounded-lg ${t.date === todayIso() ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-primary-700"}`}>{dayLabel(t.date)}</span>
                 <span className="flex-1 text-sm font-medium text-slate-800">{t.customer}</span>
                 <span className="text-xs text-slate-400">{t.time || "—"} · {fmt(t.earning)}/day</span>

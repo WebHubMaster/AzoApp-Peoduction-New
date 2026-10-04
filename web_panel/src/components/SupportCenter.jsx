@@ -67,7 +67,7 @@ const AttachmentView = ({ a, onOpen }) => {
   }
   return (
     <button type="button" onClick={() => onOpen?.(a.url)}
-      className="block rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90">
+      className="block rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90">
       <img src={a.thumb_url || a.url} alt={a.name || "attachment"} className="h-24 w-24 object-cover" loading="lazy" />
     </button>
   );
@@ -122,7 +122,7 @@ const NewTicket = ({ meta, onCreated, onCancel }) => {
           <label className="text-xs font-semibold text-slate-500 mb-1 block">Describe your issue *</label>
           <textarea data-testid="support-message" value={message} onChange={(e) => setMessage(e.target.value)}
             rows={5} placeholder="Tell us what happened…"
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
+            className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm" />
         </div>
         <Button data-testid="support-submit" onClick={submit} disabled={busy} className="w-full bg-primary-700 hover:bg-primary-800">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit ticket"}
@@ -229,7 +229,7 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
       {/* ---- main conversation ---- */}
       <div className="flex flex-col h-[calc(100vh-230px)] min-h-[480px] rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
         <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
-          <button onClick={onBack} className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"><ArrowLeft className="h-4 w-4" /></button>
+          <button onClick={onBack} className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"><ArrowLeft className="h-4 w-4" /></button>
           <div className="h-9 w-9 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5" /></div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold text-sm truncate flex items-center gap-2"><span className="text-slate-400 font-mono text-xs">{t.code}</span><span className="truncate">{t.subject}</span></p>
@@ -240,7 +240,7 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
           <Badge cls={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
           {!closed && (
             <div className="relative">
-              <button onClick={() => setMenuOpen((v) => !v)} className="h-8 w-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"><MoreVertical className="h-4 w-4" /></button>
+              <button onClick={() => setMenuOpen((v) => !v)} className="h-8 w-8 rounded-md flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800"><MoreVertical className="h-4 w-4" /></button>
               {menuOpen && (
                 <div className="absolute right-0 top-9 z-20 w-44 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl py-1.5 text-sm">
                   <button data-testid="support-close-btn" onClick={closeTicket} className="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"><X className="h-3.5 w-3.5" /> Close ticket</button>
@@ -321,7 +321,7 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
             )}
             <div className="flex items-end gap-2 rounded-xl border border-slate-200 dark:border-slate-700 p-2">
               <input ref={fileRef} type="file" accept="image/*,application/pdf" multiple hidden onChange={pickFiles} data-testid="support-file-input" />
-              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="h-9 w-9 shrink-0 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button onClick={() => fileRef.current?.click()} disabled={uploading} className="h-9 w-9 shrink-0 rounded-md flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </button>
               <textarea data-testid="support-reply-input" value={text} onChange={(e) => { setText(e.target.value); pingTyping(); }}

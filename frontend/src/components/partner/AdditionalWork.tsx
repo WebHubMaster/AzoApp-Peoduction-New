@@ -99,7 +99,7 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
       ) : null}
       {addl?.status !== "paid" ? (
         rcCard ? (
-          <Pressable testID={`add-additional-${b.code}`} onPress={() => setRcOpen(true)} style={{ alignSelf: "flex-start", height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: "#93C5FD", flexDirection: "row", alignItems: "center", gap: 4 }}>
+          <Pressable testID={`add-additional-${b.code}`} onPress={() => setRcOpen(true)} style={{ alignSelf: "flex-start", height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: "#93C5FD", flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Icon name="plus" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "600", fontSize: 13 }}>Add from rate card</Text>
           </Pressable>
         ) : (
@@ -161,7 +161,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
             </View>
             <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800", marginTop: 10 }}>{card?.title || "Standard rate card"}</Text>
             {card?.subtitle ? <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 2 }}>{card.subtitle}</Text> : null}
-            <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, height: 44, marginTop: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: 6, paddingHorizontal: 12, height: 44, marginTop: 12 }}>
               <Icon name="magnify" size={18} color={SLATE400} />
               <TextInput testID="ratecard-search" value={q} onChangeText={setQ} placeholder="Search a repair, part or price…" placeholderTextColor={SLATE400} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 14 }} />
             </View>
@@ -190,7 +190,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
                           </View>
                         ) : null}
                         {qty > 0 ? (
-                          <View testID={`ratecard-qty-${r.id}`} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", borderRadius: 10, borderWidth: 1.5, borderColor: accent, overflow: "hidden", opacity: isBusy ? 0.6 : 1 }}>
+                          <View testID={`ratecard-qty-${r.id}`} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", borderRadius: 6, borderWidth: 1.5, borderColor: accent, overflow: "hidden", opacity: isBusy ? 0.6 : 1 }}>
                             <Pressable testID={`ratecard-qty-minus-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onRemoveRow(r.id))} hitSlop={6} style={{ width: 34, height: 32, alignItems: "center", justifyContent: "center" }}>
                               <Icon name="minus" size={16} color={accent} />
                             </Pressable>
@@ -202,7 +202,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
                             </Pressable>
                           </View>
                         ) : (
-                          <Pressable testID={`ratecard-add-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onAdd(r))} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: accent, opacity: isBusy ? 0.6 : 1 }}>
+                          <Pressable testID={`ratecard-add-${r.id}`} disabled={isBusy} onPress={() => mut(r.id, () => onAdd(r))} style={{ alignSelf: "flex-start", marginTop: 8, flexDirection: "row", alignItems: "center", gap: 4, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: accent, opacity: isBusy ? 0.6 : 1 }}>
                             <Icon name="plus" size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>Add</Text>
                           </Pressable>
                         )}
@@ -219,7 +219,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
           </ScrollView>
           <View style={{ borderTopWidth: 1, borderTopColor: colors.border, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 }} testID="ratecard-footer">
             <Text style={{ color: totalCount > 0 ? "#047857" : colors.textMuted, fontSize: 13, fontWeight: "600", flex: 1 }}>{totalCount > 0 ? `${totalCount} item${totalCount > 1 ? "s" : ""} added — customer will be asked to pay` : "Tap Add on any item, then adjust the quantity"}</Text>
-            <Pressable testID="ratecard-done" onPress={onClose} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: accent }}><Icon name="check" size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Done</Text></Pressable>
+            <Pressable testID="ratecard-done" onPress={onClose} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, paddingHorizontal: 18, paddingVertical: 10, backgroundColor: accent }}><Icon name="check" size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Done</Text></Pressable>
           </View>
         </View>
       </KeyboardAvoidingView>

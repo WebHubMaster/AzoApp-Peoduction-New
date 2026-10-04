@@ -179,7 +179,7 @@ export default function PartnerJobWizard() {
 
 function Cta({ label, icon, color, onPress, disabled, testID }: { label: string; icon: MdiName; color: string; onPress: () => void; disabled?: boolean; testID: string }) {
   return (
-    <Pressable testID={testID} disabled={disabled} onPress={onPress} style={({ pressed }) => ({ height: 54, borderRadius: 10, backgroundColor: color, opacity: disabled ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+    <Pressable testID={testID} disabled={disabled} onPress={onPress} style={({ pressed }) => ({ height: 54, borderRadius: 6, backgroundColor: color, opacity: disabled ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
       <Icon name={icon} size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{label}</Text>
     </Pressable>
   );
@@ -267,8 +267,8 @@ function DetailsStep({ b }: { b: any }) {
           <Text style={{ color: colors.textSecondary, fontSize: 13.5, lineHeight: 19, flex: 1 }}>{a.line || "Address unavailable"}{a.landmark ? `, ${a.landmark}` : ""}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</Text>
         </View>
         <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-          {b.customer_phone ? <Pressable testID="wizard-call" onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "700" }}>Call</Text></Pressable> : null}
-          <Pressable testID="wizard-navigate" onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`)}`)} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="navigation-variant-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Navigate</Text></Pressable>
+          {b.customer_phone ? <Pressable testID="wizard-call" onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={{ flex: 1, height: 42, borderRadius: 6, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: "#ECFDF5", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "700" }}>Call</Text></Pressable> : null}
+          <Pressable testID="wizard-navigate" onPress={() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`)}`)} style={{ flex: 1, height: 42, borderRadius: 6, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: "#EFF6FF", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}><Icon name="navigation-variant-outline" size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Navigate</Text></Pressable>
         </View>
       </Card>
       {timeline.length ? (
@@ -375,7 +375,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
       <Card testID="wizard-checkin">
         <SectionTitle icon="camera-account" title="Step 1 · Live selfie" />
         <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 12 }}>Take a clear selfie at the customer's door. Front camera only — this is shared with the customer & admin for safety.</Text>
-        <Pressable testID="wizard-selfie-btn" onPress={takeSelfie} style={{ alignSelf: "center", width: 160, height: 200, borderRadius: 10, borderWidth: 2, borderStyle: selfie ? "solid" : "dashed", borderColor: selfie ? EMERALD : "#93C5FD", backgroundColor: selfie ? "transparent" : "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+        <Pressable testID="wizard-selfie-btn" onPress={takeSelfie} style={{ alignSelf: "center", width: 160, height: 200, borderRadius: 6, borderWidth: 2, borderStyle: selfie ? "solid" : "dashed", borderColor: selfie ? EMERALD : "#93C5FD", backgroundColor: selfie ? "transparent" : "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
           {selfie ? <Image source={{ uri: selfie.uri }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : (
             <><Icon name="camera-front-variant" size={36} color={colors.primary} /><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700", marginTop: 8 }}>Take selfie</Text></>
           )}
@@ -403,7 +403,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
       {locked ? (
         <View style={{ borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
       ) : null}
-      <Pressable testID="wizard-checkin-submit" disabled={!selfie || !loc || sending || locked} onPress={submit} style={{ height: 54, borderRadius: 10, backgroundColor: colors.primary, opacity: !selfie || !loc || sending || locked ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+      <Pressable testID="wizard-checkin-submit" disabled={!selfie || !loc || sending || locked} onPress={submit} style={{ height: 54, borderRadius: 6, backgroundColor: colors.primary, opacity: !selfie || !loc || sending || locked ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
         {sending ? <ActivityIndicator color="#fff" /> : <Icon name="check-circle-outline" size={20} color="#fff" />}<Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{sending ? "Checking in…" : "Check-in & Continue"}</Text>
       </Pressable>
     </>

@@ -61,7 +61,7 @@ export function SearchBox({ value, onChange, placeholder = "Search…" }) {
     <div className="relative flex-1 min-w-0">
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       <input data-testid="search-input" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full h-10 pl-9 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
+        className="w-full h-10 pl-9 pr-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
       {value ? (
         <button onClick={() => onChange("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
           <X className="h-4 w-4" />
@@ -112,12 +112,12 @@ export function RangeCalendar({ from, to, onPick }) {
     <div data-testid="range-calendar" className="select-none">
       <div className="flex items-center justify-between mb-2">
         <button type="button" data-testid="cal-prev" onClick={() => shift(-1)}
-          className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+          className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
           <ChevronLeft className="h-4 w-4" />
         </button>
         <p className="text-sm font-bold text-slate-800 dark:text-white">{monthLabel}</p>
         <button type="button" data-testid="cal-next" onClick={() => shift(1)}
-          className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
+          className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500">
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -136,7 +136,7 @@ export function RangeCalendar({ from, to, onPick }) {
           return (
             <button key={i} type="button" disabled={future} data-testid={`cal-day-${s}`}
               onClick={() => pick(dt)}
-              className={`h-9 rounded-lg text-[13px] font-semibold transition relative disabled:opacity-30 disabled:cursor-not-allowed
+              className={`h-9 rounded-md text-[13px] font-semibold transition relative disabled:opacity-30 disabled:cursor-not-allowed
                 ${isFrom || isTo ? "bg-primary-600 text-white shadow"
                   : inRange ? "bg-primary-100 dark:bg-primary-900/40 text-primary-700 dark:text-primary-200"
                   : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
@@ -159,7 +159,7 @@ export function DateRangeFilter({ value, onChange }) {
   return (
     <div className="relative">
       <button data-testid="date-filter-toggle" onClick={() => setOpen((o) => !o)}
-        className="h-10 px-3.5 inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-300">
+        className="h-10 px-3.5 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-medium text-slate-700 dark:text-slate-200 hover:border-primary-300">
         <Calendar className="h-4 w-4 text-primary-600" />
         <span className="truncate max-w-[140px]">{label}</span>
       </button>
@@ -172,7 +172,7 @@ export function DateRangeFilter({ value, onChange }) {
               {PRESETS.map(([k, lbl]) => (
                 <button key={k || "all"} data-testid={`date-preset-${k || "all"}`}
                   onClick={() => { onChange({ range: k }); setOpen(false); }}
-                  className={`h-9 rounded-xl text-xs font-semibold transition ${range === k
+                  className={`h-9 rounded-md text-xs font-semibold transition ${range === k
                     ? "bg-primary-600 text-white" : "bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100"}`}>
                   {lbl}
                 </button>
@@ -189,7 +189,7 @@ export function DateRangeFilter({ value, onChange }) {
                 onPick={(f, t) => onChange({ range: "custom", date_from: f, date_to: t })} />
               <button data-testid="date-apply" disabled={!value.date_from || !value.date_to}
                 onClick={() => setOpen(false)}
-                className="mt-3 w-full h-9 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">Apply</button>
+                className="mt-3 w-full h-9 rounded-md bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed">Apply</button>
             </div>
           </div>
         </>
@@ -214,19 +214,19 @@ export function Pagination({ page, pages, total, pageSize, onPage, onPageSize })
       </div>
       <div className="flex items-center gap-1.5">
         <button data-testid="page-prev" disabled={page <= 1} onClick={() => onPage(page - 1)}
-          className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
+          className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
         {Array.from({ length: pages }).slice(0, 5).map((_, i) => {
           const start = Math.min(Math.max(1, page - 2), Math.max(1, pages - 4));
           const n = start + i;
           if (n > pages) return null;
           return (
             <button key={n} onClick={() => onPage(n)} data-testid={`page-${n}`}
-              className={`h-9 min-w-9 px-2 rounded-lg text-sm font-semibold ${n === page
+              className={`h-9 min-w-9 px-2 rounded-md text-sm font-semibold ${n === page
                 ? "bg-primary-600 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>{n}</button>
           );
         })}
         <button data-testid="page-next" disabled={page >= pages} onClick={() => onPage(page + 1)}
-          className="h-9 w-9 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
+          className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>
   );

@@ -57,12 +57,12 @@ export default function BulkUpdateBar({ ids, prices, setPrices, onClear }) {
         <Wand2 className="h-4 w-4" />{ids.length} selected
       </span>
       <select value={action} onChange={(e) => setAction(e.target.value)} data-testid="pm-bulk-action"
-        className="h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[13px]">
+        className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-[13px]">
         {ACTIONS.map((a) => <option key={a.k} value={a.k}>{a.label}</option>)}
       </select>
       {needsValue(action) && (
         <input type="number" value={val} onChange={(e) => setVal(e.target.value)} placeholder={action === "inc" || action === "dec" ? "%" : "₹"} data-testid="pm-bulk-value"
-          className="h-9 w-24 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[13px]" />
+          className="h-9 w-24 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[13px]" />
       )}
       {preview != null && (
         <span className="text-[12px] text-slate-500">e.g. {inr(sample.price)} → <b className="text-slate-800 dark:text-slate-100">{inr(preview)}</b></span>

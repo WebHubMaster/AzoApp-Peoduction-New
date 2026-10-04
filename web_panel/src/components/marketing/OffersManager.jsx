@@ -124,7 +124,7 @@ export default function OffersManager() {
           <h1 className="font-heading font-black text-2xl sm:text-3xl text-slate-900 dark:text-white">Offers</h1>
           <p className="text-sm text-slate-500 mt-1">Create attractive promotional campaigns for customers.</p>
         </div>
-        <button data-testid="create-offer-btn" onClick={() => setEditor({})} className="h-11 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-bold inline-flex items-center gap-2"><Plus className="h-4.5 w-4.5" /> Create Offer</button>
+        <button data-testid="create-offer-btn" onClick={() => setEditor({})} className="h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-bold inline-flex items-center gap-2"><Plus className="h-4.5 w-4.5" /> Create Offer</button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
@@ -191,7 +191,7 @@ export default function OffersManager() {
 }
 
 const IconBtn = ({ children, onClick, title, danger }) => (
-  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-lg text-slate-400 transition-colors", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
+  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-md text-slate-400 transition-colors", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
 );
 
 function OfferCard({ o, compact }) {
@@ -217,9 +217,9 @@ function OfferPreviewModal({ offer, onClose }) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-bold text-slate-900 dark:text-white">Offer Preview</h3>
           <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-            <button onClick={() => setMode("desktop")} className={cn("h-8 px-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
-            <button onClick={() => setMode("mobile")} className={cn("h-8 px-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
-            <button onClick={onClose} className="ml-1 h-8 w-8 grid place-items-center rounded-lg text-slate-400"><X className="h-4 w-4" /></button>
+            <button onClick={() => setMode("desktop")} className={cn("h-8 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
+            <button onClick={() => setMode("mobile")} className={cn("h-8 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
+            <button onClick={onClose} className="ml-1 h-8 w-8 grid place-items-center rounded-md text-slate-400"><X className="h-4 w-4" /></button>
           </div>
         </div>
         {mode === "desktop"
@@ -257,7 +257,7 @@ function OfferEditor({ offer, onClose, onSaved }) {
       <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
           <h3 className="font-bold text-lg text-slate-900 dark:text-white">{isNew ? "Create Offer" : "Edit Offer"}</h3>
-          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-5 grid lg:grid-cols-2 gap-6">
           <div className="space-y-4">
@@ -270,7 +270,7 @@ function OfferEditor({ offer, onClose, onSaved }) {
               <Field label="CTA Text"><Input value={f.cta_text} onChange={(e) => set("cta_text", e.target.value)} /></Field>
               <Field label="Destination"><Input value={f.link} onChange={(e) => set("link", e.target.value)} placeholder="/services" /></Field>
               <Field label="Priority"><Input type="number" value={f.order} onChange={(e) => set("order", e.target.value)} /></Field>
-              <Field label="Background"><input type="color" className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.bg_color} onChange={(e) => set("bg_color", e.target.value)} /></Field>
+              <Field label="Background"><input type="color" className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.bg_color} onChange={(e) => set("bg_color", e.target.value)} /></Field>
               <Field label="Start Date"><PremiumDatePicker value={f.valid_from} onChange={(e) => set("valid_from", e.target.value)} /></Field>
               <Field label="End Date"><PremiumDatePicker value={f.valid_till} onChange={(e) => set("valid_till", e.target.value)} /></Field>
               <Field label="Target Audience"><Select value={f.target_audience} onChange={(e) => set("target_audience", e.target.value)}><option value="all">All customers</option><option value="new">New only</option><option value="repeat">Repeat only</option></Select></Field>
@@ -282,8 +282,8 @@ function OfferEditor({ offer, onClose, onSaved }) {
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-slate-500">Live Preview</p>
               <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-                <button onClick={() => setMode("desktop")} className={cn("h-7 px-2 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
-                <button onClick={() => setMode("mobile")} className={cn("h-7 px-2 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
+                <button onClick={() => setMode("desktop")} className={cn("h-7 px-2 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
+                <button onClick={() => setMode("mobile")} className={cn("h-7 px-2 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
               </div>
             </div>
             {mode === "desktop"
@@ -292,7 +292,7 @@ function OfferEditor({ offer, onClose, onSaved }) {
           </div>
         </div>
         <div className="sticky bottom-0 bg-white dark:bg-slate-900 flex items-center justify-end gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
-          <button onClick={onClose} className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
+          <button onClick={onClose} className="h-11 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300">Cancel</button>
           <SaveBtn onClick={save} busy={busy} testId="offer-save">{isNew ? "Create Offer" : "Save Changes"}</SaveBtn>
         </div>
       </div>

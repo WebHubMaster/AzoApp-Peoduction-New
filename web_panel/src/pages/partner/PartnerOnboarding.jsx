@@ -175,7 +175,7 @@ export default function PartnerOnboarding({ onDone }) {
               <div className="flex flex-wrap gap-2">
                 {cats.map((c) => (
                   <button key={c.id} data-testid={`ob-cat-${c.id}`} onClick={() => toggleCat(c.id)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border ${f.categories.includes(c.id) ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>{c.name}</button>
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium border ${f.categories.includes(c.id) ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>{c.name}</button>
                 ))}
               </div>
             </div>
@@ -188,7 +188,7 @@ export default function PartnerOnboarding({ onDone }) {
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Service area</p>
               <div className="flex gap-2 mb-2">
                 {["pincode", "radius"].map((t) => (
-                  <button key={t} onClick={() => setNested("service_area", "type", t)} className={`px-3 py-1.5 rounded-lg text-sm border ${f.service_area.type === t ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>{t === "pincode" ? "By PIN codes" : "By radius"}</button>
+                  <button key={t} onClick={() => setNested("service_area", "type", t)} className={`px-3 py-1.5 rounded-md text-sm border ${f.service_area.type === t ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>{t === "pincode" ? "By PIN codes" : "By radius"}</button>
                 ))}
               </div>
               {f.service_area.type === "pincode"

@@ -24,7 +24,7 @@ function Section({ title, hint, children }) {
 function Chip({ on, onClick, children, testid, count }) {
   return (
     <button type="button" onClick={onClick} data-testid={testid} aria-pressed={on}
-      className={`h-10 sm:h-9 px-3 rounded-xl text-xs font-semibold inline-flex items-center gap-1.5 border transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${on
+      className={`h-10 sm:h-9 px-3 rounded-md text-xs font-semibold inline-flex items-center gap-1.5 border transition-all active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${on
         ? "bg-[#0D47A1] border-[#0D47A1] text-white shadow-sm shadow-primary-500/30"
         : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-primary-300"}`}>
       {on && <Check className="h-3.5 w-3.5" />}{children}

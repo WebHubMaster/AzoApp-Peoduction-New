@@ -48,13 +48,13 @@ export default class ErrorBoundary extends React.Component {
             <div className="mt-6 flex items-center justify-center gap-3">
               <button
                 onClick={this.handleReset}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
+                className="px-4 py-2 rounded-md text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition"
               >
                 Retry
               </button>
               <button
                 onClick={this.handleReload}
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#0D47A1] hover:bg-[#0b3c8a] transition"
+                className="px-4 py-2 rounded-md text-sm font-medium text-white bg-[#0D47A1] hover:bg-[#0b3c8a] transition"
               >
                 Reload Page
               </button>

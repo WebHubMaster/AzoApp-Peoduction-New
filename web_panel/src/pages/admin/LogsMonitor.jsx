@@ -21,7 +21,7 @@ const MAX_ROWS = 400;
 function Chip({ active, onClick, children, testId }) {
   return (
     <button data-testid={testId} onClick={onClick}
-      className={`px-3 py-1.5 rounded-lg text-[12.5px] font-semibold whitespace-nowrap ${active ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
+      className={`px-3 py-1.5 rounded-md text-[12.5px] font-semibold whitespace-nowrap ${active ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
       {children}
     </button>
   );

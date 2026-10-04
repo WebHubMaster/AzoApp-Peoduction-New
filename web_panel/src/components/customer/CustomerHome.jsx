@@ -214,7 +214,7 @@ export default function CustomerHome({ user, bookings, wallet, loading, onNaviga
             <Sparkles className="h-8 w-8 text-primary-500 mx-auto" />
             <p className="font-semibold text-slate-800 dark:text-slate-100 mt-2">No bookings yet</p>
             <p className="text-[12px] text-slate-500">Book your first home service in under a minute.</p>
-            <button type="button" onClick={onBook} className="mt-3 h-10 px-4 rounded-xl bg-primary-700 text-white text-sm font-semibold active:scale-95">Book now</button>
+            <button type="button" onClick={onBook} className="mt-3 h-10 px-4 rounded-md bg-primary-700 text-white text-sm font-semibold active:scale-95">Book now</button>
           </Card>
         )}
         {recent.length > 0 && (

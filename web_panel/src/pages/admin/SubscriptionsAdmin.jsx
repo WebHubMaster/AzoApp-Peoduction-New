@@ -34,7 +34,7 @@ function useIsMobile() {
 const uniq = (rows, f) => [...new Set(rows.map(f).filter(Boolean))].sort();
 const SelectBox = ({ value, onChange, opts, all, tid, fmt = label }) => (
   <select value={value} onChange={(e) => onChange(e.target.value)} data-testid={tid} aria-label={all}
-    className={`h-9 rounded-lg border bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 ${value ? "border-[#0D47A1]/40 text-[#0D47A1]" : "border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>
+    className={`h-9 rounded-md border bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 ${value ? "border-[#0D47A1]/40 text-[#0D47A1]" : "border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>
     <option value="">{all}</option>{opts.map((o) => <option key={o} value={o}>{fmt(o)}</option>)}
   </select>
 );
@@ -149,7 +149,7 @@ export default function SubscriptionsAdmin({ onOpenCustomer }) {
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" role="tablist" data-testid="sub-status-tabs">
           {!rows && !err ? [0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-8 w-28 rounded-lg shrink-0" />) : tabs.map((t) => (
             <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)} data-testid={`sub-tab-${t.key}`}
-              className={`h-8 px-3 rounded-lg border text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 transition-colors ${tab === t.key ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-[#111827] dark:text-slate-200 hover:border-slate-300"}`}>
+              className={`h-8 px-3 rounded-md border text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 transition-colors ${tab === t.key ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-[#111827] dark:text-slate-200 hover:border-slate-300"}`}>
               {t.key === "all" ? "All" : label(t.key)}<span className={`min-w-[18px] h-[18px] px-1 rounded text-[11px] tabular-nums grid place-items-center ${tab === t.key ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{t.count}</span>
             </button>
           ))}

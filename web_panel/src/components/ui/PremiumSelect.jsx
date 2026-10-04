@@ -142,7 +142,7 @@ export default function PremiumSelect({
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input ref={searchRef} value={query} onChange={(e) => { setQuery(e.target.value); setHighlight(0); }}
               placeholder="Search..." data-testid={testId ? `${testId}-search` : undefined}
-              className="w-full h-9 pl-8 pr-3 rounded-lg bg-slate-50 dark:bg-slate-800 text-sm border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-400" />
+              className="w-full h-9 pl-8 pr-3 rounded-md bg-slate-50 dark:bg-slate-800 text-sm border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-primary-400" />
           </div>
         </div>
       )}
@@ -169,7 +169,7 @@ export default function PremiumSelect({
     <>
       <button type="button" ref={triggerRef} onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={onKeyDown} disabled={disabled} data-testid={testId} {...rest}
-        className={`group w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-500"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
+        className={`group w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-md border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300 dark:hover:border-primary-500"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
         <span className={`flex-1 text-left truncate ${selected && selected.label ? "text-slate-700 dark:text-slate-100" : "text-slate-400"}`}>
           {loading ? "Loading..." : (selected && selected.label) ? selected.label : placeholder}
         </span>

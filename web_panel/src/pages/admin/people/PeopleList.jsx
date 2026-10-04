@@ -25,8 +25,8 @@ const FilterDrawer = ({ open, onClose, fields, value, onApply }) => {
             <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">{f.label}</p>
             {f.type === "select" && <Select testId={`filter-${f.key}`} value={draft[f.key] || ""} onChange={(v) => set(f.key, v)} options={f.options} className="w-full" />}
             {f.type === "range" && <div className="flex items-center gap-2">
-              <input data-testid={`filter-${f.min}`} type="number" inputMode="decimal" placeholder={`${f.prefix}Min`} value={draft[f.min] ?? ""} onChange={(e) => set(f.min, e.target.value)} className="h-10 flex-1 min-w-0 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
-              {f.max && <><span className="text-slate-300">–</span><input data-testid={`filter-${f.max}`} type="number" inputMode="decimal" placeholder={`${f.prefix}Max`} value={draft[f.max] ?? ""} onChange={(e) => set(f.max, e.target.value)} className="h-10 flex-1 min-w-0 rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" /></>}
+              <input data-testid={`filter-${f.min}`} type="number" inputMode="decimal" placeholder={`${f.prefix}Min`} value={draft[f.min] ?? ""} onChange={(e) => set(f.min, e.target.value)} className="h-10 flex-1 min-w-0 rounded-md ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              {f.max && <><span className="text-slate-300">–</span><input data-testid={`filter-${f.max}`} type="number" inputMode="decimal" placeholder={`${f.prefix}Max`} value={draft[f.max] ?? ""} onChange={(e) => set(f.max, e.target.value)} className="h-10 flex-1 min-w-0 rounded-md ring-1 ring-slate-200 dark:ring-slate-700 bg-white dark:bg-slate-900 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" /></>}
             </div>}
             {f.type === "date" && <RangeCalendar testId={`filter-${f.from}`} label={f.label} className="w-full justify-start" value={{ from: draft[f.from] || "", to: draft[f.to] || "" }} onChange={(r) => setDraft((d) => ({ ...d, [f.from]: r.from, [f.to]: r.to }))} />}
           </div>
@@ -91,8 +91,8 @@ export const ProfileUpdates = ({ role, onOpenUser, onChanged, showRole = false }
                   <div className="text-right text-xs whitespace-nowrap"><p className="text-slate-700 dark:text-slate-200 font-medium">{dt(c.changed_at)}</p><p className="text-slate-400">{rel(c.changed_at)} · via {c.updated_from}</p></div>
                   <Pill s={c.reviewed ? "reviewed" : "unread"} />
                   <div className="flex gap-1">
-                    <button onClick={() => setSelected(c)} title="Details" data-testid={`pu-view-${c.id}`} className="h-9 w-9 rounded-lg ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center"><Eye className="h-4 w-4" /></button>
-                    {!c.reviewed && <button onClick={() => review(c.id)} title="Mark as reviewed" data-testid={`pu-review-${c.id}`} className="h-9 px-3 rounded-lg bg-primary-600 text-white text-xs font-bold hover:bg-primary-700">Review</button>}
+                    <button onClick={() => setSelected(c)} title="Details" data-testid={`pu-view-${c.id}`} className="h-9 w-9 rounded-md ring-1 ring-slate-200 dark:ring-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center justify-center"><Eye className="h-4 w-4" /></button>
+                    {!c.reviewed && <button onClick={() => review(c.id)} title="Mark as reviewed" data-testid={`pu-review-${c.id}`} className="h-9 px-3 rounded-md bg-primary-600 text-white text-xs font-bold hover:bg-primary-700">Review</button>}
                   </div>
                 </div>
               </li>

@@ -80,7 +80,7 @@ const INVOICE_COLS = [
   { key: "type", label: "Type", render: (r) => <Pill s={r.invoice_type || "invoice"} /> }, { key: "svc", label: "Service", render: (r) => r.service_name || "—" },
   { key: "date", label: "Date", sortKey: "created_at", render: (r) => <D v={r.created_at} /> }, { key: "status", label: "Status", render: (r) => <Pill s={r.status || r.payment_status} /> },
   { key: "amt", label: "Amount", align: "right", render: (r) => <span className="font-semibold"><Money v={r.total_amount} /></span> },
-  { key: "act", label: "", align: "right", render: (r) => <div className="flex justify-end gap-1.5"><button onClick={(e) => { e.stopPropagation(); viewInvoice(r); }} data-testid={`inv-view-${r.id}`} className="h-7 px-2 rounded-lg text-[11px] font-bold ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 inline-flex items-center gap-1"><Eye className="h-3 w-3" />View</button><button onClick={(e) => { e.stopPropagation(); downloadInvoice(r); }} data-testid={`inv-dl-${r.id}`} className="h-7 px-2 rounded-lg text-[11px] font-bold text-white bg-primary-600 hover:bg-primary-700 inline-flex items-center gap-1"><ArrowDownToLine className="h-3 w-3" />PDF</button></div> },
+  { key: "act", label: "", align: "right", render: (r) => <div className="flex justify-end gap-1.5"><button onClick={(e) => { e.stopPropagation(); viewInvoice(r); }} data-testid={`inv-view-${r.id}`} className="h-7 px-2 rounded-md text-[11px] font-bold ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 inline-flex items-center gap-1"><Eye className="h-3 w-3" />View</button><button onClick={(e) => { e.stopPropagation(); downloadInvoice(r); }} data-testid={`inv-dl-${r.id}`} className="h-7 px-2 rounded-md text-[11px] font-bold text-white bg-primary-600 hover:bg-primary-700 inline-flex items-center gap-1"><ArrowDownToLine className="h-3 w-3" />PDF</button></div> },
 ];
 const REFUND_COLS = [
   { key: "id", label: "Refund ID", render: (r) => <Mono v={r.id?.slice(0, 8)} /> }, { key: "bk", label: "Booking", render: (r) => <div><Mono v={r.booking_code} /><p className="text-[11px] text-slate-400">{r.service_name}</p></div> },
@@ -181,7 +181,7 @@ const EntryDrawer = ({ open, onClose, kind, entry, title, subtitle, amount, amou
             <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-4"><KV cols={2} items={highlight} /></div>
           )}
           <div><p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-2">All details</p><KV cols={2} items={items} /></div>
-          {onOpenBooking && <button onClick={onOpenBooking} data-testid="open-related-booking" className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl font-bold text-sm text-white bg-primary-600 hover:bg-primary-700"><ShoppingBag className="h-4 w-4" />View full booking</button>}
+          {onOpenBooking && <button onClick={onOpenBooking} data-testid="open-related-booking" className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md font-bold text-sm text-white bg-primary-600 hover:bg-primary-700"><ShoppingBag className="h-4 w-4" />View full booking</button>}
         </div>)}
     </Drawer>
   );
@@ -304,7 +304,7 @@ const ProfileChanges = ({ role, uid, onReviewed }) => {
             <div key={day}><p className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">{day}</p>
               <div className="space-y-2">{items.map((c) => (
                 <div key={c.id} data-testid={`change-${c.id}`} className={`rounded-xl ring-1 p-3 ${c.reviewed ? "ring-slate-200 dark:ring-slate-800" : "ring-red-200 dark:ring-red-900/40 bg-red-50/30 dark:bg-red-900/10"}`}>
-                  <div className="flex flex-wrap items-center gap-2"><Sparkles className="h-4 w-4 text-primary-500" /><p className="text-sm font-semibold">Profile updated</p><Pill s={c.reviewed ? "reviewed" : "unreviewed"} size="xs" /><span className="text-xs text-slate-400 ml-auto">{new Date(c.changed_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · via {c.updated_from} · {c.section}</span>{!c.reviewed && <button onClick={() => review(c.id)} data-testid={`change-review-${c.id}`} className="h-7 px-2.5 rounded-lg bg-primary-600 text-white text-[11px] font-bold">Mark reviewed</button>}</div>
+                  <div className="flex flex-wrap items-center gap-2"><Sparkles className="h-4 w-4 text-primary-500" /><p className="text-sm font-semibold">Profile updated</p><Pill s={c.reviewed ? "reviewed" : "unreviewed"} size="xs" /><span className="text-xs text-slate-400 ml-auto">{new Date(c.changed_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} · via {c.updated_from} · {c.section}</span>{!c.reviewed && <button onClick={() => review(c.id)} data-testid={`change-review-${c.id}`} className="h-7 px-2.5 rounded-md bg-primary-600 text-white text-[11px] font-bold">Mark reviewed</button>}</div>
                   <div className="mt-3 space-y-2.5">{c.changes.map((ch, i) => (
                     <div key={i} className="rounded-lg bg-slate-50 dark:bg-slate-800/50 px-3 py-2.5">
                       <p className="text-[11px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">{ch.label}</p>
@@ -318,9 +318,9 @@ const ProfileChanges = ({ role, uid, onReviewed }) => {
                       {(ch.docs || []).map((d, di) => (
                         <div key={di} className="mt-1.5 flex flex-wrap items-center gap-2" data-testid={`change-doc-${c.id}-${di}`}>
                           <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{d.label}:</span>
-                          {d.old_url ? <button onClick={() => setDoc({ url: d.old_url, kind: d.old_kind, label: `${d.label} (previous)` })} data-testid={`view-old-${c.id}-${di}`} className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[11px] font-bold ring-1 ring-rose-200 text-rose-700 dark:text-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20"><Eye className="h-3 w-3" />View old</button> : <span className="text-[11px] text-slate-400">no previous</span>}
+                          {d.old_url ? <button onClick={() => setDoc({ url: d.old_url, kind: d.old_kind, label: `${d.label} (previous)` })} data-testid={`view-old-${c.id}-${di}`} className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold ring-1 ring-rose-200 text-rose-700 dark:text-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20"><Eye className="h-3 w-3" />View old</button> : <span className="text-[11px] text-slate-400">no previous</span>}
                           <ArrowRight className="h-3 w-3 text-slate-400" />
-                          {d.new_url ? <button onClick={() => setDoc({ url: d.new_url, kind: d.new_kind, label: `${d.label} (new)` })} data-testid={`view-new-${c.id}-${di}`} className="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-[11px] font-bold ring-1 ring-emerald-200 text-emerald-700 dark:text-emerald-300 dark:ring-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"><Eye className="h-3 w-3" />View new</button> : <span className="text-[11px] text-slate-400">removed</span>}
+                          {d.new_url ? <button onClick={() => setDoc({ url: d.new_url, kind: d.new_kind, label: `${d.label} (new)` })} data-testid={`view-new-${c.id}-${di}`} className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold ring-1 ring-emerald-200 text-emerald-700 dark:text-emerald-300 dark:ring-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"><Eye className="h-3 w-3" />View new</button> : <span className="text-[11px] text-slate-400">removed</span>}
                         </div>
                       ))}
                       {!ch.old && !ch.new && !(ch.docs || []).length && <span className="text-xs text-slate-400">{ch.masked ? "Updated (sensitive)" : "Changed"}</span>}
@@ -339,7 +339,7 @@ const ProfileChanges = ({ role, uid, onReviewed }) => {
 /* ---------- document viewer (shows the actual uploaded image / PDF) ---------- */
 const DocThumb = ({ doc, onOpen }) => (
   <button type="button" onClick={() => onOpen(doc)} data-testid={`doc-${doc.type}`}
-    className="group relative rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-800/60 text-left hover:ring-primary-400 transition">
+    className="group relative rounded-md ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden bg-slate-50 dark:bg-slate-800/60 text-left hover:ring-primary-400 transition">
     <div className="h-28 w-full grid place-items-center overflow-hidden">
       {doc.kind === "pdf"
         ? <div className="flex flex-col items-center text-rose-500"><FileText className="h-9 w-9" /><span className="text-[10px] font-bold mt-1">PDF</span></div>
@@ -357,7 +357,7 @@ const DocLightbox = ({ doc, onClose }) => {
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
           <FileText className="h-4 w-4 text-primary-600" /><p className="font-bold text-sm">{doc.label}</p>
           <a href={doc.url} target="_blank" rel="noreferrer" className="ml-auto text-xs font-bold text-primary-700 underline">Open in new tab</a>
-          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
         </div>
         <div className="p-3 bg-slate-50 dark:bg-slate-950 grid place-items-center max-h-[80vh] overflow-auto">
           {doc.kind === "pdf"
@@ -425,7 +425,7 @@ const StarterKit = ({ role, uid }) => {
         <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-2">Update delivery status</p>
         <div className="flex flex-wrap gap-2">{KIT_FLOW.map((s) => (
           <button key={s.key} data-testid={`kit-stage-${r.id}-${s.key}`} disabled={busy === r.id + s.key || s.key === cur} onClick={() => setStage(r.id, s.key)}
-            className={`h-9 px-3.5 rounded-xl text-xs font-bold inline-flex items-center gap-1.5 transition ${s.key === cur ? "bg-emerald-600 text-white cursor-default" : "ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50"}`}>
+            className={`h-9 px-3.5 rounded-md text-xs font-bold inline-flex items-center gap-1.5 transition ${s.key === cur ? "bg-emerald-600 text-white cursor-default" : "ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 disabled:opacity-50"}`}>
             {busy === r.id + s.key ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : s.key === cur ? <CheckCircle2 className="h-3.5 w-3.5" /> : null}{s.label}</button>))}</div>
         <p className="text-[11px] text-slate-400 mt-2">Partner sees this live in their app and gets a notification on each change.</p>
       </div>
@@ -493,8 +493,8 @@ const BankKyc = ({ role, uid }) => {
   const reviewButtons = ({ kind, id, name, status }) => (status === "approved"
     ? <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"><Lock className="h-3 w-3" />Verified &amp; locked</span>
     : <div className="flex items-center gap-2">
-        <button data-testid={`${kind}-approve-${id}`} disabled={busy === id} onClick={() => act(kind, id, "approve", "")} className="h-8 px-3 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1">{busy === id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}Approve</button>
-        <button data-testid={`${kind}-reject-${id}`} disabled={busy === id} onClick={() => { setReject({ kind, id, name }); setReason(""); }} className="h-8 px-3 rounded-lg text-xs font-bold text-rose-700 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 inline-flex items-center gap-1"><XCircle className="h-3 w-3" />Reject</button>
+        <button data-testid={`${kind}-approve-${id}`} disabled={busy === id} onClick={() => act(kind, id, "approve", "")} className="h-8 px-3 rounded-md text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1">{busy === id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}Approve</button>
+        <button data-testid={`${kind}-reject-${id}`} disabled={busy === id} onClick={() => { setReject({ kind, id, name }); setReason(""); }} className="h-8 px-3 rounded-md text-xs font-bold text-rose-700 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 inline-flex items-center gap-1"><XCircle className="h-3 w-3" />Reject</button>
       </div>);
   if ((bank.loading && !bank.data) || (kyc.loading && !kyc.data)) return <Skeleton rows={4} cols={3} />;
   if (bank.error || kyc.error) return <ErrorState error={bank.error || kyc.error} onRetry={() => { bank.reload(); kyc.reload(); }} />;
@@ -523,10 +523,10 @@ const BankKyc = ({ role, uid }) => {
     </div>
     {reject && (
       <Modal title={`Reject ${reject.kind === "bank" ? "bank account" : "PAN"}`} icon={ShieldAlert} onClose={() => setReject(null)}
-        footer={<><button onClick={() => setReject(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-          <button data-testid="finance-reject-confirm" onClick={() => act(reject.kind, reject.id, "reject", reason)} disabled={!reason.trim() || busy === reject.id} className="h-10 px-5 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy === reject.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}Reject &amp; notify</button></>}>
+        footer={<><button onClick={() => setReject(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+          <button data-testid="finance-reject-confirm" onClick={() => act(reject.kind, reject.id, "reject", reason)} disabled={!reason.trim() || busy === reject.id} className="h-10 px-5 rounded-md font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy === reject.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}Reject &amp; notify</button></>}>
         <p className="text-sm text-slate-600 dark:text-slate-300">Rejecting <b>{reject.name}</b>. The reason is shared with the {role} so they can correct and resubmit.</p>
-        <textarea data-testid="finance-reject-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="e.g. Name on bank account does not match PAN" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" />
+        <textarea data-testid="finance-reject-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3} placeholder="e.g. Name on bank account does not match PAN" className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" />
       </Modal>)}
   </div>;
 };
@@ -568,13 +568,13 @@ const RejectDialog = ({ role, name, onCancel, onConfirm, busy }) => {
           </div>
           <div>
             <p className="text-[11px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">{preset === "Other" ? "Reason (required)" : "Additional detail (optional)"}</p>
-            <textarea data-testid="reject-reason-input" value={detail} onChange={(e) => setDetail(e.target.value)} rows={3} placeholder={preset === "Other" ? "Describe the reason for rejection…" : "Add any specifics the applicant should fix…"} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-400 outline-none resize-none" />
+            <textarea data-testid="reject-reason-input" value={detail} onChange={(e) => setDetail(e.target.value)} rows={3} placeholder={preset === "Other" ? "Describe the reason for rejection…" : "Add any specifics the applicant should fix…"} className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-400 outline-none resize-none" />
             <p className="mt-2 text-xs text-slate-500">Will be sent as: <span className="font-semibold text-slate-700 dark:text-slate-200">{finalReason || "—"}</span></p>
           </div>
         </div>
         <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-          <button onClick={onCancel} disabled={busy} className="h-10 px-4 rounded-xl font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
-          <button data-testid="reject-confirm" onClick={() => onConfirm(finalReason)} disabled={!valid || busy} className="h-10 px-5 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}Reject {role}</button>
+          <button onClick={onCancel} disabled={busy} className="h-10 px-4 rounded-md font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+          <button data-testid="reject-confirm" onClick={() => onConfirm(finalReason)} disabled={!valid || busy} className="h-10 px-5 rounded-md font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4" />}Reject {role}</button>
         </div>
       </div>
     </div>
@@ -610,8 +610,8 @@ const ReviewStrip = ({ role, uid, u, onDone }) => {
         <Pill s={status}>{status}</Pill>
         {status === "approved" && u.kyc_reviewed_by_name && <span className="text-xs text-slate-400">approved by {u.kyc_reviewed_by_name}{u.kyc_reviewed_at ? ` · ${dt(u.kyc_reviewed_at, false)}` : ""}</span>}
         <div className="ml-auto flex items-center gap-2">
-          {status !== "approved" && <button data-testid="approve-btn" onClick={() => act("approve")} disabled={busy} className="h-10 px-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}Approve</button>}
-          {status !== "rejected" && <button data-testid="reject-btn" onClick={() => setShowReject(true)} disabled={busy} className="h-10 px-4 rounded-xl font-bold text-rose-700 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 inline-flex items-center gap-2"><XCircle className="h-4 w-4" />Reject</button>}
+          {status !== "approved" && <button data-testid="approve-btn" onClick={() => act("approve")} disabled={busy} className="h-10 px-4 rounded-md font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}Approve</button>}
+          {status !== "rejected" && <button data-testid="reject-btn" onClick={() => setShowReject(true)} disabled={busy} className="h-10 px-4 rounded-md font-bold text-rose-700 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 hover:bg-rose-50 dark:hover:bg-rose-900/20 inline-flex items-center gap-2"><XCircle className="h-4 w-4" />Reject</button>}
         </div>
       </div>
       {showReject && <RejectDialog role={role} name={u.shop_name || u.name} busy={busy} onCancel={() => setShowReject(false)} onConfirm={(reason) => act("reject", reason)} />}
@@ -627,7 +627,7 @@ const Modal = ({ title, icon: Icon, onClose, children, footer, wide }) => (
     <div className={`w-full ${wide ? "md:max-w-2xl" : "md:max-w-lg"} bg-white dark:bg-slate-900 rounded-t-2xl md:rounded-2xl shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800 overflow-hidden`} onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 dark:border-slate-800">
         {Icon && <Icon className="h-5 w-5 text-primary-600" />}<h3 className="font-bold">{title}</h3>
-        <button onClick={onClose} className="ml-auto h-7 w-7 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
+        <button onClick={onClose} className="ml-auto h-7 w-7 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
       </div>
       <div className="p-5 space-y-3 max-h-[70vh] overflow-auto">{children}</div>
       {footer && <div className="px-5 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">{footer}</div>}
@@ -635,11 +635,11 @@ const Modal = ({ title, icon: Icon, onClose, children, footer, wide }) => (
   </div>
 );
 
-const Inp = (props) => <input {...props} className={`w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 outline-none ${props.className || ""}`} />;
+const Inp = (props) => <input {...props} className={`w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm focus:ring-2 focus:ring-primary-400 outline-none ${props.className || ""}`} />;
 
 const ActionBtn = ({ icon: Icon, label, onClick, tone = "" }) => (
   <button onClick={onClick} data-testid={`action-${label.toLowerCase()}`}
-    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-xl font-bold text-xs ring-1 transition ${tone || "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300"}`}>
+    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-md font-bold text-xs ring-1 transition ${tone || "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300"}`}>
     <Icon className="h-3.5 w-3.5" />{label}
   </button>
 );
@@ -794,7 +794,7 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
 
       {modal === "purge" && (
         <Modal title="Delete forever?" icon={Trash2} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button><button onClick={doPurge} disabled={busy} data-testid="purge-confirm" className="h-10 px-5 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Delete forever</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button><button onClick={doPurge} disabled={busy} data-testid="purge-confirm" className="h-10 px-5 rounded-md font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Delete forever</button></>}>
           <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 ring-1 ring-rose-200 dark:ring-rose-800 p-3 flex gap-2.5">
             <FileWarning className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
             <p className="text-sm text-rose-700 dark:text-rose-300">This permanently removes <b>{u.name || "this account"}</b> ({u.phone}) — it <b>cannot be undone</b>. Past bookings, invoices and financial records are kept for audit.</p>
@@ -802,13 +802,13 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
         </Modal>)}
       {modal === "delete" && (
         <Modal title={`Delete ${role} account`} icon={Trash2} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-            <button onClick={doDelete} disabled={busy || !form.confirm} data-testid="delete-confirm" className="h-10 px-5 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Delete permanently</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doDelete} disabled={busy || !form.confirm} data-testid="delete-confirm" className="h-10 px-5 rounded-md font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Delete permanently</button></>}>
           <div className="rounded-xl bg-rose-50 dark:bg-rose-900/20 ring-1 ring-rose-200 dark:ring-rose-800 p-3 mb-3 flex gap-2.5">
             <FileWarning className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
             <p className="text-sm text-rose-700 dark:text-rose-300">This permanently deletes <b>{u.name || "this user"}</b> ({u.phone}) and their profile{role !== "customer" ? ", KYC & documents" : ""}. Past bookings, invoices and financial records are kept for audit. <b>This cannot be undone.</b></p>
           </div>
-          <div className="mb-3"><label className="text-xs font-semibold text-slate-500">Reason (optional — logged)</label><textarea rows={2} value={form.reason || ""} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder="Why is this account being deleted?" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" /></div>
+          <div className="mb-3"><label className="text-xs font-semibold text-slate-500">Reason (optional — logged)</label><textarea rows={2} value={form.reason || ""} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder="Why is this account being deleted?" className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" /></div>
           <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer select-none">
             <input type="checkbox" data-testid="delete-confirm-check" checked={!!form.confirm} onChange={(e) => setForm((f) => ({ ...f, confirm: e.target.checked }))} className="h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500" />
             I understand this action is permanent.
@@ -821,7 +821,7 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
             <div className="px-5 py-3.5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 shrink-0">
               <span className="h-9 w-9 rounded-xl grid place-items-center bg-primary-50 text-primary-600 dark:bg-primary-900/30"><Pencil className="h-4.5 w-4.5" /></span>
               <div className="min-w-0 flex-1"><h3 className="font-bold text-slate-900 dark:text-white truncate">Edit partner — registration form</h3><p className="text-xs text-slate-500 truncate">{u.name} · {u.phone}</p></div>
-              <button onClick={() => setModal(null)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
+              <button onClick={() => setModal(null)} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
             </div>
             <div className="overflow-y-auto p-3 sm:p-5 bg-white dark:bg-slate-900">
               <PartnerRegistration adminEdit embedded regBase={`/admin/partners/${uid}/reg`} lockedPhone={u.phone}
@@ -836,7 +836,7 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
             <div className="px-5 py-3.5 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 shrink-0">
               <span className="h-9 w-9 rounded-xl grid place-items-center bg-primary-50 text-primary-600 dark:bg-primary-900/30"><Store className="h-4.5 w-4.5" /></span>
               <div className="min-w-0 flex-1"><h3 className="font-bold text-slate-900 dark:text-white truncate">Edit merchant — registration form</h3><p className="text-xs text-slate-500 truncate">{u.shop_name || u.name} · {u.phone}</p></div>
-              <button onClick={() => setModal(null)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
+              <button onClick={() => setModal(null)} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
             </div>
             <div className="overflow-y-auto p-3 sm:p-5 bg-white dark:bg-slate-900">
               <MerchantRegistration adminEdit embedded regBase={`/admin/merchants/${uid}/reg`} lockedPhone={u.phone}
@@ -847,8 +847,8 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
 
       {modal === "edit" && role !== "partner" && role !== "merchant" && (
         <Modal wide title={`Edit ${role} — registration details`} icon={Pencil} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-            <button onClick={doEdit} disabled={busy} data-testid="edit-save" className="h-10 px-5 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Save changes</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doEdit} disabled={busy} data-testid="edit-save" className="h-10 px-5 rounded-md font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Save changes</button></>}>
           {[
             { title: "Personal details", icon: User, fields: [["name", "Full name"], ["email", "Email"], ["alternate_mobile", "Alternate mobile"], ["gender", "Gender", { options: ["Male", "Female", "Other"] }], ["dob", "Date of birth", { type: "date" }], ["language", "Language", { options: [{ value: "en", label: "English" }, { value: "hi", label: "Hindi" }] }]] },
             { title: "Location", icon: MapPin, fields: [["city", "City"], ["state", "State"], ["pincode", "Pincode"], ["landmark", "Landmark"]] },
@@ -878,20 +878,20 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
 
       {modal === "suspend" && (
         <Modal title={suspended ? `Reinstate ${role}` : `Suspend ${role}`} icon={Ban} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-            <button onClick={doSuspend} disabled={busy || (!suspended && !form.reason?.trim())} data-testid="suspend-confirm" className={`h-10 px-5 rounded-xl font-bold text-white disabled:opacity-50 inline-flex items-center gap-2 ${suspended ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}{suspended ? "Reinstate account" : "Suspend account"}</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doSuspend} disabled={busy || (!suspended && !form.reason?.trim())} data-testid="suspend-confirm" className={`h-10 px-5 rounded-md font-bold text-white disabled:opacity-50 inline-flex items-center gap-2 ${suspended ? "bg-emerald-600 hover:bg-emerald-700" : "bg-rose-600 hover:bg-rose-700"}`}>{busy && <Loader2 className="h-4 w-4 animate-spin" />}{suspended ? "Reinstate account" : "Suspend account"}</button></>}>
           {suspended
             ? <p className="text-sm text-slate-600 dark:text-slate-300">This will reinstate <b>{u.name}</b> and restore their access immediately.</p>
             : <>
-              <div><label className="text-xs font-semibold text-slate-500">Reason (shared with the user)</label><textarea rows={3} value={form.reason || ""} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder="Why is this account being suspended?" className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" /></div>
+              <div><label className="text-xs font-semibold text-slate-500">Reason (shared with the user)</label><textarea rows={3} value={form.reason || ""} onChange={(e) => setForm((f) => ({ ...f, reason: e.target.value }))} placeholder="Why is this account being suspended?" className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none resize-none focus:ring-2 focus:ring-rose-400" /></div>
               <div><label className="text-xs font-semibold text-slate-500">Duration in days (optional — blank = indefinite)</label><Inp type="number" min="1" value={form.days || ""} onChange={(e) => setForm((f) => ({ ...f, days: e.target.value }))} placeholder="e.g. 7" /></div>
             </>}
         </Modal>)}
 
       {modal === "reset-device" && (
         <Modal title="Reset device lock" icon={Smartphone} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-            <button onClick={doResetDevice} disabled={busy} data-testid="reset-device-confirm" className="h-10 px-5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Reset device</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doResetDevice} disabled={busy} data-testid="reset-device-confirm" className="h-10 px-5 rounded-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 inline-flex items-center gap-2">{busy && <Loader2 className="h-4 w-4 animate-spin" />}Reset device</button></>}>
           <div className="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-200 dark:ring-indigo-800 p-3 flex gap-2.5">
             <Smartphone className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" />
             <p className="text-sm text-indigo-700 dark:text-indigo-300">This clears the single-device lock for <b>{u.name || "this partner"}</b> ({u.phone}). They can then log in on <b>any new device</b>, which becomes their registered device — the old device is logged out automatically.</p>
@@ -900,8 +900,8 @@ const PersonActions = ({ role, uid, u, onDone, onDeleted }) => {
 
       {(modal === "email" || modal === "push") && (
         <Modal title={`Send ${modal === "email" ? "Email" : "Push"} · choose a template`} icon={modal === "email" ? Mail : BellRing} onClose={() => setModal(null)}
-          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-xl font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
-            <button onClick={doSendTpl} disabled={busy || !sel} data-testid="message-send" className="h-10 px-5 rounded-xl font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send {modal === "email" ? "Email" : "Push"}</button></>}>
+          footer={<><button onClick={() => setModal(null)} className="h-10 px-4 rounded-md font-bold text-slate-600 ring-1 ring-slate-200 dark:ring-slate-700">Cancel</button>
+            <button onClick={doSendTpl} disabled={busy || !sel} data-testid="message-send" className="h-10 px-5 rounded-md font-bold text-white bg-primary-600 hover:bg-primary-700 disabled:opacity-50 inline-flex items-center gap-2">{busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}Send {modal === "email" ? "Email" : "Push"}</button></>}>
           <p className="text-xs text-slate-500">To <b>{u.name}</b>{modal === "email" ? ` · ${u.email || "no email on file"}` : " · in-app + push"}</p>
           {/* searchable template list */}
           <div><label className="text-xs font-semibold text-slate-500">Template</label>
@@ -1015,7 +1015,7 @@ export default function Person360({ role, uid, onBack, onCountsChanged, onOpenUs
               <div className="rounded-xl ring-1 ring-red-200 dark:ring-red-900/40 bg-red-50/70 dark:bg-red-900/20 px-3 py-2.5 flex items-center gap-3 md:max-w-xs" data-testid="profile-updated-banner">
                 <Bell className="h-5 w-5 text-red-500 shrink-0" />
                 <div className="min-w-0 flex-1"><p className="text-sm font-bold text-red-700 dark:text-red-300">Profile updated · {data.unread_updates} unreviewed</p><p className="text-xs text-red-600/80 dark:text-red-300/80 truncate">{data.last_update?.summary} · {rel(data.last_update?.changed_at)}</p></div>
-                <div className="flex flex-col gap-1"><button onClick={() => setTab("changes")} className="text-[11px] font-bold text-red-700 underline">View</button><button onClick={reviewAll} data-testid="mark-all-reviewed" className="h-7 px-2 rounded-lg bg-red-600 text-white text-[11px] font-bold inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" />Reviewed</button></div>
+                <div className="flex flex-col gap-1"><button onClick={() => setTab("changes")} className="text-[11px] font-bold text-red-700 underline">View</button><button onClick={reviewAll} data-testid="mark-all-reviewed" className="h-7 px-2 rounded-md bg-red-600 text-white text-[11px] font-bold inline-flex items-center gap-1"><CheckCheck className="h-3 w-3" />Reviewed</button></div>
               </div>)}
           </div>)}
         {role !== "customer" && !(loading && !data) && <ReviewStrip role={role} uid={uid} u={u} onDone={refresh} />}
@@ -1048,7 +1048,7 @@ export default function Person360({ role, uid, onBack, onCountsChanged, onOpenUs
                 { key: "bank", icon: Landmark, label: "Bank & KYC", val: u.kyc_status || "pending", sub: u.verified_merchant ? "verified" : "review", cls: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300" },
               ].map((f) => (
                 <button key={f.key} onClick={() => setTab(f.key)} data-testid={`adv-${f.key}`}
-                  className="group text-left rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 dark:hover:ring-primary-700 bg-white dark:bg-slate-800/60 p-3.5 transition">
+                  className="group text-left rounded-md ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 dark:hover:ring-primary-700 bg-white dark:bg-slate-800/60 p-3.5 transition">
                   <div className="flex items-center justify-between"><span className={`h-8 w-8 grid place-items-center rounded-lg ${f.cls}`}><f.icon className="h-4 w-4" /></span><ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-primary-500 transition" /></div>
                   <p className="mt-2 text-lg font-extrabold text-slate-900 dark:text-white leading-none truncate">{f.val}</p>
                   <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 mt-1">{f.label}</p>
@@ -1072,7 +1072,7 @@ export default function Person360({ role, uid, onBack, onCountsChanged, onOpenUs
                 { key: "referrals", icon: Gift, label: "Refer & Earn", val: `${s.referrals_count ?? 0}`, sub: money(s.referral_rewards), cls: "bg-amber-50 dark:bg-amber-900/30 text-amber-600" },
               ].map((f) => (
                 <button key={f.key} onClick={() => setTab(f.key)} data-testid={`adv-${f.key}`}
-                  className="group text-left rounded-xl ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 dark:hover:ring-primary-700 bg-white dark:bg-slate-800/60 p-3.5 transition">
+                  className="group text-left rounded-md ring-1 ring-slate-200 dark:ring-slate-700 hover:ring-primary-300 dark:hover:ring-primary-700 bg-white dark:bg-slate-800/60 p-3.5 transition">
                   <div className="flex items-center justify-between"><span className={`h-8 w-8 grid place-items-center rounded-lg ${f.cls}`}><f.icon className="h-4 w-4" /></span><ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-primary-500 transition" /></div>
                   <p className="mt-2 text-lg font-extrabold text-slate-900 dark:text-white leading-none truncate">{f.val}</p>
                   <p className="text-[13px] font-semibold text-slate-700 dark:text-slate-200 mt-1">{f.label}</p>

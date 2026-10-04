@@ -81,7 +81,7 @@ export default function InstallPrompt() {
           <div className="flex items-center gap-3 rounded-2xl bg-slate-900 text-white shadow-2xl px-4 py-3">
             <RefreshCw className="h-5 w-5 text-primary-300 shrink-0" />
             <p className="text-sm flex-1">A new version of AzoApp is available.</p>
-            <button onClick={doUpdate} className="h-9 px-3 rounded-xl bg-white text-slate-900 text-sm font-bold">Update</button>
+            <button onClick={doUpdate} className="h-9 px-3 rounded-md bg-white text-slate-900 text-sm font-bold">Update</button>
           </div>
         </div>
       )}
@@ -89,7 +89,7 @@ export default function InstallPrompt() {
       {cfg.enabled !== false && cfg.install_prompt_enabled !== false && show && target && (
         <div data-testid="pwa-install-prompt" className="fixed left-1/2 -translate-x-1/2 bottom-4 z-[9998] w-[min(94vw,440px)] animate-in slide-in-from-bottom-4">
           <div className="relative rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl p-4">
-            <button onClick={dismiss} data-testid="pwa-dismiss" className="absolute right-3 top-3 h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+            <button onClick={dismiss} data-testid="pwa-dismiss" className="absolute right-3 top-3 h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
             <div className="flex items-center gap-3.5">
               <img src={cfg.icon || "/logo192.png"} alt="AzoApp" className="h-14 w-14 rounded-2xl shadow" />
               <div className="min-w-0 pr-6">

@@ -275,18 +275,18 @@ export default function CustomJobWizard({ open, onClose, onSubmitted }) {
                 style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
                 {step > 1 ? (
                   <button onClick={back} data-testid="cjr-back"
-                    className="h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1">
+                    className="h-12 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-1">
                     <ArrowLeft className="h-4 w-4" /> Back
                   </button>
                 ) : <span />}
                 {step < 5 ? (
                   <button onClick={next} disabled={!canNext} data-testid="cjr-next"
-                    className="flex-1 h-12 rounded-xl bg-primary-700 hover:bg-primary-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold flex items-center justify-center gap-1 shadow-primarybtn">
+                    className="flex-1 h-12 rounded-md bg-primary-700 hover:bg-primary-800 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold flex items-center justify-center gap-1 shadow-primarybtn">
                     Continue <ArrowRight className="h-4 w-4" />
                   </button>
                 ) : (
                   <button onClick={submit} disabled={busy} data-testid="cjr-submit"
-                    className="flex-1 h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-2 shadow-lg">
+                    className="flex-1 h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-2 shadow-lg">
                     {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <><BadgeCheck className="h-5 w-5" /> Submit Custom Job Request</>}
                   </button>
                 )}
@@ -308,7 +308,7 @@ function Step1({ name, setName, phone, setPhone, otp, setOtp, otpSent, verified,
         <input data-testid="cjr-name" value={name} maxLength={60}
           onChange={(e) => setName(onlyAlpha(e.target.value))}
           placeholder="e.g. Rahul Kumar"
-          className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
+          className="w-full h-12 px-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
         {name && !nameOk && <Hint bad>Name must be 2–60 letters.</Hint>}
       </Field>
 
@@ -328,13 +328,13 @@ function Step1({ name, setName, phone, setPhone, otp, setOtp, otpSent, verified,
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input data-testid="cjr-phone" value={phone} inputMode="numeric" maxLength={10}
                 onChange={(e) => setPhone(onlyDigits(e.target.value, 10))} placeholder="10-digit mobile number"
-                className="w-full h-12 pl-9 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
+                className="w-full h-12 pl-9 pr-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
             </div>
           </Field>
 
           {!otpSent ? (
             <button data-testid="cjr-send-otp" onClick={sendOtp} disabled={busy}
-              className="w-full h-12 rounded-xl bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1">
+              className="w-full h-12 rounded-md bg-primary-700 hover:bg-primary-800 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Send OTP <ArrowRight className="h-4 w-4" /></>}
             </button>
           ) : (
@@ -344,11 +344,11 @@ function Step1({ name, setName, phone, setPhone, otp, setOtp, otpSent, verified,
                   <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input data-testid="cjr-otp" value={otp} inputMode="numeric" maxLength={6}
                     onChange={(e) => setOtp(onlyDigits(e.target.value, 6))} placeholder="6-digit OTP"
-                    className="w-full h-12 pl-9 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 tracking-[0.3em] font-semibold focus:border-primary-500 outline-none" />
+                    className="w-full h-12 pl-9 pr-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 tracking-[0.3em] font-semibold focus:border-primary-500 outline-none" />
                 </div>
               </Field>
               <button data-testid="cjr-verify-otp" onClick={verifyOtp} disabled={busy}
-                className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1">
+                className="w-full h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center justify-center gap-1">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & Continue"}
               </button>
               <div className="flex justify-end">
@@ -373,7 +373,7 @@ function Step2({ categories, categoryId, setCategoryId, catQuery, setCatQuery })
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input value={catQuery} onChange={(e) => setCatQuery(e.target.value)} placeholder="Search categories…"
-          className="w-full h-11 pl-9 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none text-sm" />
+          className="w-full h-11 pl-9 pr-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none text-sm" />
       </div>
       <div className="grid grid-cols-2 gap-2.5" data-testid="cjr-categories">
         {categories.length === 0 && <p className="col-span-2 text-center text-sm text-slate-400 py-6">No categories found.</p>}
@@ -405,14 +405,14 @@ function Step3({ workName, setWorkName, description, setDescription }) {
       <Field label="Work Name" required hint={`${workName.trim().length}/100`}>
         <input data-testid="cjr-workname" value={workName} maxLength={100}
           onChange={(e) => setWorkName(e.target.value)} placeholder="e.g. Main Gate Grill Repair"
-          className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
+          className="w-full h-12 px-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
         {workName && workName.trim().length < 3 && <Hint bad>At least 3 characters.</Hint>}
       </Field>
       <Field label="Describe Your Work" required hint={`${description.trim().length}/1000`}>
         <textarea data-testid="cjr-desc" value={description} maxLength={1000} rows={5}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="e.g. The main gate grill has come loose and needs welding / re-fixing."
-          className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none resize-none" />
+          className="w-full px-4 py-3 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none resize-none" />
         {description && description.trim().length < 10 && <Hint bad>Please add at least 10 characters.</Hint>}
       </Field>
     </div>
@@ -429,7 +429,7 @@ function Step4({ budget, setBudget, meta, budgetOk, pincode, setPincode, area, a
           <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input data-testid="cjr-budget" value={budget} inputMode="numeric"
             onChange={(e) => setBudget(onlyDigits(e.target.value, 7))} placeholder={`e.g. 1500 (min ${meta.min_budget})`}
-            className="w-full h-12 pl-9 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
+            className="w-full h-12 pl-9 pr-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
         </div>
         {budget && !budgetOk && (
           <Hint bad>Enter an amount between {rupee(meta.min_budget)} and {rupee(meta.max_budget)}.</Hint>
@@ -442,7 +442,7 @@ function Step4({ budget, setBudget, meta, budgetOk, pincode, setPincode, area, a
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input data-testid="cjr-pincode" value={pincode} inputMode="numeric" maxLength={6}
             onChange={(e) => setPincode(onlyDigits(e.target.value, 6))} placeholder="6-digit pincode"
-            className="w-full h-12 pl-9 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
+            className="w-full h-12 pl-9 pr-4 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:border-primary-500 outline-none" />
         </div>
       </Field>
 
@@ -536,11 +536,11 @@ function SuccessScreen({ result, onClose, onDashboard, onBrowse }) {
       </div>
       <div className="mt-7 w-full space-y-2.5">
         <button onClick={onDashboard} data-testid="cjr-view-request"
-          className="w-full h-12 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-bold flex items-center justify-center gap-2">
+          className="w-full h-12 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-bold flex items-center justify-center gap-2">
           <ClipboardList className="h-4 w-4" /> View My Requests
         </button>
         <button onClick={onBrowse}
-          className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold flex items-center justify-center gap-2">
+          className="w-full h-12 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold flex items-center justify-center gap-2">
           <HomeIcon className="h-4 w-4" /> Continue Browsing Services
         </button>
       </div>

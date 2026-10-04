@@ -126,7 +126,7 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
           onChangeText={(t) => onBoxChange(i, t, d)}
           onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && i > 0) { setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
           selectTextOnFocus
-          style={{ width: 56, height: 56, borderRadius: 10, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
+          style={{ width: 56, height: 56, borderRadius: 6, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
         />
       ))}
     </View>
@@ -159,7 +159,7 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
             ) : (
               <Image source={{ uri: mediaUrl(u) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={u} transition={120} />
             )}
-            <Pressable testID={`${testID}-remove-${i}`} onPress={() => onRemove(u)} disabled={busy} style={{ position: "absolute", top: 5, right: 5, width: 24, height: 24, borderRadius: 12, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" }}>
+            <Pressable testID={`${testID}-remove-${i}`} onPress={() => onRemove(u)} disabled={busy} style={{ position: "absolute", top: 5, right: 5, width: 24, height: 24, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.65)", alignItems: "center", justifyContent: "center" }}>
               <Icon name="close" size={13} color="#fff" />
             </Pressable>
           </View>

@@ -921,7 +921,7 @@ const WalletTopup = ({ onDone, user }) => {
     <div className="mt-4">
       <div className="flex gap-2 flex-wrap mb-2">
         {[100, 250, 500, 1000].map((v) => (
-          <button key={v} data-testid={`topup-preset-${v}`} onClick={() => setAmt(v)} className={`h-8 px-3 rounded-lg text-sm font-bold azo-press ${Number(amt) === v ? "bg-white text-primary-700" : "bg-white/20 text-white hover:bg-white/30"}`}>₹{v}</button>
+          <button key={v} data-testid={`topup-preset-${v}`} onClick={() => setAmt(v)} className={`h-8 px-3 rounded-md text-sm font-bold azo-press ${Number(amt) === v ? "bg-white text-primary-700" : "bg-white/20 text-white hover:bg-white/30"}`}>₹{v}</button>
         ))}
       </div>
       <div className="flex gap-2">
@@ -1174,7 +1174,7 @@ const CancelDialog = ({ booking, onClose, onConfirm }) => {
         <div className="space-y-2 py-1">
           {reasonList.map((r) => (
             <button key={r} type="button" data-testid={`cancel-reason-${r.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`} onClick={() => setReason(r)}
-              className={`w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-all ${reason === r ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium ring-1 ring-primary-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>{r}</button>
+              className={`w-full text-left px-4 py-2.5 rounded-md border text-sm transition-all ${reason === r ? "border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium ring-1 ring-primary-500" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>{r}</button>
           ))}
           {reason === "Other" && <Input autoFocus data-testid="cancel-reason-other-input" value={other} onChange={(e) => setOther(e.target.value)} placeholder="Tell us a bit more…" className="mt-1" />}
         </div>
@@ -1310,7 +1310,7 @@ function CurrentStepCard({ b, onCall, onChat }) {
     <div className="mt-3 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/70 dark:bg-primary-900/15 p-3" data-testid={`current-step-${b.code}`}>
       <p className="text-[11px] font-bold uppercase tracking-wider text-primary-700 dark:text-primary-300">{m.t}</p>
       <button type="button" disabled={!b.partner_id} onClick={() => setShowProfile(true)} data-testid={`partner-chip-${b.code}`}
-        className="mt-2 w-full flex items-center gap-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-2.5 text-left hover:border-primary-300 transition-colors disabled:cursor-default">
+        className="mt-2 w-full flex items-center gap-3 rounded-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-2.5 text-left hover:border-primary-300 transition-colors disabled:cursor-default">
         {pc?.photo ? <img src={mediaSrc(pc.photo)} alt={name} className="h-12 w-12 rounded-lg object-cover shrink-0" data-testid={`partner-chip-photo-${b.code}`} />
           : <span className="h-12 w-12 rounded-lg grid place-items-center bg-primary-600 text-white font-black text-lg shrink-0">{b.partner_id ? initial : <UserIcon className="h-5 w-5" />}</span>}
         <div className="min-w-0 flex-1">
@@ -1346,7 +1346,7 @@ function DrawerShell({ open, onClose, title, children, footer }) {
         className="w-full sm:max-w-md h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 shrink-0 sticky top-0 bg-white dark:bg-slate-900 z-10">
           <h3 className="font-heading font-bold text-slate-900 dark:text-white">{title}</h3>
-          <button onClick={onClose} aria-label="Close" className="h-9 w-9 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} aria-label="Close" className="h-9 w-9 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-5">{children}</div>
         {footer && <div className="p-4 border-t border-slate-100 dark:border-slate-800 shrink-0">{footer}</div>}

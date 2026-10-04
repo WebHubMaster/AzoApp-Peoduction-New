@@ -22,7 +22,7 @@ function useIsMobile() {
 const uniq = (rows, f) => [...new Set(rows.map(f).filter(Boolean))].sort();
 const SelectBox = ({ value, onChange, opts, all, tid }) => (
   <select value={value} onChange={(e) => onChange(e.target.value)} data-testid={tid} aria-label={all}
-    className={`h-9 rounded-lg border bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 ${value ? "border-[#0D47A1]/40 text-[#0D47A1]" : "border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>
+    className={`h-9 rounded-md border bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 ${value ? "border-[#0D47A1]/40 text-[#0D47A1]" : "border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300"}`}>
     <option value="">{all}</option>{opts.map((o) => <option key={o} value={o}>{label(o)}</option>)}
   </select>
 );
@@ -100,7 +100,7 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
           {!rows && !err && [0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-8 w-28 rounded-lg shrink-0" />)}
           {rows && tabs.map((t) => (
             <button key={t.key} role="tab" aria-selected={tab === t.key} onClick={() => setTab(t.key)} data-testid={`bk-tab-${t.key}`}
-              className={`h-8 px-3 rounded-lg border text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 transition-colors ${tab === t.key ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-[#111827] dark:text-slate-200 hover:border-slate-300"}`}>
+              className={`h-8 px-3 rounded-md border text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-1.5 transition-colors ${tab === t.key ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-[#111827] dark:text-slate-200 hover:border-slate-300"}`}>
               {t.key === "all" ? "All" : label(t.key)}<span className={`min-w-[18px] h-[18px] px-1 rounded text-[11px] tabular-nums grid place-items-center ${tab === t.key ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{t.count}</span>
             </button>
           ))}
@@ -108,7 +108,7 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
 
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2.5" data-testid="bk-summary">
           {stats.map(([I, l, v, c, k]) => (
-            <button key={l} type="button" disabled={!k || !rows} onClick={() => k && setTab(k === "all" ? "all" : counts[k] ? k : tab)} className="text-left bg-white dark:bg-slate-900 rounded-xl border border-[#E5E7EB] dark:border-slate-800 px-3 py-2.5 flex items-center gap-2.5 transition-shadow enabled:hover:shadow-[0_4px_16px_-8px_rgba(15,23,42,0.18)] disabled:cursor-default">
+            <button key={l} type="button" disabled={!k || !rows} onClick={() => k && setTab(k === "all" ? "all" : counts[k] ? k : tab)} className="text-left bg-white dark:bg-slate-900 rounded-md border border-[#E5E7EB] dark:border-slate-800 px-3 py-2.5 flex items-center gap-2.5 transition-shadow enabled:hover:shadow-[0_4px_16px_-8px_rgba(15,23,42,0.18)] disabled:cursor-default">
               <I className="h-4 w-4 text-slate-400 shrink-0" />
               <span className="min-w-0"><span className="block text-[11.5px] text-[#6B7280] truncate">{l}</span><span className={`block text-[17px] leading-6 font-bold tabular-nums ${c}`} data-testid={`bk-stat-${l.toLowerCase().replace(/ /g, "-")}`}>{rows ? v : "—"}</span></span>
             </button>

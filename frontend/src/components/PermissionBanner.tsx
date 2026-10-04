@@ -59,7 +59,7 @@ export function PermissionBanner() {
         <Pressable
           testID="permission-banner-fix"
           onPress={() => router.push("/partner/permissions")}
-          style={({ pressed }) => ({ flex: 1, height: 42, borderRadius: 12, backgroundColor: "#EA580C", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.97 : 1 }] })}
+          style={({ pressed }) => ({ flex: 1, height: 42, borderRadius: 6, backgroundColor: "#EA580C", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.97 : 1 }] })}
         >
           <Icon name="bell-ring" size={16} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: fontSize.sm }}>Turn On Alerts</Text>

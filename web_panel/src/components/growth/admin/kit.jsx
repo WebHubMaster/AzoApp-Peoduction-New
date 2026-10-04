@@ -95,14 +95,14 @@ export const Toggle = ({ checked, onChange, label, size = "md" }) => {
 
 export const SaveBtn = ({ onClick, busy, children = "Save changes", testId = "growth-save", icon: Icon }) => (
   <button data-testid={testId} onClick={onClick} disabled={busy}
-    className="h-11 px-6 rounded-xl bg-primary-700 hover:bg-primary-800 disabled:opacity-60 text-white font-bold inline-flex items-center gap-2 transition-colors">
+    className="h-11 px-6 rounded-md bg-primary-700 hover:bg-primary-800 disabled:opacity-60 text-white font-bold inline-flex items-center gap-2 transition-colors">
     {Icon && <Icon className="h-4 w-4" />} {busy ? "Saving…" : children}
   </button>
 );
 
 export const GhostBtn = ({ onClick, children, icon: Icon, className = "", ...rest }) => (
   <button type="button" onClick={onClick} {...rest}
-    className={cn("h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1.5 transition-colors", className)}>
+    className={cn("h-10 px-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1.5 transition-colors", className)}>
     {Icon && <Icon className="h-4 w-4" />} {children}
   </button>
 );

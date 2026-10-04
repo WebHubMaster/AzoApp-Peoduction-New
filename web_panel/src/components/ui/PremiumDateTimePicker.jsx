@@ -88,9 +88,9 @@ export default function PremiumDateTimePicker({
   const inner = (
     <div className="p-3">
       <div className="flex items-center justify-between mb-2">
-        <button type="button" aria-label="Previous" onClick={() => shiftMonth(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
+        <button type="button" aria-label="Previous" onClick={() => shiftMonth(-1)} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
         <span className="text-sm font-semibold text-slate-700 dark:text-slate-100">{MONTHS[view.getMonth()]} {view.getFullYear()}</span>
-        <button type="button" aria-label="Next" onClick={() => shiftMonth(1)} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+        <button type="button" aria-label="Next" onClick={() => shiftMonth(1)} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {DOW.map((d) => <div key={d} className="text-center text-[11px] font-medium text-slate-400 py-1">{d}</div>)}
@@ -113,11 +113,11 @@ export default function PremiumDateTimePicker({
       <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2 mb-2"><Clock className="h-4 w-4 text-slate-400" /><span className="text-xs font-semibold text-slate-500">Time</span></div>
         <div className="flex items-center gap-2">
-          <select value={hours12} onChange={(e) => setHour12(Number(e.target.value))} data-testid={testId ? `${testId}-hour` : undefined} className="h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-300">
+          <select value={hours12} onChange={(e) => setHour12(Number(e.target.value))} data-testid={testId ? `${testId}-hour` : undefined} className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-300">
             {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => <option key={h} value={h}>{pad(h)}</option>)}
           </select>
           <span className="font-bold text-slate-400">:</span>
-          <select value={draft.getMinutes()} onChange={(e) => setMinute(Number(e.target.value))} data-testid={testId ? `${testId}-minute` : undefined} className="h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-300">
+          <select value={draft.getMinutes()} onChange={(e) => setMinute(Number(e.target.value))} data-testid={testId ? `${testId}-minute` : undefined} className="h-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary-300">
             {minutes.map((m) => <option key={m} value={m}>{pad(m)}</option>)}
           </select>
           <div className="ml-1 inline-flex rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -128,7 +128,7 @@ export default function PremiumDateTimePicker({
       </div>
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
         {value ? <button type="button" onClick={() => { onChange?.({ target: { value: "" } }); setOpen(false); }} className="text-xs text-slate-400 hover:text-slate-600">Clear</button> : <span />}
-        <button type="button" data-testid={testId ? `${testId}-confirm` : undefined} onClick={confirm} className="px-4 py-1.5 rounded-lg text-[13px] font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-sm">Set</button>
+        <button type="button" data-testid={testId ? `${testId}-confirm` : undefined} onClick={confirm} className="px-4 py-1.5 rounded-md text-[13px] font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-sm">Set</button>
       </div>
     </div>
   );
@@ -149,7 +149,7 @@ export default function PremiumDateTimePicker({
   return (
     <>
       <button type="button" ref={triggerRef} onClick={() => (open ? setOpen(false) : openCal())} disabled={disabled} data-testid={testId} {...rest}
-        className={`w-full h-10 px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
+        className={`w-full h-10 px-3 inline-flex items-center gap-2 rounded-md border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
         <CalIcon className="h-4 w-4 text-slate-400 shrink-0" />
         <span className={`flex-1 text-left truncate ${label ? "text-slate-700 dark:text-slate-100" : "text-slate-400"}`}>{label || placeholder}</span>
       </button>

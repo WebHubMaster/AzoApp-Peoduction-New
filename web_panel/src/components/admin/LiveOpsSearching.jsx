@@ -122,11 +122,11 @@ export const SearchingCard = ({ x, now, ttl = 25, longWaitSec = 180, onDetails, 
         {/* actions */}
         <div className="mt-4 flex items-center gap-2.5">
           <button data-testid={`liveops-details-${x.id}`} onClick={() => onDetails(x)}
-            className="h-10 min-w-[44px] px-4 rounded-xl border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#334155] dark:text-[#F8FAFC] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-2 transition-colors">
+            className="h-10 min-w-[44px] px-4 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#334155] dark:text-[#F8FAFC] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-2 transition-colors">
             <Eye className="h-4 w-4" /> View Details
           </button>
           <button data-testid={`liveops-assign-${x.id}`} onClick={() => onAssign(x)}
-            className="h-10 flex-1 sm:flex-none px-5 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center justify-center gap-2 transition-colors">
+            className="h-10 flex-1 sm:flex-none px-5 rounded-md bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center justify-center gap-2 transition-colors">
             <UserPlus className="h-4 w-4" /> Assign Partner
           </button>
         </div>
@@ -210,7 +210,7 @@ export const AssignDrawer = ({ booking, onClose, onAssigned }) => {
                   {booking.service_name}{data?.category ? ` · ${data.category}` : ""}
                 </p>
               </div>
-              <button onClick={onClose} data-testid="assign-drawer-close" className="h-8 w-8 rounded-lg hover:bg-white/15 flex items-center justify-center transition-colors"><X className="h-5 w-5" /></button>
+              <button onClick={onClose} data-testid="assign-drawer-close" className="h-8 w-8 rounded-md hover:bg-white/15 flex items-center justify-center transition-colors"><X className="h-5 w-5" /></button>
             </div>
 
             <div className="shrink-0 px-5 pt-4">
@@ -218,7 +218,7 @@ export const AssignDrawer = ({ booking, onClose, onAssigned }) => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
                 <input data-testid="assign-drawer-search" value={q} onChange={(e) => setQ(e.target.value)}
                   placeholder="Search partner, phone or city…"
-                  className="w-full h-11 pl-9 pr-3 rounded-xl border border-[#E6EAF0] bg-white dark:bg-[#111827] dark:border-[#1F2937] text-[14px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
+                  className="w-full h-11 pl-9 pr-3 rounded-md border border-[#E6EAF0] bg-white dark:bg-[#111827] dark:border-[#1F2937] text-[14px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
               </div>
               <p className="text-[12px] text-[#64748B] mt-2">
                 {loading ? "Finding eligible partners…" : `${partners.length} eligible${data?.nearby_radius_km ? ` · nearby within ${data.nearby_radius_km} km` : ""}`}
@@ -264,7 +264,7 @@ export const AssignDrawer = ({ booking, onClose, onAssigned }) => {
                       </div>
                     </div>
                     <button data-testid={`assign-do-${p.id}`} onClick={() => setConfirm(p)} disabled={busyId === p.id}
-                      className="h-9 px-4 rounded-lg bg-[#0D47A1] hover:bg-[#083A87] disabled:opacity-60 text-white text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0">
+                      className="h-9 px-4 rounded-md bg-[#0D47A1] hover:bg-[#083A87] disabled:opacity-60 text-white text-[12.5px] font-bold inline-flex items-center gap-1.5 transition-colors shrink-0">
                       {busyId === p.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Assign <ChevronRight className="h-3.5 w-3.5" /></>}
                     </button>
                   </div>

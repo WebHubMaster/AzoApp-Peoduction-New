@@ -187,7 +187,7 @@ export default function MerchantHome({ user, code, onNavigate }) {
             <span className="flex items-center justify-between"><span className="text-slate-400 inline-flex items-center gap-1"><Banknote className="h-3.5 w-3.5 text-emerald-500" /> Withdrawable</span><b className="text-emerald-600">{fmt(wallet.withdrawable || 0)}</b></span>
             <span className="flex items-center justify-between"><span className="text-slate-400 inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> Pending</span><b className="text-slate-500">{fmt(wallet.pending || 0)}</b></span>
           </div>
-          <button type="button" onClick={() => onNavigate("wallet")} className="mt-4 w-full h-10 rounded-xl bg-primary-700 hover:bg-primary-800 text-white text-[13px] font-semibold inline-flex items-center justify-center gap-1.5">
+          <button type="button" onClick={() => onNavigate("wallet")} className="mt-4 w-full h-10 rounded-md bg-primary-700 hover:bg-primary-800 text-white text-[13px] font-semibold inline-flex items-center justify-center gap-1.5">
             <Banknote className="h-4 w-4" /> Withdraw
           </button>
         </div>

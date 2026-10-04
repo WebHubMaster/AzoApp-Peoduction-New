@@ -55,7 +55,7 @@ export function OpsSnapshot({ o = {}, onNavigate }) {
       <SectionTitle icon={Radio} sub="Live counts · not affected by the date range">Operational Snapshot</SectionTitle>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {items.map((o) => (
-          <button key={o.l} onClick={() => onNavigate?.(o.nav)} data-testid={`ops-${o.l.toLowerCase().replace(/\s+/g, "-")}`} className={`rounded-xl p-3 text-left hover:opacity-90 active:scale-[.98] transition-all ${o.c}`}>
+          <button key={o.l} onClick={() => onNavigate?.(o.nav)} data-testid={`ops-${o.l.toLowerCase().replace(/\s+/g, "-")}`} className={`rounded-md p-3 text-left hover:opacity-90 active:scale-[.98] transition-all ${o.c}`}>
             <p className="font-heading font-extrabold text-xl tabular-nums">{o.v ?? 0}</p>
             <p className="text-[10px] font-bold uppercase tracking-wide opacity-80 leading-tight">{o.l}</p>
           </button>
@@ -89,7 +89,7 @@ export function NeedsAttention({ na = {}, onNavigate }) {
       ) : (
         <div className="space-y-1.5">
           {items.map((x) => (
-            <button key={x.l} onClick={() => onNavigate?.(x.nav)} data-testid={`attn-${x.nav}`} className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 text-left transition-colors group">
+            <button key={x.l} onClick={() => onNavigate?.(x.nav)} data-testid={`attn-${x.nav}`} className="w-full flex items-center gap-3 p-2.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 text-left transition-colors group">
               <span className={`h-8 w-8 rounded-lg grid place-items-center shrink-0 ${tone[x.tone]}`}><AlertTriangle className="h-4 w-4" /></span>
               <span className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-200">{x.l}</span>
               <span className="font-heading font-extrabold text-slate-900 dark:text-white tabular-nums">{x.v}</span>
@@ -213,7 +213,7 @@ export function MerchantAnalytics({ m = {}, onPick }) {
       {(m.top || []).length === 0 ? <p className="text-xs text-slate-400 py-2" data-testid="mer-top-empty">No merchant-generated bookings in this period.</p> : (
         <div className="space-y-1">
           {(m.top || []).slice(0, 5).map((t, i) => (
-            <button key={t.id} onClick={() => onPick?.(t.name)} className="w-full flex items-center gap-2 text-xs p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+            <button key={t.id} onClick={() => onPick?.(t.name)} className="w-full flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
               <span className="text-slate-400 w-5">#{i + 1}</span>
               <span className="flex-1 text-left font-medium text-slate-700 dark:text-slate-200 truncate">{t.name}</span>
               <span className="text-slate-500 tabular-nums">{t.bookings} bk</span>

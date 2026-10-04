@@ -132,7 +132,7 @@ export default function Promotions() {
                     </div>
                     <div className="flex items-center gap-2 mt-3">
                       <span className="font-mono text-sm font-bold text-primary-700 bg-primary-50 ring-1 ring-primary-100 rounded-lg px-2.5 py-1 tracking-wider">{c.code}</span>
-                      <button data-testid={`coupon-copy-${c.code}`} onClick={() => copyCoupon(c.code)} className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-xs font-semibold text-primary-700 hover:bg-primary-50 transition-colors">
+                      <button data-testid={`coupon-copy-${c.code}`} onClick={() => copyCoupon(c.code)} className="inline-flex items-center gap-1 h-8 px-2.5 rounded-md text-xs font-semibold text-primary-700 hover:bg-primary-50 transition-colors">
                         {copied === c.code ? <><Check className="h-3.5 w-3.5" /> Copied</> : <><Copy className="h-3.5 w-3.5" /> Copy &amp; use</>}
                       </button>
                     </div>

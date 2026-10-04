@@ -36,9 +36,9 @@ export default function ScheduleAlerts({ role = "customer", onChanged }) {
           </div>
           <p className="text-[12.5px] text-emerald-600 font-semibold inline-flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4" /> Call, Chat & Navigation are now unlocked.</p>
           <button data-testid="reminder-view-btn" onClick={() => setReminder(null)}
-            className="w-full h-11 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-bold">VIEW SCHEDULED WORK</button>
+            className="w-full h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-bold">VIEW SCHEDULED WORK</button>
         </div>
-        <button onClick={() => setReminder(null)} className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-lg text-white/80 hover:bg-white/10"><X className="h-4 w-4" /></button>
+        <button onClick={() => setReminder(null)} className="absolute top-3 right-3 h-8 w-8 grid place-items-center rounded-md text-white/80 hover:bg-white/10"><X className="h-4 w-4" /></button>
       </div>
     </div>,
     document.body

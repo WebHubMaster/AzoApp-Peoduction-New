@@ -87,7 +87,7 @@ export function DateChips({ value, onChange, dateFrom, dateTo, onDateFrom, onDat
           const on = value === k;
           return (
             <button key={k} type="button" onClick={() => { onChange(k); if (k !== "custom") setOpen(false); }} data-testid={`invoice-range-${k}`}
-              className={`shrink-0 h-10 sm:h-9 px-3.5 rounded-xl text-xs font-semibold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${on
+              className={`shrink-0 h-10 sm:h-9 px-3.5 rounded-md text-xs font-semibold transition-all duration-150 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 ${on
                 ? "bg-[#0D47A1] text-white shadow-sm shadow-primary-500/30"
                 : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-primary-300 hover:text-primary-700 dark:hover:text-primary-300"}`}>
               {k === "custom" && <CalendarDays className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />}{l}
@@ -144,7 +144,7 @@ export function RowMenu({ inv, onView, onPreview, onDownload, onPrint, onShare, 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        {trigger || <button type="button" className="h-9 w-9 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white transition-colors" data-testid={`invoice-more-${inv.invoice_number}`} aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></button>}
+        {trigger || <button type="button" className="h-9 w-9 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 dark:hover:text-white transition-colors" data-testid={`invoice-more-${inv.invoice_number}`} aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></button>}
       </DropdownMenuTrigger>
       <DropdownMenuContent align={align} className="w-52 rounded-xl">
         <DropdownMenuItem onClick={onView} className="gap-2 h-10 rounded-lg"><Eye className="h-4 w-4 text-slate-500" /> View Details</DropdownMenuItem>
@@ -217,7 +217,7 @@ export function InvoiceTable({ items, sort, onSort, onView, onPreview, onDownloa
 function IconBtn({ children, title, onClick, testid, busy }) {
   return (
     <button type="button" title={title} aria-label={title} onClick={onClick} disabled={busy} data-testid={testid}
-      className="h-9 w-9 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-primary-700 dark:hover:bg-slate-800 dark:hover:text-primary-300 active:scale-95 transition-all disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
+      className="h-9 w-9 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-primary-700 dark:hover:bg-slate-800 dark:hover:text-primary-300 active:scale-95 transition-all disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40">
       {busy ? <span className="h-4 w-4 rounded-full border-2 border-primary-200 border-t-primary-700 animate-spin" /> : children}
     </button>
   );
@@ -254,7 +254,7 @@ export function InvoiceCardList({ items, onView, onPreview, onDownload, onPrint,
                 {busyId === inv.id ? <span className="h-4 w-4 mr-1.5 rounded-full border-2 border-primary-200 border-t-primary-700 animate-spin" /> : <Download className="h-4 w-4 mr-1.5" />} Download
               </Button>
               <RowMenu inv={inv} onView={() => onView(inv)} onPreview={() => onPreview(inv)} onDownload={() => onDownload(inv)} onPrint={() => onPrint(inv)} onShare={(c) => onShare(inv, c)} onCopy={() => onCopy(inv)}
-                trigger={<button type="button" className="h-11 w-11 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500" aria-label="More" data-testid={`invoice-more-${inv.invoice_number}`}><MoreHorizontal className="h-4 w-4" /></button>} />
+                trigger={<button type="button" className="h-11 w-11 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-500" aria-label="More" data-testid={`invoice-more-${inv.invoice_number}`}><MoreHorizontal className="h-4 w-4" /></button>} />
             </div>
           </motion.div>
         );

@@ -166,11 +166,11 @@ const Pager = ({ page, pages, total, pageSize, onPage, onSize }) => (
       <span data-testid="pg-total">{total} total</span>
     </div>
     <div className="flex items-center gap-1">
-      <button disabled={page <= 1} onClick={() => onPage(1)} className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-first"><ChevronsLeft className="h-4 w-4" /></button>
-      <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-prev"><ChevronLeft className="h-4 w-4" /></button>
+      <button disabled={page <= 1} onClick={() => onPage(1)} className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-first"><ChevronsLeft className="h-4 w-4" /></button>
+      <button disabled={page <= 1} onClick={() => onPage(page - 1)} className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-prev"><ChevronLeft className="h-4 w-4" /></button>
       <span className="text-sm font-medium px-3 tabular-nums">{page} / {pages}</span>
-      <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-next"><ChevronRight className="h-4 w-4" /></button>
-      <button disabled={page >= pages} onClick={() => onPage(pages)} className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-last"><ChevronsRight className="h-4 w-4" /></button>
+      <button disabled={page >= pages} onClick={() => onPage(page + 1)} className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-next"><ChevronRight className="h-4 w-4" /></button>
+      <button disabled={page >= pages} onClick={() => onPage(pages)} className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50" data-testid="pg-last"><ChevronsRight className="h-4 w-4" /></button>
     </div>
   </div>
 );
@@ -225,7 +225,7 @@ const FilterToolbar = ({ activeCount, onReset, children }) => {
               initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 300 }} data-testid="filter-drawer">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-heading font-bold text-lg flex items-center gap-2"><SlidersHorizontal className="h-5 w-5 text-primary-600" /> Filters {activeCount > 0 && <Badge className="bg-primary-600 text-white border-0">{activeCount}</Badge>}</h3>
-                <button onClick={() => setOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-100"><X className="h-5 w-5 text-slate-400" /></button>
+                <button onClick={() => setOpen(false)} className="p-1.5 rounded-md hover:bg-slate-100"><X className="h-5 w-5 text-slate-400" /></button>
               </div>
               <div className="space-y-3">{children}</div>
               <div className="flex gap-2 mt-5">
@@ -262,7 +262,7 @@ const SlideOver = ({ open, onClose, title, children }) => (
           initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 320 }} data-testid="detail-drawer">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <h3 className="font-heading font-bold text-lg text-slate-900">{title}</h3>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100" data-testid="detail-close"><X className="h-5 w-5 text-slate-400" /></button>
+            <button onClick={onClose} className="p-1.5 rounded-md hover:bg-slate-100" data-testid="detail-close"><X className="h-5 w-5 text-slate-400" /></button>
           </div>
           <div className="flex-1 overflow-y-auto">{children}</div>
         </motion.div>
@@ -611,7 +611,7 @@ export function IncentivesManagerPro() {
                   <div className="p-3 border-t border-slate-100 flex items-center gap-2">
                     <Button size="sm" className="flex-1 bg-emerald-600 hover:bg-emerald-700" onClick={() => setBoard(i)} data-testid="incentive-award-btn"><Award className="h-4 w-4 mr-1" /> Award</Button>
                     <Button size="sm" variant="outline" onClick={() => setEdit(i)} data-testid="incentive-edit-btn">Edit</Button>
-                    <button onClick={() => setDelTarget(i)} className="h-9 w-9 rounded-lg border border-slate-200 flex items-center justify-center text-rose-400 hover:bg-rose-50" data-testid="incentive-delete-btn"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => setDelTarget(i)} className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center text-rose-400 hover:bg-rose-50" data-testid="incentive-delete-btn"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
               );

@@ -77,15 +77,15 @@ export default function AdminDashboardHome({ onOpenBooking, onNavigate }) {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Real-time business intelligence across bookings, revenue, partners, customers &amp; merchants</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <button data-testid="dash-export" onClick={exportCsv} disabled={!d} className="h-10 px-3 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 transition-colors">
+          <button data-testid="dash-export" onClick={exportCsv} disabled={!d} className="h-10 px-3 inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700 disabled:opacity-40 transition-colors">
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export CSV</span>
           </button>
-          <button data-testid="dash-refresh" onClick={load} className="h-10 w-10 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:border-primary-300 hover:text-primary-600 active:scale-95 transition-all" aria-label="Refresh">
+          <button data-testid="dash-refresh" onClick={load} className="h-10 w-10 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 hover:border-primary-300 hover:text-primary-600 active:scale-95 transition-all" aria-label="Refresh">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
           <DashCalendar value={date} onChange={setDate} />
           <button data-testid="dash-filters-btn" onClick={() => setDrawer(true)}
-            className={`h-10 px-3.5 inline-flex items-center gap-2 rounded-xl border text-sm font-semibold transition-all ${activeFilterCount ? "border-primary-600 bg-primary-700 text-white shadow-sm shadow-primary-700/25 hover:bg-primary-800" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700"}`}>
+            className={`h-10 px-3.5 inline-flex items-center gap-2 rounded-md border text-sm font-semibold transition-all ${activeFilterCount ? "border-primary-600 bg-primary-700 text-white shadow-sm shadow-primary-700/25 hover:bg-primary-800" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700"}`}>
             <SlidersHorizontal className="h-4 w-4" /> Filters
             {activeFilterCount > 0 && <span className="h-5 min-w-5 px-1.5 rounded-full bg-white/20 text-[11px] font-bold grid place-items-center" data-testid="dash-filters-count">{activeFilterCount}</span>}
           </button>

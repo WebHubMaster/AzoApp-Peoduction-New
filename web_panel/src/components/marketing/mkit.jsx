@@ -115,12 +115,12 @@ export const PTextarea = (props) => (
 /* ---------------- Buttons ---------------- */
 export const BtnPrimary = ({ children, className = "", ...rest }) => (
   <button {...rest}
-    className={`inline-flex items-center justify-center gap-1.5 rounded-xl text-white text-sm font-semibold px-4 h-10 shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-60 transition ${className}`}
+    className={`inline-flex items-center justify-center gap-1.5 rounded-md text-white text-sm font-semibold px-4 h-10 shadow-sm hover:brightness-110 active:brightness-95 disabled:opacity-60 transition ${className}`}
     style={{ background: BRAND }}>{children}</button>
 );
 export const BtnGhost = ({ children, className = "", ...rest }) => (
   <button {...rest}
-    className={`inline-flex items-center justify-center gap-1.5 rounded-xl text-sm font-medium px-4 h-10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${className}`}>
+    className={`inline-flex items-center justify-center gap-1.5 rounded-md text-sm font-medium px-4 h-10 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${className}`}>
     {children}</button>
 );
 
@@ -151,7 +151,7 @@ export const Tabs = ({ tabs, active, onChange }) => (
   <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800">
     {tabs.map(([k, label, Icon]) => (
       <button key={k} onClick={() => onChange(k)} data-testid={`tab-${k}`}
-        className={`relative inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition ${
+        className={`relative inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
           active === k ? "text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-slate-900"}`}
         style={active === k ? { background: BRAND } : {}}>
         {Icon && <Icon className="h-4 w-4" />} {label}
@@ -207,7 +207,7 @@ export const Pagination = ({ page, pageSize, total, onPage, onPageSize }) => {
         <PgBtn disabled={page <= 1} onClick={() => onPage(page - 1)}>‹</PgBtn>
         {nums.map((n) => (
           <button key={n} onClick={() => onPage(n)}
-            className={`h-8 min-w-8 px-2 rounded-lg text-xs font-semibold transition ${
+            className={`h-8 min-w-8 px-2 rounded-md text-xs font-semibold transition ${
               n === page ? "text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
             style={n === page ? { background: BRAND } : {}}>{n}</button>
         ))}
@@ -218,7 +218,7 @@ export const Pagination = ({ page, pageSize, total, onPage, onPageSize }) => {
   );
 };
 const PgBtn = ({ children, ...rest }) => (
-  <button {...rest} className="h-8 min-w-8 px-2 rounded-lg text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition">{children}</button>
+  <button {...rest} className="h-8 min-w-8 px-2 rounded-md text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 transition">{children}</button>
 );
 
 /* ---------------- Filter chips ---------------- */

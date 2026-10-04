@@ -100,7 +100,7 @@ export default function CustomJobsAdmin() {
               <option value="">All categories</option>
               {cats.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </PremiumSelect>
-            <input className="h-[42px] px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
+            <input className="h-[42px] px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-primary-100 focus:border-primary-500"
               placeholder="Pincode" value={filters.pincode} data-testid="cja-pincode"
               onChange={(e) => setF({ pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} />
             <PremiumDatePicker value={filters.date_from} onChange={(e) => setF({ date_from: e.target.value })} placeholder="From date" data-testid="cja-date-from" />
@@ -121,7 +121,7 @@ export default function CustomJobsAdmin() {
         <DataPanel>
           <EmptyState icon={FileText} title="No custom job requests found" data-testid="cja-empty"
             description="Customer service requests matching your current filters will appear here."
-            action={hasFilters ? <button onClick={reset} className="h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm">Clear Filters</button> : null} />
+            action={hasFilters ? <button onClick={reset} className="h-10 px-4 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm">Clear Filters</button> : null} />
         </DataPanel>
       ) : (
         <DataPanel>
@@ -257,27 +257,27 @@ function CustomJobDetail({ id, onBack, onConverted, navigate }) {
               {job.service?.status === "active" ? " · Active" : " · Draft"}
             </div>
             <button onClick={() => navigate(`/admin?tab=services&editService=${job.converted_service_id}`)} data-testid="cja-view-service"
-              className="h-11 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold flex items-center gap-2">
+              className="h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold flex items-center gap-2">
               <ExternalLink className="h-4 w-4" /> View / Edit Service
             </button>
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2.5">
             <button onClick={switchToService} disabled={busy === "convert"} data-testid="cja-switch-to-service"
-              className="h-11 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center gap-2 shadow-lg">
+              className="h-11 px-5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center gap-2 shadow-lg">
               {busy === "convert" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRightLeft className="h-4 w-4" />}
               Switch to New Service
             </button>
             <button onClick={() => setStatus("under_review")} disabled={busy || job.status === "under_review"}
-              className="h-11 px-4 rounded-xl border border-sky-200 text-sky-700 hover:bg-sky-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
+              className="h-11 px-4 rounded-md border border-sky-200 text-sky-700 hover:bg-sky-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
               <Clock className="h-4 w-4" /> Mark Under Review
             </button>
             <button onClick={() => setStatus("rejected")} disabled={!!busy}
-              className="h-11 px-4 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
+              className="h-11 px-4 rounded-md border border-rose-200 text-rose-600 hover:bg-rose-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
               <XCircle className="h-4 w-4" /> Reject
             </button>
             <button onClick={() => setStatus("closed")} disabled={!!busy}
-              className="h-11 px-4 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
+              className="h-11 px-4 rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 font-semibold flex items-center gap-1.5">
               <Ban className="h-4 w-4" /> Close
             </button>
           </div>

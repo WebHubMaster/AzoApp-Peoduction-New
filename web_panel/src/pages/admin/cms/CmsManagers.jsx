@@ -68,7 +68,7 @@ function CmsShell({ title, subtitle, breadcrumb, children, dirty, saving, savedA
         <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700 px-4 sm:px-8 py-3 flex items-center justify-between md:pl-72">
           <span className="text-xs text-slate-400">{dirty ? "You have unsaved changes" : savedAt ? "All changes saved" : "Ready"}</span>
           <button onClick={onSave} disabled={saving || !dirty} data-testid="cms-save-btn"
-            className="h-11 px-6 rounded-xl text-white text-sm font-bold inline-flex items-center gap-2 disabled:opacity-50 shadow-lg" style={{ background: BRAND }}>
+            className="h-11 px-6 rounded-md text-white text-sm font-bold inline-flex items-center gap-2 disabled:opacity-50 shadow-lg" style={{ background: BRAND }}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saveLabel}
           </button>
         </div>
@@ -83,7 +83,7 @@ function Tabs({ tabs, active, onChange }) {
     <div className="flex items-center gap-1 mb-4 overflow-x-auto no-scrollbar">
       {tabs.map((t) => (
         <button key={t.key} onClick={() => onChange(t.key)} data-testid={`cms-tab-${t.key}`}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap ${active === t.key ? "text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold whitespace-nowrap ${active === t.key ? "text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}
           style={active === t.key ? { background: BRAND } : {}}>
           {t.icon && <t.icon className="h-4 w-4" />}{t.label}
         </button>
@@ -214,8 +214,8 @@ export function FaqManagerPro() {
           <option value="">All categories</option>
           {catNames.map((c) => <option key={c} value={c}>{c}</option>)}
         </PremiumSelect>
-        <button onClick={() => setCatMgr(true)} className="h-11 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 text-sm font-semibold inline-flex items-center gap-2"><FolderTree className="h-4 w-4" />Categories</button>
-        <button onClick={() => setEditing({ ...blank })} data-testid="faq-add-btn" className="h-11 px-5 rounded-lg text-white text-sm font-bold inline-flex items-center gap-2" style={{ background: BRAND }}><Plus className="h-4 w-4" />Add FAQ</button>
+        <button onClick={() => setCatMgr(true)} className="h-11 px-4 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 text-sm font-semibold inline-flex items-center gap-2"><FolderTree className="h-4 w-4" />Categories</button>
+        <button onClick={() => setEditing({ ...blank })} data-testid="faq-add-btn" className="h-11 px-5 rounded-md text-white text-sm font-bold inline-flex items-center gap-2" style={{ background: BRAND }}><Plus className="h-4 w-4" />Add FAQ</button>
       </div>
 
       {Object.keys(grouped).length === 0 ? (
@@ -277,8 +277,8 @@ export function FaqManagerPro() {
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-5">
-              <button onClick={() => setEditing(null)} className="h-10 px-4 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 text-sm font-semibold">Cancel</button>
-              <button onClick={save} data-testid="faq-save-btn" className="h-10 px-5 rounded-lg text-white text-sm font-bold" style={{ background: BRAND }}>Save FAQ</button>
+              <button onClick={() => setEditing(null)} className="h-10 px-4 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 text-sm font-semibold">Cancel</button>
+              <button onClick={save} data-testid="faq-save-btn" className="h-10 px-5 rounded-md text-white text-sm font-bold" style={{ background: BRAND }}>Save FAQ</button>
             </div>
           </div>
         </div>
@@ -302,7 +302,7 @@ function CategoryManager({ cats, onClose }) {
         <div className="flex items-center justify-between mb-4"><h3 className="font-heading font-bold text-slate-900 dark:text-white">FAQ Categories</h3><button onClick={onClose} className="text-slate-400"><X className="h-5 w-5" /></button></div>
         <div className="flex gap-2 mb-4">
           <input className={inputCls} placeholder="New category name" value={name} onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} data-testid="faq-cat-input" />
-          <button onClick={add} className="h-11 px-4 rounded-lg text-white text-sm font-bold" style={{ background: BRAND }}><Plus className="h-4 w-4" /></button>
+          <button onClick={add} className="h-11 px-4 rounded-md text-white text-sm font-bold" style={{ background: BRAND }}><Plus className="h-4 w-4" /></button>
         </div>
         <div className="space-y-1.5 max-h-[50vh] overflow-y-auto">
           {rows.map((c) => (
@@ -403,7 +403,7 @@ export function BlogManagerPro() {
                       <button onClick={() => setE("image", "")} className="absolute top-2 right-2 h-7 w-7 rounded-full bg-red-500 text-white flex items-center justify-center"><X className="h-4 w-4" /></button>
                     </div>
                   ) : (
-                    <button onClick={() => setMediaOpen(true)} data-testid="blog-image-btn" className="w-full aspect-video rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-[#0D47A1] hover:text-[#0D47A1]">
+                    <button onClick={() => setMediaOpen(true)} data-testid="blog-image-btn" className="w-full aspect-video rounded-md border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-[#0D47A1] hover:text-[#0D47A1]">
                       <ImageIcon className="h-6 w-6" /><span className="text-xs mt-1">Select from Media Library</span>
                     </button>
                   )}
@@ -430,7 +430,7 @@ export function BlogManagerPro() {
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input className={inputCls + " pl-9"} placeholder="Search posts…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <button onClick={openNew} data-testid="blog-add-btn" className="h-11 px-5 rounded-lg text-white text-sm font-bold inline-flex items-center gap-2" style={{ background: BRAND }}><Plus className="h-4 w-4" />New Post</button>
+        <button onClick={openNew} data-testid="blog-add-btn" className="h-11 px-5 rounded-md text-white text-sm font-bold inline-flex items-center gap-2" style={{ background: BRAND }}><Plus className="h-4 w-4" />New Post</button>
       </div>
       {list.length === 0 ? (
         <Card><p className="text-center text-slate-400 py-10">No blog posts yet.</p></Card>

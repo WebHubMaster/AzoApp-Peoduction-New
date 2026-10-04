@@ -51,7 +51,7 @@ export const ImageUpload = ({ value, onChange, label, folder = "media", hint }) 
             <button type="button" onClick={() => onChange("")} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"><X className="h-3.5 w-3.5" /></button>
           </div>
         ) : (
-          <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="image-upload-btn" className="h-20 w-20 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-primary-500 hover:text-primary-600 transition disabled:opacity-70">
+          <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="image-upload-btn" className="h-20 w-20 rounded-md border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-primary-500 hover:text-primary-600 transition disabled:opacity-70">
             {busy ? (
               <div className="w-full px-2 text-center">
                 <span className="text-[10px] font-semibold text-primary-600" data-testid="image-upload-pct">{pct || 1}%</span>
@@ -546,7 +546,7 @@ const WizardStepper = ({ step, setStep, done }) => (
         return (
           <div key={s.key} className="flex items-center shrink-0">
             <button onClick={() => setStep(i)}
-              className={`group flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all
+              className={`group flex items-center gap-2 px-3 py-2 rounded-md text-xs font-semibold transition-all
                 ${active ? "bg-primary-700 text-white shadow-lg shadow-primary-700/20"
                   : complete ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300"
                   : "bg-slate-100 dark:bg-slate-700/60 text-slate-500 dark:text-slate-300 hover:bg-slate-200"}`}>
@@ -593,8 +593,8 @@ const VariantEditor = ({ tiers, onChange }) => {
                 <span className="text-xs font-bold text-primary-700 bg-primary-50 dark:bg-primary-900/20 px-2.5 py-1 rounded-full">Variant {i + 1}</span>
                 <div className="flex gap-2">
                   {off > 0 && <span className="text-xs text-emerald-600 font-bold self-center">{off}% off</span>}
-                  <button type="button" onClick={() => dup(i)} title="Duplicate variant" className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200"><Copy className="h-4 w-4" /></button>
-                  <button type="button" onClick={() => rm(i)} title="Remove" className="h-8 w-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => dup(i)} title="Duplicate variant" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200"><Copy className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => rm(i)} title="Remove" className="h-8 w-8 rounded-md bg-red-50 text-red-500 flex items-center justify-center hover:bg-red-100"><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -754,7 +754,7 @@ const LivePreview = ({ f }) => {
             <span className="font-heading font-extrabold text-slate-900 dark:text-white">{fmt(price)}</span>
             {f.discounted_price > 0 && f.discounted_price < f.base_price && <span className="text-xs text-slate-400 line-through">{fmt(f.base_price)}</span>}
           </div>
-          <button className="mt-2 w-full border border-primary-600 text-primary-700 font-semibold text-sm rounded-lg py-1.5">Add</button>
+          <button className="mt-2 w-full border border-primary-600 text-primary-700 font-semibold text-sm rounded-md py-1.5">Add</button>
         </div>
       </div>
       {f.highlights?.length > 0 && (
@@ -1000,7 +1000,7 @@ export const ServiceWizard = () => {
                           <button type="button" key={t.id} onClick={() => {
                             const ids = sel ? (f.tax_ids || []).filter((x) => x !== t.id) : [...(f.tax_ids || []), t.id];
                             setF({ ...f, tax_ids: ids, tax_pct: taxPct(ids) });
-                          }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${sel ? "border-primary-700 bg-primary-50 text-primary-700 dark:bg-primary-900/20" : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-primary-300"}`}>
+                          }} className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-all ${sel ? "border-primary-700 bg-primary-50 text-primary-700 dark:bg-primary-900/20" : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-primary-300"}`}>
                             {sel && <Check className="h-3 w-3 inline mr-1" />}{t.name} · {t.percentage}%
                           </button>
                         );
@@ -1144,7 +1144,7 @@ const VideoUpload = ({ value, onChange, folder = "homepage_videos" }) => {
             <button type="button" onClick={() => onChange("")} className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center shadow"><X className="h-3.5 w-3.5" /></button>
           </div>
         ) : (
-          <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="hp-video-upload-btn" className="h-20 w-32 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-primary-500 hover:text-primary-600 transition disabled:opacity-70">
+          <button type="button" onClick={() => ref.current?.click()} disabled={busy} data-testid="hp-video-upload-btn" className="h-20 w-32 rounded-md border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center text-slate-400 hover:border-primary-500 hover:text-primary-600 transition disabled:opacity-70">
             {busy ? (
               <div className="w-full px-2 text-center">
                 <span className="text-[10px] font-semibold text-primary-600" data-testid="hp-video-upload-pct">{pct || 1}%</span>
@@ -1300,7 +1300,7 @@ export const PageEditor = ({ pageKey, title }) => {
           <Field label="Meta description">
             <textarea value={doc.seo_description || ""} maxLength={180} rows={2} placeholder="One-line summary shown in Google results…"
               onChange={(e) => set("seo_description", e.target.value)}
-              className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
             <p className="text-[11px] text-slate-400 mt-1">{(doc.seo_description || "").length}/180 characters</p>
           </Field>
         </div>
@@ -1514,7 +1514,7 @@ export const JobRequestsConsole = () => {
         <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex-wrap">
           {TABS.map(([k, l]) => (
             <button key={k} data-testid={`jr-tab-${k}`} onClick={() => setTab(k)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
+              className={`px-3 py-1.5 rounded-md text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
           ))}
         </div>
         <Button size="sm" variant="outline" onClick={load} data-testid="jr-refresh"><RefreshCw className="h-4 w-4 mr-1" /> Refresh</Button>
@@ -1580,7 +1580,7 @@ export const JobRequestsConsole = () => {
                   <Button size="sm" variant="outline" disabled={cur <= 1} onClick={() => setPage(cur - 1)}>Prev</Button>
                   {Array.from({ length: pageCount }, (_, i) => i + 1).map((n) => (
                     <button key={n} data-testid={`jr-page-${n}`} onClick={() => setPage(n)}
-                      className={`h-8 w-8 rounded-lg text-sm font-semibold transition ${n === cur ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>{n}</button>
+                      className={`h-8 w-8 rounded-md text-sm font-semibold transition ${n === cur ? "bg-primary-700 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>{n}</button>
                   ))}
                   <Button size="sm" variant="outline" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)}>Next</Button>
                 </div>
@@ -1802,7 +1802,7 @@ export const NotificationCenter = () => {
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-5 w-fit">
         {[["compose", "Add Notification"], ["history", "History"], ["diagnostics", "Diagnostics"]].map(([k, l]) => (
           <button key={k} data-testid={`nc-tab-${k}`} onClick={() => setTab(k)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
+            className={`px-4 py-1.5 rounded-md text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
         ))}
       </div>
       {tab === "compose" && <ComposeNotification onSent={() => setReloadKey((k) => k + 1)} />}

@@ -94,7 +94,7 @@ export const AddressForm = ({ value, onChange, cfg = {}, onServiceability, mapsK
   return (
     <div className="space-y-3" data-testid="address-form">
       <button type="button" data-testid="gps-detect-btn" onClick={detect} disabled={locating}
-        className={`w-full flex items-center justify-center gap-2 h-11 rounded-lg border text-sm font-semibold transition-colors disabled:opacity-60 ${value.lat && value.lng ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100"}`}>
+        className={`w-full flex items-center justify-center gap-2 h-11 rounded-md border text-sm font-semibold transition-colors disabled:opacity-60 ${value.lat && value.lng ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-primary-300 bg-primary-50 text-primary-700 hover:bg-primary-100"}`}>
         {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : (value.lat && value.lng ? <CheckCircle2 className="h-4 w-4" /> : <Navigation className="h-4 w-4" />)}
         {locating ? "Detecting location…" : (value.lat && value.lng ? "Location set — tap to update" : "Use my current location")}
       </button>

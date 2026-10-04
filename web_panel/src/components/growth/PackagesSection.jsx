@@ -78,7 +78,7 @@ function PackageDetailModal({ pkgId, onClose }) {
   return (
     <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4" onClick={onClose}>
       <div data-testid="package-detail" className="relative w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-3 top-3 z-10 h-9 w-9 grid place-items-center rounded-xl bg-black/30 text-white"><X className="h-5 w-5" /></button>
+        <button onClick={onClose} className="absolute right-3 top-3 z-10 h-9 w-9 grid place-items-center rounded-md bg-black/30 text-white"><X className="h-5 w-5" /></button>
         {!pkg ? (
           <div className="p-10 text-center text-slate-400">Loading…</div>
         ) : (

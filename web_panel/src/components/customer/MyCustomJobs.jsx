@@ -38,11 +38,11 @@ export default function MyCustomJobs() {
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Track services you asked us to build for you.</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <button onClick={load} className="h-10 w-10 rounded-xl border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500 hover:text-primary-700">
+          <button onClick={load} className="h-10 w-10 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500 hover:text-primary-700">
             <RefreshCcw className="h-4 w-4" />
           </button>
           <button onClick={() => setWizardOpen(true)} data-testid="mcj-new"
-            className="h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold flex items-center gap-1 shadow-primarybtn">
+            className="h-10 px-4 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold flex items-center gap-1 shadow-primarybtn">
             <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Request </span>Service
           </button>
         </div>
@@ -60,7 +60,7 @@ export default function MyCustomJobs() {
             Can&apos;t find the service you need? Request a custom service and our team will build it for you.
           </p>
           <button onClick={() => setWizardOpen(true)}
-            className="mt-5 h-11 px-6 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold inline-flex items-center gap-2">
+            className="mt-5 h-11 px-6 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold inline-flex items-center gap-2">
             <Plus className="h-4 w-4" /> Request a Custom Service
           </button>
         </div>
@@ -86,7 +86,7 @@ export default function MyCustomJobs() {
                 </div>
                 {liveService && (
                   <button onClick={() => navigate(`/service/${r.service.id}`)}
-                    className="mt-3 w-full h-9 rounded-lg bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-emerald-100">
+                    className="mt-3 w-full h-9 rounded-md bg-emerald-50 dark:bg-emerald-900/25 text-emerald-700 dark:text-emerald-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-emerald-100">
                     <ExternalLink className="h-3.5 w-3.5" /> View Service
                   </button>
                 )}

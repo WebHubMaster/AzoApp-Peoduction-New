@@ -118,7 +118,7 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
               <TextInput key={i} testID={`otp-box-${i}`} ref={(r) => { boxRefs.current[i] = r; }} value={otp[i] || ""}
                 onChangeText={(v) => setOtpDigit(i, v)} onKeyPress={({ nativeEvent }) => onKey(i, nativeEvent.key)}
                 onFocus={() => setFocused(i)} onBlur={() => setFocused(-1)} keyboardType="number-pad" maxLength={i === 0 ? OTP_LEN : 1} selectTextOnFocus
-                style={{ flex: 1, minWidth: 0, height: 48, textAlign: "center", fontSize: 20, fontWeight: "700", borderRadius: 12, borderWidth: 2, borderColor: focused === i ? P[600] : colors.border, backgroundColor: colors.surface, color: colors.text, boxShadow: focused === i ? `0px 0px 0px 2px ${P[100]}` : undefined }} />
+                style={{ flex: 1, minWidth: 0, height: 48, textAlign: "center", fontSize: 20, fontWeight: "700", borderRadius: 6, borderWidth: 2, borderColor: focused === i ? P[600] : colors.border, backgroundColor: colors.surface, color: colors.text, boxShadow: focused === i ? `0px 0px 0px 2px ${P[100]}` : undefined }} />
             ))}
           </View>
           <AuthButton testID="verify-otp-button" title="Verify OTP" onPress={verify} busy={busy} disabled={otp.length < OTP_LEN} />

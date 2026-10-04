@@ -72,7 +72,7 @@ export function PhotoGrid({ images, title, testid }) {
         {list.map((u, idx) => (
           <button key={idx} type="button" onClick={() => setOpen(idx)}
             data-testid={testid ? `${testid}-img-${idx}` : undefined}
-            className="h-16 w-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:ring-2 hover:ring-primary-400 transition cursor-zoom-in">
+            className="h-16 w-16 rounded-md overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:ring-2 hover:ring-primary-400 transition cursor-zoom-in">
             {isVideoUrl(u)
               ? <span className="h-full w-full grid place-items-center bg-slate-900 text-white" data-testid="proof-video-thumb"><PlayCircle className="h-7 w-7" /></span>
               : <img src={u} alt="" className="h-full w-full object-cover" loading="lazy" />}
@@ -105,7 +105,7 @@ export function CheckinProof({ checkin }) {
   if (!checkin?.selfie_url) return null;
   return (
     <div data-testid="checkin-proof" className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-2.5">
-      <button type="button" onClick={() => setOpen(true)} className="h-16 w-14 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-zoom-in">
+      <button type="button" onClick={() => setOpen(true)} className="h-16 w-14 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-zoom-in">
         <img src={checkin.selfie_url} alt="Partner selfie" className="h-full w-full object-cover" />
       </button>
       <div className="min-w-0 text-xs">

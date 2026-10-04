@@ -20,7 +20,7 @@ const DocLightbox = ({ url, label, onClose }) => {
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100">
           <CreditCard className="h-4 w-4 text-primary-600" /><p className="font-bold text-sm">{label}</p>
           <a href={absUrl(url)} target="_blank" rel="noreferrer" className="ml-auto text-xs font-bold text-primary-700 underline">Open in new tab</a>
-          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-lg hover:bg-slate-100"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-md hover:bg-slate-100"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-3 bg-slate-50 grid place-items-center max-h-[80vh] overflow-auto">
           {isPdf ? <iframe title={label} src={absUrl(url)} className="w-full h-[72vh] rounded-lg bg-white" />
@@ -105,7 +105,7 @@ export default function KycApprovals() {
           <h2 className="text-xl font-heading font-bold text-slate-900">KYC Approvals</h2>
           <p className="text-sm text-slate-500">Review &amp; verify pending PAN and bank requests in bulk.</p>
         </div>
-        <button onClick={load} className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100">
+        <button onClick={load} className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-md hover:bg-slate-100">
           <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh
         </button>
       </div>
@@ -120,12 +120,12 @@ export default function KycApprovals() {
         <div className="ml-auto flex items-center gap-2">
           <button disabled={busy || selectedCount === 0} onClick={() => runBulk("approve")}
             data-testid="bulk-approve"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 px-4 py-2 rounded-xl">
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 px-4 py-2 rounded-md">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Approve selected
           </button>
           <button disabled={busy || selectedCount === 0} onClick={() => setRejectModal(true)}
             data-testid="bulk-reject"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 disabled:opacity-40 px-4 py-2 rounded-xl">
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 disabled:opacity-40 px-4 py-2 rounded-md">
             <XCircle className="h-4 w-4" /> Reject selected
           </button>
         </div>
@@ -181,12 +181,12 @@ export default function KycApprovals() {
             <div className="flex items-center gap-2 mb-3"><AlertTriangle className="h-5 w-5 text-rose-500" /><h3 className="font-bold text-slate-900">Reject {selectedCount} request(s)</h3></div>
             <p className="text-sm text-slate-500 mb-3">This reason is shared with the partner in their notification. It is required.</p>
             <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} data-testid="reject-reason"
-              placeholder="e.g. Document blurred / details do not match" className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-300 outline-none" />
+              placeholder="e.g. Document blurred / details do not match" className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:ring-2 focus:ring-rose-300 outline-none" />
             <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setRejectModal(false)} className="px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+              <button onClick={() => setRejectModal(false)} className="px-4 py-2 rounded-md text-sm font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
               <button disabled={busy || !reason.trim()} onClick={() => runBulk("reject", reason.trim())}
                 data-testid="confirm-reject"
-                className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-40">
+                className="px-4 py-2 rounded-md text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-40">
                 {busy ? "Rejecting…" : "Reject selected"}
               </button>
             </div>

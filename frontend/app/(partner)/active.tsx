@@ -63,10 +63,10 @@ export default function PartnerActiveJob() {
       >
         {/* Active / Completed chips */}
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <Pressable testID="job-view-active" onPress={() => setView("active")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: view === "active" ? colors.primary : colors.surfaceSubtle }}>
+          <Pressable testID="job-view-active" onPress={() => setView("active")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: view === "active" ? colors.primary : colors.surfaceSubtle }}>
             <Text style={{ color: view === "active" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Active{activeJobs.length ? ` (${activeJobs.length})` : ""}</Text>
           </Pressable>
-          <Pressable testID="job-view-completed" onPress={() => setView("completed")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: view === "completed" ? EMERALD : colors.surfaceSubtle }}>
+          <Pressable testID="job-view-completed" onPress={() => setView("completed")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: view === "completed" ? EMERALD : colors.surfaceSubtle }}>
             <Text style={{ color: view === "completed" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Completed{completedJobs.length ? ` (${completedJobs.length})` : ""}</Text>
           </Pressable>
         </View>
@@ -597,7 +597,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
             </View>
             {theyRequested ? (
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-                <Pressable testID={`reschedule-accept-${b.code}`} onPress={() => respondResched("accept")} style={{ flex: 1, height: 40, borderRadius: 12, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Accept reschedule</Text></Pressable>
+                <Pressable testID={`reschedule-accept-${b.code}`} onPress={() => respondResched("accept")} style={{ flex: 1, height: 40, borderRadius: 6, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Accept reschedule</Text></Pressable>
                 <Pressable testID={`reschedule-reject-${b.code}`} onPress={() => respondResched("reject")} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: "#FECDD3", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 13 }}>Reject</Text></Pressable>
               </View>
             ) : (
@@ -616,7 +616,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
               <Icon name="lock-outline" size={20} color={SLATE400} /><Text style={{ color: SLATE400, fontWeight: "600", fontSize: 15 }}>Navigation locked</Text>
             </View>
           ) : (
-            <Pressable testID={`navigate-${b.code}`} onPress={() => Linking.openURL(navUrl)} style={{ height: 48, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+            <Pressable testID={`navigate-${b.code}`} onPress={() => Linking.openURL(navUrl)} style={{ height: 48, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
               <Icon name="navigation-variant-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Navigate to Customer</Text>
             </Pressable>
           )}
@@ -651,7 +651,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
         </Collapse>
 
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
-        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 10, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 6, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
           <Icon name={inProgress ? "check-decagram-outline" : b.checkin ? "play-circle-outline" : "camera-account"} size={20} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
           <Icon name="chevron-right" size={20} color="#fff" />

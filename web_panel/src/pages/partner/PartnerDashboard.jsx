@@ -259,7 +259,7 @@ export default function PartnerDashboard() {
               type="button"
               data-testid="job-view-active"
               onClick={() => setJobView("active")}
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition ${jobView === "active" ? "bg-primary-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              className={`h-9 px-4 rounded-md text-sm font-semibold transition ${jobView === "active" ? "bg-primary-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
             >
               Active{activeJobs.length ? ` (${activeJobs.length})` : ""}
             </button>
@@ -267,7 +267,7 @@ export default function PartnerDashboard() {
               type="button"
               data-testid="job-view-completed"
               onClick={() => setJobView("completed")}
-              className={`h-9 px-4 rounded-lg text-sm font-semibold transition ${jobView === "completed" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              className={`h-9 px-4 rounded-md text-sm font-semibold transition ${jobView === "completed" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
             >
               Completed{completedJobs.length ? ` (${completedJobs.length})` : ""}
             </button>
@@ -494,7 +494,7 @@ const ActiveJob = ({ b, onUpdate }) => {
         <div>
           {commLocked ? (
             <button type="button" disabled data-testid={`navigate-locked-${b.code}`}
-              className="w-full h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+              className="w-full h-12 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-400 font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
               <Lock className="h-5 w-5" /> Navigation locked
             </button>
           ) : (
@@ -515,7 +515,7 @@ const ActiveJob = ({ b, onUpdate }) => {
           ) : (
             <span className="h-11 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-300 dark:text-slate-600 font-semibold text-sm flex items-center justify-center gap-1.5"><Phone className="h-4 w-4" /> Call</span>
           )}
-          <button type="button" onClick={openChat} disabled={commLocked} data-testid={`chat-cust-${b.code}`} className="h-11 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 azo-press disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</button>
+          <button type="button" onClick={openChat} disabled={commLocked} data-testid={`chat-cust-${b.code}`} className="h-11 rounded-md border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 font-semibold text-sm flex items-center justify-center gap-1.5 hover:bg-primary-50 dark:hover:bg-primary-900/20 azo-press disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</button>
         </div>
 
         {/* Job & customer details (collapsible) */}
@@ -550,7 +550,7 @@ const ActiveJob = ({ b, onUpdate }) => {
 
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
         <button type="button" data-testid={`open-job-${b.code}`} onClick={() => setWizardOpen(true)}
-          className={`w-full h-12 rounded-xl text-white font-extrabold flex items-center justify-center gap-2 shadow-sm azo-press ${inProgress ? "bg-emerald-600 hover:bg-emerald-700" : "bg-primary-600 hover:bg-primary-700"}`}>
+          className={`w-full h-12 rounded-md text-white font-extrabold flex items-center justify-center gap-2 shadow-sm azo-press ${inProgress ? "bg-emerald-600 hover:bg-emerald-700" : "bg-primary-600 hover:bg-primary-700"}`}>
           {inProgress ? <CheckCircle2 className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
           {inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}
           <ChevronDown className="h-5 w-5 -rotate-90" />
@@ -582,7 +582,7 @@ const ActiveJob = ({ b, onUpdate }) => {
             <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-2xl max-h-[88vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} data-testid={`reschedule-modal-${b.code}`}>
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-heading font-bold text-slate-900 dark:text-white">Request reschedule</h3>
-                <button onClick={() => setShowResched(false)} className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><XIcon className="h-4 w-4" /></button>
+                <button onClick={() => setShowResched(false)} className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><XIcon className="h-4 w-4" /></button>
               </div>
               <p className="text-[12.5px] text-slate-500 dark:text-slate-400">Current: <b>{sched.is_scheduled ? `${sched.scheduled_date} · ${sched.scheduled_time}` : "Now (instant)"}</b>. The booking time changes only after the customer accepts.</p>
               <label className="block mt-3 mb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">Pick a new date &amp; time slot</label>

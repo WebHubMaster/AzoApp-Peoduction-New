@@ -236,7 +236,7 @@ export default function OnboardingTour() {
               <button
                 onClick={skip}
                 aria-label="Skip tour"
-                className="shrink-0 h-8 w-8 -mr-1 -mt-1 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                className="shrink-0 h-8 w-8 -mr-1 -mt-1 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -261,14 +261,14 @@ export default function OnboardingTour() {
                 {idx > 0 && (
                   <button
                     onClick={back}
-                    className="inline-flex items-center gap-1 h-10 px-3.5 rounded-xl text-[13px] font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all"
+                    className="inline-flex items-center gap-1 h-10 px-3.5 rounded-md text-[13px] font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50 active:scale-95 transition-all"
                   >
                     <ArrowLeft className="h-4 w-4" /> Back
                   </button>
                 )}
                 <button
                   onClick={next}
-                  className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl text-[13px] font-bold text-white shadow-md active:scale-95 transition-all"
+                  className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md text-[13px] font-bold text-white shadow-md active:scale-95 transition-all"
                   style={{ background: BRAND, boxShadow: "0 8px 18px -6px rgba(13,71,161,0.6)" }}
                 >
                   {isLast ? (<><Check className="h-4 w-4" /> Finish</>) : (<>Next <ArrowRight className="h-4 w-4" /></>)}

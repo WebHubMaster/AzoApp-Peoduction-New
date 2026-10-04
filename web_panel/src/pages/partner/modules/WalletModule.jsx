@@ -260,7 +260,7 @@ function WithdrawSheet({ open, cfg, max, onClose, onDone }) {
 
 const MethodBtn = ({ active, onClick, label }) => (
   <button type="button" onClick={onClick}
-    className={cx("h-11 rounded-xl border-2 font-semibold text-sm transition-all",
+    className={cx("h-11 rounded-md border-2 font-semibold text-sm transition-all",
       active ? "border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 dark:border-primary-500" : "border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300")}>
     {label}
   </button>

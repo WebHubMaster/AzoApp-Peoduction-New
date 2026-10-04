@@ -136,7 +136,7 @@ export function SegTabs<T extends string>({ tabs, value, onChange, testidPrefix 
       {tabs.map((t) => {
         const on = value === t;
         return (
-          <Pressable key={t} testID={`${testidPrefix}-${t}`} onPress={() => onChange(t)} style={{ paddingHorizontal: 16, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: on ? card : "transparent", boxShadow: on ? "0px 1px 2px rgba(0,0,0,0.05)" : undefined }}>
+          <Pressable key={t} testID={`${testidPrefix}-${t}`} onPress={() => onChange(t)} style={{ paddingHorizontal: 16, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: on ? card : "transparent", boxShadow: on ? "0px 1px 2px rgba(0,0,0,0.05)" : undefined }}>
             <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", textTransform: "capitalize", color: on ? (dark ? P[300] : P[700]) : (dark ? SLATE[400] : SLATE[500]) }}>{t}</Text>
           </Pressable>
         );

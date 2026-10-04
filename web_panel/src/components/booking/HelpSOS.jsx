@@ -140,11 +140,11 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
     <>
       <div className={`flex items-center gap-2 ${compact ? "" : "mt-2"}`}>
         <button data-testid={tid("help-btn")} onClick={() => openChat("help")}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-sm font-bold hover:bg-primary-100 transition">
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-md border border-primary-200 dark:border-primary-800 text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-sm font-bold hover:bg-primary-100 transition">
           <LifeBuoy className="h-4 w-4" /> Help
         </button>
         <button type="button" data-testid={tid("sos-btn")} onClick={sos}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-red-600 text-white px-3 py-2 text-sm font-bold hover:bg-red-700 transition">
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-md bg-red-600 text-white px-3 py-2 text-sm font-bold hover:bg-red-700 transition">
           <AlertTriangle className="h-4 w-4" /> SOS · 112
         </button>
       </div>
@@ -196,16 +196,16 @@ export default function HelpSOS({ booking, role = "customer", compact = false, i
             <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={sendPhoto} data-testid="help-sos-file" />
               <button type="button" data-testid="help-sos-attach" onClick={() => fileRef.current?.click()} disabled={!ticket || uploading}
-                className="h-11 w-11 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40">
+                className="h-11 w-11 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 disabled:opacity-40">
                 {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Paperclip className="h-5 w-5" />}
               </button>
               <input data-testid="help-sos-input" value={text}
                 onChange={(e) => { setText(e.target.value); pingTyping(); }}
                 onKeyDown={(e) => { if (e.key === "Enter") send(); }}
                 placeholder="Type your message…" disabled={!ticket || sending}
-                className="flex-1 h-11 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
+                className="flex-1 h-11 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/30" />
               <button data-testid="help-sos-send" onClick={send} disabled={!text.trim() || sending}
-                className="h-11 w-11 grid place-items-center rounded-xl bg-primary-600 text-white disabled:opacity-40">
+                className="h-11 w-11 grid place-items-center rounded-md bg-primary-600 text-white disabled:opacity-40">
                 {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
               </button>
             </div>

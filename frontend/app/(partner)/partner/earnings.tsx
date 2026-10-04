@@ -93,7 +93,7 @@ export default function PartnerEarnings() {
             {RANGES.map((r) => {
               const on = range === r.k;
               return (
-                <Pressable key={r.k} testID={`range-${r.k}`} onPress={() => setRange(r.k)} style={{ paddingHorizontal: 10, height: 28, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.surface : "transparent" }}>
+                <Pressable key={r.k} testID={`range-${r.k}`} onPress={() => setRange(r.k)} style={{ paddingHorizontal: 10, height: 28, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.surface : "transparent" }}>
                   <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 11, fontWeight: "700" }}>{r.l}</Text>
                 </Pressable>
               );
@@ -170,7 +170,7 @@ function LedgerPagination({ page, pageSize, total, colors, onPage, onPageSize }:
         </Pressable>
         <PgBtn label="‹" disabled={page <= 1} onPress={() => onPage(page - 1)} />
         {win.map((p) => (
-          <Pressable key={p} onPress={() => onPage(p)} style={{ minWidth: 32, height: 32, paddingHorizontal: 8, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: p === page ? colors.primaryHover : "transparent", borderWidth: p === page ? 0 : 1, borderColor: colors.border }}>
+          <Pressable key={p} onPress={() => onPage(p)} style={{ minWidth: 32, height: 32, paddingHorizontal: 8, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: p === page ? colors.primaryHover : "transparent", borderWidth: p === page ? 0 : 1, borderColor: colors.border }}>
             <Text style={{ color: p === page ? "#fff" : colors.textMuted, fontSize: 13, fontWeight: "700" }}>{p}</Text>
           </Pressable>
         ))}

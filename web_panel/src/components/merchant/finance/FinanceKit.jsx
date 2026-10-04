@@ -68,7 +68,7 @@ export const SegTabs = ({ tabs, value, onChange, testidPrefix = "tab" }) => (
       const on = value === v;
       return (
         <button key={v} data-testid={`${testidPrefix}-${v}`} onClick={() => onChange(v)}
-          className={`shrink-0 px-4 h-9 rounded-xl text-sm font-semibold capitalize transition-all ${on ? "bg-white dark:bg-slate-900 text-primary-700 dark:text-primary-300 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
+          className={`shrink-0 px-4 h-9 rounded-md text-sm font-semibold capitalize transition-all ${on ? "bg-white dark:bg-slate-900 text-primary-700 dark:text-primary-300 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}>
           {l}
         </button>
       );
@@ -110,7 +110,7 @@ const DrawerHead = ({ title, subtitle, onClose }) => (
       <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white truncate">{title}</h3>
       {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{subtitle}</p>}
     </div>
-    <button onClick={onClose} data-testid="drawer-close" className="h-8 w-8 rounded-lg grid place-items-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><X className="h-4 w-4" /></button>
+    <button onClick={onClose} data-testid="drawer-close" className="h-8 w-8 rounded-md grid place-items-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"><X className="h-4 w-4" /></button>
   </div>
 );
 
@@ -174,10 +174,10 @@ export const Paginator = ({ page, pages, total, pageSize, onPage, onPageSize }) 
       </div>
       <div className="flex items-center gap-1.5">
         <button disabled={page <= 1} onClick={() => onPage(page - 1)} data-testid="page-prev"
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" /></button>
+          className="h-9 px-3 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" /></button>
         <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 tabular-nums">{page} / {pages || 1}</span>
         <button disabled={page >= (pages || 1)} onClick={() => onPage(page + 1)} data-testid="page-next"
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm inline-flex items-center gap-1"><ChevronRight className="h-4 w-4" /></button>
+          className="h-9 px-3 rounded-md border border-slate-200 dark:border-slate-700 grid place-items-center disabled:opacity-40 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm inline-flex items-center gap-1"><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>
   );

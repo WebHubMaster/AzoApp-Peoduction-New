@@ -391,7 +391,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
                       <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "600", color: dark ? SLATE[300] : SLATE[600] }}>₹{q >= 1000 ? q / 1000 + "k" : q}</Text>
                     </Pressable>
                   ))}
-                  <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: P[200], backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                  <Pressable testID="withdraw-quick-max" onPress={() => setAmount(String(Math.floor(maxAllowed)))} style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: P[200], backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}>
                     <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "700", color: primaryText }}>Max</Text>
                   </Pressable>
                 </View>

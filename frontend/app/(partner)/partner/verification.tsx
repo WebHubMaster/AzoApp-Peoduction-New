@@ -68,7 +68,7 @@ export default function PartnerVerification() {
         {!approved ? (
           <View testID="onboarding-banner" style={{ borderRadius: 10, backgroundColor: colors.primary, padding: 20, gap: 12 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}><Icon name="shield-check-outline" size={32} color="#fff" /><View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 18, fontWeight: "700" }}>Complete your verification</Text><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Finish onboarding & KYC to start receiving jobs.</Text></View></View>
-            <Pressable testID="goto-onboarding" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "700", fontSize: 15 }}>{user?.onboarding_submitted ? "View submission" : "Complete now"}</Text></Pressable>
+            <Pressable testID="goto-onboarding" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "700", fontSize: 15 }}>{user?.onboarding_submitted ? "View submission" : "Complete now"}</Text></Pressable>
           </View>
         ) : null}
 
@@ -154,7 +154,7 @@ export default function PartnerVerification() {
                 </View>
                 {feePaid && feePay.paid_at ? <Field icon="calendar-outline" label="Paid On" value={new Date(feePay.paid_at).toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })} /> : null}
                 {feePaid && (feePay.payment_id || feePay.order_id) ? <Field icon="receipt" label="Txn Ref" value={feePay.payment_id || feePay.order_id} /> : null}
-                {!feePaid ? <Pressable testID="partner-pay-reg-fee" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Pay Registration Fee</Text></Pressable> : null}
+                {!feePaid ? <Pressable testID="partner-pay-reg-fee" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Pay Registration Fee</Text></Pressable> : null}
               </Section>
             ) : null}
           </>

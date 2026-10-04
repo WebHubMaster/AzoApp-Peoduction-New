@@ -138,7 +138,7 @@ export const SearchInput = ({ value, onChange, placeholder = "Search…", classN
       onChange={onChange}
       placeholder={placeholder}
       data-testid={testId}
-      className="w-full h-[42px] pl-9 pr-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 focus:border-primary-400 focus:bg-white dark:focus:bg-slate-800"
+      className="w-full h-[42px] pl-9 pr-9 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 transition-all focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900/50 focus:border-primary-400 focus:bg-white dark:focus:bg-slate-800"
     />
     {value ? (
       <button type="button" aria-label="Clear search" data-testid={testId ? `${testId}-clear` : undefined}
@@ -210,7 +210,7 @@ export const ActionIconButton = ({ icon: Icon, tooltip, tone = "slate", onClick,
     <Tooltip>
       <TooltipTrigger asChild>
         <button type="button" onClick={onClick} data-testid={testId} aria-label={tooltip}
-          className={cx("h-9 w-9 rounded-lg flex items-center justify-center transition-colors active:scale-95", ACTION_TONES[tone])}>
+          className={cx("h-9 w-9 rounded-md flex items-center justify-center transition-colors active:scale-95", ACTION_TONES[tone])}>
           <Icon className="h-4 w-4" />
         </button>
       </TooltipTrigger>
@@ -276,7 +276,7 @@ export const Pagination = ({ page, pageSize, total, onPage, onPageSize, pageSize
           <label className="flex items-center gap-2">
             <span className="hidden sm:inline">Rows</span>
             <select value={pageSize} onChange={(e) => onPageSize(Number(e.target.value))} data-testid="pagination-page-size"
-              className="h-8 pl-2 pr-6 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-200 cursor-pointer">
+              className="h-8 pl-2 pr-6 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-200 cursor-pointer">
               {pageSizeOptions.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </label>
@@ -318,7 +318,7 @@ export const ErrorState = ({ title = "Something went wrong", description = "Unab
     <h3 className="font-heading font-bold text-slate-700 dark:text-slate-200">{title}</h3>
     <p className="text-sm text-slate-400 mt-1">{description}</p>
     {onRetry && (
-      <button onClick={onRetry} className="mt-4 h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm flex items-center gap-2">
+      <button onClick={onRetry} className="mt-4 h-10 px-4 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm flex items-center gap-2">
         <RefreshCcw className="h-4 w-4" /> Retry
       </button>
     )}
@@ -371,11 +371,11 @@ export const ConfirmDialog = ({ open, onOpenChange, title = "Are you sure?", des
         </div>
         <AlertDialogFooter className="mt-2">
           <button onClick={() => onOpenChange(false)} data-testid="confirm-cancel"
-            className="h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+            className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
             {cancelLabel}
           </button>
           <button onClick={onConfirm} disabled={loading} data-testid="confirm-ok"
-            className={cx("h-10 px-4 rounded-xl text-white font-semibold text-sm transition-colors disabled:opacity-60", isDanger ? "bg-rose-600 hover:bg-rose-700" : "bg-primary-700 hover:bg-primary-800")}>
+            className={cx("h-10 px-4 rounded-md text-white font-semibold text-sm transition-colors disabled:opacity-60", isDanger ? "bg-rose-600 hover:bg-rose-700" : "bg-primary-700 hover:bg-primary-800")}>
             {loading ? "Working…" : confirmLabel}
           </button>
         </AlertDialogFooter>
@@ -386,8 +386,8 @@ export const ConfirmDialog = ({ open, onOpenChange, title = "Are you sure?", des
 
 /* ------------------------------------------------------------ Button presets */
 export const PrimaryButton = ({ children, className, ...p }) => (
-  <button className={cx("h-11 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors active:scale-[0.98] disabled:opacity-60 shadow-sm shadow-primary-700/20", className)} {...p}>{children}</button>
+  <button className={cx("h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm flex items-center justify-center gap-2 transition-colors active:scale-[0.98] disabled:opacity-60 shadow-sm shadow-primary-700/20", className)} {...p}>{children}</button>
 );
 export const SecondaryButton = ({ children, className, ...p }) => (
-  <button className={cx("h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:scale-[0.98]", className)} {...p}>{children}</button>
+  <button className={cx("h-11 px-4 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors active:scale-[0.98]", className)} {...p}>{children}</button>
 );

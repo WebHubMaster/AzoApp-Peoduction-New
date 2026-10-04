@@ -221,11 +221,11 @@ export default function MerchantHome() {
 
           {/* actions (h-11 = 44, rounded-2xl = 16, text-[13px] font-bold) */}
           <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: 16 }}>
-            <Pressable testID="mh-scan" onPress={() => router.push("/merchant/scanqr")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+            <Pressable testID="mh-scan" onPress={() => router.push("/merchant/scanqr")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
               <Icon name="qrcode" size={16} color={colors.primary} />
               <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>Scan &amp; Share QR</Text>
             </Pressable>
-            <Pressable testID="mh-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 10, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+            <Pressable testID="mh-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 6, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
               <Icon name="cash" size={16} color="#fff" />
               <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>Withdraw</Text>
             </Pressable>
@@ -318,7 +318,7 @@ export default function MerchantHome() {
             </View>
           </View>
           {/* h-10 = 40, rounded-xl = 12, text-[13px] font-semibold, bg primary-700 */}
-          <Pressable testID="mh-wallet-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={{ marginTop: spacing.md, height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
+          <Pressable testID="mh-wallet-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={{ marginTop: spacing.md, height: 40, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
             <Icon name="cash" size={16} color="#fff" />
             <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>Withdraw</Text>
           </Pressable>

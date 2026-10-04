@@ -113,7 +113,7 @@ export default function DateRangePicker({ value, onChange, align = "right" }) {
   return (
     <div className="relative" ref={ref}>
       <button type="button" data-testid="date-range-trigger" onClick={() => setOpen((o) => !o)}
-        className="h-10 px-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800">
+        className="h-10 px-3.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-800">
         <CalIcon className="h-4 w-4 text-slate-400" /> {label}
         <ChevronRight className={cn("h-4 w-4 text-slate-400 transition-transform", open && "rotate-90")} />
       </button>
@@ -123,17 +123,17 @@ export default function DateRangePicker({ value, onChange, align = "right" }) {
             <div className="flex sm:flex-col gap-1 flex-wrap sm:w-32 sm:border-r sm:border-slate-100 dark:sm:border-slate-800 sm:pr-2">
               {PRESETS.map((p) => (
                 <button key={p.key} type="button" onClick={() => applyPreset(p.key)}
-                  className={cn("text-left text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-colors", presetKey === p.key ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")}>{p.label}</button>
+                  className={cn("text-left text-xs font-semibold px-2.5 py-1.5 rounded-md transition-colors", presetKey === p.key ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")}>{p.label}</button>
               ))}
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <button type="button" onClick={() => setView((v) => addM(v, -1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setView((v) => addM(v, -1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
                 <div className="flex-1 flex justify-around text-sm font-bold text-slate-800 dark:text-slate-100">
                   <span>{MON[view.getMonth()]} {view.getFullYear()}</span>
                   <span className="hidden sm:block">{MON[addM(view, 1).getMonth()]} {addM(view, 1).getFullYear()}</span>
                 </div>
-                <button type="button" onClick={() => setView((v) => addM(v, 1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+                <button type="button" onClick={() => setView((v) => addM(v, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
               </div>
               <div className="flex gap-4" onMouseLeave={() => setHover(null)}>
                 <MonthGrid month={view} from={from} to={to} hover={hover} onPick={pick} onHover={setHover} />
@@ -145,8 +145,8 @@ export default function DateRangePicker({ value, onChange, align = "right" }) {
             <span className="text-xs text-slate-500">{from ? iso(from) : "Start"} {"→"} {to ? iso(to) : "End"}</span>
             <div className="flex items-center gap-2">
               <button type="button" onClick={clear} className="text-xs font-semibold text-slate-400 hover:text-slate-600 px-2">Clear</button>
-              <button type="button" onClick={() => setOpen(false)} className="h-8 px-3 rounded-lg text-xs font-semibold text-slate-600 border border-slate-200 dark:border-slate-700">Cancel</button>
-              <button type="button" data-testid="date-range-apply" onClick={apply} disabled={!from || !to} className="h-8 px-4 rounded-lg text-xs font-bold text-white bg-primary-700 hover:bg-primary-800 disabled:opacity-50">Apply</button>
+              <button type="button" onClick={() => setOpen(false)} className="h-8 px-3 rounded-md text-xs font-semibold text-slate-600 border border-slate-200 dark:border-slate-700">Cancel</button>
+              <button type="button" data-testid="date-range-apply" onClick={apply} disabled={!from || !to} className="h-8 px-4 rounded-md text-xs font-bold text-white bg-primary-700 hover:bg-primary-800 disabled:opacity-50">Apply</button>
             </div>
           </div>
         </div>

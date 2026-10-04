@@ -52,13 +52,13 @@ export default function RecentBookings({ rows, onOpenBooking, onReset, faService
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input data-testid="rb-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search bookings…" className="h-11 w-full sm:w-52 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
+            <input data-testid="rb-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search bookings…" className="h-11 w-full sm:w-52 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
           </div>
           <ComboSelect className="w-40" testid="rb-status" placeholder="All Status" value={statusF} onChange={setStatusF} options={statuses.map((s) => ({ value: s, label: sMeta(s).label }))} />
           <ComboSelect className="w-40" testid="rb-payment" placeholder="All Payments" value={payF} onChange={setPayF} options={pays.map((s) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))} />
           <ComboSelect className="w-44" testid="rb-service" placeholder="All Services" value={serviceF} onChange={setServiceF} options={faServices} />
           <ComboSelect className="w-40" testid="rb-day" placeholder="Any date" value={dayF} onChange={setDayF} options={days.map((s) => ({ value: s, label: fmtDate(s) }))} />
-          {localActive && <button data-testid="rb-clear" onClick={() => { setQ(""); setStatusF(""); setServiceF(""); setPayF(""); setDayF(""); }} className="h-11 px-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1"><X className="h-3.5 w-3.5" />Clear</button>}
+          {localActive && <button data-testid="rb-clear" onClick={() => { setQ(""); setStatusF(""); setServiceF(""); setPayF(""); setDayF(""); }} className="h-11 px-2.5 rounded-md text-xs font-bold text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1"><X className="h-3.5 w-3.5" />Clear</button>}
         </div>
       </div>
 
@@ -118,9 +118,9 @@ export default function RecentBookings({ rows, onOpenBooking, onReset, faService
               <span className="ml-1" data-testid="rb-showing">Showing {start + 1}–{Math.min(start + pageSize, total)} of {total}</span>
             </div>
             <div className="flex items-center gap-1">
-              <button data-testid="rb-prev" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-8 w-8 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
+              <button data-testid="rb-prev" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-8 w-8 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
               <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 px-2">Page {page} / {pages}</span>
-              <button data-testid="rb-next" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))} className="h-8 w-8 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
+              <button data-testid="rb-next" disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))} className="h-8 w-8 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
             </div>
           </div>
         </>

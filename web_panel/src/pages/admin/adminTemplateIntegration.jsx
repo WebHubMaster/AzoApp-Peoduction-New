@@ -86,7 +86,7 @@ export function TemplateManager() {
       <div className="inline-flex bg-slate-100 rounded-xl p-1 my-5">
         {CHANNELS.map((c) => (
           <button key={c.key} data-testid={`tpl-tab-${c.key}`} onClick={() => setChannel(c.key)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition
+            className={`px-4 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition
               ${channel === c.key ? "bg-white shadow text-primary-700" : "text-slate-500"}`}>
             <c.icon className="h-4 w-4" /> {c.label}
           </button>
@@ -196,7 +196,7 @@ function TriggerEventsManager({ events, onChanged, onClose }) {
                 const sel = n === icon;
                 return (
                   <button key={n} type="button" onClick={() => setIcon(n)} title={n} data-testid={`event-icon-${n}`}
-                    className={`h-8 w-8 rounded-lg flex items-center justify-center border transition ${sel ? "border-transparent text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"}`}
+                    className={`h-8 w-8 rounded-md flex items-center justify-center border transition ${sel ? "border-transparent text-white" : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"}`}
                     style={sel ? { backgroundColor: color } : undefined}>
                     <Ic className="h-4 w-4" />
                   </button>
@@ -351,7 +351,7 @@ function TemplateEditor({ tpl, events, onEventsChanged, onClose, onSaved }) {
                 placeholder="Design your email — use the toolbar. Insert variables like {{name}}, {{business}}, {{otp}}." />
             ) : (
               <textarea ref={textRef} data-testid="tpl-body" value={f.body} onChange={(e) => set("body", e.target.value)} rows={4}
-                className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:border-primary-400"
+                className="w-full rounded-md border border-slate-200 p-3 text-sm focus:outline-none focus:border-primary-400"
                 placeholder={f.channel === "sms" ? "Use {{name}} / [[name]] or DLT {#VAR#}" : "Push message. Use {{name}}, {{booking_id}}…"} />
             )}
           </div>
@@ -564,7 +564,7 @@ function PartnerRegFeeCard() {
               <div className="flex gap-2 mt-1">
                 {[["percentage", "Percentage (%)"], ["fixed", "Fixed (₹)"]].map(([v, l]) => (
                   <button key={v} type="button" data-testid={`prf-dtype-${v}`} onClick={() => setF({ ...f, discount_type: v })}
-                    className={`flex-1 h-9 rounded-lg border text-sm font-medium transition ${f.discount_type === v ? "border-primary-500 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>{l}</button>
+                    className={`flex-1 h-9 rounded-md border text-sm font-medium transition ${f.discount_type === v ? "border-primary-500 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>{l}</button>
                 ))}
               </div>
             </div>
@@ -719,23 +719,23 @@ function AgentPayoutConfigCard() {
           <label className="text-xs text-slate-500">Payout per mapping (₹)</label>
           <input type="number" min={0} value={cfg.commission_per_mapping} onChange={f("commission_per_mapping")}
             data-testid="agent-cfg-commission"
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+            className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 text-sm" />
         </div>
         <div>
           <label className="text-xs text-slate-500">Min withdrawal (₹)</label>
           <input type="number" min={0} value={cfg.min_withdrawal} onChange={f("min_withdrawal")}
             data-testid="agent-cfg-min"
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+            className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 text-sm" />
         </div>
         <div>
           <label className="text-xs text-slate-500">Max withdrawal (₹)</label>
           <input type="number" min={0} value={cfg.max_withdrawal} onChange={f("max_withdrawal")}
             data-testid="agent-cfg-max"
-            className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+            className="mt-1 w-full px-3 py-2 rounded-md border border-slate-300 text-sm" />
         </div>
       </div>
       <button onClick={save} disabled={saving} data-testid="agent-cfg-save"
-        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-600 text-white text-sm font-semibold disabled:opacity-60">
+        className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-primary-600 text-white text-sm font-semibold disabled:opacity-60">
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null} Save agent payout settings
       </button>
     </div>
@@ -1130,7 +1130,7 @@ function ConfigModal({ card, integ, onClose, onSaved }) {
               <p className="text-xs text-slate-400">Also set the public web config (apiKey/authDomain/projectId/etc.) — for MVP these can go into the VAPID/web fields via API. Paste the service-account JSON below:</p>
               <L label="Service Account JSON (encrypted at rest)">
                 <textarea data-testid="intg-fcm-sa" value={saJson} onChange={(e) => setSaJson(e.target.value)} rows={4}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs font-mono focus:outline-none focus:border-primary-400" placeholder="Paste Firebase service-account JSON…" />
+                  className="w-full rounded-md border border-slate-200 p-3 text-xs font-mono focus:outline-none focus:border-primary-400" placeholder="Paste Firebase service-account JSON…" />
               </L>
             </>
           )}
@@ -1572,7 +1572,7 @@ function FirebaseModal({ integ, onClose, onSaved }) {
               </div>
             )}
             <input type="file" accept="application/json,.json" onChange={onFile}
-              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium" />
+              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-primary-50 file:text-primary-700 file:font-medium" />
             <p className="text-[11px] text-slate-400 mt-1">{saStatus && saStatus.configured ? "Choose a new file only if you want to replace the current one." : "No file uploaded yet."}</p>
           </L>
           {saJson && <p className="text-[11px] text-emerald-600 mt-1">New service account file loaded: {saName} ({saJson.length} chars).</p>}
@@ -1594,7 +1594,7 @@ function FirebaseModal({ integ, onClose, onSaved }) {
               </div>
             )}
             <input type="file" accept="application/json,.json" data-testid="fb-gs-file" onChange={onGsFile}
-              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium" />
+              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium" />
             <p className="text-[11px] text-slate-400 mt-1">This is the Firebase Android config (not the service account). The mobile app bundles it at build time; uploading here keeps it on record and auto-fills the web-push fields.</p>
           </L>
           {gsJson && <p className="text-[11px] text-blue-600 mt-1">New google-services.json loaded: {gsName} ({gsJson.length} chars).</p>}
@@ -1616,7 +1616,7 @@ function FirebaseModal({ integ, onClose, onSaved }) {
               </div>
             )}
             <input type="file" accept="application/json,.json" data-testid="fb-cs-gs-file" onChange={onCsGsFile}
-              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium" />
+              className="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-md file:border-0 file:bg-indigo-50 file:text-indigo-700 file:font-medium" />
             <p className="text-[11px] text-slate-400 mt-1">This is the Firebase Android config for the <b>Customer</b> app (package <code>app.azoapp.customer</code>). The Customer app bundles it at build time; uploading here keeps it on record and lets you download it for the build.</p>
           </L>
           {csGsJson && <p className="text-[11px] text-indigo-600 mt-1">New Customer google-services.json loaded: {csGsName} ({csGsJson.length} chars).</p>}
@@ -1830,7 +1830,7 @@ function LanguagesModal({ onClose }) {
                 <button type="button" onClick={() => upd(i, "active", !(l.active !== false))} className={`h-6 w-11 rounded-full transition-colors relative ${l.active !== false ? "bg-primary-600" : "bg-slate-300"}`}>
                   <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${l.active !== false ? "left-5" : "left-0.5"}`} />
                 </button>
-                <button type="button" onClick={() => del(i)} className="h-9 w-9 grid place-items-center rounded-lg text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+                <button type="button" onClick={() => del(i)} className="h-9 w-9 grid place-items-center rounded-md text-red-500 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
               </div>
             ))}
             <Button variant="outline" size="sm" data-testid="lang-add" onClick={addRow} className="mt-1"><Plus className="h-4 w-4 mr-1" /> Add language</Button>

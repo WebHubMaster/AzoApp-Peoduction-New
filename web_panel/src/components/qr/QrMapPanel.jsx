@@ -149,7 +149,7 @@ export default function QrMapPanel({ onMapped }) {
             <button
               data-testid="qr-token-load"
               onClick={() => loadQr(token)}
-              className="shrink-0 px-4 rounded-xl bg-slate-800 dark:bg-slate-700 text-white text-sm font-medium inline-flex items-center gap-1.5 hover:bg-slate-900 active:scale-[0.98] transition"
+              className="shrink-0 px-4 rounded-md bg-slate-800 dark:bg-slate-700 text-white text-sm font-medium inline-flex items-center gap-1.5 hover:bg-slate-900 active:scale-[0.98] transition"
             >
               {loadingQr ? <Loader2 className="w-4 h-4 animate-spin" /> : <ScanLine className="w-4 h-4" />} Load
             </button>
@@ -182,7 +182,7 @@ export default function QrMapPanel({ onMapped }) {
             <button
               data-testid="qr-toggle-disable"
               onClick={toggleDisable}
-              className="mt-3 text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition"
+              className="mt-3 text-xs inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 transition"
             >
               <Ban className="w-3.5 h-3.5" /> {qr.status === "disabled" ? "Enable QR" : "Disable QR"}
             </button>
@@ -237,7 +237,7 @@ export default function QrMapPanel({ onMapped }) {
                 key={m.id}
                 data-testid="merchant-option"
                 onClick={() => { setSelectedMerchant(m); setMerchantCode(m.merchant_code || ""); }}
-                className={`w-full text-left px-3.5 py-3 rounded-xl border flex items-center gap-3 transition ${
+                className={`w-full text-left px-3.5 py-3 rounded-md border flex items-center gap-3 transition ${
                   active
                     ? "border-[#0D47A1] bg-blue-50/80 dark:bg-blue-900/30 ring-2 ring-blue-100 dark:ring-blue-900/40"
                     : "border-slate-200 dark:border-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
@@ -260,7 +260,7 @@ export default function QrMapPanel({ onMapped }) {
           data-testid="qr-map-submit"
           onClick={doMap}
           disabled={mapping || !canMap || locked}
-          className={`mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-xl text-sm font-semibold transition active:scale-[0.99] ${
+          className={`mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3.5 rounded-md text-sm font-semibold transition active:scale-[0.99] ${
             canMap && !mapping && !locked
               ? "bg-gradient-to-br from-[#0D47A1] to-[#1769d6] text-white shadow-[0_6px_16px_-6px_rgba(13,71,161,0.6)] hover:brightness-105"
               : "bg-slate-200 dark:bg-slate-700 text-slate-400 cursor-not-allowed"

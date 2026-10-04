@@ -83,7 +83,7 @@ export default function RateCardPrices({ cards, values, setValues, selectedCat, 
         <div className="flex items-center gap-2">
           <Receipt className="h-4 w-4 text-[#0D47A1]" />
           <select value={current?.category_id || ""} onChange={(e) => setSelectedCat(e.target.value)} data-testid="pm-rc-category"
-            className="h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px] font-semibold">
+            className="h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px] font-semibold">
             {withCards.map((c) => <option key={c.id} value={c.category_id}>{c.category_name || c.title}</option>)}
           </select>
         </div>

@@ -11,7 +11,7 @@ export const advCount = (a) => ["status", "type", "service", "category", "custom
 
 const Sel = ({ id, value, onChange, opts, all }) => (
   <select id={id} value={value} onChange={(e) => onChange(e.target.value)} data-testid={`bk-adv-${id}`}
-    className="h-10 w-full rounded-lg border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[14px] text-slate-700 dark:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
+    className="h-10 w-full rounded-md border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[14px] text-slate-700 dark:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
     <option value="">{all}</option>
     {opts.map((o) => <option key={o} value={o}>{label(o)}</option>)}
   </select>

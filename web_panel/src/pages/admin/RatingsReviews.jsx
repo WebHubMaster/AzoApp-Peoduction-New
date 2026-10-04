@@ -120,7 +120,7 @@ export default function RatingsReviews() {
             ) : items.length === 0 ? (
               <EmptyState icon={MessageSquare} title="No reviews match these filters"
                 description="Try clearing the star filter or search to see more customer reviews."
-                action={chips.length ? <button onClick={clearAll} className="h-10 px-4 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm">Clear Filters</button> : null} />
+                action={chips.length ? <button onClick={clearAll} className="h-10 px-4 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm">Clear Filters</button> : null} />
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800" data-testid="rv-list">
                 {items.map((it) => (

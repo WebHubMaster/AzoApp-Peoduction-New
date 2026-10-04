@@ -105,7 +105,7 @@ function MemberSavingsBanner({ navigate }) {
           <p className="text-emerald-50 text-[13px]">Enjoy member discounts &amp; free visits on every booking · {plan}</p>
         </div>
         <button onClick={() => navigate("/services")}
-          className="hidden sm:inline-flex shrink-0 bg-white text-emerald-700 font-bold text-sm rounded-xl px-4 py-2 hover:bg-emerald-50 transition">
+          className="hidden sm:inline-flex shrink-0 bg-white text-emerald-700 font-bold text-sm rounded-md px-4 py-2 hover:bg-emerald-50 transition">
           Book &amp; save more
         </button>
       </div>

@@ -112,7 +112,7 @@ export default function MerchantPartners() {
         <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-700 p-0.5 bg-white dark:bg-slate-900 overflow-x-auto">
           {STATUS_TABS.map(([k, lbl]) => (
             <button key={k || "all"} data-testid={`status-tab-${k || "all"}`} onClick={() => setStatus(k)}
-              className={`h-9 px-3.5 rounded-lg text-sm font-semibold whitespace-nowrap transition ${status === k
+              className={`h-9 px-3.5 rounded-md text-sm font-semibold whitespace-nowrap transition ${status === k
                 ? "bg-primary-600 text-white" : "text-slate-500 hover:text-slate-800 dark:hover:text-white"}`}>{lbl}</button>
           ))}
         </div>

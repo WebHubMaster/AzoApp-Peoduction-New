@@ -61,7 +61,7 @@ export default function CopyCityDialog({ cities, to, onClose, onDone }) {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <label className="flex-1 text-[13px] font-semibold text-slate-600">Source City
-                <select value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px]" data-testid="pm-copy-from">
+                <select value={from} onChange={(e) => setFrom(e.target.value)} className="mt-1 w-full h-10 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-[14px]" data-testid="pm-copy-from">
                   {sources.map((c) => <option key={c.city_key} value={c.city}>{c.city}</option>)}
                 </select>
               </label>

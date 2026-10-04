@@ -47,7 +47,7 @@ function NotificationBell() {
   return (
     <>
       <Pressable testID="notif-bell" onPress={toggle} hitSlop={6}
-        style={{ height: 38, width: 38, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }}>
+        style={{ height: 38, width: 38, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }}>
         <Bell size={18} color={colors.textSecondary} strokeWidth={1.9} />
         {unread > 0 ? (
           <View style={{ position: "absolute", top: -6, right: -6, height: 18, minWidth: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
@@ -100,7 +100,7 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
     setSaving(false);
   };
   const L = (s: string) => <Text style={{ fontSize: 11, fontWeight: "800", letterSpacing: 0.5, textTransform: "uppercase", color: colors.textMuted }}>{s}</Text>;
-  const field = { height: 46, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, marginTop: 6, color: colors.text, fontSize: 15 } as const;
+  const field = { height: 46, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, marginTop: 6, color: colors.text, fontSize: 15 } as const;
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay }}>
@@ -122,7 +122,7 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
             <View>{L("Phone")}<TextInput value={user?.phone || ""} editable={false} style={[field, { opacity: 0.6 }]} /></View>
           </View>
           <Pressable testID="profile-save-btn" onPress={save} disabled={saving}
-            style={{ marginTop: 18, height: 48, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
+            style={{ marginTop: 18, height: 48, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
             {saving ? <ActivityIndicator size="small" color="#fff" /> : <Save size={16} color="#fff" />}
             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{saving ? "Saving…" : "Save"}</Text>
           </Pressable>

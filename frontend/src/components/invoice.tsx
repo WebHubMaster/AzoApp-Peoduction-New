@@ -93,7 +93,7 @@ export function InvoiceKpis({ summary = {}, currency = "INR", rangeLabel = "All 
 export function Chip({ on, onPress, children, testID, icon, count, height = 40 }: { on: boolean; onPress: () => void; children: React.ReactNode; testID?: string; icon?: React.ReactNode; count?: number; height?: number }) {
   const inv = useInv();
   return (
-    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height, paddingHorizontal: 14, borderRadius: 12, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? inv.primary : inv.surface, borderWidth: 1, borderColor: on ? inv.primary : inv.border2, transform: [{ scale: pressed ? 0.97 : 1 }], boxShadow: on ? "0px 1px 2px rgba(13,71,161,0.3)" : undefined })}>
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height, paddingHorizontal: 14, borderRadius: 6, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: on ? inv.primary : inv.surface, borderWidth: 1, borderColor: on ? inv.primary : inv.border2, transform: [{ scale: pressed ? 0.97 : 1 }], boxShadow: on ? "0px 1px 2px rgba(13,71,161,0.3)" : undefined })}>
       {icon}
       <Text style={{ color: on ? "#fff" : inv.t700, fontSize: 12, fontWeight: "600" }}>{children}</Text>
       {count != null ? <View style={{ paddingHorizontal: 6, borderRadius: 6, backgroundColor: on ? "rgba(255,255,255,0.2)" : inv.subtle }}><Text style={{ fontSize: 10, color: on ? "#fff" : inv.t500 }}>{count}</Text></View> : null}
@@ -103,7 +103,7 @@ export function Chip({ on, onPress, children, testID, icon, count, height = 40 }
 export function OutlineBtn({ onPress, icon, label, disabled, busy, testID, flex = 1, height = 44, primary }: { onPress: () => void; icon?: React.ReactNode; label?: string; disabled?: boolean; busy?: boolean; testID?: string; flex?: number; height?: number; primary?: boolean }) {
   const inv = useInv();
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={disabled || busy} style={({ pressed }) => ({ flex, height, borderRadius: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: primary ? inv.primary : inv.surface, borderWidth: primary ? 0 : 1, borderColor: inv.border2, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 })}>
+    <Pressable testID={testID} onPress={onPress} disabled={disabled || busy} style={({ pressed }) => ({ flex, height, borderRadius: 6, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: primary ? inv.primary : inv.surface, borderWidth: primary ? 0 : 1, borderColor: inv.border2, opacity: disabled ? 0.5 : pressed ? 0.85 : 1 })}>
       {busy ? <ActivityIndicator size="small" color={primary ? "#fff" : inv.primary700} /> : icon}
       {label ? <Text style={{ color: primary ? "#fff" : inv.t700, fontSize: 14, fontWeight: "600" }}>{label}</Text> : null}
     </Pressable>
@@ -112,7 +112,7 @@ export function OutlineBtn({ onPress, icon, label, disabled, busy, testID, flex 
 export function IconSquare({ onPress, children, testID, badge }: { onPress: () => void; children: React.ReactNode; testID?: string; badge?: number }) {
   const inv = useInv();
   return (
-    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ position: "relative", height: 44, width: 44, borderRadius: 12, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.95 : 1 }] })}>
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ position: "relative", height: 44, width: 44, borderRadius: 6, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.95 : 1 }] })}>
       {children}
       {badge ? <View style={{ position: "absolute", top: -4, right: -4, height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: inv.background }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{badge}</Text></View> : null}
     </Pressable>
@@ -151,7 +151,7 @@ export function DateChips({ value, onChange, dateFrom, dateTo, onDateFrom, onDat
             <View style={{ flex: 1 }}><Text style={{ fontSize: 10.5, fontWeight: "700", letterSpacing: 0.8, color: inv.t400, textTransform: "uppercase", marginBottom: 4 }}>To Date</Text><WDatePicker testID="invoice-date-to" value={dateTo} min={dateFrom || undefined} onChange={onDateTo} placeholder="To date" /></View>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Pressable testID="invoice-date-apply" onPress={onApplyCustom} disabled={!canApply} style={{ height: 40, paddingHorizontal: 20, borderRadius: 10, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center", opacity: canApply ? 1 : 0.5 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Apply</Text></Pressable>
+            <Pressable testID="invoice-date-apply" onPress={onApplyCustom} disabled={!canApply} style={{ height: 40, paddingHorizontal: 20, borderRadius: 6, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center", opacity: canApply ? 1 : 0.5 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Apply</Text></Pressable>
             {customApplied ? <Text style={{ fontSize: 11, color: inv.emerald, fontWeight: "600" }}>Applied</Text> : null}
           </View>
         </View>
@@ -164,7 +164,7 @@ export function DateChips({ value, onChange, dateFrom, dateTo, onDateFrom, onDat
 export function SearchBox({ value, onChange, searching, placeholder = "Search invoice #, booking, customer...", autoFocus }: { value: string; onChange: (v: string) => void; searching?: boolean; placeholder?: string; autoFocus?: boolean }) {
   const inv = useInv();
   return (
-    <View style={{ flex: 1, position: "relative", height: 44, borderRadius: 12, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10 }}>
+    <View style={{ flex: 1, position: "relative", height: 44, borderRadius: 6, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10 }}>
       <Search size={16} color={inv.t400} />
       <TextInput testID="invoice-search" value={value} onChangeText={onChange} autoFocus={autoFocus} placeholder={placeholder} placeholderTextColor={inv.t400} style={{ flex: 1, marginLeft: 8, color: inv.t900, fontSize: 14, paddingVertical: 0 }} returnKeyType="search" />
       {searching ? <ActivityIndicator size="small" color={inv.primary700} testID="invoice-search-spinner" /> : value ? <Pressable testID="invoice-search-clear" onPress={() => onChange("")} hitSlop={8} style={{ height: 24, width: 24, alignItems: "center", justifyContent: "center", borderRadius: 6 }}><X size={14} color={inv.t400} /></Pressable> : null}
@@ -201,7 +201,7 @@ export function InvoiceCardList({ items, busyId, onMore, ...a }: { items: any[];
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingBottom: 12 }}>
               <OutlineBtn testID={`invoice-card-view-${it.invoice_number}`} onPress={() => a.onView(it)} icon={<Eye size={16} color={inv.t700} />} label="View" />
               <OutlineBtn testID={`invoice-card-download-${it.invoice_number}`} onPress={() => a.onDownload(it)} busy={busyId === it.id} icon={<Download size={16} color={inv.t700} />} label="Download" />
-              <Pressable testID={`invoice-more-${it.invoice_number}`} onPress={() => onMore(it)} style={{ height: 44, width: 44, borderRadius: 12, borderWidth: 1, borderColor: inv.border2, alignItems: "center", justifyContent: "center" }}><MoreHorizontal size={16} color={inv.t500} /></Pressable>
+              <Pressable testID={`invoice-more-${it.invoice_number}`} onPress={() => onMore(it)} style={{ height: 44, width: 44, borderRadius: 6, borderWidth: 1, borderColor: inv.border2, alignItems: "center", justifyContent: "center" }}><MoreHorizontal size={16} color={inv.t500} /></Pressable>
             </View>
           </View>
         );
@@ -217,7 +217,7 @@ export function RowMenuSheet({ inv, onClose, ...a }: { inv: any | null; onClose:
   const Item = ({ icon, label, onPress, testID, tone }: { icon: any; label: string; onPress: () => void; testID?: string; tone?: string }) => {
     const Ico = icon;
     return (
-      <Pressable testID={testID} onPress={() => run(onPress)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, height: 44, paddingHorizontal: 12, borderRadius: 10, backgroundColor: pressed ? t.subtle : "transparent" })}>
+      <Pressable testID={testID} onPress={() => run(onPress)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, height: 44, paddingHorizontal: 12, borderRadius: 6, backgroundColor: pressed ? t.subtle : "transparent" })}>
         <Ico size={16} color={tone || t.t500} /><Text style={{ color: t.t800, fontSize: 14, fontWeight: "500" }}>{label}</Text>
       </Pressable>
     );
@@ -242,7 +242,7 @@ export function AdvancedPaginator({ page, pages, total, pageSize, onPage, onPage
   const pgs = Math.max(1, pages || 1);
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
-  const ghost = { height: 36, minWidth: 36, paddingHorizontal: 8, borderRadius: 8, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, alignItems: "center" as const, justifyContent: "center" as const };
+  const ghost = { height: 36, minWidth: 36, paddingHorizontal: 8, borderRadius: 6, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, alignItems: "center" as const, justifyContent: "center" as const };
   return (
     <View testID="invoice-pagination" style={{ gap: 12, paddingTop: 16, marginTop: 8, borderTopWidth: 1, borderTopColor: inv.subtle }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 12 }}>
@@ -258,7 +258,7 @@ export function AdvancedPaginator({ page, pages, total, pageSize, onPage, onPage
       </View>
       <ActionSheet open={sizeOpen} onClose={() => setSizeOpen(false)} title="Rows per page" testID="page-size-sheet">
         {[10, 25, 50, 100].map((n) => (
-          <Pressable key={n} testID={`page-size-${n}`} onPress={() => { setSizeOpen(false); onPageSize(n); }} style={{ height: 44, paddingHorizontal: 12, borderRadius: 10, justifyContent: "center", backgroundColor: n === pageSize ? inv.primary50 : "transparent" }}>
+          <Pressable key={n} testID={`page-size-${n}`} onPress={() => { setSizeOpen(false); onPageSize(n); }} style={{ height: 44, paddingHorizontal: 12, borderRadius: 6, justifyContent: "center", backgroundColor: n === pageSize ? inv.primary50 : "transparent" }}>
             <Text style={{ fontSize: 14, fontWeight: n === pageSize ? "700" : "500", color: n === pageSize ? inv.primary700 : inv.t800 }}>{n} / page</Text>
           </Pressable>
         ))}
@@ -330,7 +330,7 @@ export function InvError({ offline, onRetry }: { offline: boolean; onRetry: () =
       <View style={{ height: 64, width: 64, borderRadius: 10, backgroundColor: inv.dark ? "rgba(76,5,25,0.4)" : "#FFF1F2", alignItems: "center", justifyContent: "center" }}>{offline ? <WifiOff size={28} color="#F43F5E" strokeWidth={1.7} /> : <AlertTriangle size={28} color="#F43F5E" strokeWidth={1.7} />}</View>
       <Text style={{ fontWeight: "700", fontSize: 18, color: inv.t900, marginTop: 16 }}>{offline ? "No internet connection" : "Unable to load invoices"}</Text>
       <Text style={{ fontSize: 14, color: inv.t500, marginTop: 4, textAlign: "center", maxWidth: 360 }}>{offline ? "Check your connection and try again." : "Something went wrong while fetching your invoices."}</Text>
-      <Pressable testID="invoice-retry" onPress={onRetry} style={{ marginTop: 20, height: 44, paddingHorizontal: 20, borderRadius: 12, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>{offline ? "Reconnect" : "Try Again"}</Text></Pressable>
+      <Pressable testID="invoice-retry" onPress={onRetry} style={{ marginTop: 20, height: 44, paddingHorizontal: 20, borderRadius: 6, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>{offline ? "Reconnect" : "Try Again"}</Text></Pressable>
     </View>
   );
 }
@@ -372,7 +372,7 @@ export function FullSheet({ open, onClose, title, subtitle, children, footer, he
     <Modal visible={open} animationType="slide" onRequestClose={onClose} statusBarTranslucent presentationStyle="fullScreen">
       <View testID={testID} style={{ flex: 1, backgroundColor: inv.dark ? "#020617" : "#F8FAFC" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingBottom: 10, paddingTop: insets.top + 10, backgroundColor: inv.surface, borderBottomWidth: 1, borderBottomColor: inv.border2 }}>
-          <Pressable testID="slideover-back" onPress={onClose} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? inv.subtle : "transparent" })}><ArrowLeft size={20} color={inv.t600} /></Pressable>
+          <Pressable testID="slideover-back" onPress={onClose} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? inv.subtle : "transparent" })}><ArrowLeft size={20} color={inv.t600} /></Pressable>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ fontSize: 16, fontWeight: "700", color: inv.t900, lineHeight: 20 }} numberOfLines={1}>{title}</Text>
             {subtitle ? <Text style={{ fontSize: 11, color: inv.t400 }} numberOfLines={1}>{subtitle}</Text> : null}
@@ -397,7 +397,7 @@ export function ActionSheet({ open, onClose, title, children, testID }: { open: 
           <View style={{ alignSelf: "center", height: 6, width: 48, borderRadius: 3, backgroundColor: inv.dark ? "#334155" : "#E2E8F0", marginTop: 12 }} />
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
             <Text style={{ fontWeight: "700", color: inv.t900, fontSize: 15 }}>{title}</Text>
-            <Pressable onPress={onClose} hitSlop={8} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><X size={16} color={inv.t400} /></Pressable>
+            <Pressable onPress={onClose} hitSlop={8} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><X size={16} color={inv.t400} /></Pressable>
           </View>
           <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>{children}</View>
         </View>
@@ -438,7 +438,7 @@ export function EmailSheet({ inv, onClose, onSend, sending }: { inv: any | null;
     <ActionSheet open={!!inv} onClose={onClose} title="Email Invoice" testID="invoice-email-sheet">
       <View style={{ paddingHorizontal: 4, gap: 12 }}>
         <Text style={{ fontSize: 13, color: t.t500 }}>Send <Text style={{ fontWeight: "700", color: t.t800 }}>{inv?.invoice_number}</Text> as a PDF attachment. Leave blank to use the email on file.</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 12, borderWidth: 1, borderColor: valid ? t.border2 : t.rose, backgroundColor: t.surface, paddingHorizontal: 12, gap: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 6, borderWidth: 1, borderColor: valid ? t.border2 : t.rose, backgroundColor: t.surface, paddingHorizontal: 12, gap: 8 }}>
           <Mail size={16} color={t.t400} />
           <TextInput testID="invoice-email-input" value={email} onChangeText={setEmail} placeholder="recipient@email.com" placeholderTextColor={t.t400}
             keyboardType="email-address" autoCapitalize="none" autoCorrect={false} style={{ flex: 1, color: t.t900, fontSize: 15, paddingVertical: 0 }} />

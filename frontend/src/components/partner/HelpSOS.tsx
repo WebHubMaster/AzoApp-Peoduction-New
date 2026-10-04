@@ -125,10 +125,10 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
   return (
     <>
       <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
-        <Pressable testID={`${testPrefix}help-btn`} onPress={openChat} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.primarySubtle, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <Pressable testID={`${testPrefix}help-btn`} onPress={openChat} style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: C.border, backgroundColor: C.primarySubtle, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Icon name="lifebuoy" size={16} color={C.primary} /><Text style={{ fontWeight: "700", color: C.primary }}>Help</Text>
         </Pressable>
-        <Pressable testID={`${testPrefix}sos-btn`} onPress={callSOS} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: "#E11D48", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <Pressable testID={`${testPrefix}sos-btn`} onPress={callSOS} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: "#E11D48", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Icon name="alert" size={16} color="#fff" /><Text style={{ fontWeight: "700", color: "#fff" }}>SOS · 112</Text>
         </Pressable>
       </View>
@@ -162,13 +162,13 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
               {agentTyping ? <Text testID="help-sos-agent-typing" style={{ fontSize: 11, fontWeight: "600", color: C.primary }}>Support is typing…</Text> : null}
             </ScrollView>
             <View style={{ flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: C.border }}>
-              <Pressable testID="help-sos-attach" onPress={sendPhoto} disabled={!ticket || uploading} style={{ width: 44, height: 44, borderRadius: 12, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center", opacity: !ticket ? 0.4 : 1 }}>
+              <Pressable testID="help-sos-attach" onPress={sendPhoto} disabled={!ticket || uploading} style={{ width: 44, height: 44, borderRadius: 6, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center", opacity: !ticket ? 0.4 : 1 }}>
                 {uploading ? <ActivityIndicator size="small" color={C.textMuted} /> : <Icon name="paperclip" size={18} color={C.textMuted} />}
               </Pressable>
               <TextInput testID="help-sos-input" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} onSubmitEditing={send}
                 placeholder="Type your message…" placeholderTextColor={C.textMuted} editable={!!ticket && !sending}
-                style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: C.border, backgroundColor: C.surfaceSubtle, paddingHorizontal: 12, color: C.text }} />
-              <Pressable testID="help-sos-send" onPress={send} disabled={!text.trim() || sending} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.primary, alignItems: "center", justifyContent: "center", opacity: !text.trim() || sending ? 0.4 : 1 }}>
+                style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: C.border, backgroundColor: C.surfaceSubtle, paddingHorizontal: 12, color: C.text }} />
+              <Pressable testID="help-sos-send" onPress={send} disabled={!text.trim() || sending} style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: C.primary, alignItems: "center", justifyContent: "center", opacity: !text.trim() || sending ? 0.4 : 1 }}>
                 {sending ? <ActivityIndicator color="#fff" size="small" /> : <Icon name="send" size={18} color="#fff" />}
               </Pressable>
             </View>

@@ -556,7 +556,7 @@ export default function Checkout() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/70">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
-          <button onClick={back} data-testid="checkout-back" className="h-9 w-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary-700"><ArrowLeft className="h-5 w-5" /></button>
+          <button onClick={back} data-testid="checkout-back" className="h-9 w-9 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary-700"><ArrowLeft className="h-5 w-5" /></button>
           <div>
             <h1 className="font-heading font-extrabold text-lg text-slate-900 leading-none">{isSub ? "Book your subscription" : "Book your services"}</h1>
             <p className="text-[11px] text-slate-400 mt-0.5">{isSub ? `${sub.plan_label || sub.plan_type} plan` : `${count} item${count > 1 ? "s" : ""} in your order`}</p>
@@ -737,7 +737,7 @@ const StepDetails = ({ items, updateItem, setAddonQty, quotes, popularAddons = {
                   const off = t.original_price > t.price ? Math.round((1 - t.price / t.original_price) * 100) : 0;
                   return (
                     <button key={ti} data-testid={`tier-${it.service_id}-${ti}`} onClick={() => updateItem(it.id, { tier_index: ti })}
-                      className={`relative text-left rounded-xl border-2 p-3 transition-all ${sel ? "border-primary-700 bg-primary-50" : "border-slate-200 hover:border-primary-300"}`}>
+                      className={`relative text-left rounded-md border-2 p-3 transition-all ${sel ? "border-primary-700 bg-primary-50" : "border-slate-200 hover:border-primary-300"}`}>
                       {t.badge && <span className="absolute -top-2 left-2 bg-primary-700 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">{t.badge}</span>}
                       <p className="font-semibold text-sm text-slate-900 line-clamp-1">{t.label}</p>
                       <div className="flex items-baseline gap-1 mt-1"><span className="font-heading font-extrabold text-slate-900">{fmt(t.price)}</span>{off > 0 && <span className="text-[11px] text-slate-400 line-through">{fmt(t.original_price)}</span>}</div>
@@ -877,7 +877,7 @@ const StepContact = ({ user, refresh, savedAddresses, selectedId, pickAddress, a
           <div className="flex flex-wrap gap-2">
             {savedAddresses.map((a) => (
               <button key={a.id} data-testid={`saved-addr-${a.id}`} onClick={() => pickAddress(a.id)}
-                className={`px-3 py-2 rounded-xl text-sm font-medium border text-left transition-colors ${selectedId === a.id ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
+                className={`px-3 py-2 rounded-md text-sm font-medium border text-left transition-colors ${selectedId === a.id ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
                 <span className="block font-semibold flex items-center gap-1">{a.label} {a.is_default && "★"}
                   {a.lat && a.lng && <span data-testid={`addr-pinned-${a.id}`} className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-1.5 py-0.5"><MapPin className="h-2.5 w-2.5" /> Pinned</span>}
                 </span>
@@ -885,7 +885,7 @@ const StepContact = ({ user, refresh, savedAddresses, selectedId, pickAddress, a
               </button>
             ))}
             <button data-testid="saved-addr-new" onClick={() => pickAddress("new")}
-              className={`px-3 py-2 rounded-xl text-sm font-medium border flex items-center gap-1 ${selectedId === "new" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>
+              className={`px-3 py-2 rounded-md text-sm font-medium border flex items-center gap-1 ${selectedId === "new" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600"}`}>
               <Plus className="h-4 w-4" /> New address
             </button>
           </div>
@@ -1090,13 +1090,13 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
         return (
           <div className="space-y-2.5" data-testid="pay-method">
             <button type="button" data-testid="pay-online" onClick={() => setPayMethod("online")}
-              className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition ${payMethod === "online" ? "border-primary-600 bg-primary-50" : "border-slate-200 hover:border-slate-300"}`}>
+              className={`w-full flex items-center gap-3 rounded-md border-2 px-4 py-3 text-left transition ${payMethod === "online" ? "border-primary-600 bg-primary-50" : "border-slate-200 hover:border-slate-300"}`}>
               <span className={`h-9 w-9 rounded-lg grid place-items-center ${payMethod === "online" ? "bg-primary-600 text-white" : "bg-slate-100 text-slate-500"}`}><CreditCard className="h-5 w-5" /></span>
               <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">Pay Online</span><span className="block text-xs text-slate-500">UPI · Card · Netbanking</span></span>
               <span className={`h-4 w-4 rounded-full border-2 ${payMethod === "online" ? "border-primary-600 bg-primary-600" : "border-slate-300"}`} />
             </button>
             <button type="button" data-testid="pay-wallet" disabled={!canWallet} onClick={() => canWallet && setPayMethod("wallet")}
-              className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition ${!canWallet ? "opacity-50 cursor-not-allowed border-slate-200" : payMethod === "wallet" ? "border-emerald-600 bg-emerald-50" : "border-slate-200 hover:border-slate-300"}`}>
+              className={`w-full flex items-center gap-3 rounded-md border-2 px-4 py-3 text-left transition ${!canWallet ? "opacity-50 cursor-not-allowed border-slate-200" : payMethod === "wallet" ? "border-emerald-600 bg-emerald-50" : "border-slate-200 hover:border-slate-300"}`}>
               <span className={`h-9 w-9 rounded-lg grid place-items-center ${payMethod === "wallet" ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"}`}><Wallet className="h-5 w-5" /></span>
               <span className="flex-1">
                 <span className="block text-sm font-semibold text-slate-900">Pay with Wallet</span>

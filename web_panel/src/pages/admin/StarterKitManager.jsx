@@ -207,7 +207,7 @@ export default function StarterKitManager() {
       <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 ring-1 ring-slate-200/70 mb-5" data-testid="sk-tabs">
         {[["config", "Configuration"], ["purchases", `Purchases (${summary.count})`]].map(([k, l]) => (
           <button key={k} onClick={() => setTab(k)} data-testid={`sk-tab-${k}`}
-            className={`relative px-4 h-9 rounded-lg text-sm font-semibold transition-colors duration-150 ${tab === k ? "text-white" : "text-slate-600 hover:text-slate-900"}`}>
+            className={`relative px-4 h-9 rounded-md text-sm font-semibold transition-colors duration-150 ${tab === k ? "text-white" : "text-slate-600 hover:text-slate-900"}`}>
             {tab === k && <motion.span layoutId="sk-tab-pill" className="absolute inset-0 rounded-lg bg-[#0D47A1] shadow-sm shadow-[#0D47A1]/30" transition={{ type: "spring", stiffness: 500, damping: 40 }} />}
             <span className="relative z-10">{l}</span>
           </button>
@@ -268,7 +268,7 @@ export default function StarterKitManager() {
                   <div className="space-y-2 min-w-0">
                     <div className="flex items-start gap-2">
                       <Input value={it.name || ""} onChange={(e) => setItem(i, "name", e.target.value)} placeholder="Item name (e.g. Branded T-Shirt)" className="font-semibold" />
-                      <button type="button" onClick={() => removeItem(i)} className="text-red-500 p-2 hover:bg-red-50 rounded-lg shrink-0"><Trash2 className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => removeItem(i)} className="text-red-500 p-2 hover:bg-red-50 rounded-md shrink-0"><Trash2 className="h-4 w-4" /></button>
                     </div>
                     <Textarea rows={2} value={it.description || ""} onChange={(e) => setItem(i, "description", e.target.value)} placeholder="Short description shown to the partner…" />
                     <Field label="Image size suggestion (shown to admin above)">
@@ -292,7 +292,7 @@ export default function StarterKitManager() {
                 <div key={i} className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                   <Input value={b} onChange={(e) => setBenefit(i, e.target.value)} placeholder="e.g. Premium badge on your profile" />
-                  <button type="button" onClick={() => removeBenefit(i)} className="text-red-500 p-2 hover:bg-red-50 rounded-lg"><Trash2 className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => removeBenefit(i)} className="text-red-500 p-2 hover:bg-red-50 rounded-md"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ))}
             </div>

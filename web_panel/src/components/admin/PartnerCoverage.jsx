@@ -52,7 +52,7 @@ export default function PartnerCoverage() {
           <p className="text-[12px] text-[#64748B] mt-0.5">Online partners around your service zones</p>
         </div>
         <button onClick={load} title="Refresh" data-testid="coverage-refresh"
-          className="h-9 w-9 rounded-lg border border-[#E6EAF0] text-[#64748B] hover:bg-[#F6F8FC] hover:text-[#0D47A1] flex items-center justify-center transition-colors">
+          className="h-9 w-9 rounded-md border border-[#E6EAF0] text-[#64748B] hover:bg-[#F6F8FC] hover:text-[#0D47A1] flex items-center justify-center transition-colors">
           <RefreshCw className="h-4 w-4" />
         </button>
       </div>

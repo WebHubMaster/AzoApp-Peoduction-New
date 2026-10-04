@@ -148,7 +148,7 @@ export function TestRingCard() {
               <Text style={{ flex: 1, fontSize: 12, lineHeight: 17, color: colors.textSecondary }}>{it.text}</Text>
               {it.action ? (
                 <Pressable testID={`alert-fix-${it.key}`} onPress={it.action.onPress} disabled={it.action.busy} hitSlop={6}
-                  style={{ paddingHorizontal: 12, height: 30, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: it.action.busy ? 0.6 : 1 }}>
+                  style={{ paddingHorizontal: 12, height: 30, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: it.action.busy ? 0.6 : 1 }}>
                   <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{it.action.label}</Text>
                 </Pressable>
               ) : null}
@@ -157,7 +157,7 @@ export function TestRingCard() {
         </View>
       ) : null}
       <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ height: 40, paddingHorizontal: 14, borderRadius: 10, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
+        <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ height: 40, paddingHorizontal: 14, borderRadius: 6, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
           {busy ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="bell-ring-outline" size={16} color="#fff" />}
           <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>Send test ring</Text>
         </Pressable>
@@ -216,10 +216,10 @@ export function SnoozeCard() {
       </View>
       <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
         {on ? (
-          <Pressable testID="snooze-resume" onPress={stop} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: TW.emerald600, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Resume now</Text></Pressable>
+          <Pressable testID="snooze-resume" onPress={stop} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: TW.emerald600, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Resume now</Text></Pressable>
         ) : (
           <>
-            <Pressable testID="snooze-30" onPress={() => start(30)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Busy 30 min</Text></Pressable>
+            <Pressable testID="snooze-30" onPress={() => start(30)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Busy 30 min</Text></Pressable>
             <Pressable testID="snooze-60" onPress={() => start(60)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>1 hour</Text></Pressable>
           </>
         )}

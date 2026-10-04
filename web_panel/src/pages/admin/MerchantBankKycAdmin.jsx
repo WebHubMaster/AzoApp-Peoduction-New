@@ -21,7 +21,7 @@ function ReviewActions({ status, onApprove, onReject, busy }) {
         </div>
       ) : (
         <div className="flex gap-2 items-center">
-          <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Rejection reason" className="h-8 rounded-lg border border-slate-200 px-2 text-xs w-44" />
+          <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Rejection reason" className="h-8 rounded-md border border-slate-200 px-2 text-xs w-44" />
           <Button size="sm" disabled={busy || !reason.trim()} onClick={() => onReject(reason.trim())} className="h-8 bg-red-600 hover:bg-red-700 text-xs">Confirm</Button>
           <Button size="sm" variant="ghost" onClick={() => { setRejecting(false); setReason(""); }} className="h-8 text-xs">Cancel</Button>
         </div>
@@ -67,7 +67,7 @@ export default function MerchantBankKycAdmin({ userId, onZoom }) {
         ) : (
           <div className="flex items-start gap-4 flex-wrap">
             {pan.pan_url && (
-              <button onClick={() => onZoom?.(pan.pan_url)} className="rounded-xl overflow-hidden border border-slate-200 w-40 shrink-0">
+              <button onClick={() => onZoom?.(pan.pan_url)} className="rounded-md overflow-hidden border border-slate-200 w-40 shrink-0">
                 <img src={pan.pan_url} alt="PAN" className="w-full h-28 object-cover" />
               </button>
             )}
@@ -93,7 +93,7 @@ export default function MerchantBankKycAdmin({ userId, onZoom }) {
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex items-start gap-4">
                     {b.passbook_url && (
-                      <button onClick={() => onZoom?.(b.passbook_url)} className="rounded-lg overflow-hidden border border-slate-200 w-28 shrink-0 grid place-items-center bg-slate-50 h-20" data-testid={`mck-passbook-${b.id}`}>
+                      <button onClick={() => onZoom?.(b.passbook_url)} className="rounded-md overflow-hidden border border-slate-200 w-28 shrink-0 grid place-items-center bg-slate-50 h-20" data-testid={`mck-passbook-${b.id}`}>
                         {String(b.passbook_url).toLowerCase().split("?")[0].endsWith(".pdf")
                           ? <span className="flex flex-col items-center text-rose-500"><FileText className="h-7 w-7" /><span className="text-[10px] font-bold mt-0.5">PDF</span></span>
                           : <img src={b.passbook_url} alt="Passbook" className="w-full h-20 object-cover" />}

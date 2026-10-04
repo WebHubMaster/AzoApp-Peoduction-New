@@ -90,7 +90,7 @@ export function PartnerVerificationReview() {
         <div className="space-y-1 max-h-[70vh] overflow-y-auto" data-testid="admin-partner-list">
           {partners.map((p) => (
             <button key={p.id} data-testid={`partner-row-${p.id}`} onClick={() => open(p)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm ${sel?.id === p.id ? "bg-primary-50 text-primary-700" : "hover:bg-slate-50"}`}>
+              className={`w-full text-left px-3 py-2 rounded-md text-sm ${sel?.id === p.id ? "bg-primary-50 text-primary-700" : "hover:bg-slate-50"}`}>
               <span className="font-medium">{p.name}</span>
               <span className="block text-xs text-slate-400">{p.phone} · KYC {p.kyc_status}</span>
             </button>

@@ -108,7 +108,7 @@ export default function MerchantHome({ user, dash, code, refs = [], kycPending, 
             <Sparkles className="h-8 w-8 text-primary-500 mx-auto" />
             <p className="font-semibold text-slate-800 dark:text-slate-100 mt-2">No partners yet</p>
             <p className="text-[12px] text-slate-500">Add your first partner and earn lifetime commission on every job.</p>
-            <button type="button" onClick={onAddPartner} className="mt-3 h-10 px-4 rounded-xl bg-primary-700 text-white text-sm font-semibold active:scale-95">Add partner</button>
+            <button type="button" onClick={onAddPartner} className="mt-3 h-10 px-4 rounded-md bg-primary-700 text-white text-sm font-semibold active:scale-95">Add partner</button>
           </Card>
         ) : (
           <Card className="divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">

@@ -56,7 +56,7 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
         {/* toolbar */}
         <View style={{ backgroundColor: t.dark ? "rgba(15,23,42,0.9)" : "rgba(255,255,255,0.9)", borderBottomWidth: 1, borderBottomColor: t.border2, paddingTop: insets.top }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, height: 56 }}>
-            <Pressable testID="viewer-close" onPress={onClose} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? t.subtle : "transparent" })}><ArrowLeft size={20} color={t.t600} /></Pressable>
+            <Pressable testID="viewer-close" onPress={onClose} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? t.subtle : "transparent" })}><ArrowLeft size={20} color={t.t600} /></Pressable>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={{ fontWeight: "700", color: t.t900, fontSize: 15, lineHeight: 18 }} numberOfLines={1}>{inv?.invoice_number || "Invoice"}</Text>
               <Text style={{ fontSize: 11, color: t.t400 }} numberOfLines={1}>{inv?.issue_date ? `Issued ${shortDate(inv.issue_date)}` : "Loading invoice…"}{inv?.merchant_snapshot?.name ? ` · ${inv.merchant_snapshot.name}` : ""}</Text>

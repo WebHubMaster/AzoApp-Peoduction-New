@@ -116,7 +116,7 @@ export default function PartnerAnalytics() {
                   <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 11, marginBottom: 4 }}>To</Text>
                   <WDatePicker testID="custom-to" value={custom.to} min={custom.from || undefined} max={iso(new Date())} placeholder="End date" onChange={(v) => setCustom((c) => ({ ...c, to: v }))} />
                 </View>
-                <Pressable testID="custom-close" onPress={() => { setShowCustom(false); setPreset("30d"); setCustom({ from: "", to: "" }); }} style={{ height: 48, width: 40, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+                <Pressable testID="custom-close" onPress={() => { setShowCustom(false); setPreset("30d"); setCustom({ from: "", to: "" }); }} style={{ height: 48, width: 40, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
                   <Icon name="close" size={18} color="#fff" />
                 </Pressable>
               </View>

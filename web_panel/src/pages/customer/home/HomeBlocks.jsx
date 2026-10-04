@@ -131,7 +131,7 @@ export function FaqSection({ title, subtitle, seeded }) {
           {totalFaqs > 4 && (
             <div className="relative max-w-md mx-auto -mt-2 mb-8">
               <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search questions…" data-testid="faq-search" className="w-full h-11 pl-10 pr-4 rounded-xl bg-white ring-1 ring-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
+              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search questions…" data-testid="faq-search" className="w-full h-11 pl-10 pr-4 rounded-md bg-white ring-1 ring-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-300" />
             </div>
           )}
           {!groups ? (

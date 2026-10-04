@@ -70,7 +70,7 @@ export default function MissedRingRecovery({ onAccepted }) {
             <div className="text-right shrink-0">
               <p className="font-heading font-extrabold text-emerald-600 text-sm inline-flex items-center"><IndianRupee className="h-3.5 w-3.5" />{j.total ?? "—"}</p>
               <button data-testid={`regrab-now-${j.code}`} onClick={() => regrab(j)} disabled={!!busy}
-                className="mt-1 h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60">
+                className="mt-1 h-9 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 disabled:opacity-60">
                 {busy === j.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Grab now
               </button>
             </div>

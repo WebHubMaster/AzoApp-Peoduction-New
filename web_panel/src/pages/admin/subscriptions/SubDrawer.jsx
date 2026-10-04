@@ -17,7 +17,7 @@ function MaidAssign({ s, partners, busy, assign }) {
   useEffect(() => setPid(s.partner_id || ""), [s.partner_id]);
   return (
     <div className="flex gap-2 pt-1">
-      <select data-testid="sub-assign-select" aria-label="Select maid" value={pid} onChange={(e) => setPid(e.target.value)} className="flex-1 min-w-0 h-9 rounded-lg border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
+      <select data-testid="sub-assign-select" aria-label="Select maid" value={pid} onChange={(e) => setPid(e.target.value)} className="flex-1 min-w-0 h-9 rounded-md border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
         <option value="">Select maid…</option>
         {partners.map((p) => <option key={p.id} value={p.id}>{p.name} · {(p.skills || []).join(", ") || "no skill"}</option>)}
       </select>

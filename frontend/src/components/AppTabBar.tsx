@@ -143,7 +143,7 @@ export function AppTabBar({
                 ))}
               </View>
               {onLogout ? (
-                <Pressable testID="more-logout" onPress={() => { setMoreOpen(false); setTimeout(onLogout, 120); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 10, backgroundColor: "#FEF2F2" }}>
+                <Pressable testID="more-logout" onPress={() => { setMoreOpen(false); setTimeout(onLogout, 120); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 6, backgroundColor: "#FEF2F2" }}>
                   <Icon name="logout" size={16} color="#DC2626" />
                   <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 14 }}>Logout</Text>
                 </Pressable>

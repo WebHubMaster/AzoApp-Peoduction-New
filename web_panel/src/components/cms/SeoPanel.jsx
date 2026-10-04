@@ -102,13 +102,13 @@ export default function SeoPanel({ seo = {}, onChange, pageTitle = "", pageDescr
         <Field label="OG Image">
           <div className="flex items-center gap-2">
             <input className={inputCls} value={s.og_image || ""} placeholder="https://…" onChange={(e) => set("og_image", e.target.value)} />
-            <button type="button" onClick={() => setMediaFor("og")} className="h-10 px-3 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200"><ImageIcon className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setMediaFor("og")} className="h-10 px-3 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200"><ImageIcon className="h-4 w-4" /></button>
           </div>
         </Field>
         <Field label="Twitter/X Image">
           <div className="flex items-center gap-2">
             <input className={inputCls} value={s.twitter_image || ""} placeholder="https://…" onChange={(e) => set("twitter_image", e.target.value)} />
-            <button type="button" onClick={() => setMediaFor("tw")} className="h-10 px-3 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200"><ImageIcon className="h-4 w-4" /></button>
+            <button type="button" onClick={() => setMediaFor("tw")} className="h-10 px-3 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200"><ImageIcon className="h-4 w-4" /></button>
           </div>
         </Field>
         <Field label="Schema Type"><input className={inputCls} value={s.schema_type || ""} placeholder="Article, WebPage, FAQPage…" onChange={(e) => set("schema_type", e.target.value)} /></Field>
@@ -123,7 +123,7 @@ export default function SeoPanel({ seo = {}, onChange, pageTitle = "", pageDescr
           <div className="flex items-center gap-1 mb-3">
             {[["google", "Google", Search], ["facebook", "Facebook", Globe], ["twitter", "Twitter/X", Twitter]].map(([k, l, I]) => (
               <button key={k} type="button" onClick={() => setTab(k)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold ${tab === k ? "bg-[#0D47A1] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold ${tab === k ? "bg-[#0D47A1] text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>
                 <I className="h-3.5 w-3.5" />{l}
               </button>
             ))}

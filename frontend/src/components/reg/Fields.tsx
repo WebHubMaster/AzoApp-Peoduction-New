@@ -21,7 +21,7 @@ export function WInput({ disabled, style, uppercase, tracking, ...props }: TextI
   const P = usePal();
   const [focus, setFocus] = useState(false);
   return (
-    <View style={[{ height: 48, borderRadius: 12, borderWidth: 1, borderColor: focus ? P[500] : TW.slate200, backgroundColor: disabled ? TW.slate100 : "#fff", opacity: disabled ? 0.5 : 1, boxShadow: focus ? `0px 0px 0px 2px ${P[100]}` : "0px 1px 2px rgba(0,0,0,0.05)" }, style as any]}>
+    <View style={[{ height: 48, borderRadius: 6, borderWidth: 1, borderColor: focus ? P[500] : TW.slate200, backgroundColor: disabled ? TW.slate100 : "#fff", opacity: disabled ? 0.5 : 1, boxShadow: focus ? `0px 0px 0px 2px ${P[100]}` : "0px 1px 2px rgba(0,0,0,0.05)" }, style as any]}>
       <TextInput editable={!disabled} placeholderTextColor={TW.slate400} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)}
         autoCapitalize={uppercase ? "characters" : props.autoCapitalize} {...props}
         style={{ flex: 1, paddingHorizontal: 12, paddingVertical: 4, ...T.sm, lineHeight: undefined, color: TW.slate800, letterSpacing: tracking ? 2 : undefined }} />
@@ -34,7 +34,7 @@ export function WTextarea({ rows = 3, pad = 14, style, ...props }: TextInputProp
   const [focus, setFocus] = useState(false);
   return (
     <TextInput multiline textAlignVertical="top" placeholderTextColor={TW.slate400} onFocus={() => setFocus(true)} onBlur={() => setFocus(false)} {...props}
-      style={[{ minHeight: rows * 20 + pad * 2, width: "100%", borderRadius: 12, borderWidth: 1, borderColor: focus ? P[400] : TW.slate200, padding: pad, ...T.sm, color: TW.slate800, backgroundColor: "#fff" }, style as any]} />
+      style={[{ minHeight: rows * 20 + pad * 2, width: "100%", borderRadius: 6, borderWidth: 1, borderColor: focus ? P[400] : TW.slate200, padding: pad, ...T.sm, color: TW.slate800, backgroundColor: "#fff" }, style as any]} />
   );
 }
 
@@ -83,7 +83,7 @@ export function Combo({ value, display, onSelect, options, labelKey = "name", pl
   return (
     <>
       <Pressable testID={testID} disabled={disabled} onPress={() => !disabled && setOpen(true)}
-        style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 12, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: disabled ? TW.slate100 : "#fff", borderColor: TW.slate200 }}>
+        style={{ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 6, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: disabled ? TW.slate100 : "#fff", borderColor: TW.slate200 }}>
         <Text numberOfLines={1} style={{ ...T.sm, color: disabled ? TW.slate400 : display ? TW.slate800 : TW.slate400, flex: 1 }}>{display || placeholder}</Text>
         <Search size={16} color={TW.slate400} />
       </Pressable>
@@ -120,7 +120,7 @@ export function WSelect({ value, onChange, options, placeholder = "Select...", d
   return (
     <>
       <Pressable testID={testID} disabled={disabled} onPress={() => setOpen(true)}
-        style={{ width: "100%", height: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: open ? P[400] : TW.slate200, backgroundColor: "#fff", opacity: disabled ? 0.5 : 1, boxShadow: open ? `0px 0px 0px 2px ${P[100]}` : undefined }}>
+        style={{ width: "100%", height: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: open ? P[400] : TW.slate200, backgroundColor: "#fff", opacity: disabled ? 0.5 : 1, boxShadow: open ? `0px 0px 0px 2px ${P[100]}` : undefined }}>
         <Text numberOfLines={1} style={{ flex: 1, ...T.sm, color: selected ? TW.slate700 : TW.slate400 }}>{selected ? selected.label : placeholder}</Text>
         <ChevronDown size={16} color={TW.slate400} style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }} />
       </Pressable>
@@ -152,7 +152,7 @@ export function WButton({ title, onPress, variant = "default", disabled, loading
   const fg = variant === "outline" ? TW.slate700 : "#fff";
   return (
     <Pressable testID={testID} disabled={disabled || loading} onPress={onPress}
-      style={({ pressed }) => ({ height, minWidth, width: full ? "100%" : undefined, paddingHorizontal: 16, borderRadius: 12, backgroundColor: bg, borderWidth: variant === "outline" ? 1 : 0, borderColor: TW.slate200, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }], boxShadow: variant === "default" ? "0px 2px 6px rgba(13,71,161,0.3)" : undefined })}>
+      style={({ pressed }) => ({ height, minWidth, width: full ? "100%" : undefined, paddingHorizontal: 16, borderRadius: 6, backgroundColor: bg, borderWidth: variant === "outline" ? 1 : 0, borderColor: TW.slate200, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: disabled ? 0.5 : 1, transform: [{ scale: pressed ? 0.98 : 1 }], boxShadow: variant === "default" ? "0px 2px 6px rgba(13,71,161,0.3)" : undefined })}>
       {loading ? <ActivityIndicator size="small" color={fg} /> : (
         <>
           {IconLeft ? <IconLeft size={16} color={fg} /> : null}

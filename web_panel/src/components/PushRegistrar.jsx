@@ -85,7 +85,7 @@ export function PushNudge() {
           <p className="text-[11px] text-white/60 leading-tight mt-0.5">Get booking &amp; offer updates even when the app is closed.</p>
         </div>
         <button data-testid="push-nudge-enable" onClick={() => { close(); openPushPrompt(); }}
-          className="shrink-0 h-9 px-3 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[13px] font-semibold transition-colors">Turn on</button>
+          className="shrink-0 h-9 px-3 rounded-md bg-primary-600 hover:bg-primary-500 text-white text-[13px] font-semibold transition-colors">Turn on</button>
         <button data-testid="push-nudge-close" onClick={close} aria-label="Dismiss" className="shrink-0 text-white/50 hover:text-white/90"><X className="h-4 w-4" /></button>
       </div>
     </div>
@@ -262,7 +262,7 @@ export default function PushRegistrar() {
             {failure.error && <p className="text-[11px] text-slate-400 mt-2 break-all rounded-lg bg-slate-50 dark:bg-slate-800/60 p-2" data-testid="push-failure-detail">{failure.error}</p>}
             <p className="text-xs text-slate-500 mt-3">In-app ringing still works while this tab is open. The admin has been notified of this reason in Diagnostics.</p>
             <button data-testid="push-retry" onClick={enable} disabled={busy}
-              className="w-full mt-5 h-11 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60">
+              className="w-full mt-5 h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60">
               {busy ? "Retrying…" : "Retry registration"}
             </button>
             <button data-testid="push-skip" onClick={dismiss} className="mt-3 text-sm text-slate-500 hover:text-slate-700 font-medium">Close</button>
@@ -285,7 +285,7 @@ export default function PushRegistrar() {
               <li className="flex gap-2"><span className="font-bold text-primary-700">3.</span><span>Come back here and press <b>Retry</b>.</span></li>
             </ol>
             <button data-testid="push-retry" onClick={retry} disabled={busy}
-              className="w-full mt-5 h-11 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60">
+              className="w-full mt-5 h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60">
               {busy ? "Checking…" : "I've allowed it — Retry"}
             </button>
             <button data-testid="push-skip" onClick={dismiss} className="mt-3 text-sm text-slate-500 hover:text-slate-700 font-medium">Not now</button>
@@ -296,7 +296,7 @@ export default function PushRegistrar() {
             <h3 className="font-heading font-bold text-xl text-slate-900 dark:text-white">Turn on notifications</h3>
             <p className="text-sm text-slate-500 mt-2">Get instant alerts for bookings, partner updates & offers — even when the app is closed. Your browser will ask for permission next.</p>
             <button data-testid="push-enable" onClick={enable} disabled={busy}
-              className="w-full mt-5 h-11 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
+              className="w-full mt-5 h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
               <Bell className="h-4 w-4" /> {busy ? "Waiting for permission…" : "Allow notifications"}
             </button>
             <button data-testid="push-skip" onClick={dismiss} className="mt-3 text-sm text-slate-500 hover:text-slate-700 font-medium">Not now</button>

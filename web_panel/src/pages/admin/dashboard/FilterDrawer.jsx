@@ -40,7 +40,7 @@ export function ComboSelect({ value, onChange, options = [], placeholder = "Sele
     <div className={className}>
       {label && <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400 mb-1.5">{label}</p>}
       <button ref={ref} type="button" data-testid={testid} onClick={openIt}
-        className={`w-full h-11 px-3 rounded-xl border bg-white dark:bg-slate-900 text-sm flex items-center gap-2 transition-all duration-150 ${open ? "border-primary-500 ring-2 ring-primary-100" : cur ? "border-primary-200 hover:border-primary-400" : "border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}>
+        className={`w-full h-11 px-3 rounded-md border bg-white dark:bg-slate-900 text-sm flex items-center gap-2 transition-all duration-150 ${open ? "border-primary-500 ring-2 ring-primary-100" : cur ? "border-primary-200 hover:border-primary-400" : "border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}>
         <span className={`flex-1 text-left truncate ${cur ? "font-semibold text-slate-800 dark:text-slate-100" : "text-slate-400"}`}>{cur ? cur.label : placeholder}</span>
         {cur && clearable ? (
           <span role="button" data-testid={testid ? `${testid}-clear` : undefined} onClick={(e) => { e.stopPropagation(); onChange(""); }} className="h-5 w-5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 grid place-items-center"><X className="h-3.5 w-3.5" /></span>
@@ -56,14 +56,14 @@ export function ComboSelect({ value, onChange, options = [], placeholder = "Sele
                 <div className="relative mb-1">
                   <Search className="h-3.5 w-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input ref={inp} value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onKey} placeholder="Search…" data-testid={testid ? `${testid}-search` : undefined}
-                    className="w-full h-9 pl-8 pr-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white" />
+                    className="w-full h-9 pl-8 pr-2.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white" />
                 </div>
               )}
               <div className="max-h-60 overflow-y-auto">
-                <button type="button" onClick={() => pick("")} className={`w-full flex items-center justify-between px-2.5 h-9 rounded-lg text-sm transition-colors ${!value ? "bg-primary-50 text-primary-800 font-semibold" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>{placeholder}{!value && <Check className="h-4 w-4" />}</button>
+                <button type="button" onClick={() => pick("")} className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md text-sm transition-colors ${!value ? "bg-primary-50 text-primary-800 font-semibold" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>{placeholder}{!value && <Check className="h-4 w-4" />}</button>
                 {list.map((o, i) => (
                   <button key={o.value} type="button" onMouseEnter={() => setHi(i)} onClick={() => pick(o.value)} data-testid={testid ? `${testid}-opt-${String(o.value).replace(/\s+/g, "_")}` : undefined}
-                    className={`w-full flex items-center justify-between px-2.5 h-9 rounded-lg text-sm transition-colors ${o.value === value ? "bg-primary-50 text-primary-800 font-semibold" : hi === i ? "bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100" : "text-slate-700 dark:text-slate-200"}`}>
+                    className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md text-sm transition-colors ${o.value === value ? "bg-primary-50 text-primary-800 font-semibold" : hi === i ? "bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100" : "text-slate-700 dark:text-slate-200"}`}>
                     <span className="truncate">{o.label}</span>{o.value === value && <Check className="h-4 w-4" />}
                   </button>
                 ))}
@@ -97,7 +97,7 @@ export function FilterDrawer({ open, onClose, defs, values, onChange, onClear, a
                 <span className="h-9 w-9 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-700 grid place-items-center"><SlidersHorizontal className="h-4 w-4" /></span>
                 <div><p className="font-heading font-bold text-slate-900 dark:text-white">Filters</p><p className="text-[11px] text-slate-400">{activeCount ? `${activeCount} active` : "Narrow every metric on the dashboard"}</p></div>
               </div>
-              <button onClick={onClose} data-testid="filter-drawer-close" className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 grid place-items-center"><X className="h-5 w-5" /></button>
+              <button onClick={onClose} data-testid="filter-drawer-close" className="h-9 w-9 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 grid place-items-center"><X className="h-5 w-5" /></button>
             </div>
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
               {defs.map((f) => (
@@ -106,8 +106,8 @@ export function FilterDrawer({ open, onClose, defs, values, onChange, onClear, a
               {defs.length === 0 && <p className="text-sm text-slate-400">No filterable data yet.</p>}
             </div>
             <div className="flex items-center justify-between gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-800">
-              <button onClick={onClear} data-testid="filter-drawer-clear" className="h-10 px-3 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1.5"><RotateCcw className="h-4 w-4" /> Clear all</button>
-              <button onClick={onClose} data-testid="filter-drawer-apply" className="h-10 px-5 rounded-xl text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 shadow-sm">Done</button>
+              <button onClick={onClear} data-testid="filter-drawer-clear" className="h-10 px-3 rounded-md text-sm font-semibold text-rose-600 hover:bg-rose-50 inline-flex items-center gap-1.5"><RotateCcw className="h-4 w-4" /> Clear all</button>
+              <button onClick={onClose} data-testid="filter-drawer-apply" className="h-10 px-5 rounded-md text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 shadow-sm">Done</button>
             </div>
           </motion.aside>
         </motion.div>

@@ -96,10 +96,10 @@ function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, 
         ))}
         {!full && !locked && (
           <>
-            <button type="button" data-testid={`${testid}-photo`} disabled={busy} onClick={onPhoto} className="aspect-square rounded-xl border-2 border-dashed border-primary-300 bg-primary-50/70 text-primary-700 grid place-items-center hover:bg-primary-100 transition disabled:opacity-60">
+            <button type="button" data-testid={`${testid}-photo`} disabled={busy} onClick={onPhoto} className="aspect-square rounded-md border-2 border-dashed border-primary-300 bg-primary-50/70 text-primary-700 grid place-items-center hover:bg-primary-100 transition disabled:opacity-60">
               <span className="flex flex-col items-center gap-1"><Camera className="h-6 w-6" /><span className="text-[11px] font-bold">Photo</span></span>
             </button>
-            <button type="button" data-testid={`${testid}-video`} disabled={busy} onClick={onVideo} className="aspect-square rounded-xl border-2 border-dashed border-violet-300 bg-violet-50/80 text-violet-700 grid place-items-center hover:bg-violet-100 transition disabled:opacity-60">
+            <button type="button" data-testid={`${testid}-video`} disabled={busy} onClick={onVideo} className="aspect-square rounded-md border-2 border-dashed border-violet-300 bg-violet-50/80 text-violet-700 grid place-items-center hover:bg-violet-100 transition disabled:opacity-60">
               <span className="flex flex-col items-center gap-1"><Video className="h-6 w-6" /><span className="text-[11px] font-bold">Video ≤30s</span></span>
             </button>
           </>
@@ -236,7 +236,7 @@ function CheckinStep({ b, onDone }) {
             <button type="button" data-testid="wizard-location-refresh" onClick={getLocation} className="text-slate-400 hover:text-slate-600"><RefreshCw className="h-4 w-4" /></button>
           </div>
         ) : (
-          <button type="button" data-testid="wizard-location-btn" onClick={getLocation} disabled={locBusy} className="w-full h-11 rounded-xl border border-primary-200 text-primary-700 font-bold text-sm flex items-center justify-center gap-2">{locBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />} {locBusy ? "Getting location…" : "Share live location"}</button>
+          <button type="button" data-testid="wizard-location-btn" onClick={getLocation} disabled={locBusy} className="w-full h-11 rounded-md border border-primary-200 text-primary-700 font-bold text-sm flex items-center justify-center gap-2">{locBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Crosshair className="h-4 w-4" />} {locBusy ? "Getting location…" : "Share live location"}</button>
         )}
       </Card>
       {locked && <p className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-xs text-slate-500 flex items-center gap-2"><Lock className="h-4 w-4" /> Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</p>}
@@ -274,7 +274,7 @@ function AdditionalWork({ b, onUpdate }) {
         </div>
       )}
       {addl?.status !== "paid" && (rcCard
-        ? <button type="button" data-testid={`add-additional-${b.code}`} onClick={() => setRcOpen(true)} className="h-9 px-3 rounded-lg border border-primary-300 text-primary-700 text-sm font-semibold inline-flex items-center gap-1"><Plus className="h-4 w-4" /> Add from rate card</button>
+        ? <button type="button" data-testid={`add-additional-${b.code}`} onClick={() => setRcOpen(true)} className="h-9 px-3 rounded-md border border-primary-300 text-primary-700 text-sm font-semibold inline-flex items-center gap-1"><Plus className="h-4 w-4" /> Add from rate card</button>
         : <p className="text-xs text-slate-400">No rate card configured for this category — additional work unavailable.</p>)}
       {rcOpen && rcCard && <RateCardModal card={rcCard} onClose={() => setRcOpen(false)} onAdd={addRow} />}
     </Card>

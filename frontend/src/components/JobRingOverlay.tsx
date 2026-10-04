@@ -311,7 +311,7 @@ export function JobRingOverlay() {
             </View>
           </ScrollView>
           <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
-            <Pressable testID="reminder-ring-ok" onPress={() => dismissReminder(current)} style={({ pressed }) => ({ height: 56, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, alignSelf: "center", width: "100%", maxWidth: 384, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+            <Pressable testID="reminder-ring-ok" onPress={() => dismissReminder(current)} style={({ pressed }) => ({ height: 56, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, alignSelf: "center", width: "100%", maxWidth: 384, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
               <Icon name="check" size={20} color="#4338CA" /><Text style={{ color: "#3730A3", fontSize: 16, fontWeight: "900" }}>Got it, I&apos;m ready</Text>
             </Pressable>
             <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, textAlign: "center", marginTop: 14 }}>Head to the location and start the job on time</Text>
@@ -362,10 +362,10 @@ export function JobRingOverlay() {
 
           <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
             <View style={{ flexDirection: "row", gap: 12, alignSelf: "center", width: "100%", maxWidth: 384 }}>
-              <Pressable testID="resched-ring-reject" onPress={() => doReschedResponse(current, "reject")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              <Pressable testID="resched-ring-reject" onPress={() => doReschedResponse(current, "reject")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
                 <Icon name="close" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Keep time</Text>
               </Pressable>
-              <Pressable testID="resched-ring-accept" onPress={() => doReschedResponse(current, "accept")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              <Pressable testID="resched-ring-accept" onPress={() => doReschedResponse(current, "accept")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
                 {busy ? <ActivityIndicator color="#EA580C" /> : <><Icon name="check" size={20} color="#EA580C" /><Text style={{ color: "#B45309", fontSize: 16, fontWeight: "900" }}>Accept</Text></>}
               </Pressable>
             </View>

@@ -109,7 +109,7 @@ function RewardPool({ onChanged }) {
   return (
     <Card className="p-5">
       <SectionHeader icon={Gift} title="Scratch Reward Pool" subtitle="Weighted rewards — probability shown per tier"
-        right={<button data-testid="reward-add" onClick={() => setEdit(blank)} className="h-9 px-3 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> Add Reward</button>} />
+        right={<button data-testid="reward-add" onClick={() => setEdit(blank)} className="h-9 px-3 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm inline-flex items-center gap-1.5"><Plus className="h-4 w-4" /> Add Reward</button>} />
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[820px]">
           <thead className="bg-slate-50 dark:bg-slate-800/50 text-left text-slate-500">
@@ -153,7 +153,7 @@ function RewardPool({ onChanged }) {
 }
 
 const IconBtn = ({ children, onClick, title, danger }) => (
-  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-lg text-slate-400", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
+  <button title={title} onClick={onClick} className={cn("h-8 w-8 grid place-items-center rounded-md text-slate-400", danger ? "hover:text-rose-600 hover:bg-rose-50" : "hover:text-primary-600 hover:bg-primary-50")}>{children}</button>
 );
 
 function RewardEditor({ row, onClose, onSave }) {
@@ -173,7 +173,7 @@ function RewardEditor({ row, onClose, onSave }) {
           </div>
           <Toggle checked={!!f.active} onChange={(v) => set("active", v)} label="Active" />
         </div>
-        <button onClick={() => onSave(f)} className="mt-4 w-full h-11 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-bold">Save Reward</button>
+        <button onClick={() => onSave(f)} className="mt-4 w-full h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-bold">Save Reward</button>
       </div>
     </div>
   );

@@ -224,7 +224,7 @@ function KycDetail({ profileId, onClose, onChanged }) {
                   <div className="space-y-2">
                     <textarea data-testid="kyc-reject-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2}
                       placeholder="Reason for rejection (shown to partner)…"
-                      className="w-full rounded-xl border border-slate-200 p-3 text-sm focus:outline-none focus:border-red-400" />
+                      className="w-full rounded-md border border-slate-200 p-3 text-sm focus:outline-none focus:border-red-400" />
                     <div className="flex gap-2">
                       <Button data-testid="kyc-reject-confirm" onClick={reject} disabled={busy} className="flex-1 bg-red-600 hover:bg-red-700">
                         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Rejection"}
@@ -390,7 +390,7 @@ export function NotificationConfig() {
         <L label="Service Account JSON (stored encrypted)">
           <textarea data-testid="fcm-sa-json" value={saJson} onChange={(e) => setSaJson(e.target.value)} rows={4}
             placeholder="Paste the Firebase service-account JSON here…"
-            className="w-full rounded-xl border border-slate-200 p-3 text-xs font-mono focus:outline-none focus:border-primary-400" />
+            className="w-full rounded-md border border-slate-200 p-3 text-xs font-mono focus:outline-none focus:border-primary-400" />
         </L>
         <Button data-testid="fcm-sa-save" onClick={saveSa} disabled={busy} variant="outline" className="mt-1">
           <Save className="h-4 w-4 mr-1" /> Save &amp; Validate Service Account

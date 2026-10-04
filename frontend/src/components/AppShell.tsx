@@ -39,7 +39,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
   const iconBtn = {
     height: 36,
     width: 36,
-    borderRadius: 12,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: "center" as const,
@@ -201,7 +201,7 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
   const avatarUri = photo ? (photo.startsWith("data:") ? photo : mediaUrl(photo)) : undefined;
   const label = { color: colors.textMuted, fontSize: 11, fontWeight: "700" as const, letterSpacing: 0.4, textTransform: "uppercase" as const };
   const field = (editable: boolean) => ({
-    height: 46, borderRadius: 12, borderWidth: 1, borderColor: colors.border,
+    height: 46, borderRadius: 6, borderWidth: 1, borderColor: colors.border,
     backgroundColor: editable ? colors.surface : colors.surfaceSubtle,
     paddingHorizontal: 12, color: editable ? colors.text : colors.textMuted, fontSize: 15, marginTop: 6,
   });
@@ -257,10 +257,10 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
               </View>
 
               <View style={{ flexDirection: "row", gap: 10, marginTop: 20 }}>
-                <Pressable testID="profile-cancel-btn" onPress={onClose} style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
+                <Pressable testID="profile-cancel-btn" onPress={onClose} style={{ flex: 1, height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}>
                   <Text style={{ color: colors.textSecondary, fontSize: 15, fontWeight: "600" }}>Cancel</Text>
                 </Pressable>
-                <Pressable testID="profile-save-btn" onPress={save} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
+                <Pressable testID="profile-save-btn" onPress={save} disabled={saving} style={{ flex: 1, height: 48, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
                   {saving ? <ActivityIndicator color="#fff" size="small" /> : <Icon name="content-save" size={16} color="#fff" />}
                   <Text style={{ color: "#fff", fontSize: 15, fontWeight: "700" }}>{saving ? "Saving…" : "Save"}</Text>
                 </Pressable>
@@ -335,7 +335,7 @@ export function SegTabs({ tabs, value, onChange, testidPrefix = "tab" }: { tabs:
       {tabs.map((t) => {
         const on = value === t;
         return (
-          <Pressable key={t} testID={`${testidPrefix}-${t}`} onPress={() => onChange(t)} style={{ paddingHorizontal: 16, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.surface : "transparent", boxShadow: on ? "0px 1px 3px rgba(15,23,42,0.08)" : undefined }}>
+          <Pressable key={t} testID={`${testidPrefix}-${t}`} onPress={() => onChange(t)} style={{ paddingHorizontal: 16, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: on ? colors.surface : "transparent", boxShadow: on ? "0px 1px 3px rgba(15,23,42,0.08)" : undefined }}>
             <Text style={{ color: on ? colors.primary : colors.textMuted, fontSize: 14, fontWeight: "600", textTransform: "capitalize" }}>{t}</Text>
           </Pressable>
         );

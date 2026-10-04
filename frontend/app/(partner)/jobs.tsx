@@ -149,7 +149,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
         ) : null}
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16 }}>
-          <Pressable testID={`accept-${b.code}`} onPress={doAccept} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: P[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
+          <Pressable testID={`accept-${b.code}`} onPress={doAccept} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: P[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
             {busy === "accept" ? <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accepting…</Text> : (<><Icon name="check-circle-outline" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accept Job</Text></>)}
           </Pressable>
           <Pressable testID={`decline-${b.code}`} onPress={doDecline} disabled={!!busy} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>

@@ -88,7 +88,7 @@ export default function AuthSheet({ open, onClose, defaultName = "", defaultPhon
             <h3 className="font-heading font-bold text-2xl text-slate-900">Enter OTP</h3>
             <p className="text-sm text-slate-500 mt-1 mb-5">We sent a code to <b className="text-slate-700">+91 {phone}</b></p>
             <input data-testid="auth-otp" inputMode="numeric" maxLength={6}
-              className="w-full h-14 text-center text-2xl tracking-[0.5em] font-bold border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-primary-200"
+              className="w-full h-14 text-center text-2xl tracking-[0.5em] font-bold border border-slate-200 rounded-md outline-none focus:ring-2 focus:ring-primary-200"
               placeholder="••••••" value={otp} onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ""))} onKeyDown={(e) => e.key === "Enter" && verify()} />
             <div className="flex items-center justify-between mt-3 text-sm">
               {seconds > 0 ? (

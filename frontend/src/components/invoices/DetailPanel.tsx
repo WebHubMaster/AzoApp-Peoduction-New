@@ -100,7 +100,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
   const psRetained = Math.max(0, Math.round((psTotal - custRefund) * 100) / 100);
 
   const iconBtn = (testID: string, onPress: () => void, Ico: any) => (
-    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? t.subtle : "transparent" })}><Ico size={18} color={t.t500} /></Pressable>
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 44, width: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? t.subtle : "transparent" })}><Ico size={18} color={t.t500} /></Pressable>
   );
   const headerRight = d ? <>{iconBtn("detail-share", () => onShare(d, "system"), Share2)}{iconBtn("detail-more", () => setMore(true), MoreHorizontal)}</> : null;
   const run = (fn: () => void) => { setMore(false); setTimeout(fn, 60); };

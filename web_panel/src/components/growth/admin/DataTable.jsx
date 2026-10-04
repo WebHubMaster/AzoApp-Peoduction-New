@@ -94,7 +94,7 @@ export default function DataTable({
           <div className="relative flex-1 min-w-[180px] max-w-xs">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input data-testid="table-search" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder={searchPlaceholder}
-              className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
+              className="w-full h-10 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/40" />
           </div>
         )}
         {toolbar}
@@ -124,7 +124,7 @@ export default function DataTable({
           <span className="text-sm font-semibold text-primary-700 dark:text-primary-300">{selected.size} selected</span>
           {bulkActions.map((a) => (
             <button key={a.label} onClick={() => a.onClick(selectedRows, clearSel)}
-              className="h-8 px-3 rounded-lg bg-white dark:bg-slate-900 border border-primary-200 text-xs font-semibold text-primary-700 inline-flex items-center gap-1.5 hover:bg-primary-100">
+              className="h-8 px-3 rounded-md bg-white dark:bg-slate-900 border border-primary-200 text-xs font-semibold text-primary-700 inline-flex items-center gap-1.5 hover:bg-primary-100">
               {a.icon && <a.icon className="h-3.5 w-3.5" />} {a.label}
             </button>
           ))}
@@ -205,7 +205,7 @@ export default function DataTable({
             <PgBtn onClick={() => setPage(1)} disabled={curPage === 1}><ChevronsLeft className="h-4 w-4" /></PgBtn>
             <PgBtn onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={curPage === 1}><ChevronLeft className="h-4 w-4" /></PgBtn>
             {pageNumbers.map((n, i) => n === "…" ? <span key={`e${i}`} className="px-1 text-slate-400">…</span> : (
-              <button key={n} onClick={() => setPage(n)} className={cn("h-8 min-w-8 px-2 rounded-lg text-xs font-semibold", n === curPage ? "bg-primary-700 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")}>{n}</button>
+              <button key={n} onClick={() => setPage(n)} className={cn("h-8 min-w-8 px-2 rounded-md text-xs font-semibold", n === curPage ? "bg-primary-700 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800")}>{n}</button>
             ))}
             <PgBtn onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={curPage === pageCount}><ChevronRight className="h-4 w-4" /></PgBtn>
             <PgBtn onClick={() => setPage(pageCount)} disabled={curPage === pageCount}><ChevronsRight className="h-4 w-4" /></PgBtn>
@@ -217,7 +217,7 @@ export default function DataTable({
 }
 
 const PgBtn = ({ children, onClick, disabled }) => (
-  <button onClick={onClick} disabled={disabled} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent">{children}</button>
+  <button onClick={onClick} disabled={disabled} className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent">{children}</button>
 );
 
 const ExportItem = ({ icon: Icon, label, onClick }) => (

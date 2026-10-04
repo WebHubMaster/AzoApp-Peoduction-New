@@ -97,19 +97,19 @@ export default function PremiumDatePicker({
   const calInner = (
     <>
       <div className="flex items-center justify-between mb-2">
-        <button type="button" aria-label="Previous" onClick={() => (mode === "days" ? shiftMonth(-1) : setView((v) => new Date(v.getFullYear() - (mode === "years" ? 12 : 1), v.getMonth(), 1)))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
+        <button type="button" aria-label="Previous" onClick={() => (mode === "days" ? shiftMonth(-1) : setView((v) => new Date(v.getFullYear() - (mode === "years" ? 12 : 1), v.getMonth(), 1)))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
         <button type="button" onClick={() => setMode(mode === "days" ? "months" : mode === "months" ? "years" : "days")}
           data-testid={testId ? `${testId}-header` : undefined}
-          className="text-sm font-semibold text-slate-700 dark:text-slate-100 rounded-lg px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          className="text-sm font-semibold text-slate-700 dark:text-slate-100 rounded-md px-3 py-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
           {mode === "days" ? `${MONTHS[view.getMonth()]} ${view.getFullYear()}` : mode === "months" ? view.getFullYear() : `${years[0]} – ${years[years.length - 1]}`}
         </button>
-        <button type="button" aria-label="Next" onClick={() => (mode === "days" ? shiftMonth(1) : setView((v) => new Date(v.getFullYear() + (mode === "years" ? 12 : 1), v.getMonth(), 1)))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+        <button type="button" aria-label="Next" onClick={() => (mode === "days" ? shiftMonth(1) : setView((v) => new Date(v.getFullYear() + (mode === "years" ? 12 : 1), v.getMonth(), 1)))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
       </div>
       {mode === "months" && (
         <div className="grid grid-cols-3 gap-2 py-1">
           {MONTHS.map((mm, i) => (
             <button key={mm} type="button" onClick={() => { setView(new Date(view.getFullYear(), i, 1)); setMode("days"); }}
-              className={`py-2.5 rounded-lg text-sm transition-colors ${i === view.getMonth() ? "bg-primary-600 text-white font-medium" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{mm.slice(0, 3)}</button>
+              className={`py-2.5 rounded-md text-sm transition-colors ${i === view.getMonth() ? "bg-primary-600 text-white font-medium" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{mm.slice(0, 3)}</button>
           ))}
         </div>
       )}
@@ -117,7 +117,7 @@ export default function PremiumDatePicker({
         <div className="grid grid-cols-3 gap-2 py-1 max-h-[220px] overflow-y-auto no-scrollbar">
           {years.map((y) => (
             <button key={y} type="button" onClick={() => { setView(new Date(y, view.getMonth(), 1)); setMode("months"); }}
-              className={`py-2.5 rounded-lg text-sm transition-colors ${y === view.getFullYear() ? "bg-primary-600 text-white font-medium" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{y}</button>
+              className={`py-2.5 rounded-md text-sm transition-colors ${y === view.getFullYear() ? "bg-primary-600 text-white font-medium" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{y}</button>
           ))}
         </div>
       )}
@@ -170,7 +170,7 @@ export default function PremiumDatePicker({
     <>
       <button type="button" ref={triggerRef} onClick={() => (open ? setOpen(false) : openCal())} disabled={disabled}
         data-testid={testId} {...rest}
-        className={`w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-lg border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
+        className={`w-full h-[42px] px-3 inline-flex items-center gap-2 rounded-md border bg-white dark:bg-slate-900 text-sm transition-all ${disabled ? "opacity-50 cursor-not-allowed border-slate-200 dark:border-slate-700" : "cursor-pointer border-slate-200 dark:border-slate-600 hover:border-primary-300"} ${open ? "border-primary-400 ring-2 ring-primary-100 dark:ring-primary-900/40" : ""} ${className}`}>
         <CalIcon className="h-4 w-4 text-slate-400 shrink-0" />
         <span className={`flex-1 text-left truncate ${label ? "text-slate-700 dark:text-slate-100" : "text-slate-400"}`}>{label || placeholder}</span>
       </button>

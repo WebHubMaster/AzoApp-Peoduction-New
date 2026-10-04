@@ -148,7 +148,7 @@ export default function PremiumDateRangePicker({
             const isActive = activePreset?.key === p.key;
             return (
               <button key={p.key} type="button" data-testid={`${testId}-preset-${p.key}`} onClick={() => applyPreset(p)}
-                className={`text-left text-[13px] font-medium rounded-lg px-2.5 py-1.5 transition ${isActive ? "text-white" : "text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"}`}
+                className={`text-left text-[13px] font-medium rounded-md px-2.5 py-1.5 transition ${isActive ? "text-white" : "text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"}`}
                 style={isActive ? { background: accent } : undefined}>
                 {p.label}
               </button>
@@ -159,13 +159,13 @@ export default function PremiumDateRangePicker({
       {/* Calendars */}
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <button type="button" aria-label="Previous" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
+          <button type="button" aria-label="Previous" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
           <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${months}, minmax(0, 1fr))` }}>
             {Array.from({ length: months }).map((_, i) => (
               <div key={i} className="text-center text-sm font-semibold text-slate-700 dark:text-slate-100">{MONTHS[viewFor(i).getMonth()]} {viewFor(i).getFullYear()}</div>
             ))}
           </div>
-          <button type="button" aria-label="Next" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+          <button type="button" aria-label="Next" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${months}, minmax(0, 1fr))` }} onMouseLeave={() => setHover(null)}>
           {Array.from({ length: months }).map((_, i) => (
@@ -180,9 +180,9 @@ export default function PremiumDateRangePicker({
             <span className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 min-w-[92px] text-center">{pretty(draft.to) || "End"}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" data-testid={`${testId}-clear`} onClick={clear} className="px-3 py-1.5 rounded-lg text-[13px] font-medium text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Clear</button>
-            <button type="button" data-testid={`${testId}-cancel`} onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-lg text-[13px] font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancel</button>
-            <button type="button" data-testid={`${testId}-apply`} onClick={apply} disabled={!draft.from} className="px-4 py-1.5 rounded-lg text-[13px] font-bold text-white shadow-sm disabled:opacity-40 inline-flex items-center gap-1" style={{ background: accent }}><Check className="h-4 w-4" /> Apply</button>
+            <button type="button" data-testid={`${testId}-clear`} onClick={clear} className="px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Clear</button>
+            <button type="button" data-testid={`${testId}-cancel`} onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancel</button>
+            <button type="button" data-testid={`${testId}-apply`} onClick={apply} disabled={!draft.from} className="px-4 py-1.5 rounded-md text-[13px] font-bold text-white shadow-sm disabled:opacity-40 inline-flex items-center gap-1" style={{ background: accent }}><Check className="h-4 w-4" /> Apply</button>
           </div>
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function PremiumDateRangePicker({
   return (
     <>
       <button type="button" ref={triggerRef} data-testid={testId} onClick={() => (open ? setOpen(false) : openCal())}
-        className={`h-[42px] inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:border-slate-300 transition ${className}`}>
+        className={`h-[42px] inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-semibold text-slate-700 dark:text-slate-100 hover:border-slate-300 transition ${className}`}>
         <CalIcon className="h-4 w-4" style={{ color: accent }} />
         <span className="truncate max-w-[220px]">{label}</span>
       </button>

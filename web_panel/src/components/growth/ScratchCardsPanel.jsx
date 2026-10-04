@@ -54,7 +54,7 @@ export default function ScratchCardsPanel({ onClaimed }) {
       <div className="mb-6" data-testid="scratch-viewall">
         <div className="flex items-center gap-2 mb-4">
           <button onClick={() => setViewAll(false)} data-testid="scratch-viewall-back"
-            className="h-9 w-9 grid place-items-center rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"><ArrowLeft className="h-5 w-5" /></button>
+            className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"><ArrowLeft className="h-5 w-5" /></button>
           <div>
             <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500" /> All Scratch Cards</h3>
             <p className="text-xs text-slate-500">Earned {fmt(summary.earned)} · {cards.length} card{cards.length > 1 ? "s" : ""} · scratched cards auto-remove after 30 days</p>
@@ -242,7 +242,7 @@ function ScratchModal({ card, onClose, onDone }) {
   return createPortal(
     <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overscroll-none touch-none" onClick={onClose}>
       <div data-testid="scratch-modal" className="relative w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 p-6 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} data-testid="scratch-modal-close" className="absolute right-3 top-3 h-9 w-9 grid place-items-center rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+        <button onClick={onClose} data-testid="scratch-modal-close" className="absolute right-3 top-3 h-9 w-9 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Scratch Card</p>
         <div className="relative mx-auto mt-4 w-[320px] max-w-full h-[200px] rounded-2xl overflow-hidden bg-gradient-to-br from-primary-600 to-primary-800 grid place-items-center">
           <div className="text-white">

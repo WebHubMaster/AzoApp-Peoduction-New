@@ -188,7 +188,7 @@ export const Segmented = ({ options, value, onChange, className = "", size = "md
           key={v}
           onClick={() => onChange(v)}
           className={cx(
-            "rounded-lg font-semibold whitespace-nowrap transition-all",
+            "rounded-md font-semibold whitespace-nowrap transition-all",
             size === "sm" ? "px-2.5 py-1 text-[11px]" : "px-3.5 py-1.5 text-xs",
             on ? "bg-white dark:bg-slate-950 text-primary-700 dark:text-primary-300 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
           )}
@@ -250,7 +250,7 @@ export const Sheet = ({ open, onClose, title, children, footer, size = "md" }) =
 const SheetHead = ({ title, onClose }) => (
   <div className="flex items-center justify-between px-5 lg:px-6 py-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
     <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white truncate">{title}</h3>
-    <button onClick={onClose} aria-label="Close" className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+    <button onClick={onClose} aria-label="Close" className="h-8 w-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
       <X className="h-4.5 w-4.5" />
     </button>
   </div>
@@ -305,7 +305,7 @@ export const Pagination = ({ page, pageSize, total, onPage, onPageSize }) => {
           <PgBtn disabled={page <= 1} onClick={() => onPage(page - 1)} label="‹" />
           {win.map((p) => (
             <button key={p} onClick={() => onPage(p)}
-              className={cx("h-8 min-w-8 px-2 rounded-lg text-xs font-semibold", p === page ? "bg-primary-700 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800")}>{p}</button>
+              className={cx("h-8 min-w-8 px-2 rounded-md text-xs font-semibold", p === page ? "bg-primary-700 text-white" : "border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800")}>{p}</button>
           ))}
           <PgBtn disabled={page >= pages} onClick={() => onPage(page + 1)} label="›" />
         </div>
@@ -315,7 +315,7 @@ export const Pagination = ({ page, pageSize, total, onPage, onPageSize }) => {
 };
 const PgBtn = ({ disabled, onClick, label }) => (
   <button disabled={disabled} onClick={onClick}
-    className={cx("h-8 w-8 rounded-lg text-sm font-bold border border-slate-200 dark:border-slate-700", disabled ? "opacity-40 cursor-not-allowed" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800")}>{label}</button>
+    className={cx("h-8 w-8 rounded-md text-sm font-bold border border-slate-200 dark:border-slate-700", disabled ? "opacity-40 cursor-not-allowed" : "text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800")}>{label}</button>
 );
 
 /* -------------------------------------------------------------- sort head */

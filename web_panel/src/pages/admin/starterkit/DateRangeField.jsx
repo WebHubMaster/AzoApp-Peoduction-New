@@ -53,7 +53,7 @@ function MonthGrid({ view, from, to, hover, onPick, onHover }) {
 function FieldBox({ label, value, active, onClick, testId }) {
   return (
     <button type="button" onClick={onClick} data-testid={testId}
-      className={`flex-1 min-w-[140px] h-11 px-3 rounded-xl border bg-white text-left flex items-center gap-2.5 transition-all duration-150 ${active ? "border-primary-500 ring-2 ring-primary-100 shadow-sm" : value ? "border-primary-200 hover:border-primary-400" : "border-slate-200 hover:border-slate-300"}`}>
+      className={`flex-1 min-w-[140px] h-11 px-3 rounded-md border bg-white text-left flex items-center gap-2.5 transition-all duration-150 ${active ? "border-primary-500 ring-2 ring-primary-100 shadow-sm" : value ? "border-primary-200 hover:border-primary-400" : "border-slate-200 hover:border-slate-300"}`}>
       <CalIcon className={`h-4 w-4 shrink-0 ${value ? "text-primary-600" : "text-slate-400"}`} />
       <span className="flex flex-col leading-none min-w-0">
         <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">{label}</span>
@@ -118,23 +118,23 @@ export default function DateRangeField({ from, to, onChange, testId = "sk-date" 
       <div className="px-4 pt-4">
         <div className="flex items-center gap-2 mb-3">
           <button type="button" onClick={() => setFocus("from")} data-testid="cal-focus-from"
-            className={`flex-1 rounded-xl px-3 py-2 text-left ring-1 transition-colors ${focus === "from" ? "bg-primary-50 ring-primary-300" : "ring-slate-200 hover:bg-slate-50"}`}>
+            className={`flex-1 rounded-md px-3 py-2 text-left ring-1 transition-colors ${focus === "from" ? "bg-primary-50 ring-primary-300" : "ring-slate-200 hover:bg-slate-50"}`}>
             <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">From</p>
             <p className={`text-sm font-semibold ${f ? "text-slate-800" : "text-slate-400"}`} data-testid="cal-start">{f ? fmt(f) : "Start date"}</p>
           </button>
           <span className="text-slate-300">→</span>
           <button type="button" onClick={() => setFocus("to")} data-testid="cal-focus-to"
-            className={`flex-1 rounded-xl px-3 py-2 text-left ring-1 transition-colors ${focus === "to" ? "bg-primary-50 ring-primary-300" : "ring-slate-200 hover:bg-slate-50"}`}>
+            className={`flex-1 rounded-md px-3 py-2 text-left ring-1 transition-colors ${focus === "to" ? "bg-primary-50 ring-primary-300" : "ring-slate-200 hover:bg-slate-50"}`}>
             <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-slate-400">To</p>
             <p className={`text-sm font-semibold ${t ? "text-slate-800" : "text-slate-400"}`} data-testid="cal-end">{t ? fmt(t) : "End date"}</p>
           </button>
         </div>
         <div className="flex items-center justify-between mb-2">
           <button type="button" onClick={() => nav(-1)} data-testid="cal-prev" aria-label="Previous month"
-            className="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors"><ChevronLeft className="h-4 w-4" /></button>
+            className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors"><ChevronLeft className="h-4 w-4" /></button>
           <p className="text-sm font-bold text-slate-800" data-testid="cal-title">{MONTHS[view.getMonth()]} {view.getFullYear()}</p>
           <button type="button" onClick={() => nav(1)} disabled={nextDisabled} data-testid="cal-next" aria-label="Next month"
-            className="h-8 w-8 rounded-lg hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"><ChevronRight className="h-4 w-4" /></button>
+            className="h-8 w-8 rounded-md hover:bg-slate-100 text-slate-600 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed"><ChevronRight className="h-4 w-4" /></button>
         </div>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div key={`${view.getFullYear()}-${view.getMonth()}`} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -8 }} transition={{ duration: 0.12 }}>
@@ -144,11 +144,11 @@ export default function DateRangeField({ from, to, onChange, testId = "sk-date" 
       </div>
       <div className="flex items-center justify-between gap-2 px-4 py-3 mt-3 border-t border-slate-100 pb-[max(12px,env(safe-area-inset-bottom))]">
         <button type="button" onClick={() => { const td = strip(new Date()); setView(td); setF(td); setT(td); setFocus("from"); }} data-testid="cal-today"
-          className="h-9 px-3 rounded-lg text-sm font-semibold text-primary-700 hover:bg-primary-50 transition-colors">Today</button>
+          className="h-9 px-3 rounded-md text-sm font-semibold text-primary-700 hover:bg-primary-50 transition-colors">Today</button>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={clear} data-testid="cal-clear" className="h-9 px-3 rounded-lg text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Clear</button>
+          <button type="button" onClick={clear} data-testid="cal-clear" className="h-9 px-3 rounded-md text-sm font-semibold text-slate-500 hover:bg-slate-100 transition-colors">Clear</button>
           <button type="button" onClick={apply} disabled={!f} data-testid="cal-apply"
-            className="h-9 px-4 rounded-lg text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 disabled:opacity-40 shadow-sm transition-colors">Apply</button>
+            className="h-9 px-4 rounded-md text-sm font-bold bg-primary-700 text-white hover:bg-primary-800 disabled:opacity-40 shadow-sm transition-colors">Apply</button>
         </div>
       </div>
     </motion.div>
@@ -169,7 +169,7 @@ export default function DateRangeField({ from, to, onChange, testId = "sk-date" 
         <FieldBox label="To" value={fmt(parse(to))} active={open && focus === "to"} onClick={() => openAt("to")} testId={`${testId}-to`} />
         {(from || to) && (
           <button type="button" onClick={clear} data-testid={`${testId}-clear`} aria-label="Clear date range"
-            className="h-9 w-9 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors shrink-0"><X className="h-4 w-4" /></button>
+            className="h-9 w-9 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors shrink-0"><X className="h-4 w-4" /></button>
         )}
       </div>
       {createPortal(

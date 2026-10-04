@@ -325,7 +325,7 @@ export default function PartnerRegistration() {
             <WTextarea testID="reg-address" value={addr.manual_address} rows={3} onChangeText={(v) => setAddr({ ...addr, manual_address: v })} placeholder="House / Street / Area / Landmark" />
           </Field>
           <Pressable testID="reg-choose-location" disabled={locBusy} onPress={chooseLocation}
-            style={({ pressed }) => ({ width: "100%", height: 48, borderRadius: 12, borderWidth: 1, borderColor: P[200], backgroundColor: pressed ? P[50] : "#fff", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 })}>
+            style={({ pressed }) => ({ width: "100%", height: 48, borderRadius: 6, borderWidth: 1, borderColor: P[200], backgroundColor: pressed ? P[50] : "#fff", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 })}>
             {locBusy ? <ActivityIndicator size="small" color={P[700]} /> : <Crosshair size={16} color={P[700]} />}
             <Text style={{ ...T.sm, fontWeight: "600", color: P[700] }}>Choose Current Location</Text>
           </Pressable>

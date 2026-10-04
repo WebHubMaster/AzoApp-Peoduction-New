@@ -139,13 +139,13 @@ export default function MerchantFinanceKyc() {
                 <div className="mt-1 flex items-center gap-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-2">
                   <img src={pan.pan_url} alt="PAN" className="h-9 w-12 rounded object-cover" />
                   <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400 flex-1">Uploaded</span>
-                  <button onClick={() => setPreview(pan.pan_url)} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-preview"><Eye className="h-4 w-4" /></button>
-                  <button onClick={() => pickImage(setPan, "pan_url")} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-replace"><RefreshCw className="h-4 w-4" /></button>
-                  <button onClick={() => setPan({ ...pan, pan_url: "" })} className="h-8 w-8 grid place-items-center rounded-lg text-rose-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-delete"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => setPreview(pan.pan_url)} className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-preview"><Eye className="h-4 w-4" /></button>
+                  <button onClick={() => pickImage(setPan, "pan_url")} className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-replace"><RefreshCw className="h-4 w-4" /></button>
+                  <button onClick={() => setPan({ ...pan, pan_url: "" })} className="h-8 w-8 grid place-items-center rounded-md text-rose-500 hover:bg-white dark:hover:bg-slate-800" data-testid="mfk-pan-delete"><Trash2 className="h-4 w-4" /></button>
                 </div>
               ) : (
                 <button onClick={() => pickImage(setPan, "pan_url")} data-testid="mfk-pan-upload"
-                  className="mt-1 w-full h-11 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-sm font-medium text-slate-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
+                  className="mt-1 w-full h-11 rounded-md border-2 border-dashed border-slate-200 dark:border-slate-700 flex items-center justify-center gap-2 text-sm font-medium text-slate-500 hover:border-primary-400 hover:text-primary-700 transition-colors">
                   <UploadCloud className="h-4 w-4" /> Upload PAN (image/PDF)
                 </button>
               )}
@@ -220,7 +220,7 @@ export default function MerchantFinanceKyc() {
         <div className="fixed inset-0 z-[90] flex items-center justify-center p-6" data-testid="mfk-preview-modal" onClick={() => setPreview(null)}>
           <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" />
           <div className="relative max-w-lg w-full">
-            <button onClick={() => setPreview(null)} className="absolute -top-10 right-0 h-9 w-9 rounded-lg bg-white/10 text-white grid place-items-center"><X className="h-5 w-5" /></button>
+            <button onClick={() => setPreview(null)} className="absolute -top-10 right-0 h-9 w-9 rounded-md bg-white/10 text-white grid place-items-center"><X className="h-5 w-5" /></button>
             <img src={preview} alt="document" className="w-full rounded-2xl shadow-2xl" onClick={(e) => e.stopPropagation()} />
           </div>
         </div>

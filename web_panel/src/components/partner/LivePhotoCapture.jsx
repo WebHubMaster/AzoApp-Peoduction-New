@@ -146,7 +146,7 @@ export default function LivePhotoCapture({ value, onCaptured, regBase = "/partne
       {/* Idle / start */}
       {!value && !camOn && !uploading && (
         <button type="button" data-testid="live-photo-start" onClick={startCamera} disabled={starting}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-60 transition">
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-md bg-primary-600 text-white font-semibold hover:bg-primary-700 disabled:opacity-60 transition">
           {starting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
           {starting ? "Starting camera…" : "Open camera"}
         </button>

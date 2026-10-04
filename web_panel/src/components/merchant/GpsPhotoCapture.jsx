@@ -171,7 +171,7 @@ export default function GpsPhotoCapture({
 
       {!value && !camOn && !busy && (
         <button type="button" data-testid="gps-photo-start" onClick={startCamera} disabled={starting}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-amber-600 text-white font-semibold hover:bg-amber-700 disabled:opacity-60 transition">
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-md bg-amber-600 text-white font-semibold hover:bg-amber-700 disabled:opacity-60 transition">
           {starting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
           {starting ? "Starting camera…" : "Open GPS Camera"}
         </button>

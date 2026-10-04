@@ -71,8 +71,8 @@ export default function PwaTab({ cfg, onSaved }) {
             <Field label="App Name"><Input value={f.app_name || ""} onChange={(e) => set("app_name", e.target.value)} /></Field>
             <Field label="Short Name"><Input value={f.short_name || ""} onChange={(e) => set("short_name", e.target.value)} /></Field>
             <Field label="Install Title"><Input value={f.install_title || ""} onChange={(e) => set("install_title", e.target.value)} /></Field>
-            <Field label="Theme Color"><div className="flex items-center gap-2"><input type="color" className="h-10 w-12 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.theme_color || "#0D47A1"} onChange={(e) => set("theme_color", e.target.value)} /><Input value={f.theme_color || "#0D47A1"} onChange={(e) => set("theme_color", e.target.value)} /></div></Field>
-            <Field label="Background Color"><div className="flex items-center gap-2"><input type="color" className="h-10 w-12 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.background_color || "#ffffff"} onChange={(e) => set("background_color", e.target.value)} /><Input value={f.background_color || "#ffffff"} onChange={(e) => set("background_color", e.target.value)} /></div></Field>
+            <Field label="Theme Color"><div className="flex items-center gap-2"><input type="color" className="h-10 w-12 rounded-md border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.theme_color || "#0D47A1"} onChange={(e) => set("theme_color", e.target.value)} /><Input value={f.theme_color || "#0D47A1"} onChange={(e) => set("theme_color", e.target.value)} /></div></Field>
+            <Field label="Background Color"><div className="flex items-center gap-2"><input type="color" className="h-10 w-12 rounded-md border border-slate-200 dark:border-slate-700 cursor-pointer" value={f.background_color || "#ffffff"} onChange={(e) => set("background_color", e.target.value)} /><Input value={f.background_color || "#ffffff"} onChange={(e) => set("background_color", e.target.value)} /></div></Field>
             <Field label="App Icon URL"><Input value={f.icon || ""} onChange={(e) => set("icon", e.target.value)} placeholder="https://…/icon.png" /></Field>
             <Field label="Splash Screen Icon URL"><Input value={f.splash_icon || ""} onChange={(e) => set("splash_icon", e.target.value)} placeholder="https://…/splash.png" /></Field>
             <Field label="Google Play Store URL"><Input value={f.play_store_url || ""} onChange={(e) => set("play_store_url", e.target.value)} placeholder="https://play.google.com/store/apps/details?id=…" /></Field>
@@ -86,7 +86,7 @@ export default function PwaTab({ cfg, onSaved }) {
           <div className="mt-4"><Field label="Install Message"><textarea className={inp + " h-16 py-2"} value={f.install_message || ""} onChange={(e) => set("install_message", e.target.value)} /></Field></div>
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <SaveBtn onClick={save} busy={busy} />
-            <button onClick={resetDefaults} className="h-11 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 inline-flex items-center gap-1.5"><RotateCcw className="h-4 w-4" /> Reset Defaults</button>
+            <button onClick={resetDefaults} className="h-11 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-300 inline-flex items-center gap-1.5"><RotateCcw className="h-4 w-4" /> Reset Defaults</button>
           </div>
         </Card>
 
@@ -95,8 +95,8 @@ export default function PwaTab({ cfg, onSaved }) {
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-slate-900 dark:text-white">Live Preview</h3>
             <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
-              <button onClick={() => setMode("mobile")} className={cn("h-8 px-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
-              <button onClick={() => setMode("desktop")} className={cn("h-8 px-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
+              <button onClick={() => setMode("mobile")} className={cn("h-8 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "mobile" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Smartphone className="h-3.5 w-3.5" /> Mobile</button>
+              <button onClick={() => setMode("desktop")} className={cn("h-8 px-2.5 rounded-md text-xs font-semibold inline-flex items-center gap-1", mode === "desktop" ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500")}><Monitor className="h-3.5 w-3.5" /> Desktop</button>
             </div>
           </div>
           {mode === "mobile" ? <PhoneMock f={f} /> : <DesktopMock f={f} />}
@@ -148,8 +148,8 @@ function PhoneMock({ f }) {
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">{f.install_message || "Get the full app experience — download AzoApp from the store."}</p>
             <div className="mt-2.5 flex gap-2">
-              <button className="flex-1 h-8 rounded-lg text-[11px] font-bold text-white" style={{ background: f.theme_color || "#0D47A1" }}>Get the App</button>
-              <button className="h-8 px-3 rounded-lg text-[11px] font-semibold text-slate-500 border border-slate-200">Later</button>
+              <button className="flex-1 h-8 rounded-md text-[11px] font-bold text-white" style={{ background: f.theme_color || "#0D47A1" }}>Get the App</button>
+              <button className="h-8 px-3 rounded-md text-[11px] font-semibold text-slate-500 border border-slate-200">Later</button>
             </div>
             <div className="mt-1.5 flex items-center gap-2 text-[9px] font-semibold text-slate-400">
               {f.android_enabled !== false && <span>Play Store</span>}

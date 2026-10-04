@@ -188,11 +188,11 @@ export default function ServiceAreaMap({ apiKey, value, radiusKm, polygon, other
     <div>
       <div className="flex items-center gap-2 mb-1.5">
         <button type="button" data-testid="area-draw-polygon" onClick={startDraw}
-          className={`text-xs font-semibold px-2.5 py-1 rounded-lg border flex items-center gap-1 ${drawing ? "bg-purple-600 text-white border-purple-600" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300"}`}>
+          className={`text-xs font-semibold px-2.5 py-1 rounded-md border flex items-center gap-1 ${drawing ? "bg-purple-600 text-white border-purple-600" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300"}`}>
           <Pentagon className="h-3.5 w-3.5" /> {drawing ? "Finish polygon (click map to add points)" : "Draw polygon"}
         </button>
         {hasPoly && (
-          <button type="button" data-testid="area-clear-polygon" onClick={clearPoly} className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-red-500 hover:border-red-300 flex items-center gap-1">
+          <button type="button" data-testid="area-clear-polygon" onClick={clearPoly} className="text-xs font-semibold px-2.5 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-red-500 hover:border-red-300 flex items-center gap-1">
             <X className="h-3.5 w-3.5" /> Clear polygon
           </button>
         )}

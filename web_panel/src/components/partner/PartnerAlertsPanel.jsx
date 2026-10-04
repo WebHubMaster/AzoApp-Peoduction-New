@@ -111,15 +111,15 @@ export default function PartnerAlertsPanel() {
           </div>
           {snoozeMs > 0 ? (
             <button data-testid="snooze-resume" onClick={stopSnooze}
-              className="h-10 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">
+              className="h-10 px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold">
               Resume now
             </button>
           ) : (
             <div className="flex gap-2">
               <button data-testid="snooze-30" onClick={() => startSnooze(30)}
-                className="h-10 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold">Busy 30 min</button>
+                className="h-10 px-4 rounded-md bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold">Busy 30 min</button>
               <button data-testid="snooze-60" onClick={() => startSnooze(60)}
-                className="h-10 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">1 hour</button>
+                className="h-10 px-4 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800">1 hour</button>
             </div>
           )}
         </div>
@@ -227,7 +227,7 @@ export default function PartnerAlertsPanel() {
                   <p className="text-[11px] text-slate-400 flex items-center gap-1 truncate"><MapPin className="h-3 w-3" /> {m.address_line || m.city || "—"}{m.total ? ` · ₹${m.total}` : ""}</p>
                 </div>
                 <button data-testid={`regrab-${m.id}`} onClick={() => regrab(m)}
-                  className="shrink-0 h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5">
+                  className="shrink-0 h-9 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5">
                   <RefreshCw className="h-3.5 w-3.5" /> Re-grab
                 </button>
               </div>

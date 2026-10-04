@@ -59,7 +59,7 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
           {/* toolbar */}
           <div className="shrink-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-800 pt-[env(safe-area-inset-top)]">
             <div className="max-w-[1100px] mx-auto flex items-center gap-2 px-3 sm:px-5 h-14 sm:h-16">
-              <button onClick={onClose} aria-label="Back" className="h-11 w-11 sm:h-10 sm:w-10 rounded-xl grid place-items-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition" data-testid="viewer-close">
+              <button onClick={onClose} aria-label="Back" className="h-11 w-11 sm:h-10 sm:w-10 rounded-md grid place-items-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition" data-testid="viewer-close">
                 <ArrowLeft className="h-5 w-5 sm:hidden" /><X className="h-5 w-5 hidden sm:block" />
               </button>
               <div className="min-w-0 flex-1">
@@ -110,7 +110,7 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
 export function ShareSheet({ open, onClose, onPick }) {
   const Item = ({ icon: Icon, tone, title, sub, ch, testid }) => (
     <button type="button" onClick={() => onPick(ch)} data-testid={testid}
-      className="w-full flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.99] transition text-left min-h-[56px]">
+      className="w-full flex items-center gap-3 rounded-md px-3 py-3 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.99] transition text-left min-h-[56px]">
       <span className={`h-11 w-11 rounded-xl grid place-items-center ${tone}`}><Icon className="h-5 w-5" /></span>
       <div className="min-w-0"><p className="text-sm font-semibold text-slate-900 dark:text-white">{title}</p><p className="text-xs text-slate-400">{sub}</p></div>
     </button>

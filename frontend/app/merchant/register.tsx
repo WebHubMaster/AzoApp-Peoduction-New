@@ -219,7 +219,7 @@ export default function MerchantRegistration() {
         <View style={{ gap: 16 }} testID="step-address">
           <View style={{ gap: 12 }}>
             <Pressable testID="use-current-location" disabled={!editable || locating} onPress={useCurrent}
-              style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, borderRadius: 12, backgroundColor: pressed ? P[800] : P[700], opacity: !editable || locating ? 0.6 : 1 })}>
+              style={({ pressed }) => ({ width: "100%", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, paddingVertical: 14, borderRadius: 6, backgroundColor: pressed ? P[800] : P[700], opacity: !editable || locating ? 0.6 : 1 })}>
               {locating ? <ActivityIndicator size="small" color="#fff" /> : <Navigation size={20} color="#fff" />}
               <Text style={{ ...T.base, fontWeight: "600", color: "#fff" }}>{locating ? "Detecting location…" : "📍 Use Current Location"}</Text>
             </Pressable>

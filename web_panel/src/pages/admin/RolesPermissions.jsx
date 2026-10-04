@@ -139,9 +139,9 @@ export default function RolesPermissions() {
               </div>
               <Input placeholder="Short description (optional) — e.g. Handles bookings & partners" value={descr} onChange={(e) => setDescr(e.target.value)} className="text-sm" />
               <div className="flex flex-wrap gap-2">
-                <button onClick={grantAll} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Grant full access</button>
-                <button onClick={viewOnly} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100">View-only</button>
-                <button onClick={clearAll} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200">Clear all</button>
+                <button onClick={grantAll} className="text-xs font-semibold px-3 py-1.5 rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 flex items-center gap-1"><Sparkles className="h-3 w-3" /> Grant full access</button>
+                <button onClick={viewOnly} className="text-xs font-semibold px-3 py-1.5 rounded-md bg-sky-50 text-sky-700 hover:bg-sky-100">View-only</button>
+                <button onClick={clearAll} className="text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200">Clear all</button>
               </div>
             </div>
             <div className="overflow-x-auto">

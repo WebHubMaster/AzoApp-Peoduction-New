@@ -11,7 +11,7 @@ import { KitLabel, SLATE, useQrPalette } from "@/src/components/qr/qrKit";
 function TemplateSwatch({ tpl }: { tpl: (typeof TEMPLATES)[number] }) {
   const v = tpl.variant;
   const lightish = ["light", "minimal", "soft", "band", "print", "cream"].includes(v);
-  const base = { height: 40, borderRadius: 8, marginBottom: 6, borderWidth: lightish ? 1 : 0, borderColor: `${tpl.primary}33` } as const;
+  const base = { height: 40, borderRadius: 6, marginBottom: 6, borderWidth: lightish ? 1 : 0, borderColor: `${tpl.primary}33` } as const;
   if (v === "gradient") return <LinearGradient colors={[tpl.primary, tpl.primary2 || "#2563eb"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={base} />;
   if (v === "luxe") return <LinearGradient colors={["#1f2a44", "#0B1220"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={base} />;
   if (v === "cream") return <LinearGradient colors={["#FAF7F0", "#EAD9A8"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={base} />;
@@ -59,7 +59,7 @@ export function PosterControls({ config, setConfig, adminLogo }: { config: QrCon
         {customOpen ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
             <View style={{ height: 36, width: 36, borderRadius: 10, backgroundColor: isHex6(hex) ? hex : SLATE[200], borderWidth: 1, borderColor: border }} />
-            <TextInput testID="color-custom-input" value={hex} onChangeText={(v) => { const h = v.startsWith("#") ? v : `#${v}`; setHex(h.slice(0, 7)); if (isHex6(h)) setConfig({ preset: "custom", primary: h }); }} autoCapitalize="none" placeholder="#0D47A1" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 36, borderWidth: 1, borderColor: border, borderRadius: 8, paddingHorizontal: 10, fontSize: 13, color: heading, backgroundColor: dark ? SLATE[900] : "#fff" }} />
+            <TextInput testID="color-custom-input" value={hex} onChangeText={(v) => { const h = v.startsWith("#") ? v : `#${v}`; setHex(h.slice(0, 7)); if (isHex6(h)) setConfig({ preset: "custom", primary: h }); }} autoCapitalize="none" placeholder="#0D47A1" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 36, borderWidth: 1, borderColor: border, borderRadius: 6, paddingHorizontal: 10, fontSize: 13, color: heading, backgroundColor: dark ? SLATE[900] : "#fff" }} />
           </View>
         ) : null}
       </View>

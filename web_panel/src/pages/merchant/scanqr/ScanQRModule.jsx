@@ -232,9 +232,9 @@ export default function ScanQRModule({ code = "", shopName = "My Shop", user }) 
   const Preview = (
     <div className="rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-800 p-4 flex flex-col items-center" data-testid="poster-preview">
       <div className="flex items-center gap-1 mb-3 self-end">
-        <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.15))} className="h-8 w-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-out"><ZoomOut className="h-4 w-4" /></button>
-        <button onClick={() => setZoom(1)} className="h-8 w-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-fit"><Maximize2 className="h-4 w-4" /></button>
-        <button onClick={() => setZoom((z) => Math.min(2, z + 0.15))} className="h-8 w-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-in"><ZoomIn className="h-4 w-4" /></button>
+        <button onClick={() => setZoom((z) => Math.max(0.5, z - 0.15))} className="h-8 w-8 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-out"><ZoomOut className="h-4 w-4" /></button>
+        <button onClick={() => setZoom(1)} className="h-8 w-8 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-fit"><Maximize2 className="h-4 w-4" /></button>
+        <button onClick={() => setZoom((z) => Math.min(2, z + 0.15))} className="h-8 w-8 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid place-items-center text-slate-500" data-testid="zoom-in"><ZoomIn className="h-4 w-4" /></button>
       </div>
       <div style={{ width: previewDims.canvasW * previewScale, height: previewDims.canvasH * previewScale, overflow: "hidden" }} className="rounded-xl shadow-xl transition-all duration-200">
         <div style={{ transform: `scale(${previewScale})`, transformOrigin: "top left" }}>
@@ -337,7 +337,7 @@ export default function ScanQRModule({ code = "", shopName = "My Shop", user }) 
           <div className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading font-extrabold text-lg text-slate-900 dark:text-white">Share your booking link</h3>
-              <button onClick={() => setShareOpen(false)} className="h-9 w-9 rounded-xl grid place-items-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+              <button onClick={() => setShareOpen(false)} className="h-9 w-9 rounded-md grid place-items-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
             </div>
             <p className="text-xs text-slate-500 mb-2">Edit the message before sharing (your booking link is already included):</p>
             <Textarea value={waMsg} onChange={(e) => setWaMsg(e.target.value)} className="min-h-[120px] text-sm" />
@@ -345,7 +345,7 @@ export default function ScanQRModule({ code = "", shopName = "My Shop", user }) 
               type="button"
               onClick={() => downloadPoster("png")}
               disabled={!!busy}
-              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-primary-300 dark:border-primary-800 bg-primary-50/60 dark:bg-primary-900/20 px-3 py-2 text-xs font-semibold text-primary-700 dark:text-primary-300 hover:bg-primary-50 disabled:opacity-60"
+              className="mt-2 w-full inline-flex items-center justify-center gap-1.5 rounded-md border border-dashed border-primary-300 dark:border-primary-800 bg-primary-50/60 dark:bg-primary-900/20 px-3 py-2 text-xs font-semibold text-primary-700 dark:text-primary-300 hover:bg-primary-50 disabled:opacity-60"
               data-testid="share-save-poster"
             >
               {busy === "png" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}

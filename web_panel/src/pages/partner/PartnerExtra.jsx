@@ -43,7 +43,7 @@ export function PartnerHome({ onNavigate }) {
           <div className="mt-4 flex gap-1 bg-white/10 backdrop-blur rounded-xl p-1 overflow-x-auto no-scrollbar" data-testid="ph-range">
             {RANGES.map((r) => (
               <button key={r.key} data-testid={`range-${r.key}`} onClick={() => setRange(r.key)}
-                className={`flex-1 min-w-[56px] px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${range === r.key ? "bg-white text-slate-900 shadow" : "text-white/70 hover:text-white"}`}>{r.label}</button>
+                className={`flex-1 min-w-[56px] px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${range === r.key ? "bg-white text-slate-900 shadow" : "text-white/70 hover:text-white"}`}>{r.label}</button>
             ))}
           </div>
           <div className="mt-4 flex items-stretch gap-3">

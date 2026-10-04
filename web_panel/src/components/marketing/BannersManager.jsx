@@ -41,8 +41,8 @@ function DropUpload({ label, ratio, value, onChange, folder = "banner" }) {
         <div className="relative group rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
           <img src={value} alt="" className="w-full h-28 object-cover" />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2">
-            <button type="button" onClick={() => ref.current?.click()} className="text-white text-xs bg-white/20 px-3 py-1.5 rounded-lg">Replace</button>
-            <button type="button" onClick={() => onChange("")} className="text-white text-xs bg-red-500/80 px-3 py-1.5 rounded-lg">Remove</button>
+            <button type="button" onClick={() => ref.current?.click()} className="text-white text-xs bg-white/20 px-3 py-1.5 rounded-md">Replace</button>
+            <button type="button" onClick={() => onChange("")} className="text-white text-xs bg-red-500/80 px-3 py-1.5 rounded-md">Remove</button>
           </div>
         </div>
       ) : (
@@ -79,7 +79,7 @@ function DevicePreview({ banner }) {
           <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
             {[["desktop", Monitor], ["tablet", Tablet], ["mobile", Smartphone]].map(([k, I]) => (
               <button key={k} onClick={() => setDevice(k)} title={k}
-                className={`h-8 w-8 grid place-items-center rounded-lg transition ${device === k ? "text-white" : "text-slate-500"}`}
+                className={`h-8 w-8 grid place-items-center rounded-md transition ${device === k ? "text-white" : "text-slate-500"}`}
                 style={device === k ? { background: BRAND } : {}}><I className="h-4 w-4" /></button>
             ))}
           </div>
@@ -276,7 +276,7 @@ export default function BannersManager() {
 
 const IconBtn = ({ children, title, danger, ...rest }) => (
   <button {...rest} title={title}
-    className={`h-8 w-8 grid place-items-center rounded-lg transition ${danger ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+    className={`h-8 w-8 grid place-items-center rounded-md transition ${danger ? "text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
     {children}
   </button>
 );

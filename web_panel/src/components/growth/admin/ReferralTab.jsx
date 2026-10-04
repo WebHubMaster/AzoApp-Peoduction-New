@@ -80,7 +80,7 @@ export default function ReferralTab({ cfg, onSaved }) {
     { key: "reward_status", label: "Reward Status", render: (r) => <StatusBadge status={r.reward_status === "paid" ? "Reward Paid" : "Pending"} /> },
     { key: "created", label: "Created At", render: (r) => dt(r.created_at, true) },
     { key: "__actions", label: "", exportable: false, render: (r) => (
-        <button onClick={() => setDetail(r)} data-testid="ref-view" className="h-8 w-8 grid place-items-center rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50"><Eye className="h-4 w-4" /></button>) },
+        <button onClick={() => setDetail(r)} data-testid="ref-view" className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:text-primary-600 hover:bg-primary-50"><Eye className="h-4 w-4" /></button>) },
   ];
 
   return (
@@ -121,7 +121,7 @@ export default function ReferralTab({ cfg, onSaved }) {
             <Field label="Subheading"><Input value={card.subheading || ""} onChange={(e) => setCard("subheading", e.target.value)} /></Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="CTA Text"><Input value={card.cta_text || ""} onChange={(e) => setCard("cta_text", e.target.value)} /></Field>
-              <Field label="Background"><input type="color" className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer" value={card.bg || "#0D47A1"} onChange={(e) => setCard("bg", e.target.value)} /></Field>
+              <Field label="Background"><input type="color" className="h-10 w-full rounded-md border border-slate-200 dark:border-slate-700 cursor-pointer" value={card.bg || "#0D47A1"} onChange={(e) => setCard("bg", e.target.value)} /></Field>
             </div>
             <Field label="Share Card Image URL"><Input value={card.logo || ""} onChange={(e) => setCard("logo", e.target.value)} placeholder="https://…" /></Field>
           </div>
@@ -231,8 +231,8 @@ function ReferralDetail({ row, onClose }) {
           ))}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <button className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 inline-flex items-center justify-center gap-1.5"><User className="h-4 w-4" /> View Customer</button>
-          <button className="h-10 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 inline-flex items-center justify-center gap-1.5"><Receipt className="h-4 w-4" /> View Booking</button>
+          <button className="h-10 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 inline-flex items-center justify-center gap-1.5"><User className="h-4 w-4" /> View Customer</button>
+          <button className="h-10 rounded-md border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 inline-flex items-center justify-center gap-1.5"><Receipt className="h-4 w-4" /> View Booking</button>
         </div>
       </div>
     </div>

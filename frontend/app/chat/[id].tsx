@@ -200,8 +200,8 @@ export default function BookingChatScreen() {
               ))}
             </ScrollView>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 12, paddingBottom: Math.max(insets.bottom, 8) + 8, borderTopWidth: 1, borderTopColor: colors.border }}>
-              <TextInput testID="chat-input" value={text} onChangeText={onType} placeholder="Type a message…" placeholderTextColor={colors.textMuted} onSubmitEditing={() => send()} returnKeyType="send" blurOnSubmit={false} style={{ flex: 1, height: 42, borderRadius: 12, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, color: colors.text, fontSize: 14, backgroundColor: colors.surface }} />
-              <Pressable testID="chat-send" onPress={() => send()} disabled={sending || !text.trim()} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: sending || !text.trim() ? 0.5 : 1 }}>
+              <TextInput testID="chat-input" value={text} onChangeText={onType} placeholder="Type a message…" placeholderTextColor={colors.textMuted} onSubmitEditing={() => send()} returnKeyType="send" blurOnSubmit={false} style={{ flex: 1, height: 42, borderRadius: 6, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 14, color: colors.text, fontSize: 14, backgroundColor: colors.surface }} />
+              <Pressable testID="chat-send" onPress={() => send()} disabled={sending || !text.trim()} style={{ width: 42, height: 42, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: sending || !text.trim() ? 0.5 : 1 }}>
                 <Icon name="send" size={18} color="#fff" />
               </Pressable>
             </View>

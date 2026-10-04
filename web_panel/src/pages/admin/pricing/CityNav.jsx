@@ -10,7 +10,7 @@ function CityTab({ c, active, onClick, pinned, onTogglePin }) {
   const p = pct(done, total);
   return (
     <button type="button" onClick={onClick} data-testid={`pm-city-${c.city_key}`}
-      className={`group relative shrink-0 w-[168px] text-left rounded-xl border px-3 py-2.5 transition-all duration-150 ${active
+      className={`group relative shrink-0 w-[168px] text-left rounded-md border px-3 py-2.5 transition-all duration-150 ${active
         ? "bg-[#0D47A1] border-[#0D47A1] shadow-sm shadow-[#0D47A1]/20"
         : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-[#0D47A1]/60 hover:shadow-sm"}`}>
       <div className="flex items-center gap-1.5">
@@ -131,7 +131,7 @@ export default function CityNav({ cities, city, setCity, onManageAreas }) {
             <div className="relative">
               <Search className="h-3.5 w-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search city…" data-testid="pm-city-search"
-                className="h-9 w-40 pl-8 pr-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30" />
+                className="h-9 w-40 pl-8 pr-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30" />
             </div>
           )}
           <button onClick={onManageAreas} data-testid="pm-manage-areas" className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#0D47A1] hover:underline whitespace-nowrap">

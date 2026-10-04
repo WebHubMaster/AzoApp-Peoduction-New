@@ -83,7 +83,7 @@ export default function PartnerAvailability() {
               const sub = past ? "" : st === "available" ? "Available" : st === "unavailable" ? "Not avail." : "Awaiting";
               return (
                 <View key={d} style={{ width: "14.28%", padding: 3 }}>
-                  <Pressable testID={`avail-${d}`} disabled={past} onPress={() => onTap(d)} style={{ aspectRatio: 1, borderRadius: 12, backgroundColor: bg, borderWidth: isToday ? 2 : 1, borderColor: isToday ? "#1976D2" : past ? "transparent" : colors.border, alignItems: "center", justifyContent: "center", boxShadow: past ? undefined : "0px 2px 6px rgba(2,32,71,0.05)" }}>
+                  <Pressable testID={`avail-${d}`} disabled={past} onPress={() => onTap(d)} style={{ aspectRatio: 1, borderRadius: 6, backgroundColor: bg, borderWidth: isToday ? 2 : 1, borderColor: isToday ? "#1976D2" : past ? "transparent" : colors.border, alignItems: "center", justifyContent: "center", boxShadow: past ? undefined : "0px 2px 6px rgba(2,32,71,0.05)" }}>
                     <Text style={{ color: fg, fontSize: 16, fontWeight: "800" }}>{Number(d.slice(-2))}</Text>
                     {sub ? <Text style={{ color: st ? fg : SLATE400, fontSize: 8, fontWeight: "600", marginTop: 1 }} numberOfLines={1}>{sub}</Text> : null}
                   </Pressable>
@@ -128,7 +128,7 @@ export default function PartnerAvailability() {
                 <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 12 }}>Currently: <Text style={{ color: statusMap[picked] === "available" ? "#059669" : "#E11D48", fontWeight: "700" }}>{statusMap[picked] === "available" ? "Available" : "Not Available"}</Text> · tap either to change</Text>
               ) : null}
               <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
-                <Pressable testID="popup-available" disabled={setDate.isPending} onPress={() => choose("available")} style={{ flex: 1, height: 48, borderRadius: 10, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="check-circle-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{setDate.isPending ? "Saving…" : "Available"}</Text></Pressable>
+                <Pressable testID="popup-available" disabled={setDate.isPending} onPress={() => choose("available")} style={{ flex: 1, height: 48, borderRadius: 6, backgroundColor: "#059669", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="check-circle-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{setDate.isPending ? "Saving…" : "Available"}</Text></Pressable>
                 <Pressable testID="popup-unavailable" disabled={setDate.isPending} onPress={() => choose("unavailable")} style={{ flex: 1, height: 48, borderRadius: 10, borderWidth: 2, borderColor: "#FECDD3", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="close-circle-outline" size={18} color="#E11D48" /><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 15 }}>Not Available</Text></Pressable>
               </View>
             </Pressable>

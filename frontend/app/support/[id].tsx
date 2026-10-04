@@ -208,7 +208,7 @@ export default function SupportThread() {
                     ) : (
                       <Image source={{ uri: mediaUrl(a.thumb_url || a.url) }} style={{ width: 60, height: 60, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border }} contentFit="cover" />
                     )}
-                    <Pressable onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: 10, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center" }}>
+                    <Pressable onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, width: 20, height: 20, borderRadius: 6, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center" }}>
                       <Icon name="close" size={12} color="#fff" />
                     </Pressable>
                   </View>
@@ -219,7 +219,7 @@ export default function SupportThread() {
               <Pressable testID="attach-file" onPress={addAttachment} disabled={uploading} style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                 {uploading ? <ActivityIndicator size="small" color={colors.primary} /> : <Icon name="paperclip" size={20} color={colors.textSecondary} />}
               </Pressable>
-              <TextInput testID="ticket-reply" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={colors.textMuted} multiline style={{ flex: 1, minHeight: 46, maxHeight: 110, borderRadius: radius.xl, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 16, paddingTop: Platform.OS === "ios" ? 13 : 8, paddingBottom: 8, color: colors.text, fontSize: fontSize.sm }} />
+              <TextInput testID="ticket-reply" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={colors.textMuted} multiline style={{ flex: 1, minHeight: 46, maxHeight: 110, borderRadius: 6, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 16, paddingTop: Platform.OS === "ios" ? 13 : 8, paddingBottom: 8, color: colors.text, fontSize: fontSize.sm }} />
               <Pressable testID="send-reply" onPress={() => (text.trim() || pending.length) && !send.isPending && send.mutate()} disabled={send.isPending || (!text.trim() && !pending.length)} style={{ width: 46, height: 46, borderRadius: 23, backgroundColor: GREEN, alignItems: "center", justifyContent: "center", opacity: (!text.trim() && !pending.length) || send.isPending ? 0.5 : 1 }}>
                 {send.isPending ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="send" size={20} color="#fff" />}
               </Pressable>

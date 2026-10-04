@@ -1082,13 +1082,13 @@ const DocLightbox = ({ url, label, onClose }) => {
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
         {!isPdf && (
           <>
-            <button data-testid="doc-zoom-out" onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">−</button>
+            <button data-testid="doc-zoom-out" onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">−</button>
             <span className="text-white text-sm font-semibold w-14 text-center">{Math.round(scale * 100)}%</span>
-            <button data-testid="doc-zoom-in" onClick={() => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">+</button>
+            <button data-testid="doc-zoom-in" onClick={() => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">+</button>
           </>
         )}
         <a href={url} target="_blank" rel="noreferrer" className="h-10 px-3 rounded-lg bg-white/15 hover:bg-white/25 text-white text-sm font-semibold grid place-items-center">Open ↗</a>
-        <button data-testid="doc-close" onClick={onClose} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white grid place-items-center"><X className="h-5 w-5" /></button>
+        <button data-testid="doc-close" onClick={onClose} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white grid place-items-center"><X className="h-5 w-5" /></button>
       </div>
       {label && <div className="absolute top-5 left-5 text-white/80 text-sm font-medium z-10">{label}</div>}
       <div className="relative max-w-[92vw] max-h-[88vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
@@ -1141,7 +1141,7 @@ const KycActionBar = ({ profile, userId, onDone }) => {
         <div className="space-y-2">
           <textarea data-testid="profile-kyc-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2}
             placeholder="Reason for rejection (shown to provider)…"
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
+            className="w-full rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
           <div className="flex gap-2">
             <Button data-testid="profile-kyc-reject-confirm" onClick={reject} disabled={busy} className="flex-1 bg-red-600 hover:bg-red-700">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Rejection"}
@@ -1236,7 +1236,7 @@ const CustomerAdminActions = ({ user, userId, onDone, onDeleted }) => {
             <div className="flex gap-2">
               {["credit", "debit"].map((dir) => (
                 <button key={dir} data-testid={`cust-wallet-${dir}`} onClick={() => setWf((p) => ({ ...p, direction: dir }))}
-                  className={`flex-1 py-2 rounded-lg border text-sm font-semibold capitalize transition ${wf.direction === dir ? (dir === "credit" ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-red-300 bg-red-50 text-red-600") : "border-slate-200 text-slate-500"}`}>{dir}</button>
+                  className={`flex-1 py-2 rounded-md border text-sm font-semibold capitalize transition ${wf.direction === dir ? (dir === "credit" ? "border-emerald-400 bg-emerald-50 text-emerald-700" : "border-red-300 bg-red-50 text-red-600") : "border-slate-200 text-slate-500"}`}>{dir}</button>
               ))}
             </div>
             <Input data-testid="cust-wallet-amount" type="number" min="1" placeholder="Amount (₹)" value={wf.amount} onChange={(e) => setWf((p) => ({ ...p, amount: e.target.value }))} />
@@ -1397,7 +1397,7 @@ const CustomerProfile360 = ({ d, userId, reload, onBack }) => {
       {/* Tabs */}
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-4 w-full md:w-fit overflow-x-auto no-scrollbar">
         {TABS.map(([k, l, Icon]) => (
-          <button key={k} data-testid={`cp-tab-${k}`} onClick={() => setTab(k)} className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 dark:text-primary-300 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}><Icon className="h-4 w-4" />{l}</button>
+          <button key={k} data-testid={`cp-tab-${k}`} onClick={() => setTab(k)} className={`px-3 py-1.5 rounded-md text-sm font-semibold transition inline-flex items-center gap-1.5 whitespace-nowrap ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 dark:text-primary-300 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}><Icon className="h-4 w-4" />{l}</button>
         ))}
       </div>
 
@@ -1544,7 +1544,7 @@ function CustomerBookingsTab({ rows }) {
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><Package className="h-5 w-5 text-primary-700" /> Booking History <span className="text-slate-400 font-normal">({total})</span></h2>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-bk-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
+          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-bk-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
           <CsSel testid="cp-bk-status" ph="All Status" value={statusF} onChange={(e) => setStatusF(e.target.value)}>{statuses.map((s) => <option key={s} value={s} className="capitalize">{String(s).replace(/_/g, " ")}</option>)}</CsSel>
           <DashCalendar value={date} onChange={setDate} testid="cp-bk-date" />
         </div>
@@ -1578,7 +1578,7 @@ function CustomerTxnsTab({ rows, title = "Transaction Ledger" }) {
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><Wallet className="h-5 w-5 text-primary-700" /> {title} <span className="text-slate-400 font-normal">({total})</span></h2>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-tx-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
+          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-tx-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
           <CsSel testid="cp-tx-type" ph="All Types" value={typeF} onChange={(e) => setTypeF(e.target.value)}><option value="credit">Credit</option><option value="debit">Debit</option></CsSel>
         </div>
       </div>
@@ -1596,7 +1596,7 @@ function CsPager({ page, pages, total, start, pageSize, setPage, setPageSize, te
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
       <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"><span>Rows</span><CsSel testid={`${testid}-pagesize`} ph="10" value={String(pageSize)} onChange={(e) => setPageSize(Number(e.target.value))}>{[10, 25, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}</CsSel><span className="ml-1">Showing {total === 0 ? 0 : start + 1}–{Math.min(start + pageSize, total)} of {total}</span></div>
-      <div className="flex items-center gap-1"><button data-testid={`${testid}-prev`} disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-8 w-8 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button><span className="text-xs font-semibold text-slate-600 dark:text-slate-300 px-2">Page {page} / {pages}</span><button data-testid={`${testid}-next`} disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))} className="h-8 w-8 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button></div>
+      <div className="flex items-center gap-1"><button data-testid={`${testid}-prev`} disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="h-8 w-8 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button><span className="text-xs font-semibold text-slate-600 dark:text-slate-300 px-2">Page {page} / {pages}</span><button data-testid={`${testid}-next`} disabled={page >= pages} onClick={() => setPage((p) => Math.min(pages, p + 1))} className="h-8 w-8 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button></div>
     </div>
   );
 }
@@ -1615,7 +1615,7 @@ function CustomerInvoicesTab({ rows }) {
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><FileText className="h-5 w-5 text-primary-700" /> Invoices <span className="text-slate-400 font-normal">({total})</span></h2>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-inv-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
+          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-inv-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
           <CsSel testid="cp-inv-status" ph="All Payments" value={statusF} onChange={(e) => setStatusF(e.target.value)}>{statuses.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}</CsSel>
         </div>
       </div>
@@ -1640,7 +1640,7 @@ function InvoiceDrawer({ inv, onClose }) {
       <div className="relative w-full max-w-md bg-white dark:bg-slate-900 h-full overflow-y-auto shadow-2xl animate-[slideIn_.25s_ease]">
         <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-5 py-4 flex items-center justify-between">
           <div><p className="font-heading font-bold text-slate-900 dark:text-white">{inv.invoice_number}</p><p className="text-xs text-slate-400 capitalize">{inv.invoice_type} · #{inv.booking_code}</p></div>
-          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
         </div>
         <div className="p-5 space-y-4 text-sm">
           <div className="flex items-center justify-between"><SBadge s={inv.payment_status} /><span className="text-slate-400 text-xs">{inv.created_at ? new Date(inv.created_at).toLocaleString() : "—"}</span></div>
@@ -1677,7 +1677,7 @@ function CustomerRefundsTab({ rows }) {
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><RefreshCw className="h-5 w-5 text-primary-700" /> Refunds <span className="text-slate-400 font-normal">({total})</span></h2>
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-rf-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
+          <div className="relative"><Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" /><input data-testid="cp-rf-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="h-9 w-40 pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" /></div>
           <CsSel testid="cp-rf-status" ph="All Status" value={statusF} onChange={(e) => setStatusF(e.target.value)}>{statuses.map((s) => <option key={s} value={s} className="capitalize">{s}</option>)}</CsSel>
         </div>
       </div>
@@ -1779,7 +1779,7 @@ export const UserProfile360 = ({ userId, onBack }) => {
       <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-4 w-fit flex-wrap">
         {TABS.map(([k, l]) => (
           <button key={k} data-testid={`ud-tab-${k}`} onClick={() => setTab(k)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
+            className={`px-3 py-1.5 rounded-md text-sm font-semibold transition ${tab === k ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}>{l}</button>
         ))}
       </div>
 
@@ -2802,11 +2802,11 @@ export const LiveOps = ({ onNavigate }) => {
             {connected ? "LIVE" : "Reconnecting…"}
           </span>
           <button data-testid="liveops-auto" onClick={() => setAuto((a) => !a)} title="Toggle auto-refresh"
-            className={`h-9 px-3 rounded-lg text-[12.5px] font-semibold border transition-colors ${auto ? "bg-[#E6EDF8] text-[#0D47A1] border-[#0D47A1]/20" : "bg-white dark:bg-[#111827] text-[#64748B] border-[#E6EAF0] dark:border-[#1F2937]"}`}>
+            className={`h-9 px-3 rounded-md text-[12.5px] font-semibold border transition-colors ${auto ? "bg-[#E6EDF8] text-[#0D47A1] border-[#0D47A1]/20" : "bg-white dark:bg-[#111827] text-[#64748B] border-[#E6EAF0] dark:border-[#1F2937]"}`}>
             {auto ? "Auto-refresh on" : "Auto-refresh off"}
           </button>
           <button data-testid="liveops-refresh" onClick={() => load()} disabled={loading}
-            className="h-9 w-9 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
+            className="h-9 w-9 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:text-[#0D47A1] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] grid place-items-center transition-colors">
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </button>
         </div>
@@ -2840,7 +2840,7 @@ export const LiveOps = ({ onNavigate }) => {
           <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#94A3B8]" />
           <input data-testid="liveops-search" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Search booking code, service, customer, phone or city…"
-            className="w-full h-11 pl-9 pr-3 rounded-xl border border-[#E6EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] text-[14px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
+            className="w-full h-11 pl-9 pr-3 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] bg-white dark:bg-[#111827] text-[14px] text-[#172033] dark:text-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30 focus:border-[#0D47A1]" />
         </div>
         <span className="hidden sm:inline-flex items-center gap-1.5 h-11 px-3 rounded-xl bg-[#FEF5E7] text-[#B45309] text-[12.5px] font-bold border border-[#F59E0B]/30">
           <span className="h-2 w-2 rounded-full bg-[#F59E0B]" /> Status: Searching
@@ -2865,7 +2865,7 @@ export const LiveOps = ({ onNavigate }) => {
         </div>
         {hasFilter && (
           <button data-testid="liveops-clear" onClick={clearFilters}
-            className="h-11 px-3 rounded-xl border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1.5 transition-colors">
+            className="h-11 px-3 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1.5 transition-colors">
             <X className="h-4 w-4" /> Clear
           </button>
         )}
@@ -2890,7 +2890,7 @@ export const LiveOps = ({ onNavigate }) => {
             All active bookings currently have a partner assigned or are not awaiting partner assignment.
           </p>
           <button data-testid="liveops-view-bookings" onClick={() => onNavigate?.("bookings")}
-            className="mt-5 h-10 px-5 rounded-xl bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors">
+            className="mt-5 h-10 px-5 rounded-md bg-[#0D47A1] hover:bg-[#083A87] text-white text-[13px] font-bold inline-flex items-center gap-2 transition-colors">
             View Bookings <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -2919,7 +2919,7 @@ export const LiveOps = ({ onNavigate }) => {
             {pageCount > 1 && (
               <div className="flex items-center gap-1">
                 <button data-testid="liveops-prev" disabled={cur <= 1} onClick={() => setPage(cur - 1)}
-                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
+                  className="h-9 min-w-[44px] px-3 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
                   <ChevronLeft className="h-4 w-4" /> Prev
                 </button>
                 {Array.from({ length: pageCount }, (_, i) => i + 1)
@@ -2928,11 +2928,11 @@ export const LiveOps = ({ onNavigate }) => {
                     <Fragment key={n}>
                       {i > 0 && arr[i - 1] !== n - 1 && <span className="px-1 text-[#94A3B8]">…</span>}
                       <button data-testid={`liveops-page-${n}`} onClick={() => setPage(n)}
-                        className={`h-9 w-9 rounded-lg text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937]"}`}>{n}</button>
+                        className={`h-9 w-9 rounded-md text-[13px] font-bold transition-colors ${n === cur ? "bg-[#0D47A1] text-white" : "bg-white dark:bg-[#111827] border border-[#E6EAF0] dark:border-[#1F2937] text-[#64748B] hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937]"}`}>{n}</button>
                     </Fragment>
                   ))}
                 <button data-testid="liveops-next" disabled={cur >= pageCount} onClick={() => setPage(cur + 1)}
-                  className="h-9 min-w-[44px] px-3 rounded-lg border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
+                  className="h-9 min-w-[44px] px-3 rounded-md border border-[#E6EAF0] dark:border-[#1F2937] text-[13px] font-semibold text-[#64748B] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#F6F8FC] dark:hover:bg-[#1F2937] inline-flex items-center gap-1 transition-colors">
                   Next <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -3329,7 +3329,7 @@ export const GeneralSettingsAdvanced = () => {
           const Icon = s.icon;
           return (
             <button key={s.key} data-testid={`gen-tab-${s.key}`} onClick={() => setTab(s.key)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${tab === s.key ? "text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 hover:border-[#0D47A1]/40"}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold whitespace-nowrap transition ${tab === s.key ? "text-white shadow-sm" : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 hover:border-[#0D47A1]/40"}`}
               style={tab === s.key ? { background: BRAND_C } : {}}>
               <Icon className="w-4 h-4" /> {s.label}
             </button>
@@ -3489,7 +3489,7 @@ const DateRangeBar = ({ from, to, onFrom, onTo, onPreset, active, right }) => (
     <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
       {RANGE_PRESETS.map((p) => (
         <button key={p.key} data-testid={`range-${p.key}`} onClick={() => onPreset(p.days)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${active === p.days ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
+          className={`px-3 py-1.5 rounded-md text-xs font-bold transition ${active === p.days ? "bg-white dark:bg-slate-900 text-primary-700 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}>
           {p.label}
         </button>
       ))}
@@ -3770,7 +3770,7 @@ export const ExportCenter = () => {
               <FileText className="w-5 h-5 text-primary-500 shrink-0" />
             </div>
             <button data-testid={`export-${ds.key}`} onClick={() => download(ds)} disabled={busy === ds.key}
-              className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm py-2.5 transition">
+              className="mt-4 flex items-center justify-center gap-2 rounded-md bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white font-semibold text-sm py-2.5 transition">
               {busy === ds.key ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
               {busy === ds.key ? "Preparing…" : "Download CSV"}
             </button>
@@ -3883,7 +3883,7 @@ export const ReportBuilder = () => {
             <div className="mt-2 grid grid-cols-2 gap-1.5">
               {manifest.map((m) => (
                 <button key={m.key} data-testid={`ds-${m.key}`} onClick={() => setDataset(m.key)}
-                  className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left truncate transition ${dataset === m.key ? "bg-primary-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200"}`}>
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-semibold text-left truncate transition ${dataset === m.key ? "bg-primary-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200"}`}>
                   {m.label} <span className="opacity-60">({m.count})</span>
                 </button>
               ))}
@@ -4050,7 +4050,7 @@ export const ScheduledReports = () => {
               </div>
               <label className="flex items-center gap-1.5 text-xs text-slate-500"><Switch checked={s.enabled} onCheckedChange={() => toggle(s)} /> {s.enabled ? "On" : "Off"}</label>
               <Button data-testid={`run-now-${s.id}`} onClick={() => runNow(s.id)} size="sm" variant="outline">Run now</Button>
-              <button onClick={() => del(s.id)} className="w-8 h-8 grid place-items-center rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => del(s.id)} className="w-8 h-8 grid place-items-center rounded-md hover:bg-red-50 text-slate-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
             </div>
           ))}
       </div>

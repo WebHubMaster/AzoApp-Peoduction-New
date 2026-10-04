@@ -445,7 +445,7 @@ export function WalletWithdraw({ kycApproved, shopName = "My Shop", logoUrl = ""
               <div className="grid grid-cols-3 gap-2">
                 {[["upi", "UPI"], ["bank", "Bank"], ["cheque", "Cheque"]].map(([v, l]) => (
                   <button key={v} type="button" data-testid={`wd-method-${v}`} onClick={() => setMethod(v)}
-                    className={`rounded-xl border-2 py-2.5 text-sm font-medium transition ${method === v ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>{l}</button>
+                    className={`rounded-md border-2 py-2.5 text-sm font-medium transition ${method === v ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>{l}</button>
                 ))}
               </div>
             </div>
@@ -583,9 +583,9 @@ function ReminderCalendar({ items }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4" data-testid="reminder-calendar">
       <div className="flex items-center justify-between mb-3">
-        <button data-testid="cal-prev" onClick={() => shift(-1)} className="h-8 w-8 rounded-lg border border-slate-200 grid place-items-center hover:bg-slate-50">‹</button>
+        <button data-testid="cal-prev" onClick={() => shift(-1)} className="h-8 w-8 rounded-md border border-slate-200 grid place-items-center hover:bg-slate-50">‹</button>
         <p className="font-heading font-bold text-slate-800">{monthName}</p>
-        <button data-testid="cal-next" onClick={() => shift(1)} className="h-8 w-8 rounded-lg border border-slate-200 grid place-items-center hover:bg-slate-50">›</button>
+        <button data-testid="cal-next" onClick={() => shift(1)} className="h-8 w-8 rounded-md border border-slate-200 grid place-items-center hover:bg-slate-50">›</button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-400 mb-1">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d}>{d}</div>)}
@@ -935,7 +935,7 @@ export function ScanQR({ code, shopName = "My Shop" }) {
             <div className="flex flex-wrap gap-2">
               {Object.entries(POSTER_THEMES).map(([k, v]) => (
                 <button key={k} data-testid={`theme-${k}`} onClick={() => setTheme(k)}
-                  className={`h-11 w-11 rounded-xl bg-gradient-to-br ${v.swatch} ring-offset-2 transition ${theme === k ? "ring-2 ring-primary-600" : ""}`} title={v.label} />
+                  className={`h-11 w-11 rounded-md bg-gradient-to-br ${v.swatch} ring-offset-2 transition ${theme === k ? "ring-2 ring-primary-600" : ""}`} title={v.label} />
               ))}
             </div>
           </div>

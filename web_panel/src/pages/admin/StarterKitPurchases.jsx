@@ -38,7 +38,7 @@ function Dropdown({ value, options, onChange, testId, icon: Icon, width = "sm:w-
   return (
     <div ref={ref} className={`relative w-full ${width}`}>
       <button type="button" data-testid={testId} onClick={() => setOpen((o) => !o)}
-        className={`w-full h-11 px-3 rounded-xl border bg-white text-sm flex items-center gap-2 transition-all duration-150 ${open ? "border-primary-500 ring-2 ring-primary-100" : value !== "all" && value !== "newest" ? "border-primary-200 text-primary-800 font-semibold" : "border-slate-200 text-slate-700 hover:border-slate-300"}`}>
+        className={`w-full h-11 px-3 rounded-md border bg-white text-sm flex items-center gap-2 transition-all duration-150 ${open ? "border-primary-500 ring-2 ring-primary-100" : value !== "all" && value !== "newest" ? "border-primary-200 text-primary-800 font-semibold" : "border-slate-200 text-slate-700 hover:border-slate-300"}`}>
         {Icon && <Icon className="h-4 w-4 text-slate-400 shrink-0" />}
         <span className="truncate flex-1 text-left">{cur?.label}</span>
         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />
@@ -48,12 +48,12 @@ function Dropdown({ value, options, onChange, testId, icon: Icon, width = "sm:w-
           <motion.div initial={{ opacity: 0, y: -4, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.98 }} transition={{ duration: 0.12 }}
             className="absolute z-40 mt-1.5 w-full min-w-[180px] rounded-xl bg-white ring-1 ring-slate-200 shadow-xl shadow-slate-900/10 p-1.5" data-testid={`${testId}-menu`}>
             {options.length > 6 && (
-              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="w-full h-9 mb-1 px-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
+              <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="w-full h-9 mb-1 px-2.5 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
             )}
             <div className="max-h-60 overflow-y-auto">
               {list.map((o) => (
                 <button key={o.value} type="button" onClick={() => { onChange(o.value); setOpen(false); setQ(""); }} data-testid={`${testId}-opt-${o.value}`}
-                  className={`w-full flex items-center justify-between px-2.5 h-9 rounded-lg text-sm transition-colors ${o.value === value ? "bg-primary-50 text-primary-800 font-semibold" : "text-slate-700 hover:bg-slate-50"}`}>
+                  className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md text-sm transition-colors ${o.value === value ? "bg-primary-50 text-primary-800 font-semibold" : "text-slate-700 hover:bg-slate-50"}`}>
                   <span className="truncate">{o.label}</span>
                   {o.value === value && <Check className="h-4 w-4" />}
                 </button>
@@ -167,10 +167,10 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
             <input ref={searchRef} data-testid="sk-search" value={q} onChange={(e) => setQ(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Escape") setQ(""); if (e.key === "Enter") setDebouncedQ(q.trim()); }}
               placeholder="Search partner name or phone..."
-              className="w-full h-11 pl-10 pr-10 rounded-xl border border-slate-200 bg-white text-base sm:text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
+              className="w-full h-11 pl-10 pr-10 rounded-md border border-slate-200 bg-white text-base sm:text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-150 focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100" />
             {q && (
               <button onClick={() => { setQ(""); searchRef.current?.focus(); }} data-testid="sk-search-clear" aria-label="Clear search"
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors">
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-7 w-7 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center transition-colors">
                 <X className="h-4 w-4" />
               </button>
             )}
@@ -188,7 +188,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
           <div className="flex gap-2 flex-wrap shrink-0" data-testid="sk-quick">
             {QUICK.map((k) => (
               <button key={k.key} type="button" data-testid={`sk-preset-${k.key}`} onClick={() => setRange(activeQuick === k.key ? { from: "", to: "" } : quickRange(k.key))}
-                className={`h-11 px-4 rounded-xl text-sm font-semibold ring-1 transition-all duration-150 ${activeQuick === k.key ? "bg-primary-700 text-white ring-primary-700 shadow-sm shadow-primary-700/25" : "bg-white text-slate-700 ring-slate-200 hover:ring-primary-300 hover:text-primary-800"}`}>
+                className={`h-11 px-4 rounded-md text-sm font-semibold ring-1 transition-all duration-150 ${activeQuick === k.key ? "bg-primary-700 text-white ring-primary-700 shadow-sm shadow-primary-700/25" : "bg-white text-slate-700 ring-slate-200 hover:ring-primary-300 hover:text-primary-800"}`}>
                 {k.label}
               </button>
             ))}
@@ -216,7 +216,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
                 {status !== "all" && <FilterTag label="Status" value={STATUS_META[status].label} onRemove={() => setStatus("all")} testId="sk-tag-status" />}
                 {method !== "all" && <FilterTag label="Method" value={methodLabel(method)} onRemove={() => setMethod("all")} testId="sk-tag-method" />}
                 {dateLabel && <FilterTag label="Date" value={dateLabel} onRemove={() => setRange({ from: "", to: "" })} testId="sk-tag-date" />}
-                <button data-testid="sk-clear" onClick={clearAll} className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                <button data-testid="sk-clear" onClick={clearAll} className="ml-auto inline-flex items-center gap-1 h-8 px-3 rounded-md text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
                   <X className="h-3.5 w-3.5" /> Clear all
                 </button>
               </div>
@@ -289,7 +289,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
                       </td>
                       <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                         <button onClick={() => setSelected(p)} data-testid={`sk-view-${p.id}`}
-                          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-semibold text-primary-700 ring-1 ring-primary-200 hover:bg-primary-50 transition-colors">
+                          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-xs font-semibold text-primary-700 ring-1 ring-primary-200 hover:bg-primary-50 transition-colors">
                           <Eye className="h-3.5 w-3.5" /> View
                         </button>
                       </td>

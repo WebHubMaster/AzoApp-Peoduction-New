@@ -105,7 +105,7 @@ export default function PartnerLeaderboard() {
           <div className="inline-flex mt-4 rounded-xl bg-white/10 p-1" data-testid="lb-period-tabs">
             {[["week", "This Week"], ["all", "All-time"]].map(([key, label]) => (
               <button key={key} data-testid={`lb-tab-${key}`} onClick={() => setPeriod(key)}
-                className={`px-4 py-1.5 rounded-lg text-sm font-semibold transition ${period === key ? "bg-white text-primary-800" : "text-white/80 hover:text-white"}`}>
+                className={`px-4 py-1.5 rounded-md text-sm font-semibold transition ${period === key ? "bg-white text-primary-800" : "text-white/80 hover:text-white"}`}>
                 {label}
               </button>
             ))}

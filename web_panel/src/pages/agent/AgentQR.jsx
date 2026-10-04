@@ -47,7 +47,7 @@ export default function AgentQR() {
                 <div className="text-lg font-extrabold leading-tight mt-0.5">{user?.name || me?.name}</div>
               </div>
             </div>
-            <button onClick={logout} data-testid="agent-logout" className="w-10 h-10 grid place-items-center rounded-xl bg-white/15 ring-1 ring-white/20 hover:bg-white/25 active:scale-95 transition"><LogOut className="w-4 h-4" /></button>
+            <button onClick={logout} data-testid="agent-logout" className="w-10 h-10 grid place-items-center rounded-md bg-white/15 ring-1 ring-white/20 hover:bg-white/25 active:scale-95 transition"><LogOut className="w-4 h-4" /></button>
           </div>
         </header>
 
@@ -202,7 +202,7 @@ function WalletTab({ me, wallet, onChanged, onProfile }) {
         <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 p-4">
           <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">Verify your bank first</p>
           <p className="text-xs text-amber-700/80 mt-0.5">Add &amp; get your bank details verified before withdrawing.</p>
-          <button onClick={onProfile} className="mt-2 text-xs px-3 py-1.5 rounded-lg bg-amber-500 text-white">Go to Profile</button>
+          <button onClick={onProfile} className="mt-2 text-xs px-3 py-1.5 rounded-md bg-amber-500 text-white">Go to Profile</button>
         </div>
       ) : (
         <button onClick={() => setShowForm(true)} data-testid="agent-withdraw-open"
@@ -234,10 +234,10 @@ function WalletTab({ me, wallet, onChanged, onProfile }) {
             </div>
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
               data-testid="agent-withdraw-amount" placeholder={`Available ${money(wallet.available)}`}
-              className="w-full px-3 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100" />
+              className="w-full px-3 py-2.5 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100" />
             <div className="text-xs text-slate-400 mt-1">Min {money(me?.config?.min_withdrawal)} · Max {money(me?.config?.max_withdrawal)}</div>
             <button onClick={submit} disabled={busy} data-testid="agent-withdraw-submit"
-              className="mt-3 w-full rounded-lg bg-[#0D47A1] text-white py-3 font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+              className="mt-3 w-full rounded-md bg-[#0D47A1] text-white py-3 font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
               {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Banknote className="w-4 h-4" />} Request withdrawal
             </button>
           </div>
@@ -289,18 +289,18 @@ function ProfileTab({ me, onChanged, logout }) {
         </div>
         <div className="space-y-2">
           <input value={form.account_name} onChange={f("account_name")} placeholder="Account holder name" data-testid="agent-bank-name"
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <input value={form.account_number} onChange={f("account_number")} placeholder="Account number" data-testid="agent-bank-account"
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <input value={form.ifsc} onChange={f("ifsc")} placeholder="IFSC (e.g. HDFC0001234)" data-testid="agent-bank-ifsc"
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <input value={form.bank_name} onChange={f("bank_name")} placeholder="Bank name (optional)"
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
           <input value={form.upi} onChange={f("upi")} placeholder="UPI ID (optional)"
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
+            className="w-full px-3 py-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100" />
         </div>
         <button onClick={save} disabled={busy} data-testid="agent-bank-save"
-          className="mt-3 w-full rounded-lg bg-[#0D47A1] text-white py-2.5 font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
+          className="mt-3 w-full rounded-md bg-[#0D47A1] text-white py-2.5 font-semibold flex items-center justify-center gap-2 disabled:opacity-60">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {bank ? "Update bank details" : "Submit bank details"}
         </button>
         {bank && !bank.verified && <p className="text-xs text-amber-600 mt-2 text-center">Waiting for admin to verify your bank before you can withdraw.</p>}

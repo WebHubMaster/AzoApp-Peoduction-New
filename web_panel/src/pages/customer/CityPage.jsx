@@ -68,8 +68,8 @@ export default function CityPage() {
                 <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 text-slate-500 text-base sm:text-lg max-w-xl">Verified professionals across {s.services} service{s.services === 1 ? "" : "s"} — upfront pricing, live tracking, doorstep in {cityName}.</motion.p>
                 <div className="mt-6 max-w-2xl"><ServiceSearch variant="hero" placeholder={`Search services in ${cityName}…`} /></div>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <button onClick={setLocation} data-testid="city-set-location" className="h-11 px-5 rounded-xl bg-primary-700 text-white text-sm font-bold inline-flex items-center gap-2 hover:bg-primary-800 shadow-sm shadow-primary-700/25"><Navigation className="h-4 w-4" /> Book in {cityName}</button>
-                  <button onClick={() => navigate("/services")} className="h-11 px-5 rounded-xl bg-white ring-1 ring-slate-200 text-slate-700 text-sm font-semibold hover:ring-primary-300 hover:text-primary-700 transition-colors">Browse all services</button>
+                  <button onClick={setLocation} data-testid="city-set-location" className="h-11 px-5 rounded-md bg-primary-700 text-white text-sm font-bold inline-flex items-center gap-2 hover:bg-primary-800 shadow-sm shadow-primary-700/25"><Navigation className="h-4 w-4" /> Book in {cityName}</button>
+                  <button onClick={() => navigate("/services")} className="h-11 px-5 rounded-md bg-white ring-1 ring-slate-200 text-slate-700 text-sm font-semibold hover:ring-primary-300 hover:text-primary-700 transition-colors">Browse all services</button>
                 </div>
               </div>
               <div className="lg:col-span-5 grid grid-cols-2 gap-3" data-testid="city-stats">

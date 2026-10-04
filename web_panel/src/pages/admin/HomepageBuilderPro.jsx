@@ -219,7 +219,7 @@ export default function HomepageBuilderPro() {
               <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
                 {[["all", "All", draft.length], ["active", "Active", draft.filter((s) => s.enabled).length], ["disabled", "Disabled", draft.filter((s) => !s.enabled).length]].map(([k, l, n]) => (
                   <button key={k} onClick={() => setFilter(k)} data-testid={`hp-filter-${k}`}
-                    className={`h-8 px-3 rounded-lg text-[13px] font-medium whitespace-nowrap border transition-colors ${filter === k ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"}`}>
+                    className={`h-8 px-3 rounded-md text-[13px] font-medium whitespace-nowrap border transition-colors ${filter === k ? "bg-[#0D47A1] border-[#0D47A1] text-white" : "bg-white dark:bg-slate-900 border-[#E5E7EB] dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300"}`}>
                     {l} <span className={`ml-0.5 text-[11.5px] tabular-nums ${filter === k ? "text-white/75" : "text-slate-400"}`}>{n}</span>
                   </button>
                 ))}

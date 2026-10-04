@@ -198,11 +198,11 @@ export default function RescheduleRing({ onResolved }) {
 
           <div className="mt-6 grid grid-cols-2 gap-3">
             <button data-testid="reschedule-reject" onClick={() => respond(current, "reject")} disabled={busy}
-              className="h-12 rounded-xl border-2 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">
+              className="h-12 rounded-md border-2 border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 font-bold flex items-center justify-center gap-2 hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50 transition">
               <X className="h-5 w-5" /> Reject
             </button>
             <button data-testid="reschedule-accept" onClick={() => respond(current, "accept")} disabled={busy}
-              className="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition">
+              className="h-12 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 disabled:opacity-50 transition">
               {busy ? <span className="h-5 w-5 border-2 border-white/70 border-t-transparent rounded-full animate-spin" /> : <Check className="h-5 w-5" />} Accept
             </button>
           </div>

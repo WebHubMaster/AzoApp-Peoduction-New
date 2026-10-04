@@ -39,7 +39,7 @@ function MultiSelect({ values = [], onChange, options, placeholder = "Select…"
   return (
     <div className="relative" data-testid={testId}>
       <button type="button" onClick={() => setOpen((o) => !o)}
-        className="w-full min-h-10 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 px-2.5 py-1.5 text-left flex items-center flex-wrap gap-1.5 focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 transition">
+        className="w-full min-h-10 rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-900 px-2.5 py-1.5 text-left flex items-center flex-wrap gap-1.5 focus:outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/40 transition">
         {values.length === 0 && <span className="text-sm text-slate-400 flex items-center gap-1.5">{Icon && <Icon className="h-4 w-4" />}{placeholder}</span>}
         {values.map((v) => {
           const o = options.find((x) => x.value === v);
@@ -59,7 +59,7 @@ function MultiSelect({ values = [], onChange, options, placeholder = "Select…"
             <div className="p-2 border-b border-slate-100 dark:border-slate-700 relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…"
-                className="w-full h-9 rounded-lg bg-slate-50 dark:bg-slate-800 pl-8 pr-3 text-sm focus:outline-none" />
+                className="w-full h-9 rounded-md bg-slate-50 dark:bg-slate-800 pl-8 pr-3 text-sm focus:outline-none" />
             </div>
             <div className="max-h-52 overflow-y-auto py-1">
               {filtered.length === 0 && <p className="px-3 py-3 text-sm text-slate-400">No options</p>}
@@ -95,13 +95,13 @@ const DocLightbox = ({ url, label, onClose }) => {
       <div className="absolute top-4 right-4 flex items-center gap-2 z-10" onClick={(e) => e.stopPropagation()}>
         {!isPdf && (
           <>
-            <button data-testid="doc-zoom-out" onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">−</button>
+            <button data-testid="doc-zoom-out" onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">−</button>
             <span className="text-white text-sm font-semibold w-14 text-center">{Math.round(scale * 100)}%</span>
-            <button data-testid="doc-zoom-in" onClick={() => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">+</button>
+            <button data-testid="doc-zoom-in" onClick={() => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">+</button>
           </>
         )}
         <a href={url} target="_blank" rel="noreferrer" className="h-10 px-3 rounded-lg bg-white/15 hover:bg-white/25 text-white text-sm font-semibold grid place-items-center">Open ↗</a>
-        <button data-testid="doc-close" onClick={onClose} className="h-10 w-10 rounded-lg bg-white/15 hover:bg-white/25 text-white grid place-items-center"><X className="h-5 w-5" /></button>
+        <button data-testid="doc-close" onClick={onClose} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white grid place-items-center"><X className="h-5 w-5" /></button>
       </div>
       {label && <div className="absolute top-5 left-5 text-white/80 text-sm font-medium z-10">{label}</div>}
       <div className="relative max-w-[92vw] max-h-[88vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
@@ -231,7 +231,7 @@ function SuspendModal({ user, onClose, onSaved }) {
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1 block">Reason (shown to provider on login)</label>
             <textarea data-testid="suspend-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={3}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" placeholder="e.g. Repeated late arrivals / policy violation" />
+              className="w-full rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" placeholder="e.g. Repeated late arrivals / policy violation" />
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-3">
@@ -587,7 +587,7 @@ export default function PartnerConsole({ userId, onBack }) {
             <div className="space-y-2">
               <textarea data-testid="profile-kyc-reason" value={kycReason} onChange={(e) => setKycReason(e.target.value)} rows={2}
                 placeholder="Reason for rejection (shown to the provider in their panel)…"
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
+                className="w-full rounded-md border border-slate-200 dark:border-slate-700 dark:bg-slate-900 p-3 text-sm focus:outline-none focus:border-red-400" />
               <div className="flex gap-2">
                 <Button data-testid="profile-kyc-reject-confirm" onClick={doKycReject} disabled={kycBusy} className="flex-1 bg-red-600 hover:bg-red-700">
                   {kycBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Rejection"}
@@ -795,8 +795,8 @@ export default function PartnerConsole({ userId, onBack }) {
               { key: "_action", label: "Action", render: (w) => (
                 (w.status === "pending" || w.status === "requested") ? (
                   <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button data-testid={`wd-approve-${w.id}`} onClick={() => withdrawalAction(w.id, "approve")} className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
-                    <button data-testid={`wd-reject-${w.id}`} onClick={() => withdrawalAction(w.id, "reject")} className="h-7 px-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
+                    <button data-testid={`wd-approve-${w.id}`} onClick={() => withdrawalAction(w.id, "approve")} className="h-7 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
+                    <button data-testid={`wd-reject-${w.id}`} onClick={() => withdrawalAction(w.id, "reject")} className="h-7 px-2.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
                   </div>
                 ) : <span className="text-primary-700 text-xs font-semibold flex items-center gap-1"><Eyeish /> View</span>
               ) },
@@ -824,8 +824,8 @@ export default function PartnerConsole({ userId, onBack }) {
                       <SBadge s={p.status} />
                       {p.status === "pending" && (
                         <>
-                          <button data-testid="pan-approve" onClick={() => reviewPan("approve")} className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
-                          <button data-testid="pan-reject" onClick={() => reviewPan("reject")} className="h-7 px-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
+                          <button data-testid="pan-approve" onClick={() => reviewPan("approve")} className="h-7 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
+                          <button data-testid="pan-reject" onClick={() => reviewPan("reject")} className="h-7 px-2.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
                         </>
                       )}
                     </div>
@@ -850,8 +850,8 @@ export default function PartnerConsole({ userId, onBack }) {
                             <SBadge s={b.status} />
                             {b.status === "pending" && (
                               <>
-                                <button data-testid={`bank-approve-${b.id}`} onClick={() => reviewBank(b.id, "approve")} className="h-7 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
-                                <button data-testid={`bank-reject-${b.id}`} onClick={() => reviewBank(b.id, "reject")} className="h-7 px-2.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
+                                <button data-testid={`bank-approve-${b.id}`} onClick={() => reviewBank(b.id, "approve")} className="h-7 px-2.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Approve</button>
+                                <button data-testid={`bank-reject-${b.id}`} onClick={() => reviewBank(b.id, "reject")} className="h-7 px-2.5 rounded-md border border-red-200 text-red-600 hover:bg-red-50 text-xs font-semibold">Reject</button>
                               </>
                             )}
                           </div>

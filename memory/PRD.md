@@ -83,3 +83,15 @@ Verified: esbuild tsx parse OK (8/8). Expo app not on running web preview; no br
 Chat Sound (done): SupportThread.notifyNewReply() — new agent reply (realtime support_message) par expo-haptics Success haptic + job-ring.wav ko 0.4 volume par 1.2s ka short blip (web-guarded, try/catch). subscribe branch me refresh se pehle call hota hai.
 Typing Echo (done/verified): customer keystroke par pingTyping -> POST /support/tickets/:id/typing -> backend rt.emit_admin('support_typing', actor:user) (symmetric). Throttle 3s->2s for snappier echo. Admin->customer typing session-3 me wire ho chuka. (Admin-side display web_panel me hai, already event receive karta hai — Customer app scope ke bahar.)
 Verified: esbuild tsx parse OK.
+
+---
+## [2026-06] UI: 6px corner radius on all buttons / inputs / search boxes (Customer, Partner/Merchant, Web Panel)
+Request: Make every button, input field and search box square-ish with a 6px corner radius across the whole app; leave cards/containers unchanged.
+
+Implemented:
+- Customer App (Expo): already standardized at borderRadius 6 — no change needed.
+- Partner/Merchant App (/app/frontend, Expo): set theme tokens radius.sm & radius.md = 6 (feed shared Button + inputs; cards use radius.lg/xl, left as-is). Fixed hardcoded control radii in shared primitives (ui.tsx Button, reg/Fields, invoice.tsx tabs/buttons/SearchBox, AppShell, MerchantTopBar, HelpSOS, AdditionalWork, PosterControls, OtpFlow, OtpLogin, FilterSheet, support chat input). Page-level sweep set inline <TextInput> and centered filled <Pressable>/<TouchableOpacity> buttons to borderRadius 6.
+- Web Panel (/app/web_panel, React/Tailwind): base ui components (button/input/textarea/select + Premium pickers) rounded-lg -> rounded-md (=6px). Page sweep converted all raw <button>/<input>/<textarea>/<select> tags' rounded-lg & rounded-xl -> rounded-md. Cards (<div>/<View>) untouched.
+- Installed missing web_panel node_modules (craco) so the supervised preview runs.
+
+Verification: web_panel preview compiles & loads (200); buttons, search boxes and inputs render at 6px, cards keep their rounding. frontend tsc shows only pre-existing type warnings (no new errors).

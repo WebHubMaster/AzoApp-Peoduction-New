@@ -108,7 +108,7 @@ const ServiceGrid = ({ children }) => (
 /* ---- Category pill ---- */
 const Chip = ({ active, onClick, label, Icon, testid }) => (
   <button data-testid={testid} onClick={onClick}
-    className={`group inline-flex items-center gap-2 h-11 pl-3.5 pr-4 rounded-xl text-sm font-semibold whitespace-nowrap border transition-all active:scale-[0.97] ${active
+    className={`group inline-flex items-center gap-2 h-11 pl-3.5 pr-4 rounded-md text-sm font-semibold whitespace-nowrap border transition-all active:scale-[0.97] ${active
       ? "bg-primary-700 text-white border-primary-700 shadow-[0_4px_12px_rgba(13,71,161,0.3)]"
       : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-[#E5EAF0] dark:border-slate-800 hover:border-primary-300 hover:text-primary-700 dark:hover:text-primary-400 hover:shadow-sm"}`}>
     {Icon && <Icon className={`h-4 w-4 ${active ? "text-white" : "text-primary-600 dark:text-primary-400"}`} strokeWidth={2} />}
@@ -224,7 +224,7 @@ export default function Services() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
             <input data-testid="services-search" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Search for AC repair, electrician, cleaning…"
-              className="h-14 w-full pl-12 pr-11 py-3.5 rounded-xl border border-[#E5EAF0] dark:border-slate-700 bg-white dark:bg-slate-800 text-[15px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 shadow-[0_1px_3px_rgba(16,24,40,0.06)] focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-500/20 transition" />
+              className="h-14 w-full pl-12 pr-11 py-3.5 rounded-md border border-[#E5EAF0] dark:border-slate-700 bg-white dark:bg-slate-800 text-[15px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 shadow-[0_1px_3px_rgba(16,24,40,0.06)] focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100 dark:focus:ring-primary-500/20 transition" />
             {q && (
               <button data-testid="services-search-clear" onClick={() => setQ("")} aria-label="Clear search"
                 className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
@@ -273,7 +273,7 @@ export default function Services() {
                         )}
                       </div>
                       <button data-testid={`rc-book-${it.row_id}`} onClick={() => bookRateItem(it)}
-                        className="h-9 px-4 rounded-xl text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
+                        className="h-9 px-4 rounded-md text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
                         style={{ background: it.accent_color || "#0D47A1" }}>
                         Book
                       </button>
@@ -303,7 +303,7 @@ export default function Services() {
             <p className="text-slate-500 dark:text-slate-400 mt-1.5 max-w-sm">Try searching for another service or category.</p>
             {hasFilters && (
               <button data-testid="services-clear-filters" onClick={clearFilters}
-                className="mt-6 h-11 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm shadow-[0_2px_8px_rgba(13,71,161,0.25)] transition active:scale-[0.98]">
+                className="mt-6 h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm shadow-[0_2px_8px_rgba(13,71,161,0.25)] transition active:scale-[0.98]">
                 Clear filters
               </button>
             )}

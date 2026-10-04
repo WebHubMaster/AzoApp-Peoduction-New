@@ -263,9 +263,9 @@ export default function RefundsHub() {
           <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 dark:border-slate-800 text-sm text-slate-500">
             <span data-testid="refund-page-info">{(cur - 1) * pageSize + 1}–{Math.min(cur * pageSize, filtered.length)} of {filtered.length}</span>
             <div className="flex items-center gap-1">
-              <button data-testid="refund-prev" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={cur === 1} className="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
+              <button data-testid="refund-prev" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={cur === 1} className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronLeft className="h-4 w-4" /></button>
               <span className="px-3 font-medium text-slate-700 dark:text-slate-200">{cur} / {pageCount}</span>
-              <button data-testid="refund-next" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={cur === pageCount} className="h-8 w-8 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
+              <button data-testid="refund-next" onClick={() => setPage((p) => Math.min(pageCount, p + 1))} disabled={cur === pageCount} className="h-8 w-8 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800"><ChevronRight className="h-4 w-4" /></button>
             </div>
           </div>
         )}

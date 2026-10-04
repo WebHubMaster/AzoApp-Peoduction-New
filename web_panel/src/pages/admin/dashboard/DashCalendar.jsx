@@ -65,14 +65,14 @@ function MonthGrid({ month, onNav, onYear, from, to, hover, setHover, onPick }) 
     return (
       <div className="select-none" data-testid="dash-cal-years">
         <div className="flex items-center justify-between mb-2 px-1">
-          <button onClick={() => onYear(-12)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Earlier years"><ChevronLeft className="h-4 w-4" /></button>
+          <button onClick={() => onYear(-12)} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Earlier years"><ChevronLeft className="h-4 w-4" /></button>
           <button onClick={() => setYearMode(false)} className="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-primary-600">{years[0]} – {years[years.length - 1]}</button>
-          <button onClick={() => onYear(12)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Later years"><ChevronRight className="h-4 w-4" /></button>
+          <button onClick={() => onYear(12)} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500" aria-label="Later years"><ChevronRight className="h-4 w-4" /></button>
         </div>
         <div className="grid grid-cols-3 gap-1.5">
           {years.map((y) => (
             <button key={y} onClick={() => { onYear(y - y0); setYearMode(false); }} data-testid={`dash-cal-year-${y}`}
-              className={`h-10 rounded-lg text-sm font-semibold transition-colors ${y === y0 ? "bg-primary-600 text-white" : y > today().year() ? "text-slate-300 cursor-not-allowed" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"}`} disabled={y > today().year()}>{y}</button>
+              className={`h-10 rounded-md text-sm font-semibold transition-colors ${y === y0 ? "bg-primary-600 text-white" : y > today().year() ? "text-slate-300 cursor-not-allowed" : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200"}`} disabled={y > today().year()}>{y}</button>
           ))}
         </div>
       </div>
@@ -81,9 +81,9 @@ function MonthGrid({ month, onNav, onYear, from, to, hover, setHover, onPick }) 
   return (
     <div className="select-none">
       <div className="flex items-center justify-between mb-2 px-1">
-        <button onClick={() => onNav(-1)} data-testid="dash-cal-prev" className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300" aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></button>
+        <button onClick={() => onNav(-1)} data-testid="dash-cal-prev" className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300" aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></button>
         <button onClick={() => setYearMode(true)} data-testid="dash-cal-title" className="text-sm font-bold text-slate-800 dark:text-slate-100 hover:text-primary-600 transition-colors" title="Pick a year">{month.format("MMMM YYYY")}</button>
-        <button onClick={() => onNav(1)} data-testid="dash-cal-next" className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300" aria-label="Next month"><ChevronRight className="h-4 w-4" /></button>
+        <button onClick={() => onNav(1)} data-testid="dash-cal-next" className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-300" aria-label="Next month"><ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="grid grid-cols-7 gap-0.5 mb-1">
         {["S", "M", "T", "W", "T", "F", "S"].map((w, i) => (
@@ -107,7 +107,7 @@ function MonthGrid({ month, onNav, onYear, from, to, hover, setHover, onPick }) 
               onMouseEnter={() => setHover(ds)}
               onClick={() => onPick(ds)}
               className={[
-                "h-9 grid place-items-center text-xs rounded-lg relative transition-colors",
+                "h-9 grid place-items-center text-xs rounded-md relative transition-colors",
                 future ? "text-slate-300 dark:text-slate-700 cursor-not-allowed" : "hover:bg-primary-50 dark:hover:bg-primary-900/30",
                 rng && !selected ? "bg-primary-100/70 dark:bg-primary-900/30 rounded-none" : "",
                 selected ? "bg-primary-600 text-white font-bold shadow" : "text-slate-700 dark:text-slate-200",
@@ -203,14 +203,14 @@ export default function DashCalendar({ value, onChange, testid = "dash-daterange
       {isMobile && (
         <div className="flex items-center justify-between px-5 pt-4 pb-2 sticky top-0 bg-white dark:bg-slate-900">
           <h4 className="font-bold text-slate-900 dark:text-white">Select date range</h4>
-          <button onClick={() => setOpen(false)} className="h-8 w-8 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+          <button onClick={() => setOpen(false)} className="h-8 w-8 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
         </div>
       )}
       <div className={isMobile ? "flex flex-col" : "flex"}>
         <div className={isMobile ? "grid grid-cols-2 gap-1.5 p-4 border-b border-slate-100 dark:border-slate-800" : "w-44 p-3 border-r border-slate-100 dark:border-slate-800 space-y-0.5 max-h-[400px] overflow-y-auto"}>
           {PRESETS.map((p) => (
             <button key={p.key} data-testid={`dash-preset-${p.key}`} onClick={() => applyPreset(p)}
-              className={`text-left text-xs font-medium px-3 py-2 rounded-lg transition-colors ${activeKey === p.key ? "bg-primary-600 text-white shadow" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
+              className={`text-left text-xs font-medium px-3 py-2 rounded-md transition-colors ${activeKey === p.key ? "bg-primary-600 text-white shadow" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>
               {p.label}
             </button>
           ))}
@@ -222,9 +222,9 @@ export default function DashCalendar({ value, onChange, testid = "dash-daterange
               {from ? <span><b className="text-slate-700 dark:text-slate-200">{dayjs(from).format("DD MMM")}</b> → {to ? <b className="text-slate-700 dark:text-slate-200">{dayjs(to).format("DD MMM YYYY")}</b> : <span className="italic">pick end date</span>}</span> : "Select start date"}
             </div>
             <div className="flex items-center gap-2">
-              <button onClick={clear} className="text-xs font-semibold px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Clear</button>
-              <button onClick={() => setOpen(false)} className="text-xs font-semibold px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
-              <button data-testid="dash-apply-range" onClick={apply} disabled={!from} className="text-xs font-bold px-4 py-2 rounded-lg bg-primary-600 text-white disabled:opacity-40 hover:bg-primary-700">Apply</button>
+              <button onClick={clear} className="text-xs font-semibold px-3 py-2 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Clear</button>
+              <button onClick={() => setOpen(false)} className="text-xs font-semibold px-3 py-2 rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+              <button data-testid="dash-apply-range" onClick={apply} disabled={!from} className="text-xs font-bold px-4 py-2 rounded-md bg-primary-600 text-white disabled:opacity-40 hover:bg-primary-700">Apply</button>
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@ export default function DashCalendar({ value, onChange, testid = "dash-daterange
   return (
     <div className="relative">
       <button ref={btnRef} data-testid={testid} onClick={() => setOpen((o) => !o)}
-        className="h-10 inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-primary-300 hover:shadow-sm transition-all active:scale-[.98]">
+        className="h-10 inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-primary-300 hover:shadow-sm transition-all active:scale-[.98]">
         <CalIcon className="h-4 w-4 text-primary-600" />
         <span className="max-w-[160px] truncate">{label}</span>
         <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`} />

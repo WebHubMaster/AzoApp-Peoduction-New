@@ -127,14 +127,14 @@ export const EmptyState = ({ onReset, text = "No data available for this period.
   <div data-testid={testId} className={`grid place-items-center text-center ${small ? "py-6" : "py-14"}`}>
     <div className={`${small ? "h-10 w-10 mb-2" : "h-14 w-14 mb-3"} rounded-2xl bg-slate-100 dark:bg-slate-800 grid place-items-center`}><BarChart3 className={`${small ? "h-5 w-5" : "h-7 w-7"} text-slate-400`} /></div>
     <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{text}</p>
-    {onReset && <button onClick={onReset} className="mt-3 text-xs font-bold px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">Reset Filters</button>}
+    {onReset && <button onClick={onReset} className="mt-3 text-xs font-bold px-4 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700">Reset Filters</button>}
   </div>
 );
 export const ErrorState = ({ onRetry, text = "Unable to load this data." }) => (
   <div className="grid place-items-center py-14 text-center" data-testid="dash-error">
     <div className="h-14 w-14 rounded-2xl bg-red-50 dark:bg-red-900/20 grid place-items-center mb-3"><AlertTriangle className="h-7 w-7 text-red-500" /></div>
     <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{text}</p>
-    {onRetry && <button onClick={onRetry} data-testid="dash-retry" className="mt-3 text-xs font-bold px-4 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-900 inline-flex items-center gap-1.5"><RefreshCw className="h-3.5 w-3.5" /> Retry</button>}
+    {onRetry && <button onClick={onRetry} data-testid="dash-retry" className="mt-3 text-xs font-bold px-4 py-2 rounded-md bg-slate-800 text-white hover:bg-slate-900 inline-flex items-center gap-1.5"><RefreshCw className="h-3.5 w-3.5" /> Retry</button>}
   </div>
 );
 

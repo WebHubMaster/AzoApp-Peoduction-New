@@ -11,7 +11,7 @@ export function PriceInput({ value, onChange, placeholder = "0", tid, w = "w-[92
       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[12px] text-slate-400 pointer-events-none">₹</span>
       <input type="number" min="0" value={value ?? ""} placeholder={placeholder} data-testid={tid} aria-label={label}
         onChange={(e) => onChange(num(e.target.value))}
-        className="h-9 w-full pl-5 pr-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30" />
+        className="h-9 w-full pl-5 pr-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-[13px] tabular-nums focus:outline-none focus:ring-2 focus:ring-[#0D47A1]/30" />
     </div>
   );
 }

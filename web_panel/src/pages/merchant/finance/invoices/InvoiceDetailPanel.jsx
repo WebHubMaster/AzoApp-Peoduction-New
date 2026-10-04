@@ -106,9 +106,9 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
 
   const headerRight = d && (
     <>
-      <button onClick={() => onShare(d, "system")} aria-label="Share" className="h-11 w-11 sm:h-9 sm:w-9 rounded-xl sm:rounded-lg grid place-items-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="detail-share"><Share2 className="h-[18px] w-[18px] sm:h-4 sm:w-4" /></button>
+      <button onClick={() => onShare(d, "system")} aria-label="Share" className="h-11 w-11 sm:h-9 sm:w-9 rounded-md sm:rounded-md grid place-items-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="detail-share"><Share2 className="h-[18px] w-[18px] sm:h-4 sm:w-4" /></button>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild><button aria-label="More" className="h-11 w-11 sm:h-9 sm:w-9 rounded-xl sm:rounded-lg grid place-items-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="detail-more"><MoreHorizontal className="h-[18px] w-[18px] sm:h-4 sm:w-4" /></button></DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild><button aria-label="More" className="h-11 w-11 sm:h-9 sm:w-9 rounded-md sm:rounded-md grid place-items-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid="detail-more"><MoreHorizontal className="h-[18px] w-[18px] sm:h-4 sm:w-4" /></button></DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-52 rounded-xl">
           <DropdownMenuItem onClick={() => onPreview(d)} className="gap-2 h-10 rounded-lg" data-testid="detail-menu-preview"><FileText className="h-4 w-4 text-slate-500" /> View Invoice</DropdownMenuItem>
           <DropdownMenuItem onClick={() => onDownload(d)} className="gap-2 h-10 rounded-lg"><Download className="h-4 w-4 text-slate-500" /> Download PDF</DropdownMenuItem>

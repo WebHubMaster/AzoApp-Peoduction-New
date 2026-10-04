@@ -13,9 +13,9 @@ function Pager({ page, setPage, total, testid }) {
     <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 text-sm text-slate-500">
       <span data-testid={`${testid}-info`}>{(cur - 1) * PAGE_SIZE + 1}–{Math.min(cur * PAGE_SIZE, total)} of {total}</span>
       <div className="flex items-center gap-1">
-        <button data-testid={`${testid}-prev`} onClick={() => setPage(Math.max(1, cur - 1))} disabled={cur === 1} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
+        <button data-testid={`${testid}-prev`} onClick={() => setPage(Math.max(1, cur - 1))} disabled={cur === 1} className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronLeft className="h-4 w-4" /></button>
         <span className="px-3 font-medium text-slate-700">{cur} / {pageCount}</span>
-        <button data-testid={`${testid}-next`} onClick={() => setPage(Math.min(pageCount, cur + 1))} disabled={cur === pageCount} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronRight className="h-4 w-4" /></button>
+        <button data-testid={`${testid}-next`} onClick={() => setPage(Math.min(pageCount, cur + 1))} disabled={cur === pageCount} className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50"><ChevronRight className="h-4 w-4" /></button>
       </div>
     </div>
   );
@@ -76,7 +76,7 @@ export default function RegistrationFeeReport({ onView }) {
           <h1 className="font-heading font-extrabold text-2xl text-slate-900 flex items-center gap-2"><IndianRupee className="h-6 w-6 text-primary-700" /> Registration Fee</h1>
           <p className="text-sm text-slate-500 mt-0.5">Every partner registration-fee payment — paid & unpaid — with advanced filters.</p>
         </div>
-        <button data-testid="regfee-refresh" onClick={load} className="h-10 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary-300 flex items-center gap-2"><RefreshCcw className="h-4 w-4" /> Refresh</button>
+        <button data-testid="regfee-refresh" onClick={load} className="h-10 px-4 rounded-md border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary-300 flex items-center gap-2"><RefreshCcw className="h-4 w-4" /> Refresh</button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -90,16 +90,16 @@ export default function RegistrationFeeReport({ onView }) {
       <div className="rounded-2xl border border-slate-200 bg-white p-4 grid gap-3 md:grid-cols-6">
         <div className="md:col-span-2 relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input data-testid="regfee-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, phone, code, txn…" className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 text-sm outline-none focus:border-primary-400" />
+          <input data-testid="regfee-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, phone, code, txn…" className="w-full h-10 pl-9 pr-3 rounded-md border border-slate-200 text-sm outline-none focus:border-primary-400" />
         </div>
-        <select data-testid="regfee-status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-3 text-sm">
+        <select data-testid="regfee-status" value={status} onChange={(e) => setStatus(e.target.value)} className="h-10 rounded-md border border-slate-200 px-3 text-sm">
           <option value="all">All</option><option value="paid">Paid only</option><option value="unpaid">Unpaid only</option>
         </select>
         <PremiumDatePicker data-testid="regfee-date-from" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} placeholder="From date" />
         <PremiumDatePicker data-testid="regfee-date-to" value={dateTo} onChange={(e) => setDateTo(e.target.value)} placeholder="To date" />
         <div className="grid grid-cols-2 gap-2">
-          <input data-testid="regfee-gateway" value={gateway} onChange={(e) => setGateway(e.target.value)} placeholder="Gateway" className="h-10 rounded-xl border border-slate-200 px-3 text-sm" />
-          <select data-testid="regfee-mode" value={mode} onChange={(e) => setMode(e.target.value)} className="h-10 rounded-xl border border-slate-200 px-2 text-sm">
+          <input data-testid="regfee-gateway" value={gateway} onChange={(e) => setGateway(e.target.value)} placeholder="Gateway" className="h-10 rounded-md border border-slate-200 px-3 text-sm" />
+          <select data-testid="regfee-mode" value={mode} onChange={(e) => setMode(e.target.value)} className="h-10 rounded-md border border-slate-200 px-2 text-sm">
             <option value="">Mode</option><option value="test">Test</option><option value="live">Live</option>
           </select>
         </div>

@@ -191,7 +191,7 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
       <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1">
         {DATE_PRESETS.map(([k, l]) => (
           <button key={k} onClick={() => setRange(k)} data-testid={`invoice-range-${k}`}
-            className={`shrink-0 px-3.5 h-9 rounded-xl text-xs font-semibold transition-all ${range === k ? "bg-primary-700 text-white shadow-sm shadow-primary-500/30" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}>{l}</button>
+            className={`shrink-0 px-3.5 h-9 rounded-md text-xs font-semibold transition-all ${range === k ? "bg-primary-700 text-white shadow-sm shadow-primary-500/30" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}>{l}</button>
         ))}
       </div>
       {range === "custom" && (
@@ -258,8 +258,8 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
                       <td className="py-3.5 px-3 text-center"><StatusBadge status={inv.payment_status} /></td>
                       <td className="py-3.5 px-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-0.5">
-                          <button onClick={() => openDrawer(inv)} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-view-${inv.invoice_number}`} title="View"><Eye className="h-4 w-4" /></button>
-                          <button onClick={() => downloadById(inv)} className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-download-${inv.invoice_number}`} title="Download"><Download className="h-4 w-4" /></button>
+                          <button onClick={() => openDrawer(inv)} className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-view-${inv.invoice_number}`} title="View"><Eye className="h-4 w-4" /></button>
+                          <button onClick={() => downloadById(inv)} className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-download-${inv.invoice_number}`} title="Download"><Download className="h-4 w-4" /></button>
                           <RowMenu inv={inv} onView={() => openDrawer(inv)} onPreview={() => openPreview(inv.id)} onDownload={() => downloadById(inv)} onShare={(c) => shareInvoice(inv, c)} onCopy={() => copyNumber(inv.invoice_number)} />
                         </div>
                       </td>
@@ -467,7 +467,7 @@ function DrawerSection({ icon: Icon, title, children }) {
 function RowMenu({ inv, onView, onPreview, onDownload, onShare, onCopy }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild><button className="h-8 w-8 grid place-items-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-more-${inv.invoice_number}`}><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild><button className="h-8 w-8 grid place-items-center rounded-md text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" data-testid={`invoice-more-${inv.invoice_number}`}><MoreHorizontal className="h-4 w-4" /></button></DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={onView}><Eye className="h-4 w-4 mr-2" /> View details</DropdownMenuItem>
         <DropdownMenuItem onClick={onPreview}><FileText className="h-4 w-4 mr-2" /> View invoice</DropdownMenuItem>

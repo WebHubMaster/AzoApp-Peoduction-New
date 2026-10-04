@@ -48,7 +48,7 @@ export default function TestRingCard() {
           </div>
         </div>
         <button data-testid="test-ring-send" onClick={send} disabled={busy}
-          className="h-10 px-4 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold flex items-center gap-1.5 disabled:opacity-60">
+          className="h-10 px-4 rounded-md bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold flex items-center gap-1.5 disabled:opacity-60">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <BellRing className="h-4 w-4" />} Send me a test job ring
         </button>
       </div>

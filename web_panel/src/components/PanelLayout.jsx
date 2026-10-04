@@ -35,7 +35,7 @@ const ThemeToggle = () => {
   const isDark = mode === "dark";
   return (
     <button data-testid="theme-toggle" onClick={toggle} aria-label="Toggle theme"
-      className="relative h-9 w-9 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 overflow-hidden active:scale-95 transition-all">
+      className="relative h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 overflow-hidden active:scale-95 transition-all">
       <Sun className={`h-4 w-4 absolute transition-all duration-300 ${isDark ? "opacity-0 -rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"}`} />
       <Moon className={`h-4 w-4 absolute transition-all duration-300 ${isDark ? "opacity-100 rotate-0 scale-100" : "opacity-0 rotate-90 scale-50"}`} />
     </button>
@@ -58,7 +58,7 @@ const GlobalSearch = ({ onNavigate }) => {
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
       <input data-testid="global-search" value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => res && setOpen(true)}
         placeholder="Search users, services, bookings…"
-        className="w-full h-[42px] pl-9 pr-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white dark:focus:bg-slate-800" />
+        className="w-full h-[42px] pl-9 pr-3 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:bg-white dark:focus:bg-slate-800" />
       {open && res && (
         <div className="absolute top-11 left-0 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-96 overflow-y-auto z-50 p-2">
           {(res.groups || []).length === 0 && <p className="text-sm text-slate-400 px-3 py-4 text-center">No results for {res.query}</p>}
@@ -66,7 +66,7 @@ const GlobalSearch = ({ onNavigate }) => {
             <div key={g.collection} className="mb-1">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-3 pt-2 pb-1">{g.type} ({g.count})</p>
               {g.results.map((r) => (
-                <button key={r.id} onClick={() => go(g.type)} className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 truncate">
+                <button key={r.id} onClick={() => go(g.type)} className="w-full text-left px-3 py-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-700 text-sm text-slate-700 dark:text-slate-200 truncate">
                   {r.name || r.code || r.title || r.note || r.id}
                 </button>
               ))}
@@ -116,7 +116,7 @@ const PartnerAlertsReminder = ({ role }) => {
           : "Turn on notifications so you never miss a new job ring."}
       </span>
       <button data-testid="partner-alerts-banner-enable" onClick={openPushPrompt}
-        className={`shrink-0 font-semibold rounded-lg px-3 py-1 text-white ${blocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}`}>
+        className={`shrink-0 font-semibold rounded-md px-3 py-1 text-white ${blocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}`}>
         {blocked ? "Fix now" : "Turn on"}
       </button>
       <button aria-label="Dismiss" data-testid="partner-alerts-banner-dismiss" onClick={() => { sessionStorage.setItem("azo_alerts_banner_hidden", "1"); setHidden(true); }} className="shrink-0 opacity-60 hover:opacity-100"><X className="h-4 w-4" /></button>
@@ -144,7 +144,7 @@ const NotificationBell = () => {
   const toggle = () => { const nx = !open; setOpen(nx); if (nx && items[0]) { const ts = items[0].created_at; localStorage.setItem("azo_notif_seen", ts); setSeen(ts); } };
   return (
     <div className="relative" ref={box}>
-      <button data-testid="notif-bell" onClick={toggle} className="relative h-9 w-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+      <button data-testid="notif-bell" onClick={toggle} className="relative h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
         <Bell className="h-4 w-4" />
         {unread > 0 && <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{unread > 9 ? "9+" : unread}</span>}
       </button>
@@ -244,7 +244,7 @@ const ProfileChip = ({ user, onLogout }) => {
   const initials = (user?.name || "A").split(" ").map((s) => s[0]).slice(0, 2).join("").toUpperCase();
   return (
     <div className="relative" ref={box}>
-      <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800">
+      <button onClick={() => setOpen((o) => !o)} className="flex items-center gap-2 h-9 pl-1 pr-2 rounded-md hover:bg-slate-50 dark:hover:bg-slate-800">
         {user?.photo
           ? <img src={user.photo} alt="me" className="h-7 w-7 rounded-lg object-cover" />
           : <span className="h-7 w-7 rounded-lg bg-primary-700 text-white text-xs font-bold flex items-center justify-center">{initials}</span>}
@@ -256,10 +256,10 @@ const ProfileChip = ({ user, onLogout }) => {
             <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{user?.name}</p>
             <p className="text-xs text-slate-400">{user?.phone}</p>
           </div>
-          <button data-testid="edit-profile-button" onClick={() => { setOpen(false); setEditOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+          <button data-testid="edit-profile-button" onClick={() => { setOpen(false); setEditOpen(true); }} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50">
             <UserIcon className="h-4 w-4" /> Edit Profile
           </button>
-          <button data-testid="logout-button" onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+          <button data-testid="logout-button" onClick={onLogout} className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
             <LogOut className="h-4 w-4" /> Logout
           </button>
         </div>
@@ -289,7 +289,7 @@ const ChildItem = ({ sub, active, onNavigate, badge, fav, onToggleFav, leadIcon,
       <button
         data-testid={`nav-${sub.key}`}
         onClick={() => onNavigate(sub.key)}
-        className={`w-full flex items-center gap-3 pl-3 pr-2 py-2 rounded-lg text-sm transition-all ${isActive ? "bg-gradient-to-r from-primary-600 to-primary-400 text-white font-normal shadow-lg shadow-primary-500/30" : `${sub.soon ? "opacity-60 " : ""}text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100`}`}
+        className={`w-full flex items-center gap-3 pl-3 pr-2 py-2 rounded-md text-sm transition-all ${isActive ? "bg-gradient-to-r from-primary-600 to-primary-400 text-white font-normal shadow-lg shadow-primary-500/30" : `${sub.soon ? "opacity-60 " : ""}text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-100`}`}
       >
         {LeadIcon
           ? <LeadIcon className="h-[17px] w-[17px] shrink-0" strokeWidth={1.75} />
@@ -322,7 +322,7 @@ const NavItem = ({ sub, active, onNavigate, badge, collapsed, dot }) => {
       data-testid={`nav-${sub.key}`}
       title={sub.label}
       onClick={() => onNavigate(sub.key)}
-      className={`w-full flex items-center justify-center py-2.5 rounded-lg transition-all relative ${isActive ? "bg-gradient-to-br from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/30" : "text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"} ${sub.soon ? "opacity-60" : ""}`}
+      className={`w-full flex items-center justify-center py-2.5 rounded-md transition-all relative ${isActive ? "bg-gradient-to-br from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/30" : "text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"} ${sub.soon ? "opacity-60" : ""}`}
     >
       {Icon && <Icon className="h-[18px] w-[18px]" strokeWidth={1.75} />}
       {(badge > 0 || dot) && <span data-testid={dot ? `nav-dot-${sub.key}` : undefined} className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500" />}
@@ -423,7 +423,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
               value={menuQuery}
               onChange={(e) => setMenuQuery(e.target.value)}
               placeholder="Search menu…"
-              className="w-full h-[42px] pl-8 pr-7 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
+              className="w-full h-[42px] pl-8 pr-7 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200"
             />
             {menuQuery && <button onClick={() => setMenuQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="h-3.5 w-3.5" /></button>}
           </div>
@@ -481,7 +481,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                     <button
                       data-testid={`nav-${only.key}`}
                       onClick={() => handleNav(only.key)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-normal transition-all ${isActive ? "bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg shadow-primary-500/30" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-normal transition-all ${isActive ? "bg-gradient-to-r from-primary-600 to-primary-400 text-white shadow-lg shadow-primary-500/30" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
                     >
                       <OIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
                       <span className="flex-1 text-left truncate">{only.label}</span>
@@ -509,7 +509,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                   <button
                     data-testid={`navgroup-${g.group.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                     onClick={() => toggleGroup(g.group)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-normal transition-all ${hasActive && !isOpen ? "text-primary-700 dark:text-primary-300 bg-primary-50/70 dark:bg-primary-900/20" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-normal transition-all ${hasActive && !isOpen ? "text-primary-700 dark:text-primary-300 bg-primary-50/70 dark:bg-primary-900/20" : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"}`}
                   >
                     <GIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
                     <span className="flex-1 text-left truncate">{g.group}</span>
@@ -531,12 +531,12 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
 
       <div className="p-3 border-t border-slate-100 dark:border-slate-800 space-y-1">
         <button data-testid="collapse-toggle" onClick={() => setCollapsed((c) => !c)}
-          className={`hidden lg:flex w-full items-center ${collapsed ? "justify-center" : "gap-3 px-3"} py-2 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800`}
+          className={`hidden lg:flex w-full items-center ${collapsed ? "justify-center" : "gap-3 px-3"} py-2 rounded-md text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800`}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
           {collapsed ? <PanelLeftOpen className="h-[18px] w-[18px]" strokeWidth={1.5} /> : <><PanelLeftClose className="h-[18px] w-[18px]" strokeWidth={1.5} /> Collapse</>}
         </button>
         <button onClick={() => { logout(); navigate("/"); }}
-          className={`w-full flex items-center ${collapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-all`}
+          className={`w-full flex items-center ${collapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-md text-sm font-medium text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 transition-all`}
           title="Logout">
           <LogOut className="h-[18px] w-[18px]" strokeWidth={1.5} /> {!collapsed && "Logout"}
         </button>
@@ -559,7 +559,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
           <aside className="relative w-72 max-w-[85%] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full z-10">
-            <button onClick={() => setMobileOpen(false)} className="absolute right-3 top-4 h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+            <button onClick={() => setMobileOpen(false)} className="absolute right-3 top-4 h-8 w-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
             {SidebarInner}
           </aside>
         </div>
@@ -587,7 +587,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
               </div>
             ) : (
               <div className="lg:hidden flex items-center gap-2 min-w-0">
-                <button data-testid="mobile-menu-toggle" onClick={() => setMobileOpen(true)} className="h-9 w-9 rounded-lg border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0">
+                <button data-testid="mobile-menu-toggle" onClick={() => setMobileOpen(true)} className="h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 shrink-0">
                   <Menu className="h-4 w-4" />
                 </button>
                 {brandLogo
@@ -647,7 +647,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                 <div className="mx-auto h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700 mb-4" />
                 <div className="flex items-center justify-between mb-4">
                   <p className="font-heading font-extrabold text-lg text-slate-900 dark:text-white">All Menu</p>
-                  <button onClick={() => setMoreOpen(false)} className="h-8 w-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
+                  <button onClick={() => setMoreOpen(false)} className="h-8 w-8 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-4 w-4" /></button>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {groups.flatMap((g) => g.items).filter((it) => !primaryTabs.includes(it.key)).map((it) => {

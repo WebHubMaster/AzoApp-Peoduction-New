@@ -66,7 +66,7 @@ export function OfflineGate() {
           onPress={() => retry()}
           disabled={checking}
           style={{
-            marginTop: 20, width: "100%", height: 54, borderRadius: 10, backgroundColor: "#2563EB",
+            marginTop: 20, width: "100%", height: 54, borderRadius: 6, backgroundColor: "#2563EB",
             flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: checking ? 0.75 : 1,
           }}
         >

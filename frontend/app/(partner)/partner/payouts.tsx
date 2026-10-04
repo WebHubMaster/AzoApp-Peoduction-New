@@ -342,7 +342,7 @@ function DocViewer({ doc, onClose }: { doc: { url: string; label: string } | nul
           <Icon name="credit-card-outline" size={18} color="#fff" />
           <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800", flex: 1 }} numberOfLines={1}>{doc.label}</Text>
           {uri ? <Pressable onPress={() => Linking.openURL(uri)} hitSlop={8}><Text style={{ color: "#93C5FD", fontSize: 13, fontWeight: "800" }}>Open</Text></Pressable> : null}
-          <Pressable onPress={onClose} hitSlop={8} style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
+          <Pressable onPress={onClose} hitSlop={8} style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
         </View>
         <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 16 }} maximumZoomScale={4} minimumZoomScale={1}>
           {pdf || !uri ? (

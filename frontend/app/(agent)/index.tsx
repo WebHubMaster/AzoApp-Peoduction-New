@@ -90,7 +90,7 @@ export default function AgentHome() {
                 <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>Field QR Agent</Text>
               </View>
             </View>
-            <Pressable testID="agent-map-shortcut" onPress={() => router.push("/(agent)/map")} hitSlop={8} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+            <Pressable testID="agent-map-shortcut" onPress={() => router.push("/(agent)/map")} hitSlop={8} style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
               <Icon name="qrcode-scan" size={22} color={colors.primary} />
             </Pressable>
           </View>

@@ -47,7 +47,7 @@ export const ErrorState = ({ onRetry, text = "We couldn't load this section." })
   <div className="rounded-3xl border border-rose-100 bg-rose-50/50 py-10 flex flex-col items-center text-center px-6" data-testid="home-error">
     <AlertTriangle className="h-7 w-7 text-rose-500 mb-2" />
     <p className="font-semibold text-slate-800">{text}</p>
-    {onRetry && <button onClick={onRetry} data-testid="home-retry" className="mt-3 inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-primary-700 text-white text-sm font-semibold hover:bg-primary-800"><RefreshCw className="h-4 w-4" /> Retry</button>}
+    {onRetry && <button onClick={onRetry} data-testid="home-retry" className="mt-3 inline-flex items-center gap-1.5 h-10 px-4 rounded-md bg-primary-700 text-white text-sm font-semibold hover:bg-primary-800"><RefreshCw className="h-4 w-4" /> Retry</button>}
   </div>
 );
 

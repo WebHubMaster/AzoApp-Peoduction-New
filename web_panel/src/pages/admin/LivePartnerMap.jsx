@@ -474,7 +474,7 @@ export default function LivePartnerMap() {
           <p className="text-xs text-slate-400 mt-0.5">Command center · {totals.total} partners · {totals.online} online · Last sync {timeAgo(lastSync)}</p>
         </div>
         <button data-testid="livemap-refresh" onClick={refresh}
-          className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors">
+          className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700 shadow-sm transition-colors">
           <RefreshCcw className="h-4 w-4" /> Refresh
         </button>
       </div>
@@ -493,7 +493,7 @@ export default function LivePartnerMap() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input data-testid="livemap-search" value={searchRaw} onChange={(e) => setSearchRaw(e.target.value)}
             placeholder="Search partner, phone, service, city or partner ID…"
-            className="w-full h-10 pl-9 pr-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900" />
+            className="w-full h-10 pl-9 pr-9 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-900" />
           {searchRaw && <button onClick={() => setSearchRaw("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><X className="h-4 w-4" /></button>}
         </div>
         <div className="w-40"><PremiumSelect data-testid="livemap-city-filter" value={cityF} onChange={(e) => setCityF(e.target.value)} placeholder="All Cities"
@@ -580,11 +580,11 @@ export default function LivePartnerMap() {
                 ))}
               </div>
             ) : (
-              <button data-testid="legend-open" onClick={() => setLegendOpen(true)} className="rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-sm p-2.5"><Layers className="h-4 w-4 text-slate-500" /></button>
+              <button data-testid="legend-open" onClick={() => setLegendOpen(true)} className="rounded-md bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-sm p-2.5"><Layers className="h-4 w-4 text-slate-500" /></button>
             )}
           </div>
 
-          <button data-testid="panel-toggle" onClick={() => setPanelOpen((v) => !v)} className="hidden lg:flex absolute bottom-3 right-3 items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-600 dark:text-slate-300">
+          <button data-testid="panel-toggle" onClick={() => setPanelOpen((v) => !v)} className="hidden lg:flex absolute bottom-3 right-3 items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-md bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-700 shadow-sm text-slate-600 dark:text-slate-300">
             {panelOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />} {panelOpen ? "Hide" : "Partners"}
           </button>
 
@@ -594,7 +594,7 @@ export default function LivePartnerMap() {
                 <MapPin className="h-8 w-8 mx-auto text-slate-300 mb-2" />
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-200">No partners found</p>
                 <p className="text-xs text-slate-400 mt-1">{catF !== "all" ? `No ${catF} partners` : "No partners"}{cityF !== "all" ? ` in ${cityF}` : ""}{statusF.length ? " with the selected status" : ""}.</p>
-                <button onClick={clearAll} data-testid="no-results-clear" className="mt-3 text-xs font-semibold px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700">View All Partners</button>
+                <button onClick={clearAll} data-testid="no-results-clear" className="mt-3 text-xs font-semibold px-4 py-2 rounded-md bg-primary-600 text-white hover:bg-primary-700">View All Partners</button>
               </div>
             </div>
           )}
@@ -680,7 +680,7 @@ function SummaryCard({ title, subtitle, counts, accent }) {
 function CtrlBtn({ children, onClick, active, testid }) {
   return (
     <button data-testid={testid} onClick={onClick}
-      className={`h-9 w-9 grid place-items-center rounded-xl border shadow-sm transition-colors ${active ? "bg-primary-600 border-primary-600 text-white" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
+      className={`h-9 w-9 grid place-items-center rounded-md border shadow-sm transition-colors ${active ? "bg-primary-600 border-primary-600 text-white" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>
       {children}
     </button>
   );
@@ -697,7 +697,7 @@ function OverlayMenu({ overlays, setOverlays, onClose }) {
       <div className="flex items-center justify-between px-2 py-1"><span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Layers</span><button onClick={onClose} className="text-slate-400"><X className="h-3.5 w-3.5" /></button></div>
       {items.map(({ k, label, icon: Icon }) => (
         <button key={k} data-testid={`overlay-${k}`} onClick={() => setOverlays((o) => ({ ...o, [k]: !o[k] }))}
-          className="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
+          className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
           <Icon className="h-4 w-4 text-slate-400" /><span className="flex-1 text-left">{label}</span>
           <span className={`h-4 w-7 rounded-full transition-colors relative ${overlays[k] ? "bg-primary-600" : "bg-slate-200 dark:bg-slate-700"}`}>
             <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${overlays[k] ? "left-3.5" : "left-0.5"}`} />

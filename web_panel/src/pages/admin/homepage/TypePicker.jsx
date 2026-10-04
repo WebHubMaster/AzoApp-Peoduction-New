@@ -16,7 +16,7 @@ export default function TypePicker({ value, onChange, types }) {
     <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQ(""); }}>
       <PopoverTrigger asChild>
         <button type="button" data-testid="hp-add-type" aria-label="Section type"
-          className="w-full h-10 px-3 inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 text-[14px] text-left hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 transition-colors">
+          className="w-full h-10 px-3 inline-flex items-center gap-2 rounded-md border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 text-[14px] text-left hover:border-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 transition-colors">
           <Icon className="h-4 w-4 text-[#0D47A1] shrink-0" />
           <span className="flex-1 truncate text-[#111827] dark:text-white">{cur.label}</span>
           <ChevronsUpDown className="h-4 w-4 text-slate-400" />

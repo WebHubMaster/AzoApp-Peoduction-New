@@ -100,7 +100,7 @@ export default function DataTable({
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input data-testid="dt-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder}
-              className="h-10 pl-10 pr-3 w-full sm:w-72 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition" />
+              className="h-10 pl-10 pr-3 w-full sm:w-72 rounded-md border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-primary-300 transition" />
           </div>
           {filters.map((f) => (
             <Select key={f.key} value={filterVals[f.key] || "__all__"} onValueChange={(v) => setFilterVals((p) => ({ ...p, [f.key]: v }))}>
@@ -112,7 +112,7 @@ export default function DataTable({
             </Select>
           ))}
           {dateKey && <DateRangeFilter range={range} onChange={setRange} label={dateLabel} />}
-          {exportName && <button onClick={exportCsv} title="Export CSV" className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-1.5"><Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span></button>}
+          {exportName && <button onClick={exportCsv} title="Export CSV" className="h-9 px-3 rounded-md border border-slate-200 dark:border-slate-600 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-1.5"><Download className="h-4 w-4" /><span className="hidden sm:inline">Export</span></button>}
           {toolbar}
         </div>
       </div>
@@ -227,7 +227,7 @@ const DateRangeFilter = ({ range, onChange, label }) => {
   return (
     <div className="relative" ref={box}>
       <button data-testid="dt-daterange" onClick={() => setOpen((o) => !o)}
-        className={`h-9 px-3 rounded-lg border text-sm flex items-center gap-1.5 ${range.from ? "border-primary-400 text-primary-700 bg-primary-50 dark:bg-primary-900/20" : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300"} hover:bg-slate-50 dark:hover:bg-slate-700`}>
+        className={`h-9 px-3 rounded-md border text-sm flex items-center gap-1.5 ${range.from ? "border-primary-400 text-primary-700 bg-primary-50 dark:bg-primary-900/20" : "border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300"} hover:bg-slate-50 dark:hover:bg-slate-700`}>
         <CalendarDays className="h-4 w-4" />{label2}
         {range.from && <span onClick={(e) => { e.stopPropagation(); onChange({ from: null, to: null }); }} className="ml-1 text-slate-400 hover:text-red-500"><X className="h-3.5 w-3.5" /></span>}
       </button>

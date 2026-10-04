@@ -100,12 +100,12 @@ export default function Login() {
 
           <div className="mt-4 flex gap-2 text-sm" data-testid="register-toggles">
             <button data-testid="reg-partner" onClick={() => setRegisterRole(registerRole === "partner" ? null : "partner")}
-              className={`flex-1 py-2 rounded-lg border font-medium transition-all ${registerRole === "partner" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
+              className={`flex-1 py-2 rounded-md border font-medium transition-all ${registerRole === "partner" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
               {registerRole === "partner" ? "← Back to login" : "Register as Partner"}
             </button>
             {registerRole !== "partner" && (
               <button data-testid="reg-merchant" onClick={() => setRegisterRole(registerRole === "merchant" ? null : "merchant")}
-                className={`flex-1 py-2 rounded-lg border font-medium transition-all ${registerRole === "merchant" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
+                className={`flex-1 py-2 rounded-md border font-medium transition-all ${registerRole === "merchant" ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
                 {registerRole === "merchant" ? "← Back to login" : "Register as Merchant"}
               </button>
             )}
@@ -123,7 +123,7 @@ export default function Login() {
           )}
           {(cfg.auth_config?.social_login || cfg.auth_config?.whatsapp_login) && (
             <div className="mt-3 space-y-2" data-testid="alt-auth">
-              {cfg.auth_config?.whatsapp_login && <button data-testid="wa-login" onClick={() => toast.info("WhatsApp OTP uses the same mobile flow above")} className="w-full h-10 rounded-lg border border-slate-200 text-sm font-medium hover:border-primary-300">Continue with WhatsApp OTP</button>}
+              {cfg.auth_config?.whatsapp_login && <button data-testid="wa-login" onClick={() => toast.info("WhatsApp OTP uses the same mobile flow above")} className="w-full h-10 rounded-md border border-slate-200 text-sm font-medium hover:border-primary-300">Continue with WhatsApp OTP</button>}
               {cfg.auth_config?.social_login && (
                 cfg.integrations?.google_client_id ? (
                   <div className="flex justify-center" data-testid="google-login">
@@ -136,7 +136,7 @@ export default function Login() {
                     </GoogleOAuthProvider>
                   </div>
                 ) : (
-                  <button data-testid="social-login-disabled" onClick={() => toast.info("Admin: add Google Client ID in Integrations to enable Google sign-in")} className="w-full h-10 rounded-lg border border-slate-200 text-sm font-medium hover:border-primary-300">Continue with Google</button>
+                  <button data-testid="social-login-disabled" onClick={() => toast.info("Admin: add Google Client ID in Integrations to enable Google sign-in")} className="w-full h-10 rounded-md border border-slate-200 text-sm font-medium hover:border-primary-300">Continue with Google</button>
                 )
               )}
             </div>

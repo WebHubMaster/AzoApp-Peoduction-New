@@ -36,7 +36,7 @@ export default function MerchantReminders() {
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 }}>{item.service_type}{item.product ? ` · ${item.product}` : ""}</Text>
                   <Text style={{ color: colors.textSecondary, fontSize: fontSize.xs, marginTop: 4 }}>Next due: {fmtDate(item.next_service_date)}</Text>
                 </View>
-                <Pressable testID={`remind-call-${item.id}`} onPress={() => item.customer_mobile && Linking.openURL(`tel:${item.customer_mobile}`)} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                <Pressable testID={`remind-call-${item.id}`} onPress={() => item.customer_mobile && Linking.openURL(`tel:${item.customer_mobile}`)} style={{ width: 42, height: 42, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                   <Icon name="phone" size={20} color={colors.primary} />
                 </Pressable>
               </View>

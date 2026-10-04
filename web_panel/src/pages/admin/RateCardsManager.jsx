@@ -181,9 +181,9 @@ function Builder({ initial, categories, onDone, onCancel }) {
                   placeholder="Group note (optional)" className="flex-1 min-w-[120px]" />
                 <span className="text-[11px] text-slate-400 shrink-0">{g.rows.length} rows</span>
                 <div className="flex gap-1 shrink-0">
-                  <button onClick={() => moveGroup(gi, -1)} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronUp className="h-4 w-4" /></button>
-                  <button onClick={() => moveGroup(gi, 1)} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronDown className="h-4 w-4" /></button>
-                  <button onClick={() => removeGroup(g.id)} className="h-8 w-8 rounded-lg border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
+                  <button onClick={() => moveGroup(gi, -1)} className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronUp className="h-4 w-4" /></button>
+                  <button onClick={() => moveGroup(gi, 1)} className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronDown className="h-4 w-4" /></button>
+                  <button onClick={() => removeGroup(g.id)} className="h-8 w-8 rounded-md border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
 
@@ -237,9 +237,9 @@ function Builder({ initial, categories, onDone, onCancel }) {
                             </div>
                           </div>
                           <div className="flex flex-col gap-1 shrink-0">
-                            <button onClick={() => moveRow(g.id, ri, -1)} className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronUp className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => moveRow(g.id, ri, 1)} className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronDown className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => removeRow(g.id, r.id)} className="h-7 w-7 rounded-lg border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => moveRow(g.id, ri, -1)} className="h-7 w-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronUp className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => moveRow(g.id, ri, 1)} className="h-7 w-7 rounded-md border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-100"><ChevronDown className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => removeRow(g.id, r.id)} className="h-7 w-7 rounded-md border border-slate-200 flex items-center justify-center text-rose-600 hover:bg-rose-50"><Trash2 className="h-3.5 w-3.5" /></button>
                           </div>
                         </div>
                       </div>

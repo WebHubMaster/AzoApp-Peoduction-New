@@ -118,7 +118,7 @@ export function StatusDonut({ statuses, onReset, onPick }) {
           </div>
           <div className="space-y-1.5 mt-3 max-h-44 overflow-y-auto no-scrollbar">
             {data.map((s) => (
-              <button key={s.status} onClick={() => onPick?.(s.status)} data-testid={`donut-${s.status}`} className="w-full flex items-center gap-2 text-xs rounded-lg px-1 py-0.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
+              <button key={s.status} onClick={() => onPick?.(s.status)} data-testid={`donut-${s.status}`} className="w-full flex items-center gap-2 text-xs rounded-md px-1 py-0.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors">
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: s.hex }} />
                 <span className="text-slate-600 dark:text-slate-300 capitalize flex-1 truncate text-left">{s.name}</span>
                 <span className="font-bold text-slate-800 dark:text-white tabular-nums">{s.count}</span>

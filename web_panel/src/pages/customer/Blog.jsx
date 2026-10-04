@@ -30,7 +30,7 @@ export default function Blog() {
           <div className="relative max-w-md mt-6">
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search articles…" data-testid="blog-search"
-              className="w-full h-12 pl-10 pr-4 rounded-xl bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-white/50" />
+              className="w-full h-12 pl-10 pr-4 rounded-md bg-white text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-white/50" />
           </div>
         </div>
       </div>

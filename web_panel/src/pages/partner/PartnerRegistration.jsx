@@ -65,7 +65,7 @@ function Combo({ value, display, onSelect, options, labelKey = "name", placehold
     <div className="relative" ref={boxRef}>
       <button type="button" data-testid={testid} disabled={disabled}
         onClick={() => !disabled && setOpen((v) => !v)}
-        className={`w-full flex items-center justify-between gap-2 rounded-xl border px-3.5 py-3 text-left text-sm transition
+        className={`w-full flex items-center justify-between gap-2 rounded-md border px-3.5 py-3 text-left text-sm transition
           ${disabled ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
             : "bg-white border-slate-200 hover:border-primary-400 text-slate-800"}`}>
         <span className={display ? "" : "text-slate-400"}>{display || placeholder}</span>
@@ -564,7 +564,7 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
                 const sel = work.categories.find((x) => x.category_id === c.id);
                 return (
                   <button key={c.id} type="button" data-testid={`reg-cat-${c.id}`} onClick={() => toggleCat(c)}
-                    className={`rounded-xl border-2 px-3 py-3 text-sm font-medium text-left transition flex items-center gap-2
+                    className={`rounded-md border-2 px-3 py-3 text-sm font-medium text-left transition flex items-center gap-2
                       ${sel ? "border-primary-600 bg-primary-50 text-primary-700" : "border-slate-200 bg-white text-slate-600 hover:border-primary-300"}`}>
                     <span className={`h-4 w-4 rounded-full grid place-items-center shrink-0 ${sel ? "bg-primary-600" : "border-2 border-slate-300"}`}>
                       {sel && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
@@ -645,7 +645,7 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
             <textarea data-testid="reg-address" value={addr.manual_address} rows={3}
               onChange={(e) => setAddr({ ...addr, manual_address: e.target.value })}
               placeholder="House / Street / Area / Landmark"
-              className="w-full rounded-xl border border-slate-200 p-3.5 text-sm focus:border-primary-400 focus:outline-none" />
+              className="w-full rounded-md border border-slate-200 p-3.5 text-sm focus:border-primary-400 focus:outline-none" />
           </Field>
           <Button type="button" variant="outline" onClick={chooseLocation} disabled={locBusy}
             data-testid="reg-choose-location" className="w-full h-12 rounded-xl border-primary-200 text-primary-700 hover:bg-primary-50">
@@ -727,7 +727,7 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
           <div className="max-w-xl mx-auto px-5 pb-40 pt-5">
             {/* header */}
             <div className="flex items-center justify-between">
-              <button data-testid="fee-pay-back" onClick={() => { if (!paying) setShowPay(false); }} className="h-10 w-10 grid place-items-center rounded-xl hover:bg-slate-100 text-slate-700">
+              <button data-testid="fee-pay-back" onClick={() => { if (!paying) setShowPay(false); }} className="h-10 w-10 grid place-items-center rounded-md hover:bg-slate-100 text-slate-700">
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <div className="text-center">

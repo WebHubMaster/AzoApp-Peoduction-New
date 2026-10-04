@@ -93,7 +93,7 @@ export default function QrScanner({ onDetected, label = "Point the camera at the
             data-testid="qr-scan-start"
             onClick={start}
             disabled={starting}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-br from-[#0D47A1] to-[#1769d6] text-white text-sm font-semibold shadow-[0_6px_16px_-6px_rgba(13,71,161,0.6)] hover:brightness-105 active:scale-[0.98] transition disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-gradient-to-br from-[#0D47A1] to-[#1769d6] text-white text-sm font-semibold shadow-[0_6px_16px_-6px_rgba(13,71,161,0.6)] hover:brightness-105 active:scale-[0.98] transition disabled:opacity-60"
           >
             {starting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
             {starting ? "Starting…" : "Start camera scan"}
@@ -103,7 +103,7 @@ export default function QrScanner({ onDetected, label = "Point the camera at the
             type="button"
             data-testid="qr-scan-stop"
             onClick={stop}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm font-medium active:scale-[0.98] transition"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 text-sm font-medium active:scale-[0.98] transition"
           >
             <CameraOff className="w-4 h-4" /> Stop camera
           </button>

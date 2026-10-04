@@ -97,7 +97,7 @@ const LocationButton = () => {
   };
   return (
     <div className="relative" ref={box}>
-      <button data-testid="nav-location" onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-300 text-sm text-slate-700 max-w-[200px] transition-colors">
+      <button data-testid="nav-location" onClick={() => setOpen((o) => !o)} className="flex items-center gap-1.5 h-10 px-3 rounded-md bg-slate-50 hover:bg-white border border-slate-200 hover:border-primary-300 text-sm text-slate-700 max-w-[200px] transition-colors">
         <MapPin className="h-4 w-4 text-primary-700 shrink-0" strokeWidth={2} />
         <span className="truncate font-medium">{loc || "Select location"}</span>
         <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />
@@ -110,7 +110,7 @@ const LocationButton = () => {
             <>
               <p className="text-sm font-semibold text-slate-800 mb-2">Where do you need service?</p>
               <div className="flex gap-2">
-                <input data-testid="nav-location-input" value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="City or pincode" className="h-10 px-3 flex-1 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
+                <input data-testid="nav-location-input" value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="City or pincode" className="h-10 px-3 flex-1 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
                 <Button data-testid="nav-location-set" onClick={save} className="bg-primary-700 hover:bg-primary-800 h-10">Set</Button>
               </div>
               {/^\d{6}$/.test(String(val || "").trim()) && (
@@ -186,7 +186,7 @@ export default function SiteNavbar({ showSearch = true }) {
           </div>
         )}
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
-          <button onClick={() => navigate("/services")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-xl text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">All Services</button>
+          <button onClick={() => navigate("/services")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-md text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">All Services</button>
           <button data-testid="nav-membership" onClick={() => navigate("/membership")} className="text-sm font-semibold text-amber-600 hover:text-amber-700 hidden lg:flex items-center gap-2"><MembershipBadge size={44} /> Membership</button>
           {/* Premium animated gold Membership badge (mobile/tablet) */}
           <button data-testid="nav-membership-mobile" onClick={() => navigate("/membership")} aria-label="Membership"
@@ -197,7 +197,7 @@ export default function SiteNavbar({ showSearch = true }) {
           <button data-testid="nav-search-mobile" onClick={() => setSearchOpen(true)} className="md:hidden h-10 w-10 rounded-full border border-slate-200 hover:border-primary-300 flex items-center justify-center text-slate-700">
             <Search className="h-5 w-5" />
           </button>
-          <button data-testid="nav-cart" onClick={() => navigate("/book")} className="relative h-10 w-10 rounded-xl border border-slate-200 hover:border-primary-300 flex items-center justify-center text-slate-700">
+          <button data-testid="nav-cart" onClick={() => navigate("/book")} className="relative h-10 w-10 rounded-md border border-slate-200 hover:border-primary-300 flex items-center justify-center text-slate-700">
             <ShoppingBag className="h-5 w-5" />
             {count > 0 && <span data-testid="nav-cart-count" className="absolute -top-1.5 -right-1.5 h-5 min-w-5 px-1 rounded-full bg-primary-700 text-white text-[11px] font-bold flex items-center justify-center">{count}</span>}
           </button>
@@ -212,7 +212,7 @@ export default function SiteNavbar({ showSearch = true }) {
             </>
           ) : (
             <>
-              <button onClick={() => navigate("/login")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-xl text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">Become a Partner</button>
+              <button onClick={() => navigate("/login")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-md text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">Become a Partner</button>
               {/* Mobile: circular profile icon */}
               <button data-testid="nav-login-mobile" onClick={() => navigate("/login")} className="sm:hidden h-10 w-10 rounded-full bg-primary-700 hover:bg-primary-800 text-white flex items-center justify-center shadow-sm">
                 <User className="h-5 w-5" />
@@ -221,7 +221,7 @@ export default function SiteNavbar({ showSearch = true }) {
               <Button data-testid="nav-login" onClick={() => navigate("/login")} className="bg-primary-700 hover:bg-primary-800 rounded-xl hidden sm:inline-flex">Sign In</Button>
             </>
           )}
-          <button onClick={() => setMobileOpen((o) => !o)} className="md:hidden h-10 w-10 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600">{mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
+          <button onClick={() => setMobileOpen((o) => !o)} className="md:hidden h-10 w-10 rounded-md border border-slate-200 flex items-center justify-center text-slate-600">{mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
         </div>
       </div>
       {/* Mobile search popup */}
@@ -231,7 +231,7 @@ export default function SiteNavbar({ showSearch = true }) {
           <div className="absolute top-0 left-0 right-0 bg-white rounded-b-2xl shadow-xl p-4 pt-4">
             <div className="flex items-center gap-2">
               <div className="flex-1"><ServiceSearch variant="navbar" autoFocus placeholder="Search services…" /></div>
-              <button data-testid="mobile-search-close" onClick={() => setSearchOpen(false)} className="h-10 px-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900">Cancel</button>
+              <button data-testid="mobile-search-close" onClick={() => setSearchOpen(false)} className="h-10 px-3 rounded-md text-sm font-semibold text-slate-600 hover:text-slate-900">Cancel</button>
             </div>
           </div>
         </div>

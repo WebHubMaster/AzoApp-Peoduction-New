@@ -78,7 +78,7 @@ export function ErrorState({ onRetry }) {
       </div>
       <p className="font-heading font-bold text-slate-800">Could not load purchases</p>
       <p className="text-sm text-slate-500 mt-1">Please check your connection and try again.</p>
-      <button onClick={onRetry} data-testid="sk-retry" className="mt-4 inline-flex items-center gap-2 h-9 px-4 rounded-lg bg-primary-700 text-white text-sm font-semibold hover:bg-primary-800">
+      <button onClick={onRetry} data-testid="sk-retry" className="mt-4 inline-flex items-center gap-2 h-9 px-4 rounded-md bg-primary-700 text-white text-sm font-semibold hover:bg-primary-800">
         <RefreshCw className="h-4 w-4" /> Retry
       </button>
     </div>
@@ -113,17 +113,17 @@ export function Pagination({ page, totalPages, pageSize, total, onPage, onPageSi
       {totalPages > 1 && (
         <div className="flex items-center gap-1">
           <button disabled={page <= 1} onClick={() => onPage(page - 1)} data-testid="sk-prev"
-            className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-300 transition-colors">
+            className="h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-600 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-300 transition-colors">
             <ChevronLeft className="h-4 w-4" />
           </button>
           {lo > 1 && <span className="px-1 text-slate-400 text-xs">…</span>}
           {pages.map((p) => (
             <button key={p} onClick={() => onPage(p)} data-testid={`sk-page-${p}`}
-              className={`h-8 min-w-8 px-2 rounded-lg text-sm font-semibold transition-colors ${p === page ? "bg-primary-700 text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-primary-300"}`}>{p}</button>
+              className={`h-8 min-w-8 px-2 rounded-md text-sm font-semibold transition-colors ${p === page ? "bg-primary-700 text-white" : "border border-slate-200 bg-white text-slate-600 hover:border-primary-300"}`}>{p}</button>
           ))}
           {hi < totalPages && <span className="px-1 text-slate-400 text-xs">…</span>}
           <button disabled={page >= totalPages} onClick={() => onPage(page + 1)} data-testid="sk-next"
-            className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-slate-600 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-300 transition-colors">
+            className="h-8 w-8 rounded-md border border-slate-200 bg-white text-slate-600 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:border-primary-300 transition-colors">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

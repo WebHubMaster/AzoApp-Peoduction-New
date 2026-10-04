@@ -95,7 +95,7 @@ const DocLightbox = ({ url, label, onClose }) => {
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
           <CreditCard className="h-4 w-4 text-primary-600" /><p className="font-bold text-sm">{label}</p>
           <a href={absUrl(url)} target="_blank" rel="noreferrer" className="ml-auto text-xs font-bold text-primary-700 underline">Open in new tab</a>
-          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
+          <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><X className="h-5 w-5" /></button>
         </div>
         <div className="p-3 bg-slate-50 dark:bg-slate-950 grid place-items-center max-h-[80vh] overflow-auto">
           {isPdf ? <iframe title={label} src={absUrl(url)} className="w-full h-[72vh] rounded-lg bg-white" />

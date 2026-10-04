@@ -107,7 +107,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }) {
             <div className="mt-3 flex gap-2">
               <Button data-testid="custom-apply" onClick={load} disabled={!custom.from || !custom.to}
                 className="flex-1 h-9 bg-white text-primary-700 hover:bg-sky-50">Apply</Button>
-              <button onClick={() => { setShowCustom(false); setPreset("30d"); }} className="h-9 w-9 grid place-items-center rounded-lg bg-white/15 hover:bg-white/25"><X className="h-4 w-4" /></button>
+              <button onClick={() => { setShowCustom(false); setPreset("30d"); }} className="h-9 w-9 grid place-items-center rounded-md bg-white/15 hover:bg-white/25"><X className="h-4 w-4" /></button>
             </div>
           </div>
         )}

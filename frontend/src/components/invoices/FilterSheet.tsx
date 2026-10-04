@@ -38,7 +38,7 @@ export default function InvoiceFilterSheet({ open, onClose, filters, onApply, ra
   const reset = () => { setDraft(EMPTY_FILTERS); setDRange("all"); setDFrom(""); setDTo(""); };
   const apply = () => { onApply(draft); onRangeApply(dRange, dFrom, dTo); onClose(); };
   const amountErr = !!(draft.minAmount && draft.maxAmount && Number(draft.minAmount) > Number(draft.maxAmount));
-  const input = { height: 44, borderRadius: 10, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, color: inv.t900, fontSize: 14, paddingHorizontal: 12 };
+  const input = { height: 44, borderRadius: 6, borderWidth: 1, borderColor: inv.border2, backgroundColor: inv.surface, color: inv.t900, fontSize: 14, paddingHorizontal: 12 };
   const lbl = { fontSize: 10.5, fontWeight: "700" as const, letterSpacing: 0.8, textTransform: "uppercase" as const, color: inv.t400, marginBottom: 4 };
 
   return (
