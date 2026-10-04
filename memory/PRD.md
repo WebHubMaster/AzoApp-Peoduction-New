@@ -93,3 +93,10 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 - Partner OTP: one backspace per digit, wrong OTP clears boxes, no blank gap above keyboard (web visualViewport sizing; app KeyboardStickyView + smaller bottomOffset). Active/Completed tabs → rounded-lg (web + app).
 - Restored missing backend/.env & web_panel/.env and web_panel node_modules.
 - Tested: iteration_195 + 196 (100% web). Expo apps not previewable here.
+
+## 2026-06 — SOS alert, chat photos, partner Help chat, OTP autofill
+- `POST /api/support/sos` (support_service.raise_sos): urgent ticket (sos=true) with job/customer/partner/address + Google Maps link (live GPS or booking address); admin SSE `support_sos` → global admin toast (SosAlertListener) + notification. SOS then calls 112 (web + both apps).
+- Help chat photo sharing (web + customer app + partner app) via /support/upload attachments.
+- Partner app: `frontend/src/components/partner/HelpSOS.tsx` on started active job card + job wizard work step.
+- OTP boxes (partner web + app): paste / keyboard-suggested code fills all boxes (one-time-code / sms-otp).
+- Tested iteration_197: backend 5/5, web 100%. Expo apps not previewable.

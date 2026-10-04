@@ -1,0 +1,27 @@
+{
+  "summary": "Iteration 197 — SOS Alert Support + Chat Photo Sharing + Partner Help Chat + OTP Auto Fill. Backend: 5/5 pytest cases in /app/backend/tests/test_iter197_sos.py pass (customer SOS success, partner SOS success, non-owner merchant 404, invalid booking 404, support image upload). Frontend verified end-to-end at 1920x1080: (1) Customer SOS on /account?tab=orders — click [data-testid=sos-btn] on AZO557577 → window.confirm accepted → POST /api/support/sos with body {\"booking_code\":\"AZO557577\"} (geo denied, no lat/lng) → sonner toast 'SOS sent — support team alerted' shown; tel:112 navigation initiated (window.location.href setter patched). (2) Admin SSE listener — opened admin tab in a separate browser context, triggered customer SOS, admin received sonner toast 'SOS ALERT · Booking AZO557577' with 'Open' action; clicking Open navigates to admin → Support Tickets. (3) Help chat photo attach — click [data-testid=help-btn] → [data-testid=help-sos-modal] opens → set files on hidden [data-testid=help-sos-file] with PNG → after upload the message bubble renders with [data-testid=help-sos-msg-photo] (count=1). (4) Partner OTP paste autofill on booking AZO557577 Complete step (wizard-complete-otp): dispatched ClipboardEvent 'paste' with '1234' on otp-box-0 → values ['1','2','3','4']; Playwright .fill('5678') on otp-box-0 → values ['5','6','7','8'] (digits spread). Backspace regression: 4 presses clear all boxes to ['','','','']. Did NOT submit the Complete OTP. (5) Partner web active job card shows Help & SOS buttons on 'started' booking; partner SOS click posts POST /api/support/sos {booking_code:AZO557577}.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter197_sos.py",
+    "/app/test_reports/pytest/iter197_sos.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/services/support_service.py raise_sos: correctly guards non-owner access (returns 404 when user.id not in {customer_id, partner_id}), tags priority=urgent & sos=true, builds a rich message including job, customer, partner, address and a maps.google.com/?q=lat,lng link, and reuses an existing non-closed ticket for the same booking (appends message rather than creating duplicate). Emits both support_sos and support_message admin SSE events. All good.",
+    "web_panel HelpSOS.jsx sos(): on error the user is still routed to tel:112 (window.location.href='tel:112' after try/catch) — matches spec. The success toast uses sonner correctly.",
+    "web_panel OtpBoxes: onBoxChange handles pastes where raw.length>=2 by delegating to fillFrom, and the container onPaste also handles clipboard events — both paths produce the expected multi-box fill. Backspace handler is clean (one-digit-per-press)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter197_sos.py"],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "100%"},
+  "test_credentials": "OTP 123456. Admin +919000000000, Partner +919000000003, Customer +919000000004, Merchant +919000000002. Use quick-login buttons data-testid='demo-{role}' on /login.",
+  "seed_data_creation": "None. Booking AZO557577 kept in 'started' status as instructed; multiple SOS taps appended new SOS messages to the pre-existing ticket for this booking rather than creating new tickets (verified in backend test by checking the last matching SOS ALERT message).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "To test with multiple roles concurrently in Playwright, use browser.new_context() per role — same-browser cookies/localStorage cause /login to redirect authenticated users away before the demo-{role} button appears. The login page briefly shows a global overlay [data-testid='login-auth-loader']; wait for it to detach before clicking. HelpSOS component is embedded on customer /account?tab=orders inside each 'started' booking card and on partner /partner?tab=active job card. For partner JobWizard with status=started, the wizard enters directly at Complete OTP step (data-testid='wizard-complete-otp'), no need to click wizard-continue. Do NOT type the correct completion OTP (1234) and submit — leave boxes empty after test. Admin SOS sonner listener is mounted globally in AdminDashboard (SosAlertListener) so it fires on any admin route.",
+  "rca of the issue": "N/A — no issues found. All 4 new features (SOS backend+admin SSE, chat photo sharing, partner help chat on active job, OTP paste/suggestion autofill) are working as specified."
+}
