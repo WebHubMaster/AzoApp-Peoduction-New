@@ -42,7 +42,8 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
       if (s !== "granted") return;
     }
     if (!user) { router.push("/login"); return; }
-    router.push("/(customer)?notif=1" as any);
+    AsyncStorage.setItem("azo_notif_seen", new Date().toISOString()).catch(() => {});
+    router.push("/(customer)/notifications" as any);
   };
 
   return (

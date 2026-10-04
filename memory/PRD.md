@@ -102,3 +102,11 @@ Verification: web_panel preview compiles & loads (200); buttons, search boxes an
 - Pill Buttons: status chips & filter pills -> 6px. RN: pill-radius chips (paddingHorizontal + alignSelf flex-start) -> 6. Web: `rounded-full` -> `rounded-md` only on pill-like class strings (has px-, not a circle). Avatars/dots/icon-circles (equal w/h, grid, aspect) preserved.
 - Focus Styles: web_panel input/textarea/select get a crisper 2px focus ring (ring-primary-300) that follows the 6px radius.
 - Verified on web preview: uniform 6px across cards, chips, inputs, buttons; circles intact. frontend tsc: no new errors.
+
+## [2026-06] Customer app: stat-card sliders + notifications page
+- Added reusable horizontal `StatSlider` + `CARD_W` in src/components/customer/ux.tsx (snapping carousel, ~2 cards + peek).
+- Invoices (app/(customer)/invoices.tsx): KPI cards now a swipeable slider (KpiCard gained optional `w` prop).
+- Bookings (app/(customer)/orders.tsx): KPIs now a slider; removed the "Total Spent" card (and unused spent/fmtC/IndianRupee).
+- Home (src/components/customer/HomeView.tsx): 5 quick-stat cards now a slider.
+- Notifications: new full page app/(customer)/notifications.tsx (Clear all + per-item X delete via DELETE /notifications[/{id}]; opening marks all read via azo_notif_seen). NotificationBell.tsx now navigates to the page (no modal) and marks read; AppHeader bell repointed from ?notif=1 to /(customer)/notifications.
+- Verification: static (transpile/syntax clean; reuses existing endpoints/components). Customer Expo app is not served in this env, so no live run/screenshot was possible.

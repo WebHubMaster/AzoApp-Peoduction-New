@@ -9,7 +9,7 @@ import { api, API_BASE } from "../../src/api/client";
 import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
-import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, Paginator, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger } from "../../src/components/customer/ux";
+import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, Paginator, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
 import { DrawerShell, Btn } from "../../src/components/customer/BookingDialogs";
 
 const money = (n: any, cur = "INR") => (cur === "INR" ? "₹" : cur + " ") + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
@@ -27,10 +27,10 @@ const StatusBadge = ({ status, testID }: { status?: string; testID?: string }) =
   const s = BADGE[(status || "").toLowerCase()] || { bg: SLATE[100], fg: SLATE[600] };
   return <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: s.bg }}><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: s.fg }} /><Text style={{ fontSize: 11, fontWeight: "600", color: s.fg, textTransform: "capitalize" }}>{(status || "not submitted").replace(/_/g, " ")}</Text></View>;
 };
-function KpiCard({ icon: Icon, tone, label, value, sub, testID }: any) {
+function KpiCard({ icon: Icon, tone, label, value, sub, testID, w }: any) {
   const { c } = useTheme(); const t = KPI_TONE[tone] || KPI_TONE.slate;
   return (
-    <View testID={testID} style={{ width: "47.5%", flexGrow: 1, borderRadius: 6, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16 }}>
+    <View testID={testID} style={{ width: w ?? "47.5%", flexGrow: w ? 0 : 1, borderRadius: 6, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16 }}>
       <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: t.bg, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={t.fg} /></View>
       <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginTop: 12 }}>{label}</Text>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 24, fontWeight: "800", color: c.text, marginTop: 2 }}>{value}</Text>
@@ -117,14 +117,18 @@ export default function InvoicesScreen() {
       </ScrollView>
       {range === "custom" ? <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}><DatePick value={dateFrom} onChange={setDateFrom} placeholder="From" testID="invoice-date-from" /><Text style={{ color: TC.textFaint }}>to</Text><DatePick value={dateTo} onChange={setDateTo} placeholder="To" testID="invoice-date-to" /></View> : null}
 
-      {loading && !data ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Shimmer key={i} style={{ height: 120, borderRadius: 6, width: "47%", flexGrow: 1 }} />)}</View> : (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-          <KpiCard icon={FileText} tone="primary" label="Invoices" value={summary.total_count ?? 0} sub="In current view" testID="inv-kpi-count" />
-          <KpiCard icon={IndianRupee} tone="slate" label="Total Amount" value={money(summary.total_amount, cur)} sub="Gross value" testID="inv-kpi-total" />
-          <KpiCard icon={CheckCircle2} tone="emerald" label="Paid" value={money(summary.paid_amount, cur)} sub="Settled" testID="inv-kpi-paid" />
-          <KpiCard icon={Clock} tone="amber" label="Pending" value={money(summary.pending_amount, cur)} sub="Awaiting payment" testID="inv-kpi-pending" />
-          <KpiCard icon={RotateCcw} tone="violet" label="Refunded" value={money(summary.refunded_amount, cur)} sub="Returned" testID="inv-kpi-refunded" />
-        </View>
+      {loading && !data ? (
+        <StatSlider>
+          {[0, 1, 2, 3].map((i) => <View key={i} style={{ width: CARD_W }}><Shimmer style={{ height: 120, borderRadius: 6, width: "100%" }} /></View>)}
+        </StatSlider>
+      ) : (
+        <StatSlider testID="inv-kpi-slider">
+          <View style={{ width: CARD_W }}><KpiCard w="100%" icon={FileText} tone="primary" label="Invoices" value={summary.total_count ?? 0} sub="In current view" testID="inv-kpi-count" /></View>
+          <View style={{ width: CARD_W }}><KpiCard w="100%" icon={IndianRupee} tone="slate" label="Total Amount" value={money(summary.total_amount, cur)} sub="Gross value" testID="inv-kpi-total" /></View>
+          <View style={{ width: CARD_W }}><KpiCard w="100%" icon={CheckCircle2} tone="emerald" label="Paid" value={money(summary.paid_amount, cur)} sub="Settled" testID="inv-kpi-paid" /></View>
+          <View style={{ width: CARD_W }}><KpiCard w="100%" icon={Clock} tone="amber" label="Pending" value={money(summary.pending_amount, cur)} sub="Awaiting payment" testID="inv-kpi-pending" /></View>
+          <View style={{ width: CARD_W }}><KpiCard w="100%" icon={RotateCcw} tone="violet" label="Refunded" value={money(summary.refunded_amount, cur)} sub="Returned" testID="inv-kpi-refunded" /></View>
+        </StatSlider>
       )}
 
       {loading ? <SkeletonList rows={4} /> : error ? (

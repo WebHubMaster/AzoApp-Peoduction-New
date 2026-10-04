@@ -7,7 +7,7 @@ import { MapPin, Plus, Package, Wallet, LifeBuoy, CheckCircle2, Clock, Receipt, 
 import { fmt, fmtC } from "@/src/lib/format";
 import { mediaUrl } from "@/src/api/client";
 import { useTheme, PRIMARY, SLATE, AMBER, ORANGE, shadowElev, shadowBtn, TC } from "@/src/theme";
-import { StatTile, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "@/src/components/customer/ux";
+import { StatTile, StatusChip, StatSlider, CARD_W, EmptyState, SkeletonList, StatSkeleton } from "@/src/components/customer/ux";
 import { ACTIVE_STATES, DONE_STATES, statusText, statusTone, bkDate, NavKey } from "@/src/components/customer/nav";
 
 interface Props {
@@ -90,21 +90,16 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
         </LinearGradient>
       </View>
 
-      {/* QUICK STATS */}
+      {/* QUICK STATS (swipeable slider) */}
       {loading ? <StatSkeleton /> : (
-        <View testID="home-stats" style={{ gap: 12 }}>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <StatTile testID="stat-total" label="Total Bookings" value={bookings.length} count icon={Package} tone="primary" onPress={() => onNavigate("orders")} />
-            <StatTile testID="stat-completed" label="Completed" value={completed} count icon={CheckCircle2} tone="green" onPress={() => onNavigate("orders", "completed")} />
-          </View>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <StatTile testID="stat-active" label="Active" value={activeC} count icon={Clock} tone="violet" onPress={() => onNavigate("orders")} />
-            <StatTile testID="stat-wallet" label="Wallet" value={fmtC(wallet.balance)} icon={Wallet} tone="amber" onPress={() => onNavigate("wallet")} />
-          </View>
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <StatTile testID="stat-refunds" label="Refunded" value={fmtC(totalRefunded)} icon={Receipt} tone="slate" onPress={() => onNavigate("refunds")} />
-            <View style={{ flex: 1 }} />
-          </View>
+        <View testID="home-stats">
+          <StatSlider testID="home-stats-slider">
+            <View style={{ width: CARD_W }}><StatTile testID="stat-total" label="Total Bookings" value={bookings.length} count icon={Package} tone="primary" onPress={() => onNavigate("orders")} /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="stat-completed" label="Completed" value={completed} count icon={CheckCircle2} tone="green" onPress={() => onNavigate("orders", "completed")} /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="stat-active" label="Active" value={activeC} count icon={Clock} tone="violet" onPress={() => onNavigate("orders")} /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="stat-wallet" label="Wallet" value={fmtC(wallet.balance)} icon={Wallet} tone="amber" onPress={() => onNavigate("wallet")} /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="stat-refunds" label="Refunded" value={fmtC(totalRefunded)} icon={Receipt} tone="slate" onPress={() => onNavigate("refunds")} /></View>
+          </StatSlider>
         </View>
       )}
 

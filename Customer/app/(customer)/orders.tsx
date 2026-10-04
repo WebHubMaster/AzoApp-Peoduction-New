@@ -2,16 +2,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Package, Clock, CheckCircle2, AlertTriangle, IndianRupee, Plus, CreditCard } from "lucide-react-native";
+import { Package, Clock, CheckCircle2, AlertTriangle, Plus, CreditCard } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useAuth } from "../../src/context/AuthContext";
 import { useSiteConfig } from "../../src/context/BrandContext";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
-import { fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, useTheme, shadowBtn } from "../../src/theme";
-import { StatTile, StatSkeleton, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
+import { StatTile, StatSkeleton, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
 import { ACTIVE_STATES, DONE_STATES, bkDate } from "../../src/components/customer/nav";
 import { BookingCard, CardActions } from "../../src/components/customer/BookingCard";
 import { CancelDialog, ReviewDialog, RescheduleDialog, AdditionalPayDialog } from "../../src/components/customer/BookingDialogs";
@@ -77,7 +76,6 @@ export default function OrdersScreen() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const activeFilters = (payment !== "all" ? 1 : 0) + (range.preset !== "All" ? 1 : 0) + (sort !== "new" ? 1 : 0);
   const counts: Record<string, number> = { all: bookings.length, active: bookings.filter((b: any) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b: any) => b.status === "searching").length, ongoing: bookings.filter((b: any) => ONGOING.includes(b.status)).length, completed: bookings.filter((b: any) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b: any) => b.status === "cancelled").length };
-  const spent = bookings.filter((b: any) => DONE_STATES.includes(b.status)).reduce((s: number, b: any) => s + (b.pricing?.total || 0), 0);
   const clearAll = () => { setPayment("all"); setRange(ALL_RANGE); setSort("new"); setTab("all"); };
   const goNew = () => router.push("/(site)/services" as any);
   const err = (e: any, fb: string) => toast.error(e?.message || fb);
@@ -123,12 +121,15 @@ export default function OrdersScreen() {
       {/* SectionHeader */}
       <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 20, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
 
-      {/* KPI (grid-cols-2) */}
+      {/* KPI slider (swipeable) */}
       {loading && bookings.length === 0 ? <StatSkeleton /> : (
-        <View style={{ gap: 12, marginBottom: 20 }}>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="kpi-total" label="Total" value={bookings.length} count icon={Package} tone="primary" /><StatTile testID="kpi-active" label="Active" value={counts.active} count icon={Clock} tone="violet" /></View>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="kpi-completed" label="Completed" value={counts.completed} count icon={CheckCircle2} tone="green" /><StatTile testID="kpi-cancelled" label="Cancelled" value={counts.cancelled} count icon={AlertTriangle} tone="rose" /></View>
-          <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="kpi-spent" label="Total Spent" value={fmtC(spent)} icon={IndianRupee} tone="amber" /><View style={{ flex: 1 }} /></View>
+        <View style={{ marginBottom: 20 }}>
+          <StatSlider testID="kpi-slider">
+            <View style={{ width: CARD_W }}><StatTile testID="kpi-total" label="Total" value={bookings.length} count icon={Package} tone="primary" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="kpi-active" label="Active" value={counts.active} count icon={Clock} tone="violet" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="kpi-completed" label="Completed" value={counts.completed} count icon={CheckCircle2} tone="green" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="kpi-cancelled" label="Cancelled" value={counts.cancelled} count icon={AlertTriangle} tone="rose" /></View>
+          </StatSlider>
         </View>
       )}
 

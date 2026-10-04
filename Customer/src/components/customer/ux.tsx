@@ -1,7 +1,7 @@
 /** Ports of web_panel/src/components/customer/ux.jsx primitives (StatTile, StatusChip, EmptyState, skeletons). */
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal } from "react-native";
+import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal, Dimensions } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Inbox, Search, X, Calendar as CalIcon, ChevronLeft, ChevronRight, ArrowUpDown, Check, SlidersHorizontal } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, AMBER, ROSE, VIOLET, INDIGO, ORANGE, BLUE, useTheme, shadowElev, shadowBtn, TC } from "@/src/theme";
@@ -60,6 +60,28 @@ export function StatTile({ label, value, icon: Icon, tone = "primary", count, on
         </View>
       </LinearGradient>
     </Pressable>
+  );
+}
+
+/* ------------------------------------------------------------ StatSlider --- */
+/** Width of one stat card in the horizontal slider — ~2 cards + a peek of the next. */
+export const CARD_W = Math.round((Dimensions.get("window").width - 32) * 0.46);
+
+/** Horizontal, snapping slider for the dashboard stat cards. Wrap each tile in
+ *  <View style={{ width: CARD_W }}>. Shows ~2 cards with the next peeking so it
+ *  reads as a swipeable carousel rather than a static grid. */
+export function StatSlider({ children, testID }: { children: React.ReactNode; testID?: string }) {
+  return (
+    <ScrollView
+      testID={testID}
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={CARD_W + 12}
+      decelerationRate="fast"
+      contentContainerStyle={{ gap: 12, paddingRight: 16 }}
+    >
+      {children}
+    </ScrollView>
   );
 }
 
