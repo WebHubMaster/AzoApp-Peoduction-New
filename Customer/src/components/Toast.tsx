@@ -1,6 +1,6 @@
 /** Toast — mirrors sonner <Toaster position="top-center" richColors /> used by the web panel. */
-import React, { createContext, useContext, useCallback, useRef, useState } from "react";
-import { Text, Animated, Pressable, View } from "react-native";
+import React, { createContext, useContext, useCallback, useMemo, useRef, useState } from "react";
+import { Text, Animated, Pressable, View, PanResponder } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react-native";
 
@@ -24,19 +24,37 @@ const META: Record<ToastKind, { bg: string; border: string; fg: string; Icon: an
 export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
   const [toast, setToast] = useState<ToastItem | null>(null);
   const insets = useSafeAreaInsets();
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const timer = useRef<any>(null);
+  const [drag] = useState(() => new Animated.Value(0));
 
   const hide = useCallback(() => {
-    Animated.timing(anim, { toValue: 0, duration: 180, useNativeDriver: true }).start(() => setToast(null));
-  }, [anim]);
+    if (timer.current) clearTimeout(timer.current);
+    Animated.timing(anim, { toValue: 0, duration: 150, useNativeDriver: true }).start(() => { setToast(null); drag.setValue(0); });
+  }, [anim, drag]);
+
+  // Swipe up to dismiss (small downward pull is resisted).
+  const pan = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_e, g) => Math.abs(g.dy) > 6 && Math.abs(g.dy) > Math.abs(g.dx),
+    onPanResponderTerminationRequest: () => false,
+    onPanResponderMove: (_e, g) => drag.setValue(g.dy < 0 ? g.dy : g.dy * 0.2),
+    onPanResponderRelease: (_e, g) => {
+      if (g.dy < -24 || g.vy < -0.4) {
+        if (timer.current) clearTimeout(timer.current);
+        Animated.timing(drag, { toValue: -160, duration: 140, useNativeDriver: true }).start(() => { setToast(null); anim.setValue(0); drag.setValue(0); });
+      } else {
+        Animated.spring(drag, { toValue: 0, useNativeDriver: true, friction: 7 }).start();
+      }
+    },
+    onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
+  }), [anim, drag]);
 
   const show = useCallback((message: string, kind: ToastKind) => {
     if (timer.current) clearTimeout(timer.current);
     setToast({ id: Date.now(), kind, message });
     Animated.spring(anim, { toValue: 1, useNativeDriver: true, friction: 8 }).start();
-    timer.current = setTimeout(hide, 4000);
-  }, [anim, hide]);
+    timer.current = setTimeout(hide, kind === "error" ? 2500 : 1800);
+  }, [anim, hide, drag]);
 
   const value: ToastCtx = {
     success: (m) => show(m, "success"),
@@ -53,7 +71,8 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
         <Animated.View
           pointerEvents="box-none"
           style={{ position: "absolute", top: insets.top + 12, left: 16, right: 16, zIndex: 9999, alignItems: "center",
-            opacity: anim, transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }) }] }}
+            opacity: anim, transform: [{ translateY: Animated.add(anim.interpolate({ inputRange: [0, 1], outputRange: [-24, 0] }), drag) }] }}
+          {...pan.panHandlers}
         >
           <Pressable testID="toast" onPress={hide}
             style={{ width: "100%", maxWidth: 356, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: m.bg, borderRadius: 8,
