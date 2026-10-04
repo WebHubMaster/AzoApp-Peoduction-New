@@ -104,3 +104,6 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 ## 2026-06 — Admin Live Map partner photos + Partner App welcome redesign
 - Admin Live Partner Map: `/api/admin/partners/live` now returns `photo`; list/drawer/info-window show partner's own profile photo, grey SVG placeholder otherwise (no random pravatar). iteration_198 pass.
 - Partner App `frontend/app/(auth)/welcome.tsx` premium redesign (UI only): dynamic admin logo w/ skeleton + fallback, language pill dropdown, hero w/ blob + faded person, 3 trust cards, bottom Get Started panel w/ animated CTAs, security note, entrance animations, height-aware/scrollable layout. Navigation unchanged. iteration_199 pass (via temporary Expo web export).
+
+## 2026-06 — Partner app uniform font
+- Partner app (frontend/) now uses Inter (same as web) via `src/lib/globalFont.ts` APP_FONTS (Regular..Black in assets/fonts); OS font scaling disabled on Text/TextInput so size is identical on every phone. Web build injects InterX @font-face from bundled assets. PublicSans removed from partner app. iteration_200.
