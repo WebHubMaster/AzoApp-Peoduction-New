@@ -108,7 +108,7 @@ export default function MembershipPage() {
 
         {me?.active ? (
           <View style={{ paddingHorizontal: 20, marginBottom: 16 }} testID="my-membership">
-            <LinearGradient colors={[me.membership.color || "#4f46e5", "#1e293b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 20, padding: 20, gap: 14 }}>
+            <LinearGradient colors={[me.membership.color || "#4f46e5", "#1e293b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, gap: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Crown size={32} color="#fff" />
                 <View style={{ flex: 1 }}><Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>{me.membership.plan_name} — Active</Text><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>{me.membership.discount_pct}% off every booking · valid till {(me.membership.expires_at || "").slice(0, 10)}</Text></View>
@@ -128,10 +128,10 @@ export default function MembershipPage() {
               const save = p.original_price > p.price ? Math.round((1 - p.price / p.original_price) * 100) : 0;
               const benefits: string[] = p.benefits?.length ? p.benefits : [`${p.discount_pct}% off every booking`, p.free_visits > 0 ? `${p.free_visits} free visiting charges` : null, p.priority_support ? "Priority support" : null].filter(Boolean);
               return (
-                <View key={p.id} testID={`plan-card-${p.slug}`} style={{ borderRadius: 24, backgroundColor: TC.surface, borderWidth: 2, borderColor: popular ? p.color : TC.border, padding: 24, marginTop: p.badge ? 10 : 0, boxShadow: popular ? "0px 10px 30px rgba(15,23,42,0.12)" : "0px 1px 2px rgba(15,23,42,0.05)" }}>
+                <View key={p.id} testID={`plan-card-${p.slug}`} style={{ borderRadius: 10, backgroundColor: TC.surface, borderWidth: 2, borderColor: popular ? p.color : TC.border, padding: 24, marginTop: p.badge ? 10 : 0, boxShadow: popular ? "0px 10px 30px rgba(15,23,42,0.12)" : "0px 1px 2px rgba(15,23,42,0.05)" }}>
                   {p.badge ? <View style={{ position: "absolute", top: -13, alignSelf: "center", backgroundColor: p.color, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 5 }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{p.badge}</Text></View> : null}
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-                    <View style={{ height: 48, width: 48, borderRadius: 16, backgroundColor: p.color, alignItems: "center", justifyContent: "center" }}><Icon size={24} color="#fff" /></View>
+                    <View style={{ height: 48, width: 48, borderRadius: 10, backgroundColor: p.color, alignItems: "center", justifyContent: "center" }}><Icon size={24} color="#fff" /></View>
                     <View style={{ flex: 1 }}><Text style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{p.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{p.tagline}</Text></View>
                   </View>
                   <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, marginTop: 20 }}>
@@ -146,7 +146,7 @@ export default function MembershipPage() {
                   <View style={{ marginTop: 16, gap: 8 }}>
                     {benefits.map((b, i) => <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}><Check size={16} color={EMERALD[500]} style={{ marginTop: 2 }} /><Text style={{ fontSize: 14, color: TC.textMuted, flex: 1 }}>{b}</Text></View>)}
                   </View>
-                  <Pressable testID={`buy-${p.slug}`} disabled={isActive || busy === p.id} onPress={() => buy(p)} style={{ marginTop: 24, height: 48, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: isActive ? "#10b981" : p.color, opacity: isActive || busy === p.id ? 0.75 : 1 }}>
+                  <Pressable testID={`buy-${p.slug}`} disabled={isActive || busy === p.id} onPress={() => buy(p)} style={{ marginTop: 24, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, backgroundColor: isActive ? "#10b981" : p.color, opacity: isActive || busy === p.id ? 0.75 : 1 }}>
                     {busy === p.id ? <><ActivityIndicator size="small" color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Processing…</Text></>
                       : isActive ? <><Check size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Current Plan</Text></>
                       : <Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{user ? `Get ${p.name}` : "Sign in to buy"}</Text>}
@@ -158,7 +158,7 @@ export default function MembershipPage() {
 
         <View style={{ paddingHorizontal: 20, marginTop: 40, gap: 12 }}>
           {[[BadgeCheck, "Instant activation", "Benefits apply the moment you join"], [Clock, "Auto-applied at checkout", "No coupon codes — discount is automatic"], [Shield, "Secure payments", "Bank-grade Razorpay checkout"]].map(([I, t, s]: any, i) => (
-            <View key={i} style={{ borderRadius: 20, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 20, alignItems: "center" }}>
+            <View key={i} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 20, alignItems: "center" }}>
               <I size={24} color={TC.primaryText} />
               <Text style={{ fontWeight: "700", color: TC.text, marginTop: 8, fontSize: 15 }}>{t}</Text>
               <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 4 }}>{s}</Text>

@@ -19,7 +19,7 @@ function ServiceCard({ s, w }: { s: any; w: number }) {
   const price = disc ? s.discounted_price : s.base_price;
   const off = disc ? Math.round((1 - s.discounted_price / s.base_price) * 100) : 0;
   return (
-    <Pressable testID={`svc-${s.id}`} onPress={() => router.push(`/(site)/service/${s.id}` as any)} style={{ width: w, borderRadius: 16, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, overflow: "hidden" }}>
+    <Pressable testID={`svc-${s.id}`} onPress={() => router.push(`/(site)/service/${s.id}` as any)} style={{ width: w, borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, overflow: "hidden" }}>
       <View style={{ width: "100%", height: 120, backgroundColor: TC.surfaceAlt }}>
         {s.image ? <Image source={{ uri: s.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={200} /> : null}
         {off > 0 ? <View style={{ position: "absolute", top: 8, left: 8, backgroundColor: PRIMARY[700], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{off}% OFF</Text></View> : null}
@@ -91,7 +91,7 @@ export default function ServicesPage() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}><Text style={{ fontSize: 20, fontWeight: "700", color: TC.text }}>Rate card items</Text><View style={{ backgroundColor: TC.primarySoft, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ fontSize: 11, fontWeight: "700", color: TC.primaryText }}>{rcItems.length} found</Text></View></View>
             <View style={{ gap: 12 }}>
               {rcItems.map((it) => { const accent = it.accent_color || "#0D47A1"; const price = (Number(it.service_charge) || 0) + (Number(it.labour_charge) || 0); return (
-                <View key={it.row_id} testID={`rc-result-${it.row_id}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: TC.border, borderLeftWidth: 3, borderLeftColor: accent, backgroundColor: TC.surface, padding: 16, gap: 8 }}>
+                <View key={it.row_id} testID={`rc-result-${it.row_id}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, borderLeftWidth: 3, borderLeftColor: accent, backgroundColor: TC.surface, padding: 16, gap: 8 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Sparkles size={14} color={accent} /><Text style={{ fontSize: 11, fontWeight: "700", color: accent }}>{it.brand_label || "AzoCover"}</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>· {it.category_name}</Text></View>
                   <Text numberOfLines={2} style={{ fontSize: 15, fontWeight: "600", color: TC.text }}>{it.description}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 4 }}>
@@ -103,7 +103,7 @@ export default function ServicesPage() {
           </View>
         ) : null}
 
-        {loading ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 300, borderRadius: 16 }} />)}</View> : null}
+        {loading ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 300, borderRadius: 10 }} />)}</View> : null}
         {!loading && Object.keys(grouped).length === 0 && rcItems.length === 0 ? <Text testID="services-empty" style={{ textAlign: "center", color: TC.textFaint, paddingVertical: 64 }}>No services found.</Text> : null}
         {!loading ? Object.entries(grouped).map(([catName, list]) => (
           <View key={catName} testID={`services-group-${catName}`} style={{ marginBottom: 32 }}>
@@ -114,7 +114,7 @@ export default function ServicesPage() {
       </ScrollView>
       {count > 0 ? (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, boxShadow: "0px -6px 24px rgba(15,23,42,0.10)" } as any}>
-          <Pressable testID="view-booking-bar" onPress={() => router.push("/(site)/book" as any)} style={({ pressed }) => ({ height: 56, borderRadius: 16, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, boxShadow: "0px 10px 30px rgba(13,71,161,0.3)" } as any)}>
+          <Pressable testID="view-booking-bar" onPress={() => router.push("/(site)/book" as any)} style={({ pressed }) => ({ height: 56, borderRadius: 10, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, boxShadow: "0px 10px 30px rgba(13,71,161,0.3)" } as any)}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>{count}</Text></View><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>View your booking</Text></View>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Checkout</Text><ChevronRight size={20} color="#fff" /></View>
           </Pressable>

@@ -78,7 +78,7 @@ export function PartnerCheckin({ checkin, partnerName }: { checkin: any; partner
   const when = checkin.at ? fmtTs(checkin.at) : "";
   const far = !!checkin.far;
   return (
-    <View testID="partner-checkin" style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: far ? "#FFFBEB" : EMERALD[50], borderRadius: 14, padding: 10, borderWidth: 1, borderColor: far ? "#FDE68A" : EMERALD[100] }}>
+    <View testID="partner-checkin" style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: far ? "#FFFBEB" : EMERALD[50], borderRadius: 10, padding: 10, borderWidth: 1, borderColor: far ? "#FDE68A" : EMERALD[100] }}>
       <Pressable testID="partner-checkin-selfie" onPress={() => setOpen(true)} style={{ width: 64, height: 80, borderRadius: 12, overflow: "hidden", borderWidth: 2, borderColor: "#fff" }}>
         <Image source={{ uri: url }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
       </Pressable>

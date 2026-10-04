@@ -27,7 +27,7 @@ export function AppBottomNav() {
   const isHome = path === "/" || path === "/(site)" || path === "";
   return (
     <View style={{ backgroundColor: c.surface, paddingBottom: Math.max(insets.bottom, 8), paddingHorizontal: 12 }}>
-      <View testID="app-bottom-nav" style={{ backgroundColor: c.surface, borderRadius: 22, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "flex-end", boxShadow: "0px -4px 24px rgba(15,23,42,0.10)" }}>
+      <View testID="app-bottom-nav" style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, flexDirection: "row", alignItems: "flex-end", boxShadow: "0px -4px 24px rgba(15,23,42,0.10)" }}>
         <Tab testID="bn-home" Icon={Home} label="Home" active={isHome} onPress={() => router.replace("/(site)")} />
         <Tab testID="bn-bookings" Icon={ClipboardList} label="My Bookings" active={path.includes("/orders")} onPress={() => go("/(customer)/orders", true)} />
         <View style={{ flex: 1, alignItems: "center", justifyContent: "flex-end", paddingBottom: 10 }}>

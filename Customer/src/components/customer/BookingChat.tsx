@@ -99,7 +99,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
               const mine = m.sender_id === chat.me;
               return (
                 <View key={m.id} testID={mine ? "chat-msg-mine" : "chat-msg-other"} style={{ flexDirection: "row", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                  <View style={{ maxWidth: "80%", borderRadius: 16, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? PRIMARY[700] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.border }}>
+                  <View style={{ maxWidth: "80%", borderRadius: 10, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? PRIMARY[700] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.border }}>
                     <Text style={{ fontSize: 14, color: mine ? "#fff" : c.text }}>{m.text}</Text>
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 2 }}>
                       <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.7)" : TC.textFaint }}>{new Date(m.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</Text>

@@ -59,12 +59,12 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
           ) : null}
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 16 }}>
-            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 50, borderRadius: 16, borderWidth: 1.5, borderColor: TC.border, backgroundColor: TC.bg, paddingHorizontal: 14 }}>
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 50, borderRadius: 10, borderWidth: 1.5, borderColor: TC.border, backgroundColor: TC.bg, paddingHorizontal: 14 }}>
               <Search size={18} color={TC.textFaint} />
               <TextInput testID="app-location-input" value={val} onChangeText={setVal} onSubmitEditing={() => save()} placeholder="Enter city or pincode" placeholderTextColor={TC.textFaint} autoFocus style={{ flex: 1, fontSize: 14, color: TC.text, height: 48, paddingVertical: 0, outlineStyle: "none" } as any} />
               {pinChecking ? <ActivityIndicator size="small" color={TC.primaryText} /> : null}
             </View>
-            <Pressable testID="app-location-set" onPress={() => save()} disabled={!val.trim()} style={{ height: 50, paddingHorizontal: 20, borderRadius: 16, backgroundColor: val.trim() ? PRIMARY[700] : TC.border, justifyContent: "center", ...shadowBtn }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Set</Text></Pressable>
+            <Pressable testID="app-location-set" onPress={() => save()} disabled={!val.trim()} style={{ height: 50, paddingHorizontal: 20, borderRadius: 10, backgroundColor: val.trim() ? PRIMARY[700] : TC.border, justifyContent: "center", ...shadowBtn }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Set</Text></Pressable>
           </View>
           {isPin && !pinChecking && pinCov ? (
             <View testID="app-location-pincode-badge" style={{ marginTop: 10, flexDirection: "row" }}>
@@ -73,14 +73,14 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
             </View>
           ) : null}
 
-          <Pressable testID="app-location-detect" onPress={detect} disabled={status === "locating"} style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, borderWidth: 1, borderColor: PRIMARY[100], backgroundColor: TC.primarySoft, opacity: status === "locating" ? 0.7 : 1 }}>
+          <Pressable testID="app-location-detect" onPress={detect} disabled={status === "locating"} style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: PRIMARY[100], backgroundColor: TC.primarySoft, opacity: status === "locating" ? 0.7 : 1 }}>
             <View style={{ height: 38, width: 38, borderRadius: 19, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>{status === "locating" ? <ActivityIndicator size="small" color="#fff" /> : <LocateFixed size={18} color="#fff" />}</View>
             <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: PRIMARY[800] }}>{status === "locating" ? "Detecting your location…" : "Use my current location"}</Text><Text style={{ fontSize: 11, color: TC.textMuted, marginTop: 1 }}>Using GPS · faster & accurate</Text></View>
             <ChevronRight size={18} color={TC.primaryText} />
           </Pressable>
           {status === "error" && err ? <Text testID="app-location-error" style={{ fontSize: 12, color: ROSE[600], marginTop: 8 }}>{err}</Text> : null}
           {status === "out_of_area" && oos ? (
-            <View testID="app-location-out-of-area" style={{ marginTop: 10, padding: 12, borderRadius: 14, backgroundColor: ROSE[50], borderWidth: 1, borderColor: ROSE[200] }}>
+            <View testID="app-location-out-of-area" style={{ marginTop: 10, padding: 12, borderRadius: 10, backgroundColor: ROSE[50], borderWidth: 1, borderColor: ROSE[200] }}>
               <Text style={{ fontSize: 13, fontWeight: "700", color: ROSE[700] }}>We're not in {oos.city} yet</Text>
               <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>Pick a serviced city below to continue.</Text>
             </View>

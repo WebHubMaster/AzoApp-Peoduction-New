@@ -59,7 +59,7 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
     <View style={iconOnly ? { position: "relative", zIndex: 60 } : undefined}>
       {Trigger}
       {open ? (
-        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: iconOnly ? Dimensions.get("window").width - SIDE_MARGIN * 2 : 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 16, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: -(ICON_RIGHT_GAP - SIDE_MARGIN), zIndex: 100 } : {}) } as any}>
+        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: iconOnly ? Dimensions.get("window").width - SIDE_MARGIN * 2 : 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 10, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: -(ICON_RIGHT_GAP - SIDE_MARGIN), zIndex: 100 } : {}) } as any}>
           {status === "out_of_area" && oos ? (
             <View testID="out-of-area">
               <Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>We&apos;re not in {oos.city} yet</Text>

@@ -56,7 +56,7 @@ export default function RefundsScreen() {
       <PlainList data={filtered} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={6}
         ListEmptyComponent={loading && refunds.length === 0 ? <SkeletonList rows={3} /> : refunds.length === 0 ? <EmptyState icon={Receipt} title="No refunds yet" desc="No cancellations or refunds on your account." testID="refunds-empty" /> : <EmptyState icon={Receipt} title="No refunds match" desc="Adjust your filters." testID="refunds-nomatch" />}
         renderItem={({ item: r }) => (
-          <View testID={`refund-${r.booking_code}`} style={{ borderRadius: 18, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 18, marginBottom: 12 }}>
+          <View testID={`refund-${r.booking_code}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 18, marginBottom: 12 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text }}>{r.service_name}</Text><RefundStatusBadge status={r.status} /><StatusChip tone="slate" label={r.method || "—"} /></View>

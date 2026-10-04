@@ -59,7 +59,7 @@ export default function AddressesScreen() {
 
       <View style={{ gap: 12 }}>
         {list.map((a) => (
-          <View key={a.id} testID={`address-card-${a.id}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
+          <View key={a.id} testID={`address-card-${a.id}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Text style={{ fontWeight: "600", fontSize: 15, color: c.text }}>{a.label}</Text>

@@ -42,7 +42,7 @@ export function CenterDialog({ open, onClose, children, testID }: { open: boolea
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.6)", alignItems: "center", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }} onPress={onClose} />
-          <View testID={testID} style={{ width: "100%", maxWidth: 448, maxHeight: "92%", backgroundColor: c.surface, borderRadius: 16, overflow: "hidden" }}>
+          <View testID={testID} style={{ width: "100%", maxWidth: 448, maxHeight: "92%", backgroundColor: c.surface, borderRadius: 10, overflow: "hidden" }}>
             <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
           </View>
         </View>
@@ -150,7 +150,7 @@ export function AdditionalPayDialog({ booking, onClose, onPay, walletBalance }: 
     <Modal visible={!!booking} transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 16 }}>
         <Pressable style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }} onPress={onClose} />
-        <View testID="addl-pay-dialog" style={{ width: "100%", maxWidth: 448, backgroundColor: c.surface, borderRadius: 16, overflow: "hidden" }}>
+        <View testID="addl-pay-dialog" style={{ width: "100%", maxWidth: 448, backgroundColor: c.surface, borderRadius: 10, overflow: "hidden" }}>
           <View style={{ backgroundColor: AMBER[500], paddingHorizontal: 20, paddingVertical: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><AlertTriangle size={20} color="#fff" /><Text style={{ fontSize: 18, fontWeight: "800", color: "#fff" }}>Additional work payment</Text></View>
             <Text style={{ fontSize: 12.5, color: AMBER[50], marginTop: 2 }}>Complete this payment so the partner can finish the job.</Text>

@@ -80,7 +80,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
             const on = p.plan_type === sel;
             return (
               <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
-                style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 14, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
+                style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 10, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
                   <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
@@ -137,7 +137,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
 function OverviewChip({ icon: Icon, label, value, color, bg }: any) {
   const { c } = useTheme();
   return (
-    <View style={{ flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: c.border, borderRadius: 14, padding: 10, backgroundColor: c.surface }}>
+    <View style={{ flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 10, backgroundColor: c.surface }}>
       <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
         <Icon size={16} color={color} />
       </View>
@@ -175,11 +175,11 @@ function SubCard({ s }: { s: any }) {
   };
 
   return (
-    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 20, backgroundColor: c.surface, overflow: "hidden" }}>
+    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, backgroundColor: c.surface, overflow: "hidden" }}>
       {/* header */}
       <View style={{ padding: 14, gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ height: 40, width: 40, borderRadius: 14, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ height: 40, width: 40, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
             <CalendarHeart size={20} color={TC.primaryText} />
           </View>
           <View style={{ flex: 1 }}>
@@ -239,7 +239,7 @@ function SubCard({ s }: { s: any }) {
       {open ? (
         <View testID={`my-sub-expanded-${s.id}`} style={{ borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.bg, padding: 14, gap: 12 }}>
           {/* service calendar */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14, marginBottom: 10 }}>Service calendar</Text>
             <View style={{ gap: 6 }}>
               {schedule.map((d) => {
@@ -259,7 +259,7 @@ function SubCard({ s }: { s: any }) {
           </View>
 
           {/* attendance — maid name · date · arrival time only (no rate/earnings) */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Attendance</Text>
             {(s.attendance || []).length ? (
               (s.attendance || []).slice().reverse().map((a: any) => {
@@ -290,7 +290,7 @@ function SubCard({ s }: { s: any }) {
           </View>
 
           {/* maid details */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Maid details</Text>
             {s.partner_name ? (
               <>
@@ -359,7 +359,7 @@ export default function SubscriptionsScreen() {
           ) : (
             <View style={{ gap: 12 }}>
               {services.map((s) => (
-                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 16, padding: 14, backgroundColor: c.surface }}>
+                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 14, backgroundColor: c.surface }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.name}</Text>

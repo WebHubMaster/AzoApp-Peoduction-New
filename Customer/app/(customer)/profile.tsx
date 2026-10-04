@@ -31,7 +31,7 @@ function DeleteAccount() {
     setBusy(false);
   };
   return (
-    <View testID="danger-zone" style={{ borderRadius: 16, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.5)" : ROSE[200], backgroundColor: c.surface, padding: 24 }}>
+    <View testID="danger-zone" style={{ borderRadius: 10, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.5)" : ROSE[200], backgroundColor: c.surface, padding: 24 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
         <ShieldAlert size={20} color={ROSE[500]} style={{ marginTop: 2 }} />
         <View style={{ flex: 1 }}><Text style={{ fontWeight: "700", fontSize: 16, color: c.text }}>Delete Account</Text><Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>This removes your account and data. An admin may need to approve the request.</Text></View>
@@ -84,14 +84,14 @@ export default function ProfileScreen() {
 
       <View testID="profile-shortcuts" style={{ flexDirection: "row", gap: 12 }}>
         {[["addresses", "Addresses", MapPin, "/(customer)/addresses"], ["wallet", "Wallet", Wallet, "/(customer)/wallet"], ["orders", "Bookings", Package, "/(customer)/orders"]].map(([k, label, Icon, route]: any) => (
-          <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>
+          <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>
             <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={c.primaryText} /></View>
             <Text style={{ fontSize: 12, fontWeight: "600", color: c.text }}>{label}</Text>
           </Pressable>
         ))}
       </View>
 
-      <View testID="profile-editor" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, ...shadowElev }}>
+      <View testID="profile-editor" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, ...shadowElev }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 24 }}>
           <ProfilePhotoPicker value={f.photo} onChange={(d) => set("photo", d)} size={80} testID="profile-photo" />
           <View style={{ flex: 1 }}>

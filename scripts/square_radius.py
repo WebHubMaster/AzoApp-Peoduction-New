@@ -1,6 +1,6 @@
 import re,glob,sys
 files=[f for f in glob.glob('app/**/*.tsx',recursive=True)+glob.glob('src/**/*.tsx',recursive=True)]
-TARGET={14,15,16,17,18,19,20,22,24}
+TARGET={14,15,16,17,18,19,20,22,24,26,28}
 changed=0;skipped=[]
 for f in files:
     s=open(f).read();out=[];last=0

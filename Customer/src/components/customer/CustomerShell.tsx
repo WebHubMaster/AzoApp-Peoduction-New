@@ -122,7 +122,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               const on = active === n.key;
               return (
                 <Pressable key={n.key} testID={`more-${n.key}`} onPress={() => go(n)}
-                  style={({ pressed }) => ({ width: "30.5%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 16, padding: 16, borderWidth: 1,
+                  style={({ pressed }) => ({ width: "30.5%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 10, padding: 16, borderWidth: 1,
                     borderColor: on ? (isDark ? PRIMARY[700] : PRIMARY[300]) : c.border, backgroundColor: on ? c.primarySoft : c.surface, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
                   <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: isDark ? "rgba(7,52,115,0.40)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}>
                     <n.icon size={20} color={c.primaryText} />
@@ -132,7 +132,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               );
             })}
           </View>
-          <Pressable testID="more-logout" onPress={doLogout} style={({ pressed }) => ({ marginTop: 8, height: 48, borderRadius: 16, backgroundColor: isDark ? "rgba(136,19,55,0.20)" : ROSE[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Pressable testID="more-logout" onPress={doLogout} style={({ pressed }) => ({ marginTop: 8, height: 48, borderRadius: 10, backgroundColor: isDark ? "rgba(136,19,55,0.20)" : ROSE[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             <LogOut size={16} color={ROSE[600]} /><Text style={{ color: ROSE[600], fontWeight: "700", fontSize: 14 }}>Logout</Text>
           </Pressable>
         </View>
@@ -155,7 +155,7 @@ function NavIcon({ on, icon: IconCmp, badge = 0, testID }: { on: boolean; icon: 
   );
   if (!on) return <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}>{inner}</View>;
   return (
-    <LinearGradient colors={[PRIMARY[600], PRIMARY[500]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 14, alignItems: "center", justifyContent: "center", transform: [{ scale: 1.05 }], boxShadow: "0px 4px 12px rgba(37,99,235,0.40)" } as any}>
+    <LinearGradient colors={[PRIMARY[600], PRIMARY[500]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", transform: [{ scale: 1.05 }], boxShadow: "0px 4px 12px rgba(37,99,235,0.40)" } as any}>
       {inner}
     </LinearGradient>
   );

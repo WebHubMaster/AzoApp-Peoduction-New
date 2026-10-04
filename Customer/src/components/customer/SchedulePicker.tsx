@@ -75,7 +75,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
     <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.3 : 1 }}><Icon size={16} color={TC.textMuted} /></Pressable>
   );
   return (
-    <View testID="schedule-picker" style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16 }}>
+    <View testID="schedule-picker" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         {navBtn(!canPrev, () => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1)), ChevronLeft, "cal-prev")}
         <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>

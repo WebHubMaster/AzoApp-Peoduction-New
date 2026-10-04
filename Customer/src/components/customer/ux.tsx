@@ -44,7 +44,7 @@ export function StatTile({ label, value, icon: Icon, tone = "primary", count, on
   return (
     <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ flex: 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
       <LinearGradient colors={TONES[tone] || TONES.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 16, padding: 16, overflow: "hidden", ...shadowElev }}>
+        style={{ borderRadius: 10, padding: 16, overflow: "hidden", ...shadowElev }}>
         <View style={{ position: "absolute", right: -16, top: -16, width: 96, height: 96, borderRadius: 48, backgroundColor: "rgba(255,255,255,0.10)" }} />
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -88,9 +88,9 @@ export function EmptyState({ icon: Icon = Inbox, title, desc, actionLabel, onAct
 }) {
   const { c, isDark } = useTheme();
   return (
-    <View testID={testID} style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border,
+    <View testID={testID} style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border,
       backgroundColor: isDark ? "rgba(15,23,42,0.40)" : "rgba(255,255,255,0.60)", padding: 40, alignItems: "center" }}>
-      <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
         <Icon size={28} color={c.primaryText} strokeWidth={1.6} />
       </View>
       <Text style={{ marginTop: 16, fontWeight: "700", fontSize: 18, color: c.text }}>{title}</Text>
@@ -122,7 +122,7 @@ export function Shimmer({ style }: { style?: any }) {
 export function CardSkeleton() {
   const { c } = useTheme();
   return (
-    <View style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20 }}>
+    <View style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ width: "50%", gap: 8 }}><Shimmer style={{ height: 16, width: "75%" }} /><Shimmer style={{ height: 12, width: "50%" }} /></View>
         <Shimmer style={{ height: 24, width: 64 }} />
@@ -138,7 +138,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 export function StatSkeleton({ n = 4 }: { n?: number }) {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-      {Array.from({ length: n }).map((_, i) => <Shimmer key={i} style={{ height: 96, borderRadius: 16, width: "47%", flexGrow: 1 }} />)}
+      {Array.from({ length: n }).map((_, i) => <Shimmer key={i} style={{ height: 96, borderRadius: 10, width: "47%", flexGrow: 1 }} />)}
     </View>
   );
 }

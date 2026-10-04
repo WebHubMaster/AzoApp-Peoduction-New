@@ -44,7 +44,7 @@ export function RateCardBar({ serviceId, categoryId, addable = false }: { servic
 
   return (
     <>
-      <Pressable testID="rate-card-bar" onPress={() => setOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 16, paddingVertical: 14 }}>
+      <Pressable testID="rate-card-bar" onPress={() => setOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 16, paddingVertical: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Sparkles size={16} color={accent} /><Text style={{ fontSize: 12, fontWeight: "800", color: accent }}>{card.brand_label || "AzoCover"}</Text></View>
         <Text style={{ flex: 1, fontSize: 14, fontWeight: "500", color: TC.text2 }} numberOfLines={1}>{card.title || "Standard rate card"}{addable ? " · tap to book items" : ""}</Text>
         <ChevronRight size={20} color={TC.textFaint} />
@@ -56,7 +56,7 @@ export function RateCardBar({ serviceId, categoryId, addable = false }: { servic
         {groups.map((g: any, gi: number) => {
           const isOpen = openG[g.id] ?? (gi === 0 || !!q);
           return (
-            <View key={g.id || gi} style={{ borderRadius: 16, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, overflow: "hidden" }}>
+            <View key={g.id || gi} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, overflow: "hidden" }}>
               <Pressable testID={`rc-group-${gi}`} onPress={() => setOpenG((o) => ({ ...o, [g.id]: !isOpen }))} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 14 }}>
                 <View style={{ flex: 1 }}><Text style={{ fontSize: 15, fontWeight: "700", color: TC.text }}>{g.title || g.name}</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>{g.rows.length} item{g.rows.length !== 1 ? "s" : ""}</Text></View>
                 <ChevronDown size={20} color={TC.textFaint} style={{ transform: [{ rotate: isOpen ? "180deg" : "0deg" }] }} />

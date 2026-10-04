@@ -55,7 +55,7 @@ export default function WalletScreen() {
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Your AzoApp balance, top-ups and payments</Text>
       </View>
       <View style={{ gap: 16, marginBottom: 20 }}>
-        <LinearGradient colors={[PRIMARY[600], PRIMARY[800], "#1E7AD6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden" }}>
+        <LinearGradient colors={[PRIMARY[600], PRIMARY[800], "#1E7AD6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -24, bottom: -24, height: 128, width: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.1)" }} />
           <Text style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>Available Balance</Text>
           <Text testID="wallet-balance" numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 36, fontWeight: "900", color: "#fff", marginTop: 6 }}>{fmtC(wallet?.balance || 0)}</Text>
@@ -80,7 +80,7 @@ export default function WalletScreen() {
         {paged.map((t, i) => {
           const credit = t.type === "credit";
           return (
-            <View key={t.id || i} testID={`txn-${t.id || i}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <View key={t.id || i} testID={`txn-${t.id || i}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                 <View style={{ height: 40, width: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: credit ? (isDark ? "rgba(6,78,59,0.3)" : EMERALD[50]) : (isDark ? "rgba(136,19,55,0.3)" : ROSE[50]) }}>{credit ? <TrendingUp size={20} color={EMERALD[600]} /> : <IndianRupee size={20} color={ROSE[600]} />}</View>
                 <View style={{ flex: 1, minWidth: 0 }}>

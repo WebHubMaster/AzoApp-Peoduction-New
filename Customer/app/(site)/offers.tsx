@@ -32,7 +32,7 @@ export default function OffersPage() {
       {q.isLoading ? <ActivityIndicator color={TC.primaryText} style={{ marginTop: 40 }} /> : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: 110 }}>
           {offers.map((o) => (
-            <LinearGradient key={o.id} colors={[PRIMARY[600], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 18, padding: 16 }} testID={`offers-offer-${o.id}`}>
+            <LinearGradient key={o.id} colors={[PRIMARY[600], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 16 }} testID={`offers-offer-${o.id}`}>
               <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, fontWeight: "600" }}>{o.title}</Text>
               <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900", marginTop: 2 }}>{o.discount_label || `${o.discount}% OFF`}</Text>
               {o.subtitle ? <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, marginTop: 2 }}>{o.subtitle}</Text> : null}
@@ -45,7 +45,7 @@ export default function OffersPage() {
           ))}
           {coupons.length ? <Text style={{ fontSize: 15, fontWeight: "800", color: TC.text, marginTop: 8 }}>Coupons</Text> : null}
           {coupons.map((c) => (
-            <View key={c.code} testID={`offers-coupon-${c.code}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: TC.border, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View key={c.code} testID={`offers-coupon-${c.code}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, padding: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: EMERALD[50], alignItems: "center", justifyContent: "center" }}><Ticket size={18} color={EMERALD[600]} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: 14, fontWeight: "800", color: TC.text }}>{c.label || c.code}</Text>

@@ -45,7 +45,7 @@ export function LiveTrackCard({ booking }: { booking: any }) {
   const c = data?.customer_location?.lat != null ? data.customer_location : null;
   const arrived = ["arrived_customer", "started"].includes(data?.status || booking.status);
   return (
-    <View testID="live-track" style={{ borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface }}>
+    <View testID="live-track" style={{ borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface }}>
       <View style={{ height: 180, backgroundColor: TC.surfaceAlt }}>
         {data ? (p || c ? <OsmMap p={p} c={c} /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 6 }}><MapPin size={20} color={TC.textFaint} /><Text style={{ color: TC.textMuted, fontSize: 12.5 }}>Waiting for your professional&apos;s location…</Text></View>) : <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator color={PRIMARY[600]} /></View>}
       </View>

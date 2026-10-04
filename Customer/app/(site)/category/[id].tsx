@@ -42,7 +42,7 @@ export default function CategoryServices() {
         </View>
       </View>
       {q.isLoading ? (
-        <View style={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 14 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 220, borderRadius: 18 }} />)}</View>
+        <View style={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 14 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 220, borderRadius: 10 }} />)}</View>
       ) : (
         <FlatList
           data={rows}
@@ -56,7 +56,7 @@ export default function CategoryServices() {
           ListEmptyComponent={<Text testID="category-empty" style={{ textAlign: "center", color: TC.textMuted, marginTop: 40 }}>No services in this category yet.</Text>}
           ListFooterComponent={count < all.length ? <View testID="category-loading-more" style={{ paddingVertical: 16, alignItems: "center" }}><ActivityIndicator color={TC.primaryText} /></View> : null}
           renderItem={({ item: s, index }) => (
-            <View testID={`category-svc-${index}`} style={{ width: cardW, backgroundColor: TC.surface, borderRadius: 18, borderWidth: 1, borderColor: TC.border, overflow: "hidden" }}>
+            <View testID={`category-svc-${index}`} style={{ width: cardW, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, overflow: "hidden" }}>
               <Pressable testID={`category-open-${index}`} onPress={() => navigate(`/service/${s.id}`)}>
                 <Image source={{ uri: s.image }} style={{ height: 120, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
                 <View style={{ paddingHorizontal: 12, paddingTop: 12 }}>

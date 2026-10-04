@@ -127,7 +127,7 @@ export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, ad
         </View>
       </SectionCard>
       <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(isSub ? 3 : 4)} testID="review-price"><PriceRows totals={totals} items={items} lineTotal={lineTotal} estimate={displayTotal} review /></SectionCard>
-      <View testID="secure-badge" style={{ borderRadius: 16, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: EMERALD[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color="#fff" /></View><View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely now · full refund on eligible cancellations</Text></View></View>
+      <View testID="secure-badge" style={{ borderRadius: 10, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: EMERALD[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color="#fff" /></View><View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely now · full refund on eligible cancellations</Text></View></View>
     </View>
   );
 }

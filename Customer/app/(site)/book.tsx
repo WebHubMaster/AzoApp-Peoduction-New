@@ -210,7 +210,7 @@ export default function Checkout() {
   if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace((placed.subscription ? "/(customer)/subscriptions" : "/(customer)/orders") as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (ready && !items.length && step === 0) return (
     <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <View style={{ height: 80, width: 80, borderRadius: 16, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
+      <View style={{ height: 80, width: 80, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
       <Text style={{ fontSize: 22, fontWeight: "700", color: TC.text }}>Your booking is empty</Text>
       <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 320 }}>Add one or more services to get started. You can book multiple services in a single order.</Text>
       <Pressable testID="browse-services" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Browse services</Text><ArrowRight size={16} color="#fff" /></Pressable>

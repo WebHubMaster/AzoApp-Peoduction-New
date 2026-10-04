@@ -90,7 +90,7 @@ export default function AlertHealthCheck() {
       </View>
 
       {criticalMissing ? (
-        <View testID="alert-warning" style={{ flexDirection: "row", gap: 10, backgroundColor: isDark ? "rgba(120,53,15,0.25)" : "#FEF3C7", borderColor: "#FCD34D", borderWidth: 1, borderRadius: 16, padding: 14 }}>
+        <View testID="alert-warning" style={{ flexDirection: "row", gap: 10, backgroundColor: isDark ? "rgba(120,53,15,0.25)" : "#FEF3C7", borderColor: "#FCD34D", borderWidth: 1, borderRadius: 10, padding: 14 }}>
           <AlertCircle size={20} color="#B45309" />
           <Text style={{ flex: 1, color: isDark ? "#FDE68A" : "#92400E", fontSize: 12.5, lineHeight: 18, fontWeight: "600" }}>
             A required permission is off. Your booking alerts may not ring reliably until you allow it below.
@@ -104,9 +104,9 @@ export default function AlertHealthCheck() {
         const permanentlyDenied = !!st && !granted && st.canAskAgain === false;
         const Ic = card.icon;
         return (
-          <View key={card.key} testID={`alert-card-${card.key}`} style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: granted ? "rgba(34,197,94,0.45)" : card.critical ? "rgba(245,158,11,0.4)" : c.border, padding: 14, gap: 10 }}>
+          <View key={card.key} testID={`alert-card-${card.key}`} style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: granted ? "rgba(34,197,94,0.45)" : card.critical ? "rgba(245,158,11,0.4)" : c.border, padding: 14, gap: 10 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 46, height: 46, borderRadius: 10, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
                 <Ic size={24} color={card.tint} />
               </View>
               <View style={{ flex: 1 }}>
@@ -148,7 +148,7 @@ export default function AlertHealthCheck() {
       })}
 
       {/* Push & ring diagnostics + real self-test */}
-      <View testID="alert-diagnostics" style={{ backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, padding: 14, gap: 12 }}>
+      <View testID="alert-diagnostics" style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 14, gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Radio size={20} color={c.primaryText} />
           <Text style={{ color: c.text, fontWeight: "900", fontSize: 15 }}>Push & Ring Diagnostics</Text>
@@ -173,7 +173,7 @@ export default function AlertHealthCheck() {
       </View>
 
       {Platform.OS === "android" ? (
-        <Pressable testID="alert-open-settings" onPress={() => Linking.openSettings().catch(() => toast.info("Open your phone Settings → Apps → AzoApp"))} style={{ alignItems: "center", paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface }}>
+        <Pressable testID="alert-open-settings" onPress={() => Linking.openSettings().catch(() => toast.info("Open your phone Settings → Apps → AzoApp"))} style={{ alignItems: "center", paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface }}>
           <Text style={{ color: c.primaryText, fontWeight: "800", fontSize: 14 }}>Open App Settings</Text>
         </Pressable>
       ) : null}

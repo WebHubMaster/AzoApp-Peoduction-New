@@ -30,7 +30,7 @@ const StatusBadge = ({ status, testID }: { status?: string; testID?: string }) =
 function KpiCard({ icon: Icon, tone, label, value, sub, testID }: any) {
   const { c } = useTheme(); const t = KPI_TONE[tone] || KPI_TONE.slate;
   return (
-    <View testID={testID} style={{ width: "47.5%", flexGrow: 1, borderRadius: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16 }}>
+    <View testID={testID} style={{ width: "47.5%", flexGrow: 1, borderRadius: 10, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16 }}>
       <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: t.bg, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={t.fg} /></View>
       <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginTop: 12 }}>{label}</Text>
       <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 24, fontWeight: "800", color: c.text, marginTop: 2 }}>{value}</Text>
@@ -121,7 +121,7 @@ export default function InvoicesScreen() {
       </ScrollView>
       {range === "custom" ? <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}><DatePick value={dateFrom} onChange={setDateFrom} placeholder="From" testID="invoice-date-from" /><Text style={{ color: TC.textFaint }}>to</Text><DatePick value={dateTo} onChange={setDateTo} placeholder="To" testID="invoice-date-to" /></View> : null}
 
-      {loading && !data ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Shimmer key={i} style={{ height: 120, borderRadius: 16, width: "47%", flexGrow: 1 }} />)}</View> : (
+      {loading && !data ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{[0, 1, 2, 3].map((i) => <Shimmer key={i} style={{ height: 120, borderRadius: 10, width: "47%", flexGrow: 1 }} />)}</View> : (
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
           <KpiCard icon={FileText} tone="primary" label="Invoices" value={summary.total_count ?? 0} sub="In current view" testID="inv-kpi-count" />
           <KpiCard icon={IndianRupee} tone="slate" label="Total Amount" value={money(summary.total_amount, cur)} sub="Gross value" testID="inv-kpi-total" />
@@ -132,7 +132,7 @@ export default function InvoicesScreen() {
       )}
 
       {loading ? <SkeletonList rows={4} /> : error ? (
-        <View testID="invoice-error" style={{ borderRadius: 16, borderWidth: 1, borderColor: ROSE[200], backgroundColor: c.surface, padding: 40, alignItems: "center" }}>
+        <View testID="invoice-error" style={{ borderRadius: 10, borderWidth: 1, borderColor: ROSE[200], backgroundColor: c.surface, padding: 40, alignItems: "center" }}>
           <AlertTriangle size={36} color={ROSE[400]} /><Text style={{ marginTop: 12, fontSize: 15, fontWeight: "600", color: c.text }}>Unable to load invoices</Text><Text style={{ fontSize: 14, color: TC.textFaint, marginTop: 4 }}>Something went wrong. Please try again.</Text>
           <Btn tone="outline" label="Try Again" onPress={load} testID="invoice-retry" style={{ marginTop: 16 }} />
         </View>
@@ -141,9 +141,9 @@ export default function InvoicesScreen() {
           <EmptyState icon={FileText} title={filteredView ? "No invoices match your filters" : "No invoices yet"} desc={filteredView ? "Try clearing filters or changing the date range." : "Your booking invoices will appear here."} actionLabel={filteredView ? "Clear Filters" : undefined} onAction={() => { resetFilters(); setSearch(""); setRange("all"); }} testID="invoice-empty" />
         </View>
       ) : (
-        <View style={{ borderRadius: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16, gap: 10 }}>
+        <View style={{ borderRadius: 10, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16, gap: 10 }}>
           {items.map((inv) => (
-            <Pressable key={inv.id} testID={`invoice-card-${inv.invoice_number}`} onPress={() => openDrawer(inv)} style={{ borderRadius: 16, borderWidth: 1, borderColor: c.borderSoft, padding: 14 }}>
+            <Pressable key={inv.id} testID={`invoice-card-${inv.invoice_number}`} onPress={() => openDrawer(inv)} style={{ borderRadius: 10, borderWidth: 1, borderColor: c.borderSoft, padding: 14 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{inv.invoice_number}</Text><StatusBadge status={inv.payment_status} /></View>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6, gap: 8 }}>
                 <View style={{ flex: 1 }}><Text style={{ fontSize: 12, color: c.textMuted }}>{TYPE_LABEL[inv.invoice_type] || inv.invoice_type} · {inv.customer_snapshot?.name || inv.booking_code || "—"}</Text><Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{shortDate(inv.issue_date)}</Text></View>
@@ -173,7 +173,7 @@ export default function InvoicesScreen() {
       <DrawerShell open={!!d} onClose={() => { setDrawerInv(null); setDrawerFull(null); }} title={d?.invoice_number || "Invoice"} testID="invoice-detail-drawer"
         footer={d ? <View style={{ flexDirection: "row", gap: 8 }}><Btn tone="outline" icon={Download} label={downloading[d.id] ? "Downloading…" : "Download"} disabled={!!downloading[d.id]} onPress={() => downloadById(d)} testID="drawer-download" style={{ flex: 1, height: 44, borderRadius: 12 }} /><Btn icon={Eye} label="View Invoice" onPress={() => openPreview(d)} testID="drawer-view-full" style={{ flex: 1, height: 44, borderRadius: 12 }} /></View> : null}>
         {d ? <>
-          <View style={{ borderRadius: 16, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ borderRadius: 10, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View><Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: TC.textFaint }}>{d.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</Text><Text style={{ fontSize: 24, fontWeight: "800", color: c.text }}>{money(d.invoice_type === "cancellation" ? (d.original_amount ?? d.total_amount) : d.total_amount, d.currency)}</Text></View>
             <StatusBadge status={d.payment_status} />
           </View>

@@ -40,6 +40,20 @@ try {
       rules: {},
     },
   ];
+  // Parse TS/TSX rule-free with a sibling app's TS parser (when present) so a
+  // directory target never hits ESLint's "all files are ignored" engine error.
+  let tsParser = null;
+  try { tsParser = require(require.resolve("@typescript-eslint/parser", { paths: [`${__dirname}/../frontend`] })); } catch { /* none */ }
+  if (tsParser) {
+    config[0] = { ignores: ["node_modules/**", "dist/**", ".expo/**", "build/**"] };
+    config.push({
+      files: ["**/*.ts", "**/*.tsx"],
+      plugins: config[1].plugins,
+      linterOptions: { reportUnusedDisableDirectives: "off" },
+      languageOptions: { parser: tsParser, ecmaVersion: 2022, sourceType: "module", parserOptions: { ecmaFeatures: { jsx: true } } },
+      rules: {},
+    });
+  }
 }
 
 module.exports = config;

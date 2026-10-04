@@ -53,8 +53,8 @@ export default function CustomJobsScreen() {
       {loading ? <View style={{ padding: 16 }}>{header}<View style={{ paddingVertical: 80, alignItems: "center" }}><ActivityIndicator color={PRIMARY[600]} size="large" /></View></View> : (
         <PlainList data={rows} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
           ListEmptyComponent={
-            <View testID="mcj-empty" style={{ borderRadius: 24, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, padding: 36, alignItems: "center" }}>
-              <View style={{ height: 64, width: 64, borderRadius: 18, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 16 }}><ClipboardList size={32} color={PRIMARY[500]} /></View>
+            <View testID="mcj-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, padding: 36, alignItems: "center" }}>
+              <View style={{ height: 64, width: 64, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 16 }}><ClipboardList size={32} color={PRIMARY[500]} /></View>
               <Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>No custom requests yet</Text>
               <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 4, textAlign: "center" }}>Can&apos;t find the service you need? Request a custom service and our team will build it for you.</Text>
               <Pressable testID="mcj-empty-new" onPress={() => setWizardOpen(true)} style={{ marginTop: 20, height: 44, paddingHorizontal: 22, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 8 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700" }}>Request a Custom Service</Text></Pressable>
@@ -63,7 +63,7 @@ export default function CustomJobsScreen() {
             const st = STATUS_STYLE[r.display_status] || STATUS_STYLE[r.status] || STATUS_STYLE.pending;
             const live = r.display_status === "service_active" && r.service?.id;
             return (
-              <View testID={`mcj-card-${r.request_id}`} style={{ borderRadius: 18, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 16, marginBottom: 12 }}>
+              <View testID={`mcj-card-${r.request_id}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 16, marginBottom: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
                   <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{r.work_name}</Text><Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{r.request_id} · {r.category_name}</Text></View>
                   <View style={{ backgroundColor: st.bg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}><Text testID={`mcj-status-${r.request_id}`} style={{ fontSize: 11, fontWeight: "700", color: st.fg }}>{st.label}</Text></View>
@@ -159,8 +159,8 @@ function Wizard({ open, onClose, onSubmitted }: { open: boolean; onClose: () => 
               <View style={{ height: 80, width: 80, borderRadius: 40, backgroundColor: EMERALD[50], alignItems: "center", justifyContent: "center" }}><BadgeCheck size={40} color={EMERALD[600]} /></View>
               <Text style={{ fontSize: 24, fontWeight: "900", color: TC.text, marginTop: 18, textAlign: "center" }}>Custom Job Request Submitted!</Text>
               <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 6, textAlign: "center" }}>Our team will review it and build the service for you. Track it under Custom Requests.</Text>
-              <View style={{ marginTop: 18, borderRadius: 16, backgroundColor: TC.primarySoft, paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[600], textTransform: "uppercase", letterSpacing: 1 }}>Request ID</Text><Text testID="cjr-request-id" style={{ fontSize: 20, fontWeight: "900", color: TC.primaryText, letterSpacing: 1 }}>{result.request_id}</Text></View>
-              <Pressable testID="cjr-done" onPress={onClose} style={{ marginTop: 22, height: 48, paddingHorizontal: 28, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>View my requests</Text></Pressable>
+              <View style={{ marginTop: 18, borderRadius: 10, backgroundColor: TC.primarySoft, paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[600], textTransform: "uppercase", letterSpacing: 1 }}>Request ID</Text><Text testID="cjr-request-id" style={{ fontSize: 20, fontWeight: "900", color: TC.primaryText, letterSpacing: 1 }}>{result.request_id}</Text></View>
+              <Pressable testID="cjr-done" onPress={onClose} style={{ marginTop: 22, height: 48, paddingHorizontal: 28, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>View my requests</Text></Pressable>
               <Pressable onPress={() => { onClose(); router.push("/(site)/services" as any); }} style={{ marginTop: 12 }}><Text style={{ color: TC.textMuted, fontWeight: "600" }}>Browse services instead</Text></Pressable>
             </View>
           ) : (
@@ -192,7 +192,7 @@ function Wizard({ open, onClose, onSubmitted }: { open: boolean; onClose: () => 
                     <TextInput testID="cjr-cat-search" value={catQuery} onChangeText={setCatQuery} placeholder="Search categories…" placeholderTextColor={TC.textFaint} style={{ ...inp, marginBottom: 12 }} />
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                       {filteredCats.map((c) => { const on = c.id === categoryId; return (
-                        <Pressable key={c.id} testID={`cjr-cat-${c.id}`} onPress={() => setCategoryId(c.id)} style={{ width: "47.5%", borderRadius: 14, borderWidth: 2, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
+                        <Pressable key={c.id} testID={`cjr-cat-${c.id}`} onPress={() => setCategoryId(c.id)} style={{ width: "47.5%", borderRadius: 10, borderWidth: 2, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
                           {c.image ? <Image source={{ uri: c.image }} style={{ height: 36, width: 36, borderRadius: 10 }} contentFit="cover" /> : <View style={{ height: 36, width: 36, borderRadius: 10, backgroundColor: TC.surfaceAlt }} />}<Text numberOfLines={2} style={{ flex: 1, fontSize: 13, fontWeight: "600", color: on ? PRIMARY[700] : TC.text }}>{c.name}</Text>
                         </Pressable>); })}
                     </View>

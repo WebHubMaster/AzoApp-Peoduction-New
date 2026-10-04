@@ -82,7 +82,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
   const allAttachments = (t.messages || []).flatMap((m: any) => m.attachments || []);
   const others = (tickets || []).filter((x) => x.id !== ticket.id);
-  const panel = { borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
+  const panel = { borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
   const sec = { fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 0.8, color: TC.textFaint, fontWeight: "700" as const, marginBottom: 8 };
 
   return (
@@ -120,7 +120,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
                       {!mine ? <Text style={{ fontSize: 11, fontWeight: "600", color: TC.textMuted, paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
                       {(m.attachments || []).length > 0 ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{m.attachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View> : null}
                       {m.text ? (
-                        <View style={{ borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD[500] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.borderSoft }}>
+                        <View style={{ borderRadius: 10, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD[500] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.borderSoft }}>
                           <Text style={{ fontSize: 14, color: mine ? "#fff" : (isDark ? SLATE[100] : SLATE[700]) }}>{m.text}</Text>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, justifyContent: mine ? "flex-end" : "flex-start" }}>
                             <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.8)" : TC.textFaint }}>{timeStr(m.at)}</Text>
@@ -136,7 +136,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
           })}
           {t.agent_typing ? (
             <View testID="support-agent-typing" style={{ flexDirection: "row" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 16, borderBottomLeftRadius: 4, backgroundColor: c.surface, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14, paddingVertical: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 10, borderBottomLeftRadius: 4, backgroundColor: c.surface, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14, paddingVertical: 10 }}>
                 <ShieldCheck size={12} color={PRIMARY[600]} /><Text style={{ fontSize: 11, fontWeight: "600", color: PRIMARY[600] }}>Support is typing</Text><ActivityIndicator size="small" color={PRIMARY[400]} />
               </View>
             </View>

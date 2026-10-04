@@ -150,7 +150,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
                 const mine = m.sender_id && m.sender_id === ticket?.user_id;
                 return (
                   <View key={m.id || i} style={{ alignItems: mine ? "flex-end" : "flex-start" }}>
-                    <View style={{ maxWidth: "78%", borderRadius: 16, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: mine ? PRIMARY[600] : TC.surface, borderWidth: mine ? 0 : 1, borderColor: TC.borderSoft }}>
+                    <View style={{ maxWidth: "78%", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: mine ? PRIMARY[600] : TC.surface, borderWidth: mine ? 0 : 1, borderColor: TC.borderSoft }}>
                       {!mine ? <Text style={{ fontSize: 10, fontWeight: "700", color: PRIMARY[600], marginBottom: 2 }}>{m.sender_name || "Support"}</Text> : null}
                       {(m.attachments || []).filter((a: any) => a.kind !== "pdf").map((a: any, j: number) => <Image key={j} testID="help-sos-msg-photo" source={{ uri: a.thumb_url || a.url }} style={{ width: 200, height: 150, borderRadius: 10, marginTop: 2 }} contentFit="cover" />)}
                       {m.text ? <Text style={{ fontSize: 14, color: mine ? "#fff" : TC.text }}>{m.text}</Text> : null}

@@ -68,9 +68,9 @@ export default function AppHome() {
       <AppSearchBar onSubmit={(q) => router.push(`/(site)/services?q=${encodeURIComponent(q)}` as any)} />
       {loading ? (
         <View style={{ padding: 20, gap: 18 }} testID="app-home-skeleton">
-          <Sk style={{ height: 280, borderRadius: 24 }} />
+          <Sk style={{ height: 280, borderRadius: 10 }} />
           <View style={{ flexDirection: "row", gap: 10 }}>{[0, 1, 2, 3, 4, 5].map((i) => <Sk key={i} style={{ flex: 1, height: 72 }} />)}</View>
-          <Sk style={{ height: 150, borderRadius: 20 }} />
+          <Sk style={{ height: 150, borderRadius: 10 }} />
         </View>
       ) : error ? (
         <View style={{ padding: 24, alignItems: "center", gap: 10 }} testID="app-home-error">

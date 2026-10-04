@@ -23,7 +23,7 @@ export function StoriesRow({ sec, onOpen }: { sec: any; onOpen: (index: number) 
       {sec.title ? <BlockTitle icon={sec.icon} title={sec.title} /> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
         {stories.map((s, i) => (
-          <Pressable key={s.id || i} testID={`app-story-card-${i}`} onPress={() => onOpen(i)} style={{ width: 112, height: 158, borderRadius: 18, overflow: "hidden", backgroundColor: SLATE[800] }}>
+          <Pressable key={s.id || i} testID={`app-story-card-${i}`} onPress={() => onOpen(i)} style={{ width: 112, height: 158, borderRadius: 10, overflow: "hidden", backgroundColor: SLATE[800] }}>
             {s.poster ? <Image source={{ uri: s.poster }} style={{ ...StyleFill }} contentFit="cover" transition={200} /> : null}
             <LinearGradient colors={["rgba(15,23,42,0.05)", "rgba(15,23,42,0.85)"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={{ ...StyleFill }} />
             {/* avatar ring top-left */}
@@ -97,7 +97,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
 
         {/* CTA */}
         {cur.cta_link ? (
-          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: 44, height: 50, borderRadius: 14, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: 44, height: 50, borderRadius: 10, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.cta_label || "Book Now"}</Text>
             <ArrowRight size={17} color="#fff" />
           </Pressable>

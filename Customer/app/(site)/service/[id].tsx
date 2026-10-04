@@ -43,7 +43,7 @@ function SubscriptionPanel({ svc }: { svc: any }) {
   };
 
   return (
-    <View testID="subscription-panel" style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 20, borderWidth: 1, borderColor: TC.border, padding: 20 }}>
+    <View testID="subscription-panel" style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, padding: 20 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><CalendarClock size={20} color={PRIMARY[700]} /><Text style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>Choose your plan</Text></View>
       <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>Recurring subscription — the maid visits every working day.</Text>
 
@@ -52,7 +52,7 @@ function SubscriptionPanel({ svc }: { svc: any }) {
           const on = p.plan_type === sel;
           return (
             <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
-              style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 16, padding: 14, backgroundColor: on ? PRIMARY[50] : TC.surface }}>
+              style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 10, padding: 14, backgroundColor: on ? PRIMARY[50] : TC.surface }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Text style={{ color: TC.text, fontWeight: "800", fontSize: 16 }}>{p.label}</Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -66,7 +66,7 @@ function SubscriptionPanel({ svc }: { svc: any }) {
         })}
       </View>
 
-      <Pressable testID="sub-book-now" onPress={book} disabled={!plan} style={{ marginTop: 18, height: 52, borderRadius: 14, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: !plan ? 0.6 : 1 }}>
+      <Pressable testID="sub-book-now" onPress={book} disabled={!plan} style={{ marginTop: 18, height: 52, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: !plan ? 0.6 : 1 }}>
         <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Book Now</Text>
       </Pressable>
     </View>
@@ -140,7 +140,7 @@ export default function ServiceDetail() {
     <View style={{ flex: 1, backgroundColor: TC.bg }} testID="service-detail">
       {Header}
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 120 }}>
-        <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 16, backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" priority="high" recyclingKey={String(id)} />
+        <Image source={{ uri: gallery[galleryIdx] || svc.image }} style={{ width: "100%", height: 256, borderRadius: 10, backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" priority="high" recyclingKey={String(id)} />
         {gallery.length > 1 ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 12 }}>{gallery.map((im: string, i: number) => <Pressable key={i} testID={`gallery-thumb-${i}`} onPress={() => setGalleryIdx(i)} style={{ height: 64, width: 96, borderRadius: 8, overflow: "hidden", borderWidth: 2, borderColor: i === galleryIdx ? PRIMARY[700] : "transparent" }}><Image source={{ uri: im }} style={{ width: "100%", height: "100%" }} contentFit="cover" /></Pressable>)}</ScrollView> : null}
         <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 1, fontWeight: "700", color: TC.primaryText, marginTop: 20 }}>{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</Text>
         {svc.is_subscription ? <View testID="subscription-badge" style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 }}><CalendarClock size={12} color={EMERALD[700]} /><Text style={{ fontSize: 11, fontWeight: "700", color: EMERALD[700] }}>Recurring Subscription</Text></View> : null}
@@ -169,7 +169,7 @@ export default function ServiceDetail() {
                 const off = t.original_price > t.price ? Math.round((1 - t.price / t.original_price) * 100) : 0;
                 const sel = tier === i;
                 return (
-                  <Pressable key={i} testID={`tier-${i}`} onPress={() => setTier(i)} style={{ width: "47%", borderRadius: 16, borderWidth: 2, borderColor: sel ? PRIMARY[700] : TC.border, backgroundColor: sel ? PRIMARY[50] : TC.surface, overflow: "hidden" }}>
+                  <Pressable key={i} testID={`tier-${i}`} onPress={() => setTier(i)} style={{ width: "47%", borderRadius: 10, borderWidth: 2, borderColor: sel ? PRIMARY[700] : TC.border, backgroundColor: sel ? PRIMARY[50] : TC.surface, overflow: "hidden" }}>
                     {t.image ? <Image source={{ uri: t.image }} style={{ height: 90, width: "100%" }} contentFit="cover" /> : null}
                     {t.badge ? <View style={{ position: "absolute", top: 8, left: 8, backgroundColor: PRIMARY[700], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{t.badge}</Text></View> : null}
                     <View style={{ padding: 12 }}>
@@ -206,7 +206,7 @@ export default function ServiceDetail() {
           </View>
         ) : null}
 
-        <View style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 20, borderWidth: 1, borderColor: TC.border, padding: 20, display: svc.is_subscription ? "none" : "flex" }}>
+        <View style={{ marginTop: 28, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, padding: 20, display: svc.is_subscription ? "none" : "flex" }}>
           <Text style={{ fontSize: 20, fontWeight: "700", color: TC.text }}>Add to your booking</Text>
           <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>Select options, then add this service. You can add more services before checkout.</Text>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 20 }}>
@@ -227,7 +227,7 @@ export default function ServiceDetail() {
             <View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely at checkout · easy cancellations</Text></View>
           </View>
         </View>
-        <Pressable testID="need-custom-service" onPress={() => router.push("/(customer)/custom_jobs?new=1" as any)} style={{ marginTop: 20, borderRadius: 16, borderWidth: 1, borderColor: PRIMARY[200], backgroundColor: PRIMARY[50], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <Pressable testID="need-custom-service" onPress={() => router.push("/(customer)/custom_jobs?new=1" as any)} style={{ marginTop: 20, borderRadius: 10, borderWidth: 1, borderColor: PRIMARY[200], backgroundColor: PRIMARY[50], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
           <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Sparkles size={20} color="#fff" /></View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 15, fontWeight: "800", color: TC.text }}>Need a Custom Service?</Text>

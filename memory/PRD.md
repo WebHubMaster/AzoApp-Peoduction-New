@@ -121,3 +121,4 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 - Splash (app/index.tsx): single dynamic brand mark — admin logo image if set, else admin site_name/tagline; static fallback image removed.
 - Home Recent jobs tap → /(partner)/active?view=active|completed&focus=<id> (scrolls+highlights); other statuses → booking detail.
 - Alert check card (AlertsPanel TestRingCard) only shows when there are issues; friendly messages only (no raw error codes); hidden when all configured.
+- Customer App: card radius normalised to 10 across app/ + src/ (scripts/square_radius.py, circles skipped); home spacing tightened (16px gutters, 20px section gaps, category grid gap 10, compact search bar/header). Customer node_modules not installed here → not visually verified.

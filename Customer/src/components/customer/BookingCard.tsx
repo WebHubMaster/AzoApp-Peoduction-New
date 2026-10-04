@@ -58,7 +58,7 @@ export function OtpBanner({ kind, code, bcode }: { kind: "start" | "complete"; c
   const start = kind === "start";
   const col = start ? PRIMARY : EMERALD;
   return (
-    <View testID={`otp-banner-${kind}-${bcode}`} style={{ marginTop: 12, borderRadius: 16, padding: 16, borderWidth: 2, borderColor: col[300], backgroundColor: start ? PRIMARY[50] : EMERALD[50], alignItems: "center", gap: 8 }}>
+    <View testID={`otp-banner-${kind}-${bcode}`} style={{ marginTop: 12, borderRadius: 10, padding: 16, borderWidth: 2, borderColor: col[300], backgroundColor: start ? PRIMARY[50] : EMERALD[50], alignItems: "center", gap: 8 }}>
       <Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, color: col[700], textAlign: "center" }}>{start ? "Share this OTP to START work" : "Share this OTP to COMPLETE work"}</Text>
       <Text testID={`otp-code-${bcode}-${kind}`} style={{ fontSize: 36, fontWeight: "900", letterSpacing: 10, color: col[700], lineHeight: 44 }}>{code}</Text>
       <Text style={{ fontSize: 12, color: TC.textMuted, textAlign: "center" }}>Tell your partner this code only when {start ? "they arrive & begin" : "the work is done"}.</Text>
@@ -76,7 +76,7 @@ export function CurrentStepCard({ b }: { b: any }) {
   };
   const m = map[b.status] || map.assigned;
   return (
-    <View testID={`current-step-${b.code}`} style={{ marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[200], backgroundColor: isDark ? "rgba(7,52,115,0.15)" : "rgba(235,243,254,0.7)", padding: 16 }}>
+    <View testID={`current-step-${b.code}`} style={{ marginTop: 12, borderRadius: 10, borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[200], backgroundColor: isDark ? "rgba(7,52,115,0.15)" : "rgba(235,243,254,0.7)", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: isDark ? SLATE[800] : TC.surface, alignItems: "center", justifyContent: "center" }}><User size={20} color={TC.primaryText} /></View>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -111,7 +111,7 @@ export function ScheduledCard({ schedule }: { schedule: any }) {
   const col = locked ? PRIMARY : EMERALD;
   const items = ["Call", "Chat", "Navigation", "Start OTP"];
   return (
-    <View testID="scheduled-card" style={{ marginTop: 12, borderRadius: 16, borderWidth: 2, borderColor: locked ? PRIMARY[200] : EMERALD[300], backgroundColor: locked ? (isDark ? "rgba(7,52,115,0.25)" : PRIMARY[50]) : (isDark ? "rgba(6,78,59,0.25)" : EMERALD[50]), padding: 16 }}>
+    <View testID="scheduled-card" style={{ marginTop: 12, borderRadius: 10, borderWidth: 2, borderColor: locked ? PRIMARY[200] : EMERALD[300], backgroundColor: locked ? (isDark ? "rgba(7,52,115,0.25)" : PRIMARY[50]) : (isDark ? "rgba(6,78,59,0.25)" : EMERALD[50]), padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1 }}>
           <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: col[600], alignItems: "center", justifyContent: "center" }}><Calendar size={18} color="#fff" /></View>
@@ -247,11 +247,11 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
   const whiteSoft = isDark ? "rgba(15,23,42,0.4)" : "rgba(255,255,255,0.7)";
 
   return (
-    <View testID={`booking-card-${b.code}`} style={{ borderRadius: 20, borderWidth: focus ? 2 : 1, borderColor: focus ? PRIMARY[400] : c.border, backgroundColor: c.surface, padding: 18, marginBottom: 16, ...shadowElev }}>
+    <View testID={`booking-card-${b.code}`} style={{ borderRadius: 10, borderWidth: focus ? 2 : 1, borderColor: focus ? PRIMARY[400] : c.border, backgroundColor: c.surface, padding: 18, marginBottom: 16, ...shadowElev }}>
       {/* Header */}
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 14, flex: 1, minWidth: 0 }}>
-          <View style={{ height: 50, width: 50, borderRadius: 18, backgroundColor: b.status === "cancelled" ? "#e11d48" : "#0D47A1", alignItems: "center", justifyContent: "center", ...shadowBtn }}>
+          <View style={{ height: 50, width: 50, borderRadius: 10, backgroundColor: b.status === "cancelled" ? "#e11d48" : "#0D47A1", alignItems: "center", justifyContent: "center", ...shadowBtn }}>
             {b.status === "cancelled" ? <X size={23} color="#fff" /> : DONE_STATES.includes(b.status) ? <CheckCircle2 size={23} color="#fff" /> : <Wrench size={23} color="#fff" />}
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -291,7 +291,7 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
       {showSchedule ? <ScheduledCard schedule={sched} /> : null}
 
       {pendingReq ? (
-        <View testID={`reschedule-pending-${b.code}`} style={{ marginTop: 12, borderRadius: 16, borderWidth: 2, borderColor: AMBER[300], backgroundColor: amberSoft, padding: 16 }}>
+        <View testID={`reschedule-pending-${b.code}`} style={{ marginTop: 12, borderRadius: 10, borderWidth: 2, borderColor: AMBER[300], backgroundColor: amberSoft, padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Clock size={16} color={AMBER[700]} /><Text style={{ fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.8, color: isDark ? AMBER[300] : AMBER[700] }}>Reschedule request · pending</Text></View>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
             <View style={{ flex: 1, borderRadius: 12, backgroundColor: whiteSoft, padding: 10 }}><Text style={{ fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>Current schedule</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{pendingReq.old_date}</Text><Text style={{ fontSize: 13, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{pendingReq.old_time}</Text></View>

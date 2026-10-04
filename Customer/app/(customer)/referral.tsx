@@ -28,13 +28,13 @@ const WhiteBtn = ({ label, icon: Icon, onPress, testID, ghost }: any) => (
 function ReferralCard({ code, reward, discount, card }: any) {
   const bg = card?.bg || "#0D47A1";
   return (
-    <View testID="referral-card-image" style={{ width: 320, height: 320, backgroundColor: bg, alignItems: "center", paddingTop: 22, borderRadius: 16, overflow: "hidden" }}>
+    <View testID="referral-card-image" style={{ width: 320, height: 320, backgroundColor: bg, alignItems: "center", paddingTop: 22, borderRadius: 10, overflow: "hidden" }}>
       <Text style={{ color: "#fff", fontSize: 20, fontWeight: "900" }}>AzoApp</Text>
       <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 10, marginTop: 2 }}>Home services at your doorstep</Text>
       <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800", marginTop: 26 }}>{card?.heading || "Refer a Friend & Earn"}</Text>
       <Text style={{ color: "#fff", fontSize: 40, fontWeight: "900", marginTop: 4 }}>₹{reward}</Text>
       <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11 }}>{card?.subheading || "Share AzoApp — you both win"}</Text>
-      <View style={{ marginTop: 18, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center" }}>
+      <View style={{ marginTop: 18, paddingHorizontal: 24, paddingVertical: 8, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center" }}>
         <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 9, letterSpacing: 1.5 }}>YOUR REFERRAL CODE</Text>
         <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900", letterSpacing: 4, marginTop: 2 }}>{code}</Text>
       </View>
@@ -66,16 +66,16 @@ function ReferralShareCard({ code, reward, discount, link, card, copy }: any) {
     if (!perm.granted) return toast.error("Photo library permission denied");
     await MediaLibrary.saveToLibraryAsync(uri); toast.success("Card image saved to gallery");
   };
-  const outline = { height: 44, borderRadius: 16, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, flex: 1 };
+  const outline = { height: 44, borderRadius: 10, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "center" as const, gap: 6, flex: 1 };
   const outlineT = { fontSize: 14, fontWeight: "600" as const, color: isDark ? SLATE[200] : TC.text2 };
   return (
-    <View testID="referral-share-card" style={{ borderRadius: 24, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
+    <View testID="referral-share-card" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
       <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 12 }}>Your shareable card</Text>
       <View style={{ alignItems: "center" }}>
         <ViewShot ref={shotRef} options={{ format: "png", quality: 1, result: Platform.OS === "web" ? "data-uri" : "tmpfile" }}><ReferralCard code={code} reward={reward} discount={discount} card={card} /></ViewShot>
       </View>
       <View style={{ gap: 10, marginTop: 16 }}>
-        <Pressable testID="share-whatsapp" onPress={onWhatsapp} style={({ pressed }) => ({ height: 48, borderRadius: 16, backgroundColor: "#25D366", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}><MessageCircle size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Share on WhatsApp</Text></Pressable>
+        <Pressable testID="share-whatsapp" onPress={onWhatsapp} style={({ pressed }) => ({ height: 48, borderRadius: 10, backgroundColor: "#25D366", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}><MessageCircle size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Share on WhatsApp</Text></Pressable>
         <View style={{ flexDirection: "row", gap: 10 }}>
           <Pressable testID="share-native" onPress={onShare} style={({ pressed }) => ({ ...outline, borderWidth: 0, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700] })}><Share2 size={16} color="#fff" /><Text style={{ ...outlineT, color: "#fff" }}>Share card</Text></Pressable>
           <Pressable testID="share-download" onPress={onDownload} style={outline}><Download size={16} color={outlineT.color} /><Text style={outlineT}>Save image</Text></Pressable>
@@ -122,7 +122,7 @@ export default function ReferralScreen() {
     } catch (e: any) { toast.error(e?.message || "Could not apply code"); }
     setApplying(false);
   };
-  const card = { borderRadius: 16, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, ...shadowElev };
+  const card = { borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, ...shadowElev };
 
   return (
     <View testID="referral-page" style={{ gap: 20 }}>
@@ -131,13 +131,13 @@ export default function ReferralScreen() {
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Invite friends and earn rewards together</Text>
       </View>
 
-      <View style={{ borderRadius: 24, overflow: "hidden", ...shadowElev }}>
+      <View style={{ borderRadius: 10, overflow: "hidden", ...shadowElev }}>
         <LinearGradient colors={[PRIMARY[800], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 24 }}>
           <Gift size={40} color="#fff" />
           <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900", marginTop: 12 }}>Refer friends, earn ₹{reward} each</Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, marginTop: 4 }}>Share your code — your friend gets ₹{discount} off their first booking and you earn ₹{reward} when they complete it.</Text>
           <View style={{ marginTop: 20, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 }}>
-            <View style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 16, paddingHorizontal: 20, paddingVertical: 12 }}>
+            <View style={{ backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 10, paddingHorizontal: 20, paddingVertical: 12 }}>
               <Text style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", textTransform: "uppercase", letterSpacing: 0.8 }}>Your code</Text>
               <Text testID="referral-code" style={{ color: "#fff", fontSize: 24, fontWeight: "900", letterSpacing: 3 }}>{code}</Text>
             </View>

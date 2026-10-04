@@ -13,11 +13,11 @@ import { storage } from "../../utils/storage";
 import { useToast } from "../Toast";
 
 type Nav = (to: string) => void;
-const card = { get backgroundColor() { return TC.surface; }, borderRadius: 16, borderWidth: 1, get borderColor() { return TC.border; } };
+const card = { get backgroundColor() { return TC.surface; }, borderRadius: 10, borderWidth: 1, get borderColor() { return TC.border; } };
 
 export function BlockTitle({ icon, title, onSeeAll, right, testID }: { icon?: string; title: string; onSeeAll?: () => void; right?: React.ReactNode; testID?: string }) {
   return (
-    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, marginBottom: 14, gap: 10 }}>
+    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, marginBottom: 10, gap: 10 }}>
       {icon ? <LucideByName name={icon} size={18} color={icon === "flame" ? ORANGE[500] : icon === "map-pin" ? ROSE[500] : icon === "badge-percent" ? AMBER[500] : PRIMARY[700]} strokeWidth={2.2} /> : null}
       <Text style={{ fontSize: 19, fontWeight: "800", color: TC.text, flex: 1, letterSpacing: -0.3 }}>{title}</Text>
       {right}
@@ -29,7 +29,7 @@ export function BlockTitle({ icon, title, onSeeAll, right, testID }: { icon?: st
 /* ---------------- Hero slider ---------------- */
 export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: any; navigate: Nav }) {
   const { width } = useWindowDimensions();
-  const W = width - 40;
+  const W = width - 32;
   const [idx, setIdx] = useState(0);
   const listRef = useRef<FlatList>(null);
   const n = slides?.length || 0;
@@ -42,13 +42,13 @@ export function HeroSlider({ slides, stats, navigate }: { slides: any[]; stats: 
   }, [n, width]);
   if (!n) return null;
   return (
-    <View testID="hero-slider" style={{ marginBottom: 24 }}>
+    <View testID="hero-slider" style={{ marginBottom: 20 }}>
       <FlatList ref={listRef} data={slides} horizontal pagingEnabled showsHorizontalScrollIndicator={false} keyExtractor={(s) => s.id} snapToInterval={width} decelerationRate="fast"
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         onMomentumScrollEnd={(e) => setIdx(Math.round(e.nativeEvent.contentOffset.x / width))}
         renderItem={({ item: s, index }) => (
-          <View style={{ width, paddingHorizontal: 20 }}>
-            <Pressable testID={`hero-slide-${index}`} onPress={() => navigate(s.cta_link || "/services")} style={{ width: W, height: Math.round(W * 0.43), borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700] }}>
+          <View style={{ width, paddingHorizontal: 16 }}>
+            <Pressable testID={`hero-slide-${index}`} onPress={() => navigate(s.cta_link || "/services")} style={{ width: W, height: Math.round(W * 0.4), borderRadius: 10, overflow: "hidden", backgroundColor: PRIMARY[700] }}>
               <LinearGradient colors={[s.bg_color || VIOLET[500], s.bg_color2 || "#B69CFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} />
               {s.image ? <Image source={{ uri: s.image }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} contentFit="cover" transition={250} cachePolicy="memory-disk" priority={index === 0 ? "high" : "normal"} recyclingKey={String(index)} /> : null}
               {s.image ? <LinearGradient colors={["rgba(15,23,42,0.55)", "rgba(15,23,42,0.05)"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0 }} /> : null}
@@ -80,18 +80,18 @@ export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any
   const showMore = config?.show_more !== false;
   const tiles: any[] = cats.slice(0, limit);
   if (showMore) tiles.push({ id: "__more", name: config?.more_label || "All services", more: true });
-  const gap = 14;
-  const tileW = (width - 40 - gap * 2) / 3;
+  const gap = 10;
+  const tileW = (width - 32 - gap * 2) / 3;
   return (
-    <View testID="app-categories" style={{ marginBottom: 24, paddingHorizontal: 20, flexDirection: "row", flexWrap: "wrap", gap }}>
+    <View testID="app-categories" style={{ marginBottom: 20, paddingHorizontal: 16, flexDirection: "row", flexWrap: "wrap", gap }}>
       {tiles.map((c: any) => (
         <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={{ width: tileW, alignItems: "center" }}>
-          <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 18, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <View style={{ width: tileW, height: tileW * 0.88, borderRadius: 10, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
             {c.more ? <Grip size={34} color={TC.text} strokeWidth={2.2} />
               : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} cachePolicy="memory-disk" recyclingKey={c.id} priority="high" />
               : c.icon ? <LucideByName name={c.icon} size={40} color={TC.primaryText} strokeWidth={1.6} /> : <Sparkles size={34} color={TC.primaryText} />}
           </View>
-          <Text numberOfLines={2} style={{ fontSize: 14, fontWeight: "500", color: TC.text, textAlign: "center", marginTop: 10, lineHeight: 19, paddingHorizontal: 2 }}>{c.name}</Text>
+          <Text numberOfLines={2} style={{ fontSize: 13, fontWeight: "500", color: TC.text, textAlign: "center", marginTop: 6, lineHeight: 17, paddingHorizontal: 2 }}>{c.name}</Text>
         </Pressable>
       ))}
     </View>
@@ -107,8 +107,8 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
   const copy = async () => { if (!code) return; await Clipboard.setStringAsync(code); storage.setItem("azo_coupon", code); toast.success(`Code ${code} copied — apply at checkout`); };
   const label = off.discount_label || (off.discount ? `${off.discount}% OFF` : "");
   return (
-    <View testID="app-offer-banner" style={{ marginHorizontal: 20, marginBottom: 28 }}>
-      <LinearGradient colors={["#FFF4E0", "#FFE9C7"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", minHeight: 200, borderWidth: 1, borderColor: AMBER[200] }}>
+    <View testID="app-offer-banner" style={{ marginHorizontal: 16, marginBottom: 20 }}>
+      <LinearGradient colors={["#FFF4E0", "#FFE9C7"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, overflow: "hidden", minHeight: 200, borderWidth: 1, borderColor: AMBER[200] }}>
         {(cfg.image || off.image) ? <Image source={{ uri: cfg.image || off.image }} style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "46%" }} contentFit="cover" contentPosition="bottom" transition={200} cachePolicy="memory-disk" priority="high" /> : null}
         {label ? <View style={{ position: "absolute", right: 14, top: 40, backgroundColor: ROSE[500], borderRadius: 999, paddingHorizontal: 10, paddingVertical: 8, alignItems: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 14 }}>{label.split(" ")[0]}</Text><Text style={{ color: "#fff", fontWeight: "700", fontSize: 9 }}>{label.split(" ").slice(1).join(" ") || "OFF"}</Text></View> : null}
         <View style={{ padding: 20, width: "62%" }}>
@@ -122,7 +122,7 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
               <Text style={{ fontSize: 12, color: TC.textMuted, fontWeight: "600" }}>Use Code</Text><Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{code}</Text><Copy size={15} color={TC.textMuted} />
             </Pressable>
           ) : null}
-          <Pressable testID="app-offer-cta" onPress={() => navigate(cfg.cta_link || "/services")} style={{ marginTop: 16, alignSelf: "flex-start", backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 20, height: 44, flexDirection: "row", alignItems: "center", gap: 8, ...shadowBtn }}>
+          <Pressable testID="app-offer-cta" onPress={() => navigate(cfg.cta_link || "/services")} style={{ marginTop: 16, alignSelf: "flex-start", backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 16, height: 44, flexDirection: "row", alignItems: "center", gap: 8, ...shadowBtn }}>
             <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>{cfg.cta_label || "Book Now"}</Text><ArrowRight size={16} color="#fff" />
           </Pressable>
         </View>
@@ -135,9 +135,9 @@ export function OfferBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
 export function QuickFeatures({ items, navigate }: { items: any[]; navigate: Nav }) {
   if (!items?.length) return null;
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12, marginBottom: 28 }} testID="app-quick-features">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12, marginBottom: 20 }} testID="app-quick-features">
       {items.map((q) => (
-        <Pressable key={q.id} testID={`app-qf-${q.id}`} onPress={() => navigate(q.link || "/services")} style={{ ...card, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, width: 190, borderRadius: 18 }}>
+        <Pressable key={q.id} testID={`app-qf-${q.id}`} onPress={() => navigate(q.link || "/services")} style={{ ...card, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, width: 190, borderRadius: 10 }}>
           <View style={{ height: 44, width: 44, borderRadius: 12, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}><LucideByName name={q.icon} size={21} color={TC.primaryText} strokeWidth={2} /></View>
           <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "700", color: TC.text }}>{q.title}</Text><Text numberOfLines={1} style={{ fontSize: 11, color: TC.textMuted, marginTop: 2 }}>{q.sub}</Text></View>
         </Pressable>
@@ -150,7 +150,7 @@ export function QuickFeatures({ items, navigate }: { items: any[]; navigate: Nav
 export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate: Nav; compact?: boolean; testID?: string }) {
   const count = compactNum(s.rating_count || s.booking_count);
   return (
-    <Pressable testID={testID} onPress={() => navigate(`/service/${s.id}`)} style={{ ...card, width: compact ? 150 : 164, overflow: "hidden", borderRadius: 18 }}>
+    <Pressable testID={testID} onPress={() => navigate(`/service/${s.id}`)} style={{ ...card, width: compact ? 150 : 164, overflow: "hidden", borderRadius: 10 }}>
       <Image source={{ uri: s.image }} style={{ height: compact ? 100 : 120, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} cachePolicy="memory-disk" recyclingKey={s.id} />
       <View style={{ padding: 12 }}>
         <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>{s.name}</Text>
@@ -171,9 +171,9 @@ export function ServiceTile({ s, navigate, compact, testID }: { s: any; navigate
 export function ServicesRow({ sec, navigate, compact, testID }: { sec: any; navigate: Nav; compact?: boolean; testID: string }) {
   if (!sec.data?.length) return null;
   return (
-    <View testID={testID} style={{ marginBottom: 30 }}>
+    <View testID={testID} style={{ marginBottom: 20 }}>
       <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate(sec.category_id ? `/services?category=${sec.category_id}` : "/services")} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
         {sec.data.map((s: any, i: number) => <ServiceTile key={s.id} s={s} navigate={navigate} compact={compact} testID={`${testID}-${i}`} />)}
       </ScrollView>
     </View>
@@ -184,8 +184,8 @@ export function ServicesRow({ sec, navigate, compact, testID }: { sec: any; navi
 export function WhyChoose({ data }: { data: any }) {
   const items = data?.items || [];
   return (
-    <View testID="app-why-choose" style={{ marginHorizontal: 20, marginBottom: 30 }}>
-      <LinearGradient colors={[PRIMARY[50], "#EEF5FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, overflow: "hidden", borderWidth: 1, borderColor: PRIMARY[100], padding: 20 }}>
+    <View testID="app-why-choose" style={{ marginHorizontal: 16, marginBottom: 20 }}>
+      <LinearGradient colors={[PRIMARY[50], "#EEF5FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: PRIMARY[100], padding: 20 }}>
         <Text style={{ fontSize: 19, fontWeight: "900", color: TC.text, letterSpacing: -0.3 }}>{data?.title}</Text>
         {data?.side_text ? <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 4 }}>{data.side_text}</Text> : null}
         <View style={{ flexDirection: "row", marginTop: 18 }}>
@@ -196,7 +196,7 @@ export function WhyChoose({ data }: { data: any }) {
             </View>
           ))}
         </View>
-        {data?.image ? <Image source={{ uri: data.image }} style={{ height: 120, width: "100%", borderRadius: 16, marginTop: 16 }} contentFit="cover" transition={200} cachePolicy="memory-disk" /> : null}
+        {data?.image ? <Image source={{ uri: data.image }} style={{ height: 120, width: "100%", borderRadius: 10, marginTop: 16 }} contentFit="cover" transition={200} cachePolicy="memory-disk" /> : null}
       </LinearGradient>
     </View>
   );
@@ -209,14 +209,14 @@ export function SalonSection({ sec, navigate }: { sec: any; navigate: Nav }) {
   const cur = tabs[t];
   if (!tabs.length) return null;
   return (
-    <View testID="app-salon" style={{ marginBottom: 30 }}>
+    <View testID="app-salon" style={{ marginBottom: 20 }}>
       <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate(cur?.category_id ? `/services?category=${cur.category_id}` : "/services")}
         right={<View style={{ flexDirection: "row", gap: 6 }}>{tabs.map((tab: any, i: number) => (
           <Pressable key={i} testID={`app-salon-tab-${i}`} onPress={() => setT(i)} style={{ height: 30, paddingHorizontal: 12, borderRadius: 15, backgroundColor: i === t ? VIOLET[500] : TC.surface, borderWidth: 1, borderColor: i === t ? VIOLET[500] : TC.border, justifyContent: "center" }}>
             <Text style={{ fontSize: 11, fontWeight: "700", color: i === t ? "#fff" : TC.textMuted }}>{tab.label}</Text>
           </Pressable>
         ))}</View>} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
         {(cur?.data || []).map((s: any, i: number) => <ServiceTile key={s.id} s={s} navigate={navigate} compact testID={`app-salon-svc-${i}`} />)}
         {!cur?.data?.length ? <Text style={{ fontSize: 12, color: TC.textMuted }}>No services yet in this category.</Text> : null}
       </ScrollView>
@@ -230,17 +230,17 @@ export function OffersRow({ sec, navigate }: { sec: any; navigate: Nav }) {
   const toast = useToast();
   if (!sec.data?.length) return null;
   return (
-    <View testID="app-offers" style={{ marginBottom: 30 }}>
+    <View testID="app-offers" style={{ marginBottom: 20 }}>
       <BlockTitle icon={sec.icon} title={sec.title} onSeeAll={() => navigate("/offers")} />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 14 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }}>
         {sec.data.map((o: any, i: number) => {
           const g = OFFER_GRADS[i % OFFER_GRADS.length];
           const dark = i % OFFER_GRADS.length !== 1;
           const fg = dark ? "#fff" : SLATE[900];
           return (
             <Pressable key={o.id} testID={`app-offer-${o.id}`} onPress={async () => { if (o.code) { await Clipboard.setStringAsync(o.code); storage.setItem("azo_coupon", o.code); toast.success(`Code ${o.code} copied — apply at checkout`); } navigate(o.link || "/services"); }}>
-              <LinearGradient colors={g as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 200, height: 132, borderRadius: 20, padding: 16, overflow: "hidden" }}>
-                {o.image ? <Image source={{ uri: o.image }} style={{ position: "absolute", right: -4, bottom: -4, width: 84, height: 84, borderRadius: 14, opacity: 0.9 }} contentFit="cover" cachePolicy="memory-disk" /> : null}
+              <LinearGradient colors={g as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 200, height: 132, borderRadius: 10, padding: 16, overflow: "hidden" }}>
+                {o.image ? <Image source={{ uri: o.image }} style={{ position: "absolute", right: -4, bottom: -4, width: 84, height: 84, borderRadius: 10, opacity: 0.9 }} contentFit="cover" cachePolicy="memory-disk" /> : null}
                 <Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: fg, opacity: 0.9 }}>{o.title}</Text>
                 <Text style={{ fontSize: 22, fontWeight: "900", color: dark ? "#fff" : ROSE[600], marginTop: 4 }}>{o.discount_label || `${o.discount}% OFF`}</Text>
                 {o.subtitle ? <Text numberOfLines={1} style={{ fontSize: 11, color: fg, opacity: 0.85, marginTop: 2 }}>{o.subtitle}</Text> : null}
@@ -257,7 +257,7 @@ export function OffersRow({ sec, navigate }: { sec: any; navigate: Nav }) {
 export function CustomBanner({ sec, navigate }: { sec: any; navigate: Nav }) {
   const d = sec.data || {};
   return (
-    <Pressable testID={`app-custom-${sec.key.split(":")[1]}`} onPress={() => navigate(d.link || "/services")} style={{ marginHorizontal: 20, marginBottom: 28, borderRadius: 22, overflow: "hidden", backgroundColor: PRIMARY[700], minHeight: 140 }}>
+    <Pressable testID={`app-custom-${sec.key.split(":")[1]}`} onPress={() => navigate(d.link || "/services")} style={{ marginHorizontal: 16, marginBottom: 20, borderRadius: 10, overflow: "hidden", backgroundColor: PRIMARY[700], minHeight: 140 }}>
       {d.image ? <Image source={{ uri: d.image }} style={{ width: "100%", height: 150 }} contentFit="cover" transition={200} cachePolicy="memory-disk" /> : null}
       {d.title || d.subtitle ? <View style={{ padding: 16, position: d.image ? "absolute" : "relative", left: 0, right: 0, bottom: 0 }}>{d.title ? <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800" }}>{d.title}</Text> : null}{d.subtitle ? <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 13, marginTop: 2 }}>{d.subtitle}</Text> : null}</View> : null}
     </Pressable>

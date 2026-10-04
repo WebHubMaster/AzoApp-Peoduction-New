@@ -35,7 +35,7 @@ export const SubscriptionHeader = ({ it }: { it: any }) => (
     <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2 }}>{subPlanLine(it)}</Text>
   </View>
 );
-export const card = { borderRadius: 16, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.surface; } };
+export const card = { borderRadius: 10, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.surface; } };
 export const H2 = ({ t, s }: { t: string; s: string }) => <View><Text style={{ fontSize: 20, fontWeight: "700", color: TC.text }}>{t}</Text><Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 2 }}>{s}</Text></View>;
 export const Lbl = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>{children}</Text>;
 
@@ -154,7 +154,7 @@ export function StepServices({ items, removeItem, setQty, lineTotal, together = 
         ))}
       </View>
       {suggestions.length > 0 ? (
-        <View testID="frequently-together" style={{ borderRadius: 16, borderWidth: 1, borderColor: AMBER[200], backgroundColor: TC.text === "#FFFFFF" ? "rgba(245,158,11,0.10)" : "rgba(255,251,235,0.6)", padding: 16 }}>
+        <View testID="frequently-together" style={{ borderRadius: 10, borderWidth: 1, borderColor: AMBER[200], backgroundColor: TC.text === "#FFFFFF" ? "rgba(245,158,11,0.10)" : "rgba(255,251,235,0.6)", padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}><PartyPopper size={16} color={AMBER[600]} /><Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>Frequently booked together</Text></View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
             {suggestions.map((s: any) => { const price = s.discounted_price || s.base_price || s.tiers?.[0]?.price || 0; return (
@@ -168,7 +168,7 @@ export function StepServices({ items, removeItem, setQty, lineTotal, together = 
           </ScrollView>
         </View>
       ) : null}
-      <Pressable testID="add-more" onPress={() => router.push("/(site)/services" as any)} style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: PRIMARY[200], backgroundColor: TC.primarySoft, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}><Plus size={16} color={TC.primaryText} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.primaryText }}>Add more services</Text></Pressable>
+      <Pressable testID="add-more" onPress={() => router.push("/(site)/services" as any)} style={{ borderRadius: 10, borderWidth: 2, borderStyle: "dashed", borderColor: PRIMARY[200], backgroundColor: TC.primarySoft, paddingVertical: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}><Plus size={16} color={TC.primaryText} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.primaryText }}>Add more services</Text></Pressable>
     </View>
   );
 }
@@ -228,14 +228,14 @@ export function StepSchedule({ schedule, setSchedule, scheduledAt, setScheduledA
       {!isSub ? (
         <View style={{ flexDirection: "row", gap: 12 }}>
           {([["schedule", "Schedule a visit", "Pick a convenient date & time", CalendarClock], ["emergency", "Quick Services", "Get help as soon as possible", Zap]] as any[]).map(([k, t, d, Icon]) => (
-            <Pressable key={k} testID={`when-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 16, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : TC.border, backgroundColor: schedule === k ? PRIMARY[50] : TC.surface, padding: 16 }}>
+            <Pressable key={k} testID={`when-${k}`} onPress={() => setSchedule(k)} style={{ flex: 1, borderRadius: 10, borderWidth: 2, borderColor: schedule === k ? PRIMARY[700] : TC.border, backgroundColor: schedule === k ? PRIMARY[50] : TC.surface, padding: 16 }}>
               <Icon size={24} color={schedule === k ? PRIMARY[700] : TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text, marginTop: 8 }}>{t}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{d}</Text>
             </Pressable>
           ))}
         </View>
       ) : null}
       {schedule === "schedule" ? <SchedulePicker value={scheduledAt} onChange={setScheduledAt} /> : null}
-      {schedule === "emergency" && !isSub ? <View style={{ borderRadius: 16, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small quick services charge may apply.</Text></View> : null}
+      {schedule === "emergency" && !isSub ? <View style={{ borderRadius: 10, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 16, flexDirection: "row", gap: 12 }}><Zap size={20} color={AMBER[600]} /><Text style={{ fontSize: 14, color: "#92400E", flex: 1 }}>We'll assign the nearest available professional right away. A small quick services charge may apply.</Text></View> : null}
     </View>
   );
 }

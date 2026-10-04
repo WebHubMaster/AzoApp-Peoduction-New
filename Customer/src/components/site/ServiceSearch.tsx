@@ -64,7 +64,7 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
         </Pressable>
       ) : null}
       {showPanel ? (
-        <View testID="search-panel" style={{ position: "absolute", top: isHero ? 64 : 52, left: 0, right: 0, backgroundColor: TC.surface, borderRadius: 16, borderWidth: 1, borderColor: TC.border, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", overflow: "hidden", maxHeight: 360 }}>
+        <View testID="search-panel" style={{ position: "absolute", top: isHero ? 64 : 52, left: 0, right: 0, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", overflow: "hidden", maxHeight: 360 }}>
           {q.trim().length >= 2 ? (
             loading && !results.length ? <Text style={{ padding: 16, fontSize: 13, color: TC.textMuted }}>Searching…</Text>
             : results.length === 0 ? <Text style={{ padding: 16, fontSize: 13, color: TC.textMuted }}>No services match “{q}”.</Text>

@@ -46,7 +46,7 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
   };
 
   return (
-    <View testID="app-header" style={{ paddingTop: insets.top + 12, paddingHorizontal: 20, paddingBottom: 12, backgroundColor: c.surface }}>
+    <View testID="app-header" style={{ paddingTop: insets.top + 8, paddingHorizontal: 16, paddingBottom: 8, backgroundColor: c.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Pressable testID="app-logo" onPress={() => router.replace("/(site)")} style={{ flexShrink: 1, minWidth: 110 }}>
           {brandLogo ? (
@@ -148,12 +148,12 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   }, [q]);
 
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 14, backgroundColor: c.surface, zIndex: 20 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, backgroundColor: c.surface, zIndex: 20 }}>
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 5, backgroundColor: isDark ? c.surfaceAlt : TC.surface, borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 10, backgroundColor: isDark ? c.surfaceAlt : TC.surface, borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
         <Search size={22} color={c.text} strokeWidth={2.4} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search" numberOfLines={1} multiline={false}
-          placeholder="Search for services" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 16, color: c.text, height: 52, paddingVertical: 0, outlineStyle: "none" } as any} />
+          placeholder="Search for services" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 15, color: c.text, height: 46, paddingVertical: 0, outlineStyle: "none" } as any} />
         {q ? <Pressable testID="app-search-clear" onPress={() => { setQ(""); setResults(null); }} hitSlop={8}><X size={18} color={TC.textFaint} /></Pressable> : null}
         <Pressable testID="app-voice-btn" onPress={() => (voice.listening ? cancelVoice() : startVoice())} hitSlop={6} style={{ height: 40, width: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: voice.listening ? ROSE[50] : "transparent" }}>
           {voice.listening ? <MicOff size={22} color={ROSE[600]} /> : <Mic size={22} color={voice.supported ? PRIMARY[900] : TC.border} strokeWidth={2.2} />}
@@ -176,7 +176,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
         </View>
       ) : null}
       {open && q.trim().length >= 2 ? (
-        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: TC.surface, borderRadius: 16, borderWidth: 1, borderColor: TC.border, padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
+        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={TC.primaryText} style={{ margin: 12 }} /> : null}
           <ScrollView keyboardShouldPersistTaps="handled">
             {(results || []).slice(0, 8).map((s) => (

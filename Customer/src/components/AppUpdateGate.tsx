@@ -104,7 +104,7 @@ export default function AppUpdateGate() {
             ) : cfg?.maintenance_icon ? (
               <Image source={{ uri: mediaUrl(cfg.maintenance_icon) }} style={{ width: 140, height: 96, marginBottom: 20 }} contentFit="contain" />
             ) : (
-              <View style={{ width: 96, height: 96, borderRadius: 24, backgroundColor: "#F59E0B22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Wrench size={44} color="#F59E0B" /></View>
+              <View style={{ width: 96, height: 96, borderRadius: 10, backgroundColor: "#F59E0B22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Wrench size={44} color="#F59E0B" /></View>
             )}
             <Text testID="maint-title" style={{ fontSize: 24, fontWeight: "900", color: c.text, textAlign: "center" }}>{cfg?.maintenance_title || "We’ll be back soon"}</Text>
             <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", marginTop: 12, lineHeight: 21 }}>{cfg?.maintenance_description || "The app is under maintenance. Please try again later."}</Text>
@@ -114,12 +114,12 @@ export default function AppUpdateGate() {
           </View>
         ) : (
           <View style={{ alignItems: "center", maxWidth: 400, width: "100%" }}>
-            <View style={{ width: 96, height: 96, borderRadius: 24, backgroundColor: PRIMARY[600] + "22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><DownloadCloud size={44} color={PRIMARY[600]} /></View>
+            <View style={{ width: 96, height: 96, borderRadius: 10, backgroundColor: PRIMARY[600] + "22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><DownloadCloud size={44} color={PRIMARY[600]} /></View>
             <Text style={{ fontSize: 22, fontWeight: "900", color: c.text, textAlign: "center" }}>New Update Available</Text>
             <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center", marginTop: 10, lineHeight: 21 }}>A new version of the app is available. Please update to continue.</Text>
             {cfg?.latest_version ? <Text style={{ fontSize: 13, color: c.primaryText, fontWeight: "800", marginTop: 8 }}>Version {cfg.latest_version}</Text> : null}
             {cfg?.release_notes ? (
-              <View style={{ marginTop: 16, alignSelf: "stretch", backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 14 }}>
+              <View style={{ marginTop: 16, alignSelf: "stretch", backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 14 }}>
                 <Text style={{ fontSize: 11, fontWeight: "800", color: c.textMuted, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 }}>Release Notes</Text>
                 <Text style={{ fontSize: 13, color: c.text, lineHeight: 20 }}>{cfg.release_notes}</Text>
               </View>
@@ -131,7 +131,7 @@ export default function AppUpdateGate() {
                 <View style={{ height: 10, borderRadius: 5, backgroundColor: c.border, marginTop: 8, overflow: "hidden" }}><View style={{ height: "100%", width: `${pct}%`, backgroundColor: PRIMARY[600] }} /></View>
               </View>
             ) : (
-              <Pressable testID="update-now" onPress={startUpdate} style={({ pressed }) => ({ marginTop: 24, alignSelf: "stretch", height: 54, borderRadius: 16, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+              <Pressable testID="update-now" onPress={startUpdate} style={({ pressed }) => ({ marginTop: 24, alignSelf: "stretch", height: 54, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
                 <DownloadCloud size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Update Now</Text>
               </Pressable>
             )}
