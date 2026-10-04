@@ -114,13 +114,13 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       </Pressable>
 
       {/* Summary hero — matches the requested layout */}
-      <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 22 }}>
+      <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 22 }}>
         <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.6 }}>{s.plan_label || s.plan_type} {s.category_name || "Maid"} Subscription</Text>
         <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800", marginTop: 4 }}>{s.customer_name}</Text>
         <Text style={{ color: "#BFDBFE", fontSize: 13, marginTop: 2 }}>{shortDate(s.start_date)} – {shortDate(s.end_date)}</Text>
         <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
           {[["Working", s.working_days], ["Completed", s.completed_days], ["Absent", s.absent_days]].map(([k, v]) => (
-            <View key={String(k)} style={{ flex: 1, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.12)", padding: 10 }}>
+            <View key={String(k)} style={{ flex: 1, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.12)", padding: 10 }}>
               <Text style={{ color: "#BFDBFE", fontSize: 10, textTransform: "uppercase" }}>{k}</Text>
               <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800", marginTop: 2 }}>{v ?? 0}</Text>
             </View>
@@ -208,7 +208,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       <Modal visible={!!completeFor} transparent animationType="fade" onRequestClose={() => setCompleteFor(null)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: 20, padding: 20, width: "100%", maxWidth: 380 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 20, width: "100%", maxWidth: 380 }}>
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Complete Service</Text>
             <Text style={{ color: SLATE, fontSize: 12, marginTop: 4 }}>Kaam khatam karke complete mark karein. Photo proof optional hai.</Text>
             {photo ? (

@@ -68,7 +68,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
   return (
     <View testID="support-new-form">
       <Pressable testID="support-new-back" onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 16, alignSelf: "flex-start" }}><ArrowLeft size={16} color={SLATE[500]} /><Text style={{ fontSize: 14, lineHeight: 20, color: SLATE[500] }}>Back</Text></Pressable>
-      <View style={{ borderRadius: 16, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], backgroundColor: card, padding: 20, gap: 16 }}>
+      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], backgroundColor: card, padding: 20, gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={20} color={P[600]} /><Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Raise a new ticket</Text></View>
         <View><Label>Subject *</Label><Input testID="support-subject" value={subject} onChangeText={setSubject} placeholder="Briefly, what's the issue?" /></View>
         <View style={{ flexDirection: "row", gap: 12 }}>
@@ -150,7 +150,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
   return (
     <View style={{ gap: 16 }} testID="support-thread">
       {/* ---- main conversation ---- */}
-      <View style={{ height: cardH, borderRadius: 16, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }}>
+      <View style={{ height: cardH, borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: hairline, zIndex: 20 }}>
           <IconBtn testID="support-thread-back" onPress={onBack} icon={<ArrowLeft size={16} color={heading} />} />
           <Avatar size={36} icon={20} />
@@ -195,7 +195,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
                       {!mine ? <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: SLATE[500], paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
                       {(m.attachments || []).length > 0 ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{m.attachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View> : null}
                       {m.text ? (
-                        <View style={{ borderRadius: 16, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD500 : (dark ? SLATE[800] : "#fff"), borderWidth: mine ? 0 : 1, borderColor: bubbleBorder, boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
+                        <View style={{ borderRadius: 10, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD500 : (dark ? SLATE[800] : "#fff"), borderWidth: mine ? 0 : 1, borderColor: bubbleBorder, boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
                           <Text style={{ fontSize: 14, lineHeight: 20, color: mine ? "#fff" : body }}>{m.text}</Text>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, justifyContent: mine ? "flex-end" : "flex-start" }}>
                             <Text style={{ fontSize: 10, lineHeight: 14, color: mine ? "rgba(255,255,255,0.8)" : SLATE[400] }}>{timeStr(m.at)}</Text>
@@ -211,7 +211,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
           })}
           {t.agent_typing ? (
             <View style={{ flexDirection: "row" }} testID="support-agent-typing">
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 16, borderBottomLeftRadius: 4, backgroundColor: dark ? SLATE[800] : "#fff", borderWidth: 1, borderColor: bubbleBorder, paddingHorizontal: 14, paddingVertical: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 10, borderBottomLeftRadius: 4, backgroundColor: dark ? SLATE[800] : "#fff", borderWidth: 1, borderColor: bubbleBorder, paddingHorizontal: 14, paddingVertical: 10 }}>
                 <ShieldCheck size={12} color={P[600]} /><Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: P[600] }}>Support is typing</Text>
                 <View style={{ flexDirection: "row", gap: 4, marginLeft: 4 }}>{[0, 1, 2].map((i) => <View key={i} style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: P[400] }} />)}</View>
               </View>
@@ -252,7 +252,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
       </View>
 
       {/* ---- info panel ---- */}
-      <View style={{ borderRadius: 16, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-ticket-info">
+      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-ticket-info">
         <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: hairline, gap: 2 }}>
           <Section>Ticket details</Section>
           <InfoRow icon={<Hash size={16} color={SLATE[400]} />} label="Ticket ID" value={t.code} />
@@ -362,14 +362,14 @@ export default function MerchantSupport({ title = "Help & Support" }: { title?: 
             {loading ? (
               <View style={{ paddingVertical: 64, alignItems: "center" }} testID="support-loading"><ActivityIndicator size="small" color={P[500]} /></View>
             ) : rows.length === 0 ? (
-              <View style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: dark ? SLATE[700] : SLATE[300], padding: 48, alignItems: "center" }} testID="support-empty">
+              <View style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: dark ? SLATE[700] : SLATE[300], padding: 48, alignItems: "center" }} testID="support-empty">
                 <Inbox size={40} color={SLATE[300]} />
                 <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "500", color: SLATE[500], marginTop: 12 }}>No tickets found</Text>
                 <Text style={{ fontSize: 14, lineHeight: 20, color: SLATE[400], marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
                 {newBtn("support-empty-new-btn")}
               </View>
             ) : (
-              <View style={{ borderRadius: 16, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-list">
+              <View style={{ borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-list">
                 {rows.map((tk) => (
                   <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)}
                     style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: dark ? "rgba(30,41,59,0.6)" : SLATE[50], gap: 8, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.4)" : SLATE[50]) : "transparent" })}>

@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
+BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
 
 # Test credentials (demo accounts, OTP 123456)
 ADMIN_PHONE = "+919000000000"

@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
+BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

@@ -9,7 +9,7 @@ import random
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Base URL from frontend/.env
-BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
+BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
 
 # Test credentials
 CUSTOMER_PHONE = "+919000000004"

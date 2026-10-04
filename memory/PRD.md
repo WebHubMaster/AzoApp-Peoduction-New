@@ -110,3 +110,10 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 
 ## 2026-06 — Customer app uniform font
 - Customer app now uses the same Inter globalFont as partner app (fixed sizes, no OS font scaling); PublicSans removed. iteration_201.
+
+## 2026-06 — Partner App UI pass + Partner Invoice
+- Registration fee screen redesigned (src/components/reg/PartnerFeeParts.tsx + PartnerFeePayment.tsx): progress Registration→Payment→Activation, dynamic fee/discount breakdown, sticky CTA w/ safe-area, processing/success/error states, double-tap lock. Payment logic unchanged.
+- Partner App: card radius normalised to 10 (theme radius md/lg=10, xl=12; scripts/square_radius.py). Active job: removed JobStepper, "Job timeline" collapse and the "Call, Chat, Navigation… now available" note.
+- Invoice 3-dot menus: only View Details / View Invoice / Download PDF.
+- Partner invoice PDF now uses customer GST layout (gst_invoice_service.build_partner_html), amount = role_earning.net only. Logo: admin Branding logo (email_logo→logo_light→logo→logo_url→logo_dark); text wordmark only when no logo.
+- PDF render cached by HTML hash + run in threadpool; Android download auto-opens the PDF.

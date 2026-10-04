@@ -44,7 +44,7 @@ export function MissedRingRecovery() {
   if (rows.length === 0) return null;
   const dark = mode === "dark";
   return (
-    <View testID="missed-ring-recovery" style={{ borderRadius: 16, borderWidth: 2, borderColor: dark ? TW.amber700 : TW.amber300, backgroundColor: dark ? "rgba(120,53,15,0.2)" : TW.amber50, padding: 16 }}>
+    <View testID="missed-ring-recovery" style={{ borderRadius: 10, borderWidth: 2, borderColor: dark ? TW.amber700 : TW.amber300, backgroundColor: dark ? "rgba(120,53,15,0.2)" : TW.amber50, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
           <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: TW.amber500, alignItems: "center", justifyContent: "center" }}><Icon name="wifi-off" size={20} color="#fff" /></View>

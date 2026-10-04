@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
+BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

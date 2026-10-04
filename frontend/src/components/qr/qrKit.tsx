@@ -76,7 +76,7 @@ export function WBtn({
 /** web surface card: rounded-2xl bg-white border-slate-200/70 p-4 */
 export function KitCard({ children, style, testID, padded = true }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string; padded?: boolean }) {
   const { card, cardBorder } = useQrPalette();
-  return <View testID={testID} style={[{ borderRadius: 16, backgroundColor: card, borderWidth: 1, borderColor: cardBorder, padding: padded ? 16 : 0 }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ borderRadius: 10, backgroundColor: card, borderWidth: 1, borderColor: cardBorder, padding: padded ? 16 : 0 }, style]}>{children}</View>;
 }
 
 /** web segmented pills: bg-slate-100 rounded-lg p-1 · active bg-white text-primary-700 shadow-sm */

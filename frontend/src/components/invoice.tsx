@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, TextInput, Modal, ActivityIndicator, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, Search, X, Eye, Download, MoreHorizontal, Printer, Share2, Copy,
+  FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, Search, X, Eye, Download, MoreHorizontal, Share2, Copy,
   ChevronLeft, ChevronRight, AlertTriangle, WifiOff, Inbox, MessageCircle, Link2, Store, CalendarDays, ArrowLeft, Loader2,
   CircleDollarSign, XCircle, AlertOctagon, HelpCircle, ChevronDown, Mail,
 } from "lucide-react-native";
@@ -67,7 +67,7 @@ function KpiTile({ icon: Ico, tone, label, value, sub, testID }: { icon: any; to
   };
   const c = TONES[tone];
   return (
-    <View testID={testID} style={{ width: 196, borderRadius: 16, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, padding: 16, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }}>
+    <View testID={testID} style={{ width: 196, borderRadius: 10, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, padding: 16, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }}>
       <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: c.bg, alignItems: "center", justifyContent: "center" }}><Ico size={18} color={c.fg} strokeWidth={1.9} /></View>
       <Text style={{ color: inv.t400, fontSize: 11, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase", marginTop: 12 }}>{label}</Text>
       <Text style={{ color: inv.t900, fontSize: 22, fontWeight: "800", lineHeight: 26, marginTop: 2 }} numberOfLines={1}>{value}</Text>
@@ -145,7 +145,7 @@ export function DateChips({ value, onChange, dateFrom, dateTo, onDateFrom, onDat
         ))}
       </ScrollView>
       {value === "custom" && open ? (
-        <View testID="invoice-custom-range" style={{ borderRadius: 16, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, padding: 12, gap: 8 }}>
+        <View testID="invoice-custom-range" style={{ borderRadius: 10, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, padding: 12, gap: 8 }}>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <View style={{ flex: 1 }}><Text style={{ fontSize: 10.5, fontWeight: "700", letterSpacing: 0.8, color: inv.t400, textTransform: "uppercase", marginBottom: 4 }}>From Date</Text><WDatePicker testID="invoice-date-from" value={dateFrom} onChange={onDateFrom} placeholder="From date" /></View>
             <View style={{ flex: 1 }}><Text style={{ fontSize: 10.5, fontWeight: "700", letterSpacing: 0.8, color: inv.t400, textTransform: "uppercase", marginBottom: 4 }}>To Date</Text><WDatePicker testID="invoice-date-to" value={dateTo} min={dateFrom || undefined} onChange={onDateTo} placeholder="To date" /></View>
@@ -181,7 +181,7 @@ export function InvoiceCardList({ items, busyId, onMore, ...a }: { items: any[];
       {items.map((it) => {
         const cust = customerOf(it);
         return (
-          <View key={it.id} testID={`invoice-card-${it.invoice_number}`} style={{ borderRadius: 16, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1, overflow: "hidden" }}>
+          <View key={it.id} testID={`invoice-card-${it.invoice_number}`} style={{ borderRadius: 10, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1, overflow: "hidden" }}>
             <Pressable onPress={() => a.onView(it)} style={({ pressed }) => ({ padding: 16, opacity: pressed ? 0.92 : 1 })}>
               <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -222,7 +222,6 @@ export function RowMenuSheet({ inv, onClose, ...a }: { inv: any | null; onClose:
       </Pressable>
     );
   };
-  const Sep = () => <View style={{ height: 1, backgroundColor: t.border, marginVertical: 4 }} />;
   return (
     <ActionSheet open={!!inv} onClose={onClose} title={inv?.invoice_number || "Invoice"} testID="invoice-row-menu">
       {inv ? (
@@ -230,14 +229,6 @@ export function RowMenuSheet({ inv, onClose, ...a }: { inv: any | null; onClose:
           <Item icon={Eye} label="View Details" onPress={() => a.onView(inv)} testID="invoice-menu-view" />
           <Item icon={FileText} label="View Invoice" onPress={() => a.onPreview(inv)} testID={`invoice-menu-preview-${inv.invoice_number}`} />
           <Item icon={Download} label="Download PDF" onPress={() => a.onDownload(inv)} testID="invoice-menu-download" />
-          <Item icon={Printer} label="Print Invoice" onPress={() => a.onPrint(inv)} testID="invoice-menu-print" />
-          <Sep />
-          <Item icon={MessageCircle} label="Share on WhatsApp" onPress={() => a.onShare(inv, "whatsapp")} tone={t.emerald} testID="invoice-menu-whatsapp" />
-          <Item icon={Mail} label="Email Invoice" onPress={() => a.onShare(inv, "email")} testID="invoice-menu-email" />
-          <Item icon={Link2} label="Copy Link" onPress={() => a.onShare(inv, "copy")} testID="invoice-menu-copy-link" />
-          <Item icon={Share2} label="Share…" onPress={() => a.onShare(inv, "system")} testID="invoice-menu-share" />
-          <Sep />
-          <Item icon={Copy} label="Copy Invoice Number" onPress={() => a.onCopy(inv)} testID={`invoice-menu-copy-${inv.invoice_number}`} />
         </View>
       ) : null}
     </ActionSheet>
@@ -282,7 +273,7 @@ export function KpiSkeleton() {
   const inv = useInv();
   return (
     <View testID="invoice-kpi-skeleton" style={{ flexDirection: "row", gap: 12, overflow: "hidden", marginHorizontal: -16, paddingHorizontal: 16 }}>
-      {[0, 1, 2].map((i) => <View key={i} style={{ width: 196, borderRadius: 16, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, padding: 20 }}><Sk h={40} w={40} r={12} /><Sk h={12} w={80} style={{ marginTop: 16 }} /><Sk h={28} w={112} style={{ marginTop: 8 }} /><Sk h={12} w={96} style={{ marginTop: 8 }} /></View>)}
+      {[0, 1, 2].map((i) => <View key={i} style={{ width: 196, borderRadius: 10, backgroundColor: inv.surface, borderWidth: 1, borderColor: inv.border, padding: 20 }}><Sk h={40} w={40} r={12} /><Sk h={12} w={80} style={{ marginTop: 16 }} /><Sk h={28} w={112} style={{ marginTop: 8 }} /><Sk h={12} w={96} style={{ marginTop: 8 }} /></View>)}
     </View>
   );
 }
@@ -291,7 +282,7 @@ export function TableSkeleton() {
   return (
     <View testID="invoice-table-skeleton" style={{ padding: 16, gap: 12 }}>
       {[0, 1, 2, 3].map((i) => (
-        <View key={i} style={{ borderRadius: 16, borderWidth: 1, borderColor: inv.border, padding: 16 }}>
+        <View key={i} style={{ borderRadius: 10, borderWidth: 1, borderColor: inv.border, padding: 16 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Sk h={16} w={128} /><Sk h={20} w={64} r={999} /></View>
           <Sk h={12} w={96} style={{ marginTop: 12 }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}><Sk h={16} w={112} /><Sk h={24} w={80} /></View>
@@ -325,7 +316,7 @@ export function InvEmpty({ filtered, onClear, hint }: { filtered: boolean; onCle
   const inv = useInv();
   return (
     <View testID="invoice-empty" style={{ paddingVertical: 64, paddingHorizontal: 24, alignItems: "center" }}>
-      <View style={{ height: 64, width: 64, borderRadius: 16, backgroundColor: inv.subtle, alignItems: "center", justifyContent: "center" }}><Inbox size={28} color={inv.t400} strokeWidth={1.6} /></View>
+      <View style={{ height: 64, width: 64, borderRadius: 10, backgroundColor: inv.subtle, alignItems: "center", justifyContent: "center" }}><Inbox size={28} color={inv.t400} strokeWidth={1.6} /></View>
       <Text style={{ fontWeight: "700", fontSize: 18, color: inv.t900, marginTop: 16, textAlign: "center" }}>{filtered ? "No invoices match your current filters." : "No invoices yet"}</Text>
       <Text style={{ fontSize: 14, color: inv.t500, marginTop: 4, textAlign: "center", maxWidth: 360, lineHeight: 20 }}>{filtered ? "Try a different date range, clear the search, or reset filters to see all invoices." : (hint || "Your commission & booking invoices will appear here as soon as bookings complete.")}</Text>
       {filtered ? <View style={{ marginTop: 20, width: 160 }}><OutlineBtn testID="invoice-clear-filters" onPress={onClear} icon={<X size={16} color={inv.t700} />} label="Clear Filters" /></View> : null}
@@ -336,7 +327,7 @@ export function InvError({ offline, onRetry }: { offline: boolean; onRetry: () =
   const inv = useInv();
   return (
     <View testID="invoice-error" style={{ paddingVertical: 56, paddingHorizontal: 24, alignItems: "center" }}>
-      <View style={{ height: 64, width: 64, borderRadius: 16, backgroundColor: inv.dark ? "rgba(76,5,25,0.4)" : "#FFF1F2", alignItems: "center", justifyContent: "center" }}>{offline ? <WifiOff size={28} color="#F43F5E" strokeWidth={1.7} /> : <AlertTriangle size={28} color="#F43F5E" strokeWidth={1.7} />}</View>
+      <View style={{ height: 64, width: 64, borderRadius: 10, backgroundColor: inv.dark ? "rgba(76,5,25,0.4)" : "#FFF1F2", alignItems: "center", justifyContent: "center" }}>{offline ? <WifiOff size={28} color="#F43F5E" strokeWidth={1.7} /> : <AlertTriangle size={28} color="#F43F5E" strokeWidth={1.7} />}</View>
       <Text style={{ fontWeight: "700", fontSize: 18, color: inv.t900, marginTop: 16 }}>{offline ? "No internet connection" : "Unable to load invoices"}</Text>
       <Text style={{ fontSize: 14, color: inv.t500, marginTop: 4, textAlign: "center", maxWidth: 360 }}>{offline ? "Check your connection and try again." : "Something went wrong while fetching your invoices."}</Text>
       <Pressable testID="invoice-retry" onPress={onRetry} style={{ marginTop: 20, height: 44, paddingHorizontal: 20, borderRadius: 12, backgroundColor: inv.primary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600" }}>{offline ? "Reconnect" : "Try Again"}</Text></Pressable>

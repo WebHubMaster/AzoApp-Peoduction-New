@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://unified-vip-member.preview.emergentagent.com/api"
+BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

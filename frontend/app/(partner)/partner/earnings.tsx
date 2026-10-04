@@ -64,11 +64,11 @@ export default function PartnerEarnings() {
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={e.isFetching && !e.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}>
         {/* Hero */}
-        <LinearGradient colors={[colors.primaryDark, colors.primaryHover, colors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, boxShadow: "0px 20px 45px rgba(13,71,161,0.4)", elevation: 6 }} testID="partner-earnings-header">
+        <LinearGradient colors={[colors.primaryDark, colors.primaryHover, colors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, boxShadow: "0px 20px 45px rgba(13,71,161,0.4)", elevation: 6 }} testID="partner-earnings-header">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="trending-up" size={16} color="#BFDBFE" /><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Total Earnings</Text></View>
           <Text style={{ color: "#fff", fontSize: 44, fontWeight: "900", marginTop: 6, lineHeight: 50 }} numberOfLines={1}>{fmtC(E.total_earned)}</Text>
           <Text style={{ color: "#BFDBFE", fontSize: 14, marginTop: 8 }}>{E.jobs || S.jobs_paid || 0} jobs completed</Text>
-          <View style={{ marginTop: 16, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingHorizontal: 20, paddingVertical: 12, alignSelf: "flex-start" }}>
+          <View style={{ marginTop: 16, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", paddingHorizontal: 20, paddingVertical: 12, alignSelf: "flex-start" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="wallet-outline" size={13} color="rgba(255,255,255,0.6)" /><Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 10, fontWeight: "600", letterSpacing: 1.5 }}>WALLET BALANCE</Text></View>
             <Text style={{ color: "#fff", fontSize: 24, fontWeight: "900", marginTop: 2 }}>{fmtC(E.wallet_balance)}</Text>
           </View>

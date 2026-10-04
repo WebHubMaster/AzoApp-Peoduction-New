@@ -69,7 +69,7 @@ export function StatusBadge({ status, label, testID }: { status?: string; label?
 export function Surface({ children, style, testID }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
   const { card, dark } = useFin();
   return (
-    <View testID={testID} style={[{ borderRadius: 16, backgroundColor: card, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.8)", boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>
+    <View testID={testID} style={[{ borderRadius: 10, backgroundColor: card, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.8)", boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>
       {children}
     </View>
   );
@@ -132,7 +132,7 @@ export function KpiCard({ icon, label, value, sub, trend, tone = "slate", testID
 export function SegTabs<T extends string>({ tabs, value, onChange, testidPrefix = "tab" }: { tabs: T[]; value: T; onChange: (v: T) => void; testidPrefix?: string }) {
   const { dark, subtle, card, P } = useFin();
   return (
-    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 16, backgroundColor: subtle }}>
+    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 10, backgroundColor: subtle }}>
       {tabs.map((t) => {
         const on = value === t;
         return (
@@ -204,7 +204,7 @@ export function EmptyState({ icon = "inbox-outline", title, hint, action, testID
   const { subtle, strong, dark } = useFin();
   return (
     <View testID={testID} style={{ paddingVertical: 56, paddingHorizontal: 24, alignItems: "center" }}>
-      <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: subtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={SLATE[400]} /></View>
+      <View style={{ height: 56, width: 56, borderRadius: 10, backgroundColor: subtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={SLATE[400]} /></View>
       <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "700", color: strong, marginTop: 16, textAlign: "center" }}>{title}</Text>
       {hint ? <Text style={{ fontSize: 14, lineHeight: 20, color: dark ? SLATE[500] : SLATE[400], marginTop: 4, maxWidth: 320, textAlign: "center" }}>{hint}</Text> : null}
       {action ? <View style={{ marginTop: 16 }}>{action}</View> : null}
@@ -297,7 +297,7 @@ export function Paginator({ page, pages, total, pageSize, onPage, onPageSize }: 
 export function SecurityNote({ text = "Your banking information is encrypted and securely protected. AzoApp never shares your financial details." }: { text?: string }) {
   const { dark, well, strong, muted } = useFin();
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 16, backgroundColor: well, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16 }}>
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 10, backgroundColor: well, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16 }}>
       <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color={EMERALD[600]} /></View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", color: strong }}>Bank-grade security</Text>
@@ -312,7 +312,7 @@ export function LockedCard({ completion, status, onGo }: { completion: number; s
   const { heading, muted, primaryText, dark } = useFin();
   return (
     <Surface testID="feature-locked" style={{ padding: 32, alignItems: "center" }}>
-      <View style={{ height: 56, width: 56, borderRadius: 16, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
+      <View style={{ height: 56, width: 56, borderRadius: 10, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
       <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Feature locked</Text>
       <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>Yeh feature tab unlock hoga jab aapka profile 100% complete ho aur admin approve kar de.</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>

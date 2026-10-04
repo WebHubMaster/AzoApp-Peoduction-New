@@ -103,7 +103,7 @@ function LanguagePill() {
       </Pressable>
       <Modal visible={open} transparent animationType="none" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} testID="welcome-language-backdrop">
-          <Animated.View style={{ position: "absolute", top: 100, right: 20, minWidth: 180, backgroundColor: C.white, borderRadius: 16, borderWidth: 1, borderColor: C.line, paddingVertical: 6, boxShadow: "0px 12px 32px rgba(11,26,63,0.14)", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] } as any}>
+          <Animated.View style={{ position: "absolute", top: 100, right: 20, minWidth: 180, backgroundColor: C.white, borderRadius: 10, borderWidth: 1, borderColor: C.line, paddingVertical: 6, boxShadow: "0px 12px 32px rgba(11,26,63,0.14)", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] } as any}>
             <Pressable testID="welcome-language-en" accessibilityRole="menuitem" onPress={() => setOpen(false)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, height: 46, backgroundColor: pressed ? "#F2F6FC" : "transparent" })}>
               <Text style={{ fontSize: 15, fontWeight: "600", color: C.navy }}>English</Text>
               <Icon name="check" size={18} color={C.success} />
@@ -124,7 +124,7 @@ function CtaButton({ testID, primary, color, icon, title, sub, onPress, height }
   return (
     <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} onPress={onPress} onPressIn={() => to(1)} onPressOut={() => to(0)}>
       <Animated.View style={{
-        height, borderRadius: 18, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 14,
+        height, borderRadius: 10, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 14,
         backgroundColor: primary ? color : C.white, borderWidth: primary ? 0 : 1.5, borderColor: C.line,
         boxShadow: primary ? `0px 10px 24px ${tint(color, 0.25)}` : "none", transform: [{ scale }],
       } as any}>

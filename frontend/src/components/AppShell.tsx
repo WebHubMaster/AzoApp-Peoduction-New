@@ -53,7 +53,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
         testID="app-shell-header"
         style={{
           backgroundColor: dark ? "rgba(30,41,59,0.92)" : "rgba(255,255,255,0.92)",
-          borderRadius: 16,
+          borderRadius: 10,
           borderWidth: 1,
           borderColor: dark ? colors.border : "rgba(255,255,255,0.6)",
           minHeight: 56,
@@ -211,7 +211,7 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={onClose} />
-          <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>
+          <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>Edit Profile</Text>
@@ -306,7 +306,7 @@ export function StatusBadge({ status, label }: { status?: string; label?: string
 export function Surface({ children, style, testID }: { children: React.ReactNode; style?: any; testID?: string }) {
   const { colors } = useTheme();
   return (
-    <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }, style]}>
+    <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }, style]}>
       {children}
     </View>
   );
@@ -317,7 +317,7 @@ export function KitEmpty({ icon, title, desc, action, testID }: { icon: any; tit
   const { colors } = useTheme();
   return (
     <View testID={testID} style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 24 }}>
-      <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+      <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
         <Icon name={icon} size={28} color="#94A3B8" />
       </View>
       <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, textAlign: "center" }}>{title}</Text>
@@ -331,7 +331,7 @@ export function KitEmpty({ icon, title, desc, action, testID }: { icon: any; tit
 export function SegTabs({ tabs, value, onChange, testidPrefix = "tab" }: { tabs: string[]; value: string; onChange: (v: string) => void; testidPrefix?: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 16, backgroundColor: colors.surfaceSubtle }}>
+    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 10, backgroundColor: colors.surfaceSubtle }}>
       {tabs.map((t) => {
         const on = value === t;
         return (

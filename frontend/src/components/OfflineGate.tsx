@@ -53,7 +53,7 @@ export function OfflineGate() {
         {/* Tips */}
         <View style={{ flexDirection: "row", gap: 10, marginTop: 22, width: "100%" }}>
           {TIPS.map((t) => (
-            <View key={t.label} style={{ flex: 1, backgroundColor: "#EFF6FF", borderRadius: 16, paddingVertical: 16, paddingHorizontal: 6, alignItems: "center", gap: 8 }}>
+            <View key={t.label} style={{ flex: 1, backgroundColor: "#EFF6FF", borderRadius: 10, paddingVertical: 16, paddingHorizontal: 6, alignItems: "center", gap: 8 }}>
               <Icon name={t.icon} size={24} color="#2563EB" />
               <Text style={{ fontSize: 12, fontWeight: "600", color: "#334155", textAlign: "center", lineHeight: 16 }}>{t.label}</Text>
             </View>
@@ -66,7 +66,7 @@ export function OfflineGate() {
           onPress={() => retry()}
           disabled={checking}
           style={{
-            marginTop: 20, width: "100%", height: 54, borderRadius: 14, backgroundColor: "#2563EB",
+            marginTop: 20, width: "100%", height: 54, borderRadius: 10, backgroundColor: "#2563EB",
             flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: checking ? 0.75 : 1,
           }}
         >

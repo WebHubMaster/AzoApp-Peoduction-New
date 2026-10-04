@@ -134,7 +134,7 @@ export default function PermissionCenter() {
           return (
             <View key={c.key} testID={`perm-card-${c.key}`} style={{ backgroundColor: colors.surface, borderRadius: radius.lg, borderWidth: 1, borderColor: granted ? "rgba(34,197,94,0.45)" : c.critical ? "rgba(245,158,11,0.4)" : colors.border, padding: spacing.md, gap: 10 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-                <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: c.tint + "22", alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 46, height: 46, borderRadius: 10, backgroundColor: c.tint + "22", alignItems: "center", justifyContent: "center" }}>
                   <Icon name={c.icon} size={24} color={c.tint} />
                 </View>
                 <View style={{ flex: 1 }}>

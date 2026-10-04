@@ -79,7 +79,7 @@ function Empty({ text }: { text: string }) {
 /* ── shared card pieces ── */
 function JobCardShell({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <View style={{ backgroundColor: colors.surface, borderRadius: 24, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 8px 30px rgba(2,32,71,0.06)", elevation: 2 }}>{children}</View>;
+  return <View style={{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 8px 30px rgba(2,32,71,0.06)", elevation: 2 }}>{children}</View>;
 }
 
 function InfoItem({ icon, label, value }: { icon: MdiName; label: string; value?: string }) {
@@ -320,7 +320,7 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
   ];
   const accent = locked ? colors.primary : EMERALD;
   return (
-    <View testID="scheduled-card" style={{ borderRadius: 16, borderWidth: 2, borderColor: locked ? colors.primarySubtle : "#A7F3D0", backgroundColor: locked ? "rgba(239,246,255,0.6)" : "#ECFDF5", padding: 16 }}>
+    <View testID="scheduled-card" style={{ borderRadius: 10, borderWidth: 2, borderColor: locked ? colors.primarySubtle : "#A7F3D0", backgroundColor: locked ? "rgba(239,246,255,0.6)" : "#ECFDF5", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
           <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent, alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
@@ -337,8 +337,8 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
           <Text testID="scheduled-countdown" style={{ color: accent, fontSize: 18, fontWeight: "900", fontVariant: ["tabular-nums"] }}>{started ? "—" : fmtCountdown(secs)}</Text>
         </View>
       </View>
+      {locked ? (
       <View style={{ marginTop: 12 }}>
-        {locked ? (
           <>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
               {items.map((it) => (
@@ -349,13 +349,8 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
             </View>
             <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 8 }}>Available 30 minutes before the scheduled time.</Text>
           </>
-        ) : (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Icon name="check-circle-outline" size={16} color="#047857" />
-            <Text style={{ color: "#047857", fontSize: 12.5, fontWeight: "600", flex: 1 }}>{role === "customer" ? "Call, Chat & your Start OTP are now available." : "Call, Chat, Navigation & Start Work are now available."}</Text>
-          </View>
-        )}
       </View>
+      ) : null}
     </View>
   );
 }
@@ -379,7 +374,7 @@ function CompletedJob({ b }: { b: any }) {
       <View style={{ padding: 20, gap: 16 }} testID={`completed-job-${b.code}`}>
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 16, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
+            <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, lineHeight: 22 }}>{b.service_name}</Text>
               <Text style={{ color: SLATE400, fontSize: 12, marginTop: 2, fontFamily: "monospace" }}>#{b.code}</Text>
@@ -409,37 +404,6 @@ function CompletedJob({ b }: { b: any }) {
         ) : null}
       </View>
     </JobCardShell>
-  );
-}
-
-/* ── JobStepper ── */
-const STAGE_STEPS = [
-  { key: "assigned", label: "Assigned", match: ["assigned"] },
-  { key: "arrived", label: "Arrived", match: ["arrived_shop", "arrived_customer"] },
-  { key: "started", label: "In Progress", match: ["started"] },
-  { key: "completed", label: "Completed", match: ["completed"] },
-];
-function JobStepper({ status }: { status: string }) {
-  const { colors } = useTheme();
-  const cur = Math.max(0, STAGE_STEPS.findIndex((s) => s.match.includes(status)));
-  return (
-    <View style={{ flexDirection: "row", alignItems: "flex-start" }} testID="job-stepper">
-      {STAGE_STEPS.map((s, i) => {
-        const done = i < cur; const current = i === cur;
-        return (
-          <View key={s.key} style={{ flex: 1, alignItems: "center" }}>
-            <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
-              <View style={{ flex: 1, height: 2, backgroundColor: done || current ? colors.secondary : colors.border, opacity: i === 0 ? 0 : 1 }} />
-              <View style={{ width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: done || current ? colors.secondary : colors.border, borderWidth: current ? 4 : 0, borderColor: colors.primarySubtle }}>
-                {done ? <Icon name="check" size={13} color="#fff" /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: current ? "#fff" : SLATE400 }} />}
-              </View>
-              <View style={{ flex: 1, height: 2, backgroundColor: done ? colors.secondary : colors.border, opacity: i === STAGE_STEPS.length - 1 ? 0 : 1 }} />
-            </View>
-            <Text style={{ fontSize: 10, fontWeight: "600", marginTop: 6, textAlign: "center", color: current ? colors.primary : done ? colors.textMuted : "#CBD5E1" }}>{s.label}</Text>
-          </View>
-        );
-      })}
-    </View>
   );
 }
 
@@ -558,7 +522,7 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
         {/* Header (tap → job wizard): soft tinted band, gradient icon tile, big status pill */}
         <Pressable testID={`job-card-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: inProgress ? "#ECFDF5" : colors.primarySubtle, opacity: pressed ? 0.92 : 1 })}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: inProgress ? EMERALD : colors.primary, alignItems: "center", justifyContent: "center", boxShadow: inProgress ? "0px 6px 14px rgba(5,150,105,0.28)" : "0px 6px 14px rgba(13,71,161,0.25)" } as any}><Icon name={inProgress ? "progress-wrench" : "wrench"} size={22} color="#fff" /></View>
+            <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: inProgress ? EMERALD : colors.primary, alignItems: "center", justifyContent: "center", boxShadow: inProgress ? "0px 6px 14px rgba(5,150,105,0.28)" : "0px 6px 14px rgba(13,71,161,0.25)" } as any}><Icon name={inProgress ? "progress-wrench" : "wrench"} size={22} color="#fff" /></View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text numberOfLines={2} style={{ color: colors.text, fontWeight: "800", fontSize: 16.5, lineHeight: 22 }}>{b.service_name}</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
@@ -587,13 +551,11 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
           </View>
         </View>
 
-        <JobStepper status={status} />
-
         {showSchedule ? <ScheduledCard schedule={sched} role="partner" /> : null}
 
         {/* Reschedule pending */}
         {pendingReq ? (
-          <View testID={`reschedule-pending-${b.code}`} style={{ borderRadius: 16, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", padding: 16 }}>
+          <View testID={`reschedule-pending-${b.code}`} style={{ borderRadius: 10, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="clock-outline" size={16} color="#B45309" /><Text style={{ color: "#B45309", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>Reschedule request · pending</Text></View>
             <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{pendingReq.requester_name} · {b.service_name}</Text>
             <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
@@ -663,12 +625,8 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
           {maskedPhone ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}><Icon name="phone-outline" size={14} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 12 }}>{maskedPhone} <Text style={{ color: "#CBD5E1" }}>· number protected</Text></Text></View> : null}
         </Collapse>
 
-        {(b.timeline || []).length > 0 ? (
-          <Collapse title="Job timeline" icon="clock-outline" testID={`timeline-collapse-${b.code}`}><TimelineList items={b.timeline} color={colors.secondary} /></Collapse>
-        ) : null}
-
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
-        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 14, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
+        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 10, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
           <Icon name={inProgress ? "check-decagram-outline" : b.checkin ? "play-circle-outline" : "camera-account"} size={20} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
           <Icon name="chevron-right" size={20} color="#fff" />

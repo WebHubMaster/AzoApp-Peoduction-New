@@ -326,10 +326,12 @@ async def invoice_pdf(invoice_id: str, user: dict = Depends(get_current_user)):
         raise HTTPException(404, "Invoice not found")
     if inv == "forbidden":
         raise HTTPException(403, "Not allowed")
+    from starlette.concurrency import run_in_threadpool
     from services.invoice_pdf_service import build_invoice_pdf
-    pdf = build_invoice_pdf(inv)
+    pdf = await run_in_threadpool(build_invoice_pdf, inv)
     return Response(content=pdf, media_type="application/pdf",
-                    headers={"Content-Disposition": f'attachment; filename="{inv.get("invoice_number", "invoice")}.pdf"'})
+                    headers={"Content-Disposition": f'attachment; filename="{inv.get("invoice_number", "invoice")}.pdf"',
+                             "Content-Length": str(len(pdf))})
 
 
 @router.get("/{invoice_id}/view")

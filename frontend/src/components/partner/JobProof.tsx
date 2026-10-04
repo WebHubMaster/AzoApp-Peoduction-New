@@ -126,7 +126,7 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
           onChangeText={(t) => onBoxChange(i, t, d)}
           onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && i > 0) { setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
           selectTextOnFocus
-          style={{ width: 56, height: 56, borderRadius: 14, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
+          style={{ width: 56, height: 56, borderRadius: 10, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
         />
       ))}
     </View>

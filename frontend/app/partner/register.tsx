@@ -343,7 +343,7 @@ export default function PartnerRegistration() {
         <View style={{ gap: 16 }} testID="step-review">
           {basic.live_photo_url ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 16, borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate200, padding: 16 }}>
-              <Image source={{ uri: mediaUrl(basic.live_photo_url) }} style={{ height: 64, width: 64, borderRadius: 16, borderWidth: 2, borderColor: TW.emerald200 }} contentFit="cover" />
+              <Image source={{ uri: mediaUrl(basic.live_photo_url) }} style={{ height: 64, width: 64, borderRadius: 10, borderWidth: 2, borderColor: TW.emerald200 }} contentFit="cover" />
               <View>
                 <Text style={{ ...T.xs, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6, color: TW.slate400 }}>Live Photo</Text>
                 <Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700, marginTop: 2 }}>Captured ✓</Text>

@@ -8,26 +8,25 @@
  *   • form_post     → auto-submit form in a WebView, then verify
  * No dev-mock bypass — the ACTIVE gateway processes the fee.
  */
-import React, { useState } from "react";
-import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator, useWindowDimensions } from "react-native";
-import { Image } from "expo-image";
+import React, { useRef, useState } from "react";
+import { Modal, View, Text, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { WebView } from "react-native-webview";
-import {
-  FileText, ShieldCheck, ListChecks, Bell, LayoutGrid, Info, ArrowRight, Lock,
-  ChevronLeft, TriangleAlert, Check, User as UserIcon,
-} from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ShieldCheck, ListChecks, Bell, LayoutGrid, ChevronLeft, User as UserIcon } from "lucide-react-native";
 import { api } from "@/src/api/client";
 import { TW, T } from "@/src/components/reg/tokens";
 import { WButton } from "@/src/components/reg/Fields";
 import { useBrand } from "@/src/context/BrandContext";
+import {
+  C, FeeHeader, FeeProgress, FeeHero, FeeCard, FeeIncluded, FeeNotice, FeeError, PayBar, FeeOverlay,
+} from "@/src/components/reg/PartnerFeeParts";
 
 const HERO = require("../../../assets/partner-hero.png");
 const PAY_METHODS = require("../../../assets/pay-methods.png");
 
 const RB = "/partner/registration";
-const BLUE = "#0D47A1";
-const INK = "#0D1B2A";
-const TINT = "#EAF1FB";
+const BLUE = C.blue;
+const INK = C.ink;
 
 // "Partner" (not "Provider") wording per brand.
 const INCLUDED: [any, string, string][] = [
@@ -84,25 +83,26 @@ export function PartnerFeePayment({
   onPaid: () => void;
   customer?: { name?: string; email?: string; phone?: string };
 }) {
-  const { width: W } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const brand = useBrand();
+  const lock = useRef(false);
+  const [barH, setBarH] = useState(150);
+  const [success, setSuccess] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
   const [checkout, setCheckout] = useState<{ html?: string; url?: string; order: any; kind: string } | null>(null);
   const [verifying, setVerifying] = useState(false);
 
   if (!fee) return null;
-  const amount = Math.round(fee.final_amount || 0);
+  const amount = Number(fee.final_amount || 0);
   const headerLogo = brand?.branding?.logo || brand?.branding?.logo_light || brand?.branding?.logo_dark || "";
 
-  // responsive hero sizing
-  const heroW = Math.max(142, Math.min(W * 0.46, 182));
-  const heroH = heroW * 1.28;
-  const titleW = Math.min(W * 0.56, 240);
-
-  const finish = () => { setCheckout(null); onPaid(); };
+  // verified by backend → brief success transition, then the existing onPaid flow
+  const finish = () => { setCheckout(null); setSuccess(true); setTimeout(() => { setSuccess(false); onPaid(); }, 900); };
 
   const payAndContinue = async () => {
+    if (lock.current) return;
+    lock.current = true;
     setPaying(true);
     setPayError("");
     try {
@@ -121,6 +121,7 @@ export function PartnerFeePayment({
       setPayError(e?.detail || "Payment could not be started. Please try again.");
     } finally {
       setPaying(false);
+      lock.current = false;
     }
   };
 
@@ -161,125 +162,33 @@ export function PartnerFeePayment({
     } finally { setVerifying(false); }
   };
 
+  const busy = paying || verifying || success;
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" onRequestClose={() => { if (!busy) onClose(); }} statusBarTranslucent>
       <View style={{ flex: 1, backgroundColor: "#fff" }} testID="partner-fee-payment-page">
-        {/* header — admin brand logo (from Branding & Theme) */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 48, paddingBottom: 8 }}>
-          <Pressable testID="fee-pay-back" onPress={() => { if (!paying) onClose(); }} hitSlop={8}
-            style={{ height: 40, width: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
-            <ChevronLeft size={24} color={INK} />
-          </Pressable>
-          <View style={{ flex: 1, alignItems: "center" }}>
-            {headerLogo ? (
-              <Image testID="fee-brand-logo" source={{ uri: headerLogo }} style={{ height: 40, width: 168 }} contentFit="contain" transition={150} />
-            ) : (
-              <View style={{ alignItems: "center" }}>
-                <Text style={{ ...T.lg, fontWeight: "800", color: BLUE }}>{brand?.branding?.site_name || "AzoApp"}</Text>
-                <Text style={{ ...T.xs, color: TW.slate400, marginTop: -2 }}>{brand?.branding?.tagline || "Service at Your Doorstep"}</Text>
-              </View>
-            )}
-          </View>
-          <View style={{ width: 40 }} />
-        </View>
+        <FeeHeader logo={headerLogo} siteName={brand?.branding?.site_name} tagline={brand?.branding?.tagline}
+          onBack={() => { if (!busy) onClose(); }} topInset={insets.top} />
 
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 220 }} showsVerticalScrollIndicator={false}>
-          {/* title + hero provider */}
-          <View style={{ position: "relative", marginTop: 12, minHeight: heroH }}>
-            <View style={{ position: "absolute", right: -10, top: 0, width: heroW, height: heroH, alignItems: "center", justifyContent: "flex-end" }}>
-              <View style={{ position: "absolute", top: heroW * 0.04, width: heroW, height: heroW, borderRadius: heroW, backgroundColor: TINT }} />
-              <View style={{ position: "absolute", top: heroW * 0.16, right: heroW * 0.02, width: heroW * 0.34, height: heroW * 0.34, borderRadius: heroW, backgroundColor: "#DCE8FB" }} />
-              <Image source={HERO} style={{ width: heroW, height: heroH }} contentFit="contain" contentPosition="bottom" testID="fee-hero-provider" />
-            </View>
-            <View style={{ width: titleW }}>
-              <Text style={{ fontSize: 23, lineHeight: 29, fontWeight: "800", color: INK, letterSpacing: -0.3 }}>Complete Your{"\n"}Registration</Text>
-              <Text style={{ ...T.sm, color: TW.slate500, marginTop: 10, lineHeight: 20 }}>
-                Pay the one-time processing fee to activate your partner account and start receiving service opportunities in your area.
-              </Text>
-            </View>
-          </View>
-
-          {/* fee card — centered, self-contained (nothing overflows the screen) */}
-          <View style={{ marginTop: 24, borderRadius: 24, paddingVertical: 24, paddingHorizontal: 18, alignItems: "center", backgroundColor: "#F3F7FE", borderWidth: 1, borderColor: "#E3ECFA", boxShadow: "0px 14px 34px rgba(13,71,161,0.12)" }}>
-            <View style={{ height: 56, width: 56, borderRadius: 18, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", boxShadow: "0px 8px 18px rgba(13,71,161,0.16)" }}>
-              <FileText size={26} color={BLUE} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "800", color: INK, marginTop: 14, textAlign: "center" }}>Registration Fee</Text>
-            <Text style={{ ...T.sm, color: TW.slate500, marginTop: 2, textAlign: "center" }}>One-Time Processing Fee</Text>
-            <Text testID="fee-amount" style={{ fontSize: 44, lineHeight: 50, fontWeight: "900", color: BLUE, letterSpacing: -1, marginTop: 8 }}>₹{amount}</Text>
-            {fee.discount_amount > 0 ? (
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap: 8, marginTop: 2 }}>
-                <Text style={{ ...T.sm, textDecorationLine: "line-through", color: TW.slate400 }}>₹{Math.round(fee.original_price)}</Text>
-                <Text style={{ ...T.sm, color: TW.emerald600, fontWeight: "800" }}>Save ₹{Math.round(fee.discount_amount)}</Text>
-              </View>
-            ) : null}
-            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8, marginTop: 16 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
-                <ShieldCheck size={13} color={BLUE} />
-                <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>One-time payment</Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, backgroundColor: "#fff", paddingHorizontal: 14, paddingVertical: 8, boxShadow: "0px 3px 10px rgba(13,71,161,0.08)" }}>
-                <Check size={13} color={BLUE} />
-                <Text style={{ ...T.xs, fontWeight: "800", color: BLUE }}>No monthly charges</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* what's included */}
-          <Text style={{ fontSize: 22, fontWeight: "800", color: INK, marginTop: 28 }}>What&rsquo;s Included?</Text>
-          <View style={{ marginTop: 16, gap: 16 }}>
-            {INCLUDED.map(([Icon, t, d]) => (
-              <View key={t} style={{ flexDirection: "row", alignItems: "flex-start", gap: 14 }}>
-                <View style={{ height: 44, width: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: TINT }}>
-                  <Icon size={20} color={BLUE} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ ...T.base, fontWeight: "700", color: INK }}>{t}</Text>
-                  <Text style={{ ...T.sm, color: TW.slate500, lineHeight: 20 }}>{d}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <View style={{ marginTop: 24, borderRadius: 16, padding: 16, flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: TINT }}>
-            <Info size={20} color={BLUE} style={{ marginTop: 2 }} />
-            <Text style={{ ...T.sm, color: INK, flex: 1, lineHeight: 20 }}>
-              <Text style={{ fontWeight: "800" }}>This is a one-time processing fee. </Text>
-              <Text style={{ color: TW.slate500 }}>There are no monthly registration charges or hidden fees.</Text>
-            </Text>
-          </View>
-
-          {payError ? (
-            <View testID="fee-pay-error" style={{ marginTop: 20, borderRadius: 12, backgroundColor: "#FFF1F2", borderWidth: 1, borderColor: "#FECDD3", paddingHorizontal: 14, paddingVertical: 12, flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
-              <TriangleAlert size={16} color="#BE123C" style={{ marginTop: 2 }} />
-              <Text style={{ ...T.sm, color: "#BE123C", flex: 1 }}>{payError}</Text>
-            </View>
-          ) : null}
+        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: barH + 24 }} showsVerticalScrollIndicator={false}>
+          <FeeProgress />
+          <FeeHero hero={HERO} />
+          <FeeCard fee={fee} amount={amount} />
+          {payError ? <FeeError message={payError} onRetry={payAndContinue} busy={busy} /> : null}
+          <FeeIncluded items={INCLUDED} />
+          <FeeNotice />
         </ScrollView>
 
-        {/* sticky pay bar */}
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 14, paddingBottom: 24, backgroundColor: "rgba(255,255,255,0.98)", borderTopWidth: 1, borderTopColor: TW.slate100 }}>
-          <Pressable testID="fee-pay-btn" onPress={payAndContinue} disabled={paying}
-            style={{ height: 56, borderRadius: 18, backgroundColor: BLUE, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: paying ? 0.7 : 1 }}>
-            {paying ? <ActivityIndicator color="#fff" /> : (
-              <>
-                <Text style={{ color: "#fff", fontSize: 17, fontWeight: "800" }}>{payError ? "Retry Payment" : `Pay ₹${amount} & Continue`}</Text>
-                <ArrowRight size={20} color="#fff" />
-              </>
-            )}
-          </Pressable>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 12 }}>
-            <Lock size={14} color={TW.slate400} />
-            <Text style={{ ...T.xs, color: TW.slate400 }}>Secure Payment · 100% Safe &amp; Secure</Text>
-          </View>
-          <Image source={PAY_METHODS} style={{ width: "82%", height: 24, alignSelf: "center", marginTop: 10 }} contentFit="contain" testID="fee-pay-methods" />
-        </View>
+        <PayBar amount={amount} busy={busy} retry={!!payError} onPay={payAndContinue} payMethods={PAY_METHODS}
+          bottomInset={insets.bottom} onLayout={setBarH} />
+
+        {paying || success ? <FeeOverlay mode={success ? "success" : "processing"} /> : null}
 
         {/* gateway checkout */}
-        <Modal visible={!!checkout} animationType="slide" onRequestClose={() => setCheckout(null)}>
+        <Modal visible={!!checkout} animationType="slide" onRequestClose={() => { if (!verifying) setCheckout(null); }} statusBarTranslucent>
           <View style={{ flex: 1, backgroundColor: "#fff" }} testID="fee-checkout-webview">
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 48, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
-              <Pressable onPress={() => setCheckout(null)} hitSlop={8}><ChevronLeft size={22} color={TW.slate700} /></Pressable>
+            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
+              <Pressable onPress={() => { if (!verifying) setCheckout(null); }} hitSlop={8} accessibilityLabel="Close checkout"><ChevronLeft size={22} color={TW.slate700} /></Pressable>
               <Text style={{ ...T.base, fontWeight: "800", color: INK }}>Secure Checkout</Text>
               <View style={{ width: 22 }} />
             </View>
@@ -296,12 +205,11 @@ export function PartnerFeePayment({
               />
             ) : null}
             {checkout?.kind === "hosted" ? (
-              <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 28, borderTopWidth: 1, borderTopColor: TW.slate100 }}>
+              <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: Math.max(insets.bottom, 12) + 16, borderTopWidth: 1, borderTopColor: TW.slate100 }}>
                 <WButton title={verifying ? "Verifying…" : "I've completed the payment"} variant="emerald" full height={52} loading={verifying} onPress={verifyHosted} testID="fee-verify-btn" />
               </View>
-            ) : verifying ? (
-              <View style={{ paddingVertical: 16, alignItems: "center" }}><ActivityIndicator color={BLUE} /><Text style={{ ...T.sm, color: TW.slate500, marginTop: 6 }}>Verifying payment…</Text></View>
             ) : null}
+            {verifying && checkout?.kind !== "hosted" ? <FeeOverlay mode="processing" /> : null}
           </View>
         </Modal>
       </View>

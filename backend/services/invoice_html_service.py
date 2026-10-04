@@ -13,7 +13,9 @@ Layout is deliberately PDF-safe:
   * <thead> repeats automatically on page breaks; rows never split
 """
 import base64
+import hashlib
 import io
+from collections import OrderedDict
 from services.money import TAX_LABEL
 import os
 import re
@@ -208,6 +210,10 @@ def _fmt_date(iso) -> str:
 def build_invoice_html(inv: dict) -> str:
     """Return a complete, self-contained A4 invoice HTML document."""
     inv = inv or {}
+    _rer = inv.get("role_earning") or {}
+    if _rer.get("role") == "partner" and inv.get("invoice_type") in ("booking", "cancellation"):
+        from services.gst_invoice_service import build_partner_html
+        return build_partner_html(inv)
     if inv.get("gst_invoice") and inv.get("invoice_type") in ("booking", "cancellation"):
         from services.gst_invoice_service import build_html
         return build_html(inv)
@@ -830,8 +836,19 @@ td,th {{ vertical-align:top; }}
 </body></html>"""
 
 
+_PDF_CACHE: "OrderedDict[str, bytes]" = OrderedDict()
+
+
 def render_invoice_pdf(inv: dict) -> bytes:
-    """Render the unified invoice HTML to a PDF via WeasyPrint."""
+    """Render the unified invoice HTML to a PDF via WeasyPrint (cached by HTML hash)."""
     from weasyprint import HTML
     html = build_invoice_html(inv)
-    return HTML(string=html).write_pdf()
+    key = hashlib.sha256(html.encode("utf-8")).hexdigest()
+    if key in _PDF_CACHE:
+        _PDF_CACHE.move_to_end(key)
+        return _PDF_CACHE[key]
+    pdf = HTML(string=html).write_pdf()
+    _PDF_CACHE[key] = pdf
+    if len(_PDF_CACHE) > 64:
+        _PDF_CACHE.popitem(last=False)
+    return pdf

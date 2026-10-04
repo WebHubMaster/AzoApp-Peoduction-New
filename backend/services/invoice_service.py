@@ -58,7 +58,7 @@ def business_snapshot(settings: dict) -> dict:
     return {
         "name": icfg.get("business_name") or b.get("site_name") or "AzoApp",
         "legal_name": icfg.get("legal_name") or "",
-        "logo": b.get("email_logo") or b.get("logo_light") or b.get("logo_dark") or "",
+        "logo": b.get("email_logo") or b.get("logo_light") or b.get("logo") or b.get("logo_url") or b.get("logo_dark") or "",
         "tagline": b.get("tagline") or "",
         "email": icfg.get("email") or b.get("email") or gen.get("support_email") or "",
         "phone": icfg.get("phone") or b.get("phone") or gen.get("support_phone") or "",
@@ -1372,6 +1372,9 @@ async def get_invoice(user: dict, invoice_id: str):
     inv = await _attach_bill_to(inv, role)
     inv = _mask_customer_pii(inv, role)
     inv = _strip_platform_fees_invoice(inv, role)
+    if role == "partner":
+        _gp = (inv.get("gst_invoice") or {})
+        inv["partner_meta"] = {"category": _gp.get("category"), "state": (_gp.get("partner") or {}).get("state")}
     if role in ("partner", "merchant"):
         inv.pop("gst_invoice", None)
     return strip_for_role(inv, role)

@@ -217,7 +217,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
     setUploading(false);
   };
   return (
-    <View testID="live-photo-capture" style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: P[200], backgroundColor: `${P[50]}80`, padding: 16 }}>
+    <View testID="live-photo-capture" style={{ borderRadius: 10, borderWidth: 2, borderStyle: "dashed", borderColor: P[200], backgroundColor: `${P[50]}80`, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: P[100], alignItems: "center", justifyContent: "center" }}><Camera size={16} color={P[700]} /></View>
         <View style={{ flex: 1 }}>
@@ -227,7 +227,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
       </View>
       {value && !uploading ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-          <Image source={{ uri: mediaUrl(value) }} style={{ height: 96, width: 96, borderRadius: 16, borderWidth: 4, borderColor: TW.emerald200 }} contentFit="cover" />
+          <Image source={{ uri: mediaUrl(value) }} style={{ height: 96, width: 96, borderRadius: 10, borderWidth: 4, borderColor: TW.emerald200 }} contentFit="cover" />
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700 }}>Photo captured</Text></View>
             {editable ? (
@@ -283,7 +283,7 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
     setBusy(false);
   };
   return (
-    <View testID="gps-photo-capture" style={{ borderRadius: 16, borderWidth: 2, borderStyle: "dashed", borderColor: TW.amber300, backgroundColor: "#FFFBEB80", padding: 16 }}>
+    <View testID="gps-photo-capture" style={{ borderRadius: 10, borderWidth: 2, borderStyle: "dashed", borderColor: TW.amber300, backgroundColor: "#FFFBEB80", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: TW.amber100, alignItems: "center", justifyContent: "center" }}><MapPin size={16} color={TW.amber700} /></View>
         <View style={{ flex: 1 }}>
@@ -293,7 +293,7 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
       </View>
       {value && !busy ? (
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 16 }}>
-          <Image source={{ uri: mediaUrl(value) }} style={{ height: 112, width: 112, borderRadius: 16, borderWidth: 4, borderColor: TW.amber200 }} contentFit="cover" />
+          <Image source={{ uri: mediaUrl(value) }} style={{ height: 112, width: 112, borderRadius: 10, borderWidth: 4, borderColor: TW.amber200 }} contentFit="cover" />
           <View style={{ flex: 1, gap: 4 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700 }}>Photo captured</Text></View>
             {gpsOk && lat != null ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><MapPin size={12} color={TW.amber600} /><Text style={{ ...T.px11, color: TW.slate600 }}>{Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}</Text></View> : null}

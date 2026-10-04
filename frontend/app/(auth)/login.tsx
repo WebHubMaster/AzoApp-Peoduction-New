@@ -46,7 +46,7 @@ export default function Login() {
 
         <View style={{ paddingHorizontal: 16, gap: 12 }}>
           {sessionEndedReason === "device_revoked" ? (
-            <View testID="session-ended-banner" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA", borderRadius: 14, padding: 12 }}>
+            <View testID="session-ended-banner" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: "#FEF2F2", borderWidth: 1, borderColor: "#FECACA", borderRadius: 10, padding: 12 }}>
               <Icon name="cellphone-lock" size={20} color="#E11D48" />
               <Text style={{ color: "#9F1239", fontSize: 13, flex: 1, lineHeight: 19 }}>
                 You were logged out because this account was opened on another device. Log in again to use it on this device.
@@ -54,7 +54,7 @@ export default function Login() {
               <Pressable testID="session-ended-dismiss" onPress={clearSessionEndedReason} hitSlop={8}><Icon name="close" size={18} color="#9F1239" /></Pressable>
             </View>
           ) : null}
-          <View testID="login-card" style={{ backgroundColor: "#fff", borderRadius: 22, padding: 18, borderWidth: 1, borderColor: "#E8EEF7", boxShadow: AUTH.card }}>
+          <View testID="login-card" style={{ backgroundColor: "#fff", borderRadius: 10, padding: 18, borderWidth: 1, borderColor: "#E8EEF7", boxShadow: AUTH.card }}>
             <OtpFlow mode="login" accent={LOGIN_ACCENT} onStepChange={setStep} onRouting={setRouting} onNewUser={() => router.replace("/(auth)/register" as any)} />
           </View>
           <SafeSecureCard />

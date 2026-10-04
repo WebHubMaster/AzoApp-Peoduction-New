@@ -79,7 +79,7 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
   };
 
   return (
-    <View testID="calendar-slot-picker" style={{ backgroundColor: surface, borderRadius: 20, borderWidth: 1, borderColor: border, padding: 16 }}>
+    <View testID="calendar-slot-picker" style={{ backgroundColor: surface, borderRadius: 10, borderWidth: 1, borderColor: border, padding: 16 }}>
       {/* Month header */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <Pressable testID="cal-prev" onPress={() => shiftMonth(-1)} disabled={!canPrev} hitSlop={10}

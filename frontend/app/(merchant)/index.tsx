@@ -68,7 +68,7 @@ function KpiCard({ c }: { c: Kpi }) {
   if (c.primary) {
     return (
       <LinearGradient colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ flex: 1, borderRadius: 16, padding: spacing.lg }}>
+        style={{ flex: 1, borderRadius: 10, padding: spacing.lg }}>
         <Text style={{ color: "#ECFDF5", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>{c.label}</Text>
         <Text style={{ color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4, ...track(24), ...TABULAR }} numberOfLines={1}>{display}</Text>
         {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -76,7 +76,7 @@ function KpiCard({ c }: { c: Kpi }) {
     );
   }
   return (
-    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 16 }}>
+    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
       <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
       <Text style={{ color: c.money ? colors.success : colors.text, fontSize: 18, fontWeight: "800", marginTop: 4, ...track(18), ...TABULAR }} numberOfLines={1}>{display}</Text>
       {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -160,7 +160,7 @@ export default function MerchantHome() {
         testID="merchant-home"
       >
         {/* ── Hero (rounded-3xl = 24) ── */}
-        <LinearGradient colors={HERO} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, overflow: "hidden" }}>
+        <LinearGradient colors={HERO} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, overflow: "hidden" }}>
           <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
             <Defs>
               <RadialGradient id="mhGlowW" cx="12%" cy="18%" r="62%">
@@ -202,13 +202,13 @@ export default function MerchantHome() {
 
           {/* two cards: lifetime commission + merchant code (rounded-2xl = 16) */}
           <View style={{ flexDirection: "row", gap: spacing.md, marginTop: 16 }}>
-            <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", borderRadius: 16, padding: 14 }}>
+            <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", borderRadius: 10, padding: 14 }}>
               <Text style={{ color: "rgba(224,242,254,0.7)", fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>Lifetime Commission</Text>
               <Text testID="mh-total-earning" style={{ color: "#6EE7B7", fontSize: 24, fontWeight: "800", marginTop: 4, ...track(24), ...TABULAR }} numberOfLines={1}>{fmt(c.total)}</Text>
               <Text style={{ color: "rgba(224,242,254,0.7)", fontSize: 11, marginTop: 2 }}>{counts.transactions || 0} transactions</Text>
             </View>
             <Pressable testID="mh-merchant-code" onPress={copyCode} style={({ pressed }) => ({ flex: 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
-              <LinearGradient colors={AMBER} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 16, padding: 14 }}>
+              <LinearGradient colors={AMBER} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 14 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>Merchant Code</Text>
                   <Icon name="content-copy" size={14} color="rgba(255,251,235,0.9)" />
@@ -221,11 +221,11 @@ export default function MerchantHome() {
 
           {/* actions (h-11 = 44, rounded-2xl = 16, text-[13px] font-bold) */}
           <View style={{ flexDirection: "row", gap: spacing.sm, marginTop: 16 }}>
-            <Pressable testID="mh-scan" onPress={() => router.push("/merchant/scanqr")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+            <Pressable testID="mh-scan" onPress={() => router.push("/merchant/scanqr")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
               <Icon name="qrcode" size={16} color={colors.primary} />
               <Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>Scan &amp; Share QR</Text>
             </Pressable>
-            <Pressable testID="mh-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 16, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
+            <Pressable testID="mh-withdraw" onPress={() => router.push("/(merchant)/wallet")} style={({ pressed }) => ({ flex: 1, height: 44, borderRadius: 10, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, transform: [{ scale: pressed ? 0.96 : 1 }] })}>
               <Icon name="cash" size={16} color="#fff" />
               <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>Withdraw</Text>
             </Pressable>
@@ -238,7 +238,7 @@ export default function MerchantHome() {
             <View key={ri} style={{ flexDirection: "row", gap: spacing.md, alignItems: "stretch" }}>
               {row.map((q) => (
                 <Pressable key={q.k} testID={`mh-quick-${q.k}`} onPress={() => router.push(q.route as any)} style={{ flex: 1 }}>
-                  <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 16 }}>
+                  <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
                     <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: q.bg, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm }}>
                       <Icon name={q.icon} size={20} color={q.fg} />
                     </View>
@@ -261,7 +261,7 @@ export default function MerchantHome() {
         </View>
 
         {/* ── Recent commission (rounded-2xl = 16) ── */}
-        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 16 }} testID="mh-recent">
+        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 10 }} testID="mh-recent">
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
             <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", ...track(15) }}>Recent commission</Text>
             <Pressable testID="mh-recent-viewall" onPress={() => router.push("/merchant/commission")} hitSlop={8} style={{ flexDirection: "row", alignItems: "center" }}>
@@ -290,7 +290,7 @@ export default function MerchantHome() {
         </Card>
 
         {/* ── Wallet snapshot (rounded-2xl = 16) ── */}
-        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 16 }} testID="mh-wallet">
+        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 10 }} testID="mh-wallet">
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Icon name="wallet-outline" size={16} color={colors.primary} />

@@ -83,9 +83,9 @@ export default function PartnerPayouts() {
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScreenScroll refreshing={elig.isFetching && !elig.isLoading} onRefresh={refresh} contentStyle={{ paddingBottom: insets.bottom + 110 }}>
         {/* KYC status hero */}
-        <LinearGradient colors={heroColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 20, boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }} testID="payouts-header">
+        <LinearGradient colors={heroColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }} testID="payouts-header">
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 46, height: 46, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
               <Icon name={e.eligible ? "shield-check-outline" : "shield-alert-outline"} size={23} color="#fff" />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -186,7 +186,7 @@ export default function PartnerPayouts() {
           ) : (
             <View style={{ padding: 16, gap: 12 }}>
               {bankList.map((bk) => (
-                <View key={bk.id} style={{ borderRadius: 16, borderWidth: 1, borderColor: bk.is_primary ? "#93C5FD" : colors.border, padding: 14 }}>
+                <View key={bk.id} style={{ borderRadius: 10, borderWidth: 1, borderColor: bk.is_primary ? "#93C5FD" : colors.border, padding: 14 }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
                       <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={colors.primary} /></View>
@@ -310,7 +310,7 @@ function UploadTile({ colors, label, value, docType, onUploaded, testID }: { col
   return (
     <>
       <Pressable testID={testID} onPress={() => !uploading && setChoose(true)} disabled={uploading}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 16, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
         <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
           {uploading ? <ActivityIndicator size="small" color={colors.primary} /> : has ? <Icon name="check-circle" size={22} color={colors.success} /> : <Icon name="camera-plus-outline" size={22} color={colors.textMuted} />}
         </View>

@@ -208,10 +208,10 @@ export default function MerchantBankKyc() {
           <View style={{ gap: 20 }}>
             {/* progress header */}
             <LinearGradient colors={data.eligible ? ["#059669", "#065f46"] : ["#0D47A1", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 24, padding: 24, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="mfk-hero">
+              style={{ borderRadius: 10, padding: 24, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="mfk-hero">
               <View style={{ position: "absolute", right: -56, top: -56, height: 192, width: 192, borderRadius: 96, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 16 }}>
-                <View style={{ height: 48, width: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name={data.eligible ? "shield-check-outline" : "alert-outline"} size={24} color="#fff" /></View>
+                <View style={{ height: 48, width: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name={data.eligible ? "shield-check-outline" : "alert-outline"} size={24} color="#fff" /></View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text testID="mfk-eligibility" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: "#fff" }}>{data.eligible ? "Withdrawal-eligible" : "Complete KYC to withdraw"}</Text>
                   <Text style={{ fontSize: 14, lineHeight: 20, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>{data.eligible ? "Your PAN and bank account are verified. You can withdraw earnings anytime." : `Pending: ${(data.blockers || []).join(", ")}`}</Text>
@@ -290,7 +290,7 @@ export default function MerchantBankKyc() {
               ) : (
                 <View style={{ gap: 12 }}>
                   {banks.map((b) => (
-                    <View key={b.id} testID={`mfk-bank-${b.id}`} style={{ borderRadius: 16, borderWidth: 1, padding: 16, borderColor: b.is_primary ? (dark ? P[700] : P[300]) : inputBorder, boxShadow: b.is_primary ? `0px 0px 0px 1px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
+                    <View key={b.id} testID={`mfk-bank-${b.id}`} style={{ borderRadius: 10, borderWidth: 1, padding: 16, borderColor: b.is_primary ? (dark ? P[700] : P[300]) : inputBorder, boxShadow: b.is_primary ? `0px 0px 0px 1px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
                       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
                         <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: F.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={primaryText} /></View>
                         <StatusBadge status={b.status} />
@@ -353,7 +353,7 @@ export default function MerchantBankKyc() {
         <Pressable testID="mfk-preview-modal" onPress={() => setPreview(null)} style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.7)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <View style={{ width: "100%", maxWidth: 512 }}>
             <Pressable testID="mfk-preview-close" onPress={() => setPreview(null)} hitSlop={8} style={{ alignSelf: "flex-end", marginBottom: 4, height: 36, width: 36, borderRadius: 8, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
-            {preview ? <Image source={{ uri: mediaUrl(preview) }} style={{ width: "100%", height: Math.min(width - 48, 512) * 0.7, borderRadius: 16, backgroundColor: "#0f172a" }} contentFit="contain" /> : null}
+            {preview ? <Image source={{ uri: mediaUrl(preview) }} style={{ width: "100%", height: Math.min(width - 48, 512) * 0.7, borderRadius: 10, backgroundColor: "#0f172a" }} contentFit="contain" /> : null}
           </View>
         </Pressable>
       </Modal>

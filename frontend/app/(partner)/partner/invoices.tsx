@@ -152,8 +152,8 @@ export default function PartnerInvoices() {
     try {
       const r = await downloadInvoicePdf(inv, makeOpts("Downloading invoice"));
       if (r.status === "saved") {
-        toast.success("Invoice saved to your Downloads",
-          r.openUri ? { label: "Open", onPress: async () => { try { await openLocalFile(r.openUri!); } catch { toast.error("Couldn't open the file"); } } } : undefined);
+        toast.success("Invoice saved to your Downloads");
+        if (r.openUri) { try { await openLocalFile(r.openUri); } catch { toast.error("Saved, but no PDF viewer found to open it"); } }
       } else if (r.status === "downloaded") toast.success("Invoice downloaded successfully");
       else toast.success("Invoice ready — choose where to save it");
     }

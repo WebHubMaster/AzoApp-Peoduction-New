@@ -42,7 +42,7 @@ function KpiTile({ c }: { c: KpiDef }) {
   const Ic = c.icon;
   return (
     <LinearGradient colors={c.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} testID={`kpi-${c.key}`}
-      style={{ flex: 1, minWidth: "45%", borderRadius: 16, padding: 16, overflow: "hidden", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1), 0px 2px 4px -2px rgba(0,0,0,0.1)" }}>
+      style={{ flex: 1, minWidth: "45%", borderRadius: 10, padding: 16, overflow: "hidden", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1), 0px 2px 4px -2px rgba(0,0,0,0.1)" }}>
       <View style={{ position: "absolute", right: -12, top: -12, opacity: 0.2 }}><Ic size={64} color="#fff" strokeWidth={2} /></View>
       <Text style={{ fontSize: 11, lineHeight: 14, textTransform: "uppercase", letterSpacing: 0.55, fontWeight: "700", color: "rgba(255,255,255,0.85)" }} numberOfLines={1}>{c.label}</Text>
       <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "800", color: "#fff", marginTop: 4 }} numberOfLines={1}>{fmtC(c.value || 0)}</Text>
@@ -54,7 +54,7 @@ function KpiTile({ c }: { c: KpiDef }) {
 function ChartCard({ title, icon, children, testID }: { title: string; icon: React.ReactNode; children: React.ReactNode; testID: string }) {
   const { card, dark, strong } = useFin();
   return (
-    <View testID={testID} style={{ backgroundColor: card, borderRadius: 16, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], padding: 16 }}>
+    <View testID={testID} style={{ backgroundColor: card, borderRadius: 10, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>{icon}<Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "700", color: strong }}>{title}</Text></View>
       {children}
     </View>
@@ -124,7 +124,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
           <View style={{ gap: 20 }}>
             {/* header + presets */}
             <LinearGradient colors={["#0D47A1", "#1565C0", "#7c3aed"]} locations={[0, 0.55, 1]} start={{ x: 0, y: 0.15 }} end={{ x: 1, y: 0.85 }}
-              style={{ borderRadius: 24, padding: 20, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="analytics-hero">
+              style={{ borderRadius: 10, padding: 20, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="analytics-hero">
               <View pointerEvents="none" style={{ position: "absolute", left: "15%", top: "20%", height: 220, width: 220, marginLeft: -110, marginTop: -110, borderRadius: 110, backgroundColor: "rgba(255,255,255,0.12)" }} />
               <View pointerEvents="none" style={{ position: "absolute", left: "85%", top: "80%", height: 180, width: 180, marginLeft: -90, marginTop: -90, borderRadius: 90, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ gap: 12 }}>
@@ -149,7 +149,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
                 </View>
               </View>
               {showCustom ? (
-                <View testID="custom-range" style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 16, padding: 12 }}>
+                <View testID="custom-range" style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 10, padding: 12 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.3, color: "rgba(224,242,254,0.8)" }}>Custom range</Text>
                     <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: "#fff", ...TAB }}>{custom.from || "start"} → {custom.to || "end"}</Text>
@@ -177,7 +177,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
             </View>
 
             {loading ? (
-              <View style={{ paddingVertical: 64, alignItems: "center", justifyContent: "center", backgroundColor: card, borderRadius: 16, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200] }} testID="analytics-loading">
+              <View style={{ paddingVertical: 64, alignItems: "center", justifyContent: "center", backgroundColor: card, borderRadius: 10, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200] }} testID="analytics-loading">
                 <ActivityIndicator size="large" color={P[600]} />
               </View>
             ) : (

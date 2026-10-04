@@ -160,7 +160,7 @@ export default function MerchantProfileKyc() {
         testID="reg-embedded"
       >
         {/* Score header (web score banner) */}
-        <LinearGradient colors={["#0D47A1", "#1565C0"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 22, padding: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <LinearGradient colors={["#0D47A1", "#1565C0"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 10, padding: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
           <ScoreRing score={score?.score || 0} />
           <View style={{ flex: 1 }}>
             <Text style={{ color: "#fff", fontWeight: "800", ...T.lg }}>Complete your shop profile</Text>
@@ -171,7 +171,7 @@ export default function MerchantProfileKyc() {
         {/* Status banners */}
         {status === "approved" ? <ApprovedBanner who="Merchant" /> : null}
         {status === "under_review" ? (
-          <View testID="reg-under-review" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 16, padding: spacing.md }}>
+          <View testID="reg-under-review" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 10, padding: spacing.md }}>
             <View style={{ marginTop: 1 }}><ClipboardCheck size={18} color={colors.warning} /></View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.warning, fontWeight: "800", ...T.sm }}>Under review</Text>

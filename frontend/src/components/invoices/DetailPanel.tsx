@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { Image } from "expo-image";
-import { User, CalendarDays, Wallet, Percent, History, Download, Share2, FileText, MoreHorizontal, Printer, Copy, Phone, Mail, MapPin, MessageCircle } from "lucide-react-native";import { mediaUrl } from "@/src/api/client";
+import { User, CalendarDays, Wallet, Percent, History, Download, Share2, FileText, MoreHorizontal, Phone, Mail, MapPin } from "lucide-react-native";import { mediaUrl } from "@/src/api/client";
 import { FullSheet, ActionSheet, InvStatusBadge, TypeChip, DetailSkeleton, Timeline, OutlineBtn, useInv } from "@/src/components/invoice";
 import { money, shortDate, longDate, buildTimeline, referenceOf } from "@/src/lib/invoiceUtils";
 
@@ -13,7 +13,7 @@ function Section({ icon: Ico, title, children, testID }: { icon: any; title: str
   return (
     <View testID={testID}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Ico size={14} color={inv.t400} /><Text style={{ fontSize: 11, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase", color: inv.t400 }}>{title}</Text></View>
-      <View style={{ borderRadius: 16, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, paddingHorizontal: 16 }}>{children}</View>
+      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, paddingHorizontal: 16 }}>{children}</View>
     </View>
   );
 }
@@ -130,7 +130,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
       {!d ? null : (
         <View style={{ gap: 20 }}>
           {/* Invoice header card */}
-          <View testID="detail-header-card" style={{ borderRadius: 16, borderWidth: 1, borderColor: t.border, backgroundColor: t.dark ? "rgba(30,41,59,0.6)" : "#F8FAFC", padding: 16 }}>
+          <View testID="detail-header-card" style={{ borderRadius: 10, borderWidth: 1, borderColor: t.border, backgroundColor: t.dark ? "rgba(30,41,59,0.6)" : "#F8FAFC", padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                 {biz.logo ? <Image source={{ uri: mediaUrl(biz.logo) }} style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: t.border2 }} contentFit="contain" />
@@ -304,11 +304,6 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
           <View>
             <MenuItem icon={FileText} label="View Invoice" onPress={() => onPreview(d)} testID="detail-menu-preview" />
             <MenuItem icon={Download} label="Download PDF" onPress={() => onDownload(d)} testID="detail-menu-download" />
-            <MenuItem icon={Printer} label="Print Invoice" onPress={() => onPrint(d)} testID="detail-menu-print" />
-            <View style={{ height: 1, backgroundColor: t.border, marginVertical: 4 }} />
-            <MenuItem icon={MessageCircle} label="Share on WhatsApp" onPress={() => onShare(d, "whatsapp")} tone={t.emerald} testID="detail-menu-whatsapp" />
-            <MenuItem icon={Mail} label="Email Invoice" onPress={() => onShare(d, "email")} testID="detail-menu-email" />
-            <MenuItem icon={Copy} label="Copy Invoice Number" onPress={() => onCopy(d)} testID="detail-menu-copy" />
           </View>
         ) : null}
       </ActionSheet>

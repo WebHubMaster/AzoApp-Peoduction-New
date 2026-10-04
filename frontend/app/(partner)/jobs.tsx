@@ -207,7 +207,7 @@ export default function PartnerJobRequest() {
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         {/* live status bar */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 16, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: online ? "#10B981" : "#94A3B8" }} />
             <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }} numberOfLines={1}>{online ? "Online — receiving requests" : "Offline"}</Text>

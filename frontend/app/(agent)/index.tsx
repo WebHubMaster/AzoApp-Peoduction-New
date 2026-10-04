@@ -119,7 +119,7 @@ export default function AgentHome() {
         {/* Map CTA */}
         <Pressable testID="agent-map-cta" onPress={() => router.push("/(agent)/map")}>
           <LinearGradient colors={["#F59E0B", "#B45309"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: radius.lg, padding: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }}>
               <Icon name="qrcode-scan" size={26} color="#fff" />
             </View>
             <View style={{ flex: 1 }}>

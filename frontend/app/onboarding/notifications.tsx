@@ -237,7 +237,7 @@ function PermCard({
         gap: spacing.md,
       }}
     >
-      <View style={{ width: 48, height: 48, borderRadius: 14, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
         <Icon name={card.icon} size={24} color={card.tint} />
       </View>
       <View style={{ flex: 1 }}>

@@ -133,7 +133,7 @@ function RangeSheet({ open, onClose, onApply }: { open: boolean; onClose: () => 
 export function EarningsHero({ k, chart, filter, setFilter, updating }: { k: any; chart: any[]; filter: RangeFilter; setFilter: (f: RangeFilter) => void; updating?: boolean }) {
   const [box, setBox] = useState({ w: 0, h: 0 });
   return (
-    <View testID="ph-hero" onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={{ borderRadius: 24, overflow: "hidden", padding: 20, backgroundColor: TW.slate900, boxShadow: "0px 24px 50px -24px rgba(15,23,42,0.8)" }}>
+    <View testID="ph-hero" onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })} style={{ borderRadius: 10, overflow: "hidden", padding: 20, backgroundColor: TW.slate900, boxShadow: "0px 24px 50px -24px rgba(15,23,42,0.8)" }}>
       <HeroBackdrop w={box.w} h={box.h} />
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -153,13 +153,13 @@ export function EarningsHero({ k, chart, filter, setFilter, updating }: { k: any
       <View style={{ marginTop: 16 }}><RangeControl filter={filter} setFilter={setFilter} /></View>
       <View style={{ marginTop: 16, flexDirection: "row", gap: 10 }}>
         {[{ l: "Today", v: k.today_earnings }, { l: "This week", v: k.week_earnings }, { l: "This month", v: k.month_earnings }].map((x) => (
-          <View key={x.l} style={{ flex: 1, minWidth: 0, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.10)", padding: 12 }}>
+          <View key={x.l} style={{ flex: 1, minWidth: 0, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.10)", padding: 12 }}>
             <Text style={{ color: "rgba(255,255,255,0.55)", fontSize: 10, letterSpacing: 1, textTransform: "uppercase" }}>{x.l}</Text>
             <Text style={{ color: "#fff", fontSize: 16, fontWeight: "900", marginTop: 4 }} numberOfLines={1} adjustsFontSizeToFit>{fmtC(x.v)}</Text>
           </View>
         ))}
       </View>
-      <View style={{ marginTop: 16, borderRadius: 16, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", paddingTop: 10, paddingHorizontal: 8, paddingBottom: 8, height: 128 }}>
+      <View style={{ marginTop: 16, borderRadius: 10, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", paddingTop: 10, paddingHorizontal: 8, paddingBottom: 8, height: 128 }}>
         {chart.length === 0
           ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>No earnings in this period yet.</Text></View>
           : <Sparkline data={chart} height={110} stroke={TW.emerald400} />}

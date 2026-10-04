@@ -25,7 +25,7 @@ function MKpiCard({ c }: { c: Kpi }) {
   if (c.primary) {
     return (
       <LinearGradient colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ flex: 1, borderRadius: 16, padding: spacing.lg }}>
+        style={{ flex: 1, borderRadius: 10, padding: spacing.lg }}>
         <Text style={{ color: "#ECFDF5", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
         <Text style={{ color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4, letterSpacing: -0.24, ...TAB }} numberOfLines={1}>{display}</Text>
         {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -33,7 +33,7 @@ function MKpiCard({ c }: { c: Kpi }) {
     );
   }
   return (
-    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 16 }}>
+    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
       <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
       <Text style={{ color: c.money ? colors.success : colors.text, fontSize: 18, fontWeight: "800", marginTop: 4, letterSpacing: -0.18, ...TAB }} numberOfLines={1}>{display}</Text>
       {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -131,11 +131,11 @@ export function MModuleHeader({ title, subtitle, icon: Ico = TrendingUp, right, 
   if (card) {
     return (
       <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 24, padding: 20, overflow: "hidden", boxShadow: "0px 10px 30px rgba(13,71,161,0.28)" }}>
+        style={{ borderRadius: 10, padding: 20, overflow: "hidden", boxShadow: "0px 10px 30px rgba(13,71,161,0.28)" }}>
         <View style={{ position: "absolute", top: -30, left: -10, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.12)" }} />
         <View style={{ position: "absolute", bottom: -40, right: -20, width: 140, height: 140, borderRadius: 70, backgroundColor: "rgba(255,255,255,0.08)" }} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
             <Ico size={24} color="#fff" strokeWidth={1.9} />
           </View>
           <View style={{ flex: 1 }}>
@@ -150,7 +150,7 @@ export function MModuleHeader({ title, subtitle, icon: Ico = TrendingUp, right, 
   return (
     <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
       <View style={{ paddingTop: 14, paddingBottom: 16, paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
           <Ico size={24} color="#fff" strokeWidth={1.9} />
         </View>
         <View style={{ flex: 1 }}>

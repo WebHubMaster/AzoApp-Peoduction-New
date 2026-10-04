@@ -68,7 +68,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
         <View style={{ marginTop: -64, paddingHorizontal: 12, paddingTop: 24 }}>
           {typeof score === "number" ? (
             <LinearGradient colors={SCORE as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.4 }}
-              style={{ borderRadius: 24, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: kindBorder, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
+              style={{ borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: kindBorder, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
               <ScoreRing score={score} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: "#fff", fontWeight: "700", ...T.lg }}>{scoreTitle}</Text>
@@ -76,7 +76,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
               </View>
             </LinearGradient>
           ) : null}
-          <View testID={testID} style={{ backgroundColor: "#fff", borderRadius: 24, padding: 20, borderWidth: 1, borderColor: TW.slate100, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
+          <View testID={testID} style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20, borderWidth: 1, borderColor: TW.slate100, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
             {children}
           </View>
           <Text style={{ textAlign: "center", color: TW.slate400, ...T.xs, marginTop: 16 }}>© AzoApp · Your data is secure & encrypted</Text>

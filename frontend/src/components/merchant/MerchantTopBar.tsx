@@ -57,7 +57,7 @@ function NotificationBell() {
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
-        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 320, maxWidth: "92%", maxHeight: 420, backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
+        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 320, maxWidth: "92%", maxHeight: 420, backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
           <Text style={{ paddingHorizontal: 16, paddingVertical: 10, fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.textMuted, borderBottomWidth: 1, borderBottomColor: colors.border }}>Notifications</Text>
           <ScrollView>
             {items.length === 0 ? (
@@ -122,7 +122,7 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
             <View>{L("Phone")}<TextInput value={user?.phone || ""} editable={false} style={[field, { opacity: 0.6 }]} /></View>
           </View>
           <Pressable testID="profile-save-btn" onPress={save} disabled={saving}
-            style={{ marginTop: 18, height: 48, borderRadius: 14, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
+            style={{ marginTop: 18, height: 48, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: saving ? 0.7 : 1 }}>
             {saving ? <ActivityIndicator size="small" color="#fff" /> : <Save size={16} color="#fff" />}
             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{saving ? "Saving…" : "Save"}</Text>
           </Pressable>
@@ -152,7 +152,7 @@ function ProfileChip() {
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
-        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 232, backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
+        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 232, backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
           <View style={{ paddingHorizontal: 12, paddingVertical: 10 }}>
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "800", color: colors.text }}>{user?.name || "—"}</Text>
             <Text style={{ fontSize: 12, color: colors.textMuted }}>{user?.phone || ""}</Text>
@@ -190,7 +190,7 @@ export function MerchantTopBar() {
   return (
     <View style={{ backgroundColor: colors.background, paddingTop: insets.top + 8, paddingHorizontal: 12, paddingBottom: 8 }}>
       <StatusBar style={colors.background === "#0B1120" ? "light" : "dark"} />
-      <View style={{ backgroundColor: colors.surface, borderRadius: 18, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
+      <View style={{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
         {logo ? (
           <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 36, width: 44, borderRadius: 10 }} contentFit="contain" transition={150} />
         ) : (

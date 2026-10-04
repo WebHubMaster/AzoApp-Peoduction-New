@@ -262,7 +262,7 @@ export function InfoBox({ text }: { text: string }) {
 /* ---------------- Status banners ---------------- */
 export function RejectedBanner({ reason }: { reason: string }) {
   return (
-    <View testID="reg-rejected" style={{ marginBottom: 20, borderRadius: 16, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red200, padding: 16, flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+    <View testID="reg-rejected" style={{ marginBottom: 20, borderRadius: 10, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red200, padding: 16, flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
       <AlertTriangle size={20} color={TW.red500} style={{ marginTop: 2 }} />
       <View style={{ flex: 1 }}>
         <Text style={{ ...T.base, fontWeight: "600", color: TW.red700 }}>Application needs changes</Text>
@@ -275,8 +275,8 @@ export function RejectedBanner({ reason }: { reason: string }) {
 
 export function ApprovedBanner({ who }: { who: string }) {
   return (
-    <View testID="reg-approved" style={{ marginBottom: 20, borderRadius: 16, backgroundColor: TW.emerald700, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
-      <View style={{ height: 44, width: 44, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><ShieldCheck size={24} color="#fff" /></View>
+    <View testID="reg-approved" style={{ marginBottom: 20, borderRadius: 10, backgroundColor: TW.emerald700, padding: 20, flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+      <View style={{ height: 44, width: 44, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><ShieldCheck size={24} color="#fff" /></View>
       <View style={{ flex: 1 }}>
         <Text style={{ fontWeight: "700", ...T.lg, color: "#fff" }}>Profile approved &amp; locked</Text>
         <Text style={{ ...T.sm, color: "rgba(255,255,255,0.85)", marginTop: 2 }}>You are a Verified {who}. To change details, contact support.</Text>
@@ -307,7 +307,7 @@ export function UnderReview({ onRefresh, refreshing }: { onRefresh: () => void; 
 export function ReviewCard({ title, rows, onEdit, editable = true }: { title: string; rows: [string, any][]; onEdit: () => void; editable?: boolean }) {
   const P = usePal();
   return (
-    <View style={{ borderRadius: 16, borderWidth: 1, borderColor: TW.slate200, overflow: "hidden" }}>
+    <View style={{ borderRadius: 10, borderWidth: 1, borderColor: TW.slate200, overflow: "hidden" }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 10, backgroundColor: TW.slate50, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
         <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700 }}>{title}</Text>
         <Pressable onPress={onEdit} hitSlop={8}><Text style={{ ...T.xs, fontWeight: "500", color: P[600] }}>{editable ? "Edit" : "View"}</Text></Pressable>
@@ -333,7 +333,7 @@ export function RegNav({ step, total, onBack, saving, onNext, nextDisabled, onSu
   // card so it flows after the content instead of floating over it. Standalone
   // registration keeps the fixed footer pinned to the bottom of the screen.
   const containerStyle = embedded
-    ? { borderRadius: 18, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate100, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, gap: 12 }
+    ? { borderRadius: 10, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate100, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, gap: 12 }
     : { position: "absolute" as const, left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: "rgba(255,255,255,0.92)", borderTopWidth: 1, borderTopColor: TW.slate100, flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, gap: 12 };
   return (
     <View testID={viewOnly ? "reg-view-nav" : "reg-nav"} style={containerStyle}>

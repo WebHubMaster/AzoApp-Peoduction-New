@@ -177,7 +177,7 @@ export default function PartnerWallet() {
         ) : (
           <>
             {/* HERO */}
-            <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden", boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }}>
+            <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden", boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }}>
               <View style={{ position: "absolute", right: -64, top: -64, width: 224, height: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ position: "absolute", right: 40, bottom: 0, width: 128, height: 128, borderRadius: 64, backgroundColor: "rgba(125,211,252,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -194,13 +194,13 @@ export default function PartnerWallet() {
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
                 {[["Withdrawable", s.withdrawable_balance], ["Pending", s.pending_balance], ["Withdrawn", s.total_withdrawn]].map(([kk, v]) => (
-                  <View key={String(kk)} style={{ flex: 1, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.1)", paddingHorizontal: 12, paddingVertical: 10 }}>
+                  <View key={String(kk)} style={{ flex: 1, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.1)", paddingHorizontal: 12, paddingVertical: 10 }}>
                     <Text style={{ color: "#BFDBFE", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1} adjustsFontSizeToFit>{kk}</Text>
                     <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700", marginTop: 2, fontVariant: ["tabular-nums"] }} numberOfLines={1}>{money(v)}</Text>
                   </View>
                 ))}
               </View>
-              <Pressable testID="withdraw-btn" onPress={startWithdraw} style={{ marginTop: 24, height: 48, borderRadius: 16, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)", elevation: 4 }}>
+              <Pressable testID="withdraw-btn" onPress={startWithdraw} style={{ marginTop: 24, height: 48, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, boxShadow: "0px 8px 20px rgba(0,0,0,0.15)", elevation: 4 }}>
                 <Icon name="cash" size={20} color={colors.primaryDark} /><Text style={{ color: colors.primaryDark, fontWeight: "700", fontSize: 16 }}>Withdraw Money</Text>
               </Pressable>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12 }}>
@@ -302,7 +302,7 @@ export default function PartnerWallet() {
       <Sheet open={!!detail} onClose={() => setDetail(null)} title="Transaction details" subtitle={detail?.note} testID="wallet-tx-drawer">
         {detail ? (
           <View style={{ gap: 20 }}>
-            <View style={{ borderRadius: 16, padding: 16, alignItems: "center", backgroundColor: detail.direction === "credit" ? "#ECFDF5" : "#FFF1F2" }}>
+            <View style={{ borderRadius: 10, padding: 16, alignItems: "center", backgroundColor: detail.direction === "credit" ? "#ECFDF5" : "#FFF1F2" }}>
               <Text style={{ color: detail.direction === "credit" ? "#059669" : "#F43F5E", fontSize: 30, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{detail.direction === "credit" ? "+" : "−"}{money(detail.amount)}</Text>
               <View style={{ marginTop: 8 }}><StatusBadge status={detail.status} /></View>
             </View>
@@ -321,7 +321,7 @@ export default function PartnerWallet() {
       <Sheet open={!!wdDetail} onClose={() => setWdDetail(null)} title="Withdrawal details" subtitle={wdDetail ? `WD-${String(wdDetail.id).slice(0, 6).toUpperCase()}` : ""} testID="wallet-wd-drawer">
         {wdDetail ? (
           <View style={{ gap: 20 }}>
-            <View style={{ borderRadius: 16, padding: 16, alignItems: "center", backgroundColor: colors.primarySubtle }}>
+            <View style={{ borderRadius: 10, padding: 16, alignItems: "center", backgroundColor: colors.primarySubtle }}>
               <Text style={{ color: colors.primary, fontSize: 30, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{money(wdDetail.amount)}</Text>
               <View style={{ marginTop: 8 }}><StatusBadge status={wdDetail.status} /></View>
             </View>
@@ -428,7 +428,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
               {banks.map((b) => {
                 const on = bankId === b.id;
                 return (
-                  <Pressable key={b.id} testID={`withdraw-bank-${b.id}`} onPress={() => setBankId(b.id)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, borderWidth: on ? 2 : 1, borderColor: on ? colors.secondary : colors.border, backgroundColor: on ? "rgba(239,246,255,0.5)" : "transparent", padding: 14 }}>
+                  <Pressable key={b.id} testID={`withdraw-bank-${b.id}`} onPress={() => setBankId(b.id)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, borderWidth: on ? 2 : 1, borderColor: on ? colors.secondary : colors.border, backgroundColor: on ? "rgba(239,246,255,0.5)" : "transparent", padding: 14 }}>
                     <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={colors.primary} /></View>
                     <View style={{ flex: 1 }}>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text style={{ color: colors.text, fontWeight: "600", fontSize: 15 }} numberOfLines={1}>{b.bank_name}</Text>{b.is_primary ? <View style={{ backgroundColor: "#DBEAFE", borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}><Text style={{ color: colors.primary, fontSize: 9, fontWeight: "700" }}>PRIMARY</Text></View> : null}</View>
@@ -440,7 +440,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
               })}
             </View>
           ) : (
-            <View testID="withdraw-no-bank" style={{ marginTop: 16, borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", padding: 20, alignItems: "center" }}>
+            <View testID="withdraw-no-bank" style={{ marginTop: 16, borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", padding: 20, alignItems: "center" }}>
               <Icon name="bank-outline" size={24} color={SLATE400} />
               <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600", marginTop: 8 }}>No verified bank account available.</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 4, textAlign: "center" }}>Add and verify a bank account to receive your payouts.</Text>
@@ -454,7 +454,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
       {step === 3 ? (
         <View>
           <H t="Review withdrawal" />
-          <View style={{ borderRadius: 16, backgroundColor: colors.surfaceSubtle, padding: 16, marginTop: 16 }}>
+          <View style={{ borderRadius: 10, backgroundColor: colors.surfaceSubtle, padding: 16, marginTop: 16 }}>
             <KV k="Withdrawal amount" v={money(amt)} />
             <KV k="Processing fee" v={"−" + money(fee)} />
             <KV k="Net amount" v={money(net)} strong />
@@ -467,7 +467,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
 
       {step === 4 ? (
         <View style={{ alignItems: "center" }}>
-          <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={28} color={colors.primary} /></View>
+          <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={28} color={colors.primary} /></View>
           <Text style={{ color: colors.text, fontSize: 20, fontWeight: "700", marginTop: 16 }}>Confirm withdrawal</Text>
           <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 4, textAlign: "center", lineHeight: 20 }}>You are about to withdraw <Text style={{ color: colors.text, fontWeight: "700" }}>{money(amt)}</Text> to {destLabel}. This can’t be undone once submitted.</Text>
           <View style={{ flexDirection: "row", gap: 8, marginTop: 24, width: "100%" }}><Btn title="Back" outline onPress={() => setStep(3)} /><Btn title={busy ? "Submitting…" : "Confirm & Submit"} testID="withdraw-submit" disabled={busy} onPress={submit} /></View>
@@ -479,7 +479,7 @@ function WithdrawFlow({ s, cfg, fin, onClose, onDone, onAddBank }: { s: any; cfg
           <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: "#ECFDF5", alignItems: "center", justifyContent: "center" }}><Icon name="check-circle-outline" size={36} color="#059669" /></View>
           <Text style={{ color: colors.text, fontSize: 20, fontWeight: "700", marginTop: 16 }}>Withdrawal submitted!</Text>
           <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 4 }}>Your request is now pending approval.</Text>
-          <View style={{ borderRadius: 16, backgroundColor: colors.surfaceSubtle, padding: 16, marginTop: 16, width: "100%" }}>
+          <View style={{ borderRadius: 10, backgroundColor: colors.surfaceSubtle, padding: 16, marginTop: 16, width: "100%" }}>
             <KV k="Withdrawal ID" v={`WD-${String(result.id || "").slice(0, 6).toUpperCase()}`} mono />
             <KV k="Amount" v={money(result.amount)} strong />
             <KV k="Payout to" v={destLabel} />

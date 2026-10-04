@@ -15,7 +15,7 @@ import { TW } from "./tw";
 
 function Surface({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
   const { colors } = useTheme();
-  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 16, boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 16, boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>{children}</View>;
 }
 
 /* ------------------------------------------------------------ Alert check (TestRingCard) */
@@ -337,7 +337,7 @@ export function StreakCard({ stats }: { stats: any }) {
     <Surface testID="partner-streak-card" style={{ padding: 20 }}>
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 56, height: 56, borderRadius: 16, alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
+          <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 56, height: 56, borderRadius: 10, alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
             <Icon name="fire" size={28} color="#fff" />
           </LinearGradient>
           <View>

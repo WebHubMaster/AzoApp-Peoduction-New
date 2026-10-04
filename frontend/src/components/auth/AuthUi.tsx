@@ -89,7 +89,7 @@ export function AuthHeader({ right, onBack, top }: { right?: React.ReactNode; on
 /* Big-tile info card ("Safe & Secure", "Need Help?") */
 export function InfoCard({ icon, iconBg, iconColor, title, sub, onPress, chevron, testID, bg = "#EEF4FF", border = "#DDE7FA" }: { icon: MdiName; iconBg: string; iconColor: string; title: string; sub: string; onPress?: () => void; chevron?: boolean; testID?: string; bg?: string; border?: string }) {
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 20, backgroundColor: bg, borderWidth: 1, borderColor: border, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}>
+    <Pressable testID={testID} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 10, backgroundColor: bg, borderWidth: 1, borderColor: border, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}>
       <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: iconBg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={iconColor} /></View>
       <View style={{ flex: 1 }}>
         <Text style={{ color: AUTH.ink, fontSize: FS.input, fontWeight: "800" }}>{title}</Text>

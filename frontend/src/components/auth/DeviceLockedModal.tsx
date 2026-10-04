@@ -13,7 +13,7 @@ export function DeviceLockedModal({ visible, onClose }: { visible: boolean; onCl
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.55)", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <View testID="device-locked-modal" style={{ width: "100%", maxWidth: 400, backgroundColor: "#fff", borderRadius: 24, padding: 24, alignItems: "center", gap: 6 }}>
+        <View testID="device-locked-modal" style={{ width: "100%", maxWidth: 400, backgroundColor: "#fff", borderRadius: 10, padding: 24, alignItems: "center", gap: 6 }}>
           <View style={{ width: 76, height: 76, borderRadius: 38, backgroundColor: "#FEF2F2", alignItems: "center", justifyContent: "center", marginBottom: 6 }}>
             <Icon name="cellphone-lock" size={38} color="#E11D48" />
           </View>
@@ -22,7 +22,7 @@ export function DeviceLockedModal({ visible, onClose }: { visible: boolean; onCl
             This account is registered on another device. Please contact Support for help.
           </Text>
 
-          <Pressable testID="device-locked-support" onPress={openSupport} style={({ pressed }) => ({ marginTop: 18, width: "100%", height: 54, borderRadius: 14, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+          <Pressable testID="device-locked-support" onPress={openSupport} style={({ pressed }) => ({ marginTop: 18, width: "100%", height: 54, borderRadius: 10, backgroundColor: "#2563EB", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
             <Icon name="headset" size={22} color="#fff" />
             <Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Contact Support</Text>
           </Pressable>

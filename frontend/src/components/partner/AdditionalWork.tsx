@@ -64,7 +64,7 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
   };
 
   return (
-    <View testID={`additional-section-${b.code}`} style={{ borderRadius: 16, borderWidth: 1, borderColor: colors.border, padding: 14, backgroundColor: colors.surface }}>
+    <View testID={`additional-section-${b.code}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 14, backgroundColor: colors.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="wrench-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Additional work</Text></View>
         {addl && num(addl.total) > 0 ? (
@@ -170,7 +170,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
             {filtered.length === 0 ? (
               <View style={{ alignItems: "center", paddingVertical: 48 }}><Icon name="magnify" size={32} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 14, marginTop: 10 }}>No items match “{q}”.</Text></View>
             ) : filtered.map((g) => (
-              <View key={g.id} style={{ borderRadius: 16, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
+              <View key={g.id} style={{ borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 12, borderLeftWidth: 3, borderLeftColor: accent }}>
                   <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${accent}1A`, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={16} color={accent} /></View>
                   <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", flex: 1 }}>{g.name || "Services"}</Text>

@@ -116,7 +116,7 @@ export default function SupportList() {
           </View>
         }
         ListEmptyComponent={isLoading ? <View style={{ gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View> : (
-          <View testID="support-empty" style={{ borderRadius: 16, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", backgroundColor: colors.surface, paddingVertical: 60, paddingHorizontal: 24, alignItems: "center" }}>
+          <View testID="support-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", backgroundColor: colors.surface, paddingVertical: 60, paddingHorizontal: 24, alignItems: "center" }}>
             <Icon name="inbox-outline" size={72} color="#CBD5E1" />
             <Text style={{ color: "#475569", fontSize: 22, fontWeight: "600", marginTop: 20 }}>No tickets found</Text>
             <Text style={{ color: SLATE400, fontSize: 16, marginTop: 6, textAlign: "center" }}>{tickets.length ? "Try changing your search or filters." : "Need help? Raise your first support ticket."}</Text>

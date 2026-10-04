@@ -131,7 +131,7 @@ def _qr_data_uri(text: str) -> str:
 
 def build_html(inv: dict) -> str:
     from services.invoice_html_service import (_esc, _money, _fmt_date, logo_to_data_uri,
-                                               resolve_theme, _font_b64)
+                                               resolve_theme)
     g = inv.get("gst_invoice") or {}
     biz = inv.get("business_snapshot") or {}
     cust = inv.get("customer_snapshot") or {}
@@ -147,8 +147,7 @@ def build_html(inv: dict) -> str:
     sign = logo_to_data_uri(biz.get("signature") or "")
     qr = _qr_data_uri(inv.get("verify_url") or
                       f"Invoice No: {p1.get('number')} | Amount: INR {p1.get('subtotal', 0):.2f}")
-    brand = (f'<img class="logo" src="{logo}"/>' if logo else "") + \
-        f'<span class="bname">{_esc(biz.get("name") or "AzoApp")}</span>'
+    brand = _brand_html(biz, logo, _esc)
 
     def to_block(no_label, no_val):
         return f"""
@@ -223,11 +222,23 @@ def build_html(inv: dict) -> str:
       <div class="note">Service provided by the independent service partner. Collected by {_esc(biz.get("name") or "the platform")} on behalf of the partner.</div>
     </div>"""
 
+    return f"""<!doctype html><html><head><meta charset="utf-8"/><title>{_esc(p1.get("number"))}</title>
+<style>{_css(ac)}</style></head><body data-testid="gst-invoice">{page1}{page2}</body></html>"""
+
+
+def _brand_html(biz: dict, logo: str, esc) -> str:
+    """Admin Branding logo when available; the text wordmark ONLY as a fallback."""
+    if logo:
+        return f'<img class="logo" src="{logo}" alt="{esc(biz.get("name") or "logo")}"/>'
+    return f'<span class="bname">{esc(biz.get("name") or "AzoApp")}</span>'
+
+
+def _css(ac: str) -> str:
+    from services.invoice_html_service import _font_b64
     fr, fb = _font_b64("regular"), _font_b64("bold")
     fonts = (f"@font-face{{font-family:'Inv';src:url(data:font/ttf;base64,{fr});}}"
              f"@font-face{{font-family:'Inv';font-weight:bold;src:url(data:font/ttf;base64,{fb});}}") if fr else ""
-    return f"""<!doctype html><html><head><meta charset="utf-8"/><title>{_esc(p1.get("number"))}</title>
-<style>{fonts}
+    return fonts + f"""
 @page {{ size: A4; margin: 14mm; }}
 * {{ box-sizing: border-box; }}
 body {{ font-family: 'Inv', Helvetica, Arial, sans-serif; color:#111827; font-size:11px; margin:0; background:#fff; }}
@@ -236,7 +247,7 @@ body {{ font-family: 'Inv', Helvetica, Arial, sans-serif; color:#111827; font-si
 @media print {{ .brk {{ border-top:none; margin-top:0; padding-top:4mm; }} }}
 table {{ width:100%; border-collapse:collapse; }}
 .hd td {{ vertical-align:middle; padding-bottom:10px; border-bottom:3px solid {ac}; }}
-.logo {{ height:34px; vertical-align:middle; margin-right:8px; }}
+.logo {{ height:40px; max-width:200px; object-fit:contain; vertical-align:middle; }}
 .bname {{ font-size:18px; font-weight:bold; vertical-align:middle; }}
 .ttl {{ text-align:right; font-size:15px; font-weight:bold; letter-spacing:.5px; color:{ac}; }}
 .parties td {{ vertical-align:top; padding:12px 0 8px; }}
@@ -265,4 +276,73 @@ table {{ width:100%; border-collapse:collapse; }}
 .sgn {{ font-weight:bold; font-size:11px; color:#111827; }}
 .paid {{ margin-top:10px; padding:8px 10px; background:#f8fafc; border:1px solid #e5e7eb; font-size:10.5px; }}
 .note {{ margin-top:12px; font-size:10px; color:#6b7280; }}
-</style></head><body data-testid="gst-invoice">{page1}{page2}</body></html>"""
+"""
+
+
+def build_partner_html(inv: dict) -> str:
+    """Partner copy in the SAME layout as the customer invoice. Amount = only what
+    the partner actually earned (role_earning.net) — no customer total / platform fees."""
+    from services.invoice_html_service import _esc, _money, _fmt_date, logo_to_data_uri, resolve_theme
+    biz = inv.get("business_snapshot") or {}
+    re_ = inv.get("role_earning") or {}
+    party = inv.get("bill_to") or inv.get("partner_snapshot") or {}
+    meta = inv.get("partner_meta") or {}
+    cur = inv.get("currency") or "INR"
+    ac = biz.get("accent") or resolve_theme(biz.get("theme_key"))["accent"]
+    logo = logo_to_data_uri(biz.get("logo") or "")
+    m = lambda v: _money(v, cur)  # noqa: E731
+    canc = bool(re_.get("is_cancellation")) or inv.get("invoice_type") == "cancellation"
+    net = round(float(re_.get("net") or 0), 2)
+    category = meta.get("category") or inv.get("category_name") or inv.get("service_name") or \
+        ((inv.get("line_items") or [{}])[0].get("desc") or "Services")
+    desc = f"{'Cancellation Earning' if canc else 'Service Earning'} - {category}"
+    _ba = biz.get("address") or ""
+    biz_addr = ", ".join([x for x in [_ba] + [biz.get(k) for k in ("city", "zip")] if x and (x == _ba or str(x) not in _ba)])
+    legal = biz.get("legal_name") or biz.get("name") or ""
+    gstin_row = f'<div class="row"><b>Business GST:</b> {_esc(biz.get("gst"))}</div>' if biz.get("gst") else ""
+    sign = logo_to_data_uri(biz.get("signature") or "")
+    signatory = biz.get("signatory_name") or ""
+    p_state = meta.get("state") or state_with_code(party.get("state"))
+    title = "PARTNER INVOICE (CANCELLATION)" if canc else "PARTNER INVOICE"
+    coupon = (f'<div class="note">{_esc(re_.get("coupon_note"))}</div>' if re_.get("coupon_note") else "")
+    page = f"""
+    <div class="page" data-testid="partner-invoice-page">
+      <table class="hd"><tr><td>{_brand_html(biz, logo, _esc)}</td><td class="ttl">{title}</td></tr></table>
+      <table class="parties"><tr>
+        <td class="pl"><div class="lbl">To</div>
+          <div class="nm">{_esc(party.get("name") or "Service Partner")}</div>
+          <div class="row"><b>Address:</b> {_esc(party.get("address") or "—")}</div>
+          <div class="row"><b>State Name &amp; Code:</b> {_esc(p_state or "—")}</div>
+          {f'<div class="row"><b>Phone:</b> {_esc(party.get("phone"))}</div>' if party.get("phone") else ""}
+        </td>
+        <td class="pr">
+          <div class="row"><b>Invoice No.:</b> {_esc(inv.get("invoice_number") or "")}</div>
+          <div class="row"><b>Date:</b> {_esc(_fmt_date(inv.get("issue_date") or inv.get("created_at")))}</div>
+          <div class="row"><b>Booking ID:</b> {_esc(inv.get("booking_code") or "")}</div>
+        </td>
+      </tr></table>
+      <div class="from"><div class="lbl">From</div>
+        <div class="nm">{_esc(legal)}</div>{gstin_row}
+        <div class="row"><b>Address:</b> {_esc(biz_addr or "—")}</div>
+        <div class="row"><b>State Name &amp; Code:</b> {_esc(state_with_code(biz.get("state")) or "—")}</div>
+      </div>
+      <table class="items">
+        <thead><tr><th class="l">Items</th><th>Gross Amount</th><th>Amount</th></tr></thead>
+        <tbody><tr><td class="l">{_esc(desc)}</td><td>{m(net)}</td><td>{m(net)}</td></tr></tbody>
+      </table>
+      <table class="tot">
+        <tr><td>Discount</td><td>{m(0)}</td></tr>
+        <tr class="grand" data-testid="partner-invoice-total"><td>Total Earning</td><td>{m(net)}</td></tr>
+      </table>
+      <div class="words"><b>Amount in words:</b> {_esc(amount_in_words(net))}</div>
+      <table class="foot"><tr>
+        <td class="qr"></td>
+        <td class="sg">{f'<img src="{sign}"/>' if sign else '<div class="sgspace"></div>'}
+          {f'<div class="sgn">{_esc(signatory)}</div>' if signatory else ''}
+          <div>Signature of authorized representative</div></td>
+      </tr></table>
+      {coupon}
+      <div class="note">This is the amount earned by you (the service partner) for this booking.</div>
+    </div>"""
+    return f"""<!doctype html><html><head><meta charset="utf-8"/><title>{_esc(inv.get("invoice_number") or "Invoice")}</title>
+<style>{_css(ac)}</style></head><body data-testid="partner-invoice">{page}</body></html>"""

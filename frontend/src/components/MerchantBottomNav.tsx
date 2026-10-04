@@ -121,12 +121,12 @@ export function MerchantBottomNav() {
                       onPress={() => goMore(it.route)}
                       style={{
                         width: "31%", alignItems: "center", paddingVertical: 12, paddingHorizontal: 6,
-                        borderRadius: 16, borderWidth: 1, borderColor: on ? "#BFDBFE" : colors.border,
+                        borderRadius: 10, borderWidth: 1, borderColor: on ? "#BFDBFE" : colors.border,
                         backgroundColor: on ? colors.primarySubtle : colors.surface,
                         boxShadow: "0px 2px 8px rgba(2,32,71,0.04)",
                       }}
                     >
-                      <View style={{ height: 44, width: 44, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: on ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
+                      <View style={{ height: 44, width: 44, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: on ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
                         {on ? (
                           <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center" }}>
                             <It size={20} color="#fff" strokeWidth={1.9} />
@@ -140,7 +140,7 @@ export function MerchantBottomNav() {
                   );
                 })}
               </View>
-              <Pressable testID="more-logout" onPress={async () => { setMoreOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 16, backgroundColor: "#FEF2F2" }}>
+              <Pressable testID="more-logout" onPress={async () => { setMoreOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 48, borderRadius: 10, backgroundColor: "#FEF2F2" }}>
                 <LogOut size={16} color="#DC2626" strokeWidth={2} />
                 <Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 14 }}>Logout</Text>
               </Pressable>
@@ -156,9 +156,9 @@ function TabButton({ Icon, label, focused, onPress, testID }: { Icon: LucideIcon
   const { colors } = useTheme();
   return (
     <Pressable testID={testID} onPress={onPress} style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6 }}>
-      <View style={{ height: 40, width: 40, borderRadius: 16, alignItems: "center", justifyContent: "center", overflow: "visible", transform: [{ scale: focused ? 1.05 : 1 }] }}>
+      <View style={{ height: 40, width: 40, borderRadius: 10, alignItems: "center", justifyContent: "center", overflow: "visible", transform: [{ scale: focused ? 1.05 : 1 }] }}>
         {focused ? (
-          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 16, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
+          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
             <Icon size={18} color="#fff" strokeWidth={2} />
           </LinearGradient>
         ) : (

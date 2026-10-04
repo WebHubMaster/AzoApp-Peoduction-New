@@ -25,7 +25,7 @@ function GradButton({ title, icon, busy, onPress, grad, testID, disabled }: { ti
   const off = busy || disabled;
   return (
     <Pressable testID={testID} onPress={onPress} disabled={off} style={({ pressed }) => ({ transform: [{ scale: pressed && !off ? 0.98 : 1 }] })}>
-      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 14, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: off ? 0.5 : 1 }}>
+      <LinearGradient colors={grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 56, borderRadius: 10, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: off ? 0.5 : 1 }}>
         {busy ? <ActivityIndicator color="#fff" /> : <><Text style={{ color: "#fff", fontSize: FS.label, fontWeight: "800" }}>{title}</Text><Icon name={icon} size={22} color="#fff" /></>}
       </LinearGradient>
     </Pressable>
@@ -115,7 +115,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   };
 
   const ac = accent;
-  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 14, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: FS.input, color: AUTH.ink } as const;
+  const inputStyle = { height: 56, paddingHorizontal: 16, borderRadius: 10, borderWidth: 1.5, backgroundColor: "#F8FAFC", fontSize: FS.input, color: AUTH.ink } as const;
 
   if (step === "phone") {
     return (
@@ -155,7 +155,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
             {Array.from({ length: 6 }).map((_, i) => {
               const active = i === Math.min(otp.length, 5); const filled = i < otp.length;
               return (
-                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, height: 56, borderRadius: 14, borderWidth: 1.5, borderColor: active ? ac.main : filled ? "#CBD5E1" : AUTH.line, backgroundColor: active ? ac.soft : "#F8FAFC", alignItems: "center", justifyContent: "center" }}>
+                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, height: 56, borderRadius: 10, borderWidth: 1.5, borderColor: active ? ac.main : filled ? "#CBD5E1" : AUTH.line, backgroundColor: active ? ac.soft : "#F8FAFC", alignItems: "center", justifyContent: "center" }}>
                   <Text style={{ fontSize: 22, fontWeight: "800", color: AUTH.ink }}>{otp[i] || ""}</Text>
                 </View>
               );
@@ -177,7 +177,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   return (
     <View testID="otp-step-name" style={{ gap: 14 }}>
       <DeviceLockedModal visible={deviceBlocked} onClose={() => { setDeviceBlocked(false); setStep("phone"); setOtp(""); }} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: ac.border }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: ac.border }}>
         <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={20} color="#fff" /></View>
         <Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700", flex: 1 }}>Mobile verified · creating your {cap(role || "")} account</Text>
       </View>

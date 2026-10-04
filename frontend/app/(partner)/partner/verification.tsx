@@ -66,21 +66,21 @@ export default function PartnerVerification() {
       <ScrollView testID="partner-profile-view" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 20 }} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-reg-profile"] })} tintColor={colors.primary} colors={[colors.primary]} />}>
         {!approved ? (
-          <View testID="onboarding-banner" style={{ borderRadius: 16, backgroundColor: colors.primary, padding: 20, gap: 12 }}>
+          <View testID="onboarding-banner" style={{ borderRadius: 10, backgroundColor: colors.primary, padding: 20, gap: 12 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}><Icon name="shield-check-outline" size={32} color="#fff" /><View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 18, fontWeight: "700" }}>Complete your verification</Text><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Finish onboarding & KYC to start receiving jobs.</Text></View></View>
             <Pressable testID="goto-onboarding" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 12, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "700", fontSize: 15 }}>{user?.onboarding_submitted ? "View submission" : "Complete now"}</Text></Pressable>
           </View>
         ) : null}
 
-        {q.isLoading ? [160, 208, 208].map((h, i) => <View key={i} style={{ height: h, borderRadius: 16, backgroundColor: colors.surfaceSubtle }} />) : (
+        {q.isLoading ? [160, 208, 208].map((h, i) => <View key={i} style={{ height: h, borderRadius: 10, backgroundColor: colors.surfaceSubtle }} />) : (
           <>
             {/* Hero */}
-            <LinearGradient colors={[colors.primary, colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 24, padding: 24, overflow: "hidden" }}>
+            <LinearGradient colors={[colors.primary, colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden" }}>
               <View style={{ position: "absolute", right: -32, top: -32, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
                 <View>
-                  {b.live_photo_url ? <Pressable onPress={() => setZoom({ url: mediaUrl(b.live_photo_url), label: "Live photo" })}><Image source={{ uri: mediaUrl(b.live_photo_url) }} style={{ width: 80, height: 80, borderRadius: 16, borderWidth: 4, borderColor: "rgba(255,255,255,0.3)" }} contentFit="cover" /></Pressable>
-                    : <View style={{ width: 80, height: 80, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "rgba(255,255,255,0.2)" }}><Icon name="account-outline" size={36} color="#fff" /></View>}
+                  {b.live_photo_url ? <Pressable onPress={() => setZoom({ url: mediaUrl(b.live_photo_url), label: "Live photo" })}><Image source={{ uri: mediaUrl(b.live_photo_url) }} style={{ width: 80, height: 80, borderRadius: 10, borderWidth: 4, borderColor: "rgba(255,255,255,0.3)" }} contentFit="cover" /></Pressable>
+                    : <View style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "rgba(255,255,255,0.2)" }}><Icon name="account-outline" size={36} color="#fff" /></View>}
                   <View style={{ position: "absolute", bottom: -6, right: -6, width: 28, height: 28, borderRadius: 14, backgroundColor: "#10B981", borderWidth: 2, borderColor: "#fff", alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={16} color="#fff" /></View>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -95,7 +95,7 @@ export default function PartnerVerification() {
               </View>
             </LinearGradient>
 
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 16, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 16, paddingVertical: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 16, paddingVertical: 12 }}>
               <Icon name="lock-outline" size={20} color="#D97706" /><Text style={{ color: "#92400E", fontSize: 14, flex: 1, lineHeight: 20 }}>These are the details you submitted during registration. They are verified & locked. To change anything, please contact admin / support.</Text>
             </View>
 
@@ -164,7 +164,7 @@ export default function PartnerVerification() {
       <Modal visible={!!zoom} transparent animationType="fade" onRequestClose={() => setZoom(null)}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", alignItems: "center", justifyContent: "center", padding: 16 }} onPress={() => setZoom(null)}>
           <Pressable onPress={() => setZoom(null)} style={{ position: "absolute", top: insets.top + 16, right: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
-          {zoom ? <><Image source={{ uri: zoom.url }} style={{ width: "100%", aspectRatio: 0.8, borderRadius: 16 }} contentFit="contain" /><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginTop: 12 }}>{zoom.label}</Text></> : null}
+          {zoom ? <><Image source={{ uri: zoom.url }} style={{ width: "100%", aspectRatio: 0.8, borderRadius: 10 }} contentFit="contain" /><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginTop: 12 }}>{zoom.label}</Text></> : null}
         </Pressable>
       </Modal>
     </View>
