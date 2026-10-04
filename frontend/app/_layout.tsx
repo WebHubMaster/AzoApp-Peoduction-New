@@ -19,7 +19,7 @@ import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
 import { ToastProvider } from "@/src/components/Toast";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
-import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
+import { APP_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initCrashReporter("partner");
@@ -120,7 +120,7 @@ export default function RootLayout() {
   // Load the Material Design Icons font up-front so icons render in Expo Go (Android/iOS).
   const [fontsLoaded] = useFonts({
     MaterialDesignIcons: require("@react-native-vector-icons/material-design-icons/fonts/MaterialDesignIcons.ttf"),
-    ...PUBLIC_SANS_FONTS,
+    ...APP_FONTS,
   });
 
   if (fontsLoaded) installGlobalFont();
