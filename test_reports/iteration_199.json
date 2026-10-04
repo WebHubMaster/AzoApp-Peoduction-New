@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only UI test of the premium-redesigned Welcome screen in the partner Expo web export served at /pp/. At 390x844 all required testIDs are present (welcome-screen, app-brand-logo, welcome-language-btn, welcome-title, welcome-hero, welcome-trust-{verified,fast,affordable}, get-started-card, welcome-login-btn, welcome-register-btn, welcome-security-note). No horizontal overflow (sw=cw=390). Hero image bbox x=203..390 vs title bbox x=20..195 — no overlap with subtitle. Language pill opens dropdown with welcome-language-en; tapping English closes it; welcome-language-backdrop also closes it. welcome-login-btn → /pp/login, welcome-register-btn → /pp/register. Desktop 1920x800: no horizontal overflow (sw=cw=1920), CTA fully in view (y=615, h=66). Fallback brand logo (A mark + AzoApp wordmark + 'Service at Your Door Steps' tagline) shown as expected since admin logo is not configured in preview.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "welcome.tsx BrandLogo gracefully handles missing admin logo (uri='') by rendering fallback immediately — good. onLoad reads e.source.width/height which is expo-image-specific; keep an eye out if ever ported to RN Image.",
+    "Modal animationType='none' with manual Animated.timing on opacity works, but there is no exit animation — dropdown disappears instantly on close. Minor polish opportunity.",
+    "useNativeDriver warning in web is harmless (no RCTAnimation on web); non-blocking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100%"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Preview partner web export lives at https://unified-vip-member.preview.emergentagent.com/pp/index.html (baseUrl /pp). To route to any screen use history.pushState + popstate dispatch after waiting ~6s for the Expo bundle to boot. Admin branding (logo_light/logo/logo_dark) is empty in this preview so the AzoApp text fallback is rendered — this is expected, not a bug.",
+  "rca of the issue": "N/A — no issues found."
+}

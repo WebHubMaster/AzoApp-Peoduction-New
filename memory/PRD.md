@@ -100,3 +100,7 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 - Partner app: `frontend/src/components/partner/HelpSOS.tsx` on started active job card + job wizard work step.
 - OTP boxes (partner web + app): paste / keyboard-suggested code fills all boxes (one-time-code / sms-otp).
 - Tested iteration_197: backend 5/5, web 100%. Expo apps not previewable.
+
+## 2026-06 — Admin Live Map partner photos + Partner App welcome redesign
+- Admin Live Partner Map: `/api/admin/partners/live` now returns `photo`; list/drawer/info-window show partner's own profile photo, grey SVG placeholder otherwise (no random pravatar). iteration_198 pass.
+- Partner App `frontend/app/(auth)/welcome.tsx` premium redesign (UI only): dynamic admin logo w/ skeleton + fallback, language pill dropdown, hero w/ blob + faded person, 3 trust cards, bottom Get Started panel w/ animated CTAs, security note, entrance animations, height-aware/scrollable layout. Navigation unchanged. iteration_199 pass (via temporary Expo web export).
