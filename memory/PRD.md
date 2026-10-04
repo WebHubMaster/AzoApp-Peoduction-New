@@ -84,3 +84,12 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 
 ### Next
 - P1: wire web_panel into preview serving for full browser E2E of the redesigned flows.
+
+---
+## 2026-06 — Account-exists msg, VIP icon, Help & SOS, Partner OTP UX
+- Customer checkout OTP (web `OtpLogin customerOnly` + app `OtpInline`/`login.tsx`): partner/merchant number → "Account already exists".
+- Customer app header uses same VIP-card membership icon as web (`Customer/assets/membership-crown.png`).
+- Help & SOS on started bookings: web card + details drawer (`HelpSOS.jsx`), app card + drawer (`Customer/src/components/customer/HelpSOS.tsx`). Help = realtime support chat (SSE + poll); SOS = call 112. Admin SupportInbox now subscribes to SSE.
+- Partner OTP: one backspace per digit, wrong OTP clears boxes, no blank gap above keyboard (web visualViewport sizing; app KeyboardStickyView + smaller bottomOffset). Active/Completed tabs → rounded-lg (web + app).
+- Restored missing backend/.env & web_panel/.env and web_panel node_modules.
+- Tested: iteration_195 + 196 (100% web). Expo apps not previewable here.
