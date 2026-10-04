@@ -1,4 +1,5 @@
 /** Ports of web_panel/src/components/customer/ux.jsx primitives (StatTile, StatusChip, EmptyState, skeletons). */
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -223,17 +224,18 @@ export function PillTrigger({ icon: Icon, label, onPress, testID, badge }: { ico
 /* Bottom sheet (web: Sheet side="bottom" rounded-t-3xl) */
 export function BottomSheet({ open, onClose, title, children, footer, testID, maxHeight = "88%" }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; footer?: React.ReactNode; testID?: string; maxHeight?: any }) {
   const { c, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
-    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+    <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
+      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end", paddingTop: insets.top }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View testID={testID} style={{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: isDark ? SLATE[800] : TC.surfaceAlt }}>
             <Text style={{ fontSize: 18, fontWeight: "600", color: c.text }}>{title}</Text>
             <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textFaint} /></Pressable>
           </View>
-          <ScrollView contentContainerStyle={{ padding: 16, gap: 20 }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
-          {footer ? <View style={{ padding: 12, borderTopWidth: 1, borderTopColor: isDark ? SLATE[800] : TC.surfaceAlt }}>{footer}</View> : null}
+          <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: footer ? 16 : 16 + insets.bottom }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
+          {footer ? <View testID={testID ? `${testID}-footer` : undefined} style={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12 + insets.bottom, borderTopWidth: 1, borderTopColor: isDark ? SLATE[800] : TC.surfaceAlt }}>{footer}</View> : null}
         </View>
       </View>
     </Modal>
