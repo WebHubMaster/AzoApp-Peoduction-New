@@ -71,7 +71,7 @@ export const SiteConfigProvider = ({ children }) => {
     try {
       const r = await api.get("/site/config");
       const data = r.data || {};
-      setCfg({ branding: data.branding || {}, theme: data.theme || {}, stats: data.stats || {}, apps: data.apps || {}, currency: data.currency, maps_api_key: data.maps_api_key || "", cancellation_reasons: data.cancellation_reasons || [], seo: data.seo || {}, maintenance: data.maintenance || { enabled: false }, loaded: true });
+      setCfg({ branding: data.branding || {}, theme: data.theme || {}, stats: data.stats || {}, apps: data.apps || {}, currency: data.currency, maps_api_key: data.maps_api_key || "", cancellation_reasons: data.cancellation_reasons || [], seo: data.seo || {}, fee_info: data.fee_info || {}, maintenance: data.maintenance || { enabled: false }, loaded: true });
       if (doApply) {
         applySiteTheme(data.theme || {});
         const b = data.branding || {};
