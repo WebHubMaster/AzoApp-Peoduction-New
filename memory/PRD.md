@@ -38,3 +38,11 @@ Verified: `CI=true yarn build` in `web_panel/` completes successfully ("build fo
 - Set `REACT_APP_BACKEND_URL` in Amplify console env to the production backend origin (else `web_panel/src/lib/api.js` falls back to panel window origin).
 - `.env.local` (preview URL) is gitignored → won't leak to Amplify.
 - Commit via "Save to Github": `web_panel/.eslintrc.json`, `web_panel/.env.production`.
+
+## 2026-10-04 — Partner/Merchant app UI cleanup (Expo app in /app/frontend)
+User: fonts too big + remove page Header/Subheader from all screens; buttons across from a header go full width.
+- src/theme.ts: reduced global fontSize tokens (xs11→10, sm13→12, md15→13, lg17→15, xl20→17, xxl26→21, hero32→26).
+- src/components/Screen.tsx AppHeader: removed the whole title/subtitle/back bar on all screens; non-embedded renders only a safe-area spacer+StatusBar (embedded → null). Props kept for compat.
+- src/components/invoice.tsx PageHeader: removed title + subtitle; kept small shopName chip.
+- src/components/merchant/ReferralShared.tsx MModuleHeader: removed gradient title/subtitle banner; renders `right` full-width if provided, else null.
+Verified: all 4 edited files parse clean (no syntax errors). Native screens are auth-gated → not screenshot-able in this web preview env; verify via Expo Go / EAS build.

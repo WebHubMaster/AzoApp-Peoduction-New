@@ -7,17 +7,14 @@ import { useRouter } from "expo-router";
 import { useTheme, spacing, fontSize } from "@/src/theme";
 import { Icon, MdiName } from "@/src/components/Icon";
 
-/** App header — sticky, safe-area aware. Plain (surface) or gradient variant. */
+/** App header — REMOVED app-wide per product decision. We no longer render a page
+ * title/subtitle bar on any screen. For non-embedded (standalone) screens we still
+ * emit a thin safe-area spacer + StatusBar so content never sits under the notch.
+ * Props kept for backwards-compatibility with existing call sites. */
 export function AppHeader({
-  title,
-  subtitle,
-  back,
-  right,
-  variant = "plain",
   embedded = false,
-  testID,
 }: {
-  title: string;
+  title?: string;
   subtitle?: string;
   back?: boolean;
   right?: React.ReactNode;
@@ -27,53 +24,11 @@ export function AppHeader({
 }) {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const router = useRouter();
-  const gradient = variant === "gradient";
-  const fg = gradient ? "#FFFFFF" : colors.text;
-  const subFg = gradient ? "rgba(255,255,255,0.85)" : colors.textMuted;
-
-  const inner = (
-    <View style={{ paddingTop: (embedded ? 12 : insets.top + 6), paddingBottom: 12, paddingHorizontal: spacing.lg }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm }}>
-        {back ? (
-          <Pressable
-            testID="header-back-button"
-            onPress={() => router.back()}
-            hitSlop={10}
-            style={{ marginLeft: -6, marginRight: 2 }}
-          >
-            <Icon name="chevron-left" size={28} color={fg} />
-          </Pressable>
-        ) : null}
-        <View style={{ flex: 1 }}>
-          <Text testID={testID} style={{ color: fg, fontSize: fontSize.xl, fontWeight: "800" }} numberOfLines={1}>
-            {title}
-          </Text>
-          {subtitle ? (
-            <Text style={{ color: subFg, fontSize: fontSize.xs, marginTop: 1 }} numberOfLines={1}>
-              {subtitle}
-            </Text>
-          ) : null}
-        </View>
-        {right}
-      </View>
-    </View>
-  );
-
-  if (gradient) {
-    return (
-      <>
-        {!embedded ? <StatusBar style="light" /> : null}
-        <LinearGradient colors={[colors.primary, colors.primaryHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-          {inner}
-        </LinearGradient>
-      </>
-    );
-  }
+  if (embedded) return null;
   return (
     <>
-      {!embedded ? <StatusBar style={colors.text === "#0F172A" ? "dark" : "light"} /> : null}
-      <View style={{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border }}>{inner}</View>
+      <StatusBar style={colors.text === "#0F172A" ? "dark" : "light"} />
+      <View style={{ height: insets.top, backgroundColor: colors.background }} />
     </>
   );
 }

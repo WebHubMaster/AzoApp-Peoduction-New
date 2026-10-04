@@ -162,13 +162,13 @@ export const radius = {
 };
 
 export const fontSize = {
-  xs: 11,
-  sm: 13,
-  md: 15,
-  lg: 17,
-  xl: 20,
-  xxl: 26,
-  hero: 32,
+  xs: 10,
+  sm: 12,
+  md: 13,
+  lg: 15,
+  xl: 17,
+  xxl: 21,
+  hero: 26,
 };
 
 export interface Theme {

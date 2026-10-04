@@ -336,13 +336,11 @@ export function InvError({ offline, onRetry }: { offline: boolean; onRetry: () =
 }
 
 /* ═══════════════════════════ page header ═══════════════════════════ */
-export function PageHeader({ shopName, title = "My Invoices", subtitle = "Commission & booking invoices for your shop" }: { shopName: string; title?: string; subtitle?: string }) {
+export function PageHeader({ shopName }: { shopName: string; title?: string; subtitle?: string }) {
   const inv = useInv();
   return (
     <View>
-      <Text testID="partner-invoices-header" style={{ fontSize: 24, fontWeight: "800", color: inv.t900, letterSpacing: -0.4 }}>{title}</Text>
-      <Text style={{ fontSize: 14, color: inv.t500, marginTop: 2 }}>{subtitle}</Text>
-      <View testID="invoice-merchant-name" style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: inv.subtle, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, marginTop: 6 }}>
+      <View testID="invoice-merchant-name" style={{ flexDirection: "row", alignItems: "center", gap: 6, alignSelf: "flex-start", backgroundColor: inv.subtle, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
         <Store size={14} color={inv.primary700} /><Text style={{ fontSize: 12, fontWeight: "600", color: inv.t600 }}>{shopName}</Text>
       </View>
     </View>

@@ -124,43 +124,13 @@ export function MPagination({ page, pages, total, pageSize, onPage, onPageSize }
   );
 }
 
-/** Premium gradient module header (matches web ModuleHeader). `card` = in-content
- *  rounded-3xl banner (web); default = full-bleed top strip (kept for other screens). */
-export function MModuleHeader({ title, subtitle, icon: Ico = TrendingUp, right, card = false }:
+/** Module header REMOVED per product decision — no page title/subtitle banner on any
+ *  screen. If a call site supplies a `right` action it is rendered full-width; otherwise
+ *  nothing renders. Props kept for backwards-compatibility with existing call sites. */
+export function MModuleHeader({ right }:
   { title: string; subtitle?: string; icon?: LucideIcon; right?: React.ReactNode; card?: boolean }) {
-  if (card) {
-    return (
-      <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 10, padding: 20, overflow: "hidden", boxShadow: "0px 10px 30px rgba(13,71,161,0.28)" }}>
-        <View style={{ position: "absolute", top: -30, left: -10, width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.12)" }} />
-        <View style={{ position: "absolute", bottom: -40, right: -20, width: 140, height: 140, borderRadius: 70, backgroundColor: "rgba(255,255,255,0.08)" }} />
-        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-          <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
-            <Ico size={24} color="#fff" strokeWidth={1.9} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: "#fff", fontSize: 20, fontWeight: "800", letterSpacing: -0.2 }} numberOfLines={1}>{title}</Text>
-            {subtitle ? <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 12, marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
-          </View>
-          {right}
-        </View>
-      </LinearGradient>
-    );
-  }
-  return (
-    <LinearGradient colors={["#0D47A1", "#1565C0", "#7C3AED"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-      <View style={{ paddingTop: 14, paddingBottom: 16, paddingHorizontal: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-        <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
-          <Ico size={24} color="#fff" strokeWidth={1.9} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={{ color: "#fff", fontSize: fontSize.xl, fontWeight: "800", letterSpacing: -0.2 }} numberOfLines={1}>{title}</Text>
-          {subtitle ? <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: fontSize.xs, marginTop: 2 }} numberOfLines={2}>{subtitle}</Text> : null}
-        </View>
-        {right}
-      </View>
-    </LinearGradient>
-  );
+  if (!right) return null;
+  return <View style={{ width: "100%" }}>{right}</View>;
 }
 
 /** Back link row used at the top of detail views. */
