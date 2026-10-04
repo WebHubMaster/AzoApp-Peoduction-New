@@ -73,7 +73,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
   return (
     <BottomSheet open onClose={onClose} title={service.name} testID="sub-plan-sheet"
       footer={<PrimaryButton label={busy ? "Processing…" : `Pay ${money(plan?.price)} & Activate`} disabled={busy || !plan} onPress={book} testID="sub-book-pay" />}>
-      <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 460 }}>
+      <View>
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginBottom: 8 }}>Choose a plan</Text>
         <View style={{ gap: 8 }}>
           {plans.map((p) => {
@@ -128,7 +128,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
             <Text style={{ color: EMERALD[700], fontSize: 12 }}>Your {plan.label.toLowerCase()} plan covers a verified maid who visits every working day. Attendance is captured by location.</Text>
           </View>
         ) : null}
-      </ScrollView>
+      </View>
     </BottomSheet>
   );
 }
