@@ -54,3 +54,14 @@ Same treatment as Partner/Merchant: smaller fonts + remove page heading/subheadi
 - Removed heading/subheading AND made the header action button full-width: orders (Booking), addresses (Booking), profile (Booking), support (New Ticket), custom_jobs (Service + refresh row).
 - Global top shell (CustomerShell avatar/location/bell/theme) + bottom nav kept.
 Verified: all 13 edited files parse clean (no syntax errors). Verify visually via Expo Go / EAS build.
+## Customer App — UI change session (2026-10-04)
+Scope: /app/Customer (Expo RN) only. Partner/Merchant/web_panel untouched.
+
+Changes done (per user screenshots 1-5):
+1. Header icons uniform 40x40: membership crown square r6 (crown 24px), location/cart square r6; profile avatar kept round (r20). Category grid already 3/row (CategoriesGrid).
+2. All Services (services.tsx ServiceCard): removed name minHeight:36 and reduced price marginTop 12->8 (tighter name<->price).
+3. Customer dashboard Explore Services (HomeView.tsx): category tiles now image-fills (aspectRatio 1, no card padding/border) like homepage.
+4. Global square: swept ALL card/button/chip/pill radii -> 6 across 60 Customer tsx files; round avatars (r20) + decorative blobs preserved. BookingCard Chip now r6. Category name already shown next to Order Id.
+5. Booking Details (BookingDrawers PartnerCheckin): 'Within 50m of address' + 'View arrival location' hidden when status completed/paid (new done prop).
+
+Verification: esbuild tsx parse OK on all 60 swept files. (Expo app not on running web preview; no browser test.)

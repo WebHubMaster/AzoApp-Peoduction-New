@@ -60,7 +60,7 @@ export function AppHeader({ branding, unread = 0 }: { branding: any; unread?: nu
           {!brandLogo && branding?.show_tagline !== false && (branding?.tagline || cfg.tagline) ? <Text testID="app-tagline" style={{ fontSize: 11, color: TC.textMuted, marginTop: 0 }} numberOfLines={1}>{branding?.tagline || cfg.tagline}</Text> : null}
         </Pressable>
         <View style={{ flex: 1, alignItems: "center" }}>
-          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: isDark ? c.surfaceAlt : TC.primarySoft, borderRadius: 999, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
+          <Pressable testID="app-location-pill" onPress={() => setLocOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: isDark ? c.surfaceAlt : TC.primarySoft, borderRadius: 6, paddingHorizontal: 14, height: 38, maxWidth: 160 }}>
             <MapPin size={16} color={isDark ? PRIMARY[300] : PRIMARY[700]} />
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: c.text, flexShrink: 1 }}>{city || "Set location"}</Text>
             <ChevronDown size={14} color={c.textMuted} />
@@ -150,7 +150,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, backgroundColor: c.surface, zIndex: 20 }}>
       {/* Pill search bar (home, below the navbar): search icon · input · mic — per the approved reference */}
-      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 10, backgroundColor: isDark ? c.surfaceAlt : TC.surface, borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
+      <View testID="app-search-bar" style={{ flexDirection: "row", alignItems: "center", height: 48, borderRadius: 6, backgroundColor: isDark ? c.surfaceAlt : TC.surface, borderWidth: 1, borderColor: c.border, paddingLeft: 18, paddingRight: 14, gap: 12, boxShadow: "0px 8px 24px rgba(15,23,42,0.10), 0px 1px 3px rgba(15,23,42,0.06)" } as any}>
         <Search size={22} color={c.text} strokeWidth={2.4} />
         <TextInput testID="app-search-input" value={q} onChangeText={(v) => { setQ(v); setOpen(true); }} onFocus={() => setOpen(true)} onSubmitEditing={() => q.trim() && submit(q.trim())} returnKeyType="search" numberOfLines={1} multiline={false}
           placeholder="Search for services" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 15, color: c.text, height: 46, paddingVertical: 0, outlineStyle: "none" } as any} />
@@ -167,7 +167,7 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} keyboardShouldPersistTaps="handled">
             {recent.map((term) => (
-              <View key={term} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingLeft: 12, paddingRight: 8, borderRadius: 17, backgroundColor: TC.bg, borderWidth: 1, borderColor: TC.border }}>
+              <View key={term} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 34, paddingLeft: 12, paddingRight: 8, borderRadius: 6, backgroundColor: TC.bg, borderWidth: 1, borderColor: TC.border }}>
                 <Pressable testID={`recent-${term.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => { setQ(term); setOpen(false); submit(term); }} hitSlop={6}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.text2 }}>{term}</Text></Pressable>
                 <Pressable onPress={() => forget(term)} hitSlop={8} testID={`recent-remove-${term.replace(/\s+/g, "-").toLowerCase()}`}><X size={13} color={TC.textFaint} /></Pressable>
               </View>
@@ -176,12 +176,12 @@ export function AppSearchBar({ onSubmit }: { onSubmit: (q: string) => void }) {
         </View>
       ) : null}
       {open && q.trim().length >= 2 ? (
-        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
+        <View testID="app-search-results" style={{ position: "absolute", top: 70, left: 16, right: 16, backgroundColor: TC.surface, borderRadius: 6, borderWidth: 1, borderColor: TC.border, padding: 6, zIndex: 50, ...shadowBtn, maxHeight: 320 }}>
           {loading && !results ? <ActivityIndicator color={TC.primaryText} style={{ margin: 12 }} /> : null}
           <ScrollView keyboardShouldPersistTaps="handled">
             {(results || []).slice(0, 8).map((s) => (
-              <Pressable key={s.id} testID={`app-search-result-${s.id}`} onPress={() => { setOpen(false); setQ(""); router.push(`/(site)/service/${s.id}` as any); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderRadius: 12 }}>
-                <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}><HomeIcon size={16} color={TC.primaryText} /></View>
+              <Pressable key={s.id} testID={`app-search-result-${s.id}`} onPress={() => { setOpen(false); setQ(""); router.push(`/(site)/service/${s.id}` as any); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 10, borderRadius: 6 }}>
+                <View style={{ height: 34, width: 34, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}><HomeIcon size={16} color={TC.primaryText} /></View>
                 <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 13, fontWeight: "600", color: TC.text }}>{s.name}</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>{s.category_name}</Text></View>
                 <Text style={{ fontSize: 13, fontWeight: "700", color: TC.primaryText }}>{fmt(s.base_price)}</Text>
               </Pressable>

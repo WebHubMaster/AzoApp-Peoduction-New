@@ -75,7 +75,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
           {...pan.panHandlers}
         >
           <Pressable testID="toast" onPress={hide}
-            style={{ width: "100%", maxWidth: 356, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: m.bg, borderRadius: 8,
+            style={{ width: "100%", maxWidth: 356, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: m.bg, borderRadius: 6,
               borderWidth: 1, borderColor: m.border, paddingHorizontal: 16, paddingVertical: 14, boxShadow: "0px 4px 12px rgba(0,0,0,0.10)", elevation: 6 }}>
             <View style={{ width: 20, alignItems: "center" }}><m.Icon size={18} color={m.fg} /></View>
             <Text testID="toast-message" style={{ flex: 1, color: m.fg, fontSize: 13, fontWeight: "500", lineHeight: 18 }}>{toast.message}</Text>

@@ -183,12 +183,12 @@ export function CustomerAlertOverlay() {
             <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 17, fontWeight: "700", marginTop: 6, textAlign: "center" }}>{current.service_name || "your service"}</Text>
             {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
             {current.partner_rating ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.16)", paddingHorizontal: 12, paddingVertical: 4 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", paddingHorizontal: 12, paddingVertical: 4 }}>
                 <Star size={14} color="#FCD34D" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{Number(current.partner_rating).toFixed(1)}</Text>
               </View>
             ) : null}
             {when ? (
-              <View testID="cust-booking-when" style={{ marginTop: 22, width: "100%", maxWidth: 384, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+              <View testID="cust-booking-when" style={{ marginTop: 22, width: "100%", maxWidth: 384, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <CalendarCheck size={24} color="#fff" />
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800" }}>Scheduled</Text>
@@ -202,11 +202,11 @@ export function CustomerAlertOverlay() {
           <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
             <View style={{ flexDirection: "row", gap: 12, alignSelf: "center", width: "100%", maxWidth: 384 }}>
               {current.partner_phone ? (
-                <Pressable testID="cust-booking-call" onPress={() => Linking.openURL(`tel:${current.partner_phone}`).catch(() => {})} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+                <Pressable testID="cust-booking-call" onPress={() => Linking.openURL(`tel:${current.partner_phone}`).catch(() => {})} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
                   <Phone size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Call</Text>
                 </Pressable>
               ) : null}
-              <Pressable testID="cust-booking-ok" onPress={() => dismissBooking(current, true)} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+              <Pressable testID="cust-booking-ok" onPress={() => dismissBooking(current, true)} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
                 <Check size={20} color="#047857" /><Text style={{ color: "#065F46", fontSize: 16, fontWeight: "900" }}>View booking</Text>
               </Pressable>
             </View>
@@ -237,7 +237,7 @@ export function CustomerAlertOverlay() {
           {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
 
           <View style={{ marginTop: 24, width: "100%", maxWidth: 384, gap: 12 }}>
-            <View testID="cust-resched-old" style={{ borderRadius: 10, backgroundColor: "rgba(0,0,0,0.14)", paddingHorizontal: 16, paddingVertical: 14 }}>
+            <View testID="cust-resched-old" style={{ borderRadius: 6, backgroundColor: "rgba(0,0,0,0.14)", paddingHorizontal: 16, paddingVertical: 14 }}>
               <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Current time</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Calendar size={18} color="rgba(255,255,255,0.85)" />
@@ -245,7 +245,7 @@ export function CustomerAlertOverlay() {
               </View>
             </View>
             <View style={{ alignItems: "center" }}><ArrowDown size={22} color="#fff" /></View>
-            <View testID="cust-resched-new" style={{ borderRadius: 10, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", paddingHorizontal: 16, paddingVertical: 14 }}>
+            <View testID="cust-resched-new" style={{ borderRadius: 6, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", paddingHorizontal: 16, paddingVertical: 14 }}>
               <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800", marginBottom: 4 }}>New time</Text>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <CalendarCheck size={20} color="#fff" />
@@ -257,10 +257,10 @@ export function CustomerAlertOverlay() {
 
         <View style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.10)", backgroundColor: "rgba(0,0,0,0.10)", paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 24 }}>
           <View style={{ flexDirection: "row", gap: 12, alignSelf: "center", width: "100%", maxWidth: 384 }}>
-            <Pressable testID="cust-resched-reject" onPress={() => respondResched(current, "reject")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+            <Pressable testID="cust-resched-reject" onPress={() => respondResched(current, "reject")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
               <X size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Keep time</Text>
             </Pressable>
-            <Pressable testID="cust-resched-accept" onPress={() => respondResched(current, "accept")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 10, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+            <Pressable testID="cust-resched-accept" onPress={() => respondResched(current, "accept")} disabled={busy} style={({ pressed }) => ({ flex: 1, height: 56, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
               {busy ? <ActivityIndicator color="#EA580C" /> : <><Check size={20} color="#EA580C" /><Text style={{ color: "#B45309", fontSize: 16, fontWeight: "900" }}>Accept</Text></>}
             </Pressable>
           </View>

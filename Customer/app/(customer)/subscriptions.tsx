@@ -80,7 +80,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
             const on = p.plan_type === sel;
             return (
               <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
-                style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 10, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
+                style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
                   <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
@@ -97,12 +97,12 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Start date</Text>
             <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={TC.textFaint}
-              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 12, paddingHorizontal: 12, color: c.text }} />
+              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 6, paddingHorizontal: 12, color: c.text }} />
           </View>
           <View style={{ width: 120 }}>
             <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Time</Text>
             <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={TC.textFaint}
-              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 12, paddingHorizontal: 12, color: c.text }} />
+              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 6, paddingHorizontal: 12, color: c.text }} />
           </View>
         </View>
 
@@ -114,7 +114,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
             {addresses.map((a) => {
               const on = a.id === addrId;
               return (
-                <Pressable key={a.id} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 12, padding: 10 }}>
+                <Pressable key={a.id} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 10 }}>
                   <MapPin size={16} color={TC.primaryText} />
                   <Text style={{ color: c.text, fontSize: 13, flex: 1 }}>{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</Text>
                 </Pressable>
@@ -124,7 +124,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
         )}
 
         {plan ? (
-          <View style={{ marginTop: 16, borderRadius: 12, backgroundColor: EMERALD[50], padding: 12 }}>
+          <View style={{ marginTop: 16, borderRadius: 6, backgroundColor: EMERALD[50], padding: 12 }}>
             <Text style={{ color: EMERALD[700], fontSize: 12 }}>Your {plan.label.toLowerCase()} plan covers a verified maid who visits every working day. Attendance is captured by location.</Text>
           </View>
         ) : null}
@@ -137,8 +137,8 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
 function OverviewChip({ icon: Icon, label, value, color, bg }: any) {
   const { c } = useTheme();
   return (
-    <View style={{ flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 10, backgroundColor: c.surface }}>
-      <View style={{ height: 34, width: 34, borderRadius: 10, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
+    <View style={{ flexBasis: "48%", flexGrow: 1, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderColor: c.border, borderRadius: 6, padding: 10, backgroundColor: c.surface }}>
+      <View style={{ height: 34, width: 34, borderRadius: 6, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}>
         <Icon size={16} color={color} />
       </View>
       <View style={{ flex: 1 }}>
@@ -175,18 +175,18 @@ function SubCard({ s }: { s: any }) {
   };
 
   return (
-    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, backgroundColor: c.surface, overflow: "hidden" }}>
+    <View testID={`my-sub-${s.id}`} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, backgroundColor: c.surface, overflow: "hidden" }}>
       {/* header */}
       <View style={{ padding: 14, gap: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ height: 40, width: 40, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
             <CalendarHeart size={20} color={TC.primaryText} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.service_name}</Text>
             <Text style={{ color: c.textMuted, fontSize: 11, marginTop: 1 }}>{s.plan_label} Subscription · {s.code}</Text>
           </View>
-          <View style={{ borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: active ? EMERALD[50] : PRIMARY[50] }}>
+          <View style={{ borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: active ? EMERALD[50] : PRIMARY[50] }}>
             <Text style={{ color: active ? EMERALD[700] : PRIMARY[700], fontWeight: "700", fontSize: 11, textTransform: "capitalize" }}>{status.replace(/_/g, " ")}</Text>
           </View>
         </View>
@@ -215,7 +215,7 @@ function SubCard({ s }: { s: any }) {
           <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700" }}>Service progress</Text>
           <Text style={{ color: c.textMuted, fontSize: 11, fontWeight: "700" }}>{done} / {wd} completed</Text>
         </View>
-        <View testID={`my-sub-progress-${s.id}`} style={{ height: 9, borderRadius: 999, backgroundColor: c.border, overflow: "hidden", flexDirection: "row" }}>
+        <View testID={`my-sub-progress-${s.id}`} style={{ height: 9, borderRadius: 6, backgroundColor: c.border, overflow: "hidden", flexDirection: "row" }}>
           <View style={{ width: `${pct}%`, backgroundColor: "#059669" }} />
           <View style={{ width: `${absentPct}%`, backgroundColor: "#FB7185" }} />
         </View>
@@ -224,12 +224,12 @@ function SubCard({ s }: { s: any }) {
       {/* actions */}
       <View style={{ paddingHorizontal: 14, paddingBottom: 14, flexDirection: "row", gap: 8 }}>
         <Pressable testID={`my-sub-details-btn-${s.id}`} onPress={() => setOpen(!open)}
-          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: PRIMARY[200], backgroundColor: TC.primarySoft, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1.5, borderColor: PRIMARY[200], backgroundColor: TC.primarySoft, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
           <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>{open ? "Hide Details" : "View Details"}</Text>
           <ChevronDown size={15} color={TC.primaryText} style={{ transform: [{ rotate: open ? "180deg" : "0deg" }] }} />
         </Pressable>
         <Pressable testID={`my-sub-invoice-btn-${s.id}`} disabled={invBusy} onPress={downloadInvoice}
-          style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
           <Download size={15} color={c.textMuted} />
           <Text style={{ color: c.textMuted, fontWeight: "700", fontSize: 13 }}>{invBusy ? "Preparing…" : "Invoice"}</Text>
         </Pressable>
@@ -239,14 +239,14 @@ function SubCard({ s }: { s: any }) {
       {open ? (
         <View testID={`my-sub-expanded-${s.id}`} style={{ borderTopWidth: 1, borderTopColor: c.border, backgroundColor: c.bg, padding: 14, gap: 12 }}>
           {/* service calendar */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 12 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14, marginBottom: 10 }}>Service calendar</Text>
             <View style={{ gap: 6 }}>
               {schedule.map((d) => {
                 const m = DAY_META[d.status] || DAY_META.scheduled;
                 const dt = new Date(d.date + "T00:00:00");
                 return (
-                  <View key={d.date} testID={`my-sub-day-${s.id}-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: m.bg, paddingHorizontal: 10, paddingVertical: 8 }}>
+                  <View key={d.date} testID={`my-sub-day-${s.id}-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: m.bg, paddingHorizontal: 10, paddingVertical: 8 }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: m.color, fontWeight: "800", fontSize: 12 }}>{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} · {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dt.getDay()]}</Text>
                       <Text style={{ color: m.color, fontSize: 11, opacity: 0.85 }}>{m.label}</Text>
@@ -259,13 +259,13 @@ function SubCard({ s }: { s: any }) {
           </View>
 
           {/* attendance — maid name · date · arrival time only (no rate/earnings) */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Attendance</Text>
             {(s.attendance || []).length ? (
               (s.attendance || []).slice().reverse().map((a: any) => {
                 const dt = new Date(a.date + "T00:00:00");
                 return (
-                  <View key={a.date} testID={`my-sub-attend-${s.id}-${a.date}`} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: EMERALD[50], paddingHorizontal: 10, paddingVertical: 8 }}>
+                  <View key={a.date} testID={`my-sub-attend-${s.id}-${a.date}`} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: "#A7F3D0", backgroundColor: EMERALD[50], paddingHorizontal: 10, paddingVertical: 8 }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: c.text, fontWeight: "800", fontSize: 12 }}>{a.maid_name || s.partner_name || "Maid"}</Text>
                       <Text style={{ color: c.textMuted, fontSize: 11 }}>{String(dt.getDate()).padStart(2, "0")} {dt.toLocaleString("en", { month: "short" })} {dt.getFullYear()}</Text>
@@ -290,7 +290,7 @@ function SubCard({ s }: { s: any }) {
           </View>
 
           {/* maid details */}
-          <View style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
+          <View style={{ backgroundColor: c.surface, borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>
             <Text style={{ color: c.text, fontWeight: "800", fontSize: 14 }}>Maid details</Text>
             {s.partner_name ? (
               <>
@@ -355,13 +355,13 @@ export default function SubscriptionsScreen() {
           ) : (
             <View style={{ gap: 12 }}>
               {services.map((s) => (
-                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 10, padding: 14, backgroundColor: c.surface }}>
+                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, padding: 14, backgroundColor: c.surface }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                     <View style={{ flex: 1 }}>
                       <Text style={{ color: c.text, fontWeight: "800", fontSize: 16 }}>{s.name}</Text>
                       <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 2 }}>{s.category_name} · {(s.subscription_plans || []).length} plans</Text>
                     </View>
-                    <View style={{ backgroundColor: TC.primarySoft, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8 }}>
+                    <View style={{ backgroundColor: TC.primarySoft, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 }}>
                       <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>Choose plan</Text>
                     </View>
                   </View>

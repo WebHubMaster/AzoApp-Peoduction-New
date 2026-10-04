@@ -82,7 +82,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
   const allAttachments = (t.messages || []).flatMap((m: any) => m.attachments || []);
   const others = (tickets || []).filter((x) => x.id !== ticket.id);
-  const panel = { borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
+  const panel = { borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
   const sec = { fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 0.8, color: TC.textFaint, fontWeight: "700" as const, marginBottom: 8 };
 
   return (
@@ -90,17 +90,17 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
       <View style={{ ...panel, height: panelH }}>
         {/* header */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
-          <Pressable testID="support-thread-back" onPress={onBack} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={16} color={c.text} /></Pressable>
-          <View style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color={c.primaryText} /></View>
+          <Pressable testID="support-thread-back" onPress={onBack} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={16} color={c.text} /></Pressable>
+          <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color={c.primaryText} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: c.text }}><Text style={{ fontSize: 12, color: TC.textFaint, fontFamily: "monospace" }}>{t.code}</Text>  {t.subject}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ fontSize: 11, color: TC.textFaint }}>Updated {ago(t.updated_at)}</Text><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 11, color: EMERALD[500] }}>Live</Text></View>
           </View>
           <Badge testID="thread-status" style={STATUS_STYLE[t.status]}>{STATUS_LABEL[t.status]}</Badge>
-          {!closed ? <Pressable testID="support-thread-menu" onPress={() => setMenuOpen((v) => !v)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><MoreVertical size={16} color={c.text} /></Pressable> : null}
+          {!closed ? <Pressable testID="support-thread-menu" onPress={() => setMenuOpen((v) => !v)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><MoreVertical size={16} color={c.text} /></Pressable> : null}
         </View>
         {menuOpen ? (
-          <View style={{ position: "absolute", right: 12, top: 52, zIndex: 20, width: 176, borderRadius: 12, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, paddingVertical: 6, boxShadow: "0px 10px 30px rgba(15,23,42,0.25)" } as any}>
+          <View style={{ position: "absolute", right: 12, top: 52, zIndex: 20, width: 176, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, paddingVertical: 6, boxShadow: "0px 10px 30px rgba(15,23,42,0.25)" } as any}>
             <Pressable testID="support-close-btn" onPress={() => { setMenuOpen(false); setConfirmClose(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 8 }}><X size={14} color="#DC2626" /><Text style={{ fontSize: 14, color: "#DC2626" }}>Close ticket</Text></Pressable>
           </View>
         ) : null}
@@ -112,15 +112,15 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
             const mine = m.sender_id === myId; const isAdmin = m.sender_role === "admin";
             return (
               <View key={m.id} style={{ gap: 8 }}>
-                {sep ? <View style={{ alignItems: "center", marginVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : "rgba(226,232,240,0.7)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{sep}</Text></View> : null}
-                {m.system ? <View style={{ alignItems: "center" }}><Text style={{ fontSize: 11, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>{m.text}</Text></View> : (
+                {sep ? <View style={{ alignItems: "center", marginVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", letterSpacing: 0.8, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : "rgba(226,232,240,0.7)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}>{sep}</Text></View> : null}
+                {m.system ? <View style={{ alignItems: "center" }}><Text style={{ fontSize: 11, color: TC.textFaint, backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}>{m.text}</Text></View> : (
                   <View testID={`support-msg-${m.id}`} style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, justifyContent: mine ? "flex-end" : "flex-start" }}>
-                    {!mine ? <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={14} color={c.primaryText} /></View> : null}
+                    {!mine ? <View style={{ height: 28, width: 28, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={14} color={c.primaryText} /></View> : null}
                     <View style={{ maxWidth: "76%", gap: 4, alignItems: mine ? "flex-end" : "flex-start" }}>
                       {!mine ? <Text style={{ fontSize: 11, fontWeight: "600", color: TC.textMuted, paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
                       {(m.attachments || []).length > 0 ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{m.attachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View> : null}
                       {m.text ? (
-                        <View style={{ borderRadius: 10, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD[500] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.borderSoft }}>
+                        <View style={{ borderRadius: 6, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD[500] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.borderSoft }}>
                           <Text style={{ fontSize: 14, color: mine ? "#fff" : (isDark ? SLATE[100] : SLATE[700]) }}>{m.text}</Text>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, justifyContent: mine ? "flex-end" : "flex-start" }}>
                             <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.8)" : TC.textFaint }}>{timeStr(m.at)}</Text>
@@ -136,7 +136,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
           })}
           {t.agent_typing ? (
             <View testID="support-agent-typing" style={{ flexDirection: "row" }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 10, borderBottomLeftRadius: 4, backgroundColor: c.surface, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14, paddingVertical: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, borderBottomLeftRadius: 4, backgroundColor: c.surface, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14, paddingVertical: 10 }}>
                 <ShieldCheck size={12} color={PRIMARY[600]} /><Text style={{ fontSize: 11, fontWeight: "600", color: PRIMARY[600] }}>Support is typing</Text><ActivityIndicator size="small" color={PRIMARY[400]} />
               </View>
             </View>
@@ -154,16 +154,16 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {pending.map((a, i) => (
                   <View key={i} testID={`support-pending-${i}`} style={{ position: "relative" }}>
-                    {a.kind === "pdf" ? <View style={{ height: 64, width: 64, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", backgroundColor: c.bg }}><FileText size={24} color="#EF4444" /></View> : <Image source={{ uri: a.thumb_url || a.url }} style={{ height: 64, width: 64, borderRadius: 8 }} contentFit="cover" />}
-                    <Pressable onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, height: 20, width: 20, borderRadius: 10, backgroundColor: SLATE[800], alignItems: "center", justifyContent: "center" }}><X size={12} color="#fff" /></Pressable>
+                    {a.kind === "pdf" ? <View style={{ height: 64, width: 64, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", backgroundColor: c.bg }}><FileText size={24} color="#EF4444" /></View> : <Image source={{ uri: a.thumb_url || a.url }} style={{ height: 64, width: 64, borderRadius: 6 }} contentFit="cover" />}
+                    <Pressable onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, height: 20, width: 20, borderRadius: 6, backgroundColor: SLATE[800], alignItems: "center", justifyContent: "center" }}><X size={12} color="#fff" /></Pressable>
                   </View>
                 ))}
               </View>
             ) : null}
-            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, padding: 8 }}>
-              <Pressable testID="support-attach-btn" onPress={pickFiles} disabled={uploading} style={{ height: 36, width: 36, borderRadius: 8, alignItems: "center", justifyContent: "center" }}>{uploading ? <ActivityIndicator size="small" color={TC.textMuted} /> : <Paperclip size={16} color={TC.textMuted} />}</Pressable>
+            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, padding: 8 }}>
+              <Pressable testID="support-attach-btn" onPress={pickFiles} disabled={uploading} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}>{uploading ? <ActivityIndicator size="small" color={TC.textMuted} /> : <Paperclip size={16} color={TC.textMuted} />}</Pressable>
               <TextInput testID="support-reply-input" value={text} onChangeText={(v) => { setText(v); pingTyping(); }} placeholder="Type a message…" placeholderTextColor={TC.textFaint} multiline style={{ flex: 1, fontSize: 14, color: c.text, paddingHorizontal: 4, paddingVertical: 8, maxHeight: 112, outlineStyle: "none" } as any} />
-              <Pressable testID="support-send-btn" onPress={send} disabled={sending || (!text.trim() && pending.length === 0)} style={({ pressed }) => ({ height: 36, paddingHorizontal: 16, borderRadius: 8, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 4, opacity: sending || (!text.trim() && pending.length === 0) ? 0.5 : 1 })}>
+              <Pressable testID="support-send-btn" onPress={send} disabled={sending || (!text.trim() && pending.length === 0)} style={({ pressed }) => ({ height: 36, paddingHorizontal: 16, borderRadius: 6, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 4, opacity: sending || (!text.trim() && pending.length === 0) ? 0.5 : 1 })}>
                 {sending ? <ActivityIndicator size="small" color="#fff" /> : <><Send size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Send</Text></>}
               </Pressable>
             </View>
@@ -190,7 +190,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
         <View style={{ padding: 16 }}>
           <Text style={sec}>Your other tickets · {others.length}</Text>
           {others.length === 0 ? <Text style={{ fontSize: 12, color: TC.textFaint }}>This is your only ticket.</Text> : (
-            <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 10, paddingVertical: 6 }}><Text numberOfLines={1} style={{ fontSize: 12, color: c.text, flex: 1 }}>{p.subject}</Text><Badge style={STATUS_STYLE[p.status]}>{STATUS_LABEL[p.status]}</Badge></View>)}</View>
+            <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 10, paddingVertical: 6 }}><Text numberOfLines={1} style={{ fontSize: 12, color: c.text, flex: 1 }}>{p.subject}</Text><Badge style={STATUS_STYLE[p.status]}>{STATUS_LABEL[p.status]}</Badge></View>)}</View>
           )}
         </View>
       </View>
@@ -206,7 +206,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
       <Modal visible={!!lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(null)}>
         <Pressable testID="support-lightbox" onPress={() => setLightbox(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.8)", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          {lightbox ? <Image source={{ uri: lightbox }} style={{ width: "100%", height: "80%", borderRadius: 8 }} contentFit="contain" /> : null}
+          {lightbox ? <Image source={{ uri: lightbox }} style={{ width: "100%", height: "80%", borderRadius: 6 }} contentFit="contain" /> : null}
           <View style={{ position: "absolute", top: 16, right: 16, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></View>
         </Pressable>
       </Modal>

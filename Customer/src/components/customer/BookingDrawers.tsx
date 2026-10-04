@@ -27,7 +27,7 @@ export const DBlock = ({ icon: Icon, title, children }: { icon?: any; title: str
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}>{Icon ? <Icon size={14} color={TC.textFaint} /> : null}<Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.8, fontWeight: "700", color: TC.textFaint }}>{title}</Text></View>
-      <View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>{children}</View>
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>{children}</View>
     </View>
   );
 };
@@ -42,16 +42,16 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
   return (
     <View testID={testID}>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 12, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderWidth: 1, borderColor: c.border }}>{isVideoUrl(u) ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}><PlayCircle size={24} color="#fff" /></View> : <Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" />}</Pressable>)}
+        {images.map((u, idx) => <Pressable key={idx} testID={`${testID}-img-${idx}`} onPress={() => setOpen(idx)} style={{ height: 64, width: 64, borderRadius: 6, overflow: "hidden", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, borderWidth: 1, borderColor: c.border }}>{isVideoUrl(u) ? <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0F172A" }}><PlayCircle size={24} color="#fff" /></View> : <Image source={{ uri: mediaUrl(u) }} style={{ height: 64, width: 64 }} contentFit="cover" />}</Pressable>)}
       </View>
       <Modal visible={open >= 0} transparent animationType="fade" onRequestClose={() => setOpen(-1)}>
         <View testID="workproof-lightbox" style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, marginTop: 40 }}>
             <Text style={{ fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.9)" }}>{title} <Text style={{ color: "rgba(255,255,255,0.5)", fontWeight: "400" }}>· {i + 1}/{images.length}</Text></Text>
-            <Pressable testID="lightbox-close" onPress={() => setOpen(-1)} style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></Pressable>
+            <Pressable testID="lightbox-close" onPress={() => setOpen(-1)} style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></Pressable>
           </View>
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingBottom: 16 }}>
-            {open >= 0 ? (isVideoUrl(images[i]) ? <InlineVideo testID="lightbox-video" uri={mediaUrl(images[i]) || images[i]} /> : <Image testID="lightbox-image" source={{ uri: mediaUrl(images[i]) }} style={{ width: "100%", height: "100%", borderRadius: 8 }} contentFit="contain" />) : null}
+            {open >= 0 ? (isVideoUrl(images[i]) ? <InlineVideo testID="lightbox-video" uri={mediaUrl(images[i]) || images[i]} /> : <Image testID="lightbox-image" source={{ uri: mediaUrl(images[i]) }} style={{ width: "100%", height: "100%", borderRadius: 6 }} contentFit="contain" />) : null}
             {images.length > 1 ? <>
               <Pressable testID="lightbox-prev" disabled={i === 0} onPress={() => setOpen(Math.max(i - 1, 0))} style={{ position: "absolute", left: 8, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", opacity: i === 0 ? 0.3 : 1 }}><ChevronLeft size={20} color="#fff" /></Pressable>
               <Pressable testID="lightbox-next" disabled={i === images.length - 1} onPress={() => setOpen(Math.min(i + 1, images.length - 1))} style={{ position: "absolute", right: 8, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", opacity: i === images.length - 1 ? 0.3 : 1 }}><ChevronRight size={20} color="#fff" /></Pressable>
@@ -71,22 +71,22 @@ function ProofBlock({ label, imgs, testID }: { label: string; imgs: string[]; te
   );
 }
 /** Trust block: the partner's live selfie + GPS taken at the customer's door (wizard check-in). */
-export function PartnerCheckin({ checkin, partnerName }: { checkin: any; partnerName?: string }) {
+export function PartnerCheckin({ checkin, partnerName, done }: { checkin: any; partnerName?: string; done?: boolean }) {
   const [open, setOpen] = useState(false);
   const url = mediaUrl(checkin?.selfie_url) || checkin?.selfie_url;
   if (!url) return null;
   const when = checkin.at ? fmtTs(checkin.at) : "";
   const far = !!checkin.far;
   return (
-    <View testID="partner-checkin" style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: far ? "#FFFBEB" : EMERALD[50], borderRadius: 10, padding: 10, borderWidth: 1, borderColor: far ? "#FDE68A" : EMERALD[100] }}>
-      <Pressable testID="partner-checkin-selfie" onPress={() => setOpen(true)} style={{ width: 64, height: 80, borderRadius: 12, overflow: "hidden", borderWidth: 2, borderColor: "#fff" }}>
+    <View testID="partner-checkin" style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: far ? "#FFFBEB" : EMERALD[50], borderRadius: 6, padding: 10, borderWidth: 1, borderColor: far ? "#FDE68A" : EMERALD[100] }}>
+      <Pressable testID="partner-checkin-selfie" onPress={() => setOpen(true)} style={{ width: 64, height: 80, borderRadius: 6, overflow: "hidden", borderWidth: 2, borderColor: "#fff" }}>
         <Image source={{ uri: url }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
       </Pressable>
       <View style={{ flex: 1, gap: 3 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}><ShieldCheck size={14} color={far ? "#B45309" : EMERALD[700]} /><Text style={{ fontSize: 13.5, fontWeight: "800", color: TC.text }}>{partnerName || "Your partner"} arrived</Text></View>
         {when ? <Text style={{ fontSize: 12, color: TC.textMuted }}>Selfie verified · {when}</Text> : null}
-        {checkin.distance_km != null ? <Text style={{ fontSize: 12, color: far ? "#B45309" : EMERALD[700], fontWeight: "600" }}>{far ? `~${checkin.distance_km} km from your address` : `Within ${checkin.distance_km <= 0.05 ? "50 m" : `${Math.round(checkin.distance_km * 1000)} m`} of your address`}</Text> : null}
-        {checkin.lat != null ? (
+        {!done && checkin.distance_km != null ? <Text style={{ fontSize: 12, color: far ? "#B45309" : EMERALD[700], fontWeight: "600" }}>{far ? `~${checkin.distance_km} km from your address` : `Within ${checkin.distance_km <= 0.05 ? "50 m" : `${Math.round(checkin.distance_km * 1000)} m`} of your address`}</Text> : null}
+        {!done && checkin.lat != null ? (
           <Pressable testID="partner-checkin-map" onPress={() => Linking.openURL(`https://www.google.com/maps?q=${checkin.lat},${checkin.lng}`)} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
             <Navigation size={12} color={TC.primaryText} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>View arrival location</Text>
           </Pressable>
@@ -147,12 +147,12 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
   const retained = refundAmt != null ? (rf?.retained != null ? Number(rf.retained) : Math.max(0, orderValue - refundAmt)) : 0;
   return (
     <DrawerShell open={!!b} onClose={onClose} title="Booking Details" testID="details-sheet"
-      footer={canInvoice ? <Btn testID="details-view-invoice" icon={FileText} label="View Invoice" onPress={() => { onClose(); onInvoice(b); }} style={{ height: 44, borderRadius: 12 }} /> : null}>
+      footer={canInvoice ? <Btn testID="details-view-invoice" icon={FileText} label="View Invoice" onPress={() => { onClose(); onInvoice(b); }} style={{ height: 44, borderRadius: 6 }} /> : null}>
       <DBlock icon={Wrench} title="Service Information"><DRow k="Service" v={b.service_name} strong /><DRow k="Category" v={b.category_name} /><DRow k="Status" v={statusText(b.status)} /></DBlock>
       {((bd && (bd.service_items || []).length > 0) || (b.items || []).length > 0) ? <DBlock icon={Package} title="Services"><ServiceBreakdown booking={b} title="Services in this order" /></DBlock> : null}
       {["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && b.partner_id ? <DBlock icon={NavIcon} title="Live Tracking"><LiveTrackCard booking={b} /></DBlock> : null}
       {b.status === "started" ? <DBlock icon={ShieldCheck} title="Help & SOS"><HelpSOS booking={b} testPrefix="drawer-" /></DBlock> : null}
-      {b.checkin?.selfie_url ? <DBlock icon={ShieldCheck} title="Partner Check-in"><PartnerCheckin checkin={b.checkin} partnerName={b.partner_name} /></DBlock> : null}
+      {b.checkin?.selfie_url ? <DBlock icon={ShieldCheck} title="Partner Check-in"><PartnerCheckin checkin={b.checkin} partnerName={b.partner_name} done={["completed", "paid"].includes(b.status)} /></DBlock> : null}
       {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0) ? <DBlock icon={Camera} title="Work Proof Photos & Videos"><WorkProofSection evidence={b.evidence} /></DBlock> : null}
       <DBlock icon={Package} title="Booking Information">
         <DRow k="Booking ID" v={`#${b.code}`} /><DRow k="Booked on" v={fmtTs(b.created_at)} />
@@ -222,8 +222,8 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
   return (
     <DrawerShell open={!!b} onClose={onClose} title="Invoice" testID="invoice-sheet"
       footer={<View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable testID={`invoice-whatsapp-${b.code}`} disabled={sharing || busy} onPress={shareOnWhatsApp} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: isDark ? "#065F46" : EMERALD[200], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, opacity: sharing || busy ? 0.5 : 1 }}><MessageCircle size={16} color={isDark ? EMERALD[300] : EMERALD[700]} /><Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>{sharing ? "Preparing…" : "WhatsApp"}</Text></Pressable>
-        <Btn testID={`invoice-download-${b.code}`} icon={Download} disabled={busy || sharing} onPress={downloadInvoice} label={busy ? "Preparing…" : "Download"} style={{ flex: 1, height: 44, borderRadius: 12 }} />
+        <Pressable testID={`invoice-whatsapp-${b.code}`} disabled={sharing || busy} onPress={shareOnWhatsApp} style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: isDark ? "#065F46" : EMERALD[200], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, opacity: sharing || busy ? 0.5 : 1 }}><MessageCircle size={16} color={isDark ? EMERALD[300] : EMERALD[700]} /><Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>{sharing ? "Preparing…" : "WhatsApp"}</Text></Pressable>
+        <Btn testID={`invoice-download-${b.code}`} icon={Download} disabled={busy || sharing} onPress={downloadInvoice} label={busy ? "Preparing…" : "Download"} style={{ flex: 1, height: 44, borderRadius: 6 }} />
       </View>}>
       <View style={{ alignItems: "center", paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
         {logoUrl ? <Image testID="invoice-logo" source={{ uri: logoUrl }} style={{ height: 40, width: 160 }} contentFit="contain" /> : <Text style={{ fontSize: 20, fontWeight: "900", color: "#0D47A1" }}>{brandName}</Text>}
@@ -231,13 +231,13 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
       </View>
       <View style={{ gap: 8 }}><DRow k="Service" v={b.service_name} strong /><DRow k="Partner" v={b.partner_name || "—"} /><DRow k="Date" v={fmtTs(b.created_at)} /></View>
       <ServiceBreakdown booking={b} title="Services" showCharges />
-      <View style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
         {Number(bd?.discount ?? p.discount ?? 0) > 0 ? <DRow k={`Coupon Discount${bd?.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(bd?.discount ?? p.discount)}`} /> : null}
         {Number(bd?.tax ?? p.gst ?? 0) > 0 ? <DRow k="Est. Govt. Taxes" v={fmt(bd?.tax ?? p.gst)} /> : null}
         <Sep /><DRow k="Grand Total" v={fmt(bd?.total ?? p.total)} strong />
         <DRow k="Paid Amount" v={fmt(paid ? (bd?.total ?? p.total) : 0)} />
         {bd?.refund ? (
-          <View testID="invoice-cancel-card" style={{ marginTop: 8, borderRadius: 12, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.4)" : ROSE[200], backgroundColor: isDark ? "rgba(136,19,55,0.1)" : "rgba(255,241,242,0.6)", padding: 12, gap: 8 }}>
+          <View testID="invoice-cancel-card" style={{ marginTop: 8, borderRadius: 6, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.4)" : ROSE[200], backgroundColor: isDark ? "rgba(136,19,55,0.1)" : "rgba(255,241,242,0.6)", padding: 12, gap: 8 }}>
             <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: isDark ? "#FB7185" : ROSE[700] }}>Cancellation & Refund</Text>
             <DRow k="Original Booking Amount" v={fmt(bd.refund.original_amount ?? bd?.total ?? p.total)} strong />
             <DRow k={`Customer Refund${bd.refund.refund_pct != null ? ` (${bd.refund.refund_pct}%)` : ""}`} v={`- ${fmt(bd.refund.refund_amount)}`} />
@@ -246,7 +246,7 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
         ) : null}
       </View>
       {Number(bd?.discount ?? p.discount ?? 0) > 0 ? (
-        <View testID="invoice-coupon-note" style={{ borderRadius: 12, backgroundColor: isDark ? "rgba(6,78,59,0.2)" : EMERALD[50], borderWidth: 1, borderColor: isDark ? "#065F46" : EMERALD[200], paddingHorizontal: 12, paddingVertical: 10 }}>
+        <View testID="invoice-coupon-note" style={{ borderRadius: 6, backgroundColor: isDark ? "rgba(6,78,59,0.2)" : EMERALD[50], borderWidth: 1, borderColor: isDark ? "#065F46" : EMERALD[200], paddingHorizontal: 12, paddingVertical: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: isDark ? EMERALD[300] : EMERALD[700] }}>Coupon{bd?.coupon_code ? ` ${bd.coupon_code}` : ""}</Text><Text style={{ fontSize: 12, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>{fmt(bd?.discount ?? p.discount)} off</Text></View>
           <Text style={{ fontSize: 11, color: isDark ? "rgba(110,231,183,0.8)" : "rgba(4,120,87,0.8)", marginTop: 4 }}>This coupon discount is funded by AzoApp — your savings, on us.</Text>
         </View>

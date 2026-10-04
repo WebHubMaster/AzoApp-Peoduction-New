@@ -10,9 +10,9 @@ import { PRIMARY, SLATE, ROSE } from "../../theme";
 import { onlyDigits, onlyAlpha } from "../../lib/format";
 import { LegalConsent } from "./LegalConsent";
 
-const input = { height: 50, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.input; }, fontSize: 16, get color() { return TC.text; }, outlineStyle: "none" } as any;
+const input = { height: 50, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, get borderColor() { return TC.border; }, get backgroundColor() { return TC.input; }, fontSize: 16, get color() { return TC.text; }, outlineStyle: "none" } as any;
 const Btn = ({ label, onPress, busy, disabled, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; testID: string }) => (
-  <Pressable testID={testID} onPress={onPress} disabled={busy || disabled} style={({ pressed }) => ({ height: 50, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.7 : disabled ? 0.5 : 1 })}>
+  <Pressable testID={testID} onPress={onPress} disabled={busy || disabled} style={({ pressed }) => ({ height: 50, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: busy ? 0.7 : disabled ? 0.5 : 1 })}>
     {busy ? <ActivityIndicator color="#fff" size="small" /> : null}
     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>{busy ? "Please wait…" : label}</Text>
   </Pressable>
@@ -105,7 +105,7 @@ export function OtpInline({ onSuccess }: { onSuccess?: () => void }) {
             {Array.from({ length: OTP_LEN }).map((_, i) => {
               const focused = i === Math.min(otp.length, OTP_LEN - 1);
               return (
-                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 12, borderWidth: 2, borderColor: focused ? PRIMARY[600] : TC.border, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
+                <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 6, borderWidth: 2, borderColor: focused ? PRIMARY[600] : TC.border, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
                   <Text style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{otp[i] || ""}</Text>
                 </View>
               );

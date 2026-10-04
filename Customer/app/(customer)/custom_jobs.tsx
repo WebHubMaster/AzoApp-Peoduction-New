@@ -37,8 +37,8 @@ export default function CustomJobsScreen() {
 
   const header = (
     <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
-      <Pressable testID="mcj-refresh" onPress={load} style={{ height: 44, width: 44, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><RefreshCcw size={16} color={TC.textMuted} /></Pressable>
-      <Pressable testID="mcj-new" onPress={() => setWizardOpen(true)} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Service</Text></Pressable>
+      <Pressable testID="mcj-refresh" onPress={load} style={{ height: 44, width: 44, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><RefreshCcw size={16} color={TC.textMuted} /></Pressable>
+      <Pressable testID="mcj-new" onPress={() => setWizardOpen(true)} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Service</Text></Pressable>
     </View>
   );
 
@@ -47,27 +47,27 @@ export default function CustomJobsScreen() {
       {loading ? <View style={{ padding: 16 }}>{header}<View style={{ paddingVertical: 80, alignItems: "center" }}><ActivityIndicator color={PRIMARY[600]} size="large" /></View></View> : (
         <PlainList data={rows} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
           ListEmptyComponent={
-            <View testID="mcj-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, padding: 36, alignItems: "center" }}>
-              <View style={{ height: 64, width: 64, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 16 }}><ClipboardList size={32} color={PRIMARY[500]} /></View>
+            <View testID="mcj-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, padding: 36, alignItems: "center" }}>
+              <View style={{ height: 64, width: 64, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 16 }}><ClipboardList size={32} color={PRIMARY[500]} /></View>
               <Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>No custom requests yet</Text>
               <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 4, textAlign: "center" }}>Can&apos;t find the service you need? Request a custom service and our team will build it for you.</Text>
-              <Pressable testID="mcj-empty-new" onPress={() => setWizardOpen(true)} style={{ marginTop: 20, height: 44, paddingHorizontal: 22, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 8 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700" }}>Request a Custom Service</Text></Pressable>
+              <Pressable testID="mcj-empty-new" onPress={() => setWizardOpen(true)} style={{ marginTop: 20, height: 44, paddingHorizontal: 22, borderRadius: 6, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 8 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700" }}>Request a Custom Service</Text></Pressable>
             </View>}
           renderItem={({ item: r }) => {
             const st = STATUS_STYLE[r.display_status] || STATUS_STYLE[r.status] || STATUS_STYLE.pending;
             const live = r.display_status === "service_active" && r.service?.id;
             return (
-              <View testID={`mcj-card-${r.request_id}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 16, marginBottom: 12 }}>
+              <View testID={`mcj-card-${r.request_id}`} style={{ borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 16, marginBottom: 12 }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
                   <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>{r.work_name}</Text><Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{r.request_id} · {r.category_name}</Text></View>
-                  <View style={{ backgroundColor: st.bg, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}><Text testID={`mcj-status-${r.request_id}`} style={{ fontSize: 11, fontWeight: "700", color: st.fg }}>{st.label}</Text></View>
+                  <View style={{ backgroundColor: st.bg, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, alignSelf: "flex-start" }}><Text testID={`mcj-status-${r.request_id}`} style={{ fontSize: 11, fontWeight: "700", color: st.fg }}>{st.label}</Text></View>
                 </View>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14, marginTop: 12 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><IndianRupee size={13} color={TC.textMuted} /><Text style={{ fontSize: 12, color: TC.textMuted }}>{rupee(r.expected_budget)}</Text></View>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><MapPin size={13} color={TC.textMuted} /><Text style={{ fontSize: 12, color: TC.textMuted }}>{r.pincode}</Text></View>
                   <Text style={{ fontSize: 12, color: TC.textMuted }}>{fmtDate(r.created_at)}</Text>
                 </View>
-                {live ? <Pressable testID={`mcj-view-${r.request_id}`} onPress={() => router.push(`/(site)/service/${r.service.id}` as any)} style={{ marginTop: 12, height: 38, borderRadius: 10, backgroundColor: EMERALD[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}><ExternalLink size={14} color={EMERALD[700]} /><Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 14 }}>View Service</Text></Pressable> : null}
+                {live ? <Pressable testID={`mcj-view-${r.request_id}`} onPress={() => router.push(`/(site)/service/${r.service.id}` as any)} style={{ marginTop: 12, height: 38, borderRadius: 6, backgroundColor: EMERALD[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}><ExternalLink size={14} color={EMERALD[700]} /><Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 14 }}>View Service</Text></Pressable> : null}
               </View>
             );
           }} />
@@ -85,7 +85,7 @@ const Field = ({ label, required, hint, children }: any) => (
     {children}
   </View>
 );
-const inp = { height: 46, borderRadius: 12, borderWidth: 1, get borderColor() { return TC.border; }, paddingHorizontal: 14, fontSize: 14, get color() { return TC.text; }, get backgroundColor() { return TC.input; }, outlineStyle: "none" } as any;
+const inp = { height: 46, borderRadius: 6, borderWidth: 1, get borderColor() { return TC.border; }, paddingHorizontal: 14, fontSize: 14, get color() { return TC.text; }, get backgroundColor() { return TC.input; }, outlineStyle: "none" } as any;
 const StepHead = ({ title, sub }: { title: string; sub: string }) => <View style={{ marginBottom: 16 }}><Text style={{ fontSize: 20, fontWeight: "900", color: TC.text }}>{title}</Text><Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2 }}>{sub}</Text></View>;
 const Row = ({ k, v, onEdit }: any) => <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: TC.borderSoft, gap: 10 }}><Text style={{ fontSize: 13, color: TC.textMuted }}>{k}</Text><Text style={{ fontSize: 13, fontWeight: "600", color: TC.text, flex: 1, textAlign: "right" }} numberOfLines={2}>{v}</Text><Pressable onPress={onEdit}><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Edit</Text></Pressable></View>;
 
@@ -153,16 +153,16 @@ export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean;
               <View style={{ height: 80, width: 80, borderRadius: 40, backgroundColor: EMERALD[50], alignItems: "center", justifyContent: "center" }}><BadgeCheck size={40} color={EMERALD[600]} /></View>
               <Text style={{ fontSize: 24, fontWeight: "900", color: TC.text, marginTop: 18, textAlign: "center" }}>Custom Job Request Submitted!</Text>
               <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 6, textAlign: "center" }}>Our team will review it and build the service for you. Track it under Custom Requests.</Text>
-              <View style={{ marginTop: 18, borderRadius: 10, backgroundColor: TC.primarySoft, paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[600], textTransform: "uppercase", letterSpacing: 1 }}>Request ID</Text><Text testID="cjr-request-id" style={{ fontSize: 20, fontWeight: "900", color: TC.primaryText, letterSpacing: 1 }}>{result.request_id}</Text></View>
-              <Pressable testID="cjr-done" onPress={onClose} style={{ marginTop: 22, height: 48, paddingHorizontal: 28, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>View my requests</Text></Pressable>
+              <View style={{ marginTop: 18, borderRadius: 6, backgroundColor: TC.primarySoft, paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ fontSize: 11, fontWeight: "700", color: PRIMARY[600], textTransform: "uppercase", letterSpacing: 1 }}>Request ID</Text><Text testID="cjr-request-id" style={{ fontSize: 20, fontWeight: "900", color: TC.primaryText, letterSpacing: 1 }}>{result.request_id}</Text></View>
+              <Pressable testID="cjr-done" onPress={onClose} style={{ marginTop: 22, height: 48, paddingHorizontal: 28, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>View my requests</Text></Pressable>
               <Pressable onPress={() => { onClose(); router.push("/(site)/services" as any); }} style={{ marginTop: 12 }}><Text style={{ color: TC.textMuted, fontWeight: "600" }}>Browse services instead</Text></Pressable>
             </View>
           ) : (
             <>
               <LinearGradient colors={[PRIMARY[700], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}><View style={{ height: 32, width: 32, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Sparkles size={16} color="#fff" /></View><View><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Request a Custom Service</Text><Text style={{ color: PRIMARY[100], fontSize: 11 }}>Can&apos;t find what you need? We&apos;ll build it for you.</Text></View></View>
-                  <Pressable testID="cjr-close" onPress={onClose} style={{ height: 32, width: 32, borderRadius: 16, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><X size={16} color="#fff" /></Pressable>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}><View style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Sparkles size={16} color="#fff" /></View><View><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Request a Custom Service</Text><Text style={{ color: PRIMARY[100], fontSize: 11 }}>Can&apos;t find what you need? We&apos;ll build it for you.</Text></View></View>
+                  <Pressable testID="cjr-close" onPress={onClose} style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}><X size={16} color="#fff" /></Pressable>
                 </View>
                 <View style={{ flexDirection: "row", gap: 6, marginTop: 14 }}>{STEPS.map((s) => <View key={s.id} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: s.id <= step ? "#fff" : "rgba(255,255,255,0.3)" }} />)}</View>
                 <Text style={{ color: PRIMARY[100], fontSize: 11, marginTop: 6 }}>Step {step} of 5 · {STEPS[step - 1].label}</Text>
@@ -174,10 +174,10 @@ export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean;
                     <Field label="Full Name" required><TextInput testID="cjr-name" value={name} onChangeText={(v) => setName(onlyAlpha(v).slice(0, 60))} placeholder="e.g. Rahul Kumar" placeholderTextColor={TC.textFaint} style={inp} editable={!user} /></Field>
                     <Field label="Mobile Number" required>
                       <View style={{ flexDirection: "row", gap: 8 }}><TextInput testID="cjr-phone" value={phone} onChangeText={(v) => { setPhone(onlyDigits(v).slice(0, 10)); if (!user) { setVerified(false); setOtpSent(false); } }} keyboardType="number-pad" placeholder="10-digit mobile number" placeholderTextColor={TC.textFaint} style={{ ...inp, flex: 1 }} editable={!user} />
-                        {verified ? <View style={{ height: 46, paddingHorizontal: 14, borderRadius: 12, backgroundColor: EMERALD[50], flexDirection: "row", alignItems: "center", gap: 6 }}><BadgeCheck size={16} color={EMERALD[600]} /><Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 13 }}>Verified</Text></View>
-                          : <Pressable testID="cjr-send-otp" onPress={sendOtp} style={{ height: 46, paddingHorizontal: 14, borderRadius: 12, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{otpSent ? "Resend" : "Send OTP"}</Text></Pressable>}</View>
+                        {verified ? <View style={{ height: 46, paddingHorizontal: 14, borderRadius: 6, backgroundColor: EMERALD[50], flexDirection: "row", alignItems: "center", gap: 6 }}><BadgeCheck size={16} color={EMERALD[600]} /><Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 13 }}>Verified</Text></View>
+                          : <Pressable testID="cjr-send-otp" onPress={sendOtp} style={{ height: 46, paddingHorizontal: 14, borderRadius: 6, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>{otpSent ? "Resend" : "Send OTP"}</Text></Pressable>}</View>
                     </Field>
-                    {otpSent && !verified ? <Field label="Enter OTP" required><View style={{ flexDirection: "row", gap: 8 }}><TextInput testID="cjr-otp" value={otp} onChangeText={(v) => setOtp(onlyDigits(v).slice(0, 6))} keyboardType="number-pad" placeholder="6-digit OTP" placeholderTextColor={TC.textFaint} style={{ ...inp, flex: 1, letterSpacing: 4 }} /><Pressable testID="cjr-verify" onPress={verifyOtp} style={{ height: 46, paddingHorizontal: 16, borderRadius: 12, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Verify</Text></Pressable></View></Field> : null}
+                    {otpSent && !verified ? <Field label="Enter OTP" required><View style={{ flexDirection: "row", gap: 8 }}><TextInput testID="cjr-otp" value={otp} onChangeText={(v) => setOtp(onlyDigits(v).slice(0, 6))} keyboardType="number-pad" placeholder="6-digit OTP" placeholderTextColor={TC.textFaint} style={{ ...inp, flex: 1, letterSpacing: 4 }} /><Pressable testID="cjr-verify" onPress={verifyOtp} style={{ height: 46, paddingHorizontal: 16, borderRadius: 6, backgroundColor: EMERALD[600], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Verify</Text></Pressable></View></Field> : null}
                   </View>
                 ) : null}
                 {step === 2 ? (
@@ -186,8 +186,8 @@ export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean;
                     <TextInput testID="cjr-cat-search" value={catQuery} onChangeText={setCatQuery} placeholder="Search categories…" placeholderTextColor={TC.textFaint} style={{ ...inp, marginBottom: 12 }} />
                     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                       {filteredCats.map((c) => { const on = c.id === categoryId; return (
-                        <Pressable key={c.id} testID={`cjr-cat-${c.id}`} onPress={() => setCategoryId(c.id)} style={{ width: "47.5%", borderRadius: 10, borderWidth: 2, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
-                          {c.image ? <Image source={{ uri: c.image }} style={{ height: 36, width: 36, borderRadius: 10 }} contentFit="cover" /> : <View style={{ height: 36, width: 36, borderRadius: 10, backgroundColor: TC.surfaceAlt }} />}<Text numberOfLines={2} style={{ flex: 1, fontSize: 13, fontWeight: "600", color: on ? PRIMARY[700] : TC.text }}>{c.name}</Text>
+                        <Pressable key={c.id} testID={`cjr-cat-${c.id}`} onPress={() => setCategoryId(c.id)} style={{ width: "47.5%", borderRadius: 6, borderWidth: 2, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, padding: 12, flexDirection: "row", alignItems: "center", gap: 10 }}>
+                          {c.image ? <Image source={{ uri: c.image }} style={{ height: 36, width: 36, borderRadius: 6 }} contentFit="cover" /> : <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: TC.surfaceAlt }} />}<Text numberOfLines={2} style={{ flex: 1, fontSize: 13, fontWeight: "600", color: on ? PRIMARY[700] : TC.text }}>{c.name}</Text>
                         </Pressable>); })}
                     </View>
                   </View>
@@ -204,7 +204,7 @@ export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean;
                     <StepHead title="Budget & service area" sub="Tell us your expected budget and where the work is." />
                     <Field label="Expected Budget" required hint={`₹${meta.min_budget} – ₹${Number(meta.max_budget).toLocaleString("en-IN")}`}><TextInput testID="cjr-budget" value={budget} onChangeText={(v) => setBudget(onlyDigits(v).slice(0, 7))} keyboardType="number-pad" placeholder={`e.g. 1500 (min ${meta.min_budget})`} placeholderTextColor={TC.textFaint} style={{ ...inp, borderColor: budget && !budgetOk ? ROSE[400] : TC.border }} /></Field>
                     <Field label="Service Pincode" required><TextInput testID="cjr-pincode" value={pincode} onChangeText={(v) => setPincode(onlyDigits(v).slice(0, 6))} keyboardType="number-pad" placeholder="6-digit pincode" placeholderTextColor={TC.textFaint} style={inp} />
-                      {areaLoading ? <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 6 }}>Checking serviceability…</Text> : area ? <View testID="cjr-area" style={{ marginTop: 8, borderRadius: 12, padding: 10, backgroundColor: area.serviceable ? EMERALD[50] : ROSE[50], flexDirection: "row", alignItems: "center", gap: 8 }}><MapPin size={14} color={area.serviceable ? EMERALD[600] : ROSE[600]} /><Text style={{ fontSize: 13, fontWeight: "600", color: area.serviceable ? EMERALD[700] : ROSE[700] }}>{area.serviceable ? `We serve ${area.area || "your area"}` : area.reason || "Sorry, this pincode isn't serviceable yet"}</Text></View> : null}
+                      {areaLoading ? <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 6 }}>Checking serviceability…</Text> : area ? <View testID="cjr-area" style={{ marginTop: 8, borderRadius: 6, padding: 10, backgroundColor: area.serviceable ? EMERALD[50] : ROSE[50], flexDirection: "row", alignItems: "center", gap: 8 }}><MapPin size={14} color={area.serviceable ? EMERALD[600] : ROSE[600]} /><Text style={{ fontSize: 13, fontWeight: "600", color: area.serviceable ? EMERALD[700] : ROSE[700] }}>{area.serviceable ? `We serve ${area.area || "your area"}` : area.reason || "Sorry, this pincode isn't serviceable yet"}</Text></View> : null}
                     </Field>
                   </View>
                 ) : null}
@@ -216,9 +216,9 @@ export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean;
                 ) : null}
               </ScrollView>
               <View style={{ flexDirection: "row", gap: 10, padding: 16, paddingBottom: Math.max(insets.bottom, 12) + 4, borderTopWidth: 1, borderTopColor: TC.borderSoft, backgroundColor: TC.surface }}>
-                {step > 1 ? <Pressable testID="cjr-back" onPress={() => setStep(step - 1)} style={{ height: 48, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: TC.border, flexDirection: "row", alignItems: "center", gap: 6 }}><ArrowLeft size={16} color={TC.textMuted} /><Text style={{ fontWeight: "600", color: TC.textMuted }}>Back</Text></Pressable> : null}
-                {step < 5 ? <Pressable testID="cjr-next" disabled={!canNext} onPress={() => setStep(step + 1)} style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: PRIMARY[700], opacity: canNext ? 1 : 0.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Continue</Text><ArrowRight size={16} color="#fff" /></Pressable>
-                  : <Pressable testID="cjr-submit" disabled={busy} onPress={submit} style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: EMERALD[600], opacity: busy ? 0.6 : 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>{busy ? <ActivityIndicator color="#fff" /> : <><BadgeCheck size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Submit Custom Job Request</Text></>}</Pressable>}
+                {step > 1 ? <Pressable testID="cjr-back" onPress={() => setStep(step - 1)} style={{ height: 48, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1, borderColor: TC.border, flexDirection: "row", alignItems: "center", gap: 6 }}><ArrowLeft size={16} color={TC.textMuted} /><Text style={{ fontWeight: "600", color: TC.textMuted }}>Back</Text></Pressable> : null}
+                {step < 5 ? <Pressable testID="cjr-next" disabled={!canNext} onPress={() => setStep(step + 1)} style={{ flex: 1, height: 48, borderRadius: 6, backgroundColor: PRIMARY[700], opacity: canNext ? 1 : 0.4, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Continue</Text><ArrowRight size={16} color="#fff" /></Pressable>
+                  : <Pressable testID="cjr-submit" disabled={busy} onPress={submit} style={{ flex: 1, height: 48, borderRadius: 6, backgroundColor: EMERALD[600], opacity: busy ? 0.6 : 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>{busy ? <ActivityIndicator color="#fff" /> : <><BadgeCheck size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>Submit Custom Job Request</Text></>}</Pressable>}
               </View>
             </>
           )}

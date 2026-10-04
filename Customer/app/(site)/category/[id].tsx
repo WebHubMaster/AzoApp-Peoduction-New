@@ -35,14 +35,14 @@ export default function CategoryServices() {
     <View style={{ flex: 1, backgroundColor: TC.surface }} testID="category-page">
       <View style={{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: 12, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: 1, borderBottomColor: TC.border }}>
         <Pressable testID="category-back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(site)"))} style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", borderRadius: 20, backgroundColor: TC.surfaceAlt }}><ArrowLeft size={20} color={TC.text2} /></Pressable>
-        {cat?.image ? <Image source={{ uri: cat.image }} style={{ height: 36, width: 36, borderRadius: 18 }} contentFit="cover" /> : null}
+        {cat?.image ? <Image source={{ uri: cat.image }} style={{ height: 36, width: 36, borderRadius: 6 }} contentFit="cover" /> : null}
         <View style={{ flex: 1 }}>
           <Text testID="category-title" style={{ fontSize: 18, fontWeight: "800", color: TC.text }} numberOfLines={1}>{title}</Text>
           <Text testID="category-count" style={{ fontSize: 12, color: TC.textMuted }}>{q.isLoading ? "Loading…" : `${all.length} service${all.length === 1 ? "" : "s"}`}</Text>
         </View>
       </View>
       {q.isLoading ? (
-        <View style={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 14 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 220, borderRadius: 10 }} />)}</View>
+        <View style={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 14 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 220, borderRadius: 6 }} />)}</View>
       ) : (
         <FlatList
           data={rows}
@@ -56,7 +56,7 @@ export default function CategoryServices() {
           ListEmptyComponent={<Text testID="category-empty" style={{ textAlign: "center", color: TC.textMuted, marginTop: 40 }}>No services in this category yet.</Text>}
           ListFooterComponent={count < all.length ? <View testID="category-loading-more" style={{ paddingVertical: 16, alignItems: "center" }}><ActivityIndicator color={TC.primaryText} /></View> : null}
           renderItem={({ item: s, index }) => (
-            <View testID={`category-svc-${index}`} style={{ width: cardW, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, overflow: "hidden" }}>
+            <View testID={`category-svc-${index}`} style={{ width: cardW, backgroundColor: TC.surface, borderRadius: 6, borderWidth: 1, borderColor: TC.border, overflow: "hidden" }}>
               <Pressable testID={`category-open-${index}`} onPress={() => navigate(`/service/${s.id}`)}>
                 <Image source={{ uri: s.image }} style={{ height: 120, width: "100%", backgroundColor: TC.surfaceAlt }} contentFit="cover" transition={200} />
                 <View style={{ paddingHorizontal: 12, paddingTop: 12 }}>
@@ -69,7 +69,7 @@ export default function CategoryServices() {
                 </View>
               </Pressable>
               <View style={{ paddingHorizontal: 12, paddingBottom: 12, paddingTop: 12 }}>
-                <Pressable testID={`category-book-${index}`} onPress={() => navigate(`/service/${s.id}?book=1`)} style={{ height: 36, borderRadius: 10, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Book Now</Text></Pressable>
+                <Pressable testID={`category-book-${index}`} onPress={() => navigate(`/service/${s.id}?book=1`)} style={{ height: 36, borderRadius: 6, borderWidth: 1.5, borderColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Book Now</Text></Pressable>
               </View>
             </View>
           )}

@@ -23,7 +23,7 @@ export function StoriesRow({ sec, onOpen }: { sec: any; onOpen: (index: number) 
       {sec.title ? <BlockTitle icon={sec.icon} title={sec.title} /> : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
         {stories.map((s, i) => (
-          <Pressable key={s.id || i} testID={`app-story-card-${i}`} onPress={() => onOpen(i)} style={{ width: 112, height: 158, borderRadius: 10, overflow: "hidden", backgroundColor: SLATE[800] }}>
+          <Pressable key={s.id || i} testID={`app-story-card-${i}`} onPress={() => onOpen(i)} style={{ width: 112, height: 158, borderRadius: 6, overflow: "hidden", backgroundColor: SLATE[800] }}>
             {s.poster ? <Image source={{ uri: s.poster }} style={{ ...StyleFill }} contentFit="cover" transition={200} /> : null}
             <LinearGradient colors={["rgba(15,23,42,0.05)", "rgba(15,23,42,0.85)"]} start={{ x: 0.5, y: 0 }} end={{ x: 0.5, y: 1 }} style={{ ...StyleFill }} />
             {/* avatar ring top-left */}
@@ -32,7 +32,7 @@ export function StoriesRow({ sec, onOpen }: { sec: any; onOpen: (index: number) 
                 <Image source={{ uri: s.avatar }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
               </View>
             ) : (
-              <View style={{ position: "absolute", top: 8, left: 8, height: 30, width: 30, borderRadius: 15, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ position: "absolute", top: 8, left: 8, height: 30, width: 30, borderRadius: 6, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}>
                 <Play size={14} color={TC.primaryText} fill={PRIMARY[700]} />
               </View>
             )}
@@ -77,12 +77,12 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
 
         {/* header: avatar + title + mute + close */}
         <View style={{ position: "absolute", top: 66, left: 14, right: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
-          {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 18, borderWidth: 2, borderColor: TC.surface }} contentFit="cover" /> : null}
+          {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 2, borderColor: TC.surface }} contentFit="cover" /> : null}
           <Text numberOfLines={1} style={{ flex: 1, color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.title}</Text>
-          <Pressable testID="story-mute" onPress={() => setMuted((m) => !m)} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
+          <Pressable testID="story-mute" onPress={() => setMuted((m) => !m)} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
             {muted ? <VolumeX size={18} color="#fff" /> : <Volume2 size={18} color="#fff" />}
           </Pressable>
-          <Pressable testID="story-close" onPress={onClose} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 17, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
+          <Pressable testID="story-close" onPress={onClose} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
             <X size={20} color="#fff" />
           </Pressable>
         </View>
@@ -97,7 +97,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
 
         {/* CTA */}
         {cur.cta_link ? (
-          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: 44, height: 50, borderRadius: 10, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: 44, height: 50, borderRadius: 6, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.cta_label || "Book Now"}</Text>
             <ArrowRight size={17} color="#fff" />
           </Pressable>

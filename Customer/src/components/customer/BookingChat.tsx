@@ -13,7 +13,7 @@ const QUICK = ["I'm at home, please come in", "Please call me", "Reaching the sp
 
 export function UnreadPill({ count, testID }: { count: number; testID?: string }) {
   if (!count) return null;
-  return <View testID={testID} style={{ height: 18, minWidth: 18, paddingHorizontal: 5, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10.5, fontWeight: "700" }}>{count > 9 ? "9+" : count}</Text></View>;
+  return <View testID={testID} style={{ height: 18, minWidth: 18, paddingHorizontal: 5, borderRadius: 6, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10.5, fontWeight: "700" }}>{count > 9 ? "9+" : count}</Text></View>;
 }
 
 /** Server-driven unread summary (web ChatContext) — polls /bookings/chats/summary every 30s. */
@@ -83,7 +83,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
               {typing ? <Text testID="chat-typing" style={{ fontSize: 12, color: c.primaryText, fontStyle: "italic" }}>typing…</Text>
                 : <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><View style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: chat?.counterpart_online ? EMERALD[500] : TC.border }} /><Text numberOfLines={1} style={{ fontSize: 12, color: EMERALD[600] }}>{chat?.counterpart_online ? "Online" : "On the way"} · {booking?.service_name}</Text></View>}
             </View>
-            {partner?.phone ? <Pressable onPress={call} style={{ height: 36, width: 36, borderRadius: 18, backgroundColor: isDark ? "rgba(6,78,59,0.3)" : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Phone size={16} color={EMERALD[600]} /></Pressable> : null}
+            {partner?.phone ? <Pressable onPress={call} style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: isDark ? "rgba(6,78,59,0.3)" : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Phone size={16} color={EMERALD[600]} /></Pressable> : null}
             <Pressable testID="chat-close" onPress={onClose} hitSlop={8} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}><X size={20} color={TC.textFaint} /></Pressable>
           </View>
 
@@ -99,7 +99,7 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
               const mine = m.sender_id === chat.me;
               return (
                 <View key={m.id} testID={mine ? "chat-msg-mine" : "chat-msg-other"} style={{ flexDirection: "row", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                  <View style={{ maxWidth: "80%", borderRadius: 10, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? PRIMARY[700] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.border }}>
+                  <View style={{ maxWidth: "80%", borderRadius: 6, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? PRIMARY[700] : c.surface, borderWidth: mine ? 0 : 1, borderColor: c.border }}>
                     <Text style={{ fontSize: 14, color: mine ? "#fff" : c.text }}>{m.text}</Text>
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 2 }}>
                       <Text style={{ fontSize: 10, color: mine ? "rgba(255,255,255,0.7)" : TC.textFaint }}>{new Date(m.created_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</Text>
@@ -113,13 +113,13 @@ export function BookingChat({ booking, open, onClose, onSeen }: { booking: any; 
 
           {enabled ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} testID="chat-quick" style={{ flexGrow: 0, borderTopWidth: 1, borderTopColor: c.borderSoft }} contentContainerStyle={{ gap: 8, paddingHorizontal: 12, paddingVertical: 8 }}>
-              {QUICK.map((q) => <Pressable key={q} disabled={sending} onPress={() => send(q)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 18, backgroundColor: isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50], borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[100], justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "600", color: c.primaryText }}>{q}</Text></Pressable>)}
+              {QUICK.map((q) => <Pressable key={q} disabled={sending} onPress={() => send(q)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50], borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[100], justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "600", color: c.primaryText }}>{q}</Text></Pressable>)}
             </ScrollView>
           ) : null}
           {enabled ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 12, paddingBottom: insets.bottom + 12, borderTopWidth: 1, borderTopColor: c.borderSoft }}>
-              <TextInput testID="chat-input" value={text} onChangeText={onType} onSubmitEditing={() => send()} placeholder="Type a message…" placeholderTextColor={TC.textFaint} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, backgroundColor: c.surface, outlineStyle: "none" } as any} />
-              <Pressable testID="chat-send" disabled={sending || !text.trim()} onPress={() => send()} style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sending || !text.trim() ? 0.5 : 1 }}><Send size={16} color="#fff" /></Pressable>
+              <TextInput testID="chat-input" value={text} onChangeText={onType} onSubmitEditing={() => send()} placeholder="Type a message…" placeholderTextColor={TC.textFaint} style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text, backgroundColor: c.surface, outlineStyle: "none" } as any} />
+              <Pressable testID="chat-send" disabled={sending || !text.trim()} onPress={() => send()} style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sending || !text.trim() ? 0.5 : 1 }}><Send size={16} color="#fff" /></Pressable>
             </View>
           ) : null}
         </View>

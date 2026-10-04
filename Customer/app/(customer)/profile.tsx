@@ -31,7 +31,7 @@ function DeleteAccount() {
     setBusy(false);
   };
   return (
-    <View testID="danger-zone" style={{ borderRadius: 10, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.5)" : ROSE[200], backgroundColor: c.surface, padding: 24 }}>
+    <View testID="danger-zone" style={{ borderRadius: 6, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.5)" : ROSE[200], backgroundColor: c.surface, padding: 24 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
         <ShieldAlert size={20} color={ROSE[500]} style={{ marginTop: 2 }} />
         <View style={{ flex: 1 }}><Text style={{ fontWeight: "700", fontSize: 16, color: c.text }}>Delete Account</Text><Text style={{ fontSize: 14, color: c.textMuted, marginTop: 4 }}>This removes your account and data. An admin may need to approve the request.</Text></View>
@@ -74,18 +74,18 @@ export default function ProfileScreen() {
 
   return (
     <View testID="profile-page" style={{ gap: 20 }}>
-      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 44, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
+      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
 
       <View testID="profile-shortcuts" style={{ flexDirection: "row", gap: 12 }}>
         {[["addresses", "Addresses", MapPin, "/(customer)/addresses"], ["wallet", "Wallet", Wallet, "/(customer)/wallet"], ["orders", "Bookings", Package, "/(customer)/orders"]].map(([k, label, Icon, route]: any) => (
-          <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>
-            <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={c.primaryText} /></View>
+          <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>
+            <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}><Icon size={18} color={c.primaryText} /></View>
             <Text style={{ fontSize: 12, fontWeight: "600", color: c.text }}>{label}</Text>
           </Pressable>
         ))}
       </View>
 
-      <View testID="profile-editor" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, ...shadowElev }}>
+      <View testID="profile-editor" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, ...shadowElev }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 24 }}>
           <ProfilePhotoPicker value={f.photo} onChange={(d) => set("photo", d)} size={80} testID="profile-photo" />
           <View style={{ flex: 1 }}>
@@ -108,7 +108,7 @@ export default function ProfileScreen() {
           {fields.gst ? <PField label="GST Number (B2B)"><FInput testID="pf-gst" value={f.gst_number} onChange={(v) => set("gst_number", v)} /></PField> : null}
           {fields.company ? <PField label="Company Name (B2B)"><FInput testID="pf-company" value={f.company_name} onChange={(v) => set("company_name", v)} /></PField> : null}
         </View>
-        <PrimaryButton testID="save-profile" label={busy ? "Saving…" : "Save Profile"} onPress={save} busy={busy} style={{ marginTop: 24, borderRadius: 12, alignSelf: "flex-start", paddingHorizontal: 16, height: 40 }} />
+        <PrimaryButton testID="save-profile" label={busy ? "Saving…" : "Save Profile"} onPress={save} busy={busy} style={{ marginTop: 24, borderRadius: 6, alignSelf: "flex-start", paddingHorizontal: 16, height: 40 }} />
       </View>
 
       <DeleteAccount />

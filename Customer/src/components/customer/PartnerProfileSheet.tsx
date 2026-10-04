@@ -24,9 +24,9 @@ export function usePartnerCard(bookingId?: string, partnerId?: string) {
 
 export function PartnerAvatar({ photo, name, size = 48, testID }: { photo?: string; name?: string; size?: number; testID?: string }) {
   const uri = photo ? mediaUrl(photo) : undefined;
-  if (uri) return <Image testID={testID} source={{ uri }} style={{ width: size, height: size, borderRadius: 10 }} contentFit="cover" transition={150} accessibilityLabel={name} />;
+  if (uri) return <Image testID={testID} source={{ uri }} style={{ width: size, height: size, borderRadius: 6 }} contentFit="cover" transition={150} accessibilityLabel={name} />;
   return (
-    <View testID={testID} style={{ width: size, height: size, borderRadius: 10, backgroundColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}>
+    <View testID={testID} style={{ width: size, height: size, borderRadius: 6, backgroundColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}>
       <Text style={{ color: "#fff", fontWeight: "900", fontSize: size * 0.4 }}>{(name || "P").trim().charAt(0).toUpperCase()}</Text>
     </View>
   );
@@ -43,7 +43,7 @@ export function Stars({ value = 0, size = 13 }: { value?: number; size?: number 
 function Stat({ icon: Icon, color, value, label, testID }: any) {
   const { c } = useTheme();
   return (
-    <View testID={testID} style={{ flex: 1, borderRadius: 10, backgroundColor: c.surfaceAlt, padding: 10, alignItems: "center" }}>
+    <View testID={testID} style={{ flex: 1, borderRadius: 6, backgroundColor: c.surfaceAlt, padding: 10, alignItems: "center" }}>
       <Icon size={16} color={color} />
       <Text style={{ fontSize: 16, fontWeight: "900", color: c.text, marginTop: 4 }}>{value}</Text>
       <Text style={{ fontSize: 10, fontWeight: "700", color: TC.textFaint, textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text>
@@ -127,7 +127,7 @@ function Body({ d }: { d: any }) {
         {(d.reviews || []).length === 0 ? <Text style={{ fontSize: 13, color: TC.textFaint }}>No reviews yet.</Text> : (
           <View testID="partner-reviews" style={{ gap: 8 }}>
             {d.reviews.slice(0, 20).map((rv: any, i: number) => (
-              <View key={i} style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 12 }}>
+              <View key={i} style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 12 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Text style={{ fontSize: 13, fontWeight: "700", color: c.text }}>{rv.customer_name}</Text>
                   <Stars value={rv.rating} size={12} />

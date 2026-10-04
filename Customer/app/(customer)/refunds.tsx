@@ -13,7 +13,7 @@ const RANGES = ["All", "7 days", "30 days", "90 days"];
 const REFUND_STATUS: Record<string, string> = { initiated: "blue", pending: "amber", processing: "amber", processed: "green", failed: "rose" };
 const RefundStatusBadge = ({ status }: { status: string }) => <StatusChip tone={(REFUND_STATUS[status] || "slate") as any} label={status === "processed" ? "Refund successful" : `Refund ${(status || "").replace("_", " ")}`} />;
 const Info = ({ label, value, cap }: { label: string; value: any; cap?: boolean }) => (
-  <View style={{ width: "48%", borderRadius: 10, backgroundColor: TC.bg, paddingHorizontal: 10, paddingVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", color: TC.textFaint, textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text><Text style={{ fontSize: 13, fontWeight: "700", color: TC.text, marginTop: 2, textTransform: cap ? "capitalize" : "none" }}>{value}</Text></View>
+  <View style={{ width: "48%", borderRadius: 6, backgroundColor: TC.bg, paddingHorizontal: 10, paddingVertical: 8 }}><Text style={{ fontSize: 10, fontWeight: "700", color: TC.textFaint, textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text><Text style={{ fontSize: 13, fontWeight: "700", color: TC.text, marginTop: 2, textTransform: cap ? "capitalize" : "none" }}>{value}</Text></View>
 );
 const inRange = (d: string, preset: string) => { if (preset === "All" || !d) return true; const days = Number(preset.split(" ")[0]); return new Date(d).getTime() >= Date.now() - days * 86400000; };
 
@@ -30,7 +30,7 @@ export default function RefundsScreen() {
     });
   }, [refunds, q, tab, range]); // eslint-disable-line react-hooks/exhaustive-deps
   const totalRefunded = refunds.reduce((s: number, r: any) => s + (r.status === "processed" ? Number(r.refund_amount || 0) : 0), 0);
-  const pill = (on: boolean) => ({ height: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: on ? PRIMARY[700] : TC.surface, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, justifyContent: "center" as const });
+  const pill = (on: boolean) => ({ height: 36, paddingHorizontal: 14, borderRadius: 6, backgroundColor: on ? PRIMARY[700] : TC.surface, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, justifyContent: "center" as const });
   const pillT = (on: boolean) => ({ fontSize: 13, fontWeight: "600" as const, color: on ? "#fff" : TC.text2 });
 
   const header = (
@@ -41,7 +41,7 @@ export default function RefundsScreen() {
           <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="rf-done" label="Completed" value={refunds.filter((r: any) => r.status === "processed").length} count icon={CheckCircle2} tone="green" /><StatTile testID="rf-amt" label="Refunded Amount" value={fmtC(Math.round(totalRefunded))} icon={IndianRupee} tone="violet" /></View>
         </View>
       )}
-      <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 12, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, gap: 8 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, gap: 8 }}>
         <Search size={16} color={TC.textFaint} /><TextInput testID="rf-search" value={q} onChangeText={setQ} placeholder="Search booking ID, service…" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 14, color: TC.text, height: 42, paddingVertical: 0, outlineStyle: "none" } as any} />
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 12 }}>{RANGES.map((r) => <Pressable key={r} testID={`rf-range-${r.split(" ")[0]}`} onPress={() => setRange(r)} style={pill(range === r)}><Text style={pillT(range === r)}>{r}</Text></Pressable>)}</ScrollView>
@@ -54,7 +54,7 @@ export default function RefundsScreen() {
       <PlainList data={filtered} keyExtractor={(r: any) => r.id} ListHeaderComponent={header} contentContainerStyle={{ padding: 16, paddingBottom: 120 }} initialNumToRender={6}
         ListEmptyComponent={loading && refunds.length === 0 ? <SkeletonList rows={3} /> : refunds.length === 0 ? <EmptyState icon={Receipt} title="No refunds yet" desc="No cancellations or refunds on your account." testID="refunds-empty" /> : <EmptyState icon={Receipt} title="No refunds match" desc="Adjust your filters." testID="refunds-nomatch" />}
         renderItem={({ item: r }) => (
-          <View testID={`refund-${r.booking_code}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 18, marginBottom: 12 }}>
+          <View testID={`refund-${r.booking_code}`} style={{ borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, padding: 18, marginBottom: 12 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text }}>{r.service_name}</Text><RefundStatusBadge status={r.status} /><StatusChip tone="slate" label={r.method || "—"} /></View>

@@ -14,9 +14,9 @@ function ScratchTile({ card, onOpen, width }: { card: any; onOpen: () => void; w
   const claimed = card.status === "claimed"; const expired = card.status === "expired"; const available = card.status === "available";
   const inner = available ? <><Gift size={28} color="#fff" /><View><Text style={{ fontWeight: "700", color: "#fff", fontSize: 15 }}>Scratch to reveal 🎁</Text><Text style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>Booking {card.booking_code || ""}</Text></View></>
     : card.status === "scratched" ? <><Sparkles size={28} color="#fff" /><View><Text style={{ fontWeight: "700", color: "#fff", fontSize: 15 }}>{card.is_win ? fmt(card.reward_amount) : "No win"}</Text><Text style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>Tap to claim</Text></View></>
-    : claimed ? <><View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: EMERALD[500], alignItems: "center", justifyContent: "center" }}><Check size={16} color="#fff" /></View><View><Text style={{ fontWeight: "700", color: isDark ? EMERALD[300] : EMERALD[700], fontSize: 15 }}>{card.is_win ? `${fmt(card.reward_amount)} won` : "Better luck next"}</Text><Text style={{ fontSize: 11, color: EMERALD[600], marginTop: 2 }}>Claimed</Text></View></>
+    : claimed ? <><View style={{ height: 28, width: 28, borderRadius: 6, backgroundColor: EMERALD[500], alignItems: "center", justifyContent: "center" }}><Check size={16} color="#fff" /></View><View><Text style={{ fontWeight: "700", color: isDark ? EMERALD[300] : EMERALD[700], fontSize: 15 }}>{card.is_win ? `${fmt(card.reward_amount)} won` : "Better luck next"}</Text><Text style={{ fontSize: 11, color: EMERALD[600], marginTop: 2 }}>Claimed</Text></View></>
     : <><Clock size={28} color={TC.textFaint} /><Text style={{ fontWeight: "700", color: TC.textMuted, fontSize: 15 }}>Expired</Text></>;
-  const box = { width, aspectRatio: 4 / 5, borderRadius: 10, padding: 16, justifyContent: "space-between" as const, overflow: "hidden" as const };
+  const box = { width, aspectRatio: 4 / 5, borderRadius: 6, padding: 16, justifyContent: "space-between" as const, overflow: "hidden" as const };
   if (available || card.status === "scratched") {
     return <Pressable testID={`scratch-tile-${card.id}`} onPress={onOpen} style={({ pressed }) => ({ width, transform: [{ scale: pressed ? 0.95 : 1 }] })}><LinearGradient colors={[PRIMARY[500], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ ...box, width: "100%" }}>{inner}</LinearGradient></Pressable>;
   }
@@ -51,10 +51,10 @@ function ScratchModal({ card, onClose, onDone, toast }: { card: any; onClose: ()
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 16 }}>
         <Pressable style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }} onPress={onClose} />
-        <View testID="scratch-modal" style={{ width: "100%", maxWidth: 384, borderRadius: 10, backgroundColor: c.surface, padding: 24, alignItems: "center" }}>
+        <View testID="scratch-modal" style={{ width: "100%", maxWidth: 384, borderRadius: 6, backgroundColor: c.surface, padding: 24, alignItems: "center" }}>
           <Pressable testID="scratch-modal-close" onPress={onClose} style={{ position: "absolute", right: 12, top: 12, height: 36, width: 36, alignItems: "center", justifyContent: "center" }}><X size={20} color={TC.textFaint} /></Pressable>
           <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>Scratch Card</Text>
-          <View style={{ marginTop: 16, width: "100%", maxWidth: 320, height: 200, borderRadius: 10, overflow: "hidden" }}>
+          <View style={{ marginTop: 16, width: "100%", maxWidth: 320, height: 200, borderRadius: 6, overflow: "hidden" }}>
             <LinearGradient colors={[PRIMARY[600], PRIMARY[800]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
               {win ? <><Text style={{ fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.85)" }}>You won</Text><Text style={{ fontSize: 48, fontWeight: "900", color: "#fff", marginTop: 4 }}>{fmt(amount)}</Text><Text style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>cashback</Text></>
                 : <Text style={{ fontSize: 24, fontWeight: "900", color: "#fff", textAlign: "center" }}>Better luck{"\n"}next time!</Text>}
@@ -66,7 +66,7 @@ function ScratchModal({ card, onClose, onDone, toast }: { card: any; onClose: ()
               </View>
             ) : null}
           </View>
-          {revealed ? <Pressable testID="scratch-claim" disabled={claiming} onPress={claim} style={{ marginTop: 20, width: "100%", height: 48, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: claiming ? 0.6 : 1 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{claiming ? "Claiming…" : win ? "Claim to Wallet" : "Okay"}</Text></Pressable>
+          {revealed ? <Pressable testID="scratch-claim" disabled={claiming} onPress={claim} style={{ marginTop: 20, width: "100%", height: 48, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: claiming ? 0.6 : 1 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{claiming ? "Claiming…" : win ? "Claim to Wallet" : "Okay"}</Text></Pressable>
             : <Text style={{ marginTop: 20, fontSize: 14, color: TC.textMuted }}>Scratch the grey area to reveal your reward</Text>}
         </View>
       </View>
@@ -88,8 +88,8 @@ export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly, hideW
   if (!loading && cards.length === 0 && hideWhenEmpty) return null;
   if (!loading && cards.length === 0) {
     return (
-      <View testID="scratch-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 24, alignItems: "center", marginBottom: 20 }}>
-        <View style={{ height: 48, width: 48, borderRadius: 10, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 8 }}><Gift size={24} color={PRIMARY[600]} /></View>
+      <View testID="scratch-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 24, alignItems: "center", marginBottom: 20 }}>
+        <View style={{ height: 48, width: 48, borderRadius: 6, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 8 }}><Gift size={24} color={PRIMARY[600]} /></View>
         <Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>No scratch cards yet</Text>
         <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 2, textAlign: "center" }}>Complete eligible bookings to unlock cashback rewards.</Text>
       </View>
@@ -101,7 +101,7 @@ export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly, hideW
     return (
       <View testID="scratch-viewall" style={{ marginBottom: 24 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16 }}>
-          {gridOnly ? null : <Pressable testID="scratch-viewall-back" onPress={() => setViewAll(false)} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={c.textMuted} /></Pressable>}
+          {gridOnly ? null : <Pressable testID="scratch-viewall-back" onPress={() => setViewAll(false)} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={c.textMuted} /></Pressable>}
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Sparkles size={20} color={AMBER[500]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Reward &amp; Cashback</Text></View>
             <Text style={{ fontSize: 12, color: TC.textMuted }}>Earned {fmt(summary.earned)} · {cards.length} card{cards.length > 1 ? "s" : ""} · scratched cards auto-remove after 30 days</Text>

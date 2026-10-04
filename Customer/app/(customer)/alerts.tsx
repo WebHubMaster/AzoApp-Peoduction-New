@@ -85,7 +85,7 @@ export default function AlertHealthCheck() {
   return (
     <View testID="alert-health-check" style={{ gap: 16 }}>
       {criticalMissing ? (
-        <View testID="alert-warning" style={{ flexDirection: "row", gap: 10, backgroundColor: isDark ? "rgba(120,53,15,0.25)" : "#FEF3C7", borderColor: "#FCD34D", borderWidth: 1, borderRadius: 10, padding: 14 }}>
+        <View testID="alert-warning" style={{ flexDirection: "row", gap: 10, backgroundColor: isDark ? "rgba(120,53,15,0.25)" : "#FEF3C7", borderColor: "#FCD34D", borderWidth: 1, borderRadius: 6, padding: 14 }}>
           <AlertCircle size={20} color="#B45309" />
           <Text style={{ flex: 1, color: isDark ? "#FDE68A" : "#92400E", fontSize: 12.5, lineHeight: 18, fontWeight: "600" }}>
             A required permission is off. Your booking alerts may not ring reliably until you allow it below.
@@ -99,15 +99,15 @@ export default function AlertHealthCheck() {
         const permanentlyDenied = !!st && !granted && st.canAskAgain === false;
         const Ic = card.icon;
         return (
-          <View key={card.key} testID={`alert-card-${card.key}`} style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: granted ? "rgba(34,197,94,0.45)" : card.critical ? "rgba(245,158,11,0.4)" : c.border, padding: 14, gap: 10 }}>
+          <View key={card.key} testID={`alert-card-${card.key}`} style={{ backgroundColor: c.surface, borderRadius: 6, borderWidth: 1, borderColor: granted ? "rgba(34,197,94,0.45)" : card.critical ? "rgba(245,158,11,0.4)" : c.border, padding: 14, gap: 10 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ width: 46, height: 46, borderRadius: 10, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 46, height: 46, borderRadius: 6, backgroundColor: card.tint + "22", alignItems: "center", justifyContent: "center" }}>
                 <Ic size={24} color={card.tint} />
               </View>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{card.title}</Text>
-                  {card.critical ? <View style={{ backgroundColor: "#F59E0B22", paddingHorizontal: 7, paddingVertical: 1, borderRadius: 999 }}><Text style={{ color: "#B45309", fontSize: 10, fontWeight: "900" }}>REQUIRED</Text></View> : null}
+                  {card.critical ? <View style={{ backgroundColor: "#F59E0B22", paddingHorizontal: 7, paddingVertical: 1, borderRadius: 6 }}><Text style={{ color: "#B45309", fontSize: 10, fontWeight: "900" }}>REQUIRED</Text></View> : null}
                 </View>
                 {granted ? (
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 3 }}>
@@ -122,7 +122,7 @@ export default function AlertHealthCheck() {
                 )}
               </View>
               {granted ? (
-                <View testID={`alert-${card.key}-granted`} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: "#22C55E", alignItems: "center", justifyContent: "center" }}>
+                <View testID={`alert-${card.key}-granted`} style={{ width: 34, height: 34, borderRadius: 6, backgroundColor: "#22C55E", alignItems: "center", justifyContent: "center" }}>
                   <Check size={19} color="#fff" />
                 </View>
               ) : (
@@ -130,7 +130,7 @@ export default function AlertHealthCheck() {
                   testID={`alert-${card.key}-allow`}
                   onPress={() => handle(card)}
                   disabled={busy === card.key}
-                  style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: PRIMARY[700], opacity: busy === card.key ? 0.6 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] })}
+                  style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 9, borderRadius: 6, backgroundColor: PRIMARY[700], opacity: busy === card.key ? 0.6 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] })}
                 >
                   <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12.5 }}>{permanentlyDenied ? "Open Settings" : "Allow"}</Text>
                 </Pressable>
@@ -143,7 +143,7 @@ export default function AlertHealthCheck() {
       })}
 
       {/* Push & ring diagnostics + real self-test */}
-      <View testID="alert-diagnostics" style={{ backgroundColor: c.surface, borderRadius: 10, borderWidth: 1, borderColor: c.border, padding: 14, gap: 12 }}>
+      <View testID="alert-diagnostics" style={{ backgroundColor: c.surface, borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 14, gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Radio size={20} color={c.primaryText} />
           <Text style={{ color: c.text, fontWeight: "900", fontSize: 15 }}>Push & Ring Diagnostics</Text>
@@ -158,17 +158,17 @@ export default function AlertHealthCheck() {
         </View>
         <Text style={{ color: c.textMuted, fontSize: 11.5, lineHeight: 17 }}>Send a real test to this phone. For the alert test, lock your screen or minimise the app first, then tap — it should ring like a call.</Text>
         <View style={{ flexDirection: "row", gap: 10 }}>
-          <Pressable testID="alert-test-ring" onPress={() => sendTest("ring")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Pressable testID="alert-test-ring" onPress={() => sendTest("ring")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             {testing === "ring" ? <ActivityIndicator size="small" color="#fff" /> : <><BellRing size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 12.5 }}>Test Alert Ring</Text></>}
           </Pressable>
-          <Pressable testID="alert-test-push" onPress={() => sendTest("push")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 12, borderWidth: 1.5, borderColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Pressable testID="alert-test-push" onPress={() => sendTest("push")} disabled={!!testing} style={({ pressed }) => ({ flex: 1, height: 46, borderRadius: 6, borderWidth: 1.5, borderColor: PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: testing ? 0.6 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             {testing === "push" ? <ActivityIndicator size="small" color={c.primaryText} /> : <><Bell size={16} color={c.primaryText} /><Text style={{ color: c.primaryText, fontWeight: "800", fontSize: 12.5 }}>Test Notification</Text></>}
           </Pressable>
         </View>
       </View>
 
       {Platform.OS === "android" ? (
-        <Pressable testID="alert-open-settings" onPress={() => Linking.openSettings().catch(() => toast.info("Open your phone Settings → Apps → AzoApp"))} style={{ alignItems: "center", paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface }}>
+        <Pressable testID="alert-open-settings" onPress={() => Linking.openSettings().catch(() => toast.info("Open your phone Settings → Apps → AzoApp"))} style={{ alignItems: "center", paddingVertical: 12, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface }}>
           <Text style={{ color: c.primaryText, fontWeight: "800", fontSize: 14 }}>Open App Settings</Text>
         </Pressable>
       ) : null}

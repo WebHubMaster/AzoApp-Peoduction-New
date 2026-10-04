@@ -23,10 +23,10 @@ export function NotificationBell({ testID = "m-notif-btn" }: { testID?: string }
   return (
     <>
       <Pressable testID={testID} onPress={() => { setOpen(true); load(); }}
-        style={({ pressed }) => ({ position: "relative", width: 40, height: 40, borderRadius: 12, backgroundColor: pressed ? (isDark ? SLATE[700] : SLATE[200]) : c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+        style={({ pressed }) => ({ position: "relative", width: 40, height: 40, borderRadius: 6, backgroundColor: pressed ? (isDark ? SLATE[700] : SLATE[200]) : c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
         <Bell size={20} color={isDark ? SLATE[300] : TC.textMuted} />
         {unread > 0 ? (
-          <View testID="notif-unread-badge" style={{ position: "absolute", top: -4, right: -4, height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center" }}>
+          <View testID="notif-unread-badge" style={{ position: "absolute", top: -4, right: -4, height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 6, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{unread > 9 ? "9+" : unread}</Text>
           </View>
         ) : null}

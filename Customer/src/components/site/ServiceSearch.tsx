@@ -64,13 +64,13 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
         </Pressable>
       ) : null}
       {showPanel ? (
-        <View testID="search-panel" style={{ position: "absolute", top: isHero ? 64 : 52, left: 0, right: 0, backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: TC.border, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", overflow: "hidden", maxHeight: 360 }}>
+        <View testID="search-panel" style={{ position: "absolute", top: isHero ? 64 : 52, left: 0, right: 0, backgroundColor: TC.surface, borderRadius: 6, borderWidth: 1, borderColor: TC.border, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", overflow: "hidden", maxHeight: 360 }}>
           {q.trim().length >= 2 ? (
             loading && !results.length ? <Text style={{ padding: 16, fontSize: 13, color: TC.textMuted }}>Searching…</Text>
             : results.length === 0 ? <Text style={{ padding: 16, fontSize: 13, color: TC.textMuted }}>No services match “{q}”.</Text>
             : results.map((s) => (
               <Pressable key={s.id} testID={`search-result-${s.id}`} onPress={() => pick(s)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: pressed ? SLATE[50] : TC.surface })}>
-                <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Zap size={16} color={TC.primaryText} /></View>
+                <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Zap size={16} color={TC.primaryText} /></View>
                 <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{s.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{s.category_name}</Text></View>
                 <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{fmt(priceOf(s))}</Text>
               </Pressable>
@@ -80,7 +80,7 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
               {recent.length > 0 ? (
                 <View>
                   <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1, color: TC.textFaint, marginBottom: 6 }}>Recent</Text>
-                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{recent.map((r) => <Pressable key={r} onPress={() => { setQ(r); runSearch(r); }} style={{ flexDirection: "row", alignItems: "center", gap: 4, height: 30, paddingHorizontal: 10, borderRadius: 999, backgroundColor: TC.surfaceAlt }}><Clock size={12} color={TC.textMuted} /><Text style={{ fontSize: 12, color: TC.text2, fontWeight: "500" }}>{r}</Text></Pressable>)}</View>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>{recent.map((r) => <Pressable key={r} onPress={() => { setQ(r); runSearch(r); }} style={{ flexDirection: "row", alignItems: "center", gap: 4, height: 30, paddingHorizontal: 10, borderRadius: 6, backgroundColor: TC.surfaceAlt }}><Clock size={12} color={TC.textMuted} /><Text style={{ fontSize: 12, color: TC.text2, fontWeight: "500" }}>{r}</Text></Pressable>)}</View>
                 </View>
               ) : null}
               {trending.length > 0 ? (

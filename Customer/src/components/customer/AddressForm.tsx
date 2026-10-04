@@ -27,7 +27,7 @@ function AddressMap({ lat, lng }: { lat: any; lng: any }) {
   const la = Number(lat), ln = Number(lng);
   if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${ln - 0.008}%2C${la - 0.008}%2C${ln + 0.008}%2C${la + 0.008}&layer=mapnik&marker=${la}%2C${ln}`;
-  const box = { height: 176, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, overflow: "hidden" as const };
+  const box = { height: 176, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, overflow: "hidden" as const };
   if (Platform.OS === "web") return <View testID="address-map" style={box}>{React.createElement("iframe", { title: "address-map", src, style: { width: "100%", height: "100%", border: 0 } })}</View>;
   return <View testID="address-map" style={box}><WebView source={{ uri: src }} style={{ flex: 1 }} /></View>;
 }
@@ -72,11 +72,11 @@ export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { v
     finally { setLocating(false); }
   };
 
-  const pin = (on: boolean) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: on ? PRIMARY[700] : (isDark ? SLATE[700] : SLATE[200]), backgroundColor: on ? c.primarySoft : "transparent" });
+  const pin = (on: boolean) => ({ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: on ? PRIMARY[700] : (isDark ? SLATE[700] : SLATE[200]), backgroundColor: on ? c.primarySoft : "transparent" });
 
   return (
     <View testID="address-form" style={{ gap: 12 }}>
-      <Pressable testID="gps-detect-btn" onPress={detect} disabled={locating} style={{ height: 44, borderRadius: 8, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: locating ? 0.6 : 1, borderColor: hasPoint ? EMERALD[300] : PRIMARY[300], backgroundColor: hasPoint ? EMERALD[50] : PRIMARY[50] }}>
+      <Pressable testID="gps-detect-btn" onPress={detect} disabled={locating} style={{ height: 44, borderRadius: 6, borderWidth: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, opacity: locating ? 0.6 : 1, borderColor: hasPoint ? EMERALD[300] : PRIMARY[300], backgroundColor: hasPoint ? EMERALD[50] : PRIMARY[50] }}>
         {locating ? <ActivityIndicator size="small" color={TC.primaryText} /> : hasPoint ? <CheckCircle2 size={16} color={EMERALD[700]} /> : <Navigation size={16} color={TC.primaryText} />}
         <Text style={{ fontSize: 14, fontWeight: "600", color: hasPoint ? EMERALD[700] : PRIMARY[700] }}>{locating ? "Detecting location…" : hasPoint ? "Location set — tap to update" : "Use my current location"}</Text>
       </Pressable>
@@ -98,7 +98,7 @@ export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { v
       </View>
 
       {String(value.pincode || "").length === 6 && (svcChecking || svc) ? (
-        <View testID="serviceability-status" style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: svcChecking ? (isDark ? SLATE[800] : SLATE[100]) : svc?.serviceable ? EMERALD[50] : ROSE[50] }}>
+        <View testID="serviceability-status" style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: svcChecking ? (isDark ? SLATE[800] : SLATE[100]) : svc?.serviceable ? EMERALD[50] : ROSE[50] }}>
           {svcChecking ? <><ActivityIndicator size="small" color={TC.textMuted} /><Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>Checking availability…</Text></>
             : svc?.serviceable ? <><CheckCircle2 size={16} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></>
             : <View style={{ flex: 1, flexDirection: "row", gap: 6 }}><AlertTriangle size={16} color={ROSE[600]} /><Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: ROSE[600] }}>We don&apos;t serve this pincode yet, so this booking can&apos;t be placed here.{Array.isArray(svc?.serviced_cities) && svc.serviced_cities.length > 0 ? <Text> Currently serving: <Text style={{ fontWeight: "800" }}>{svc.serviced_cities.slice(0, 12).join(", ")}</Text>.</Text> : null}</Text></View>}

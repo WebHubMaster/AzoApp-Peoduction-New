@@ -210,10 +210,10 @@ export default function Checkout() {
   if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace((placed.subscription ? "/(customer)/subscriptions" : "/(customer)/orders") as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (ready && !items.length && step === 0) return (
     <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <View style={{ height: 80, width: 80, borderRadius: 10, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
+      <View style={{ height: 80, width: 80, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><ShoppingBag size={40} color={TC.primaryText} /></View>
       <Text style={{ fontSize: 22, fontWeight: "700", color: TC.text }}>Your booking is empty</Text>
       <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 320 }}>Add one or more services to get started. You can book multiple services in a single order.</Text>
-      <Pressable testID="browse-services" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Browse services</Text><ArrowRight size={16} color="#fff" /></Pressable>
+      <Pressable testID="browse-services" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 6, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Browse services</Text><ArrowRight size={16} color="#fff" /></Pressable>
       <Pressable testID="checkout-back" onPress={back} style={{ marginTop: 16 }}><Text style={{ color: TC.textMuted, fontWeight: "600" }}>← Back</Text></Pressable>
     </View>
   );
@@ -223,7 +223,7 @@ export default function Checkout() {
     <View style={{ flex: 1, backgroundColor: TC.bg }} testID="checkout-page">
       <View style={{ paddingTop: insets.top + 8, backgroundColor: TC.surface, borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)" }}>
         <View style={{ height: 56, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={TC.textMuted} /></Pressable>
+          <Pressable testID="checkout-back" onPress={back} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={20} color={TC.textMuted} /></Pressable>
           <View><Text style={{ fontSize: 18, fontWeight: "800", color: TC.text }}>{isSub ? "Book your subscription" : "Book your services"}</Text><Text testID="checkout-count" style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{isSub ? `${sub.plan_label || sub.plan_type} plan` : `${count} item${count > 1 ? "s" : ""} in your order`}</Text></View>
         </View>
         <View style={{ borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingVertical: 12, paddingHorizontal: 16 }}><Stepper step={step} steps={activeSteps} /></View>
@@ -240,9 +240,9 @@ export default function Checkout() {
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{showFull ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(showFull ? displayTotal : subtotal)}</Text></View>
         {step < activeSteps.length - 1 ? (
-          <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{stepKey === "summary" ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
+          <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{stepKey === "summary" ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
         ) : (
-          <Pressable testID="place-order" onPress={placeOrder} disabled={placing} style={({ pressed }) => ({ height: 48, paddingHorizontal: 20, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 6, opacity: placing ? 0.7 : 1 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placing ? (isSub ? "Processing…" : `Placing ${progress.done}/${progress.total}…`) : (isSub ? "Confirm & Pay" : "Confirm & Place Order")}</Text><ShieldCheck size={16} color="#fff" /></Pressable>
+          <Pressable testID="place-order" onPress={placeOrder} disabled={placing} style={({ pressed }) => ({ height: 48, paddingHorizontal: 20, borderRadius: 6, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", gap: 6, opacity: placing ? 0.7 : 1 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placing ? (isSub ? "Processing…" : `Placing ${progress.done}/${progress.total}…`) : (isSub ? "Confirm & Pay" : "Confirm & Place Order")}</Text><ShieldCheck size={16} color="#fff" /></Pressable>
         )}
       </View>
     </View>

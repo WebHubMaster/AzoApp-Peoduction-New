@@ -19,7 +19,7 @@ function LegalModal({ doc, onClose }: { doc: "terms" | "privacy" | null; onClose
       <View style={{ flex: 1, backgroundColor: c.surface, paddingTop: insets.top }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
           <Text numberOfLines={1} style={{ flex: 1, fontSize: 16, fontWeight: "700", color: c.text }}>{title}</Text>
-          <Pressable testID="legal-close" onPress={onClose} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.text} /></Pressable>
+          <Pressable testID="legal-close" onPress={onClose} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.text} /></Pressable>
         </View>
         {doc ? (
           Platform.OS === "web"

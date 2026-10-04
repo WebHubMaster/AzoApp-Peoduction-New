@@ -51,7 +51,7 @@ export function ServiceBreakdown({ booking, title = "Service breakdown", showCha
   const soft = isDark ? "rgba(30,41,59,0.6)" : SLATE[50];
   const line = isDark ? SLATE[800] : SLATE[100];
   return (
-    <View testID="service-breakdown" style={{ borderRadius: 12, borderWidth: 1, borderColor: c.border, overflow: "hidden" }}>
+    <View testID="service-breakdown" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, overflow: "hidden" }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 8, backgroundColor: soft, borderBottomWidth: 1, borderBottomColor: line }}>
         <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: c.textMuted }}>{showCount ? `${title} (${list.length})` : title}</Text>
         <Text style={{ fontSize: 10, fontWeight: "600", color: TC.textFaint }}>Excl. taxes</Text>

@@ -47,12 +47,12 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
     setStatus("error"); setErr(r.error);
   };
   const Trigger = iconOnly ? (
-    <Pressable testID={testID} onPress={() => setOpen((o) => !o)} style={{ width: 40, height: 40, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
+    <Pressable testID={testID} onPress={() => setOpen((o) => !o)} style={{ width: 40, height: 40, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
       <MapPin size={20} color={hasLoc ? PRIMARY[700] : TC.text2} />
       {hasLoc ? <View testID={`${testID}-dot`} style={{ position: "absolute", top: 6, right: 6, height: 8, width: 8, borderRadius: 4, backgroundColor: EMERALD[500], borderWidth: 1.5, borderColor: TC.surface }} /> : null}
     </Pressable>
   ) : (
-    <Pressable testID={testID} onPress={() => setOpen((o) => !o)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 12, backgroundColor: TC.bg, borderWidth: 1, borderColor: TC.border, maxWidth: 200, alignSelf: "flex-start" }}>
+    <Pressable testID={testID} onPress={() => setOpen((o) => !o)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 6, backgroundColor: TC.bg, borderWidth: 1, borderColor: TC.border, maxWidth: 200, alignSelf: "flex-start" }}>
       <MapPin size={16} color={TC.primaryText} /><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text2, flexShrink: 1 }}>{loc || "Select location"}</Text><ChevronDown size={16} color={TC.textFaint} />
     </Pressable>
   );
@@ -60,7 +60,7 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
     <View style={iconOnly ? { position: "relative", zIndex: 60 } : undefined}>
       {Trigger}
       {open ? (
-        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: iconOnly ? Dimensions.get("window").width - SIDE_MARGIN * 2 : 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 10, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: -(ICON_RIGHT_GAP - SIDE_MARGIN), zIndex: 100 } : {}) } as any}>
+        <View testID={`${testID}-panel`} style={{ marginTop: 8, width: iconOnly ? Dimensions.get("window").width - SIDE_MARGIN * 2 : 288, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, borderRadius: 6, padding: 16, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.15)", ...(iconOnly ? { position: "absolute", top: 44, right: -(ICON_RIGHT_GAP - SIDE_MARGIN), zIndex: 100 } : {}) } as any}>
           {status === "out_of_area" && oos ? (
             <View testID="out-of-area">
               <Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>We&apos;re not in {oos.city} yet</Text>
@@ -70,21 +70,21 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
           ) : (
             <>
               {hasLoc ? (
-                <View testID={`${testID}-current`} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10, alignSelf: "flex-start", backgroundColor: TC.primarySoft, borderRadius: 999, paddingHorizontal: 10, height: 30 }}>
+                <View testID={`${testID}-current`} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10, alignSelf: "flex-start", backgroundColor: TC.primarySoft, borderRadius: 6, paddingHorizontal: 10, height: 30 }}>
                   <MapPin size={13} color={TC.primaryText} /><Text style={{ fontSize: 12.5, fontWeight: "700", color: PRIMARY[800] }}>{loc}</Text>
                   <View style={{ height: 5, width: 5, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 10.5, color: EMERALD[700], fontWeight: "600" }}>Current</Text>
                 </View>
               ) : null}
               <Text style={{ fontSize: 14, fontWeight: "600", color: TC.text, marginBottom: 8 }}>Where do you need service?</Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <TextInput testID={`${testID}-input`} value={val} onChangeText={setVal} onSubmitEditing={save} placeholder="City or pincode" placeholderTextColor={TC.textFaint} numberOfLines={1} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 8, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
+                <TextInput testID={`${testID}-input`} value={val} onChangeText={setVal} onSubmitEditing={save} placeholder="City or pincode" placeholderTextColor={TC.textFaint} numberOfLines={1} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 6, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
                 <Pressable testID={`${testID}-set`} onPress={save} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Set</Text></Pressable>
               </View>
               {isPin ? (
                 <View testID={`${testID}-pincode-badge`} style={{ marginTop: 8, flexDirection: "row" }}>
-                  {pinChecking ? <Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted, backgroundColor: TC.surfaceAlt, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>Checking availability…</Text>
-                    : pinCov?.serviceable === true ? <View testID={`${testID}-pincode-serviceable`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></View>
-                    : pinCov?.serviceable === false ? <View testID={`${testID}-pincode-blocked`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View> : null}
+                  {pinChecking ? <Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted, backgroundColor: TC.surfaceAlt, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}>Checking availability…</Text>
+                    : pinCov?.serviceable === true ? <View testID={`${testID}-pincode-serviceable`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></View>
+                    : pinCov?.serviceable === false ? <View testID={`${testID}-pincode-blocked`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View> : null}
                 </View>
               ) : null}
               <Pressable testID={`${testID}-detect`} onPress={detect} disabled={status === "locating"} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, opacity: status === "locating" ? 0.7 : 1 }}>
@@ -116,15 +116,15 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
       <View style={{ height: 64, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 }}>
         <Pressable testID="site-logo" onPress={() => router.push("/(site)")} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           {logo ? <Image source={{ uri: logo }} style={{ height: 36, width: 120 }} contentFit="contain" contentPosition="left" /> : (
-            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{(branding.site_name || "A")[0]}</Text></View>
+            <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{(branding.site_name || "A")[0]}</Text></View>
           )}
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: "#fff", borderWidth: 1, borderColor: "#FDE68A", alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 32, height: 32 }} contentFit="contain" /></Pressable>
+        <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: "#FDE68A", alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 24, height: 24 }} contentFit="contain" /></Pressable>
         <LocationButton testID="nav-location" iconOnly />
-        <Pressable testID="nav-cart" onPress={() => router.push("/(site)/book")} style={{ width: 40, height: 40, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
+        <Pressable testID="nav-cart" onPress={() => router.push("/(site)/book")} style={{ width: 40, height: 40, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
           <ShoppingBag size={20} color={TC.text2} />
-          {cartCount > 0 ? <View style={{ position: "absolute", top: -6, right: -6, height: 20, minWidth: 20, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{cartCount}</Text></View> : null}
+          {cartCount > 0 ? <View style={{ position: "absolute", top: -6, right: -6, height: 20, minWidth: 20, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{cartCount}</Text></View> : null}
         </Pressable>
         <Pressable testID={user ? "nav-account-mobile" : "nav-login-mobile"} onPress={account} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 20, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center" })}><User size={20} color="#fff" /></Pressable>
       </View>
@@ -169,7 +169,7 @@ export function MobileBottomNav() {
             <View>
               <t.icon size={20} color={color} strokeWidth={act ? 2.3 : 1.7} />
               {t.key === "cart" && count > 0 ? (
-                <View testID="tab-cart-count" style={{ position: "absolute", top: -8, right: -12, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
+                <View testID="tab-cart-count" style={{ position: "absolute", top: -8, right: -12, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
                   <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{count}</Text>
                 </View>
               ) : null}

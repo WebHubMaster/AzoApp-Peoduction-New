@@ -33,7 +33,7 @@ export function FSelect({ value, options, onChange, testID = "select", title = "
       <BottomSheet open={open} onClose={() => setOpen(false)} title={title} testID={`${testID}-sheet`}>
         <View style={{ gap: 4 }}>
           {options.map((o) => { const on = value === o.value; return (
-            <Pressable key={o.value || "_"} testID={`${testID}-opt-${o.value || "none"}`} onPress={() => { onChange(o.value); setOpen(false); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: on ? c.primarySoft : "transparent" }}>
+            <Pressable key={o.value || "_"} testID={`${testID}-opt-${o.value || "none"}`} onPress={() => { onChange(o.value); setOpen(false); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 6, backgroundColor: on ? c.primarySoft : "transparent" }}>
               <Text style={{ fontSize: 14, fontWeight: on ? "600" : "400", color: on ? c.primaryText : (isDark ? SLATE[300] : SLATE[600]) }}>{o.label}</Text>{on ? <Check size={16} color={c.primaryText} /> : null}
             </Pressable>); })}
         </View>
@@ -58,7 +58,7 @@ export function DateField({ value, onChange, placeholder = "Pick a date", fromYe
       </Pressable>
       <BottomSheet open={open} onClose={() => setOpen(false)} title={placeholder} testID={`${testID}-sheet`}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-          {years.map((y) => <Pressable key={y} testID={`${testID}-year-${y}`} onPress={() => setYear(y)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: year === y ? PRIMARY[700] : (isDark ? SLATE[700] : SLATE[200]), backgroundColor: year === y ? PRIMARY[700] : "transparent" }}><Text style={{ fontSize: 13, fontWeight: "600", color: year === y ? "#fff" : c.textMuted }}>{y}</Text></Pressable>)}
+          {years.map((y) => <Pressable key={y} testID={`${testID}-year-${y}`} onPress={() => setYear(y)} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: year === y ? PRIMARY[700] : (isDark ? SLATE[700] : SLATE[200]), backgroundColor: year === y ? PRIMARY[700] : "transparent" }}><Text style={{ fontSize: 13, fontWeight: "600", color: year === y ? "#fff" : c.textMuted }}>{y}</Text></Pressable>)}
         </ScrollView>
         <MiniCalendar key={year} from={selected} initialView={new Date(year, selected && selected.getFullYear() === year ? selected.getMonth() : 0, 1)} maxDate={maxDate} onPick={(d) => { onChange(iso(d)); setOpen(false); }} testID={`${testID}-cal`} />
         {value ? <Pressable testID={`${testID}-clear`} onPress={() => { onChange(""); setOpen(false); }}><Text style={{ fontSize: 14, color: TC.textMuted }}>Clear</Text></Pressable> : null}

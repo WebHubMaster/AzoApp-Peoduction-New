@@ -13,7 +13,7 @@ import { H2, Lbl, SectionCard, Row, PriceRows, addonLabel, card, SubscriptionHea
 
 const OsmMap = ({ lat, lng }: { lat: number; lng: number }) => {
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.008}%2C${lng + 0.008}%2C${lat + 0.008}&layer=mapnik&marker=${lat}%2C${lng}`;
-  const box = { height: 176, borderRadius: 8, borderWidth: 1, borderColor: TC.border, overflow: "hidden" as const };
+  const box = { height: 176, borderRadius: 6, borderWidth: 1, borderColor: TC.border, overflow: "hidden" as const };
   if (Platform.OS === "web") return <View style={box}>{React.createElement("iframe", { title: "saved-map", src, style: { width: "100%", height: "100%", border: 0 } })}</View>;
   return <View style={box}><WebView source={{ uri: src }} style={{ flex: 1 }} /></View>;
 };
@@ -38,11 +38,11 @@ export function StepContact({ user, refresh, savedAddresses, selectedId, pickAdd
           <Lbl>Saved addresses</Lbl>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             {savedAddresses.map((a: any) => { const on = selectedId === a.id; return (
-              <Pressable key={a.id} testID={`saved-addr-${a.id}`} onPress={() => pickAddress(a.id)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, maxWidth: 200 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 14, fontWeight: "600", color: on ? PRIMARY[700] : TC.text2 }}>{a.label} {a.is_default ? "★" : ""}</Text>{a.lat && a.lng ? <View testID={`addr-pinned-${a.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 2, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1 }}><MapPin size={10} color={EMERALD[600]} /><Text style={{ fontSize: 10, fontWeight: "700", color: EMERALD[600] }}>Pinned</Text></View> : null}</View>
+              <Pressable key={a.id} testID={`saved-addr-${a.id}`} onPress={() => pickAddress(a.id)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: on ? PRIMARY[700] : TC.border, backgroundColor: on ? PRIMARY[50] : TC.surface, maxWidth: 200 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 14, fontWeight: "600", color: on ? PRIMARY[700] : TC.text2 }}>{a.label} {a.is_default ? "★" : ""}</Text>{a.lat && a.lng ? <View testID={`addr-pinned-${a.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 2, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}><MapPin size={10} color={EMERALD[600]} /><Text style={{ fontSize: 10, fontWeight: "700", color: EMERALD[600] }}>Pinned</Text></View> : null}</View>
                 <Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint, maxWidth: 160 }}>{a.line}</Text>
               </Pressable>); })}
-            <Pressable testID="saved-addr-new" onPress={() => pickAddress("new")} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: selectedId === "new" ? PRIMARY[700] : TC.border, backgroundColor: selectedId === "new" ? PRIMARY[50] : TC.surface, flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={selectedId === "new" ? PRIMARY[700] : TC.textMuted} /><Text style={{ fontSize: 14, fontWeight: "500", color: selectedId === "new" ? PRIMARY[700] : TC.textMuted }}>New address</Text></Pressable>
+            <Pressable testID="saved-addr-new" onPress={() => pickAddress("new")} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: selectedId === "new" ? PRIMARY[700] : TC.border, backgroundColor: selectedId === "new" ? PRIMARY[50] : TC.surface, flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color={selectedId === "new" ? PRIMARY[700] : TC.textMuted} /><Text style={{ fontSize: 14, fontWeight: "500", color: selectedId === "new" ? PRIMARY[700] : TC.textMuted }}>New address</Text></Pressable>
           </View>
         </View>
       ) : null}
@@ -102,10 +102,10 @@ export const scheduleLabel = (schedule: string, scheduledAt: string | null) => {
 };
 
 function PayOpt({ k, Icon, title, sub, disabled, tone, testID, payMethod, setPayMethod }: any) { const on = payMethod === k; const col = tone === "green" ? EMERALD[600] : PRIMARY[600]; return (
-    <Pressable testID={testID} disabled={disabled} onPress={() => !disabled && setPayMethod(k)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? (tone === "green" ? EMERALD[50] : PRIMARY[50]) : TC.surface, paddingHorizontal: 16, paddingVertical: 12, opacity: disabled ? 0.5 : 1 }}>
-      <View style={{ height: 36, width: 36, borderRadius: 8, backgroundColor: on ? col : TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={on ? "#fff" : TC.textMuted} /></View>
+    <Pressable testID={testID} disabled={disabled} onPress={() => !disabled && setPayMethod(k)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? (tone === "green" ? EMERALD[50] : PRIMARY[50]) : TC.surface, paddingHorizontal: 16, paddingVertical: 12, opacity: disabled ? 0.5 : 1 }}>
+      <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: on ? col : TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={on ? "#fff" : TC.textMuted} /></View>
       <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{title}</Text><Text style={{ fontSize: 12, color: TC.textMuted }}>{sub}</Text></View>
-      <View style={{ height: 16, width: 16, borderRadius: 8, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? col : "transparent" }} />
+      <View style={{ height: 16, width: 16, borderRadius: 6, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? col : "transparent" }} />
     </Pressable>); }
 
 export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub }: any) {
@@ -114,7 +114,7 @@ export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, ad
     <View style={{ gap: 16 }}>
       <H2 t="Review & confirm" s="Please verify everything before placing your order." />
       <SectionCard title={isSub ? "Your plan" : `Services (${items.length})`} icon={ShoppingBag} onEdit={() => go(0)} testID="review-services">
-        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ height: 48, width: 48, borderRadius: 8, backgroundColor: TC.surfaceAlt, overflow: "hidden" }}>{it.image ? <Image source={{ uri: it.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : null}</View><View style={{ flex: 1, minWidth: 0 }}>{isSub ? <SubscriptionHeader it={it} /> : <><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · ${addonLabel(it)}` : ""}</Text></>}</View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
+        <View style={{ gap: 12 }}>{items.map((it: any) => <View key={it.id} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><View style={{ height: 48, width: 48, borderRadius: 6, backgroundColor: TC.surfaceAlt, overflow: "hidden" }}>{it.image ? <Image source={{ uri: it.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : null}</View><View style={{ flex: 1, minWidth: 0 }}>{isSub ? <SubscriptionHeader it={it} /> : <><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{it.name}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{it.tier_index != null && it.tiers?.[it.tier_index] ? `${it.tiers[it.tier_index].label} · ` : ""}Qty {it.qty}{(it.addons || []).length ? ` · ${addonLabel(it)}` : ""}</Text></>}</View><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{fmt(lineTotal(it))}</Text></View>)}</View>
       </SectionCard>
       <SectionCard title="Schedule" icon={CalendarClock} onEdit={() => go(isSub ? 1 : 2)} testID="review-schedule"><View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>{schedule === "emergency" ? <Zap size={16} color="#F59E0B" /> : <CalendarClock size={16} color={TC.primaryText} />}<Text style={{ fontSize: 14, fontWeight: "500", color: TC.text2 }}>{scheduleLabel(schedule, scheduledAt)}</Text></View></SectionCard>
       <SectionCard title="Contact" icon={User} onEdit={() => go(isSub ? 2 : 3)} testID="review-contact"><Text style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{user?.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted }}>{user?.phone}</Text></SectionCard>
@@ -127,7 +127,7 @@ export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, ad
         </View>
       </SectionCard>
       <SectionCard title="Payment summary" icon={ShieldCheck} onEdit={() => go(isSub ? 3 : 4)} testID="review-price"><PriceRows totals={totals} items={items} lineTotal={lineTotal} estimate={displayTotal} review /></SectionCard>
-      <View testID="secure-badge" style={{ borderRadius: 10, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: EMERALD[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color="#fff" /></View><View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely now · full refund on eligible cancellations</Text></View></View>
+      <View testID="secure-badge" style={{ borderRadius: 6, backgroundColor: EMERALD[50], borderWidth: 1, borderColor: EMERALD[200], padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}><View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: EMERALD[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color="#fff" /></View><View><Text style={{ fontSize: 14, fontWeight: "700", color: "#065F46" }}>100% Secure & Refundable</Text><Text style={{ fontSize: 11, color: EMERALD[700] }}>Pay safely now · full refund on eligible cancellations</Text></View></View>
     </View>
   );
 }
@@ -148,7 +148,7 @@ export function SuccessScreen({ placed, onBookings, onMore }: { placed: any; onB
           </View>
         </View>
       ) : null}
-      <Pressable testID="go-bookings" onPress={onBookings} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placed.subscription ? "View my subscriptions" : "View my bookings"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
+      <Pressable testID="go-bookings" onPress={onBookings} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placed.subscription ? "View my subscriptions" : "View my bookings"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
       <Pressable testID="book-more" onPress={onMore} style={{ marginTop: 12 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.textMuted }}>Book more services</Text></Pressable>
     </View>
   );

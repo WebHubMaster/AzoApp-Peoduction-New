@@ -17,7 +17,7 @@ const ring = { borderWidth: 1, borderColor: "rgba(226,232,240,0.8)" } as const;
 function Stat({ Icon, bg, color, value, label, suffix }: any) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={color} fill={Icon === Star ? color : "none"} /></View>
+      <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={color} fill={Icon === Star ? color : "none"} /></View>
       <View><Text style={{ fontWeight: "800", fontSize: 20, lineHeight: 22, color: TC.text }}>{value}{suffix ? <Text style={{ color: AMBER[500] }}>{suffix}</Text> : null}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>{label}</Text></View>
     </View>
   );
@@ -34,7 +34,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
       <LinearGradient colors={["rgba(13,71,161,0.10)", "rgba(13,71,161,0.0)"]} start={{ x: 0, y: 0 }} end={{ x: 0.6, y: 1 }} style={{ position: "absolute", top: 0, left: 0, right: 0, height: 560 }} />
       <Container style={{ paddingTop: 32, paddingBottom: 40, gap: 40 }}>
         <View>
-          <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 999, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], paddingHorizontal: 14, paddingVertical: 6 }}>
+          <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], paddingHorizontal: 14, paddingVertical: 6 }}>
             <ShieldCheck size={16} color={TC.primaryText} /><Text style={{ fontSize: 12, fontWeight: "600", color: PRIMARY[800] }}>{branding.tagline || `${branding.site_name || "AzoApp"} — verified home services`}</Text>
           </View>
           <Text testID="hero-title" style={{ fontWeight: "900", fontSize: 36, lineHeight: 38, letterSpacing: -0.8, color: TC.text, marginTop: 20 }}>Premium home services,{"\n"}<Text style={{ color: TC.primaryText }}>at your doorstep</Text></Text>
@@ -43,9 +43,9 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
             <ServiceSearch variant="hero" placeholder="Search for AC service, cleaning, electrician…" />
             <View testID="hero-quick-links" style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
               <Text style={{ fontSize: 12, color: TC.textFaint, fontWeight: "500" }}>Popular:</Text>
-              {!loaded ? [0, 1, 2, 3].map((i) => <Sk key={i} style={{ height: 28, width: 96, borderRadius: 999 }} />) : null}
+              {!loaded ? [0, 1, 2, 3].map((i) => <Sk key={i} style={{ height: 28, width: 96, borderRadius: 6 }} />) : null}
               {tiles.slice(0, 5).map((c) => (
-                <Pressable key={c.id} testID={`hero-chip-${c.id}`} onPress={() => onCategory(c)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 999, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "600", color: TC.text2 }}>{c.name}</Text></Pressable>
+                <Pressable key={c.id} testID={`hero-chip-${c.id}`} onPress={() => onCategory(c)} style={{ height: 32, paddingHorizontal: 12, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, justifyContent: "center" }}><Text style={{ fontSize: 12, fontWeight: "600", color: TC.text2 }}>{c.name}</Text></Pressable>
               ))}
             </View>
           </View>
@@ -59,7 +59,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
         {visuals.length > 0 ? (
           <View testID="hero-visuals" style={{ marginBottom: 20 }}>
             <View style={{ flexDirection: "row", gap: 12, height: 320 }}>
-              <Pressable testID="hero-visual-0" onPress={() => visuals[0].link && navigate(visuals[0].link)} style={{ flex: 1, borderRadius: 10, overflow: "hidden", ...ring, backgroundColor: TC.surfaceAlt }}>
+              <Pressable testID="hero-visual-0" onPress={() => visuals[0].link && navigate(visuals[0].link)} style={{ flex: 1, borderRadius: 6, overflow: "hidden", ...ring, backgroundColor: TC.surfaceAlt }}>
                 <Image source={{ uri: img(visuals[0]) }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
                 <LinearGradient colors={["transparent", "rgba(15,23,42,0.7)"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "60%" }} />
                 <View style={{ position: "absolute", bottom: 16, left: 16, right: 16 }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 18, lineHeight: 22 }}>{visuals[0].title}</Text>{visuals[0].subtitle ? <Text numberOfLines={1} style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, marginTop: 2 }}>{visuals[0].subtitle}</Text> : null}</View>
@@ -67,7 +67,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
               {visuals.length > 1 ? (
                 <View style={{ flex: 1, gap: 12 }}>
                   {visuals.slice(1).map((b) => (
-                    <Pressable key={b.id} onPress={() => b.link && navigate(b.link)} style={{ flex: 1, borderRadius: 10, overflow: "hidden", ...ring, backgroundColor: TC.surfaceAlt }}>
+                    <Pressable key={b.id} onPress={() => b.link && navigate(b.link)} style={{ flex: 1, borderRadius: 6, overflow: "hidden", ...ring, backgroundColor: TC.surfaceAlt }}>
                       <Image source={{ uri: img(b) }} style={{ width: "100%", height: "100%" }} contentFit="cover" />
                       <LinearGradient colors={["transparent", "rgba(15,23,42,0.7)"]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "60%" }} />
                       <Text style={{ position: "absolute", bottom: 12, left: 16, right: 16, color: "#fff", fontWeight: "700", fontSize: 14, lineHeight: 18 }}>{b.title}</Text>
@@ -77,7 +77,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
               ) : null}
             </View>
             {pros !== null ? (
-              <View style={{ position: "absolute", bottom: -20, left: 20, backgroundColor: TC.surface, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: TC.borderSoft, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }}>
+              <View style={{ position: "absolute", bottom: -20, left: 20, backgroundColor: TC.surface, borderRadius: 6, paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 1, borderColor: TC.borderSoft, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }}>
                 <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: EMERALD[50], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={20} color={EMERALD[600]} /></View>
                 <View><Text style={{ fontSize: 14, fontWeight: "700", color: TC.text }}>Verified & insured</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 4 }}>{pros} background-checked pros</Text></View>
               </View>
@@ -88,7 +88,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
             {!loaded ? Array.from({ length: 8 }).map((_, i) => <Sk key={i} style={{ width: "22%", flexGrow: 1, aspectRatio: 1 }} />) : null}
             {tiles.map((c, i) => (
               <Pressable key={c.id} testID={`hero-cat-${i}`} onPress={() => onCategory(c)} style={{ width: "22%", flexGrow: 1, maxWidth: "23.5%", alignItems: "center" }}>
-                <View style={{ width: "100%", aspectRatio: 1, borderRadius: 10, overflow: "hidden", backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: TC.borderSoft, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: "100%", aspectRatio: 1, borderRadius: 6, overflow: "hidden", backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: TC.borderSoft, alignItems: "center", justifyContent: "center" }}>
                   {c.image ? <Image source={{ uri: mediaUrl(c.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : <LucideByName name={c.icon} size={28} />}
                 </View>
                 <Text numberOfLines={2} style={{ fontSize: 11, fontWeight: "600", color: TC.text2, marginTop: 8, textAlign: "center", lineHeight: 14 }}>{c.name}</Text>
@@ -113,7 +113,7 @@ export function TrustBar() {
       <Container style={{ paddingVertical: 20, flexDirection: "row", flexWrap: "wrap", gap: 16 }}>
         {items.map(([Icon, t, s]) => (
           <View key={t} style={{ width: "47%", flexGrow: 1, flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={TC.primaryText} strokeWidth={1.6} /></View>
+            <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><Icon size={20} color={TC.primaryText} strokeWidth={1.6} /></View>
             <View style={{ flex: 1 }}><Text style={{ fontWeight: "600", color: TC.text, fontSize: 14, lineHeight: 18 }}>{t}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{s}</Text></View>
           </View>
         ))}
@@ -127,8 +127,8 @@ export function LocationHint({ city, onPick }: { city: string; onPick: () => voi
   return (
     <Pressable testID="home-location-hint" onPress={onPick}>
       <Container style={{ paddingTop: 24 }}>
-        <View style={{ borderRadius: 10, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}><MapPin size={16} color={TC.primaryText} /></View>
+        <View style={{ borderRadius: 6, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}><MapPin size={16} color={TC.primaryText} /></View>
           <Text style={{ flex: 1, fontSize: 14, color: TC.text2 }}><Text style={{ fontWeight: "600" }}>Set your location</Text> to see services, partners and offers available near you.</Text>
           <ArrowRight size={16} color={TC.primaryText} />
         </View>
@@ -139,8 +139,8 @@ export function LocationHint({ city, onPick }: { city: string; onPick: () => voi
 
 export function CategoryCard({ c, onOpen, testID }: { c: any; onOpen: (c: any) => void; testID?: string }) {
   return (
-    <Pressable testID={testID} onPress={() => onOpen(c)} style={{ width: 150, borderRadius: 10, backgroundColor: TC.surface, ...ring, padding: 10 }}>
-      <View style={{ aspectRatio: 1, borderRadius: 10, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+    <Pressable testID={testID} onPress={() => onOpen(c)} style={{ width: 150, borderRadius: 6, backgroundColor: TC.surface, ...ring, padding: 10 }}>
+      <View style={{ aspectRatio: 1, borderRadius: 6, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
         {c.image ? <Image source={{ uri: mediaUrl(c.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={c.id} /> : <LucideByName name={c.icon} size={36} />}
       </View>
       <View style={{ paddingHorizontal: 6, paddingTop: 12, paddingBottom: 4 }}>
@@ -158,14 +158,14 @@ export function ServiceCard({ s, navigate, badge, testID }: { s: any; navigate: 
   const rating = Number(s.rating) > 0 ? Number(s.rating).toFixed(1) : null;
   const dur = s.duration_min >= 60 ? `${Math.floor(s.duration_min / 60)}h${s.duration_min % 60 ? ` ${s.duration_min % 60}m` : ""}` : `${s.duration_min} min`;
   return (
-    <Pressable testID={testID} onPress={() => navigate(`/(site)/service/${s.id}`)} style={{ width: 240, borderRadius: 10, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
+    <Pressable testID={testID} onPress={() => navigate(`/(site)/service/${s.id}`)} style={{ width: 240, borderRadius: 6, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
       <View style={{ height: 120, backgroundColor: TC.surfaceAlt }}>
         {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={s.id} /> : <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><Wrench size={32} color={TC.textFaint} /></View>}
         <View style={{ position: "absolute", top: 12, left: 12, flexDirection: "row", gap: 6 }}>
-          {off > 0 ? <Text style={{ backgroundColor: PRIMARY[700], color: "#fff", fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>{off}% OFF</Text> : null}
-          {badge ? <Text style={{ backgroundColor: TC.surface, color: TC.text, fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>{badge}</Text> : null}
+          {off > 0 ? <Text style={{ backgroundColor: PRIMARY[700], color: "#fff", fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>{off}% OFF</Text> : null}
+          {badge ? <Text style={{ backgroundColor: TC.surface, color: TC.text, fontSize: 11, fontWeight: "700", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>{badge}</Text> : null}
         </View>
-        {rating ? <View style={{ position: "absolute", bottom: 12, left: 12, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: TC.surface, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}><Star size={14} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.text }}>{rating}{s.review_count > 0 ? <Text style={{ color: TC.textFaint, fontWeight: "500" }}> ({compactNum(s.review_count)})</Text> : null}</Text></View> : null}
+        {rating ? <View style={{ position: "absolute", bottom: 12, left: 12, flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: TC.surface, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}><Star size={14} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 12, fontWeight: "700", color: TC.text }}>{rating}{s.review_count > 0 ? <Text style={{ color: TC.textFaint, fontWeight: "500" }}> ({compactNum(s.review_count)})</Text> : null}</Text></View> : null}
       </View>
       <View style={{ padding: 16, flex: 1 }}>
         {s.category_name ? <Text numberOfLines={1} style={{ fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.5, color: TC.primaryText }}>{s.category_name}</Text> : null}
@@ -222,13 +222,13 @@ export function BannersSection({ sec, navigate }: { sec: any; navigate: Nav }) {
         {sec.title || sec.subtitle ? <SectionHead eyebrow={sec.subtitle} title={sec.title} /> : null}
         <Scroller testID="home-banners-row">
           {data.map((b: any) => (
-            <Pressable key={b.id} testID={`home-banner-${b.id}`} onPress={() => (b.link || b.button_url) && navigate(b.link || b.button_url)} style={{ width: 320, height: 200, borderRadius: 10, overflow: "hidden", backgroundColor: SLATE[900], ...ring }}>
+            <Pressable key={b.id} testID={`home-banner-${b.id}`} onPress={() => (b.link || b.button_url) && navigate(b.link || b.button_url)} style={{ width: 320, height: 200, borderRadius: 6, overflow: "hidden", backgroundColor: SLATE[900], ...ring }}>
               <Image source={{ uri: mediaUrl(b.mobile_image || b.desktop_image || b.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" recyclingKey={b.id} priority="high" />
               <LinearGradient colors={["rgba(15,23,42,0.8)", "rgba(15,23,42,0.3)", "transparent"]} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
               <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, padding: 24, justifyContent: "flex-end" }}>
                 <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20, lineHeight: 24 }}>{b.title}</Text>
                 {b.subtitle ? <Text style={{ color: TC.border, fontSize: 14, marginTop: 4 }}>{b.subtitle}</Text> : null}
-                {b.cta_text || b.link ? <View style={{ marginTop: 16, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: TC.surface, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 }}><Text style={{ color: TC.text, fontSize: 14, fontWeight: "700" }}>{b.cta_text || "Explore"}</Text><ArrowRight size={16} color={TC.text} /></View> : null}
+                {b.cta_text || b.link ? <View style={{ marginTop: 16, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: TC.surface, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6 }}><Text style={{ color: TC.text, fontSize: 14, fontWeight: "700" }}>{b.cta_text || "Explore"}</Text><ArrowRight size={16} color={TC.text} /></View> : null}
               </View>
             </Pressable>
           ))}
@@ -253,21 +253,21 @@ export function CategoryServicesSheet({ category, onClose, navigate }: { categor
       <Pressable style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)" }} onPress={onClose} />
       <View testID="category-services-sheet" style={{ backgroundColor: TC.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "80%", paddingBottom: 24 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 20, borderBottomWidth: 1, borderBottomColor: TC.borderSoft }}>
-          <View style={{ width: 44, height: 44, borderRadius: 12, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>{category?.image ? <Image source={{ uri: mediaUrl(category.image) }} style={{ width: 44, height: 44 }} contentFit="cover" /> : <LucideByName name={category?.icon} size={22} />}</View>
+          <View style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>{category?.image ? <Image source={{ uri: mediaUrl(category.image) }} style={{ width: 44, height: 44 }} contentFit="cover" /> : <LucideByName name={category?.icon} size={22} />}</View>
           <View style={{ flex: 1 }}><Text style={{ fontWeight: "800", fontSize: 18, color: TC.text }}>{category?.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{loading ? "Loading services…" : `${services.length} service${services.length === 1 ? "" : "s"} available`}</Text></View>
-          <Pressable testID="category-sheet-close" onPress={onClose} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textMuted} /></Pressable>
+          <Pressable testID="category-sheet-close" onPress={onClose} style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textMuted} /></Pressable>
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
           {loading ? <View style={{ alignItems: "center", paddingVertical: 40 }}><ActivityIndicator color={TC.primaryText} /><Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 12 }}>Fetching services…</Text></View>
             : services.length === 0 ? <EmptyState title="No services in this category yet" subtitle="Please check back soon." />
             : services.map((s) => (
-              <Pressable key={s.id} testID={`sheet-svc-${s.id}`} onPress={() => go(s)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 10, ...ring, backgroundColor: TC.surface }}>
-                <View style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", backgroundColor: TC.surfaceAlt }}>{s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: 56, height: 56 }} contentFit="cover" /> : null}</View>
+              <Pressable key={s.id} testID={`sheet-svc-${s.id}`} onPress={() => go(s)} style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 6, ...ring, backgroundColor: TC.surface }}>
+                <View style={{ width: 56, height: 56, borderRadius: 6, overflow: "hidden", backgroundColor: TC.surfaceAlt }}>{s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: 56, height: 56 }} contentFit="cover" /> : null}</View>
                 <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontWeight: "700", fontSize: 14, color: TC.text }}>{s.name}</Text>{s.duration_min > 0 ? <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{s.duration_min} min</Text> : null}<Text style={{ fontWeight: "800", fontSize: 14, color: TC.primaryText, marginTop: 4 }}>{fmt(s.discounted_price > 0 && s.discounted_price < s.base_price ? s.discounted_price : s.base_price)}</Text></View>
                 <ArrowRight size={18} color={TC.primaryText} />
               </Pressable>
             ))}
-          <Pressable testID="category-sheet-seeall" onPress={() => { onClose(); navigate(`/(site)/services?category=${category?.id}`); }} style={{ marginTop: 8, height: 44, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>See all in {category?.name}</Text></Pressable>
+          <Pressable testID="category-sheet-seeall" onPress={() => { onClose(); navigate(`/(site)/services?category=${category?.id}`); }} style={{ marginTop: 8, height: 44, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>See all in {category?.name}</Text></Pressable>
         </ScrollView>
       </View>
     </Modal>

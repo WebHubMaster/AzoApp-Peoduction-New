@@ -32,7 +32,7 @@ const CHIP_BG = "#E6F3FE";
 function PrimaryBtn({ label, onPress, busy, disabled, icon, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; icon?: boolean; testID: string }) {
   return (
     <Pressable testID={testID} onPress={onPress} disabled={busy || disabled}
-      style={({ pressed }) => ({ height: 54, borderRadius: 10, backgroundColor: pressed ? "#0D4E9F" : BTN, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: disabled && !busy ? 0.5 : 1 } as any)}>
+      style={({ pressed }) => ({ height: 54, borderRadius: 6, backgroundColor: pressed ? "#0D4E9F" : BTN, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: disabled && !busy ? 0.5 : 1 } as any)}>
       {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>{label}</Text>{icon ? <ArrowRight size={18} color="#fff" strokeWidth={2.4} /> : null}</>}
     </Pressable>
   );
@@ -51,7 +51,7 @@ function IndiaFlag() {
 function Chip({ icon, title, sub, dark }: { icon: React.ReactNode; title: string; sub: string; dark: boolean }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
-      <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
+      <View style={{ width: 26, height: 26, borderRadius: 6, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
       <View>
         <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{title}</Text>
         <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{sub}</Text>
@@ -173,7 +173,7 @@ export default function Login() {
   const S = Math.min(width, 430) / 390;
   const heroW = Math.round(171 * S);
   const heroH = Math.round(heroW / HERO_RATIO);
-  const inputStyle = { height: 50, borderRadius: 12, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingHorizontal: 14, fontSize: 15, color: inputText } as const;
+  const inputStyle = { height: 50, borderRadius: 6, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingHorizontal: 14, fontSize: 15, color: inputText } as const;
 
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -186,7 +186,7 @@ export default function Login() {
         contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32, paddingHorizontal: 18 }}>
         {/* Back */}
         <Pressable testID="login-back-home" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(site)"))} hitSlop={8}
-          style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 13, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E6EDF7", alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: "0px 2px 8px rgba(15,23,42,0.06)" } as any)}>
+          style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 6, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E6EDF7", alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: "0px 2px 8px rgba(15,23,42,0.06)" } as any)}>
           <ArrowLeft size={18} color={heading} strokeWidth={2.4} />
         </Pressable>
 
@@ -200,7 +200,7 @@ export default function Login() {
               <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ height: 42, width: Math.min(200, width * 0.5) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
             ) : (
               <>
-                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: BLUE, alignItems: "center", justifyContent: "center" }}><Zap size={22} color="#fff" strokeWidth={2.4} /></View>
+                <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: BLUE, alignItems: "center", justifyContent: "center" }}><Zap size={22} color="#fff" strokeWidth={2.4} /></View>
                 <View>
                   <Text style={{ fontWeight: "800", fontSize: 24, color: "#0B3A8F", letterSpacing: -0.4 }}>{siteName}</Text>
                   <Text style={{ fontSize: 11.5, color: TC.textMuted, marginTop: -2 }}>{tagline}</Text>
@@ -223,7 +223,7 @@ export default function Login() {
         </View>
 
         {/* Card */}
-        <View testID="login-card" style={{ marginTop: 8, padding: 18, paddingTop: 22, borderRadius: 10, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", boxShadow: "0px 14px 36px rgba(15,23,42,0.10)" } as any}>
+        <View testID="login-card" style={{ marginTop: 8, padding: 18, paddingTop: 22, borderRadius: 6, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", boxShadow: "0px 14px 36px rgba(15,23,42,0.10)" } as any}>
           {cfg?.auth_config?.mobile_otp === false ? (
             <Text testID="otp-disabled-note" style={{ fontSize: 14, color: muted, textAlign: "center", paddingVertical: 8 }}>Mobile OTP login is currently disabled. Please use another method below.</Text>
           ) : (
@@ -231,7 +231,7 @@ export default function Login() {
               {step === 1 ? (
                 <View style={{ gap: 14 }}>
                   <Text style={{ fontSize: 16, fontWeight: "800", color: heading }}>Mobile Number</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 10, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingLeft: 14 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 6, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingLeft: 14 }}>
                     <IndiaFlag />
                     <Text style={{ marginLeft: 8, fontSize: 15, fontWeight: "700", color: inputText }}>+91</Text>
                     <ChevronDown size={16} color={heading} style={{ marginLeft: 6 }} />
@@ -260,7 +260,7 @@ export default function Login() {
                       {Array.from({ length: OTP_LEN }).map((_, i) => {
                         const focused = i === Math.min(otp.length, OTP_LEN - 1);
                         return (
-                          <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 10, borderWidth: 2, borderColor: focused ? PRIMARY[600] : inputBorder, backgroundColor: inputBg, alignItems: "center", justifyContent: "center" }}>
+                          <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 6, borderWidth: 2, borderColor: focused ? PRIMARY[600] : inputBorder, backgroundColor: inputBg, alignItems: "center", justifyContent: "center" }}>
                             <Text style={{ fontSize: 20, fontWeight: "800", color: inputText }}>{otp[i] || ""}</Text>
                           </View>
                         );
@@ -303,7 +303,7 @@ export default function Login() {
         </View>
 
         {cfg?.auth_config?.email_login ? (
-          <View testID="email-login" style={{ marginTop: 14, padding: 18, borderRadius: 10, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", backgroundColor: cardBg, gap: 10 }}>
+          <View testID="email-login" style={{ marginTop: 14, padding: 18, borderRadius: 6, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", backgroundColor: cardBg, gap: 10 }}>
             <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, fontWeight: "800", color: PRIMARY[600] }}>Email Login</Text>
             <TextInput testID="email-input" style={inputStyle} placeholder="Email" placeholderTextColor={TC.textFaint} autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
             <TextInput testID="email-name" style={inputStyle} placeholder="Name (new users)" placeholderTextColor={TC.textFaint} value={em.name} onChangeText={(v) => setEm({ ...em, name: v })} />

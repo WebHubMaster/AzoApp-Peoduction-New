@@ -45,7 +45,7 @@ export function FeeInfoTip({ kind }: { kind: "tax" | "platform_fee" }) {
             testID={`fee-info-tip-${kind}`}
             style={{
               position: "absolute", left, top, width: CARD_W,
-              backgroundColor: "#FFFFFF", borderRadius: 10, borderWidth: 1, borderColor: SLATE[200],
+              backgroundColor: "#FFFFFF", borderRadius: 6, borderWidth: 1, borderColor: SLATE[200],
               paddingHorizontal: 12, paddingVertical: 10,
               shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 6,
             }}

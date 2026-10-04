@@ -36,26 +36,26 @@ export const Scroller = ({ children, testID, gap = 16 }: { children: React.React
 );
 
 export const EmptyState = ({ title = "Nothing here yet", subtitle, testID }: { title?: string; subtitle?: string; testID?: string }) => (
-  <View testID={testID} style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, backgroundColor: TC.bg, paddingVertical: 48, paddingHorizontal: 24, alignItems: "center" }}>
-    <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center", marginBottom: 12 }}><PackageOpen size={24} color={TC.textFaint} /></View>
+  <View testID={testID} style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: TC.border, backgroundColor: TC.bg, paddingVertical: 48, paddingHorizontal: 24, alignItems: "center" }}>
+    <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center", marginBottom: 12 }}><PackageOpen size={24} color={TC.textFaint} /></View>
     <Text style={{ fontWeight: "700", color: TC.text, fontSize: 16 }}>{title}</Text>
     {subtitle ? <Text style={{ fontSize: 14, color: TC.textMuted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>{subtitle}</Text> : null}
   </View>
 );
 
 export const ErrorState = ({ onRetry, text = "We couldn't load this section." }: { onRetry?: () => void; text?: string }) => (
-  <View testID="home-error" style={{ borderRadius: 10, borderWidth: 1, borderColor: "#FFE4E6", backgroundColor: ROSE[50], paddingVertical: 40, paddingHorizontal: 24, alignItems: "center" }}>
+  <View testID="home-error" style={{ borderRadius: 6, borderWidth: 1, borderColor: "#FFE4E6", backgroundColor: ROSE[50], paddingVertical: 40, paddingHorizontal: 24, alignItems: "center" }}>
     <AlertTriangle size={28} color="#F43F5E" />
     <Text style={{ fontWeight: "600", color: TC.text, marginTop: 8 }}>{text}</Text>
     {onRetry ? (
-      <Pressable testID="home-retry" onPress={onRetry} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: PRIMARY[700] }}>
+      <Pressable testID="home-retry" onPress={onRetry} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: PRIMARY[700] }}>
         <RefreshCw size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Retry</Text>
       </Pressable>
     ) : null}
   </View>
 );
 
-export const Sk = ({ style }: { style?: any }) => <Shimmer style={[{ borderRadius: 10, backgroundColor: TC.surfaceAlt }, style]} />;
+export const Sk = ({ style }: { style?: any }) => <Shimmer style={[{ borderRadius: 6, backgroundColor: TC.surfaceAlt }, style]} />;
 export const RowSkeleton = ({ count = 4, w = 260, h = 300 }: { count?: number; w?: number; h?: number }) => (
   <View style={{ flexDirection: "row", gap: 20, overflow: "hidden" }}>{Array.from({ length: count }).map((_, i) => <Sk key={i} style={{ width: w, height: h }} />)}</View>
 );

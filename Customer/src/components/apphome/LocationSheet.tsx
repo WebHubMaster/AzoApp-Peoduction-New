@@ -48,39 +48,39 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
               <Text style={{ fontSize: 20, fontWeight: "900", color: TC.text, letterSpacing: -0.4 }}>Your location</Text>
               <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>We'll show services available in your area</Text>
             </View>
-            <Pressable testID="app-location-close" onPress={onClose} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 18, backgroundColor: TC.surfaceAlt }}><X size={18} color={TC.textMuted} /></Pressable>
+            <Pressable testID="app-location-close" onPress={onClose} style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: TC.surfaceAlt }}><X size={18} color={TC.textMuted} /></Pressable>
           </View>
 
           {city ? (
-            <View testID="app-location-current" style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16, alignSelf: "flex-start", backgroundColor: TC.primarySoft, borderRadius: 999, paddingHorizontal: 12, height: 34 }}>
+            <View testID="app-location-current" style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16, alignSelf: "flex-start", backgroundColor: TC.primarySoft, borderRadius: 6, paddingHorizontal: 12, height: 34 }}>
               <MapPin size={14} color={TC.primaryText} /><Text style={{ fontSize: 13, fontWeight: "700", color: PRIMARY[800] }}>{city}</Text>
               <View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: EMERALD[500] }} /><Text style={{ fontSize: 11, color: EMERALD[700], fontWeight: "600" }}>Current</Text>
             </View>
           ) : null}
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 16 }}>
-            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 50, borderRadius: 10, borderWidth: 1.5, borderColor: TC.border, backgroundColor: TC.bg, paddingHorizontal: 14 }}>
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 50, borderRadius: 6, borderWidth: 1.5, borderColor: TC.border, backgroundColor: TC.bg, paddingHorizontal: 14 }}>
               <Search size={18} color={TC.textFaint} />
               <TextInput testID="app-location-input" value={val} onChangeText={setVal} onSubmitEditing={() => save()} placeholder="Enter city or pincode" placeholderTextColor={TC.textFaint} autoFocus style={{ flex: 1, fontSize: 14, color: TC.text, height: 48, paddingVertical: 0, outlineStyle: "none" } as any} />
               {pinChecking ? <ActivityIndicator size="small" color={TC.primaryText} /> : null}
             </View>
-            <Pressable testID="app-location-set" onPress={() => save()} disabled={!val.trim()} style={{ height: 50, paddingHorizontal: 20, borderRadius: 10, backgroundColor: val.trim() ? PRIMARY[700] : TC.border, justifyContent: "center", ...shadowBtn }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Set</Text></Pressable>
+            <Pressable testID="app-location-set" onPress={() => save()} disabled={!val.trim()} style={{ height: 50, paddingHorizontal: 20, borderRadius: 6, backgroundColor: val.trim() ? PRIMARY[700] : TC.border, justifyContent: "center", ...shadowBtn }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Set</Text></Pressable>
           </View>
           {isPin && !pinChecking && pinCov ? (
             <View testID="app-location-pincode-badge" style={{ marginTop: 10, flexDirection: "row" }}>
-              {pinCov.serviceable === true ? <View testID="app-location-pincode-serviceable" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area{pinCov.city ? ` · ${pinCov.city}` : ""}</Text></View>
-                : <View testID="app-location-pincode-blocked" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View>}
+              {pinCov.serviceable === true ? <View testID="app-location-pincode-serviceable" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area{pinCov.city ? ` · ${pinCov.city}` : ""}</Text></View>
+                : <View testID="app-location-pincode-blocked" style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 6 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View>}
             </View>
           ) : null}
 
-          <Pressable testID="app-location-detect" onPress={detect} disabled={status === "locating"} style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 10, borderWidth: 1, borderColor: PRIMARY[100], backgroundColor: TC.primarySoft, opacity: status === "locating" ? 0.7 : 1 }}>
+          <Pressable testID="app-location-detect" onPress={detect} disabled={status === "locating"} style={{ marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 6, borderWidth: 1, borderColor: PRIMARY[100], backgroundColor: TC.primarySoft, opacity: status === "locating" ? 0.7 : 1 }}>
             <View style={{ height: 38, width: 38, borderRadius: 19, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>{status === "locating" ? <ActivityIndicator size="small" color="#fff" /> : <LocateFixed size={18} color="#fff" />}</View>
             <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: PRIMARY[800] }}>{status === "locating" ? "Detecting your location…" : "Use my current location"}</Text><Text style={{ fontSize: 11, color: TC.textMuted, marginTop: 1 }}>Using GPS · faster & accurate</Text></View>
             <ChevronRight size={18} color={TC.primaryText} />
           </Pressable>
           {status === "error" && err ? <Text testID="app-location-error" style={{ fontSize: 12, color: ROSE[600], marginTop: 8 }}>{err}</Text> : null}
           {status === "out_of_area" && oos ? (
-            <View testID="app-location-out-of-area" style={{ marginTop: 10, padding: 12, borderRadius: 10, backgroundColor: ROSE[50], borderWidth: 1, borderColor: ROSE[200] }}>
+            <View testID="app-location-out-of-area" style={{ marginTop: 10, padding: 12, borderRadius: 6, backgroundColor: ROSE[50], borderWidth: 1, borderColor: ROSE[200] }}>
               <Text style={{ fontSize: 13, fontWeight: "700", color: ROSE[700] }}>We're not in {oos.city} yet</Text>
               <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>Pick a serviced city below to continue.</Text>
             </View>
@@ -91,7 +91,7 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
               <Text style={{ fontSize: 11, fontWeight: "800", color: TC.textFaint, letterSpacing: 1, textTransform: "uppercase" }}>Popular cities</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginTop: 10 }}>
                 {list.map((c: any) => (
-                  <Pressable key={c.slug || c.city} testID={`app-location-city-${c.slug || c.city}`} onPress={() => save(c.city)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 36, paddingHorizontal: 14, borderRadius: 999, borderWidth: 1, borderColor: city?.toLowerCase() === (c.city || "").toLowerCase() ? PRIMARY[600] : TC.border, backgroundColor: city?.toLowerCase() === (c.city || "").toLowerCase() ? PRIMARY[50] : TC.surface }}>
+                  <Pressable key={c.slug || c.city} testID={`app-location-city-${c.slug || c.city}`} onPress={() => save(c.city)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 36, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: city?.toLowerCase() === (c.city || "").toLowerCase() ? PRIMARY[600] : TC.border, backgroundColor: city?.toLowerCase() === (c.city || "").toLowerCase() ? PRIMARY[50] : TC.surface }}>
                     <MapPin size={13} color={TC.primaryText} /><Text style={{ fontSize: 13, fontWeight: "600", color: TC.text }}>{c.city}</Text>
                   </Pressable>
                 ))}

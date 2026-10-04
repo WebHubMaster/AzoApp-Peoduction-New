@@ -45,7 +45,7 @@ export function StatTile({ label, value, icon: Icon, tone = "primary", count, on
   return (
     <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ flex: 1, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
       <LinearGradient colors={TONES[tone] || TONES.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ borderRadius: 10, padding: 16, overflow: "hidden", ...shadowElev }}>
+        style={{ borderRadius: 6, padding: 16, overflow: "hidden", ...shadowElev }}>
         <View style={{ position: "absolute", right: -16, top: -16, width: 96, height: 96, borderRadius: 48, backgroundColor: "rgba(255,255,255,0.10)" }} />
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -53,7 +53,7 @@ export function StatTile({ label, value, icon: Icon, tone = "primary", count, on
             <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ marginTop: 6, fontWeight: "900", fontSize: 24, lineHeight: 30, color: "#fff" }}>{display}</Text>
           </View>
           {Icon ? (
-            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
               <Icon size={20} color="#fff" />
             </View>
           ) : null}
@@ -77,7 +77,7 @@ export function StatusChip({ label, tone = "slate", testID }: { label: string; t
   const { isDark } = useTheme();
   const m = CHIP[tone] || CHIP.slate;
   return (
-    <View testID={testID} style={{ backgroundColor: isDark ? m.dbg : m.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, alignSelf: "flex-start" }}>
+    <View testID={testID} style={{ backgroundColor: isDark ? m.dbg : m.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, alignSelf: "flex-start" }}>
       <Text style={{ fontSize: 11, fontWeight: "700", color: isDark ? m.dfg : m.fg }}>{label}</Text>
     </View>
   );
@@ -89,15 +89,15 @@ export function EmptyState({ icon: Icon = Inbox, title, desc, actionLabel, onAct
 }) {
   const { c, isDark } = useTheme();
   return (
-    <View testID={testID} style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border,
+    <View testID={testID} style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border,
       backgroundColor: isDark ? "rgba(15,23,42,0.40)" : "rgba(255,255,255,0.60)", padding: 40, alignItems: "center" }}>
-      <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
+      <View style={{ width: 56, height: 56, borderRadius: 6, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
         <Icon size={28} color={c.primaryText} strokeWidth={1.6} />
       </View>
       <Text style={{ marginTop: 16, fontWeight: "700", fontSize: 18, color: c.text }}>{title}</Text>
       {desc ? <Text style={{ marginTop: 4, fontSize: 14, color: c.textMuted, textAlign: "center", maxWidth: 384 }}>{desc}</Text> : null}
       {actionLabel ? (
-        <Pressable testID={testID ? `${testID}-action` : undefined} onPress={onAction} style={({ pressed }) => ({ marginTop: 20, height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center" })}>
+        <Pressable testID={testID ? `${testID}-action` : undefined} onPress={onAction} style={({ pressed }) => ({ marginTop: 20, height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center" })}>
           <Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>{actionLabel}</Text>
         </Pressable>
       ) : null}
@@ -117,13 +117,13 @@ export function Shimmer({ style }: { style?: any }) {
     loop.start();
     return () => loop.stop();
   }, [anim]);
-  return <Animated.View style={[{ borderRadius: 8, backgroundColor: isDark ? "rgba(148,163,184,0.14)" : "rgba(148,163,184,0.24)", opacity: anim }, style]} />;
+  return <Animated.View style={[{ borderRadius: 6, backgroundColor: isDark ? "rgba(148,163,184,0.14)" : "rgba(148,163,184,0.24)", opacity: anim }, style]} />;
 }
 
 export function CardSkeleton() {
   const { c } = useTheme();
   return (
-    <View style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20 }}>
+    <View style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <View style={{ width: "50%", gap: 8 }}><Shimmer style={{ height: 16, width: "75%" }} /><Shimmer style={{ height: 12, width: "50%" }} /></View>
         <Shimmer style={{ height: 24, width: 64 }} />
@@ -139,7 +139,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
 export function StatSkeleton({ n = 4 }: { n?: number }) {
   return (
     <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-      {Array.from({ length: n }).map((_, i) => <Shimmer key={i} style={{ height: 96, borderRadius: 10, width: "47%", flexGrow: 1 }} />)}
+      {Array.from({ length: n }).map((_, i) => <Shimmer key={i} style={{ height: 96, borderRadius: 6, width: "47%", flexGrow: 1 }} />)}
     </View>
   );
 }
@@ -148,7 +148,7 @@ export function StatSkeleton({ n = 4 }: { n?: number }) {
 export function SearchInput({ value, onChange, placeholder = "Search…", testID, style }: { value: string; onChange: (v: string) => void; placeholder?: string; testID?: string; style?: any }) {
   const { c, isDark } = useTheme();
   return (
-    <View style={[{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10, gap: 8 }, style]}>
+    <View style={[{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", paddingLeft: 12, paddingRight: 10, gap: 8 }, style]}>
       <Search size={16} color={TC.textFaint} />
       <TextInput testID={testID} value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={TC.textFaint}
         style={{ flex: 1, fontSize: 14, color: c.text, height: 38, paddingVertical: 0, outlineStyle: "none" } as any} />
@@ -213,10 +213,10 @@ const rangeLabel = (r: DateRange) => {
 export function PillTrigger({ icon: Icon, label, onPress, testID, badge }: { icon: any; label: string; onPress: () => void; testID?: string; badge?: number }) {
   const { c, isDark } = useTheme();
   return (
-    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+    <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ height: 40, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, backgroundColor: c.surface, flexDirection: "row", alignItems: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
       <Icon size={16} color={PRIMARY[600]} />
       <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "500", color: isDark ? SLATE[200] : TC.text2, maxWidth: 140 }}>{label}</Text>
-      {badge ? <View style={{ height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{badge}</Text></View> : null}
+      {badge ? <View style={{ height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{badge}</Text></View> : null}
     </Pressable>
   );
 }
@@ -232,7 +232,7 @@ export function BottomSheet({ open, onClose, title, children, footer, testID, ma
         <View testID={testID} style={{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: isDark ? SLATE[800] : TC.surfaceAlt }}>
             <Text style={{ fontSize: 18, fontWeight: "600", color: c.text }}>{title}</Text>
-            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textFaint} /></Pressable>
+            <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textFaint} /></Pressable>
           </View>
           <ScrollView style={{ flexShrink: 1 }} contentContainerStyle={{ padding: 16, gap: 20, paddingBottom: footer ? 16 : 16 + insets.bottom }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
           {footer ? <View testID={testID ? `${testID}-footer` : undefined} style={{ paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12 + insets.bottom, borderTopWidth: 1, borderTopColor: isDark ? SLATE[800] : TC.surfaceAlt }}>{footer}</View> : null}
@@ -259,9 +259,9 @@ export function MiniCalendar({ from, to, onPick, minDate, maxDate, testID = "cal
   return (
     <View>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <Pressable testID={`${testID}-prev`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronLeft size={16} color={TC.textMuted} /></Pressable>
+        <Pressable testID={`${testID}-prev`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1))} style={{ height: 32, width: 32, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronLeft size={16} color={TC.textMuted} /></Pressable>
         <Text style={{ fontSize: 15, fontWeight: "700", color: c.text }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>
-        <Pressable testID={`${testID}-next`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronRight size={16} color={TC.textMuted} /></Pressable>
+        <Pressable testID={`${testID}-next`} onPress={() => setView(new Date(view.getFullYear(), view.getMonth() + 1, 1))} style={{ height: 32, width: 32, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><ChevronRight size={16} color={TC.textMuted} /></Pressable>
       </View>
       <View style={{ flexDirection: "row" }}>{DOW.map((d, i) => <Text key={i} style={{ width: `${100 / 7}%`, textAlign: "center", fontSize: 11, fontWeight: "700", color: TC.textFaint, paddingVertical: 4 }}>{d}</Text>)}</View>
       <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
@@ -271,7 +271,7 @@ export function MiniCalendar({ from, to, onPick, minDate, maxDate, testID = "cal
           const sel = same(d, from) || same(d, to);
           return (
             <Pressable key={i} testID={`${testID}-day-${isoD(d)}`} disabled={!!dis} onPress={() => onPick(d)} style={{ width: `${100 / 7}%`, height: 38, alignItems: "center", justifyContent: "center", backgroundColor: inSel(d) ? (isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50]) : "transparent" }}>
-              <View style={{ height: 34, width: 34, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: sel ? PRIMARY[700] : "transparent" }}>
+              <View style={{ height: 34, width: 34, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: sel ? PRIMARY[700] : "transparent" }}>
                 <Text style={{ fontSize: 14, fontWeight: "500", color: sel ? "#fff" : dis ? SLATE[300] : (isDark ? SLATE[200] : SLATE[700]) }}>{d.getDate()}</Text>
               </View>
             </Pressable>
@@ -297,7 +297,7 @@ export function DateRangePicker({ value, onChange, testID = "date-range" }: { va
       <BottomSheet open={open} onClose={() => setOpen(false)} title="Select date range" testID={`${testID}-sheet`}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 4 }}>
           {DATE_PRESETS.map((p) => (
-            <Pressable key={p} testID={`preset-${p.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => applyPreset(p)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: value.preset === p ? (isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50]) : "transparent" }}>
+            <Pressable key={p} testID={`preset-${p.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => applyPreset(p)} style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, backgroundColor: value.preset === p ? (isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50]) : "transparent" }}>
               <Text style={{ fontSize: 14, fontWeight: value.preset === p ? "600" : "400", color: value.preset === p ? c.primaryText : (isDark ? SLATE[300] : SLATE[600]) }}>{p}</Text>
             </Pressable>
           ))}
@@ -306,8 +306,8 @@ export function DateRangePicker({ value, onChange, testID = "date-range" }: { va
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <Pressable onPress={clear} testID={`${testID}-clear`}><Text style={{ fontSize: 14, color: TC.textMuted }}>Clear</Text></Pressable>
           <View style={{ flexDirection: "row", gap: 8 }}>
-            <Pressable onPress={() => setOpen(false)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "500", color: c.text }}>Cancel</Text></Pressable>
-            <Pressable testID={`${testID}-apply`} disabled={!sel.from} onPress={applyCustom} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sel.from ? 1 : 0.5 }}><Text style={{ fontSize: 13, fontWeight: "500", color: "#fff" }}>Apply</Text></Pressable>
+            <Pressable onPress={() => setOpen(false)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "500", color: c.text }}>Cancel</Text></Pressable>
+            <Pressable testID={`${testID}-apply`} disabled={!sel.from} onPress={applyCustom} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", opacity: sel.from ? 1 : 0.5 }}><Text style={{ fontSize: 13, fontWeight: "500", color: "#fff" }}>Apply</Text></Pressable>
           </View>
         </View>
       </BottomSheet>
@@ -328,7 +328,7 @@ export function OptionMenu({ value, options, onChange, icon = ArrowUpDown, title
           {options.map((o) => {
             const on = value === o.value;
             return (
-              <Pressable key={o.value} testID={`${testID}-${o.value}`} onPress={() => { onChange(o.value); setOpen(false); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8, backgroundColor: on ? (isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50]) : "transparent" }}>
+              <Pressable key={o.value} testID={`${testID}-${o.value}`} onPress={() => { onChange(o.value); setOpen(false); }} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 12, borderRadius: 6, backgroundColor: on ? (isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50]) : "transparent" }}>
                 <Text style={{ fontSize: 14, fontWeight: on ? "600" : "400", color: on ? c.primaryText : (isDark ? SLATE[300] : SLATE[600]) }}>{o.label}</Text>
                 {on ? <Check size={16} color={c.primaryText} /> : null}
               </Pressable>
@@ -349,8 +349,8 @@ export function FilterSheet({ open, onClose, onClear, onApply, children, title =
   return (
     <BottomSheet open={open} onClose={onClose} title={title} testID="filter-sheet"
       footer={<View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable testID="filter-clear" onPress={onClear} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>Clear All</Text></Pressable>
-        <Pressable testID="filter-apply" onPress={onApply} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: "#fff" }}>Apply Filters</Text></Pressable>
+        <Pressable testID="filter-clear" onPress={onClear} style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: c.text }}>Clear All</Text></Pressable>
+        <Pressable testID="filter-apply" onPress={onApply} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 14, fontWeight: "500", color: "#fff" }}>Apply Filters</Text></Pressable>
       </View>}>
       {children}
     </BottomSheet>
@@ -365,7 +365,7 @@ export function Paginator({ page, pageSize, total, onPage, testID = "paginator" 
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const from = (page - 1) * pageSize + 1; const to = Math.min(total, page * pageSize);
   const nav = (dis: boolean, onPress: () => void, Icon: any, id: string) => (
-    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.4 : 1 }}><Icon size={16} color={c.text} /></Pressable>
+    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.4 : 1 }}><Icon size={16} color={c.text} /></Pressable>
   );
   return (
     <View testID={`${testID}-mobile`} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
@@ -386,7 +386,7 @@ export function PrimaryButton({ label, onPress, icon: Icon, disabled, busy, test
   return (
     <Pressable testID={testID} onPress={onPress} disabled={disabled || busy}
       style={({ pressed }) => [{ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 4, opacity: disabled ? 0.5 : 1 }, style]}>
-      {busy ? <Shimmer style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: TC.surface }} /> : (
+      {busy ? <Shimmer style={{ width: 16, height: 16, borderRadius: 6, backgroundColor: TC.surface }} /> : (
         <>
           <Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>{label}</Text>
           {Icon ? <Icon size={16} color="#fff" /> : null}

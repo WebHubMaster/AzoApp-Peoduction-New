@@ -30,7 +30,7 @@ export function Avatar({ user, size = 36 }: { user: any; size?: number }) {
 function ThemeToggle() {
   const { isDark, toggle, c } = useTheme();
   return (
-    <Pressable testID="theme-toggle" onPress={toggle} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+    <Pressable testID="theme-toggle" onPress={toggle} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 6, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
       {isDark ? <Sun size={20} color="#FCD34D" /> : <Moon size={20} color={TC.textMuted} />}
     </Pressable>
   );
@@ -80,7 +80,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               <Text testID="header-location" numberOfLines={1} style={{ fontSize: 14, fontWeight: "700", color: isDark ? "#fff" : TC.text, lineHeight: 18 }}>{location}</Text>
             </View>
           )}
-          <Pressable testID="m-goto-site" onPress={() => router.replace("/(site)")} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Pressable testID="m-goto-site" onPress={() => router.replace("/(site)")} style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 6, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             <Globe size={20} color={isDark ? PRIMARY[300] : PRIMARY[700]} />
           </Pressable>
           <NotificationBell />
@@ -122,9 +122,9 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               const on = active === n.key;
               return (
                 <Pressable key={n.key} testID={`more-${n.key}`} onPress={() => go(n)}
-                  style={({ pressed }) => ({ width: "30.5%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 10, padding: 16, borderWidth: 1,
+                  style={({ pressed }) => ({ width: "30.5%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 6, padding: 16, borderWidth: 1,
                     borderColor: on ? (isDark ? PRIMARY[700] : PRIMARY[300]) : c.border, backgroundColor: on ? c.primarySoft : c.surface, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-                  <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: isDark ? "rgba(7,52,115,0.40)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.40)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}>
                     <n.icon size={20} color={c.primaryText} />
                   </View>
                   <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: isDark ? SLATE[200] : TC.text2 }}>{n.label}</Text>
@@ -132,7 +132,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
               );
             })}
           </View>
-          <Pressable testID="more-logout" onPress={doLogout} style={({ pressed }) => ({ marginTop: 8, height: 48, borderRadius: 10, backgroundColor: isDark ? "rgba(136,19,55,0.20)" : ROSE[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Pressable testID="more-logout" onPress={doLogout} style={({ pressed }) => ({ marginTop: 8, height: 48, borderRadius: 6, backgroundColor: isDark ? "rgba(136,19,55,0.20)" : ROSE[50], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
             <LogOut size={16} color={ROSE[600]} /><Text style={{ color: ROSE[600], fontWeight: "700", fontSize: 14 }}>Logout</Text>
           </Pressable>
         </View>
@@ -147,7 +147,7 @@ function NavIcon({ on, icon: IconCmp, badge = 0, testID }: { on: boolean; icon: 
     <>
       <IconCmp size={18} color={on ? "#fff" : TC.textFaint} strokeWidth={2} />
       {badge > 0 ? (
-        <View testID={testID} style={{ position: "absolute", top: -4, right: -4, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 8, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#fff" }}>
+        <View testID={testID} style={{ position: "absolute", top: -4, right: -4, height: 16, minWidth: 16, paddingHorizontal: 4, borderRadius: 6, backgroundColor: ROSE[500], alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#fff" }}>
           <Text style={{ color: "#fff", fontSize: 9, fontWeight: "700" }}>{badge > 9 ? "9+" : badge}</Text>
         </View>
       ) : null}
@@ -155,7 +155,7 @@ function NavIcon({ on, icon: IconCmp, badge = 0, testID }: { on: boolean; icon: 
   );
   if (!on) return <View style={{ height: 36, width: 36, alignItems: "center", justifyContent: "center" }}>{inner}</View>;
   return (
-    <LinearGradient colors={[PRIMARY[600], PRIMARY[500]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", transform: [{ scale: 1.05 }], boxShadow: "0px 4px 12px rgba(37,99,235,0.40)" } as any}>
+    <LinearGradient colors={[PRIMARY[600], PRIMARY[500]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", transform: [{ scale: 1.05 }], boxShadow: "0px 4px 12px rgba(37,99,235,0.40)" } as any}>
       {inner}
     </LinearGradient>
   );

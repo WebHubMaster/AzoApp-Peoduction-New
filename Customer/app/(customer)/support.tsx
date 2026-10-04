@@ -36,7 +36,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
   return (
     <View testID="support-new-form" style={{ gap: 16 }}>
       <Pressable testID="support-new-back" onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><ArrowLeft size={16} color={TC.textMuted} /><Text style={{ fontSize: 14, color: TC.textMuted }}>Back</Text></Pressable>
-      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20, gap: 16 }}>
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 20, gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={20} color={PRIMARY[600]} /><Text style={{ fontSize: 18, fontWeight: "700", color: c.text }}>Raise a new ticket</Text></View>
         <View><Text style={lbl}>Subject *</Text><FInput testID="support-subject" value={subject} onChange={setSubject} placeholder="Briefly, what's the issue?" /></View>
         <View style={{ flexDirection: "row", gap: 12 }}>
@@ -93,12 +93,12 @@ export default function SupportScreen() {
 
       {loading ? <View style={{ paddingVertical: 64, alignItems: "center" }}><ActivityIndicator size="small" color={PRIMARY[500]} /></View>
         : rows.length === 0 ? (
-          <View testID="support-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 48, alignItems: "center" }}>
+          <View testID="support-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 48, alignItems: "center" }}>
             <Inbox size={40} color={TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "500", color: TC.textMuted, marginTop: 12 }}>No tickets found</Text><Text style={{ fontSize: 14, color: TC.textFaint, marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
             <GreenBtn testID="support-empty-new" label="New Ticket" onPress={() => setView("new")} />
           </View>
         ) : (
-          <View testID="support-list" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" }}>
+          <View testID="support-list" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" }}>
             {rows.map((tk, i) => (
               <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)} style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: i === rows.length - 1 ? 0 : 1, borderBottomColor: c.borderSoft, backgroundColor: pressed ? c.bg : "transparent" })}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>

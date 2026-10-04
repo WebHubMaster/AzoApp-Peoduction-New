@@ -68,14 +68,14 @@ export default function AppHome() {
       <AppSearchBar onSubmit={(q) => router.push(`/(site)/services?q=${encodeURIComponent(q)}` as any)} />
       {loading ? (
         <View style={{ padding: 20, gap: 18 }} testID="app-home-skeleton">
-          <Sk style={{ height: 280, borderRadius: 10 }} />
+          <Sk style={{ height: 280, borderRadius: 6 }} />
           <View style={{ flexDirection: "row", gap: 10 }}>{[0, 1, 2, 3, 4, 5].map((i) => <Sk key={i} style={{ flex: 1, height: 72 }} />)}</View>
-          <Sk style={{ height: 150, borderRadius: 10 }} />
+          <Sk style={{ height: 150, borderRadius: 6 }} />
         </View>
       ) : error ? (
         <View style={{ padding: 24, alignItems: "center", gap: 10 }} testID="app-home-error">
           <Text style={{ fontSize: 14, color: TC.textMuted, textAlign: "center" }}>Couldn't load the home page. Check your connection.</Text>
-          <Pressable onPress={() => refetch()} style={{ backgroundColor: PRIMARY[700], borderRadius: 10, paddingHorizontal: 16, height: 38, justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Retry</Text></Pressable>
+          <Pressable onPress={() => refetch()} style={{ backgroundColor: PRIMARY[700], borderRadius: 6, paddingHorizontal: 16, height: 38, justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700" }}>Retry</Text></Pressable>
         </View>
       ) : (
         <FlatList

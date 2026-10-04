@@ -72,10 +72,10 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
   }, [fullSlots]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const navBtn = (dis: boolean, onPress: () => void, Icon: any, id: string) => (
-    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 32, width: 32, borderRadius: 8, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.3 : 1 }}><Icon size={16} color={TC.textMuted} /></Pressable>
+    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 32, width: 32, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.3 : 1 }}><Icon size={16} color={TC.textMuted} /></Pressable>
   );
   return (
-    <View testID="schedule-picker" style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16 }}>
+    <View testID="schedule-picker" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         {navBtn(!canPrev, () => setView(new Date(view.getFullYear(), view.getMonth() - 1, 1)), ChevronLeft, "cal-prev")}
         <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>
@@ -90,7 +90,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
           const isSel = dateStr === iso(d);
           return (
             <Pressable key={i} testID={`cal-day-${iso(d)}`} disabled={past} onPress={() => selectDate(iso(d))} style={{ width: `${100 / 7}%`, height: 40, padding: 2 }}>
-              <View style={{ flex: 1, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: isSel ? PRIMARY[700] : "transparent", ...(isSel ? shadowBtn : {}) }}>
+              <View style={{ flex: 1, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: isSel ? PRIMARY[700] : "transparent", ...(isSel ? shadowBtn : {}) }}>
                 <Text style={{ fontSize: 14, fontWeight: "500", color: isSel ? "#fff" : past ? SLATE[300] : (isDark ? SLATE[200] : SLATE[700]) }}>{d.getDate()}</Text>
                 {isTodayCell && !isSel ? <View style={{ position: "absolute", bottom: 4, height: 4, width: 4, borderRadius: 2, backgroundColor: todayExhausted ? SLATE[300] : PRIMARY[600] }} /> : null}
               </View>
@@ -103,7 +103,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
         <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>Select a time slot</Text>
         {!dateStr ? <Text style={{ fontSize: 14, color: TC.textFaint }}>Pick a date first.</Text> : null}
         {noSlotsForSel ? (
-          <View testID="no-slots-notice" style={{ borderRadius: 12, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 12, flexDirection: "row", gap: 12 }}>
+          <View testID="no-slots-notice" style={{ borderRadius: 6, backgroundColor: AMBER[50], borderWidth: 1, borderColor: AMBER[200], padding: 12, flexDirection: "row", gap: 12 }}>
             <CalendarX2 size={20} color={AMBER[600]} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 14, fontWeight: "600", color: "#78350F" }}>No time slots available for {dateStr === iso(today) ? "today" : prettyDate(dateStr!)}.</Text>
@@ -117,7 +117,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
             {slots.map((t) => {
               const dis = isSlotDisabled(t); const active = selTime === t; const isFull = fullSlots.includes(t);
               return (
-                <Pressable key={t} testID={`slot-${t}`} disabled={dis} onPress={() => onChange(`${dateStr}T${t}`)} style={{ width: "31%", flexGrow: 1, paddingVertical: 9, borderRadius: 8, borderWidth: 1, borderColor: active ? PRIMARY[700] : dis ? c.borderSoft : c.border, backgroundColor: active ? PRIMARY[700] : "transparent", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                <Pressable key={t} testID={`slot-${t}`} disabled={dis} onPress={() => onChange(`${dateStr}T${t}`)} style={{ width: "31%", flexGrow: 1, paddingVertical: 9, borderRadius: 6, borderWidth: 1, borderColor: active ? PRIMARY[700] : dis ? c.borderSoft : c.border, backgroundColor: active ? PRIMARY[700] : "transparent", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
                   {active ? <Check size={12} color="#fff" /> : null}
                   <Text style={{ fontSize: 12, fontWeight: "600", color: active ? "#fff" : dis ? SLATE[300] : (isDark ? SLATE[200] : SLATE[700]), textDecorationLine: dis ? "line-through" : "none" }}>{to12(t)}{isFull ? " ·Full" : ""}</Text>
                 </Pressable>
@@ -127,7 +127,7 @@ export function SchedulePicker({ value, onChange }: { value: string | null; onCh
         ) : null}
       </View>
       {value && selTime ? (
-        <View style={{ marginTop: 12, borderRadius: 8, backgroundColor: isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50], paddingHorizontal: 12, paddingVertical: 8 }}>
+        <View style={{ marginTop: 12, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.35)" : PRIMARY[50], paddingHorizontal: 12, paddingVertical: 8 }}>
           <Text style={{ fontSize: 14, fontWeight: "500", color: isDark ? PRIMARY[200] : PRIMARY[800] }}>Scheduled for {new Date(value).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · {to12(selTime)}</Text>
         </View>
       ) : null}

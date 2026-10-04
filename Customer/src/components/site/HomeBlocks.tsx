@@ -45,20 +45,20 @@ export function Promotions() {
             <SectionHead eyebrow="Deals of the day" title="Offers & savings" onSeeAll={() => router.push("/(site)/services")} seeAllLabel="Browse services" />
             <Scroller testID="home-offers-row">
               {offers.map((o: any) => (
-                <Pressable key={o.id} testID={`offer-${o.id}`} onPress={() => grab(o)} style={{ width: 300, height: 190, borderRadius: 10, overflow: "hidden", backgroundColor: o.bg_color || "#0D47A1" }}>
+                <Pressable key={o.id} testID={`offer-${o.id}`} onPress={() => grab(o)} style={{ width: 300, height: 190, borderRadius: 6, overflow: "hidden", backgroundColor: o.bg_color || "#0D47A1" }}>
                   {o.image ? <Image source={{ uri: mediaUrl(o.image) }} style={{ position: "absolute", width: "100%", height: "100%", opacity: 0.25 }} contentFit="cover" /> : null}
                   <View style={{ position: "absolute", right: -40, bottom: -40, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.10)" }} />
                   <View style={{ flex: 1, padding: 20, justifyContent: "space-between" }}>
                     <View>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        {o.discount_label ? <Text style={{ backgroundColor: TC.surface, color: TC.text, fontSize: 12, fontWeight: "800", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>{o.discount_label}</Text> : null}
+                        {o.discount_label ? <Text style={{ backgroundColor: TC.surface, color: TC.text, fontSize: 12, fontWeight: "800", paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}>{o.discount_label}</Text> : null}
                         {o.subtitle ? <Text style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: "700", color: "rgba(255,255,255,0.8)" }}>{o.subtitle}</Text> : null}
                       </View>
                       <Text numberOfLines={2} style={{ color: "#fff", fontWeight: "800", fontSize: 20, lineHeight: 24, marginTop: 12 }}>{o.title}</Text>
                       {o.description ? <Text numberOfLines={2} style={{ fontSize: 12, color: "rgba(255,255,255,0.8)", marginTop: 4 }}>{o.description}</Text> : null}
                     </View>
                     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                      {o.code || o.coupon_code ? <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff", backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, letterSpacing: 1 }}>{o.code || o.coupon_code}</Text> : <View />}
+                      {o.code || o.coupon_code ? <Text style={{ fontSize: 12, fontWeight: "700", color: "#fff", backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, letterSpacing: 1 }}>{o.code || o.coupon_code}</Text> : <View />}
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{o.cta_text || "Grab offer"}</Text><ArrowRight size={16} color="#fff" /></View>
                     </View>
                   </View>
@@ -72,14 +72,14 @@ export function Promotions() {
       {topPlan ? (
         <View testID="home-membership-banner" style={{ paddingVertical: 16 }}>
           <Container>
-            <View style={{ borderRadius: 10, overflow: "hidden", backgroundColor: SLATE[900], padding: 24, borderWidth: 1, borderColor: SLATE[800] }}>
+            <View style={{ borderRadius: 6, overflow: "hidden", backgroundColor: SLATE[900], padding: 24, borderWidth: 1, borderColor: SLATE[800] }}>
               <View style={{ position: "absolute", left: -60, top: 20, width: 260, height: 260, borderRadius: 130, backgroundColor: `${topPlan.color || "#0D47A1"}66` }} />
               <View style={{ position: "absolute", right: -24, top: -24 }}><Crown size={176} color="rgba(255,255,255,0.06)" /></View>
-              <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999 }}><Sparkles size={14} color="#fff" /><Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: "#fff" }}>{topPlan.badge || "Membership"}</Text></View>
+              <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6 }}><Sparkles size={14} color="#fff" /><Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: "#fff" }}>{topPlan.badge || "Membership"}</Text></View>
               <Text style={{ color: "#fff", fontWeight: "900", fontSize: 24, lineHeight: 30, marginTop: 16 }}>{maxPct > 0 ? <>Save up to <Text style={{ color: "#FCD34D" }}>{maxPct}%</Text> on every booking</> : topPlan.name}</Text>
               <Text style={{ color: "rgba(255,255,255,0.75)", marginTop: 12, fontSize: 14 }}>{topPlan.description || topPlan.tagline}</Text>
               {Array.isArray(topPlan.benefits) && topPlan.benefits.length > 0 ? <View testID="membership-benefits" style={{ marginTop: 20, gap: 10 }}>{topPlan.benefits.slice(0, 4).map((b: string) => <View key={b} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><ShieldCheck size={16} color="#6EE7B7" /><Text style={{ fontSize: 14, color: "rgba(255,255,255,0.9)", flex: 1 }}>{b}</Text></View>)}</View> : null}
-              <View style={{ marginTop: 24, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", padding: 24 }}>
+              <View style={{ marginTop: 24, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", padding: 24 }}>
                 <Text style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: 0.5, fontWeight: "700", color: "rgba(255,255,255,0.7)" }}>{topPlan.name}</Text>
                 <View style={{ flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 8 }}>
                   <Text style={{ color: "#fff", fontWeight: "900", fontSize: 36 }}>{fmt(topPlan.price)}</Text>
@@ -87,7 +87,7 @@ export function Promotions() {
                   {topPlan.duration_days > 0 ? <Text style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>/ {topPlan.duration_days >= 365 ? "year" : `${topPlan.duration_days} days`}</Text> : null}
                 </View>
                 {plans.length > 1 ? <Text style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>{plans.length} plans available</Text> : null}
-                <Pressable testID="membership-cta" onPress={() => router.push("/(site)/membership")} style={{ marginTop: 20, height: 48, borderRadius: 10, backgroundColor: TC.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}><Text style={{ color: TC.text, fontWeight: "700", fontSize: 14 }}>Explore plans</Text><ArrowRight size={16} color={TC.text} /></Pressable>
+                <Pressable testID="membership-cta" onPress={() => router.push("/(site)/membership")} style={{ marginTop: 20, height: 48, borderRadius: 6, backgroundColor: TC.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}><Text style={{ color: TC.text, fontWeight: "700", fontSize: 14 }}>Explore plans</Text><ArrowRight size={16} color={TC.text} /></Pressable>
               </View>
             </View>
           </Container>
@@ -100,10 +100,10 @@ export function Promotions() {
             <SectionHead eyebrow="Save instantly" title="Coupons for you" subtitle="Tap to copy — the code auto-applies at checkout." />
             <View style={{ gap: 16 }}>
               {coupons.map((c: any) => (
-                <View key={c.code} testID={`coupon-${c.code}`} style={{ flexDirection: "row", borderRadius: 10, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
+                <View key={c.code} testID={`coupon-${c.code}`} style={{ flexDirection: "row", borderRadius: 6, backgroundColor: TC.surface, ...ring, overflow: "hidden" }}>
                   <View style={{ width: 104, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center", paddingVertical: 20, paddingHorizontal: 16 }}>
                     <Ticket size={20} color="rgba(255,255,255,0.8)" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16, marginTop: 4, textAlign: "center", lineHeight: 20 }}>{c.label}</Text>
-                    <View style={{ position: "absolute", right: -8, top: "50%", marginTop: -8, width: 16, height: 16, borderRadius: 8, backgroundColor: TC.surface }} />
+                    <View style={{ position: "absolute", right: -8, top: "50%", marginTop: -8, width: 16, height: 16, borderRadius: 6, backgroundColor: TC.surface }} />
                   </View>
                   <View style={{ flex: 1, padding: 16, borderLeftWidth: 1, borderStyle: "dashed", borderLeftColor: TC.border }}>
                     <Text numberOfLines={1} style={{ fontWeight: "700", color: TC.text, fontSize: 16 }}>{c.title}</Text>
@@ -114,8 +114,8 @@ export function Promotions() {
                       {c.valid_until ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontSize: 11, color: TC.textMuted }}>·</Text><CalendarClock size={12} color={TC.textMuted} /><Text style={{ fontSize: 11, color: TC.textMuted }}>Till {fmtDate(c.valid_until)}</Text></View> : null}
                     </View>
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
-                      <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4, letterSpacing: 1 }}>{c.code}</Text>
-                      <Pressable testID={`coupon-copy-${c.code}`} onPress={() => copyCoupon(c.code)} style={{ flexDirection: "row", alignItems: "center", gap: 4, height: 32, paddingHorizontal: 10, borderRadius: 8 }}>
+                      <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText, backgroundColor: TC.primarySoft, borderWidth: 1, borderColor: PRIMARY[100], borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, letterSpacing: 1 }}>{c.code}</Text>
+                      <Pressable testID={`coupon-copy-${c.code}`} onPress={() => copyCoupon(c.code)} style={{ flexDirection: "row", alignItems: "center", gap: 4, height: 32, paddingHorizontal: 10, borderRadius: 6 }}>
                         {copied === c.code ? <Check size={14} color={TC.primaryText} /> : <Copy size={14} color={TC.primaryText} />}<Text style={{ fontSize: 12, fontWeight: "600", color: TC.primaryText }}>{copied === c.code ? "Copied" : "Copy & use"}</Text>
                       </Pressable>
                     </View>
@@ -145,7 +145,7 @@ export function TestimonialCard({ t }: { t: any }) {
   const th = THEMES[t.theme] || THEMES.rose;
   const rating = Number(t.rating || 5), full = Math.floor(rating);
   return (
-    <View style={{ width: 300, borderRadius: 10, borderWidth: 1, borderColor: th.ring, backgroundColor: th.bg, padding: 24, boxShadow: "0px 8px 30px -16px rgba(15,23,42,0.25)" }}>
+    <View style={{ width: 300, borderRadius: 6, borderWidth: 1, borderColor: th.ring, backgroundColor: th.bg, padding: 24, boxShadow: "0px 8px 30px -16px rgba(15,23,42,0.25)" }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
         <Text style={{ flex: 1, fontWeight: "800", fontSize: 18, lineHeight: 24, color: th.title }}>{t.title || "Great service"}</Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><View style={{ flexDirection: "row", gap: 2 }}>{Array.from({ length: 5 }).map((_, i) => <Star key={i} size={14} color={i < full ? AMBER[400] : AMBER[200]} fill={i < full ? AMBER[400] : AMBER[200]} />)}</View><Text style={{ color: "#fff", fontSize: 12, fontWeight: "700", borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2, backgroundColor: th.badge }}>{rating.toFixed(1)}</Text></View>
@@ -155,7 +155,7 @@ export function TestimonialCard({ t }: { t: any }) {
       <View style={{ marginTop: 16, alignItems: "flex-end" }}>
         <Quote size={24} color={th.quote} fill={th.quote} />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: -4 }}>
-          {t.photo || t.avatar ? <Image source={{ uri: mediaUrl(t.photo || t.avatar) }} style={{ width: 36, height: 36, borderRadius: 18 }} contentFit="cover" /> : <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: th.bg, borderWidth: 2, borderColor: TC.surface, alignItems: "center", justifyContent: "center" }}><User size={16} color={th.title} /></View>}
+          {t.photo || t.avatar ? <Image source={{ uri: mediaUrl(t.photo || t.avatar) }} style={{ width: 36, height: 36, borderRadius: 6 }} contentFit="cover" /> : <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: th.bg, borderWidth: 2, borderColor: TC.surface, alignItems: "center", justifyContent: "center" }}><User size={16} color={th.title} /></View>}
           <Text style={{ fontWeight: "700", color: th.title }}>{t.name || "Customer"}</Text>
         </View>
         {t.city || t.service ? <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{[t.service, t.city].filter(Boolean).join(" · ")}</Text> : null}
@@ -177,7 +177,7 @@ export function ReviewsSection() {
     <View testID="home-reviews" style={{ paddingVertical: 40, backgroundColor: TC.bg, borderTopWidth: 1, borderBottomWidth: 1, borderColor: TC.borderSoft }}>
       <Container>
         <SectionHead eyebrow="Loved by customers" title="What our customers say" right={(
-          <View testID="reviews-summary" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, paddingHorizontal: 16, paddingVertical: 10 }}>
+          <View testID="reviews-summary" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, paddingHorizontal: 16, paddingVertical: 10 }}>
             <Quote size={20} color={TC.primaryText} />
             <View><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ fontWeight: "800", color: TC.text }}>{avg.toFixed(1)}</Text><Star size={16} color={AMBER[400]} fill={AMBER[400]} /></View><Text style={{ fontSize: 11, color: TC.textMuted, marginTop: 2 }}>{items.length} featured review{items.length === 1 ? "" : "s"}{stats.reviews && isPositive(stats.reviews) ? ` · ${compactNum(stats.reviews)} total` : ""}</Text></View>
           </View>
@@ -195,21 +195,21 @@ export function GrowCta({ navigate }: { navigate: (p: string) => void }) {
   return (
     <View testID="home-grow-cta" style={{ paddingVertical: 40 }}>
       <Container style={{ gap: 20 }}>
-        <View style={{ borderRadius: 10, backgroundColor: PRIMARY[700], padding: 32, overflow: "hidden" }}>
+        <View style={{ borderRadius: 6, backgroundColor: PRIMARY[700], padding: 32, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -48, bottom: -48, width: 224, height: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.10)" }} />
-          <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Store size={24} color="#fff" /></View>
+          <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Store size={24} color="#fff" /></View>
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 24, marginTop: 20 }}>Are you a shopkeeper?</Text>
           <Text style={{ color: PRIMARY[100], marginTop: 8, fontSize: 16, lineHeight: 24 }}>Refer partners & book services for your customers. Earn <Text style={{ color: "#fff", fontWeight: "700" }}>lifetime commission</Text> on every job.</Text>
           {merchants !== null && isPositive(stats.merchants) ? <Text style={{ fontSize: 12, color: "rgba(207,226,252,0.8)", marginTop: 12 }}>{merchants} merchant{Number(stats.merchants) === 1 ? "" : "s"} already earning with {branding.site_name || "AzoApp"}</Text> : null}
-          <Pressable testID="cta-merchant" onPress={() => navigate("/login")} style={{ marginTop: 24, alignSelf: "flex-start", height: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: TC.surface, flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 14 }}>Join as Merchant</Text><ArrowRight size={16} color={TC.primaryText} /></Pressable>
+          <Pressable testID="cta-merchant" onPress={() => navigate("/login")} style={{ marginTop: 24, alignSelf: "flex-start", height: 44, paddingHorizontal: 16, borderRadius: 6, backgroundColor: TC.surface, flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 14 }}>Join as Merchant</Text><ArrowRight size={16} color={TC.primaryText} /></Pressable>
         </View>
-        <View style={{ borderRadius: 10, backgroundColor: SLATE[900], padding: 32, overflow: "hidden" }}>
+        <View style={{ borderRadius: 6, backgroundColor: SLATE[900], padding: 32, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -48, bottom: -48, width: 224, height: 224, borderRadius: 112, backgroundColor: "rgba(251,191,36,0.10)" }} />
-          <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Wrench size={24} color="#FCD34D" /></View>
+          <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.10)", borderWidth: 1, borderColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Wrench size={24} color="#FCD34D" /></View>
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 24, marginTop: 20 }}>Skilled professional?</Text>
           <Text style={{ color: TC.textFaint, marginTop: 8, fontSize: 16, lineHeight: 24 }}>Get verified, receive nearby job requests, and grow your earnings with transparent payouts.</Text>
           {partners !== null && isPositive(stats.partners) ? <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 12 }}>Join {partners} verified partners on the platform</Text> : null}
-          <Pressable testID="cta-partner" onPress={() => navigate("/login")} style={{ marginTop: 24, alignSelf: "flex-start", height: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: AMBER[400], flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.text, fontWeight: "700", fontSize: 14 }}>Become a Partner</Text><ArrowRight size={16} color={TC.text} /></Pressable>
+          <Pressable testID="cta-partner" onPress={() => navigate("/login")} style={{ marginTop: 24, alignSelf: "flex-start", height: 44, paddingHorizontal: 16, borderRadius: 6, backgroundColor: AMBER[400], flexDirection: "row", alignItems: "center", gap: 4 }}><Text style={{ color: TC.text, fontWeight: "700", fontSize: 14 }}>Become a Partner</Text><ArrowRight size={16} color={TC.text} /></Pressable>
         </View>
       </Container>
     </View>
@@ -243,7 +243,7 @@ export function FaqSection({ title, subtitle, seeded }: { title?: string; subtit
         {total > 4 ? (
           <View style={{ position: "relative", marginTop: -8, marginBottom: 32 }}>
             <View style={{ position: "absolute", left: 14, top: 14, zIndex: 1 }}><Search size={16} color={TC.textFaint} /></View>
-            <TextInput testID="faq-search" value={q} onChangeText={setQ} placeholder="Search questions…" placeholderTextColor={TC.textFaint} style={{ height: 44, paddingLeft: 40, paddingRight: 16, borderRadius: 12, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
+            <TextInput testID="faq-search" value={q} onChangeText={setQ} placeholder="Search questions…" placeholderTextColor={TC.textFaint} style={{ height: 44, paddingLeft: 40, paddingRight: 16, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
           </View>
         ) : null}
         {!groups ? <View style={{ gap: 16 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ height: 56 }} />)}</View>
@@ -256,10 +256,10 @@ export function FaqSection({ title, subtitle, seeded }: { title?: string; subtit
                   {g.faqs.map((f: any) => {
                     const isOpen = !!open[f.id];
                     return (
-                      <View key={f.id} style={{ backgroundColor: TC.surface, borderRadius: 10, borderWidth: 1, borderColor: isOpen ? PRIMARY[300] : TC.border }}>
+                      <View key={f.id} style={{ backgroundColor: TC.surface, borderRadius: 6, borderWidth: 1, borderColor: isOpen ? PRIMARY[300] : TC.border }}>
                         <Pressable testID={`faq-${f.id}`} onPress={() => setOpen((o) => ({ ...o, [f.id]: !o[f.id] }))} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 16 }}>
                           <Text style={{ flex: 1, fontWeight: "600", color: TC.text, fontSize: 15 }}>{f.question}</Text>
-                          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: isOpen ? PRIMARY[700] : TC.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ rotate: isOpen ? "180deg" : "0deg" }] }}><ChevronDown size={16} color={isOpen ? "#fff" : TC.textMuted} /></View>
+                          <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: isOpen ? PRIMARY[700] : TC.surfaceAlt, alignItems: "center", justifyContent: "center", transform: [{ rotate: isOpen ? "180deg" : "0deg" }] }}><ChevronDown size={16} color={isOpen ? "#fff" : TC.textMuted} /></View>
                         </Pressable>
                         {isOpen ? <Text style={{ paddingHorizontal: 20, paddingBottom: 20, fontSize: 14, color: TC.textMuted, lineHeight: 22 }}>{stripHtml(f.answer)}</Text> : null}
                       </View>
@@ -291,11 +291,11 @@ export function BlogSection({ title, subtitle, seeded, limit }: { title?: string
         {!blogs ? <View style={{ gap: 20 }}>{[0, 1, 2].map((i) => <Sk key={i} style={{ height: 288 }} />)}</View> : (
           <View style={{ gap: 20 }}>
             {list.map((b) => (
-              <Pressable key={b.id} testID={`blog-card-${b.slug || b.id}`} onPress={() => router.push(`/(site)/blog/${b.slug || b.id}` as any)} style={{ borderRadius: 10, overflow: "hidden", backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border }}>
+              <Pressable key={b.id} testID={`blog-card-${b.slug || b.id}`} onPress={() => router.push(`/(site)/blog/${b.slug || b.id}` as any)} style={{ borderRadius: 6, overflow: "hidden", backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border }}>
                 <View style={{ aspectRatio: 16 / 9, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}>{b.image ? <Image source={{ uri: mediaUrl(b.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" /> : <Quote size={32} color={TC.textFaint} />}</View>
                 <View style={{ padding: 20 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                    {b.category ? <Text style={{ fontSize: 11, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: TC.primarySoft, color: TC.primaryText, fontWeight: "600" }}>{b.category}</Text> : null}
+                    {b.category ? <Text style={{ fontSize: 11, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: TC.primarySoft, color: TC.primaryText, fontWeight: "600" }}>{b.category}</Text> : null}
                     {b.publish_at || b.created_at ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Calendar size={12} color={TC.textFaint} /><Text style={{ fontSize: 11, color: TC.textFaint }}>{fmtDate(b.publish_at || b.created_at)}</Text></View> : null}
                   </View>
                   <Text numberOfLines={2} style={{ fontWeight: "700", color: TC.text, fontSize: 16, lineHeight: 22 }}>{b.title}</Text>
@@ -322,7 +322,7 @@ export function SiteFooter({ navigate }: { navigate: (p: string) => void }) {
   return (
     <View testID="site-footer" style={{ backgroundColor: SLATE[950], paddingHorizontal: 16, paddingTop: 40, paddingBottom: 32 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{(branding.site_name || "A")[0]}</Text></View>
+        <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{(branding.site_name || "A")[0]}</Text></View>
         <Text style={{ color: "#fff", fontWeight: "800", fontSize: 20 }}>{branding.site_name || "AzoApp"}</Text>
       </View>
       <Text style={{ fontSize: 14, color: TC.textFaint, marginTop: 12, lineHeight: 22 }}>{branding.footer_text || "Trusted, verified home-service professionals at your doorstep — book in seconds, pay securely."}</Text>

@@ -135,7 +135,7 @@ export function PaymentWebViewHost() {
       <View testID="payment-safe-area" style={{ flex: 1, backgroundColor: TC.surface, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, height: 52, borderBottomWidth: 1, borderBottomColor: TC.border }}>
           <Text style={{ fontSize: 16, fontWeight: "800", color: TC.text }}>Secure Payment</Text>
-          <Pressable testID="pay-close" onPress={() => close(false)} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: TC.surfaceAlt }}>
+          <Pressable testID="pay-close" onPress={() => close(false)} hitSlop={8} style={{ width: 36, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: TC.surfaceAlt }}>
             <X size={20} color="#0F172A" />
           </Pressable>
         </View>

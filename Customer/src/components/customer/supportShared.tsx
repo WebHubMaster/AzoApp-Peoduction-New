@@ -36,18 +36,18 @@ export const ago = (t?: string) => {
 };
 
 export const Badge = ({ style, children, testID }: { style?: { bg: string; fg: string }; children: React.ReactNode; testID?: string }) => (
-  <View testID={testID} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: style?.bg || SLATE[100], alignSelf: "flex-start" }}><Text style={{ fontSize: 11, fontWeight: "600", textTransform: "capitalize", color: style?.fg || SLATE[600] }}>{children}</Text></View>
+  <View testID={testID} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: style?.bg || SLATE[100], alignSelf: "flex-start" }}><Text style={{ fontSize: 11, fontWeight: "600", textTransform: "capitalize", color: style?.fg || SLATE[600] }}>{children}</Text></View>
 );
 
 export function AttachmentView({ a, onOpen }: { a: any; onOpen?: (url: string) => void }) {
   if (a.kind === "pdf") {
     return (
-      <Pressable onPress={() => Linking.openURL(a.url)} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }}>
+      <Pressable onPress={() => Linking.openURL(a.url)} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }}>
         <FileText size={16} color="#EF4444" /><Text numberOfLines={1} style={{ fontSize: 12, color: TC.text2 }}>{a.name || "Document.pdf"}</Text>
       </Pressable>
     );
   }
-  return <Pressable onPress={() => onOpen?.(a.url)} style={{ borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: TC.border }}><Image source={{ uri: a.thumb_url || a.url }} style={{ height: 96, width: 96 }} contentFit="cover" /></Pressable>;
+  return <Pressable onPress={() => onOpen?.(a.url)} style={{ borderRadius: 6, overflow: "hidden", borderWidth: 1, borderColor: TC.border }}><Image source={{ uri: a.thumb_url || a.url }} style={{ height: 96, width: 96 }} contentFit="cover" /></Pressable>;
 }
 
 /* Build a multipart body for POST /support/upload from an expo-image-picker asset. */

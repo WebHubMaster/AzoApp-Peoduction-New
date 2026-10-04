@@ -42,22 +42,22 @@ export default function AddressesScreen() {
 
   return (
     <View testID="address-book" style={{ gap: 20 }}>
-      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 44, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
+      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 44, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
 
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text testID="address-count" style={{ fontSize: 14, color: c.textMuted }}>{list.length} saved location{list.length !== 1 ? "s" : ""}</Text>
-        <Pressable testID="add-address-btn" onPress={openAdd} style={({ pressed }) => ({ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Add Address</Text></Pressable>
+        <Pressable testID="add-address-btn" onPress={openAdd} style={({ pressed }) => ({ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Add Address</Text></Pressable>
       </View>
 
       {list.length === 0 ? <EmptyState icon={MapPin} title="No saved addresses" desc="Save your home or office address for faster booking." actionLabel="Add Address" onAction={openAdd} testID="address-empty" /> : null}
 
       <View style={{ gap: 12 }}>
         {list.map((a) => (
-          <View key={a.id} testID={`address-card-${a.id}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
+          <View key={a.id} testID={`address-card-${a.id}`} style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowElev }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Text style={{ fontWeight: "600", fontSize: 15, color: c.text }}>{a.label}</Text>
-                {a.is_default ? <View testID={`default-badge-${a.id}`} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: c.primarySoft }}><Text style={{ fontSize: 10, fontWeight: "600", color: c.primaryText }}>Default</Text></View> : null}
+                {a.is_default ? <View testID={`default-badge-${a.id}`} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: c.primarySoft }}><Text style={{ fontSize: 10, fontWeight: "600", color: c.primaryText }}>Default</Text></View> : null}
               </View>
               <View style={{ flexDirection: "row", gap: 4 }}>
                 <Pressable testID={`edit-address-${a.id}`} onPress={() => openEdit(a)} hitSlop={8} style={{ padding: 4 }}><Pencil size={16} color={TC.textFaint} /></Pressable>
@@ -73,7 +73,7 @@ export default function AddressesScreen() {
       </View>
 
       <BottomSheet open={open} onClose={() => setOpen(false)} title={editing ? "Edit Address" : "Add Address"} testID="address-dialog"
-        footer={<PrimaryButton testID="save-address-btn" label={busy ? "Saving…" : "Save Address"} onPress={save} busy={busy} style={{ borderRadius: 12 }} />}>
+        footer={<PrimaryButton testID="save-address-btn" label={busy ? "Saving…" : "Save Address"} onPress={save} busy={busy} style={{ borderRadius: 6 }} />}>
         <Text style={{ fontSize: 14, color: c.textMuted, marginTop: -8 }}>Fill in your service location details.</Text>
         <AddressForm value={form} onChange={setForm} cfg={cfg} />
         <Checkbox testID="addr-set-default" checked={!!form.is_default} onChange={(v) => setForm({ ...form, is_default: v })} label="Set as default address" />
