@@ -3904,6 +3904,14 @@ def _lerp(a, b, t):
     return a + (b - a) * t
 
 
+def _mask_reviewer(name) -> str:
+    """'Rahul Kumar' → 'Rahul K.' — reviewers are shown without their full name."""
+    parts = str(name or "").split()
+    if not parts:
+        return "Customer"
+    return parts[0] + (f" {parts[-1][0].upper()}." if len(parts) > 1 else "")
+
+
 async def partner_public_card(user, booking_id):
     """Non-confidential public profile of the partner assigned to a booking, shown to
     the customer (photo, name, rating, experience, skills, recent reviews). NEVER
@@ -3932,19 +3940,25 @@ async def partner_public_card(user, booking_id):
                 "rating": rv.get("rating"),
                 "comment": rv.get("comment") or "",
                 "at": rv.get("at"),
-                "customer_name": rv.get("customer_name") or "Customer",
+                "customer_name": _mask_reviewer(rv.get("customer_name")),
                 "service_name": rv.get("service_name") or "",
             })
     ratings = [rv["rating"] for rv in reviews]
     avg = round(sum(ratings) / len(ratings), 1) if ratings else round(float(pu.get("rating", 0) or 0), 1)
     dist = {str(s): sum(1 for x in ratings if int(round(x)) == s) for s in range(1, 6)}
     member_since = (pu.get("created_at") or "")[:7]
+    done = await db.bookings.count_documents({"partner_id": pid, "status": {"$in": ["completed", "paid"]}})
+    prof = await db.partner_profiles.find_one({"user_id": pid}, {"_id": 0, "documents.selfie": 1, "experience_years": 1, "experience": 1, "languages": 1}) or {}
+    _selfie = ((prof.get("documents") or {}).get("selfie") or {})
+    _selfie = _selfie.get("url") if isinstance(_selfie, dict) else _selfie
     return {
         "id": pid,
         "name": pu.get("name"),
-        "photo": pu.get("photo") or pu.get("avatar") or "",
+        "photo": pu.get("photo") or pu.get("avatar") or _selfie or "",
         "rating": avg,
-        "jobs_completed": int(pu.get("jobs_completed", 0) or 0),
+        "jobs_completed": max(done, int(pu.get("jobs_completed", 0) or 0)),
+        "experience": prof.get("experience_years") or prof.get("experience"),
+        "languages": prof.get("languages") or [],
         "reviews_count": len(reviews) or int(pu.get("reviews_count", 0) or 0),
         "skills": pu.get("skills") or [],
         "vehicle": pu.get("vehicle"),

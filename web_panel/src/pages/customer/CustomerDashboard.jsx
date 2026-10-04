@@ -8,7 +8,7 @@ import {
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
   Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
 } from "lucide-react";
-import api, { fmt, fmtC } from "@/lib/api";
+import api, { fmt, fmtC, mediaSrc } from "@/lib/api";
 import { shareInvoicePdf, shareFilePdf } from "@/lib/invoiceShare";
 import { runPayment } from "@/lib/payments";
 import { onlyDigits } from "@/lib/validation";
@@ -27,6 +27,7 @@ import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
 import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
 import LiveTrack from "@/components/customer/LiveTrack";
+import PartnerProfileModal from "@/components/customer/PartnerProfileModal";
 import HelpSOS from "@/components/booking/HelpSOS";
 import { AddressForm, emptyAddress } from "@/components/AddressForm";
 import BookingChat from "@/components/booking/BookingChat";
@@ -1295,21 +1296,38 @@ function CurrentStepCard({ b, onCall, onChat }) {
     started: { t: "Work in progress", d: "Your partner is working on the service", eta: "" },
   };
   const m = map[b.status] || map.assigned;
+  const [pc, setPc] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
+  useEffect(() => {
+    if (!b.partner_id) return;
+    let alive = true;
+    api.get(`/bookings/${b.id}/partner-card`).then((r) => { if (alive) setPc(r.data); }).catch(() => {});
+    return () => { alive = false; };
+  }, [b.id, b.partner_id]);
+  const name = pc?.name || b.partner_name;
+  const initial = (name || "P").trim().charAt(0).toUpperCase();
   return (
-    <div className="mt-3 rounded-2xl border border-primary-200 dark:border-primary-800 bg-primary-50/70 dark:bg-primary-900/15 p-4" data-testid={`current-step-${b.code}`}>
-      <div className="flex items-center gap-3">
-        <span className="h-11 w-11 rounded-full bg-white dark:bg-slate-800 grid place-items-center text-primary-700 shrink-0 shadow-sm">
-          <UserIcon className="h-5 w-5" />
-        </span>
+    <div className="mt-3 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/70 dark:bg-primary-900/15 p-3" data-testid={`current-step-${b.code}`}>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-primary-700 dark:text-primary-300">{m.t}</p>
+      <button type="button" disabled={!b.partner_id} onClick={() => setShowProfile(true)} data-testid={`partner-chip-${b.code}`}
+        className="mt-2 w-full flex items-center gap-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 p-2.5 text-left hover:border-primary-300 transition-colors disabled:cursor-default">
+        {pc?.photo ? <img src={mediaSrc(pc.photo)} alt={name} className="h-12 w-12 rounded-lg object-cover shrink-0" data-testid={`partner-chip-photo-${b.code}`} />
+          : <span className="h-12 w-12 rounded-lg grid place-items-center bg-primary-600 text-white font-black text-lg shrink-0">{b.partner_id ? initial : <UserIcon className="h-5 w-5" />}</span>}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-primary-800 dark:text-primary-200">{m.t}</p>
-          <p className="text-xs text-slate-600 dark:text-slate-300 truncate">
-            {b.partner_name || "Assigning…"}{b.category_name ? ` · ${b.category_name}` : ""}
-            {b.partner_premium && <span className="inline-flex items-center gap-0.5 ml-1 text-amber-600"><Crown className="h-3 w-3" /> Pro</span>}
+          <p className="text-sm font-bold text-slate-900 dark:text-white truncate flex items-center gap-1" data-testid={`partner-chip-name-${b.code}`}>
+            {name || "Assigning…"}
+            {pc?.verified && <ShieldCheck className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
+            {(pc?.premium || b.partner_premium) && <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
+            {pc ? <><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><b className="text-slate-700 dark:text-slate-200" data-testid={`partner-chip-rating-${b.code}`}>{pc.rating || "New"}</b>
+              <span>({pc.reviews_count} reviews) · {pc.jobs_completed} jobs</span></> : (b.category_name || "")}
           </p>
           {m.eta && <p className="text-[11px] text-slate-500 mt-0.5">Estimated arrival <b className="text-slate-700 dark:text-slate-200">{m.eta}</b></p>}
         </div>
-      </div>
+        {b.partner_id && <ChevronRight className="h-4 w-4 text-slate-400 shrink-0" />}
+      </button>
+      {showProfile && <PartnerProfileModal bookingId={b.id} onClose={() => setShowProfile(false)} />}
     </div>
   );
 }

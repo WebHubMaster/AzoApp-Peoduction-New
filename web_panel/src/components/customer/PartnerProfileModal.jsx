@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { X, Star, ShieldCheck, Briefcase, MapPin, Loader2, Crown, Quote } from "lucide-react";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 
 function Avatar({ photo, name, size = "h-16 w-16" }) {
   const initial = (name || "P").trim().charAt(0).toUpperCase();
   if (photo) {
-    return <img src={photo} alt={name} className={`${size} rounded-2xl object-cover`} data-testid="partner-profile-photo" />;
+    return <img src={mediaSrc(photo)} alt={name} className={`${size} rounded-xl object-cover`} data-testid="partner-profile-photo" />;
   }
   return (
-    <div className={`${size} rounded-2xl grid place-items-center bg-primary-600 text-white font-black text-2xl`} data-testid="partner-profile-photo">
+    <div className={`${size} rounded-xl grid place-items-center bg-primary-600 text-white font-black text-2xl`} data-testid="partner-profile-photo">
       {initial}
     </div>
   );
@@ -91,6 +91,28 @@ export default function PartnerProfileModal({ bookingId, onClose }) {
                 <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Verified</p>
               </div>
             </div>
+
+            {data.reviews_count > 0 && data.rating_distribution && (
+              <div className="mt-4 space-y-1" data-testid="partner-rating-dist">
+                {[5, 4, 3, 2, 1].map((st) => {
+                  const n = data.rating_distribution[String(st)] || 0;
+                  const pct = Math.round((n / Math.max(1, data.reviews_count)) * 100);
+                  return (
+                    <div key={st} className="flex items-center gap-2 text-xs">
+                      <span className="w-6 text-slate-500 font-semibold">{st}★</span>
+                      <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-amber-400" style={{ width: `${pct}%` }} /></div>
+                      <span className="w-6 text-right text-slate-400">{n}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {(data.experience || (data.languages || []).length > 0) && (
+              <p className="text-xs text-slate-500 mt-3" data-testid="partner-experience">
+                {data.experience ? `${data.experience} yrs experience` : ""}{data.experience && (data.languages || []).length ? " · " : ""}{(data.languages || []).join(", ")}
+              </p>
+            )}
 
             {(data.skills || []).length > 0 && (
               <div className="mt-4">

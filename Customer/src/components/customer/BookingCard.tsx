@@ -3,13 +3,14 @@ import { TC } from "@/src/theme";
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Linking, Animated } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, MessageCircle, FileText, Crown, Calendar, Circle } from "lucide-react-native";
+import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, MessageCircle, FileText, Crown, Calendar, Circle, ChevronRight } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, ROSE, AMBER, useTheme, shadowBtn, shadowElev } from "../../theme";
 import { StatusChip } from "./ux";
 import { statusText, statusTone, DONE_STATES, bkDate } from "./nav";
 import { fmt } from "../../lib/format";
 import { UnreadPill } from "./BookingChat";
 import { HelpSOS } from "./HelpSOS";
+import { PartnerProfileSheet, PartnerAvatar, usePartnerCard } from "./PartnerProfileSheet";
 
 export const fmtTs = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "");
 export const relTime = (iso?: string) => {
@@ -75,16 +76,33 @@ export function CurrentStepCard({ b }: { b: any }) {
     started: { t: "Work in progress", d: "Your partner is working on the service", eta: "" },
   };
   const m = map[b.status] || map.assigned;
+  const { data: pc } = usePartnerCard(b.id, b.partner_id);
+  const [showProfile, setShowProfile] = useState(false);
+  const name = pc?.name || b.partner_name;
   return (
-    <View testID={`current-step-${b.code}`} style={{ marginTop: 12, borderRadius: 10, borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[200], backgroundColor: isDark ? "rgba(7,52,115,0.15)" : "rgba(235,243,254,0.7)", padding: 16 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: isDark ? SLATE[800] : TC.surface, alignItems: "center", justifyContent: "center" }}><User size={20} color={TC.primaryText} /></View>
+    <View testID={`current-step-${b.code}`} style={{ marginTop: 12, borderRadius: 10, borderWidth: 1, borderColor: isDark ? PRIMARY[800] : PRIMARY[200], backgroundColor: isDark ? "rgba(7,52,115,0.15)" : "rgba(235,243,254,0.7)", padding: 12 }}>
+      <Text style={{ fontSize: 11, fontWeight: "800", color: isDark ? PRIMARY[200] : PRIMARY[700], textTransform: "uppercase", letterSpacing: 0.6 }}>{m.t}</Text>
+      <Pressable testID={`partner-chip-${b.code}`} disabled={!b.partner_id} onPress={() => setShowProfile(true)} accessibilityRole="button" accessibilityLabel={`View ${name || "partner"} profile`}
+        style={({ pressed }) => ({ marginTop: 8, flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, backgroundColor: isDark ? SLATE[900] : TC.surface, borderWidth: 1, borderColor: isDark ? SLATE[800] : TC.border, padding: 10, opacity: pressed ? 0.85 : 1 })}>
+        {b.partner_id ? <PartnerAvatar photo={pc?.photo} name={name} size={48} testID={`partner-chip-photo-${b.code}`} />
+          : <View style={{ height: 48, width: 48, borderRadius: 10, backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt, alignItems: "center", justifyContent: "center" }}><User size={20} color={TC.primaryText} /></View>}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={{ fontSize: 14, fontWeight: "700", color: isDark ? PRIMARY[200] : PRIMARY[800] }}>{m.t}</Text>
-          <Text numberOfLines={1} style={{ fontSize: 12, color: isDark ? SLATE[300] : TC.textMuted, marginTop: 2 }}>{b.partner_name || "Assigning…"}{b.category_name ? ` · ${b.category_name}` : ""}{b.partner_premium ? "  " : ""}{b.partner_premium ? <Text style={{ color: AMBER[600] }}><Crown size={11} color={AMBER[600]} /> Pro</Text> : null}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+            <Text testID={`partner-chip-name-${b.code}`} numberOfLines={1} style={{ fontSize: 14, fontWeight: "800", color: isDark ? SLATE[100] : TC.text, flexShrink: 1 }}>{name || "Assigning…"}</Text>
+            {pc?.premium || b.partner_premium ? <Crown size={13} color={AMBER[600]} /> : null}
+          </View>
+          {pc ? (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
+              <Star size={12} color={AMBER[400]} fill={AMBER[400]} />
+              <Text testID={`partner-chip-rating-${b.code}`} style={{ fontSize: 12, fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{pc.rating || "New"}</Text>
+              <Text numberOfLines={1} style={{ fontSize: 12, color: TC.textMuted, flexShrink: 1 }}>({pc.reviews_count} reviews) · {pc.jobs_completed} jobs</Text>
+            </View>
+          ) : <Text numberOfLines={1} style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{b.category_name || ""}</Text>}
           {m.eta ? <Text style={{ fontSize: 11, color: TC.textMuted, marginTop: 2 }}>Estimated arrival <Text style={{ fontWeight: "700", color: isDark ? SLATE[200] : TC.text2 }}>{m.eta}</Text></Text> : null}
         </View>
-      </View>
+        {b.partner_id ? <ChevronRight size={16} color={TC.textFaint} /> : null}
+      </Pressable>
+      {b.partner_id ? <PartnerProfileSheet open={showProfile} onClose={() => setShowProfile(false)} bookingId={b.id} partnerId={b.partner_id} /> : null}
     </View>
   );
 }
