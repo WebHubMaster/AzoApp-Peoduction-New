@@ -4,7 +4,8 @@ import { View, Text, Pressable, TextInput, ActivityIndicator, Dimensions } from 
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, usePathname } from "expo-router";
 import { Image } from "expo-image";
-import { MapPin, ChevronDown, ShoppingBag, User, CheckCircle2, AlertTriangle, Home, LayoutGrid, CalendarCheck } from "lucide-react-native";
+import { MapPin, ChevronDown, ShoppingBag, User, CheckCircle2, AlertTriangle, Home, LayoutGrid, Wrench } from "lucide-react-native";
+import { CustomJobWizard } from "../../../app/(customer)/custom_jobs";
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
@@ -135,7 +136,7 @@ const TABS = [
   { key: "home", label: "Home", icon: Home, to: "/(site)" },
   { key: "services", label: "Services", icon: LayoutGrid, to: "/(site)/services" },
   { key: "cart", label: "Booking", icon: ShoppingBag, to: "/(site)/book" },
-  { key: "bookings", label: "Orders", icon: CalendarCheck, to: "/(customer)/orders" },
+  { key: "custom", label: "Custom Service", icon: Wrench, to: "" },
   { key: "profile", label: "Profile", icon: User, to: "/(customer)" },
 ];
 
@@ -145,15 +146,17 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { count } = useCart();
+  const [customOpen, setCustomOpen] = useState(false);
   const go = (t: typeof TABS[number]) => {
-    if (["bookings", "profile"].includes(t.key) && !user) { router.push("/login"); return; }
+    if (t.key === "custom") { setCustomOpen(true); return; }
+    if (["profile"].includes(t.key) && !user) { router.push("/login"); return; }
     router.push(t.to as any);
   };
   const isActive = (t: typeof TABS[number]) =>
     t.key === "home" ? pathname === "/" || pathname === "/(site)" || pathname === ""
       : t.key === "services" ? pathname.includes("/services")
         : t.key === "cart" ? pathname.includes("/book")
-          : t.key === "bookings" ? pathname.includes("/orders")
+          : t.key === "custom" ? customOpen
             : t.key === "profile" ? pathname.includes("/profile")
               : false;
   return (
@@ -171,10 +174,11 @@ export function MobileBottomNav() {
                 </View>
               ) : null}
             </View>
-            <Text style={{ fontSize: 10, fontWeight: "500", color }}>{t.label}</Text>
+            <Text numberOfLines={1} style={{ fontSize: 10, fontWeight: "500", color }}>{t.label}</Text>
           </Pressable>
         );
       })}
+      <CustomJobWizard open={customOpen} onClose={() => setCustomOpen(false)} onSubmitted={() => {}} />
     </View>
   );
 }

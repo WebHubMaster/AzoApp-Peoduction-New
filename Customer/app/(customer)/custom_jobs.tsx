@@ -78,7 +78,7 @@ export default function CustomJobsScreen() {
             );
           }} />
       )}
-      <Wizard open={wizardOpen} onClose={() => setWizardOpen(false)} onSubmitted={() => setTimeout(load, 400)} />
+      <CustomJobWizard open={wizardOpen} onClose={() => setWizardOpen(false)} onSubmitted={() => setTimeout(load, 400)} />
     </View>
   );
 }
@@ -95,7 +95,7 @@ const inp = { height: 46, borderRadius: 12, borderWidth: 1, get borderColor() { 
 const StepHead = ({ title, sub }: { title: string; sub: string }) => <View style={{ marginBottom: 16 }}><Text style={{ fontSize: 20, fontWeight: "900", color: TC.text }}>{title}</Text><Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2 }}>{sub}</Text></View>;
 const Row = ({ k, v, onEdit }: any) => <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: TC.borderSoft, gap: 10 }}><Text style={{ fontSize: 13, color: TC.textMuted }}>{k}</Text><Text style={{ fontSize: 13, fontWeight: "600", color: TC.text, flex: 1, textAlign: "right" }} numberOfLines={2}>{v}</Text><Pressable onPress={onEdit}><Text style={{ fontSize: 12, fontWeight: "700", color: TC.primaryText }}>Edit</Text></Pressable></View>;
 
-function Wizard({ open, onClose, onSubmitted }: { open: boolean; onClose: () => void; onSubmitted: () => void }) {
+export function CustomJobWizard({ open, onClose, onSubmitted }: { open: boolean; onClose: () => void; onSubmitted: () => void }) {
   const { user, login } = useAuth();
   const toast = useToast();
   const router = useRouter();

@@ -122,3 +122,4 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 - Home Recent jobs tap → /(partner)/active?view=active|completed&focus=<id> (scrolls+highlights); other statuses → booking detail.
 - Alert check card (AlertsPanel TestRingCard) only shows when there are issues; friendly messages only (no raw error codes); hidden when all configured.
 - Customer App: card radius normalised to 10 across app/ + src/ (scripts/square_radius.py, circles skipped); home spacing tightened (16px gutters, 20px section gaps, category grid gap 10, compact search bar/header). Customer node_modules not installed here → not visually verified.
+- Customer bottom nav (SiteNavbar MobileBottomNav): 'Orders' tab replaced by 'Custom Service' → opens CustomJobWizard (exported from app/(customer)/custom_jobs.tsx), same 5-step web flow incl. guest OTP.
