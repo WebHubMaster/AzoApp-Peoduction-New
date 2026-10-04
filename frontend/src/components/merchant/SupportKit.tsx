@@ -54,7 +54,7 @@ export function PriorityBadge({ priority, testID }: { priority?: string; testID?
 }
 function SBadge({ bg, fg, label, testID }: { bg: string; fg: string; label: string; testID?: string }) {
   return (
-    <View testID={testID} style={{ alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 999, backgroundColor: bg }}>
+    <View testID={testID} style={{ alignSelf: "flex-start", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: bg }}>
       <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: fg }} numberOfLines={1}>{label}</Text>
     </View>
   );
@@ -78,14 +78,14 @@ export function AttachmentView({ a, onOpen, style }: { a: any; onOpen?: (url: st
   const border = dark ? SLATE[700] : SLATE[200];
   if (a.kind === "pdf") {
     return (
-      <Pressable onPress={() => Linking.openURL(mediaUrl(a.url) || a.url)} style={[{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: border, backgroundColor: dark ? SLATE[800] : "#fff", paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }, style]}>
+      <Pressable onPress={() => Linking.openURL(mediaUrl(a.url) || a.url)} style={[{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: border, backgroundColor: dark ? SLATE[800] : "#fff", paddingHorizontal: 12, paddingVertical: 8, maxWidth: 220 }, style]}>
         <FileText size={16} color="#ef4444" />
         <Text style={{ fontSize: 12, lineHeight: 16, color: body, flexShrink: 1 }} numberOfLines={1}>{a.name || "Document.pdf"}</Text>
       </Pressable>
     );
   }
   return (
-    <Pressable onPress={() => onOpen?.(a.url)} style={[{ borderRadius: 8, overflow: "hidden", borderWidth: 1, borderColor: border }, style]}>
+    <Pressable onPress={() => onOpen?.(a.url)} style={[{ borderRadius: 6, overflow: "hidden", borderWidth: 1, borderColor: border }, style]}>
       <Image source={{ uri: mediaUrl(a.thumb_url || a.url) }} style={{ height: 96, width: 96 }} contentFit="cover" />
     </Pressable>
   );

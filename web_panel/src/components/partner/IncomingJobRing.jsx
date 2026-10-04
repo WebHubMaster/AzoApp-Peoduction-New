@@ -361,17 +361,17 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
         <div className="min-h-full flex flex-col items-center justify-center px-6 py-6 text-center">
         <p className="uppercase tracking-[0.3em] text-xs text-white/70 mb-2">{current.is_test ? "Test job ring" : "Incoming job request"}</p>
         {current.is_test && (
-          <span data-testid="ring-test-badge" className="mb-3 inline-flex items-center gap-1 rounded-full bg-amber-400 text-amber-950 px-3 py-1 text-[11px] font-bold">TEST · not a real job</span>
+          <span data-testid="ring-test-badge" className="mb-3 inline-flex items-center gap-1 rounded-md bg-amber-400 text-amber-950 px-3 py-1 text-[11px] font-bold">TEST · not a real job</span>
         )}
         <div className="flex items-center gap-2 mb-3 flex-wrap justify-center">
           {current.schedule_type === "emergency" && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/90 px-3 py-1 text-[11px] font-bold"><Zap className="h-3.5 w-3.5" /> Emergency</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-red-500/90 px-3 py-1 text-[11px] font-bold"><Zap className="h-3.5 w-3.5" /> Emergency</span>
           )}
           {silent && (
-            <span data-testid="ring-dnd-badge" className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold"><BellOff className="h-3.5 w-3.5" /> Silent · Do Not Disturb</span>
+            <span data-testid="ring-dnd-badge" className="inline-flex items-center gap-1 rounded-md bg-white/15 px-3 py-1 text-[11px] font-semibold"><BellOff className="h-3.5 w-3.5" /> Silent · Do Not Disturb</span>
           )}
           {queue.length > 1 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold">+{queue.length - 1} more waiting</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-3 py-1 text-[11px] font-semibold">+{queue.length - 1} more waiting</span>
           )}
         </div>
 
@@ -402,7 +402,7 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
               <Briefcase className="h-11 w-11" />
             </div>
           )}
-          <span className="absolute -bottom-1 rounded-full bg-slate-900/70 px-2.5 py-0.5 text-xs font-bold tabular-nums" data-testid="ring-seconds">
+          <span className="absolute -bottom-1 rounded-md bg-slate-900/70 px-2.5 py-0.5 text-xs font-bold tabular-nums" data-testid="ring-seconds">
             {`${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`}
           </span>
         </div>
@@ -412,7 +412,7 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
         </h2>
         {current.category_name && <p className="text-white/80 mt-1 text-lg font-semibold">{current.category_name}</p>}
         {singleServiceQty > 0 && (
-          <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-3 py-1 text-sm font-bold" data-testid="ring-qty">
+          <span className="mt-2 inline-flex items-center gap-1 rounded-md bg-white/20 px-3 py-1 text-sm font-bold" data-testid="ring-qty">
             Quantity: {singleServiceQty}
           </span>
         )}

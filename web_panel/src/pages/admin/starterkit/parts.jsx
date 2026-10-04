@@ -44,7 +44,7 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "primary", tes
 export function StatusBadge({ status, className = "" }) {
   const m = STATUS_META[status] || STATUS_META.processing;
   return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 ${m.cls} ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md ring-1 ${m.cls} ${className}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />{m.label}
     </span>
   );

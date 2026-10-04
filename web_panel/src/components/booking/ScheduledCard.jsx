@@ -88,7 +88,7 @@ export default function ScheduledCard({ schedule, role = "customer", compact = f
             <>
               <div className="flex flex-wrap gap-1.5">
                 {items.map((it) => (
-                  <span key={it.label} className="inline-flex items-center gap-1 rounded-full bg-white/70 dark:bg-slate-900/40 border border-primary-100 dark:border-primary-900/40 px-2.5 py-1 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
+                  <span key={it.label} className="inline-flex items-center gap-1 rounded-md bg-white/70 dark:bg-slate-900/40 border border-primary-100 dark:border-primary-900/40 px-2.5 py-1 text-[11.5px] font-semibold text-slate-500 dark:text-slate-400">
                     <Lock className="h-3 w-3" /> {it.label}
                   </span>
                 ))}

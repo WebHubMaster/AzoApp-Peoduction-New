@@ -115,7 +115,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
       {/* More sheet */}
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)" }} onPress={() => setMoreOpen(false)} />
-        <View testID="more-sheet" style={{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: insets.bottom + 24 }}>
+        <View testID="more-sheet" style={{ backgroundColor: c.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: 24, paddingBottom: insets.bottom + 24 }}>
           <Text style={{ fontSize: 18, fontWeight: "600", color: c.text, marginBottom: 8 }}>More</Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, paddingBottom: 8 }}>
             {moreNav.map((n) => {

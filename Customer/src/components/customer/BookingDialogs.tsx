@@ -21,7 +21,7 @@ export function DrawerShell({ open, onClose, title, children, footer, testID }: 
     <Modal visible={open} animationType="slide" onRequestClose={onClose} transparent>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)" }}>
         <Pressable style={{ height: insets.top + 24 }} onPress={onClose} />
-        <View testID={testID} style={{ flex: 1, backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: "hidden" }}>
+        <View testID={testID} style={{ flex: 1, backgroundColor: c.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
             <Text style={{ fontSize: 17, fontWeight: "700", color: c.text }}>{title}</Text>
             <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt }}><X size={20} color={TC.textFaint} /></Pressable>

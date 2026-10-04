@@ -44,14 +44,14 @@ export function ForgotPasswordSheet({ open, onClose }: { open: boolean; onClose:
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
-        <Pressable onPress={() => {}} testID="forgot-password-dialog" style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20, gap: 12 }}>
+        <Pressable onPress={() => {}} testID="forgot-password-dialog" style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: 20, paddingBottom: insets.bottom + 20, gap: 12 }}>
           <View style={{ alignSelf: "center", width: 48, height: 6, borderRadius: 3, backgroundColor: TW.slate200, marginBottom: 4 }} />
           <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>Reset your password</Text>
               <Text style={{ color: TW.slate500, fontSize: 14, marginTop: 4 }}>Verify a one-time OTP sent to your registered mobile.</Text>
             </View>
-            <Pressable testID="forgot-close" onPress={onClose} hitSlop={8} style={{ width: 32, height: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={18} color={TW.slate400} /></Pressable>
+            <Pressable testID="forgot-close" onPress={onClose} hitSlop={8} style={{ width: 32, height: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={18} color={TW.slate400} /></Pressable>
           </View>
           {step === 1 ? (
             <>

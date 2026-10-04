@@ -111,7 +111,7 @@ export const Pill = ({ s, children, className = "", size = "sm" }) => {
 };
 export const TierPill = ({ tier, label }) => {
   const c = { platinum: "from-violet-500 to-fuchsia-600", gold: "from-amber-400 to-orange-500", silver: "from-slate-400 to-slate-600", bronze: "from-orange-400 to-amber-700", new: "from-sky-400 to-blue-600" }[tier] || "from-slate-400 to-slate-600";
-  return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold text-white bg-gradient-to-r ${c} shadow-sm`}>{label || tier}</span>;
+  return <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold text-white bg-gradient-to-r ${c} shadow-sm`}>{label || tier}</span>;
 };
 export const Progress = ({ v = 0, className = "" }) => (
   <div className={`flex items-center gap-2 ${className}`}><div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden min-w-[48px]"><div className={`h-full rounded-full ${v >= 80 ? "bg-emerald-500" : v >= 50 ? "bg-amber-500" : "bg-rose-500"}`} style={{ width: `${Math.min(100, v)}%` }} /></div><span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 w-8 text-right">{v}%</span></div>
@@ -197,7 +197,7 @@ export const Tabs = ({ tabs, value, onChange, counts = {}, dots = {} }) => (
         <button key={t.key} role="tab" data-testid={`tab-${t.key}`} onClick={() => onChange(t.key)}
           className={`relative shrink-0 snap-start inline-flex items-center gap-1.5 h-10 px-3.5 rounded-md text-sm font-semibold whitespace-nowrap transition-all ${on ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 dark:text-slate-400"}`}>
           {t.icon && <t.icon className="h-4 w-4" />}{t.label}
-          {counts[t.key] != null && <span className={`ml-0.5 px-1.5 rounded-full text-[10px] ${on ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"}`}>{counts[t.key]}</span>}
+          {counts[t.key] != null && <span className={`ml-0.5 px-1.5 rounded-md text-[10px] ${on ? "bg-white/20" : "bg-slate-100 dark:bg-slate-800"}`}>{counts[t.key]}</span>}
           {dots[t.key] && <RedDot className="ml-0.5" />}
         </button>
       );

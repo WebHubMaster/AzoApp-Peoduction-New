@@ -188,7 +188,7 @@ button, a, .transition-all { transition-duration: 150ms; }
         --chart-3: 160 60% 45%;
         --chart-4: 199 89% 48%;
         --chart-5: 340 75% 55%;
-        --radius: 0.5rem;
+        --radius: 6px;
     }
     .dark {
         --background: 222 47% 8%;

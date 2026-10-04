@@ -150,7 +150,7 @@ const Field = ({ label, children }) => (
   <div><label className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</label><div className="mt-1">{children}</div></div>
 );
 const StatusPill = ({ s }) => (
-  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"}`}>{s === "active" ? "Active" : "Inactive"}</span>
+  <span className={`px-2 py-0.5 rounded-md text-xs font-semibold ${s === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400"}`}>{s === "active" ? "Active" : "Inactive"}</span>
 );
 const Tbl = ({ children }) => <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-x-auto"><table className="w-full text-sm">{children}</table></div>;
 
@@ -590,7 +590,7 @@ const VariantEditor = ({ tiers, onChange }) => {
           return (
             <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-primary-700 bg-primary-50 dark:bg-primary-900/20 px-2.5 py-1 rounded-full">Variant {i + 1}</span>
+                <span className="text-xs font-bold text-primary-700 bg-primary-50 dark:bg-primary-900/20 px-2.5 py-1 rounded-md">Variant {i + 1}</span>
                 <div className="flex gap-2">
                   {off > 0 && <span className="text-xs text-emerald-600 font-bold self-center">{off}% off</span>}
                   <button type="button" onClick={() => dup(i)} title="Duplicate variant" className="h-8 w-8 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 flex items-center justify-center hover:bg-slate-200"><Copy className="h-4 w-4" /></button>
@@ -1817,7 +1817,7 @@ export const NotificationCenter = () => {
 /* =============== Diagnostics: verify the full push chain end-to-end =============== */
 function DiagStatusPill({ ok, label }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${ok ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold ${ok ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-red-50 text-red-700 border border-red-100"}`}>
       <span className={`h-2 w-2 rounded-full ${ok ? "bg-emerald-500" : "bg-red-500"}`} />
       {label}
     </span>
@@ -1920,7 +1920,7 @@ function NotificationDiagnostics() {
           <ul className="mt-2 space-y-1 text-xs">
             {(health.web_api_key.checks || []).map((c) => (
               <li key={c.api} className="flex items-center gap-2" data-testid={`diag-apikey-check-${c.api.toLowerCase().replace(/[^a-z]+/g, "-")}`}>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${c.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{c.ok ? "allowed" : "blocked"}</span>
+                <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${c.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{c.ok ? "allowed" : "blocked"}</span>
                 <span className="font-medium text-slate-800">{c.api}</span>
                 {!c.ok && <span className="text-slate-500 truncate">· HTTP {c.status} {c.reason}</span>}
               </li>
@@ -2009,7 +2009,7 @@ function NotificationDiagnostics() {
         <div className="flex items-center gap-2 mb-1">
           <UserIcon className="h-4 w-4 text-amber-600" />
           <h3 className="font-bold text-slate-900">Online partners without a registered device</h3>
-          <span className="ml-auto text-xs font-bold text-amber-700 bg-amber-50 rounded-full px-2 py-0.5">{(health.partners_without_device || []).length}</span>
+          <span className="ml-auto text-xs font-bold text-amber-700 bg-amber-50 rounded-md px-2 py-0.5">{(health.partners_without_device || []).length}</span>
         </div>
         <p className="text-xs text-slate-500 mb-3">{`These partners are online now, but no push token is registered from their phone/browser — when the browser is closed they won't receive a push (the in-app ring still works). "Last device report" shows the reason their browser gave.`}</p>
         {(health.partners_without_device || []).length === 0 ? (
@@ -2028,8 +2028,8 @@ function NotificationDiagnostics() {
                       <td className="py-2 pr-3 font-medium text-slate-800">{p.name}</td>
                       <td className="py-2 pr-3 text-slate-600">{p.phone}</td>
                       <td className="py-2 pr-3">
-                        {ps ? <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${ps.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{ps.reason || (ps.ok ? "registered" : "failed")}</span>
-                          : <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-500">never attempted</span>}
+                        {ps ? <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${ps.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{ps.reason || (ps.ok ? "registered" : "failed")}</span>
+                          : <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-slate-100 text-slate-500">never attempted</span>}
                         {ps?.at && <span className="ml-1 text-slate-400">{new Date(ps.at).toLocaleString()}</span>}
                       </td>
                       <td className="py-2 text-slate-500 max-w-[320px] truncate" title={ps?.error || ""}>{ps ? (ps.error || `permission: ${ps.permission || "?"}`) : "The partner never tapped 'Allow notifications' in this browser"}</td>
@@ -2072,7 +2072,7 @@ function NotificationDiagnostics() {
                   </td>
                   <td className="py-2 pr-3 truncate max-w-[220px]" title={r.title}>{r.title}</td>
                   <td className="py-2 pr-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.status === "sent" ? "bg-emerald-100 text-emerald-700" : r.status === "failed" || r.status === "error" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>{r.status}</span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.status === "sent" ? "bg-emerald-100 text-emerald-700" : r.status === "failed" || r.status === "error" ? "bg-red-100 text-red-700" : "bg-slate-100 text-slate-600"}`}>{r.status}</span>
                   </td>
                   <td className="py-2 pr-3 text-slate-600 whitespace-nowrap">{r.success || 0}/{r.tokens || 0}{r.failure ? ` (${r.failure} failed)` : ""}</td>
                   <td className="py-2 text-slate-500 truncate max-w-[280px]" title={r.detail}>{r.detail || "—"}</td>
@@ -2102,10 +2102,10 @@ function NotificationDiagnostics() {
                 <tr key={r.id} className="border-b border-slate-50" data-testid={`diag-ring-${r.id}`}>
                   <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{r.at ? new Date(r.at).toLocaleString() : "—"}</td>
                   <td className="py-2 pr-3"><span className="font-medium text-slate-800">{r.user?.name || r.user_id?.slice(0, 8)}</span>{r.user?.role && <span className="text-slate-400 ml-1">({r.user.role})</span>}</td>
-                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
+                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
                   <td className="py-2 pr-3 text-slate-600">{r.mode || "—"}</td>
                   <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
-                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? "delivered" : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
+                  <td className="py-2"><span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? "delivered" : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
                 </tr>
               ))}
             </tbody>
@@ -2117,7 +2117,7 @@ function NotificationDiagnostics() {
         <div className="flex items-center gap-2 mb-1">
           <Smartphone className="h-4 w-4 text-primary-700" />
           <h3 className="font-bold text-slate-900">Per-device last ring status</h3>
-          <span className="ml-auto text-xs font-bold text-slate-600 bg-slate-100 rounded-full px-2 py-0.5">{(health.ring_devices || []).length}</span>
+          <span className="ml-auto text-xs font-bold text-slate-600 bg-slate-100 rounded-md px-2 py-0.5">{(health.ring_devices || []).length}</span>
         </div>
         <p className="text-xs text-slate-500 mb-3">One row per phone — the <b>most recent</b> call-style ring outcome on that device, so you can instantly see which devices are ringing OK and which are failing (with the reason). <b>FSI</b> = full-screen-intent permission granted on that phone.</p>
         <div className="overflow-x-auto">
@@ -2138,9 +2138,9 @@ function NotificationDiagnostics() {
                   </td>
                   <td className="py-2 pr-3"><span className="font-medium text-slate-800">{r.user?.name || r.user_id?.slice(0, 8)}</span>{r.user?.role && <span className="text-slate-400 ml-1">({r.user.role})</span>}</td>
                   <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{r.at ? new Date(r.at).toLocaleString() : "—"}</td>
-                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
+                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.ctx === "bg" ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-600"}`}>{r.ctx === "bg" ? "closed/locked" : r.ctx === "fg" ? "app open" : (r.ctx || "—")}</span></td>
                   <td className="py-2 pr-3">{r.fsi === true ? <span className="text-emerald-600 font-bold">yes</span> : r.fsi === false ? <span className="text-red-600 font-bold">no</span> : <span className="text-slate-400">?</span>}</td>
-                  <td className="py-2"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? `delivered${r.src ? ` · ${r.src === "fcm" ? "push" : r.src === "sse" ? "live" : r.src}` : ""}` : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
+                  <td className="py-2"><span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.ok ? `delivered${r.src ? ` · ${r.src === "fcm" ? "push" : r.src === "sse" ? "live" : r.src}` : ""}` : "failed"}</span>{r.error && <span className="ml-1 text-slate-500 truncate inline-block max-w-[220px] align-bottom" title={r.error}>{r.error}</span>}</td>
                 </tr>
               ))}
             </tbody>
@@ -2166,7 +2166,7 @@ function NotificationDiagnostics() {
                 <tr key={r.id} className="border-b border-slate-50">
                   <td className="py-2 pr-3 text-slate-500 whitespace-nowrap">{new Date(r.at).toLocaleString()}</td>
                   <td className="py-2 pr-3"><span className="font-medium text-slate-800">{r.user?.name || r.user_id?.slice(0, 8)}</span>{r.user?.role && <span className="text-slate-400 ml-1">({r.user.role})</span>}</td>
-                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.reason || (r.ok ? "registered" : "failed")}</span></td>
+                  <td className="py-2 pr-3"><span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${r.ok ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{r.reason || (r.ok ? "registered" : "failed")}</span></td>
                   <td className="py-2 pr-3 text-slate-600">{r.permission || "—"}</td>
                   <td className="py-2 text-slate-500 max-w-[360px] truncate" title={`${r.error || ""} ${r.user_agent || ""}`}>{r.error || r.user_agent || "—"}</td>
                 </tr>

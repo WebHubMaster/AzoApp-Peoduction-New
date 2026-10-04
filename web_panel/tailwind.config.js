@@ -17,9 +17,13 @@ module.exports = {
         primarybtn: '0 0.125rem 0.375rem 0 rgba(13, 71, 161, 0.3)'
       },
       borderRadius: {
+        DEFAULT: 'var(--radius)',
+        sm: 'var(--radius)',
+        md: 'var(--radius)',
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+        xl: 'var(--radius)',
+        '2xl': 'var(--radius)',
+        '3xl': 'var(--radius)'
       },
       colors: {
         background: 'hsl(var(--background))',

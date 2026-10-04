@@ -56,10 +56,10 @@ export const StatusTabs = ({ tabs, value, onChange }) => (
           key={t.key}
           data-testid={`status-tab-${t.key}`}
           onClick={() => onChange(t.key)}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-all border ${on ? "bg-primary-600 text-white border-primary-600" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary-300"}`}
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold capitalize transition-all border ${on ? "bg-primary-600 text-white border-primary-600" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary-300"}`}
         >
           {t.label}
-          {t.count != null && <span className={`h-4 min-w-[16px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${on ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{t.count}</span>}
+          {t.count != null && <span className={`h-4 min-w-[16px] px-1 rounded-md text-[10px] font-bold flex items-center justify-center ${on ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{t.count}</span>}
         </button>
       );
     })}
@@ -481,11 +481,11 @@ const AssignPartnerRow = ({ e, busy, onAssign, nearby = false }) => (
     <div className="min-w-0 flex-1">
       <div className="flex items-center gap-2 flex-wrap">
         <p className="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate">{e.name}</p>
-        {e.is_current && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Current</span>}
-        <span className={`text-[10px] px-1.5 py-0.5 rounded-full capitalize ${e.partner_status === "online" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"}`}>{e.partner_status}</span>
-        {e.busy && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700" title={e.busy_job_service ? `On ${e.busy_job_service}${e.busy_job_code ? ` (#${e.busy_job_code})` : ""}` : "On a job"} data-testid={`busy-${e.id}`}>{busyLabel(e)}</span>}
-        {nearby && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Nearby area</span>}
-        {e.eta_min != null && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary-50 text-primary-700">~{e.eta_min} min</span>}
+        {e.is_current && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-700">Current</span>}
+        <span className={`text-[10px] px-1.5 py-0.5 rounded-md capitalize ${e.partner_status === "online" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300"}`}>{e.partner_status}</span>
+        {e.busy && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700" title={e.busy_job_service ? `On ${e.busy_job_service}${e.busy_job_code ? ` (#${e.busy_job_code})` : ""}` : "On a job"} data-testid={`busy-${e.id}`}>{busyLabel(e)}</span>}
+        {nearby && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700">Nearby area</span>}
+        {e.eta_min != null && <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-primary-50 text-primary-700">~{e.eta_min} min</span>}
       </div>
       <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-slate-500 mt-0.5">
         <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{e.rating}</span>
@@ -762,7 +762,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-bold text-slate-900 dark:text-white">{partner.name}</p>
                     {partner.partner_code && <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">{partner.partner_code}</span>}
-                    {partner.partner_status && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize ${partner.partner_status === "online" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{partner.partner_status}</span>}
+                    {partner.partner_status && <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md capitalize ${partner.partner_status === "online" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{partner.partner_status}</span>}
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-600 dark:text-slate-300">
                     <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-amber-400 text-amber-400" />{partner.rating ?? "—"}</span>
@@ -777,7 +777,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
                   </div>
                   {(partner.skills || []).length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-1.5">
-                      {partner.skills.map((s, i) => <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 capitalize">{String(s).replace(/_/g, " ")}</span>)}
+                      {partner.skills.map((s, i) => <span key={i} className="text-[11px] font-medium px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 capitalize">{String(s).replace(/_/g, " ")}</span>)}
                     </div>
                   )}
                   {partner.bio && <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">{partner.bio}</p>}
@@ -846,7 +846,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
                         className="w-full flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200 py-1.5">
                         <MapPin className="h-3.5 w-3.5 text-amber-600" />
                         Nearby areas · {nearby.length} {eligMeta?.category || ""} partner{nearby.length === 1 ? "" : "s"} within {eligMeta?.nearby_radius_km || 15} km
-                        {eligMeta?.free_in_area === 0 && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">no one free in {eligMeta?.area?.pincode || "area"}</span>}
+                        {eligMeta?.free_in_area === 0 && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-700">no one free in {eligMeta?.area?.pincode || "area"}</span>}
                         <span className="ml-auto text-slate-400">{showNearby ? "Hide" : "Show"}</span>
                       </button>
                       {showNearby && (
@@ -874,7 +874,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
 
           {/* Commission breakdown */}
           <DCard title="Commission Breakdown" icon={IndianRupee}
-            action={<span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${comm.settled ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{comm.settled ? "Settled" : "Projected"}</span>}>
+            action={<span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${comm.settled ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{comm.settled ? "Settled" : "Projected"}</span>}>
             <div className="mb-3 flex items-center justify-between text-sm">
               <span className="text-slate-500">{comm.kind === "cancellation" ? "Cancellation: refund + retained-share split (tax excluded)" : "Split of amount paid excluding tax (all charges − discounts)"}</span>
               <span className="font-semibold text-slate-800 dark:text-slate-100">Base {fmt(comm.base)}</span>
@@ -1358,7 +1358,7 @@ const CustomerProfile360 = ({ d, userId, reload, onBack }) => {
       <CsCard className="overflow-hidden mb-4">
         <div className="relative h-28 md:h-32 bg-gradient-to-br from-primary-700 via-fuchsia-600 to-sky-500">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 18% 20%, rgba(255,255,255,0.5) 0, transparent 45%), radial-gradient(circle at 82% 65%, rgba(255,255,255,0.35) 0, transparent 40%)" }} />
-          <span className="absolute top-4 right-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-white text-[11px] font-mono font-semibold tracking-wide">#{String(u.id || "").slice(0, 8).toUpperCase()}</span>
+          <span className="absolute top-4 right-5 inline-flex items-center gap-1.5 rounded-md bg-white/15 backdrop-blur px-3 py-1 text-white text-[11px] font-mono font-semibold tracking-wide">#{String(u.id || "").slice(0, 8).toUpperCase()}</span>
         </div>
         <div className="px-4 md:px-6 pb-5">
           <div className="-mt-12 flex items-end gap-4">
@@ -1426,7 +1426,7 @@ const CustomerProfile360 = ({ d, userId, reload, onBack }) => {
             {stats.tier_label && (
               <CsCard className="p-5" >
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><Award className="h-5 w-5 text-primary-700" /> Loyalty — <span className={`px-2 py-0.5 rounded-full text-sm capitalize ${TIER_PILL[stats.tier] || "bg-slate-100 text-slate-600"}`}>{stats.tier_label}</span></h2>
+                  <h2 className="font-heading font-bold text-[15px] flex items-center gap-2 text-slate-900 dark:text-white"><Award className="h-5 w-5 text-primary-700" /> Loyalty — <span className={`px-2 py-0.5 rounded-md text-sm capitalize ${TIER_PILL[stats.tier] || "bg-slate-100 text-slate-600"}`}>{stats.tier_label}</span></h2>
                   <span className="text-sm text-slate-500 dark:text-slate-400">Lifetime {csMoney(stats.total_spent || 0)}</span>
                 </div>
                 {stats.next_tier ? (
@@ -1441,7 +1441,7 @@ const CustomerProfile360 = ({ d, userId, reload, onBack }) => {
             {(d.favourite_services || []).length > 0 && (
               <CsCard className="p-5" >
                 <h2 className="font-heading font-bold text-[15px] mb-3 flex items-center gap-2 text-slate-900 dark:text-white"><Heart className="h-5 w-5 text-primary-700" /> Favourite Services</h2>
-                <div className="flex flex-wrap gap-2">{(d.favourite_services || []).map((s, i) => <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-3 py-1.5 text-sm font-medium">{s.name} <span className="text-[11px] bg-primary-200/60 dark:bg-primary-800 rounded-full px-1.5">{s.count}×</span></span>)}</div>
+                <div className="flex flex-wrap gap-2">{(d.favourite_services || []).map((s, i) => <span key={i} className="inline-flex items-center gap-1.5 rounded-md bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-3 py-1.5 text-sm font-medium">{s.name} <span className="text-[11px] bg-primary-200/60 dark:bg-primary-800 rounded-md px-1.5">{s.count}×</span></span>)}</div>
               </CsCard>
             )}
             <CsCard className="p-5">
@@ -1737,7 +1737,7 @@ export const UserProfile360 = ({ userId, onBack }) => {
         <div className="relative h-36 bg-gradient-to-br from-primary-700 via-fuchsia-600 to-sky-500">
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.5) 0, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.35) 0, transparent 40%)" }} />
           <div className="absolute top-4 right-5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-white text-xs font-semibold capitalize">{u.role}</span>
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-white/15 backdrop-blur px-3 py-1 text-white text-xs font-semibold capitalize">{u.role}</span>
           </div>
         </div>
         <div className="px-6 pb-5">
@@ -1819,7 +1819,7 @@ export const UserProfile360 = ({ userId, onBack }) => {
             {u.role === "customer" && stats.tier_label && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6" data-testid="loyalty-card">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <h2 className="font-heading font-bold text-lg flex items-center gap-2 text-slate-900 dark:text-white"><Award className="h-5 w-5 text-primary-700" /> Loyalty — <span className={`px-2 py-0.5 rounded-full text-sm ${TIER_PILL[stats.tier] || "bg-slate-100 text-slate-600"}`}>{stats.tier_label}</span></h2>
+                  <h2 className="font-heading font-bold text-lg flex items-center gap-2 text-slate-900 dark:text-white"><Award className="h-5 w-5 text-primary-700" /> Loyalty — <span className={`px-2 py-0.5 rounded-md text-sm ${TIER_PILL[stats.tier] || "bg-slate-100 text-slate-600"}`}>{stats.tier_label}</span></h2>
                   <span className="text-sm text-slate-500 dark:text-slate-400">Lifetime {fmt(stats.total_spent || 0)}</span>
                 </div>
                 {stats.next_tier ? (
@@ -1845,8 +1845,8 @@ export const UserProfile360 = ({ userId, onBack }) => {
                 <h2 className="font-heading font-bold text-lg mb-3 flex items-center gap-2 text-slate-900 dark:text-white"><Heart className="h-5 w-5 text-primary-700" /> Favourite Services</h2>
                 <div className="flex flex-wrap gap-2">
                   {(d.favourite_services || []).map((s, i) => (
-                    <span key={i} className="inline-flex items-center gap-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-3 py-1.5 text-sm font-medium">
-                      {s.name} <span className="text-[11px] bg-primary-200/60 dark:bg-primary-800 rounded-full px-1.5">{s.count}×</span>
+                    <span key={i} className="inline-flex items-center gap-1.5 rounded-md bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-3 py-1.5 text-sm font-medium">
+                      {s.name} <span className="text-[11px] bg-primary-200/60 dark:bg-primary-800 rounded-md px-1.5">{s.count}×</span>
                     </span>
                   ))}
                 </div>
@@ -2796,7 +2796,7 @@ export const LiveOps = ({ onNavigate }) => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span data-testid="liveops-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-full border text-[12.5px] font-bold"
+          <span data-testid="liveops-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-md border text-[12.5px] font-bold"
             style={{ borderColor: connected ? "#A7F3D0" : "#FDE68A", color: connected ? "#15803D" : "#B45309", background: connected ? "#ECFDF5" : "#FFFBEB" }}>
             <span className={`h-2 w-2 rounded-full ${connected ? "bg-[#16A34A] azo-live-dot" : "bg-[#F59E0B] animate-pulse"}`} />
             {connected ? "LIVE" : "Reconnecting…"}

@@ -44,7 +44,7 @@ const subPlanLine = (it) => {
 // Green "Recurring Subscription" badge + name + plan line (matches the service page look).
 const SubscriptionHeader = ({ it, size = "md" }) => (
   <div data-testid="sub-recurring-header">
-    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
       <CalendarClock className="h-3 w-3" /> Recurring Subscription
     </span>
     <h3 className={`font-heading font-bold text-slate-900 mt-1.5 leading-snug ${size === "lg" ? "text-lg" : ""}`}>{it.name}</h3>
@@ -681,7 +681,7 @@ const StepServices = ({ items, removeItem, setQty, lineTotal, navigate, together
                   <div className="flex items-center justify-between mt-1.5">
                     <span className="font-heading font-extrabold text-sm text-slate-900">{fmt(price)}</span>
                     <button data-testid={`together-add-${s.id}`} onClick={() => { addService(s); toast.success(`${s.name} added`); }}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold px-2.5 py-1 azo-press">
+                      className="inline-flex items-center gap-1 rounded-md bg-primary-700 hover:bg-primary-800 text-white text-xs font-semibold px-2.5 py-1 azo-press">
                       <Plus className="h-3.5 w-3.5" /> Add
                     </button>
                   </div>
@@ -761,7 +761,7 @@ const StepDetails = ({ items, updateItem, setAddonQty, quotes, popularAddons = {
                     <div className="flex flex-wrap gap-1.5">
                       {pop.map((p) => (
                         <button key={p.name} data-testid={`freq-addon-${it.service_id}-${p.name}`} onClick={() => toggleAddon(it, p.name)}
-                          className="inline-flex items-center gap-1 rounded-full bg-white border border-amber-300 text-amber-800 text-xs font-semibold px-2.5 py-1 hover:bg-amber-100 azo-press">
+                          className="inline-flex items-center gap-1 rounded-md bg-white border border-amber-300 text-amber-800 text-xs font-semibold px-2.5 py-1 hover:bg-amber-100 azo-press">
                           <Plus className="h-3 w-3" /> {p.name} <span className="text-amber-500">+{fmt(p.price)}</span>
                         </button>
                       ))}
@@ -783,7 +783,7 @@ const StepDetails = ({ items, updateItem, setAddonQty, quotes, popularAddons = {
                         <span className="flex items-center gap-2.5">
                           <span className={`h-5 w-5 rounded-md border flex items-center justify-center ${on ? "bg-primary-700 border-primary-700" : "border-slate-300"}`}>{on && <Check className="h-3.5 w-3.5 text-white" />}</span>
                           <span className="text-sm font-medium text-slate-800">{a.name}</span>
-                          {popular && <span data-testid={`addon-popular-${it.service_id}-${a.name}`} className="text-[9px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">Popular</span>}
+                          {popular && <span data-testid={`addon-popular-${it.service_id}-${a.name}`} className="text-[9px] font-bold uppercase tracking-wide bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md">Popular</span>}
                         </span>
                         <span className="text-sm font-semibold text-slate-700">+{fmt(a.price)}</span>
                       </button>
@@ -879,7 +879,7 @@ const StepContact = ({ user, refresh, savedAddresses, selectedId, pickAddress, a
               <button key={a.id} data-testid={`saved-addr-${a.id}`} onClick={() => pickAddress(a.id)}
                 className={`px-3 py-2 rounded-md text-sm font-medium border text-left transition-colors ${selectedId === a.id ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-600 hover:border-primary-300"}`}>
                 <span className="block font-semibold flex items-center gap-1">{a.label} {a.is_default && "★"}
-                  {a.lat && a.lng && <span data-testid={`addr-pinned-${a.id}`} className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-full px-1.5 py-0.5"><MapPin className="h-2.5 w-2.5" /> Pinned</span>}
+                  {a.lat && a.lng && <span data-testid={`addr-pinned-${a.id}`} className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 rounded-md px-1.5 py-0.5"><MapPin className="h-2.5 w-2.5" /> Pinned</span>}
                 </span>
                 <span className="block text-xs text-slate-400 max-w-[160px] truncate">{a.line}</span>
               </button>

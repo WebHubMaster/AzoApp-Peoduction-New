@@ -140,7 +140,7 @@ const BADGE = {
 export const Badge = ({ status, children }) => {
   const cls = BADGE[(status || "").toLowerCase()] || BADGE.expired;
   return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold capitalize px-2.5 py-1 rounded-full ring-1 ${cls}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold capitalize px-2.5 py-1 rounded-md ring-1 ${cls}`}>
       {children || status}
     </span>
   );
@@ -226,7 +226,7 @@ export const Chips = ({ items, onRemove }) => (
   items.length ? (
     <div className="flex items-center gap-2 flex-wrap">
       {items.map((c) => (
-        <span key={c.key} className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ring-1"
+        <span key={c.key} className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md ring-1"
           style={{ background: "rgba(13,71,161,0.06)", color: BRAND, borderColor: "rgba(13,71,161,0.2)" }}>
           {c.label}
           <button onClick={() => onRemove(c.key)} className="hover:text-red-500">✕</button>

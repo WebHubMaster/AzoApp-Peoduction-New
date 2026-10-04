@@ -635,7 +635,7 @@ function ActiveGatewayCard({ integ, options, onSaved }) {
       : live ? "bg-red-50 text-red-700 border border-red-200"
       : "bg-emerald-50 text-emerald-700 border border-emerald-200";
     return (
-      <span data-testid={testid} className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
+      <span data-testid={testid} className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-md ${cls}`}>
         <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-red-500" : "bg-emerald-500"}`} />
         {live ? "🔴 LIVE MODE" : "🧪 TEST MODE"}
         {!s.configured && <span className="opacity-70">· not live</span>}
@@ -855,7 +855,7 @@ export function IntegrationCenter({ onNavigate }) {
                   const h = integ.aws_s3_health;
                   const tone = h.ok ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-rose-50 text-rose-700 border-rose-200";
                   const label = h.ok ? "Storage: S3 connected" : "Storage: S3 error";
-                  return <span data-testid="s3-health-badge" className={`mt-1 inline-flex items-center gap-1 w-fit text-[11px] font-semibold px-2 py-0.5 rounded-full border ${tone}`}>
+                  return <span data-testid="s3-health-badge" className={`mt-1 inline-flex items-center gap-1 w-fit text-[11px] font-semibold px-2 py-0.5 rounded-md border ${tone}`}>
                     {h.ok ? <CheckCircle2 className="h-3 w-3" /> : <X className="h-3 w-3" />} {label}
                   </span>;
                 })()

@@ -103,7 +103,7 @@ export function AppTabBar({
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setMoreOpen(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 20, maxHeight: "88%" }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, paddingHorizontal: 20, paddingTop: 20, paddingBottom: insets.bottom + 20, maxHeight: "88%" }}>
             <View style={{ alignSelf: "center", height: 6, width: 48, borderRadius: 3, backgroundColor: colors.border, marginBottom: 16 }} />
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>All Menu</Text>
@@ -122,14 +122,14 @@ export function AppTabBar({
                       paddingTop: 12,
                       paddingBottom: 12,
                       paddingHorizontal: 6,
-                      borderRadius: 10,
+                      borderRadius: 6,
                       borderWidth: 1,
                       borderColor: it.active ? "#BFDBFE" : colors.border,
                       backgroundColor: it.active ? colors.primarySubtle : colors.surface,
                       boxShadow: "0px 2px 8px rgba(2,32,71,0.04)",
                     }}
                   >
-                    <View style={{ height: 44, width: 44, borderRadius: 10, alignItems: "center", justifyContent: "center", backgroundColor: it.active ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
+                    <View style={{ height: 44, width: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: it.active ? "transparent" : colors.surfaceSubtle, overflow: "hidden" }}>
                       {it.active ? (
                         <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 44, width: 44, alignItems: "center", justifyContent: "center" }}>
                           <Icon name={it.icon} size={20} color="#fff" />
@@ -160,16 +160,16 @@ function TabButton({ icon, label, focused, onPress, testID, badge }: { icon: Mdi
   const { colors } = useTheme();
   return (
     <Pressable testID={testID || `tab-${label.toLowerCase().split(" ")[0]}`} onPress={onPress} style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 4, paddingTop: 8, paddingBottom: 6 }}>
-      <View style={{ height: 40, width: 40, borderRadius: 10, alignItems: "center", justifyContent: "center", overflow: "visible", transform: [{ scale: focused ? 1.05 : 1 }] }}>
+      <View style={{ height: 40, width: 40, borderRadius: 6, alignItems: "center", justifyContent: "center", overflow: "visible", transform: [{ scale: focused ? 1.05 : 1 }] }}>
         {focused ? (
-          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
+          <LinearGradient colors={[colors.secondary, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.4)", elevation: 4 }}>
             <Icon name={icon} size={18} color="#fff" />
           </LinearGradient>
         ) : (
           <Icon name={icon} size={18} color={colors.tabInactive} />
         )}
         {badge && badge > 0 ? (
-          <View style={{ position: "absolute", top: 0, right: 0, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
+          <View style={{ position: "absolute", top: 0, right: 0, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 6, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
             <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>{badge > 9 ? "9+" : badge}</Text>
           </View>
         ) : null}

@@ -45,7 +45,7 @@ const ago = (t) => {
   return `${Math.floor(s / 86400)} day${Math.floor(s / 86400) > 1 ? "s" : ""} ago`;
 };
 
-const Badge = ({ cls, children }) => <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize ${cls}`}>{children}</span>;
+const Badge = ({ cls, children }) => <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold capitalize ${cls}`}>{children}</span>;
 
 const InfoRow = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-2 py-1.5">
@@ -256,9 +256,9 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
             const sep = dayKey(m.at) !== lastDay ? daySep(m.at) : null;
             lastDay = dayKey(m.at);
             const block = [];
-            if (sep) block.push(<div key={`sep-${m.id}`} className="flex justify-center my-2"><span className="text-[10px] font-bold tracking-wider text-slate-400 bg-slate-200/70 dark:bg-slate-800 rounded-full px-3 py-1">{sep}</span></div>);
+            if (sep) block.push(<div key={`sep-${m.id}`} className="flex justify-center my-2"><span className="text-[10px] font-bold tracking-wider text-slate-400 bg-slate-200/70 dark:bg-slate-800 rounded-md px-3 py-1">{sep}</span></div>);
             if (m.system) {
-              block.push(<div key={m.id} className="flex justify-center"><span className="text-[11px] text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-full px-3 py-1">{m.text}</span></div>);
+              block.push(<div key={m.id} className="flex justify-center"><span className="text-[11px] text-slate-400 bg-slate-100 dark:bg-slate-800 rounded-md px-3 py-1">{m.text}</span></div>);
               return block;
             }
             const mine = m.sender_id === myId;

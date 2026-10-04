@@ -38,22 +38,22 @@ export default function PartnerVerification() {
   const mapLink = a.lat && a.lng ? `https://www.google.com/maps?q=${a.lat},${a.lng}` : null;
 
   const Field = ({ icon, label, value }: { icon: MdiName; label: string; value?: string }) => (
-    <View style={{ flexDirection: "row", gap: 12, borderRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
-      <View style={{ width: 36, height: 36, borderRadius: 8, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={colors.primary} /></View>
+    <View style={{ flexDirection: "row", gap: 12, borderRadius: 6, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
+      <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={colors.primary} /></View>
       <View style={{ flex: 1 }}><Text style={{ color: SLATE400, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8 }}>{label}</Text><Text style={{ color: colors.text, fontSize: 15, fontWeight: "600", marginTop: 2, lineHeight: 21 }}>{value || "—"}</Text></View>
     </View>
   );
   const Section = ({ icon, title, sub, children }: { icon: MdiName; title: string; sub?: string; children: React.ReactNode }) => (
     <Surface style={{ overflow: "hidden" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.surfaceSubtle, backgroundColor: "rgba(248,250,252,0.6)" }}>
-        <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color="#fff" /></LinearGradient>
+        <LinearGradient colors={[colors.secondary, "#42A5F5"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 36, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color="#fff" /></LinearGradient>
         <View><Text style={{ color: colors.text, fontSize: 17, fontWeight: "800" }}>{title}</Text>{sub ? <Text style={{ color: SLATE400, fontSize: 12 }}>{sub}</Text> : null}</View>
       </View>
       <View style={{ padding: 20, gap: 12 }}>{children}</View>
     </Surface>
   );
   const DocTile = ({ label, url }: { label: string; url?: string }) => (
-    <View style={{ width: "48%", borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden", backgroundColor: colors.surfaceSubtle }}>
+    <View style={{ width: "48%", borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", backgroundColor: colors.surfaceSubtle }}>
       {url ? <Pressable testID={`doc-${label.replace(/\s+/g, "-").toLowerCase()}`} onPress={() => setZoom({ url: mediaUrl(url), label })}><Image source={{ uri: mediaUrl(url) }} style={{ height: 128, width: "100%" }} contentFit="cover" /></Pressable>
         : <View style={{ height: 128, alignItems: "center", justifyContent: "center" }}><Text style={{ color: SLATE400, fontSize: 12 }}>Not uploaded</Text></View>}
       <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "500", paddingHorizontal: 10, paddingVertical: 8, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, backgroundColor: colors.surface }}>{label}</Text>
@@ -66,21 +66,21 @@ export default function PartnerVerification() {
       <ScrollView testID="partner-profile-view" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 20 }} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-reg-profile"] })} tintColor={colors.primary} colors={[colors.primary]} />}>
         {!approved ? (
-          <View testID="onboarding-banner" style={{ borderRadius: 10, backgroundColor: colors.primary, padding: 20, gap: 12 }}>
+          <View testID="onboarding-banner" style={{ borderRadius: 6, backgroundColor: colors.primary, padding: 20, gap: 12 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}><Icon name="shield-check-outline" size={32} color="#fff" /><View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 18, fontWeight: "700" }}>Complete your verification</Text><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Finish onboarding & KYC to start receiving jobs.</Text></View></View>
             <Pressable testID="goto-onboarding" onPress={() => router.push("/partner/register")} style={{ height: 44, borderRadius: 6, backgroundColor: "#fff", alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "700", fontSize: 15 }}>{user?.onboarding_submitted ? "View submission" : "Complete now"}</Text></Pressable>
           </View>
         ) : null}
 
-        {q.isLoading ? [160, 208, 208].map((h, i) => <View key={i} style={{ height: h, borderRadius: 10, backgroundColor: colors.surfaceSubtle }} />) : (
+        {q.isLoading ? [160, 208, 208].map((h, i) => <View key={i} style={{ height: h, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} />) : (
           <>
             {/* Hero */}
-            <LinearGradient colors={[colors.primary, colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden" }}>
+            <LinearGradient colors={[colors.primary, colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 24, overflow: "hidden" }}>
               <View style={{ position: "absolute", right: -32, top: -32, width: 160, height: 160, borderRadius: 80, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
                 <View>
-                  {b.live_photo_url ? <Pressable onPress={() => setZoom({ url: mediaUrl(b.live_photo_url), label: "Live photo" })}><Image source={{ uri: mediaUrl(b.live_photo_url) }} style={{ width: 80, height: 80, borderRadius: 10, borderWidth: 4, borderColor: "rgba(255,255,255,0.3)" }} contentFit="cover" /></Pressable>
-                    : <View style={{ width: 80, height: 80, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "rgba(255,255,255,0.2)" }}><Icon name="account-outline" size={36} color="#fff" /></View>}
+                  {b.live_photo_url ? <Pressable onPress={() => setZoom({ url: mediaUrl(b.live_photo_url), label: "Live photo" })}><Image source={{ uri: mediaUrl(b.live_photo_url) }} style={{ width: 80, height: 80, borderRadius: 6, borderWidth: 4, borderColor: "rgba(255,255,255,0.3)" }} contentFit="cover" /></Pressable>
+                    : <View style={{ width: 80, height: 80, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "rgba(255,255,255,0.2)" }}><Icon name="account-outline" size={36} color="#fff" /></View>}
                   <View style={{ position: "absolute", bottom: -6, right: -6, width: 28, height: 28, borderRadius: 14, backgroundColor: "#10B981", borderWidth: 2, borderColor: "#fff", alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={16} color="#fff" /></View>
                 </View>
                 <View style={{ flex: 1 }}>
@@ -95,7 +95,7 @@ export default function PartnerVerification() {
               </View>
             </LinearGradient>
 
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 16, paddingVertical: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, backgroundColor: "#FFFBEB", borderWidth: 1, borderColor: "#FDE68A", paddingHorizontal: 16, paddingVertical: 12 }}>
               <Icon name="lock-outline" size={20} color="#D97706" /><Text style={{ color: "#92400E", fontSize: 14, flex: 1, lineHeight: 20 }}>These are the details you submitted during registration. They are verified & locked. To change anything, please contact admin / support.</Text>
             </View>
 
@@ -113,7 +113,7 @@ export default function PartnerVerification() {
               {cats.length ? (
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                   {cats.map((c, i) => (
-                    <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: colors.primarySubtle, paddingHorizontal: 14, paddingVertical: 8 }}>
+                    <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: "#BFDBFE", backgroundColor: colors.primarySubtle, paddingHorizontal: 14, paddingVertical: 8 }}>
                       <Icon name="briefcase-outline" size={16} color={colors.primary} /><Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>{c.category_name}</Text>
                       {c.experience_label ? <View style={{ backgroundColor: colors.surface, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: colors.primary, fontSize: 11, fontWeight: "700" }}>{c.experience_label}</Text></View> : null}
                     </View>
@@ -126,7 +126,7 @@ export default function PartnerVerification() {
               <Field icon="map-marker-outline" label="Full Address" value={a.manual_address || a.location_address} />
               <Field icon="office-building-outline" label="Locality" value={locality} />
               <Field icon="map-marker-outline" label="Pincode" value={b.pincode} />
-              {mapLink ? <Pressable testID="view-map" onPress={() => Linking.openURL(mapLink)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, backgroundColor: colors.secondary, padding: 14 }}><Icon name="map-marker-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 15, fontWeight: "600" }}>View pinned location on map</Text></Pressable> : null}
+              {mapLink ? <Pressable testID="view-map" onPress={() => Linking.openURL(mapLink)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, backgroundColor: colors.secondary, padding: 14 }}><Icon name="map-marker-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 15, fontWeight: "600" }}>View pinned location on map</Text></Pressable> : null}
             </Section>
 
             <Section icon="card-account-details-outline" title="Documents & KYC">
@@ -141,8 +141,8 @@ export default function PartnerVerification() {
 
             {(feeData.enabled || feePaid) ? (
               <Section icon="cash-multiple" title="Registration Fee" sub="Your one-time onboarding fee status">
-                <View testID="partner-reg-fee-status" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: feePaid ? "#A7F3D0" : "#FDE68A", backgroundColor: feePaid ? "#ECFDF5" : "#FFFBEB", padding: 14 }}>
-                  <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: feePaid ? "#10B981" : "#F59E0B", alignItems: "center", justifyContent: "center" }}>
+                <View testID="partner-reg-fee-status" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: feePaid ? "#A7F3D0" : "#FDE68A", backgroundColor: feePaid ? "#ECFDF5" : "#FFFBEB", padding: 14 }}>
+                  <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: feePaid ? "#10B981" : "#F59E0B", alignItems: "center", justifyContent: "center" }}>
                     <Icon name={feePaid ? "check-circle-outline" : "clock-outline"} size={22} color="#fff" />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -164,7 +164,7 @@ export default function PartnerVerification() {
       <Modal visible={!!zoom} transparent animationType="fade" onRequestClose={() => setZoom(null)}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", alignItems: "center", justifyContent: "center", padding: 16 }} onPress={() => setZoom(null)}>
           <Pressable onPress={() => setZoom(null)} style={{ position: "absolute", top: insets.top + 16, right: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
-          {zoom ? <><Image source={{ uri: zoom.url }} style={{ width: "100%", aspectRatio: 0.8, borderRadius: 10 }} contentFit="contain" /><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginTop: 12 }}>{zoom.label}</Text></> : null}
+          {zoom ? <><Image source={{ uri: zoom.url }} style={{ width: "100%", aspectRatio: 0.8, borderRadius: 6 }} contentFit="contain" /><Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 14, marginTop: 12 }}>{zoom.label}</Text></> : null}
         </Pressable>
       </Modal>
     </View>

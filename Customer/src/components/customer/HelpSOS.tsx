@@ -134,7 +134,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: TC.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
+          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: TC.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderBottomWidth: 1, borderBottomColor: TC.borderSoft }}>
               <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={18} color="#fff" /></View>
               <View style={{ flex: 1 }}>

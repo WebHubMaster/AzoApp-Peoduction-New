@@ -46,7 +46,7 @@ export function HeaderIconButton({ icon, onPress, badge, testID }: { icon: MdiNa
             right: -2,
             minWidth: 16,
             height: 16,
-            borderRadius: 8,
+            borderRadius: 6,
             backgroundColor: colors.danger,
             alignItems: "center",
             justifyContent: "center",

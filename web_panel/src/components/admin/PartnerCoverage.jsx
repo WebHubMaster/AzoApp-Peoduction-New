@@ -101,7 +101,7 @@ export default function PartnerCoverage() {
                   <p className="text-[13.5px] font-bold text-[#172033] truncate">{active.name || "Partner"}</p>
                   <p className="text-[12px] text-[#64748B] truncate">{active.category || (active.categories || [])[0] || "Partner"}</p>
                 </div>
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${active.busy ? "bg-[#FEF5E7] text-[#B45309]" : "bg-[#E9F8EF] text-[#15803D]"}`}>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${active.busy ? "bg-[#FEF5E7] text-[#B45309]" : "bg-[#E9F8EF] text-[#15803D]"}`}>
                   {active.busy ? "On a job" : "Available"}
                 </span>
               </div>

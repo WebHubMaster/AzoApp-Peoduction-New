@@ -79,16 +79,16 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
   };
 
   return (
-    <View testID="calendar-slot-picker" style={{ backgroundColor: surface, borderRadius: 10, borderWidth: 1, borderColor: border, padding: 16 }}>
+    <View testID="calendar-slot-picker" style={{ backgroundColor: surface, borderRadius: 6, borderWidth: 1, borderColor: border, padding: 16 }}>
       {/* Month header */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <Pressable testID="cal-prev" onPress={() => shiftMonth(-1)} disabled={!canPrev} hitSlop={10}
-          style={{ width: 32, height: 32, borderRadius: 10, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", opacity: canPrev ? 1 : 0.35 }}>
+          style={{ width: 32, height: 32, borderRadius: 6, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", opacity: canPrev ? 1 : 0.35 }}>
           <Icon name="chevron-left" size={20} color={text} />
         </Pressable>
         <Text style={{ color: text, fontSize: 16, fontWeight: "800" }}>{MONTHS[view.getMonth()]} {view.getFullYear()}</Text>
         <Pressable testID="cal-next" onPress={() => shiftMonth(1)} disabled={!canNext} hitSlop={10}
-          style={{ width: 32, height: 32, borderRadius: 10, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", opacity: canNext ? 1 : 0.35 }}>
+          style={{ width: 32, height: 32, borderRadius: 6, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", opacity: canNext ? 1 : 0.35 }}>
           <Icon name="chevron-right" size={20} color={text} />
         </Pressable>
       </View>
@@ -143,7 +143,7 @@ export function CalendarSlotPicker({ value, onChange, primary = "#2563EB", surfa
 
       {/* Summary */}
       {value && selSlotStr ? (
-        <View testID="cal-summary" style={{ marginTop: 12, backgroundColor: primary + "14", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View testID="cal-summary" style={{ marginTop: 12, backgroundColor: primary + "14", borderRadius: 6, paddingVertical: 12, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Icon name="calendar-check" size={16} color={primary} />
           <Text style={{ color: primary, fontSize: 13.5, fontWeight: "700" }}>
             Scheduled for {SHORT_D[value.getDay()]}, {value.getDate()} {SHORT_M[value.getMonth()]} · {to12(`${pad(value.getHours())}:${pad(value.getMinutes())}`)}

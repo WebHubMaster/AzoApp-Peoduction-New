@@ -74,7 +74,7 @@ export default function MerchantHome({ user, code, onNavigate }) {
         <div className="relative">
           {/* top row: merchant pill + avatar */}
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-white/15 backdrop-blur-sm px-3 py-1 text-[11px] font-semibold">
               <Store className="h-3.5 w-3.5" /> Merchant
             </span>
             <div className="h-9 w-9 rounded-full bg-white/20 grid place-items-center font-heading font-extrabold text-sm">
@@ -86,7 +86,7 @@ export default function MerchantHome({ user, code, onNavigate }) {
           <p className="text-sky-100/80 text-[11px] font-semibold uppercase tracking-widest mt-4">{greeting}</p>
           <div className="flex items-center gap-2 flex-wrap mt-0.5">
             <h1 className="font-heading font-black text-2xl sm:text-3xl truncate">{shopName}</h1>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold"><ShieldCheck className="h-3 w-3" /> Verified</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/90 px-2 py-0.5 text-[10px] font-bold"><ShieldCheck className="h-3 w-3" /> Verified</span>
           </div>
           <p className="text-sky-100/75 text-[13px] mt-1">Here&apos;s how your referral business is performing today.</p>
 

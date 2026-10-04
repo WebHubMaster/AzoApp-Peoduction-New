@@ -53,7 +53,7 @@ export default function MerchantPayouts() {
         {elig.isLoading ? <CardSkeleton /> : (
           <Card>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: e.eligible ? colors.successSubtle : colors.warningSubtle, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 42, height: 42, borderRadius: 6, backgroundColor: e.eligible ? colors.successSubtle : colors.warningSubtle, alignItems: "center", justifyContent: "center" }}>
                 <Icon name={e.eligible ? "check-decagram" : "alert-circle-outline"} size={22} color={e.eligible ? colors.success : colors.warning} />
               </View>
               <View style={{ flex: 1 }}>
@@ -130,7 +130,7 @@ function AddBankModal({ open, onClose, onDone, colors, insets, toast }: any) {
       <KeyboardProvider>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }}>
+        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>Add bank account</Text>
             <Pressable onPress={onClose} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>
@@ -142,7 +142,7 @@ function AddBankModal({ open, onClose, onDone, colors, insets, toast }: any) {
             </View>
           ))}
           <Pressable onPress={async () => setPassbook(await pickImage())} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.border, borderRadius: radius.md, padding: 10 }}>
-            {passbook ? <Image source={{ uri: passbook }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="camera-plus" size={22} color={colors.primary} /></View>}
+            {passbook ? <Image source={{ uri: passbook }} style={{ width: 44, height: 44, borderRadius: 6 }} contentFit="cover" /> : <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="camera-plus" size={22} color={colors.primary} /></View>}
             <Text style={{ color: passbook ? colors.success : colors.textSecondary, fontSize: fontSize.sm, fontWeight: "700", flex: 1 }}>{passbook ? "Image selected — tap to change" : "Passbook / cheque photo (required)"}</Text>
           </Pressable>
           <Button title="Add bank account" onPress={go} loading={submit.isPending} testID="m-submit-bank" />

@@ -237,7 +237,7 @@ export default function SupportThread() {
       <Modal visible={details} transparent animationType="slide" onRequestClose={() => setDetails(false)}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setDetails(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "80%" }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, maxHeight: "80%" }}>
             <View style={{ alignItems: "center", paddingTop: 10 }}><View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: colors.border }} /></View>
             <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: 14 }}>
               <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "900" }}>Ticket details</Text>

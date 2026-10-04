@@ -81,7 +81,7 @@ export default function WalletModule({ onNavigate }) {
           <div className="flex items-end gap-3 mt-1.5">
             <p className="font-heading font-extrabold text-4xl sm:text-5xl tabular-nums" data-testid="wallet-balance">{money(s.available_balance)}</p>
             {trend != null && (
-              <span className={`mb-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-bold ${trend >= 0 ? "bg-emerald-400/20 text-emerald-100" : "bg-rose-400/20 text-rose-100"}`}>
+              <span className={`mb-1.5 inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-bold ${trend >= 0 ? "bg-emerald-400/20 text-emerald-100" : "bg-rose-400/20 text-rose-100"}`}>
                 {trend >= 0 ? "▲" : "▼"} {Math.abs(trend)}% <span className="font-normal opacity-80">this month</span>
               </span>
             )}

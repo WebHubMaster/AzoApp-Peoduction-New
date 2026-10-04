@@ -211,7 +211,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
       <Modal visible={infoOpen} transparent animationType="slide" onRequestClose={() => setInfoOpen(false)}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setInfoOpen(false)} />
-          <View testID="support-ticket-info" style={{ backgroundColor: c.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: "85%", paddingBottom: insets.bottom }}>
+          <View testID="support-ticket-info" style={{ backgroundColor: c.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, maxHeight: "85%", paddingBottom: insets.bottom }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
               <Text style={{ fontSize: 16, fontWeight: "700", color: c.text }}>Ticket details</Text>
               <Pressable testID="support-info-close" onPress={() => setInfoOpen(false)} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: isDark ? SLATE[800] : TC.surfaceAlt }}><X size={18} color={TC.textFaint} /></Pressable>

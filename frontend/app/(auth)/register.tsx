@@ -24,12 +24,12 @@ const ROLES: { role: Role; bullets: string[]; popular?: boolean }[] = [
 function RoleCard({ role, bullets, popular, onPress }: { role: Role; bullets: string[]; popular?: boolean; onPress: () => void }) {
   const t: Accent = ROLE_ACCENT[role];
   return (
-    <Pressable testID={`pick-${role}`} onPress={onPress} style={({ pressed }) => ({ flex: 1, minHeight: 150, borderRadius: 10, borderWidth: 1.5, borderColor: t.border, overflow: "hidden", transform: [{ scale: pressed ? 0.98 : 1 }] })}>
+    <Pressable testID={`pick-${role}`} onPress={onPress} style={({ pressed }) => ({ flex: 1, minHeight: 150, borderRadius: 6, borderWidth: 1.5, borderColor: t.border, overflow: "hidden", transform: [{ scale: pressed ? 0.98 : 1 }] })}>
       <LinearGradient colors={[t.soft, "#FFFFFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 16, flex: 1 }}>
         <View pointerEvents="none" style={{ position: "absolute", right: -30, bottom: -50, width: 190, height: 190, borderRadius: 95, backgroundColor: t.main, opacity: 0.16 }} />
         <Image source={HERO[role]} style={{ position: "absolute", right: 6, bottom: 0, height: "88%", aspectRatio: 132 / 150 }} contentFit="contain" contentPosition="bottom right" />
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
-          <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: t.main, alignItems: "center", justifyContent: "center" }}><Icon name={t.icon} size={30} color="#fff" /></View>
+          <View style={{ width: 56, height: 56, borderRadius: 6, backgroundColor: t.main, alignItems: "center", justifyContent: "center" }}><Icon name={t.icon} size={30} color="#fff" /></View>
           <View style={{ flex: 1, paddingRight: 110 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <Text style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>{t.label}</Text>
@@ -92,7 +92,7 @@ export default function Register() {
           <>
             <View style={{ alignItems: "center", marginTop: 12, paddingHorizontal: 24 }}>
               <View testID="role-pill" style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: ac.soft, borderWidth: 1, borderColor: ac.border, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 }}>
-                <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={13} color="#fff" /></View>
+                <View style={{ width: 22, height: 22, borderRadius: 6, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={13} color="#fff" /></View>
                 <Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "800" }}>{ac.label}</Text>
               </View>
               <Text testID="register-title" style={{ color: AUTH.ink, fontSize: FS.title, fontWeight: "800", letterSpacing: -0.5, marginTop: 10 }}>{step === "name" ? "Almost There" : step === "otp" ? "Verify OTP" : "Create Your Account"}</Text>
@@ -103,7 +103,7 @@ export default function Register() {
               <Image testID="register-hero" source={HERO[role]} style={{ width: heroH, height: heroH * 0.93 }} contentFit="contain" contentPosition="bottom" />
             </View>
             <View style={{ paddingHorizontal: 16, gap: 12, marginTop: 12 }}>
-              <View testID="register-card" style={{ backgroundColor: "#fff", borderRadius: 10, padding: 18, borderWidth: 1, borderColor: "#E8EEF7", boxShadow: AUTH.card }}>
+              <View testID="register-card" style={{ backgroundColor: "#fff", borderRadius: 6, padding: 18, borderWidth: 1, borderColor: "#E8EEF7", boxShadow: AUTH.card }}>
                 <OtpFlow key={role} mode="register" role={role} accent={ac} onStepChange={setStep} onRouting={setRouting} />
               </View>
               <Pressable testID="change-role" onPress={goBack} style={{ alignItems: "center", paddingVertical: 4 }}>

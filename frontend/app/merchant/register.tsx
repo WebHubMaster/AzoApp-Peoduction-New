@@ -255,7 +255,7 @@ export default function MerchantRegistration() {
             ["GPS", addr.lat != null ? `${Number(addr.lat).toFixed(4)}, ${Number(addr.lng).toFixed(4)}` : "Not set"],
           ]} />
           {score?.missing?.length > 0 ? (
-            <View style={{ borderRadius: 12, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red100, padding: 12 }}>
+            <View style={{ borderRadius: 6, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red100, padding: 12 }}>
               <Text style={{ ...T.sm, fontWeight: "600", color: TW.red600, marginBottom: 4 }}>Still required:</Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                 {score.missing.map((m: string) => (

@@ -58,7 +58,7 @@ export default function Onboarding() {
         {logo ? (
           <Image testID="onboard-logo" source={{ uri: logo }} style={{ height: 34, width: 132 }} contentFit="contain" contentPosition="left" />
         ) : (
-          <Image testID="onboard-logo" source={FALLBACK_LOGO} style={{ height: 40, width: 40, borderRadius: 10 }} contentFit="contain" />
+          <Image testID="onboard-logo" source={FALLBACK_LOGO} style={{ height: 40, width: 40, borderRadius: 6 }} contentFit="contain" />
         )}
         {!last ? (
           <Pressable testID="onboard-skip" onPress={finish} hitSlop={10}>

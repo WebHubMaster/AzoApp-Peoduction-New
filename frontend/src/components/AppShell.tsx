@@ -53,7 +53,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
         testID="app-shell-header"
         style={{
           backgroundColor: dark ? "rgba(30,41,59,0.92)" : "rgba(255,255,255,0.92)",
-          borderRadius: 10,
+          borderRadius: 6,
           borderWidth: 1,
           borderColor: dark ? colors.border : "rgba(255,255,255,0.6)",
           minHeight: 56,
@@ -73,7 +73,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
           ) : crumbLabel ? (
             /* Web PanelLayout appMode brand: initial square + page crumb + panel title */
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <LinearGradient colors={[colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.3)", elevation: 3 }}>
+              <LinearGradient colors={[colors.secondary, colors.primaryDark]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 36, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 10px rgba(21,101,192,0.3)", elevation: 3 }}>
                 <Text style={{ color: "#fff", fontSize: 16, fontWeight: "900", fontFamily: "Inter-ExtraBold" }}>{(brand.branding.site_name || "A")[0]}</Text>
               </LinearGradient>
               <View style={{ minWidth: 0 }}>
@@ -97,7 +97,7 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
         <Pressable testID="partner-notifications" onPress={() => router.push(profileRoute.startsWith("/(partner)") ? "/partner/notifications" : "/notifications")} style={iconBtn}>
           <Icon name="bell-outline" size={17} color={colors.textMuted} />
           {unread > 0 ? (
-            <View style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
+            <View style={{ position: "absolute", top: -6, right: -6, minWidth: 18, height: 18, paddingHorizontal: 4, borderRadius: 6, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
               <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>{unread > 9 ? "9+" : unread}</Text>
             </View>
           ) : null}
@@ -111,11 +111,11 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
         <View style={{ height: 24, width: 1, backgroundColor: colors.border }} />
 
         {/* Profile chip */}
-        <Pressable testID="partner-profile-chip" onPress={() => setMenu(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 36, paddingLeft: 2, paddingRight: 4, borderRadius: 8 }}>
+        <Pressable testID="partner-profile-chip" onPress={() => setMenu(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 36, paddingLeft: 2, paddingRight: 4, borderRadius: 6 }}>
           {user?.photo ? (
-            <Image source={{ uri: mediaUrl(user.photo) }} style={{ width: 28, height: 28, borderRadius: 8 }} contentFit="cover" />
+            <Image source={{ uri: mediaUrl(user.photo) }} style={{ width: 28, height: 28, borderRadius: 6 }} contentFit="cover" />
           ) : (
-            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
               <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>{initials(user?.name)}</Text>
             </View>
           )}
@@ -126,16 +126,16 @@ export function AppShellHeader({ profileRoute, crumbLabel, panelTitle }: { profi
       {/* Profile dropdown (web ProfileChip menu) */}
       <Modal visible={menu} transparent animationType="fade" onRequestClose={() => setMenu(false)}>
         <Pressable style={{ flex: 1 }} onPress={() => setMenu(false)}>
-          <View style={{ position: "absolute", right: 16, top: insets.top + 12 + 56, width: 224, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 32px rgba(15,23,42,0.18)", elevation: 8 }}>
+          <View style={{ position: "absolute", right: 16, top: insets.top + 12 + 56, width: 224, backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 32px rgba(15,23,42,0.18)", elevation: 8 }}>
             <View style={{ paddingHorizontal: 12, paddingVertical: 8 }}>
               <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }} numberOfLines={1}>{user?.name}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>{user?.phone}</Text>
             </View>
-            <Pressable testID="edit-profile-button" onPress={() => { setMenu(false); setEditOpen(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
+            <Pressable testID="edit-profile-button" onPress={() => { setMenu(false); setEditOpen(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 }}>
               <Icon name="account-outline" size={16} color={colors.textSecondary} />
               <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "500" }}>Edit Profile</Text>
             </Pressable>
-            <Pressable testID="logout-button" onPress={async () => { setMenu(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}>
+            <Pressable testID="logout-button" onPress={async () => { setMenu(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6 }}>
               <Icon name="logout" size={16} color="#DC2626" />
               <Text style={{ color: "#DC2626", fontSize: 14, fontWeight: "500" }}>Logout</Text>
             </Pressable>
@@ -211,7 +211,7 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: colors.overlay, alignItems: "center", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={onClose} />
-          <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>
+          <View testID="profile-edit-modal" style={{ width: "100%", maxWidth: 440, maxHeight: "90%", backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 20px 50px rgba(15,23,42,0.25)", elevation: 12 }}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 24 }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800" }}>Edit Profile</Text>
@@ -219,7 +219,7 @@ export function ProfileEditModal({ open, onClose }: { open: boolean; onClose: ()
               </View>
 
               {locked ? (
-                <View testID="profile-locked-banner" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", borderRadius: 12, borderWidth: 1, borderColor: "#FDE68A", backgroundColor: "#FFFBEB", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16 }}>
+                <View testID="profile-locked-banner" style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", borderRadius: 6, borderWidth: 1, borderColor: "#FDE68A", backgroundColor: "#FFFBEB", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 16 }}>
                   <Icon name="shield-check" size={16} color="#B45309" />
                   <Text style={{ flex: 1, color: "#92400E", fontSize: 12.5, lineHeight: 18 }}>Your profile is approved and locked. You can update only your profile picture — contact admin to change other details.</Text>
                 </View>
@@ -295,7 +295,7 @@ export function StatusBadge({ status, label }: { status?: string; label?: string
   const c = TONE_COLORS[STATUS_TONE[key] || "slate"];
   const text = label || (key ? key.replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase()) : "—");
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: c.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill, alignSelf: "flex-start" }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: c.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, alignSelf: "flex-start" }}>
       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: c.dot }} />
       <Text style={{ color: c.fg, fontSize: 11, fontWeight: "600" }} numberOfLines={1}>{text}</Text>
     </View>
@@ -306,7 +306,7 @@ export function StatusBadge({ status, label }: { status?: string; label?: string
 export function Surface({ children, style, testID }: { children: React.ReactNode; style?: any; testID?: string }) {
   const { colors } = useTheme();
   return (
-    <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }, style]}>
+    <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, boxShadow: "0px 4px 16px rgba(2,32,71,0.05)", elevation: 1 }, style]}>
       {children}
     </View>
   );
@@ -317,7 +317,7 @@ export function KitEmpty({ icon, title, desc, action, testID }: { icon: any; tit
   const { colors } = useTheme();
   return (
     <View testID={testID} style={{ alignItems: "center", paddingVertical: 48, paddingHorizontal: 24 }}>
-      <View style={{ width: 56, height: 56, borderRadius: 10, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
+      <View style={{ width: 56, height: 56, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
         <Icon name={icon} size={28} color="#94A3B8" />
       </View>
       <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, textAlign: "center" }}>{title}</Text>
@@ -331,7 +331,7 @@ export function KitEmpty({ icon, title, desc, action, testID }: { icon: any; tit
 export function SegTabs({ tabs, value, onChange, testidPrefix = "tab" }: { tabs: string[]; value: string; onChange: (v: string) => void; testidPrefix?: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 10, backgroundColor: colors.surfaceSubtle }}>
+    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 6, backgroundColor: colors.surfaceSubtle }}>
       {tabs.map((t) => {
         const on = value === t;
         return (

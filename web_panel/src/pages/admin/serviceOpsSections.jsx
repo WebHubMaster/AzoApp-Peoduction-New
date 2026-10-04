@@ -347,7 +347,7 @@ export const LaunchDemandManager = () => {
     { key: "city", label: "City", render: (r) => r.city || "—" },
     { key: "count", label: "Requests", render: (r) => (
       <span className="inline-flex items-center gap-1">
-        <span className="inline-block rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 font-bold px-2.5 py-0.5 text-xs">{r.count}</span>
+        <span className="inline-block rounded-md bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200 font-bold px-2.5 py-0.5 text-xs">{r.count}</span>
         {r.rank === 1 && r.count > 1 && <span className="text-[10px] font-bold text-amber-600 uppercase">Top</span>}
       </span>
     ) },

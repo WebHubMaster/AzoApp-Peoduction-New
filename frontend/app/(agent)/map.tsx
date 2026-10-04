@@ -138,7 +138,7 @@ export default function AgentMap() {
                 const mapped = qr.status === "active" && qr.merchant_id;
                 return (
                   <View key={qr.token} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                    <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                       <Icon name="qrcode" size={20} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -169,7 +169,7 @@ export default function AgentMap() {
       <Modal visible={showPicker} transparent animationType="slide" onRequestClose={() => setShowPicker(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setShowPicker(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, maxHeight: "82%" }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, maxHeight: "82%" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
               <View>
                 <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>Map to merchant</Text>
@@ -203,7 +203,7 @@ export default function AgentMap() {
                     onPress={() => assign.mutate({ token: pickToken, merchant_id: m.id })}
                     style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 })}
                   >
-                    <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                       <Icon name="store" size={20} color={colors.primary} />
                     </View>
                     <View style={{ flex: 1 }}>

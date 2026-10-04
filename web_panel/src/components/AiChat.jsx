@@ -36,7 +36,7 @@ export const AiChat = ({ role = "customer", title = "AzoApp AI Assistant", hint 
       <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 bg-primary-50">
         <Sparkles className="h-4 w-4 text-primary-700" strokeWidth={1.5} />
         <span className="font-semibold text-sm text-primary-800">{title}</span>
-        <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-white px-2 py-0.5 rounded-full">Claude</span>
+        <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-primary-600 bg-white px-2 py-0.5 rounded-md">Claude</span>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {msgs.map((m, i) => (

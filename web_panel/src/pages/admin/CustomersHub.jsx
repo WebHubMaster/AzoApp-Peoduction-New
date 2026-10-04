@@ -161,7 +161,7 @@ export default function CustomersHub({ onView }) {
               placeholder="Search name / phone / email" className="pl-9 w-56" />
           </div>
           <Button data-testid="customers-filter-toggle" variant="outline" onClick={() => setShowFilters((s) => !s)} className="gap-1">
-            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
+            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-md bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
           </Button>
           <Button data-testid="customers-export" variant="outline" onClick={exportCsv} className="gap-1"><Download className="h-4 w-4" /> Export</Button>
           <Button data-testid="customers-winback" onClick={openWinback} className="gap-1 bg-primary-700 hover:bg-primary-800"><Gift className="h-4 w-4" /> Win-back</Button>
@@ -200,7 +200,7 @@ export default function CustomersHub({ onView }) {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
         {TABS.map((t) => (
           <button key={t.key} data-testid={`customers-tab-${t.key}`} onClick={() => setTab(t.key)}
-            className={`px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
+            className={`px-3.5 py-2 rounded-md text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
             {t.label}
             <span className={`ml-1.5 text-[11px] ${tab === t.key ? "text-white/80" : "text-slate-400"}`}>{counts[t.key] ?? 0}</span>
           </button>
@@ -262,9 +262,9 @@ export default function CustomersHub({ onView }) {
                   <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-300 cursor-pointer" onClick={() => onView?.(cst.id)}>{fmt(cst.wallet_balance || 0)}</td>
                   <td className="px-4 py-3 cursor-pointer" onClick={() => onView?.(cst.id)}>
                     {cst.is_blocked
-                      ? <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-red-100 text-red-700"><Ban className="h-3 w-3" /> Blocked</span>
+                      ? <span className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-red-100 text-red-700"><Ban className="h-3 w-3" /> Blocked</span>
                       : cst.is_new
-                        ? <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">New</span>
+                        ? <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-100 text-amber-700">New</span>
                         : <span className="inline-flex items-center gap-1 text-xs text-emerald-600"><span className="h-2 w-2 rounded-full bg-emerald-500" /> Active</span>}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-slate-400 text-xs cursor-pointer" onClick={() => onView?.(cst.id)}>{cst.created_at ? new Date(cst.created_at).toLocaleDateString() : "—"}</td>

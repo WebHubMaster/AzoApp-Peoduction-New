@@ -21,7 +21,7 @@ const STATUS_COLOR = {
 };
 
 function StatusPill({ status }) {
-  return <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[status] || ""}`}>{status}</span>;
+  return <span className={`text-xs px-2 py-0.5 rounded-md font-medium ${STATUS_COLOR[status] || ""}`}>{status}</span>;
 }
 
 // ───────────────────────────── BATCHES TAB ─────────────────────────────
@@ -125,10 +125,10 @@ function BatchesTab() {
                 <span className="text-xs text-slate-400">{b.total} QRs</span>
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{b.active} active</span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">{b.unassigned} free</span>
-                <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">{b.disabled} off</span>
-                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{b.scans} scans</span>
+                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{b.active} active</span>
+                <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">{b.unassigned} free</span>
+                <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">{b.disabled} off</span>
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">{b.scans} scans</span>
               </div>
               {b.agent_name && <div className="mt-2 text-xs text-slate-500 flex items-center gap-1"><Users className="w-3 h-3" /> {b.agent_name}</div>}
               <div className="mt-3 flex flex-wrap gap-2">
@@ -328,7 +328,7 @@ function RegistryTab() {
         {tabs.map((t) => (
           <button key={t.k} onClick={() => { setStatus(t.k); setPage(1); }}
             data-testid={`registry-tab-${t.k || "all"}`}
-            className={`text-xs px-3 py-1.5 rounded-full border ${status === t.k ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
+            className={`text-xs px-3 py-1.5 rounded-md border ${status === t.k ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
             {t.label}
           </button>
         ))}
@@ -519,7 +519,7 @@ function AgentsTab() {
                 </div>
               </div>
               <button onClick={() => toggleActive(a)} data-testid="agent-toggle-active"
-                className={`text-xs px-2.5 py-1 rounded-full font-medium ${a.agent_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                className={`text-xs px-2.5 py-1 rounded-md font-medium ${a.agent_active ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
                 {a.agent_active ? "Active" : "Disabled"}
               </button>
             </div>
@@ -544,7 +544,7 @@ function AgentsTab() {
                 return (
                   <button key={b.batch_id} onClick={() => toggleBatch(a, b.batch_id)}
                     data-testid="agent-batch-chip"
-                    className={`text-xs px-2.5 py-1 rounded-full border ${on ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
+                    className={`text-xs px-2.5 py-1 rounded-md border ${on ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
                     {on && <CheckCircle2 className="w-3 h-3 inline mr-1" />}{b.batch_name}
                   </button>
                 );
@@ -633,7 +633,7 @@ function AgentDetailDrawer({ agentId, onClose, onChanged }) {
             <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 mb-4">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"><Banknote className="w-4 h-4" /> Bank details</h4>
-                {bank && <span className={`text-xs px-2 py-0.5 rounded-full ${bank.verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{bank.verified ? "Verified" : "Unverified"}</span>}
+                {bank && <span className={`text-xs px-2 py-0.5 rounded-md ${bank.verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{bank.verified ? "Verified" : "Unverified"}</span>}
               </div>
               {!bank && <p className="text-xs text-slate-400">Agent has not submitted bank details yet.</p>}
               {bank && (
@@ -652,7 +652,7 @@ function AgentDetailDrawer({ agentId, onClose, onChanged }) {
             <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-1.5"><Store className="w-4 h-4" /> Shops mapped ({d.shops.length})</h4>
             <div className="flex flex-wrap gap-2 mb-4">
               {d.shops.map((s) => (
-                <span key={s.merchant_id} className="text-xs px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-slate-700 dark:text-slate-200">{s.merchant_name} <b>×{s.count}</b></span>
+                <span key={s.merchant_id} className="text-xs px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-900/30 text-slate-700 dark:text-slate-200">{s.merchant_name} <b>×{s.count}</b></span>
               ))}
               {d.shops.length === 0 && <span className="text-xs text-slate-400">None yet.</span>}
             </div>
@@ -678,7 +678,7 @@ function AgentDetailDrawer({ agentId, onClose, onChanged }) {
               {d.withdrawals.map((w) => (
                 <div key={w.id} className="flex items-center justify-between text-sm rounded-lg border border-slate-100 dark:border-slate-800 px-3 py-2">
                   <div><div className="text-slate-700 dark:text-slate-200">{money(w.amount)}</div><div className="text-xs text-slate-400">{new Date(w.requested_at).toLocaleString()}</div></div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : w.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{w.status}</span>
+                  <span className={`text-xs px-2 py-0.5 rounded-md ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : w.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{w.status}</span>
                 </div>
               ))}
               {d.withdrawals.length === 0 && <p className="text-sm text-slate-400">No withdrawals yet.</p>}
@@ -730,7 +730,7 @@ export function AgentPayouts() {
         {["pending", "approved", "rejected"].map((s) => (
           <button key={s} onClick={() => setStatus(s)}
             data-testid={`agent-wd-tab-${s}`}
-            className={`text-xs px-3 py-1.5 rounded-full border capitalize ${status === s ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
+            className={`text-xs px-3 py-1.5 rounded-md border capitalize ${status === s ? "bg-[#0D47A1] text-white border-[#0D47A1]" : "border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300"}`}>
             {s} ({stats[s] ?? 0})
           </button>
         ))}
@@ -765,7 +765,7 @@ export function AgentPayouts() {
                           className="text-xs px-3 py-1.5 rounded-md border border-rose-300 text-rose-600 disabled:opacity-50">Reject</button>
                       </div>
                     ) : (
-                      <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{w.status}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-md capitalize ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{w.status}</span>
                     )}
                   </td>
                 </tr>

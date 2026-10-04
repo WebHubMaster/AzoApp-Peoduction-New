@@ -78,7 +78,7 @@ export default function PartnerJobHistory() {
             const cancelled = b.status === "cancelled";
             return (
               <Pressable testID={`history-${b.code}`} onPress={() => router.push(`/(partner)/booking/${b.id}`)} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md }}>
-                <View style={{ width: 40, height: 40, borderRadius: 11, backgroundColor: cancelled ? colors.dangerSubtle : colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: cancelled ? colors.dangerSubtle : colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                   <Icon name={cancelled ? "close-circle-outline" : "wrench"} size={20} color={cancelled ? colors.danger : colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>

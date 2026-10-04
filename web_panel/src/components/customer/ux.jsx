@@ -93,7 +93,7 @@ export function StatusChip({ label, tone = "slate", className = "", testId }) {
     violet: "bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
   };
   return (
-    <span data-testid={testId} className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${map[tone] || map.slate} ${className}`}>
+    <span data-testid={testId} className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-md ${map[tone] || map.slate} ${className}`}>
       {label}
     </span>
   );

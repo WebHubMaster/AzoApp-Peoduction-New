@@ -15,7 +15,7 @@ type Nav = (k: NavKey) => void;
 
 export function Card({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
   const { colors } = useTheme();
-  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 6, borderWidth: 1, borderColor: colors.border }, style]}>{children}</View>;
 }
 const H3 = ({ children, icon, color }: { children: React.ReactNode; icon?: MdiName; color?: string }) => {
   const { colors } = useTheme();
@@ -43,7 +43,7 @@ export function HeaderCard({ user, kit, online, connected, onToggle }: { user: a
     <Card style={{ padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
         <View>
-          <LinearGradient colors={[colors.primaryHover, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 48, height: 48, borderRadius: 10, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1)" }}>
+          <LinearGradient colors={[colors.primaryHover, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 48, height: 48, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1)" }}>
             <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{initials(user?.name || "P")}</Text>
           </LinearGradient>
           <View style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: 8, backgroundColor: online ? TW.emerald500 : TW.slate300, borderWidth: 2, borderColor: colors.card }} />
@@ -68,7 +68,7 @@ export function HeaderCard({ user, kit, online, connected, onToggle }: { user: a
           </View>
         </View>
       </View>
-      <Pressable testID="online-toggle-wrap" onPress={() => onToggle(!online)} style={{ flexShrink: 0, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: online ? (mode === "dark" ? TW.emerald800 : TW.emerald200) : colors.border, backgroundColor: online ? (mode === "dark" ? "rgba(6,78,59,0.2)" : TW.emerald50) : colors.surfaceSubtle }}>
+      <Pressable testID="online-toggle-wrap" onPress={() => onToggle(!online)} style={{ flexShrink: 0, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: online ? (mode === "dark" ? TW.emerald800 : TW.emerald200) : colors.border, backgroundColor: online ? (mode === "dark" ? "rgba(6,78,59,0.2)" : TW.emerald50) : colors.surfaceSubtle }}>
         <Switch testID="online-toggle" value={online} onValueChange={onToggle} trackColor={{ true: colors.primary, false: TW.slate200 }} thumbColor="#fff" />
       </Pressable>
     </Card>
@@ -86,13 +86,13 @@ export function PriorityAction({ k, kycApproved, kit, nav }: { k: any; kycApprov
   if (!p) return null;
   return (
     <Pressable testID="ph-priority" onPress={() => nav(p!.go)}>
-      <LinearGradient colors={p.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 10, padding: 16, flexDirection: "row", alignItems: "center", gap: 12, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
-        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Icon name={p.icon} size={22} color="#fff" /></View>
+      <LinearGradient colors={p.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 6, padding: 16, flexDirection: "row", alignItems: "center", gap: 12, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
+        <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><Icon name={p.icon} size={22} color="#fff" /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15, lineHeight: 18 }}>{p.title}</Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 12, marginTop: 2 }} numberOfLines={1}>{p.desc}</Text>
         </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 }}>
           <Text style={{ color: "#fff", fontSize: 13, fontWeight: "700" }}>{p.cta}</Text><Icon name="chevron-right" size={16} color="#fff" />
         </View>
       </LinearGradient>
@@ -115,11 +115,11 @@ export function WalletCard({ wallet, nav }: { wallet: any; nav: Nav }) {
       <Text style={{ color: TW.slate400, fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", marginTop: 12 }}>Available balance</Text>
       <Text testID="ph-wallet-available" style={{ color: colors.text, fontSize: 30, fontWeight: "900", marginTop: 4 }}>{fmtC(wallet.available)}</Text>
       <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-        <View style={{ flex: 1, borderRadius: 12, backgroundColor: dark ? "rgba(6,78,59,0.15)" : TW.emerald50, padding: 12 }}>
+        <View style={{ flex: 1, borderRadius: 6, backgroundColor: dark ? "rgba(6,78,59,0.15)" : TW.emerald50, padding: 12 }}>
           <Text style={[up, { color: TW.emerald600 }]}>Withdrawable</Text>
           <Text style={{ color: TW.emerald700, fontSize: 15, fontWeight: "800", marginTop: 2 }}>{fmtC(wallet.withdrawable)}</Text>
         </View>
-        <View style={{ flex: 1, borderRadius: 12, backgroundColor: dark ? "rgba(120,53,15,0.15)" : TW.amber50, padding: 12 }}>
+        <View style={{ flex: 1, borderRadius: 6, backgroundColor: dark ? "rgba(120,53,15,0.15)" : TW.amber50, padding: 12 }}>
           <Text style={[up, { color: TW.amber600 }]}>Pending</Text>
           <Text style={{ color: TW.amber700, fontSize: 15, fontWeight: "800", marginTop: 2 }}>{fmtC(wallet.pending)}</Text>
         </View>
@@ -243,8 +243,8 @@ export function GrowthCard({ growth, alerts, nav }: { growth: any; alerts: { ico
       {alerts.length > 0 ? (
         <View style={{ marginTop: 20, gap: 10 }}>
           {alerts.map((a, i) => (
-            <Pressable key={i} testID={`ph-alert-${a.go}`} onPress={() => nav(a.go)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 12 }}>
-              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: toneBg[a.tone][0], alignItems: "center", justifyContent: "center" }}><Icon name={a.icon} size={16} color={toneBg[a.tone][1]} /></View>
+            <Pressable key={i} testID={`ph-alert-${a.go}`} onPress={() => nav(a.go)} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 12 }}>
+              <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: toneBg[a.tone][0], alignItems: "center", justifyContent: "center" }}><Icon name={a.icon} size={16} color={toneBg[a.tone][1]} /></View>
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{a.title}</Text>
                 <Text style={{ color: TW.slate400, fontSize: 11.5 }} numberOfLines={1}>{a.desc}</Text>
@@ -277,7 +277,7 @@ export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; 
         return (
           <Pressable key={b.id} testID={`recent-${b.id}`} onPress={() => onOpen(b.id, b.status)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: colors.border }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
-              <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="briefcase-outline" size={16} color={colors.primaryHover} /></View>
+              <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="briefcase-outline" size={16} color={colors.primaryHover} /></View>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14.5 }} numberOfLines={1}>{b.service_name}</Text>
                 <Text style={{ color: TW.slate400, fontSize: 11, marginTop: 2 }} numberOfLines={1}>#{b.code}{b.customer_name ? ` · ${b.customer_name}` : ""}{b.updated_at ? ` · ${dayjs(b.updated_at).format("D MMM")}` : ""}</Text>
@@ -310,9 +310,9 @@ export function QuickActions({ k, nav }: { k: any; nav: Nav }) {
       <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, marginBottom: 16 }}>Quick actions</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {qa.map((q) => (
-          <Pressable key={q.label} testID={`qa-${q.label}`} onPress={() => nav(q.go)} style={{ width: "30%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
-            {q.badge ? <View style={{ position: "absolute", top: 8, right: 8, minWidth: 20, height: 20, paddingHorizontal: 4, borderRadius: 10, backgroundColor: TW.rose500, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{q.badge}</Text></View> : null}
-            <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={q.icon} size={20} color={colors.primaryHover} /></View>
+          <Pressable key={q.label} testID={`qa-${q.label}`} onPress={() => nav(q.go)} style={{ width: "30%", flexGrow: 1, alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
+            {q.badge ? <View style={{ position: "absolute", top: 8, right: 8, minWidth: 20, height: 20, paddingHorizontal: 4, borderRadius: 6, backgroundColor: TW.rose500, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{q.badge}</Text></View> : null}
+            <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={q.icon} size={20} color={colors.primaryHover} /></View>
             <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "600" }}>{q.label}</Text>
           </Pressable>
         ))}

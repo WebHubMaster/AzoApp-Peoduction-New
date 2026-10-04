@@ -25,7 +25,7 @@ export const StatusBadge = ({ status, label, testid }) => {
   const s = BADGES[key] || BADGES.default;
   const text = label || (status || "not submitted").replace(/_/g, " ");
   return (
-    <span data-testid={testid} className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ring-1 ${s.bg} ${s.text} ${s.ring}`}>
+    <span data-testid={testid} className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold capitalize ring-1 ${s.bg} ${s.text} ${s.ring}`}>
       <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />{text}
     </span>
   );

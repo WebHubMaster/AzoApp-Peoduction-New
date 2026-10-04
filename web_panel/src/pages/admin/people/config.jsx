@@ -8,7 +8,7 @@ const Name = ({ r, sub, code }) => (
     <div className="min-w-0">
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="font-semibold text-slate-900 dark:text-white truncate" data-testid="row-name">{r.name || "—"}</span>
-        {r.premium_partner && <span data-testid="row-pro-badge" title="AzoApp Pro partner" className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 shrink-0"><Crown className="h-2.5 w-2.5" />PRO</span>}
+        {r.premium_partner && <span data-testid="row-pro-badge" title="AzoApp Pro partner" className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 shrink-0"><Crown className="h-2.5 w-2.5" />PRO</span>}
         {r.profile_update_unreviewed && <span className="text-[10px] font-bold text-red-600 bg-red-50 dark:bg-red-900/30 rounded px-1 py-0.5 shrink-0">Updated {rel(r.profile_updated_at)}</span>}
       </div>
       <p className="text-[11px] text-slate-400 truncate font-mono">{code || sub}</p>

@@ -109,9 +109,9 @@ export default function MerchantWallet() {
 
         {accessQ.isLoading || (approved && !ov && !ovQ.isError) ? (
           <View style={{ gap: 20 }}>
-            <Surface style={{ padding: 24 }}><Sk style={{ height: 160, borderRadius: 12 }} /></Surface>
+            <Surface style={{ padding: 24 }}><Sk style={{ height: 160, borderRadius: 6 }} /></Surface>
             <View style={{ flexDirection: "row", gap: 12 }}>
-              {[0, 1, 2].map((i) => <Surface key={i} style={{ flex: 1, padding: 20 }}><Sk style={{ height: 40, width: 40, borderRadius: 12 }} /><Sk style={{ height: 12, width: 80, marginTop: 16 }} /><Sk style={{ height: 24, width: 96, marginTop: 8 }} /></Surface>)}
+              {[0, 1, 2].map((i) => <Surface key={i} style={{ flex: 1, padding: 20 }}><Sk style={{ height: 40, width: 40, borderRadius: 6 }} /><Sk style={{ height: 12, width: 80, marginTop: 16 }} /><Sk style={{ height: 24, width: 96, marginTop: 8 }} /></Surface>)}
             </View>
           </View>
         ) : !approved ? (
@@ -121,7 +121,7 @@ export default function MerchantWallet() {
         ) : (
           <View style={{ gap: 20 }}>
             {/* HERO */}
-            <LinearGradient colors={["#0D47A1", "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }} testID="wallet-hero">
+            <LinearGradient colors={["#0D47A1", "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 24, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }} testID="wallet-hero">
               <View style={{ position: "absolute", right: -64, top: -64, height: 224, width: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ position: "absolute", right: 40, bottom: -40, height: 128, width: 128, borderRadius: 64, backgroundColor: "rgba(125,211,252,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -138,7 +138,7 @@ export default function MerchantWallet() {
               </View>
               <View style={{ flexDirection: "row", gap: 8, marginTop: 24 }}>
                 {([["Withdrawable", s.withdrawable_balance], ["Pending", s.pending_balance], ["Withdrawn", s.total_withdrawn]] as [string, any][]).map(([k, v]) => (
-                  <View key={k} style={{ flex: 1, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.1)", paddingHorizontal: 12, paddingVertical: 10 }}>
+                  <View key={k} style={{ flex: 1, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", paddingHorizontal: 12, paddingVertical: 10 }}>
                     <Text style={{ fontSize: 10, lineHeight: 14, textTransform: "uppercase", letterSpacing: 0.25, color: P[100] }} numberOfLines={1}>{k}</Text>
                     <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "700", color: "#fff", marginTop: 2, ...TAB }} numberOfLines={1} adjustsFontSizeToFit>{money(v)}</Text>
                   </View>
@@ -157,7 +157,7 @@ export default function MerchantWallet() {
             {!eligible ? (
               <Surface testID="wallet-kyc-blocker" style={{ padding: 16, borderColor: dark ? "rgba(120,53,15,0.5)" : AMBER[200], backgroundColor: dark ? AMBER[950] : "rgba(255,251,235,0.6)" }}>
                 <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
-                  <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: dark ? AMBER[900] : AMBER[100], alignItems: "center", justifyContent: "center" }}><Icon name="alert-outline" size={20} color={AMBER[600]} /></View>
+                  <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: dark ? AMBER[900] : AMBER[100], alignItems: "center", justifyContent: "center" }}><Icon name="alert-outline" size={20} color={AMBER[600]} /></View>
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "600", color: strong }}>Complete Bank & KYC to withdraw</Text>
                     <Text style={{ fontSize: 14, lineHeight: 20, color: dark ? "rgba(252,211,77,0.9)" : AMBER[700], marginTop: 2 }}>Pending: {(fin.blockers || []).join(", ") || "verification"}</Text>
@@ -238,7 +238,7 @@ export default function MerchantWallet() {
       <DetailDrawer open={!!detail} onClose={() => setDetail(null)} title="Transaction details" subtitle={detail?.note} testID="wallet-tx-drawer">
         {detail ? (
           <View style={{ gap: 20 }}>
-            <View style={{ borderRadius: 10, padding: 16, alignItems: "center", backgroundColor: detail.direction === "credit" ? (dark ? "rgba(2,44,34,0.3)" : EMERALD[50]) : (dark ? "rgba(76,5,25,0.3)" : ROSE[50]) }}>
+            <View style={{ borderRadius: 6, padding: 16, alignItems: "center", backgroundColor: detail.direction === "credit" ? (dark ? "rgba(2,44,34,0.3)" : EMERALD[50]) : (dark ? "rgba(76,5,25,0.3)" : ROSE[50]) }}>
               <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: detail.direction === "credit" ? EMERALD[600] : ROSE[500], ...TAB }}>{detail.direction === "credit" ? "+" : "−"}{money(detail.amount)}</Text>
               <View style={{ marginTop: 8 }}><StatusBadge status={detail.status} /></View>
             </View>
@@ -258,7 +258,7 @@ export default function MerchantWallet() {
       <DetailDrawer open={!!wdDetail} onClose={() => setWdDetail(null)} title="Withdrawal details" subtitle={wdDetail ? wdId(wdDetail.id) : ""} testID="wallet-wd-drawer">
         {wdDetail ? (
           <View style={{ gap: 20 }}>
-            <View style={{ borderRadius: 10, padding: 16, alignItems: "center", backgroundColor: dark ? "rgba(13,71,161,0.2)" : P[50] }}>
+            <View style={{ borderRadius: 6, padding: 16, alignItems: "center", backgroundColor: dark ? "rgba(13,71,161,0.2)" : P[50] }}>
               <Text style={{ fontSize: 30, lineHeight: 36, fontWeight: "800", color: dark ? P[300] : P[700], ...TAB }}>{money(wdDetail.amount)}</Text>
               <View style={{ marginTop: 8 }}><StatusBadge status={wdDetail.status} /></View>
             </View>
@@ -297,8 +297,8 @@ function TxRow({ t, onOpen, card }: { t: any; onOpen: () => void; card?: boolean
   const credit = t.direction === "credit";
   return (
     <Pressable testID={`wallet-tx-item-${t.id}`} onPress={onOpen}
-      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, paddingHorizontal: 8, paddingVertical: 10, borderWidth: card ? 1 : 0, borderColor: hairline, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
-      <View style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: credit ? (dark ? EMERALD[950] : EMERALD[50]) : (dark ? ROSE[950] : ROSE[50]) }}>
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 10, borderWidth: card ? 1 : 0, borderColor: hairline, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
+      <View style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: credit ? (dark ? EMERALD[950] : EMERALD[50]) : (dark ? ROSE[950] : ROSE[50]) }}>
         <Icon name={credit ? "arrow-bottom-right" : "arrow-top-right"} size={16} color={credit ? EMERALD[600] : ROSE[500]} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -314,8 +314,8 @@ function WdRow({ w, onOpen }: { w: any; onOpen: () => void }) {
   const { dark, strong, hairline, P, heading } = useFin();
   return (
     <Pressable testID={`wd-item-${w.id}`} onPress={onOpen}
-      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: hairline, padding: 12, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
-      <View style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: dark ? "rgba(13,71,161,0.3)" : P[50] }}><Icon name="cash" size={16} color={P[700]} /></View>
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: hairline, padding: 12, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.5)" : "#f8fafc") : "transparent" })}>
+      <View style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: dark ? "rgba(13,71,161,0.3)" : P[50] }}><Icon name="cash" size={16} color={P[700]} /></View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", color: strong }}>{wdId(w.id)}</Text>
         <Text style={{ fontSize: 11, lineHeight: 14, color: SLATE[400], marginTop: 1 }}>{shortDate(w.requested_at)} · {(w.method || "").toUpperCase()}</Text>
@@ -367,7 +367,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID="withdraw-flow">
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ maxHeight: "92%", backgroundColor: card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
+        <View style={{ maxHeight: "92%", backgroundColor: card, borderTopLeftRadius: 6, borderTopRightRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 24, paddingBottom: insets.bottom + 24 }}>
             {step < 5 ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 20 }}>
@@ -387,7 +387,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
                 {amtError ? <Text testID="withdraw-amount-error" style={{ fontSize: 12, lineHeight: 16, color: ROSE[500], marginTop: 6 }}>{amtError}</Text> : null}
                 <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
                   {[500, 1000, 2000, 5000].map((q) => (
-                    <Pressable key={q} disabled={q > maxAllowed} testID={`withdraw-quick-${q}`} onPress={() => setAmount(String(q))} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center", opacity: q > maxAllowed ? 0.4 : 1 }}>
+                    <Pressable key={q} disabled={q > maxAllowed} testID={`withdraw-quick-${q}`} onPress={() => setAmount(String(q))} style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center", opacity: q > maxAllowed ? 0.4 : 1 }}>
                       <Text style={{ fontSize: 12, lineHeight: 16, fontWeight: "600", color: dark ? SLATE[300] : SLATE[600] }}>₹{q >= 1000 ? q / 1000 + "k" : q}</Text>
                     </Pressable>
                   ))}
@@ -411,8 +411,8 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
                     const on = bankId === b.id;
                     return (
                       <Pressable key={b.id} testID={`withdraw-bank-${b.id}`} onPress={() => setBankId(b.id)}
-                        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, borderWidth: on ? 2 : 1, borderColor: on ? P[500] : (dark ? SLATE[700] : SLATE[200]), padding: on ? 13 : 14, backgroundColor: on ? (dark ? "rgba(13,71,161,0.2)" : `${P[50]}80`) : "transparent", boxShadow: on ? `0px 0px 0px 2px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
-                        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={P[700]} /></View>
+                        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: on ? 2 : 1, borderColor: on ? P[500] : (dark ? SLATE[700] : SLATE[200]), padding: on ? 13 : 14, backgroundColor: on ? (dark ? "rgba(13,71,161,0.2)" : `${P[50]}80`) : "transparent", boxShadow: on ? `0px 0px 0px 2px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
+                        <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={P[700]} /></View>
                         <View style={{ flex: 1, minWidth: 0 }}>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                             <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "600", color: strong, flexShrink: 1 }} numberOfLines={1}>{b.bank_name}</Text>
@@ -435,7 +435,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
             {step === 3 ? (
               <View>
                 <Text style={h3}>Review withdrawal</Text>
-                <View style={{ borderRadius: 10, backgroundColor: well, padding: 16, marginTop: 16 }}>
+                <View style={{ borderRadius: 6, backgroundColor: well, padding: 16, marginTop: 16 }}>
                   <KV k="Withdrawal amount" v={money(amt)} />
                   <KV k="Processing fee" v={"−" + money(fee)} />
                   <KV k="Net amount" v={money(net)} strong />
@@ -451,7 +451,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
 
             {step === 4 ? (
               <View style={{ alignItems: "center" }}>
-                <View style={{ height: 56, width: 56, borderRadius: 10, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={28} color={P[700]} /></View>
+                <View style={{ height: 56, width: 56, borderRadius: 6, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check-outline" size={28} color={P[700]} /></View>
                 <Text style={{ ...h3, marginTop: 16 }}>Confirm withdrawal</Text>
                 <Text style={{ ...sub, textAlign: "center" }}>You are about to withdraw <Text style={{ fontWeight: "700", color: strong }}>{money(amt)}</Text> to {bank.bank_name} {masked}. This can&apos;t be undone once submitted.</Text>
                 <View style={{ ...row, alignSelf: "stretch" }}>
@@ -466,7 +466,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
                 <View style={{ height: 64, width: 64, borderRadius: 32, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="check-circle-outline" size={36} color={EMERALD[600]} /></View>
                 <Text style={{ ...h3, marginTop: 16 }}>Withdrawal submitted!</Text>
                 <Text style={sub}>Your request is now pending approval.</Text>
-                <View style={{ borderRadius: 10, backgroundColor: well, padding: 16, marginTop: 16, alignSelf: "stretch" }}>
+                <View style={{ borderRadius: 6, backgroundColor: well, padding: 16, marginTop: 16, alignSelf: "stretch" }}>
                   <KV k="Withdrawal ID" v={wdId(result.id)} mono />
                   <KV k="Amount" v={money(result.amount)} strong />
                   <KV k="Bank" v={`${bank.bank_name || "—"} ${masked}`} />

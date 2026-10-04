@@ -84,7 +84,7 @@ export default function Membership() {
 
       {/* Hero */}
       <section className="max-w-6xl mx-auto px-6 pt-12 pb-6 text-center">
-        <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-3 py-1 rounded-full"><Sparkles className="h-3.5 w-3.5" /> AzoApp Membership</span>
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-3 py-1 rounded-md"><Sparkles className="h-3.5 w-3.5" /> AzoApp Membership</span>
         <h1 className="font-heading font-black text-3xl sm:text-5xl text-slate-900 mt-4">Save more on every booking</h1>
         <p className="text-slate-500 mt-3 max-w-xl mx-auto">Join a membership plan and unlock instant discounts, free visiting charges and priority support — on every home service, all year round.</p>
       </section>
@@ -125,7 +125,7 @@ export default function Membership() {
                 <div key={p.id} data-testid={`plan-card-${p.slug}`}
                   className={`relative rounded-3xl bg-white border-2 p-6 flex flex-col shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 ${popular ? "md:scale-105 shadow-lg" : ""}`}
                   style={{ borderColor: popular ? p.color : "#e2e8f0" }}>
-                  {p.badge && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold text-white px-4 py-1 rounded-full shadow" style={{ background: p.color }}>{p.badge}</span>}
+                  {p.badge && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold text-white px-4 py-1 rounded-md shadow" style={{ background: p.color }}>{p.badge}</span>}
                   <div className="flex items-center gap-3">
                     <span className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shrink-0" style={{ background: p.color }}><Icon className="h-6 w-6" /></span>
                     <div>

@@ -98,7 +98,7 @@ export const StatusBadge = ({ status, dot = true, className = "" }) => {
   const dotc = DOT[STATUS_MAP[key.replace(/ /g, "_")] || STATUS_MAP[key] || "slate"];
   const label = key ? key.replace(/\b\w/g, (m) => m.toUpperCase()) : "—";
   return (
-    <span className={cx("inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap", tone, className)}>
+    <span className={cx("inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md whitespace-nowrap", tone, className)}>
       {dot && <span className={cx("h-1.5 w-1.5 rounded-full", dotc)} />}
       {label}
     </span>

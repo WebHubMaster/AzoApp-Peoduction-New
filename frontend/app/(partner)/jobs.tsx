@@ -53,7 +53,7 @@ function CountdownRing({ createdAt, expiryMin, now, size = 46 }: { createdAt?: s
 }
 
 const Meta = ({ icon, label, value, colors, cap }: { icon: MdiName; label: string; value: string; colors: any; cap?: boolean }) => (
-  <View style={{ width: "48.5%", borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 12, paddingVertical: 8 }}>
+  <View style={{ width: "48.5%", borderRadius: 6, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 12, paddingVertical: 8 }}>
     <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
       <Icon name={icon} size={12} color="#94A3B8" />
       <Text style={{ color: "#94A3B8", fontSize: 10, letterSpacing: 0.6, textTransform: "uppercase" }}>{label}</Text>
@@ -120,7 +120,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
         </View>
 
         {showItems ? (
-          <View testID={`req-items-${b.code}`} style={{ marginTop: 10, borderRadius: 12, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, gap: 4 }}>
+          <View testID={`req-items-${b.code}`} style={{ marginTop: 10, borderRadius: 6, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8, gap: 4 }}>
             {items.map((it, i) => (
               <View key={i}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
@@ -142,7 +142,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
         ) : null}
         {b.notes ? <Text style={{ color: colors.textMuted, fontSize: 14, marginTop: 6, fontStyle: "italic" }}>“{b.notes}”</Text> : null}
         {b.coupon_code ? (
-          <View testID={`req-coupon-${b.code}`} style={{ marginTop: 8, flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 12, paddingVertical: 8 }}>
+          <View testID={`req-coupon-${b.code}`} style={{ marginTop: 8, flexDirection: "row", gap: 8, borderRadius: 6, backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 12, paddingVertical: 8 }}>
             <Text style={{ color: "#047857", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 }}>Coupon {b.coupon_code}</Text>
             <Text style={{ color: "rgba(4,120,87,0.8)", fontSize: 11, flex: 1 }}>Funded by AzoApp — your earning is not reduced.</Text>
           </View>
@@ -152,7 +152,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
           <Pressable testID={`accept-${b.code}`} onPress={doAccept} disabled={!!busy} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: P[700], alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
             {busy === "accept" ? <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accepting…</Text> : (<><Icon name="check-circle-outline" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>Accept Job</Text></>)}
           </Pressable>
-          <Pressable testID={`decline-${b.code}`} onPress={doDecline} disabled={!!busy} style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>
+          <Pressable testID={`decline-${b.code}`} onPress={doDecline} disabled={!!busy} style={{ height: 44, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }}>
             {busy === "decline" ? <Text style={{ color: colors.textMuted }}>…</Text> : <Icon name="close" size={16} color={colors.textMuted} />}
           </Pressable>
         </View>
@@ -207,7 +207,7 @@ export default function PartnerJobRequest() {
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         {/* live status bar */}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 6, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: online ? "#10B981" : "#94A3B8" }} />
             <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }} numberOfLines={1}>{online ? "Online — receiving requests" : "Offline"}</Text>
@@ -221,8 +221,8 @@ export default function PartnerJobRequest() {
         {q.isLoading ? (
           [0, 1, 2].map((i) => (
             <Surface key={i} style={{ padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.surfaceSubtle }} />
-              <View style={{ flex: 1, gap: 8 }}><View style={{ height: 14, width: "33%", borderRadius: 8, backgroundColor: colors.surfaceSubtle }} /><View style={{ height: 12, width: "50%", borderRadius: 8, backgroundColor: colors.surfaceSubtle }} /></View>
+              <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} />
+              <View style={{ flex: 1, gap: 8 }}><View style={{ height: 14, width: "33%", borderRadius: 6, backgroundColor: colors.surfaceSubtle }} /><View style={{ height: 12, width: "50%", borderRadius: 6, backgroundColor: colors.surfaceSubtle }} /></View>
               <View style={{ height: 24, width: 64, borderRadius: 999, backgroundColor: colors.surfaceSubtle }} />
             </Surface>
           ))

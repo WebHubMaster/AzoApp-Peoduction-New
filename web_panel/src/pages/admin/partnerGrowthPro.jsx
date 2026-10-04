@@ -108,7 +108,7 @@ const KpiCard = ({ icon: Icon, label, value, sub, tone = "primary", trend }) => 
           <Icon className="h-5 w-5" />
         </div>
         {trend != null && (
-          <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-full ${trend >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${trend >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
             {trend >= 0 ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}{Math.abs(trend)}%
           </span>
         )}
@@ -189,12 +189,12 @@ const Avatar = ({ name, rank }) => {
 
 const StatusPill = ({ s }) => {
   const map = { online: "bg-emerald-100 text-emerald-700", offline: "bg-slate-100 text-slate-500", break: "bg-amber-100 text-amber-700", emergency: "bg-rose-100 text-rose-700", leave: "bg-violet-100 text-violet-700" };
-  return <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full capitalize ${map[s] || "bg-slate-100 text-slate-500"}`}>
+  return <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md capitalize ${map[s] || "bg-slate-100 text-slate-500"}`}>
     <span className={`h-1.5 w-1.5 rounded-full ${s === "online" ? "bg-emerald-500" : "bg-current opacity-50"}`} />{s || "offline"}</span>;
 };
 const KycPill = ({ s }) => {
   const map = { approved: "bg-emerald-100 text-emerald-700", pending: "bg-amber-100 text-amber-700", under_review: "bg-blue-100 text-blue-700", rejected: "bg-rose-100 text-rose-700" };
-  return <span className={`text-xs font-medium px-2 py-1 rounded-full capitalize ${map[s] || "bg-slate-100 text-slate-500"}`}>{(s || "pending").replace("_", " ")}</span>;
+  return <span className={`text-xs font-medium px-2 py-1 rounded-md capitalize ${map[s] || "bg-slate-100 text-slate-500"}`}>{(s || "pending").replace("_", " ")}</span>;
 };
 
 const Bar2 = ({ pct, className = "bg-primary-600" }) => (
@@ -592,9 +592,9 @@ export function IncentivesManagerPro() {
                   </div>
                   <div className="p-4 flex-1">
                     <div className="flex flex-wrap gap-1.5 text-xs">
-                      {i.job_target > 0 && <span className="px-2 py-1 rounded-full bg-violet-50 text-violet-700 flex items-center gap-1"><Target className="h-3 w-3" /> {i.job_target} jobs</span>}
-                      {i.revenue_target > 0 && <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 flex items-center gap-1"><IndianRupee className="h-3 w-3" /> {fmt(i.revenue_target)}</span>}
-                      {i.rating_min > 0 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 flex items-center gap-1"><Star className="h-3 w-3" /> {i.rating_min}★+</span>}
+                      {i.job_target > 0 && <span className="px-2 py-1 rounded-md bg-violet-50 text-violet-700 flex items-center gap-1"><Target className="h-3 w-3" /> {i.job_target} jobs</span>}
+                      {i.revenue_target > 0 && <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 flex items-center gap-1"><IndianRupee className="h-3 w-3" /> {fmt(i.revenue_target)}</span>}
+                      {i.rating_min > 0 && <span className="px-2 py-1 rounded-md bg-amber-50 text-amber-700 flex items-center gap-1"><Star className="h-3 w-3" /> {i.rating_min}★+</span>}
                     </div>
                     {i.eligible_count > 0 && (
                       <div className="mt-4">
@@ -841,7 +841,7 @@ export function PenaltiesManagerPro() {
 
   const typeBadge = (t) => {
     const map = { fixed: "bg-slate-100 text-slate-600", percentage: "bg-blue-50 text-blue-700", score: "bg-violet-50 text-violet-700" };
-    return <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full capitalize ${map[t] || "bg-slate-100 text-slate-600"}`}>{t === "percentage" ? <Percent className="h-3 w-3" /> : null}{t}</span>;
+    return <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md capitalize ${map[t] || "bg-slate-100 text-slate-600"}`}>{t === "percentage" ? <Percent className="h-3 w-3" /> : null}{t}</span>;
   };
 
   return (

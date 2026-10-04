@@ -49,11 +49,11 @@ export default function SearchingStatus({ booking, onAssigned }) {
         <div className="flex-1 min-w-0">
           <p className="font-heading font-bold text-slate-900 text-sm" data-testid="searching-headline">{headline}</p>
           <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px]">
-            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-eligible"><Users className="h-3 w-3" /> {st.eligible} pros in area</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-rung"><BellRing className="h-3 w-3 text-primary-600" /> {st.rung} rung</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-seen"><Eye className="h-3 w-3 text-sky-600" /> {st.seen} seen</span>
-            {st.nearest_eta_min != null && <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-emerald-700"><Navigation className="h-3 w-3" /> nearest ~{st.nearest_eta_min} min away</span>}
-            {st.nearby_expanded && <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200 px-2 py-0.5 text-violet-700"><MapPin className="h-3 w-3" /> expanded to nearby areas</span>}
+            <span className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-eligible"><Users className="h-3 w-3" /> {st.eligible} pros in area</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-rung"><BellRing className="h-3 w-3 text-primary-600" /> {st.rung} rung</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-white border border-slate-200 px-2 py-0.5 text-slate-700" data-testid="searching-seen"><Eye className="h-3 w-3 text-sky-600" /> {st.seen} seen</span>
+            {st.nearest_eta_min != null && <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-emerald-700"><Navigation className="h-3 w-3" /> nearest ~{st.nearest_eta_min} min away</span>}
+            {st.nearby_expanded && <span className="inline-flex items-center gap-1 rounded-md bg-violet-50 border border-violet-200 px-2 py-0.5 text-violet-700"><MapPin className="h-3 w-3" /> expanded to nearby areas</span>}
           </div>
           <div className="mt-2.5 flex items-center gap-1.5" title={`Search wave ${st.wave} of ${st.max_waves}`}>
             {Array.from({ length: waves }).map((_, i) => (

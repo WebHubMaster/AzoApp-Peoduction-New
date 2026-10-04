@@ -75,7 +75,7 @@ export default function MerchantWithdrawals() {
         <div className="flex items-center gap-1.5 mb-3">
           {tabs.map((t) => (
             <button key={t.key} data-testid={`mwd-tab-${t.key}`} onClick={() => setTab(t.key)}
-              className={`px-3.5 py-1.5 rounded-full text-sm ${tab === t.key ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{t.label} <span className="opacity-70 text-xs">{t.count}</span></button>
+              className={`px-3.5 py-1.5 rounded-md text-sm ${tab === t.key ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{t.label} <span className="opacity-70 text-xs">{t.count}</span></button>
           ))}
         </div>
         <div className="space-y-2" data-testid="admin-merchant-withdrawals">
@@ -84,7 +84,7 @@ export default function MerchantWithdrawals() {
             <div key={x.id} className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="flex justify-between items-center flex-wrap gap-2">
                 <div>
-                  <p className="font-medium text-slate-800">{x.merchant_name} · {fmt(x.amount)} <span className="text-xs uppercase text-slate-400">{x.method}</span> <span className={`ml-1 text-[11px] px-2 py-0.5 rounded-full capitalize ${PILL[x.status] || "bg-slate-100 text-slate-500"}`}>{x.status}</span></p>
+                  <p className="font-medium text-slate-800">{x.merchant_name} · {fmt(x.amount)} <span className="text-xs uppercase text-slate-400">{x.method}</span> <span className={`ml-1 text-[11px] px-2 py-0.5 rounded-md capitalize ${PILL[x.status] || "bg-slate-100 text-slate-500"}`}>{x.status}</span></p>
                   <p className="text-xs text-slate-400">{x.method === "upi" ? x.upi_id : x.method === "bank" ? x.bank?.account_number : x.cheque?.payee} · fee {fmt(x.fee)} · net {fmt(x.net_amount)} · {String(x.requested_at || "").slice(0, 10)}</p>
                 </div>
                 {x.status === "pending" && (

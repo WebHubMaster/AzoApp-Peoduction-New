@@ -309,7 +309,7 @@ export function PartnerHome({ onNavigate, user, kit, online, onToggleOnline, con
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <h1 className="font-heading font-extrabold text-lg sm:text-2xl text-slate-900 dark:text-white leading-none truncate">{(user?.name || "Partner").split(" ")[0]} 👋</h1>
                 {(user?.premium_partner || kit?.purchased) && (
-                  <span data-testid="partner-premium-badge" className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold rounded-full px-2 py-0.5 shadow-sm">
+                  <span data-testid="partner-premium-badge" className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] font-bold rounded-md px-2 py-0.5 shadow-sm">
                     <Crown className="h-3 w-3" /> {user?.partner_badge || kit?.badge_label || "Pro"}
                   </span>
                 )}
@@ -371,7 +371,7 @@ export function PartnerHome({ onNavigate, user, kit, online, onToggleOnline, con
                 </p>
               </div>
               {k.rating ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/10 backdrop-blur px-2.5 py-1 text-[12px] font-semibold ring-1 ring-white/15">
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/10 backdrop-blur px-2.5 py-1 text-[12px] font-semibold ring-1 ring-white/15">
                   <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> {(k.rating || 0).toFixed(1)}
                 </span>
               ) : null}
@@ -528,7 +528,7 @@ export function PartnerHome({ onNavigate, user, kit, online, onToggleOnline, con
         <Card className="p-5" data-testid="ph-growth">
           <div className="flex items-center justify-between">
             <h3 className="font-heading font-bold text-slate-800 dark:text-white flex items-center gap-2"><Award className="h-5 w-5" style={{ color: growth.color }} /> Your growth</h3>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full text-white" style={{ background: growth.color }}>{growth.label}</span>
+            <span className="text-[11px] font-bold px-2.5 py-1 rounded-md text-white" style={{ background: growth.color }}>{growth.label}</span>
           </div>
           <div className="mt-4">
             {growth.next_label ? (

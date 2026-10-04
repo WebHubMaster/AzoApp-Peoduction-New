@@ -34,7 +34,7 @@ export function PosterControls({ config, setConfig, adminLogo }: { config: QrCon
           {TEMPLATES.map((t) => {
             const on = config.template === t.id;
             return (
-              <Pressable key={t.id} testID={`tpl-${t.id}`} onPress={() => setConfig({ template: t.id, primary: t.primary, preset: "template" })} style={{ width: "48.5%", borderRadius: 12, borderWidth: 2, borderColor: on ? P[600] : border, padding: 8 }}>
+              <Pressable key={t.id} testID={`tpl-${t.id}`} onPress={() => setConfig({ template: t.id, primary: t.primary, preset: "template" })} style={{ width: "48.5%", borderRadius: 6, borderWidth: 2, borderColor: on ? P[600] : border, padding: 8 }}>
                 <TemplateSwatch tpl={t} />
                 <Text style={{ fontSize: 11, fontWeight: "600", color: dark ? SLATE[300] : SLATE[600] }} numberOfLines={1}>{t.label}</Text>
                 {on ? <View style={{ position: "absolute", top: 4, right: 4, height: 16, width: 16, borderRadius: 8, backgroundColor: P[600], alignItems: "center", justifyContent: "center" }}><Icon name="check" size={10} color="#fff" /></View> : null}
@@ -50,15 +50,15 @@ export function PosterControls({ config, setConfig, adminLogo }: { config: QrCon
         <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           {COLOR_PRESETS.map((c) => {
             const on = config.primary === c.primary;
-            return <Pressable key={c.id} testID={`color-${c.id}`} onPress={() => setConfig({ preset: c.id, primary: c.primary })} style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: c.primary, borderWidth: 2, borderColor: on ? (dark ? "#fff" : SLATE[900]) : "transparent", transform: [{ scale: on ? 1.1 : 1 }] }} />;
+            return <Pressable key={c.id} testID={`color-${c.id}`} onPress={() => setConfig({ preset: c.id, primary: c.primary })} style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: c.primary, borderWidth: 2, borderColor: on ? (dark ? "#fff" : SLATE[900]) : "transparent", transform: [{ scale: on ? 1.1 : 1 }] }} />;
           })}
-          <Pressable testID="color-custom" onPress={() => { setHex(config.primary); setCustomOpen((o) => !o); }} style={{ height: 36, width: 36, borderRadius: 12, borderWidth: 2, borderStyle: "dashed", borderColor: SLATE[300], alignItems: "center", justifyContent: "center" }}>
+          <Pressable testID="color-custom" onPress={() => { setHex(config.primary); setCustomOpen((o) => !o); }} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 2, borderStyle: "dashed", borderColor: SLATE[300], alignItems: "center", justifyContent: "center" }}>
             <Icon name="plus" size={16} color={SLATE[400]} />
           </Pressable>
         </View>
         {customOpen ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10 }}>
-            <View style={{ height: 36, width: 36, borderRadius: 10, backgroundColor: isHex6(hex) ? hex : SLATE[200], borderWidth: 1, borderColor: border }} />
+            <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: isHex6(hex) ? hex : SLATE[200], borderWidth: 1, borderColor: border }} />
             <TextInput testID="color-custom-input" value={hex} onChangeText={(v) => { const h = v.startsWith("#") ? v : `#${v}`; setHex(h.slice(0, 7)); if (isHex6(h)) setConfig({ preset: "custom", primary: h }); }} autoCapitalize="none" placeholder="#0D47A1" placeholderTextColor={SLATE[400]} style={{ flex: 1, height: 36, borderWidth: 1, borderColor: border, borderRadius: 6, paddingHorizontal: 10, fontSize: 13, color: heading, backgroundColor: dark ? SLATE[900] : "#fff" }} />
           </View>
         ) : null}
@@ -67,13 +67,13 @@ export function PosterControls({ config, setConfig, adminLogo }: { config: QrCon
       {/* Logo — admin managed (read-only) */}
       <View>
         <KitLabel>Business Logo</KitLabel>
-        <View testID="logo-managed" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: border, backgroundColor: dark ? "rgba(30,41,59,0.5)" : SLATE[50], padding: 12 }}>
+        <View testID="logo-managed" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: border, backgroundColor: dark ? "rgba(30,41,59,0.5)" : SLATE[50], padding: 12 }}>
           {adminLogo ? (
-            <View style={{ height: 56, width: 56, borderRadius: 8, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", padding: 4 }}>
+            <View style={{ height: 56, width: 56, borderRadius: 6, borderWidth: 1, borderColor: SLATE[200], backgroundColor: "#fff", padding: 4 }}>
               <Image source={{ uri: adminLogo }} style={{ flex: 1 }} contentFit="contain" />
             </View>
           ) : (
-            <View style={{ height: 56, width: 56, borderRadius: 8, borderWidth: 1, borderStyle: "dashed", borderColor: SLATE[300], alignItems: "center", justifyContent: "center" }}><Icon name="image-off" size={20} color={SLATE[400]} /></View>
+            <View style={{ height: 56, width: 56, borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: SLATE[300], alignItems: "center", justifyContent: "center" }}><Icon name="image-off" size={20} color={SLATE[400]} /></View>
           )}
           <View style={{ flex: 1, minWidth: 0 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>

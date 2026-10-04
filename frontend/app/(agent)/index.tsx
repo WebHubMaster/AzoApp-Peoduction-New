@@ -64,7 +64,7 @@ export default function AgentHome() {
           <Icon name={mode === "dark" ? "weather-sunny" : "weather-night"} size={22} color={colors.text} />
         </Pressable>
         <Pressable testID="agent-profile-chip" onPress={() => router.push("/(agent)/profile")} style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: colors.surfaceSubtle, borderRadius: radius.md, paddingLeft: 3, paddingRight: 6, paddingVertical: 3 }}>
-          <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+          <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12 }}>{initials(user?.name)}</Text>
           </View>
           <Icon name="chevron-down" size={16} color={colors.textMuted} />
@@ -79,7 +79,7 @@ export default function AgentHome() {
         {/* Greeting */}
         <Card>
           <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 46, height: 46, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
               <Text style={{ color: "#fff", fontWeight: "900", fontSize: 16 }}>{initials(user?.name)}</Text>
             </View>
             <View style={{ flex: 1 }}>
@@ -119,7 +119,7 @@ export default function AgentHome() {
         {/* Map CTA */}
         <Pressable testID="agent-map-cta" onPress={() => router.push("/(agent)/map")}>
           <LinearGradient colors={["#F59E0B", "#B45309"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: radius.lg, padding: spacing.lg, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
-            <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.18)", alignItems: "center", justifyContent: "center" }}>
               <Icon name="qrcode-scan" size={26} color="#fff" />
             </View>
             <View style={{ flex: 1 }}>
@@ -151,7 +151,7 @@ export default function AgentHome() {
           ) : (
             bList.map((b, i) => (
               <View key={b.batch_id} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 10, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 38, height: 38, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                   <Icon name="qrcode" size={18} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -171,7 +171,7 @@ export default function AgentHome() {
           ) : (
             rows.slice(0, 12).map((r, i) => (
               <View key={r.id || i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 10, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.successSubtle, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 38, height: 38, borderRadius: 6, backgroundColor: colors.successSubtle, alignItems: "center", justifyContent: "center" }}>
                   <Icon name="store-check" size={18} color={colors.success} />
                 </View>
                 <View style={{ flex: 1 }}>

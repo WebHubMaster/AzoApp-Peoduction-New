@@ -85,7 +85,7 @@ export default function MerchantsHub({ onView }) {
               placeholder="Search shop / owner / phone / code" className="pl-9 w-64" />
           </div>
           <Button data-testid="merchants-filter-toggle" variant="outline" onClick={() => setShowFilters((s) => !s)} className="gap-1">
-            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
+            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-md bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
           </Button>
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function MerchantsHub({ onView }) {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
         {TABS.map((t) => (
           <button key={t.key} data-testid={`merchants-tab-${t.key}`} onClick={() => setTab(t.key)}
-            className={`px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
+            className={`px-3.5 py-2 rounded-md text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
             {t.label}
             <span className={`ml-1.5 text-[11px] ${tab === t.key ? "text-white/80" : "text-slate-400"}`}>{counts[t.key] ?? 0}</span>
           </button>
@@ -164,7 +164,7 @@ export default function MerchantsHub({ onView }) {
                       {(m.merchant_categories || []).length === 0 && <span className="text-slate-400">—</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-3"><span className={`text-[11px] px-2 py-0.5 rounded-full capitalize ${KYC_PILL[m.kyc_status] || "bg-slate-100 text-slate-500"}`}>{(m.kyc_status || "pending").replace("_", " ")}</span></td>
+                  <td className="px-4 py-3"><span className={`text-[11px] px-2 py-0.5 rounded-md capitalize ${KYC_PILL[m.kyc_status] || "bg-slate-100 text-slate-500"}`}>{(m.kyc_status || "pending").replace("_", " ")}</span></td>
                   <td className="px-4 py-3 whitespace-nowrap font-mono text-xs text-slate-500">{m.merchant_code || "—"}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-slate-400 text-xs">{m.created_at ? new Date(m.created_at).toLocaleDateString() : "—"}</td>
                 </tr>

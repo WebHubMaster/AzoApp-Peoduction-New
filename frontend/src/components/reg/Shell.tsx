@@ -47,7 +47,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
           style={{ paddingTop: insets.top + 16, paddingHorizontal: 16, paddingBottom: 80 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+              <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: "#fff", fontWeight: "900", ...T.base }}>A</Text>
               </View>
               <View>
@@ -60,7 +60,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
               <Text style={{ color: "#fff", ...T.sm }}>Logout</Text>
             </Pressable>
           </View>
-          <View style={{ alignSelf: "flex-start", marginTop: 12, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+          <View style={{ alignSelf: "flex-start", marginTop: 12, backgroundColor: "rgba(255,255,255,0.18)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
             <Text style={{ color: "#fff", ...T.px11, fontWeight: "800", letterSpacing: 1 }}>{roleChip}</Text>
           </View>
         </LinearGradient>
@@ -68,7 +68,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
         <View style={{ marginTop: -64, paddingHorizontal: 12, paddingTop: 24 }}>
           {typeof score === "number" ? (
             <LinearGradient colors={SCORE as any} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0.4 }}
-              style={{ borderRadius: 10, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: kindBorder, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
+              style={{ borderRadius: 6, padding: 16, marginBottom: 16, flexDirection: "row", alignItems: "center", gap: 16, borderWidth: 1, borderColor: kindBorder, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }}>
               <ScoreRing score={score} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: "#fff", fontWeight: "700", ...T.lg }}>{scoreTitle}</Text>
@@ -76,7 +76,7 @@ export function RegShell({ kind, score, scoreTitle, onLogout, children, nav, tes
               </View>
             </LinearGradient>
           ) : null}
-          <View testID={testID} style={{ backgroundColor: "#fff", borderRadius: 10, padding: 20, borderWidth: 1, borderColor: TW.slate100, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
+          <View testID={testID} style={{ backgroundColor: "#fff", borderRadius: 6, padding: 20, borderWidth: 1, borderColor: TW.slate100, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
             {children}
           </View>
           <Text style={{ textAlign: "center", color: TW.slate400, ...T.xs, marginTop: 16 }}>© AzoApp · Your data is secure & encrypted</Text>

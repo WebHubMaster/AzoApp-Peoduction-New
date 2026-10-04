@@ -82,7 +82,7 @@ function SectionHead({ icon, title, right }: { icon: MdiName; title: string; rig
   return (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={16} color={primaryText} /></View>
+        <View style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={16} color={primaryText} /></View>
         <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "700", color: heading }}>{title}</Text>
       </View>
       {right}
@@ -94,7 +94,7 @@ function SectionHead({ icon, title, right }: { icon: MdiName; title: string; rig
 function UploadingBox({ pct, testID }: { pct: number | null; testID?: string }) {
   const { P, dark } = useFin();
   return (
-    <View testID={testID} style={{ borderRadius: 12, borderWidth: 2, borderStyle: "dashed", borderColor: P[300], padding: 12 }}>
+    <View testID={testID} style={{ borderRadius: 6, borderWidth: 2, borderStyle: "dashed", borderColor: P[300], padding: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><ActivityIndicator size="small" color={P[700]} /><Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "500", color: P[700] }}>Uploading…{pct != null ? ` ${pct}%` : ""}</Text></View>
       <View style={{ marginTop: 8, height: 6, borderRadius: 3, backgroundColor: dark ? SLATE[700] : SLATE[200], overflow: "hidden" }}><View style={{ height: "100%", width: `${pct ?? 100}%`, borderRadius: 3, backgroundColor: P[600], opacity: pct == null ? 0.5 : 1 }} /></View>
     </View>
@@ -201,17 +201,17 @@ export default function MerchantBankKyc() {
           <LockedCard completion={accessQ.data?.completion ?? 0} status={accessQ.data?.status} onGo={() => router.push("/merchant/profilekyc")} />
         ) : !data ? (
           <View style={{ gap: 20 }}>
-            <Surface style={{ padding: 24 }}><Sk style={{ height: 96, borderRadius: 12 }} /></Surface>
-            <Surface style={{ padding: 24 }}><Sk style={{ height: 128, borderRadius: 12 }} /></Surface>
+            <Surface style={{ padding: 24 }}><Sk style={{ height: 96, borderRadius: 6 }} /></Surface>
+            <Surface style={{ padding: 24 }}><Sk style={{ height: 128, borderRadius: 6 }} /></Surface>
           </View>
         ) : (
           <View style={{ gap: 20 }}>
             {/* progress header */}
             <LinearGradient colors={data.eligible ? ["#059669", "#065f46"] : ["#0D47A1", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={{ borderRadius: 10, padding: 24, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="mfk-hero">
+              style={{ borderRadius: 6, padding: 24, overflow: "hidden", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1), 0px 4px 6px -4px rgba(0,0,0,0.1)" }} testID="mfk-hero">
               <View style={{ position: "absolute", right: -56, top: -56, height: 192, width: 192, borderRadius: 96, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 16 }}>
-                <View style={{ height: 48, width: 48, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name={data.eligible ? "shield-check-outline" : "alert-outline"} size={24} color="#fff" /></View>
+                <View style={{ height: 48, width: 48, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}><Icon name={data.eligible ? "shield-check-outline" : "alert-outline"} size={24} color="#fff" /></View>
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text testID="mfk-eligibility" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: "#fff" }}>{data.eligible ? "Withdrawal-eligible" : "Complete KYC to withdraw"}</Text>
                   <Text style={{ fontSize: 14, lineHeight: 20, color: "rgba(255,255,255,0.8)", marginTop: 2 }}>{data.eligible ? "Your PAN and bank account are verified. You can withdraw earnings anytime." : `Pending: ${(data.blockers || []).join(", ")}`}</Text>
@@ -226,9 +226,9 @@ export default function MerchantBankKyc() {
             {/* PAN */}
             <Surface style={{ padding: 20 }} testID="mfk-pan-card">
               <SectionHead icon="credit-card-outline" title="PAN Card" right={<StatusBadge status={panStatus} testID="mfk-pan-status" />} />
-              {data.pan?.reason && panRejected ? <View style={{ marginBottom: 12, borderRadius: 8, backgroundColor: roseBg, paddingHorizontal: 12, paddingVertical: 8 }}><Text style={{ fontSize: 14, lineHeight: 20, color: dark ? ROSE[400] : "#e11d48" }}>Rejected: {data.pan.reason}</Text></View> : null}
+              {data.pan?.reason && panRejected ? <View style={{ marginBottom: 12, borderRadius: 6, backgroundColor: roseBg, paddingHorizontal: 12, paddingVertical: 8 }}><Text style={{ fontSize: 14, lineHeight: 20, color: dark ? ROSE[400] : "#e11d48" }}>Rejected: {data.pan.reason}</Text></View> : null}
               {panOk ? (
-                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 24, rowGap: 8, borderRadius: 12, backgroundColor: emeraldBg, paddingHorizontal: 16, paddingVertical: 14 }}>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 24, rowGap: 8, borderRadius: 6, backgroundColor: emeraldBg, paddingHorizontal: 16, paddingVertical: 14 }}>
                   <Icon name="lock-outline" size={20} color={dark ? EMERALD[400] : EMERALD[600]} />
                   <View><Label>PAN Number</Label><Text style={{ fontFamily: MONO, fontWeight: "700", fontSize: 16, lineHeight: 24, color: heading }}>{data.pan.pan_number}</Text></View>
                   {fdate(data.pan.verified_at) ? <View><Label>Verified</Label><Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "500", color: EMERALD[600] }}>{fdate(data.pan.verified_at)}</Text></View> : null}
@@ -236,7 +236,7 @@ export default function MerchantBankKyc() {
                   {data.pan.pan_url ? <Btn small height={32} variant="outline" icon="eye-outline" label="View" onPress={() => setPreview(data.pan.pan_url)} style={{ marginLeft: "auto" }} testID="mfk-pan-view" /> : null}
                 </View>
               ) : panPending ? (
-                <View testID="mfk-pan-pending" style={{ borderRadius: 12, backgroundColor: amberBg, paddingHorizontal: 16, paddingVertical: 16 }}>
+                <View testID="mfk-pan-pending" style={{ borderRadius: 6, backgroundColor: amberBg, paddingHorizontal: 16, paddingVertical: 16 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                     <Icon name="clock-outline" size={20} color={dark ? AMBER[400] : AMBER[600]} />
                     <View style={{ flex: 1, minWidth: 0 }}>
@@ -257,7 +257,7 @@ export default function MerchantBankKyc() {
                     <Label>PAN Document</Label>
                     <View style={{ marginTop: 4 }}>
                       {uploadPct.pan_url !== undefined ? <UploadingBox pct={uploadPct.pan_url} testID="mfk-pan-uploading" /> : pan.pan_url ? (
-                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: dark ? "#065f46" : "#6ee7b7", backgroundColor: emeraldBg, padding: 8 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: dark ? "#065f46" : "#6ee7b7", backgroundColor: emeraldBg, padding: 8 }}>
                           <Image source={{ uri: mediaUrl(pan.pan_url) }} style={{ height: 36, width: 48, borderRadius: 4 }} contentFit="cover" />
                           <Text style={{ flex: 1, fontSize: 14, lineHeight: 20, fontWeight: "500", color: dark ? EMERALD[400] : EMERALD[700] }}>Uploaded</Text>
                           <IconBtn icon="eye-outline" color={SLATE[500]} onPress={() => setPreview(pan.pan_url)} testID="mfk-pan-preview" />
@@ -266,7 +266,7 @@ export default function MerchantBankKyc() {
                         </View>
                       ) : (
                         <Pressable testID="mfk-pan-upload" onPress={() => setPick({ field: "pan_url", title: "PAN Document" })}
-                          style={({ pressed }) => ({ height: 44, borderRadius: 12, borderWidth: 2, borderStyle: "dashed", borderColor: pressed ? P[400] : inputBorder, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 })}>
+                          style={({ pressed }) => ({ height: 44, borderRadius: 6, borderWidth: 2, borderStyle: "dashed", borderColor: pressed ? P[400] : inputBorder, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 })}>
                           <Icon name="cloud-upload-outline" size={16} color={SLATE[500]} /><Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "500", color: SLATE[500] }}>Upload PAN (image/PDF)</Text>
                         </Pressable>
                       )}
@@ -290,9 +290,9 @@ export default function MerchantBankKyc() {
               ) : (
                 <View style={{ gap: 12 }}>
                   {banks.map((b) => (
-                    <View key={b.id} testID={`mfk-bank-${b.id}`} style={{ borderRadius: 10, borderWidth: 1, padding: 16, borderColor: b.is_primary ? (dark ? P[700] : P[300]) : inputBorder, boxShadow: b.is_primary ? `0px 0px 0px 1px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
+                    <View key={b.id} testID={`mfk-bank-${b.id}`} style={{ borderRadius: 6, borderWidth: 1, padding: 16, borderColor: b.is_primary ? (dark ? P[700] : P[300]) : inputBorder, boxShadow: b.is_primary ? `0px 0px 0px 1px ${dark ? "rgba(13,71,161,0.4)" : P[100]}` : undefined }}>
                       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" }}>
-                        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: F.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={primaryText} /></View>
+                        <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: F.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={primaryText} /></View>
                         <StatusBadge status={b.status} />
                       </View>
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>
@@ -353,7 +353,7 @@ export default function MerchantBankKyc() {
         <Pressable testID="mfk-preview-modal" onPress={() => setPreview(null)} style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.7)", alignItems: "center", justifyContent: "center", padding: 24 }}>
           <View style={{ width: "100%", maxWidth: 512 }}>
             <Pressable testID="mfk-preview-close" onPress={() => setPreview(null)} hitSlop={8} style={{ alignSelf: "flex-end", marginBottom: 4, height: 36, width: 36, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color="#fff" /></Pressable>
-            {preview ? <Image source={{ uri: mediaUrl(preview) }} style={{ width: "100%", height: Math.min(width - 48, 512) * 0.7, borderRadius: 10, backgroundColor: "#0f172a" }} contentFit="contain" /> : null}
+            {preview ? <Image source={{ uri: mediaUrl(preview) }} style={{ width: "100%", height: Math.min(width - 48, 512) * 0.7, borderRadius: 6, backgroundColor: "#0f172a" }} contentFit="contain" /> : null}
           </View>
         </Pressable>
       </Modal>

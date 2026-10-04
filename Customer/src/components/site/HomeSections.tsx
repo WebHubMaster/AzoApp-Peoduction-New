@@ -251,7 +251,7 @@ export function CategoryServicesSheet({ category, onClose, navigate }: { categor
   return (
     <Modal visible={!!category} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)" }} onPress={onClose} />
-      <View testID="category-services-sheet" style={{ backgroundColor: TC.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "80%", paddingBottom: 24 }}>
+      <View testID="category-services-sheet" style={{ backgroundColor: TC.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, maxHeight: "80%", paddingBottom: 24 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 20, borderBottomWidth: 1, borderBottomColor: TC.borderSoft }}>
           <View style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>{category?.image ? <Image source={{ uri: mediaUrl(category.image) }} style={{ width: 44, height: 44 }} contentFit="cover" /> : <LucideByName name={category?.icon} size={22} />}</View>
           <View style={{ flex: 1 }}><Text style={{ fontWeight: "800", fontSize: 18, color: TC.text }}>{category?.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 2 }}>{loading ? "Loading services…" : `${services.length} service${services.length === 1 ? "" : "s"} available`}</Text></View>

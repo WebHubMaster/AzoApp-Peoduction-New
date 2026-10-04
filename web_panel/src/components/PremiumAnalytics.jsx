@@ -98,7 +98,7 @@ export default function PremiumAnalytics({ role = "merchant", title = "Analytics
             {PRESETS.map((p) => (
               <button key={p.key} data-testid={`range-${p.key}`}
                 onClick={() => { setPreset(p.key); setShowCustom(p.custom); }}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition ${preset === p.key ? "bg-white text-primary-700 shadow" : "bg-white/15 text-white hover:bg-white/25"}`}>
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition ${preset === p.key ? "bg-white text-primary-700 shadow" : "bg-white/15 text-white hover:bg-white/25"}`}>
                 {p.custom ? <span className="flex items-center gap-1"><Filter className="h-3 w-3" />{p.label}</span> : p.label}
               </button>
             ))}

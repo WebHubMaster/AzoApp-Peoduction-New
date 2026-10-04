@@ -48,7 +48,7 @@ export function BrandRow({ size = 34 }: { size?: number }) {
   if (logo) return <Image testID="app-brand-logo" source={{ uri: logo }} style={{ height: size + 6, width: 150 }} contentFit="contain" contentPosition="left" />;
   return (
     <View testID="app-brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-      <Image source={FALLBACK_LOGO} style={{ width: size + 6, height: size + 6, borderRadius: 10 }} contentFit="contain" />
+      <Image source={FALLBACK_LOGO} style={{ width: size + 6, height: size + 6, borderRadius: 6 }} contentFit="contain" />
       <View>
         <Text style={{ color: AUTH.ink, fontSize: 21, fontWeight: "900", letterSpacing: -0.3 }}>{brand.branding.site_name}</Text>
         <Text style={{ color: AUTH.muted, fontSize: 10.5, fontWeight: "600", marginTop: -1 }}>{brand.branding.tagline}</Text>
@@ -89,7 +89,7 @@ export function AuthHeader({ right, onBack, top }: { right?: React.ReactNode; on
 /* Big-tile info card ("Safe & Secure", "Need Help?") */
 export function InfoCard({ icon, iconBg, iconColor, title, sub, onPress, chevron, testID, bg = "#EEF4FF", border = "#DDE7FA" }: { icon: MdiName; iconBg: string; iconColor: string; title: string; sub: string; onPress?: () => void; chevron?: boolean; testID?: string; bg?: string; border?: string }) {
   return (
-    <Pressable testID={testID} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 10, backgroundColor: bg, borderWidth: 1, borderColor: border, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}>
+    <Pressable testID={testID} onPress={onPress} disabled={!onPress} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 6, backgroundColor: bg, borderWidth: 1, borderColor: border, transform: [{ scale: pressed && onPress ? 0.98 : 1 }] })}>
       <View style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: iconBg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={iconColor} /></View>
       <View style={{ flex: 1 }}>
         <Text style={{ color: AUTH.ink, fontSize: FS.input, fontWeight: "800" }}>{title}</Text>

@@ -143,7 +143,7 @@ export default function PartnerAlertsPanel() {
                 <div>
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Accept Streak</p>
                   <p className="text-2xl font-heading font-extrabold text-slate-900 dark:text-white leading-none" data-testid="streak-count">{stats.accept_streak || 0}</p>
-                  <span className={`mt-1 inline-block rounded-full bg-gradient-to-r ${badge.cls} text-white text-[10px] font-bold px-2 py-0.5`}>{badge.label}</span>
+                  <span className={`mt-1 inline-block rounded-md bg-gradient-to-r ${badge.cls} text-white text-[10px] font-bold px-2 py-0.5`}>{badge.label}</span>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -175,7 +175,7 @@ export default function PartnerAlertsPanel() {
                     <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5">
                       <Gift className="h-4 w-4" /> Streak reward · {fmt(rw.bonus)} every {rw.threshold} in a row
                     </p>
-                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 rounded-full px-2 py-0.5" data-testid="reward-earned">
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 rounded-md px-2 py-0.5" data-testid="reward-earned">
                       Earned {fmt(rw.total_earned || 0)}
                     </span>
                   </div>

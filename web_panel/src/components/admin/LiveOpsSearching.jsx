@@ -73,7 +73,7 @@ export const SearchingCard = ({ x, now, ttl = 25, longWaitSec = 180, onDetails, 
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[15.5px] font-extrabold text-[#172033] dark:text-[#F8FAFC]">{x.service_name}</span>
               <span className="font-mono text-[11px] text-[#94A3B8]">#{x.code}</span>
-              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#FEF5E7] text-[#B45309] border border-[#F59E0B]/30">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-md bg-[#FEF5E7] text-[#B45309] border border-[#F59E0B]/30">
                 <span className="relative flex h-2 w-2"><span className="azo-search-dot absolute inline-flex h-2 w-2 rounded-full bg-[#F59E0B]" /></span>
                 SEARCHING
               </span>
@@ -248,7 +248,7 @@ export const AssignDrawer = ({ booking, onClose, onAssigned }) => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-[14px] font-bold text-[#172033] dark:text-[#F8FAFC] truncate">{p.name}</span>
-                        {p.nearby && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FEF5E7] text-[#B45309] shrink-0">Nearby</span>}
+                        {p.nearby && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#FEF5E7] text-[#B45309] shrink-0">Nearby</span>}
                       </div>
                       <div className="flex items-center gap-2.5 mt-0.5 text-[12px] text-[#64748B] dark:text-[#94A3B8]">
                         {p.rating != null && <span className="flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span>}
@@ -256,7 +256,7 @@ export const AssignDrawer = ({ booking, onClose, onAssigned }) => {
                         {p.eta_min != null && <span className="flex items-center gap-0.5"><Timer className="h-3 w-3" />{p.eta_min}m</span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1 ${a.cls}`}>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${a.cls}`}>
                           <span className="h-1.5 w-1.5 rounded-full" style={{ background: a.dot }} />
                           {p.busy ? (busyLabel(p) || a.label) : a.label}
                         </span>

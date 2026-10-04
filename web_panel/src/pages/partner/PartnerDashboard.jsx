@@ -433,13 +433,13 @@ const ActiveJob = ({ b, onUpdate }) => {
             <div className="min-w-0 flex-1">
               <p className="font-heading font-extrabold text-slate-900 dark:text-white leading-snug break-words text-[16px]">{b.service_name}</p>
               <div className="flex items-center gap-2 mt-1 flex-wrap">
-                <span className="text-[11px] font-mono font-bold text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-full px-2 py-0.5">#{b.code}</span>
+                <span className="text-[11px] font-mono font-bold text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md px-2 py-0.5">#{b.code}</span>
                 {b.category_name && <span className="text-[11.5px] text-slate-500">{b.category_name}</span>}
               </div>
             </div>
           </div>
           <div className="flex items-center justify-between mt-3">
-            <span data-testid={`status-pill-${b.code}`} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-white text-[12.5px] font-extrabold capitalize ${inProgress ? "bg-emerald-600" : "bg-primary-600"}`}>
+            <span data-testid={`status-pill-${b.code}`} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-white text-[12.5px] font-extrabold capitalize ${inProgress ? "bg-emerald-600" : "bg-primary-600"}`}>
               <span className="h-2 w-2 rounded-full bg-white/90" />{inProgress ? "Work in progress" : String(b.status || "").replace(/_/g, " ")}
             </span>
             <span className={`font-extrabold text-[15px] ${inProgress ? "text-emerald-700" : "text-primary-700"}`}>{fmt(b.breakdown?.total || b.total || 0)}</span>

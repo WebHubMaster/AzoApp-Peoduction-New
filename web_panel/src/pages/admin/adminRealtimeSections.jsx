@@ -20,7 +20,7 @@ import { AssignDrawer } from "@/components/admin/LiveOpsSearching";
 
 /* ================= shared bits ================= */
 const LiveDot = ({ connected }) => (
-  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border"
+  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md border"
     style={{ borderColor: connected ? "#a7f3d0" : "#e2e8f0", color: connected ? "#047857" : "#94a3b8", background: connected ? "#ecfdf5" : "#f8fafc" }}
     data-testid="admin-live-indicator">
     <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
@@ -41,7 +41,7 @@ const STATUS_MAP = {
 };
 const StatusPill = ({ s }) => {
   const m = STATUS_MAP[s] || { label: s || "—", cls: "bg-slate-100 text-slate-500" };
-  return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${m.cls}`}>{m.label}</span>;
+  return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md whitespace-nowrap ${m.cls}`}>{m.label}</span>;
 };
 
 const KpiCard = ({ label, value, icon: Icon, tone = "slate", onClick, active }) => {
@@ -342,7 +342,7 @@ export function AreaPartners({ onView }) {
                       <span className={`h-2 w-2 rounded-full ${p.partner_status === "online" ? "bg-emerald-500" : "bg-slate-300"}`} />{p.partner_status || "offline"}
                     </span>
                   </td>
-                  <td className="px-4 py-3"><span className={`text-[11px] px-2 py-0.5 rounded-full capitalize ${KYC_PILL[p.kyc_status] || "bg-slate-100 text-slate-500"}`}>{(p.kyc_status || "pending").replace("_", " ")}</span></td>
+                  <td className="px-4 py-3"><span className={`text-[11px] px-2 py-0.5 rounded-md capitalize ${KYC_PILL[p.kyc_status] || "bg-slate-100 text-slate-500"}`}>{(p.kyc_status || "pending").replace("_", " ")}</span></td>
                 </tr>
               ))}
             </tbody>
@@ -516,7 +516,7 @@ function DispatchTuning() {
             <p className="text-[12.5px] text-[#64748B] dark:text-[#94A3B8] mt-0.5">Configure how new bookings are distributed to nearby partners</p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#15803D] bg-[#E9F8EF] px-2.5 py-1 rounded-full">
+        <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-[#15803D] bg-[#E9F8EF] px-2.5 py-1 rounded-md">
           <span className="h-2 w-2 rounded-full bg-[#16A34A] azo-live-dot" /> Live configuration
         </span>
       </div>
@@ -584,7 +584,7 @@ function NoPartnerAlerts() {
           <div>
             <h3 className="text-[15px] font-extrabold text-[#991B1B] dark:text-[#FCA5A5] leading-tight flex items-center gap-2">
               Action Required
-              <span className="text-[11px] font-bold text-white bg-[#DC2626] px-2 py-0.5 rounded-full" data-testid="attention-count">{rows.length}</span>
+              <span className="text-[11px] font-bold text-white bg-[#DC2626] px-2 py-0.5 rounded-md" data-testid="attention-count">{rows.length}</span>
             </h3>
             <p className="text-[12.5px] text-[#B91C1C]/80 dark:text-[#FCA5A5]/70">No partner available — manual assignment required</p>
           </div>
@@ -600,14 +600,14 @@ function NoPartnerAlerts() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-mono text-[12px] font-bold text-[#0D47A1] dark:text-[#3B82F6]">#{b.code}</span>
                     <span className="text-[14px] font-bold text-[#172033] dark:text-[#F8FAFC]">{b.service_name}</span>
-                    {b.category_name && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#EEF2F7] dark:bg-[#1F2937] text-[#64748B] dark:text-[#94A3B8]">{b.category_name}</span>}
+                    {b.category_name && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#EEF2F7] dark:bg-[#1F2937] text-[#64748B] dark:text-[#94A3B8]">{b.category_name}</span>}
                   </div>
                   <div className="text-[12px] text-[#64748B] dark:text-[#94A3B8] mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
                     <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{b.customer_name || "Customer"}</span>
                     <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{[b.city, b.pincode].filter(Boolean).join(" ") || "—"}</span>
                     <span className="font-semibold text-[#172033] dark:text-[#F8FAFC]">{fmt(b.total)}</span>
                     <span className="inline-flex items-center gap-1"><Radio className="h-3 w-3" />Wave {b.wave}</span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FEF5E7] text-[#B45309]">Manual Assignment Required</span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-[#FEF5E7] text-[#B45309]">Manual Assignment Required</span>
                   </div>
                 </div>
                 <button data-testid={`assign-${b.code}`} onClick={() => setAssignBk({ id: b.id, code: b.code, service_name: b.service_name })}
@@ -807,7 +807,7 @@ export function AdminDispatchFeed() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span data-testid="dispatch-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-full border text-[12.5px] font-bold"
+          <span data-testid="dispatch-live" className="inline-flex items-center gap-2 h-9 px-3 rounded-md border text-[12.5px] font-bold"
             style={{ borderColor: connected ? "#A7F3D0" : "#FDE68A", color: connected ? "#15803D" : "#B45309", background: connected ? "#ECFDF5" : "#FFFBEB" }}>
             <span className={`h-2 w-2 rounded-full ${connected ? "bg-[#16A34A] azo-live-dot" : "bg-[#F59E0B] animate-pulse"}`} />
             {connected ? "Live" : "Reconnecting…"}
@@ -919,9 +919,9 @@ export function AdminDispatchFeed() {
                     <td className="px-4 py-3">{r.seen_at
                       ? <span className="inline-flex items-center gap-1 text-[#4F46E5] text-[12px] font-semibold" title={new Date(r.seen_at).toLocaleString()}><Eye className="h-3.5 w-3.5" />Seen</span>
                       : <span className="text-[#CBD5E1] text-[12px]">—</span>}</td>
-                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${pill.cls}`}>{pill.label}</span></td>
+                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${pill.cls}`}>{pill.label}</span></td>
                     <td className="px-4 py-3 text-[12px] text-[#64748B] dark:text-[#94A3B8] whitespace-nowrap tabular-nums">{r.response_ms ? `${(r.response_ms / 1000).toFixed(1)}s` : "—"}</td>
-                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span></td>
+                    <td className="px-4 py-3"><span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${st.cls}`}>{st.label}</span></td>
                   </tr>
                 );
               })}

@@ -171,7 +171,7 @@ export default function BookingChatScreen() {
             const mine = m.sender_id === me;
             return (
               <View key={m.id} testID={mine ? "chat-msg-mine" : "chat-msg-other"} style={{ flexDirection: "row", justifyContent: mine ? "flex-end" : "flex-start" }}>
-                <View style={{ maxWidth: "80%", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? colors.primary : otherBubbleBg, borderWidth: mine ? 0 : 1, borderColor: otherBubbleBorder, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6 }}>
+                <View style={{ maxWidth: "80%", borderRadius: 6, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? colors.primary : otherBubbleBg, borderWidth: mine ? 0 : 1, borderColor: otherBubbleBorder, borderBottomRightRadius: mine ? 6 : 16, borderBottomLeftRadius: mine ? 16 : 6 }}>
                   <Text style={{ color: mine ? "#fff" : colors.text, fontSize: 14, lineHeight: 19 }}>{m.text}</Text>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 2 }}>
                     <Text style={{ color: mine ? "rgba(255,255,255,0.7)" : "#94A3B8", fontSize: 10 }}>{fmtTime(m.created_at)}</Text>
@@ -183,7 +183,7 @@ export default function BookingChatScreen() {
           })}
           {enabled && typing ? (
             <View testID="chat-typing-bubble" style={{ flexDirection: "row", justifyContent: "flex-start" }}>
-              <View style={{ borderRadius: 10, borderBottomLeftRadius: 6, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: otherBubbleBg, borderWidth: 1, borderColor: otherBubbleBorder }}>
+              <View style={{ borderRadius: 6, borderBottomLeftRadius: 6, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: otherBubbleBg, borderWidth: 1, borderColor: otherBubbleBorder }}>
                 <TypingDots color={colors.textMuted} />
               </View>
             </View>

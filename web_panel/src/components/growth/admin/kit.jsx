@@ -127,7 +127,7 @@ export const StatusBadge = ({ status }) => {
   const key = String(status || "").toLowerCase();
   const tone = STATUS_TONES[key] || "bg-slate-100 text-slate-600 ring-slate-200";
   const label = String(status || "—").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ring-1 ring-inset", tone)}>{label}</span>;
+  return <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold ring-1 ring-inset", tone)}>{label}</span>;
 };
 
 export const Pill = ({ children, tone = "slate" }) => {

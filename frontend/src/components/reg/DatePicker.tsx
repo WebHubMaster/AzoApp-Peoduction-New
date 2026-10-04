@@ -41,7 +41,7 @@ export function WDatePicker({ value, onChange, min, max, placeholder = "Select d
 
   const label = selected ? selected.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
   const navBtn = (dir: -1 | 1) => (
-    <Pressable hitSlop={6} style={{ padding: 6, borderRadius: 8 }} onPress={() => (mode === "days" ? shiftMonth(dir) : setView((v) => new Date(v.getFullYear() + dir * (mode === "years" ? 12 : 1), v.getMonth(), 1)))}>
+    <Pressable hitSlop={6} style={{ padding: 6, borderRadius: 6 }} onPress={() => (mode === "days" ? shiftMonth(dir) : setView((v) => new Date(v.getFullYear() + dir * (mode === "years" ? 12 : 1), v.getMonth(), 1)))}>
       {dir < 0 ? <ChevronLeft size={16} color={TW.slate500} /> : <ChevronRight size={16} color={TW.slate500} />}
     </Pressable>
   );
@@ -49,7 +49,7 @@ export function WDatePicker({ value, onChange, min, max, placeholder = "Select d
   return (
     <>
       <Pressable testID={testID} disabled={disabled} onPress={openCal}
-        style={{ width: "100%", height: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: open ? P[400] : TW.slate200, backgroundColor: "#fff", opacity: disabled ? 0.5 : 1, boxShadow: open ? `0px 0px 0px 2px ${P[100]}` : undefined }}>
+        style={{ width: "100%", height: 48, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: open ? P[400] : TW.slate200, backgroundColor: "#fff", opacity: disabled ? 0.5 : 1, boxShadow: open ? `0px 0px 0px 2px ${P[100]}` : undefined }}>
         <CalIcon size={16} color={TW.slate400} />
         <Text numberOfLines={1} style={{ flex: 1, ...T.sm, color: label ? TW.slate700 : TW.slate400 }}>{label || placeholder}</Text>
       </Pressable>
@@ -57,10 +57,10 @@ export function WDatePicker({ value, onChange, min, max, placeholder = "Select d
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={{ flex: 1, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }} onPress={() => setOpen(false)} />
-          <View testID={testID ? `${testID}-cal` : undefined} style={{ backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, borderTopWidth: 1, borderColor: TW.slate200, padding: 16, paddingBottom: 16 + insets.bottom, boxShadow: "0px -10px 40px rgba(0,0,0,0.2)" }}>
+          <View testID={testID ? `${testID}-cal` : undefined} style={{ backgroundColor: "#fff", borderTopLeftRadius: 6, borderTopRightRadius: 6, borderTopWidth: 1, borderColor: TW.slate200, padding: 16, paddingBottom: 16 + insets.bottom, boxShadow: "0px -10px 40px rgba(0,0,0,0.2)" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               {navBtn(-1)}
-              <Pressable onPress={() => setMode(mode === "days" ? "months" : mode === "months" ? "years" : "days")} style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 }}>
+              <Pressable onPress={() => setMode(mode === "days" ? "months" : mode === "months" ? "years" : "days")} style={{ paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6 }}>
                 <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700 }}>
                   {mode === "days" ? `${MONTHS[view.getMonth()]} ${view.getFullYear()}` : mode === "months" ? String(view.getFullYear()) : `${years[0]} – ${years[years.length - 1]}`}
                 </Text>
@@ -74,7 +74,7 @@ export function WDatePicker({ value, onChange, min, max, placeholder = "Select d
                   const on = i === view.getMonth();
                   return (
                     <Pressable key={mm} onPress={() => { setView(new Date(view.getFullYear(), i, 1)); setMode("days"); }} style={{ width: "33.33%", padding: 4 }}>
-                      <View style={{ paddingVertical: 10, borderRadius: 8, alignItems: "center", backgroundColor: on ? P[600] : "transparent" }}>
+                      <View style={{ paddingVertical: 10, borderRadius: 6, alignItems: "center", backgroundColor: on ? P[600] : "transparent" }}>
                         <Text style={{ ...T.sm, color: on ? "#fff" : TW.slate600, fontWeight: on ? "500" : "400" }}>{mm.slice(0, 3)}</Text>
                       </View>
                     </Pressable>
@@ -89,7 +89,7 @@ export function WDatePicker({ value, onChange, min, max, placeholder = "Select d
                   const on = yy === view.getFullYear();
                   return (
                     <Pressable key={yy} onPress={() => { setView(new Date(yy, view.getMonth(), 1)); setMode("months"); }} style={{ width: "33.33%", padding: 4 }}>
-                      <View style={{ paddingVertical: 10, borderRadius: 8, alignItems: "center", backgroundColor: on ? P[600] : "transparent" }}>
+                      <View style={{ paddingVertical: 10, borderRadius: 6, alignItems: "center", backgroundColor: on ? P[600] : "transparent" }}>
                         <Text style={{ ...T.sm, color: on ? "#fff" : TW.slate600, fontWeight: on ? "500" : "400" }}>{yy}</Text>
                       </View>
                     </Pressable>

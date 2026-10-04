@@ -27,7 +27,7 @@ const Row = ({ p, highlight, reward }) => (
     <div className="min-w-0 flex-1">
       <p className="font-semibold text-slate-800 truncate flex items-center gap-1.5">
         {p.name}
-        {p.is_me && <span className="text-[10px] font-bold bg-primary-700 text-white rounded-full px-1.5 py-0.5">YOU</span>}
+        {p.is_me && <span className="text-[10px] font-bold bg-primary-700 text-white rounded-md px-1.5 py-0.5">YOU</span>}
         {p.streak >= 3 && <span className="text-[11px] text-orange-500 flex items-center gap-0.5"><Flame className="h-3 w-3" />{p.streak}</span>}
       </p>
       <p className="text-xs text-slate-400 flex items-center gap-2">
@@ -36,7 +36,7 @@ const Row = ({ p, highlight, reward }) => (
       </p>
     </div>
     {reward > 0 && (
-      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-full px-2 py-0.5 flex items-center gap-0.5">
+      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 rounded-md px-2 py-0.5 flex items-center gap-0.5">
         <Gift className="h-3 w-3" /> {fmt(reward)}
       </span>
     )}

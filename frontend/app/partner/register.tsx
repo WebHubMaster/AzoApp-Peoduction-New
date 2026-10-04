@@ -209,7 +209,7 @@ export default function PartnerRegistration() {
     const sel = work.categories.find((x: any) => x.category_id === c.id);
     return (
       <Pressable key={c.id} testID={`reg-cat-${c.id}`} onPress={() => toggleCat(c)}
-        style={{ width: "48%", borderRadius: 12, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8, borderColor: sel ? P[600] : TW.slate200, backgroundColor: sel ? P[50] : "#fff" }}>
+        style={{ width: "48%", borderRadius: 6, borderWidth: 2, paddingHorizontal: 12, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8, borderColor: sel ? P[600] : TW.slate200, backgroundColor: sel ? P[50] : "#fff" }}>
         <View style={{ height: 16, width: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: sel ? P[600] : "transparent", borderWidth: sel ? 0 : 2, borderColor: TW.slate300 }}>
           {sel ? <View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: "#fff" }} /> : null}
         </View>
@@ -289,7 +289,7 @@ export default function PartnerRegistration() {
               <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700, marginBottom: 8 }}>Experience in this service <Text style={{ color: TW.red500 }}>*</Text></Text>
               <View style={{ gap: 10 }}>
                 {work.categories.map((c: any) => (
-                  <View key={c.category_id} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: TW.slate50, borderRadius: 12, padding: 12 }}>
+                  <View key={c.category_id} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: TW.slate50, borderRadius: 6, padding: 12 }}>
                     <Text numberOfLines={1} style={{ flex: 1, ...T.sm, fontWeight: "500", color: TW.slate700 }}>{c.category_name}</Text>
                     <View style={{ width: 176 }}>
                       <Combo testID={`reg-exp-${c.category_id}`} placeholder="Experience" options={meta.experiences} labelKey="label" value={c.experience_id} display={c.experience_label} onSelect={(o) => setCatExp(c.category_id, o)} />
@@ -330,7 +330,7 @@ export default function PartnerRegistration() {
             <Text style={{ ...T.sm, fontWeight: "600", color: P[700] }}>Choose Current Location</Text>
           </Pressable>
           {addr.lat ? (
-            <View testID="reg-location-captured" style={{ borderRadius: 12, backgroundColor: TW.emerald50, borderWidth: 1, borderColor: TW.emerald200, padding: 12 }}>
+            <View testID="reg-location-captured" style={{ borderRadius: 6, backgroundColor: TW.emerald50, borderWidth: 1, borderColor: TW.emerald200, padding: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><MapPin size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "500", color: TW.emerald700 }}>Location captured</Text></View>
               <Text style={{ ...T.xs, color: TW.emerald600, marginTop: 4 }}>{addr.location_address}</Text>
               <Text style={{ ...T.px11, color: TW.emerald500, marginTop: 2 }}>Lat {Number(addr.lat).toFixed(5)}, Lng {Number(addr.lng).toFixed(5)}</Text>
@@ -342,8 +342,8 @@ export default function PartnerRegistration() {
       {step === 4 ? (
         <View style={{ gap: 16 }} testID="step-review">
           {basic.live_photo_url ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate200, padding: 16 }}>
-              <Image source={{ uri: mediaUrl(basic.live_photo_url) }} style={{ height: 64, width: 64, borderRadius: 10, borderWidth: 2, borderColor: TW.emerald200 }} contentFit="cover" />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, borderRadius: 6, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.slate200, padding: 16 }}>
+              <Image source={{ uri: mediaUrl(basic.live_photo_url) }} style={{ height: 64, width: 64, borderRadius: 6, borderWidth: 2, borderColor: TW.emerald200 }} contentFit="cover" />
               <View>
                 <Text style={{ ...T.xs, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6, color: TW.slate400 }}>Live Photo</Text>
                 <Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700, marginTop: 2 }}>Captured ✓</Text>

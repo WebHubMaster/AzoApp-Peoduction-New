@@ -37,7 +37,7 @@ export function PartnerHome({ onNavigate }) {
         <div className="relative">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] uppercase tracking-[0.22em] text-white/60 inline-flex items-center gap-1.5"><IndianRupee className="h-3.5 w-3.5" /> Earnings · {rangeLabel}</p>
-            {k.rating ? <span className="inline-flex items-center gap-1 rounded-full bg-white/10 backdrop-blur px-2.5 py-1 text-[12px] font-semibold ring-1 ring-white/15"><Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> {(k.rating || 0).toFixed(1)}</span> : null}
+            {k.rating ? <span className="inline-flex items-center gap-1 rounded-md bg-white/10 backdrop-blur px-2.5 py-1 text-[12px] font-semibold ring-1 ring-white/15"><Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> {(k.rating || 0).toFixed(1)}</span> : null}
           </div>
           <p className="font-heading font-black text-[38px] sm:text-5xl leading-none tracking-tight mt-2 truncate" title={fmt(k.earnings)} data-testid="ph-earnings">{fmtC(k.earnings)}</p>
           <div className="mt-4 flex gap-1 bg-white/10 backdrop-blur rounded-xl p-1 overflow-x-auto no-scrollbar" data-testid="ph-range">
@@ -103,7 +103,7 @@ export function PartnerHome({ onNavigate }) {
           {d.recent.map((b) => (
             <div key={b.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
               <div className="min-w-0"><p className="font-semibold text-[15px] text-slate-800 dark:text-slate-100 truncate">{b.service_name}</p><p className="text-xs text-slate-400 mt-0.5">#{b.code}</p></div>
-              <span className="shrink-0 text-[11px] font-semibold capitalize px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300">{(b.status || "").replace("_", " ")}</span>
+              <span className="shrink-0 text-[11px] font-semibold capitalize px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-300">{(b.status || "").replace("_", " ")}</span>
             </div>
           ))}
         </div>
@@ -151,7 +151,7 @@ export function FinanceKycSection() {
     inp.click();
   };
 
-  const Pill = ({ s }) => <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize ${s === "approved" ? "bg-emerald-100 text-emerald-700" : s === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{s || "not submitted"}</span>;
+  const Pill = ({ s }) => <span className={`text-[11px] px-2 py-0.5 rounded-md capitalize ${s === "approved" ? "bg-emerald-100 text-emerald-700" : s === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{s || "not submitted"}</span>;
 
   return (
     <div className="max-w-3xl space-y-6" data-testid="finance-kyc">

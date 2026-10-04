@@ -13,7 +13,7 @@ function Section({ icon: Ico, title, children, testID }: { icon: any; title: str
   return (
     <View testID={testID}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Ico size={14} color={inv.t400} /><Text style={{ fontSize: 11, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase", color: inv.t400 }}>{title}</Text></View>
-      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, paddingHorizontal: 16 }}>{children}</View>
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: inv.border, backgroundColor: inv.surface, paddingHorizontal: 16 }}>{children}</View>
     </View>
   );
 }
@@ -41,7 +41,7 @@ function Masked() { const inv = useInv(); return <Text style={{ letterSpacing: 2
 function CouponNote({ re, cur }: { re: any; cur: string }) {
   const inv = useInv();
   return (
-    <View testID="detail-coupon-note" style={{ marginTop: 8, marginBottom: 10, borderRadius: 12, backgroundColor: inv.dark ? "rgba(6,78,59,0.2)" : "#ECFDF5", borderWidth: 1, borderColor: inv.dark ? "#065F46" : "#A7F3D0", paddingHorizontal: 12, paddingVertical: 10 }}>
+    <View testID="detail-coupon-note" style={{ marginTop: 8, marginBottom: 10, borderRadius: 6, backgroundColor: inv.dark ? "rgba(6,78,59,0.2)" : "#ECFDF5", borderWidth: 1, borderColor: inv.dark ? "#065F46" : "#A7F3D0", paddingHorizontal: 12, paddingVertical: 10 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 12 }}>
         <Text style={{ fontSize: 12, fontWeight: "700", letterSpacing: 0.4, textTransform: "uppercase", color: inv.dark ? "#6EE7B7" : "#047857" }}>Coupon {re.coupon_code}</Text>
         {Number(re.coupon_discount || 0) > 0 ? <Text style={{ fontSize: 12, fontWeight: "600", color: inv.dark ? "#6EE7B7" : "#047857" }}>{money(re.coupon_discount, cur, 2)} off</Text> : null}
@@ -105,7 +105,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
   const headerRight = d ? <>{iconBtn("detail-share", () => onShare(d, "system"), Share2)}{iconBtn("detail-more", () => setMore(true), MoreHorizontal)}</> : null;
   const run = (fn: () => void) => { setMore(false); setTimeout(fn, 60); };
   const MenuItem = ({ icon: Ico, label, onPress, testID, tone }: any) => (
-    <Pressable testID={testID} onPress={() => run(onPress)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, height: 44, paddingHorizontal: 12, borderRadius: 10, backgroundColor: pressed ? t.subtle : "transparent" })}><Ico size={16} color={tone || t.t500} /><Text style={{ color: t.t800, fontSize: 14, fontWeight: "500" }}>{label}</Text></Pressable>
+    <Pressable testID={testID} onPress={() => run(onPress)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 10, height: 44, paddingHorizontal: 12, borderRadius: 6, backgroundColor: pressed ? t.subtle : "transparent" })}><Ico size={16} color={tone || t.t500} /><Text style={{ color: t.t800, fontSize: 14, fontWeight: "500" }}>{label}</Text></Pressable>
   );
   const linkText = (txt: string) => <Text style={{ fontSize: 14, color: t.primary700, fontWeight: "500" }}>{txt}</Text>;
 
@@ -130,11 +130,11 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
       {!d ? null : (
         <View style={{ gap: 20 }}>
           {/* Invoice header card */}
-          <View testID="detail-header-card" style={{ borderRadius: 10, borderWidth: 1, borderColor: t.border, backgroundColor: t.dark ? "rgba(30,41,59,0.6)" : "#F8FAFC", padding: 16 }}>
+          <View testID="detail-header-card" style={{ borderRadius: 6, borderWidth: 1, borderColor: t.border, backgroundColor: t.dark ? "rgba(30,41,59,0.6)" : "#F8FAFC", padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
-                {biz.logo ? <Image source={{ uri: mediaUrl(biz.logo) }} style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: t.border2 }} contentFit="contain" />
-                  : <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: t.primary, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 12px rgba(13,71,161,0.3)" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>A</Text></View>}
+                {biz.logo ? <Image source={{ uri: mediaUrl(biz.logo) }} style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: "#fff", borderWidth: 1, borderColor: t.border2 }} contentFit="contain" />
+                  : <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: t.primary, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 12px rgba(13,71,161,0.3)" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>A</Text></View>}
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={{ fontSize: 10.5, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase", color: t.t400 }}>AzoApp · {role === "partner" ? "Partner" : "Merchant"}</Text>
                   <Text style={{ fontWeight: "600", color: t.t900, fontSize: 15 }} numberOfLines={1}>{role === "partner" ? (partner.name || merchantName) : (d.merchant_snapshot?.name || merchantName)}</Text>

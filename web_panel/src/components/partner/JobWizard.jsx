@@ -83,7 +83,7 @@ function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, 
     <div data-testid={testid}>
       <div className="flex items-center justify-between mb-2.5">
         <p className="text-xs font-semibold text-slate-500">Photos & videos · live camera only</p>
-        <span data-testid={`${testid}-count`} className={`text-[11px] font-extrabold rounded-full px-2.5 py-0.5 ${items.length ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{items.length}/{MAX_PROOF_FILES}</span>
+        <span data-testid={`${testid}-count`} className={`text-[11px] font-extrabold rounded-md px-2.5 py-0.5 ${items.length ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{items.length}/{MAX_PROOF_FILES}</span>
       </div>
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
         {items.map((u, i) => (
@@ -162,7 +162,7 @@ function DetailsStep({ b }) {
       {timeline.length > 0 && (
         <Card testid="wizard-timeline">
           <button type="button" data-testid="wizard-timeline-toggle" onClick={() => setTlOpen((o) => !o)} className="w-full flex items-center justify-between">
-            <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Job timeline <span className="rounded-full bg-primary-50 text-primary-700 px-2 py-0.5 text-[10.5px]">{timeline.length}</span></span>
+            <span className="text-[11.5px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> Job timeline <span className="rounded-md bg-primary-50 text-primary-700 px-2 py-0.5 text-[10.5px]">{timeline.length}</span></span>
             <ChevronDown className={`h-5 w-5 text-slate-400 transition-transform ${tlOpen ? "rotate-180" : ""}`} />
           </button>
           {tlOpen && (
@@ -263,7 +263,7 @@ function AdditionalWork({ b, onUpdate }) {
     <Card testid={`additional-section-${b.code}`}>
       <div className="flex items-center justify-between mb-1.5">
         <Title icon={Wrench}>Additional work</Title>
-        {addl && (addl.total || 0) > 0 && <span className={`text-[11px] font-bold rounded-full px-2.5 py-0.5 ${addl.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{addl.status === "paid" ? "Paid" : "Payment pending"}</span>}
+        {addl && (addl.total || 0) > 0 && <span className={`text-[11px] font-bold rounded-md px-2.5 py-0.5 ${addl.status === "paid" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>{addl.status === "paid" ? "Paid" : "Payment pending"}</span>}
       </div>
       <p className="text-xs text-slate-500 mb-3">If any extra parts or labour were used, add them from the category rate card. <b className="text-amber-700">Collect the payment for additional work from the customer first, then complete the job.</b></p>
       {addl && (addl.items || []).length > 0 && (

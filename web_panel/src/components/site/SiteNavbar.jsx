@@ -116,15 +116,15 @@ const LocationButton = () => {
               {/^\d{6}$/.test(String(val || "").trim()) && (
                 <div data-testid="nav-pincode-badge" className="mt-2">
                   {pinChecking ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1">
+                    <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold px-3 py-1">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking availability…
                     </span>
                   ) : pinCov && pinCov.serviceable === true ? (
-                    <span data-testid="nav-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1">
+                    <span data-testid="nav-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1">
                       <CheckCircle2 className="h-3.5 w-3.5" /> We serve your area
                     </span>
                   ) : pinCov && pinCov.serviceable === false ? (
-                    <span data-testid="nav-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-1">
+                    <span data-testid="nav-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-md bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-1">
                       <AlertTriangle className="h-3.5 w-3.5" /> Not in service area yet
                     </span>
                   ) : null}

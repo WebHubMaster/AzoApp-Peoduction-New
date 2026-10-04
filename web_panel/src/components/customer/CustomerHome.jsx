@@ -66,7 +66,7 @@ export default function CustomerHome({ user, bookings, wallet, loading, onNaviga
         <div className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(rgba(255,255,255,.6)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.6)_1px,transparent_1px)] bg-[size:28px_28px]" />
         <div className="relative">
           <div className="flex items-center justify-between">
-            <button type="button" data-testid="home-location" onClick={() => onNavigate("addresses")} className="inline-flex items-center gap-1.5 rounded-full bg-white/12 backdrop-blur px-3 py-1.5 text-[12px] font-semibold text-white/90 active:scale-95 transition-transform">
+            <button type="button" data-testid="home-location" onClick={() => onNavigate("addresses")} className="inline-flex items-center gap-1.5 rounded-md bg-white/12 backdrop-blur px-3 py-1.5 text-[12px] font-semibold text-white/90 active:scale-95 transition-transform">
               <MapPin className="h-3.5 w-3.5" /> {city} <ChevronRight className="h-3.5 w-3.5 opacity-70" />
             </button>
             <span className="h-10 w-10 rounded-full bg-white/15 backdrop-blur grid place-items-center font-heading font-extrabold text-sm ring-1 ring-white/25">{initials(user?.name)}</span>
@@ -80,10 +80,10 @@ export default function CustomerHome({ user, bookings, wallet, loading, onNaviga
             <span className="h-10 px-4 rounded-xl bg-primary-700 text-white text-[13px] font-bold inline-flex items-center gap-1"><Plus className="h-4 w-4" /> Book</span>
           </button>
           <div className="mt-3 flex items-center gap-2">
-            <button type="button" data-testid="home-wallet-chip" onClick={() => onNavigate("wallet")} className="inline-flex items-center gap-1.5 rounded-full bg-white/12 backdrop-blur px-3 py-1.5 text-[12px] font-semibold active:scale-95 transition-transform">
+            <button type="button" data-testid="home-wallet-chip" onClick={() => onNavigate("wallet")} className="inline-flex items-center gap-1.5 rounded-md bg-white/12 backdrop-blur px-3 py-1.5 text-[12px] font-semibold active:scale-95 transition-transform">
               <Wallet className="h-3.5 w-3.5 text-amber-300" /> Wallet {fmtC(wallet?.balance || 0)}
             </button>
-            <button type="button" data-testid="home-emergency" onClick={onBook} className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/90 px-3 py-1.5 text-[12px] font-semibold active:scale-95 transition-transform">
+            <button type="button" data-testid="home-emergency" onClick={onBook} className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/90 px-3 py-1.5 text-[12px] font-semibold active:scale-95 transition-transform">
               <Zap className="h-3.5 w-3.5" /> Emergency
             </button>
           </div>
@@ -109,7 +109,7 @@ export default function CustomerHome({ user, bookings, wallet, loading, onNaviga
                   </div>
                   <p className="text-[12px] text-slate-500 truncate mt-0.5">#{spotlight.code} · {spotlight.category_name}</p>
                   <div className="mt-2 flex items-center gap-2 flex-wrap">
-                    <span className={`inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full border ${PILL[spotlight.status] || PILL.pending}`}>{STATUS_TXT[spotlight.status] || spotlight.status}</span>
+                    <span className={`inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-md border ${PILL[spotlight.status] || PILL.pending}`}>{STATUS_TXT[spotlight.status] || spotlight.status}</span>
                     {spotlight.partner_name && (
                       <span className="inline-flex items-center gap-1.5 text-[12px] text-slate-600">
                         <span className="h-5 w-5 rounded-full bg-primary-100 text-primary-700 text-[9px] font-bold grid place-items-center">{initials(spotlight.partner_name)}</span>

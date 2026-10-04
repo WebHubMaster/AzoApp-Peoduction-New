@@ -100,7 +100,7 @@ export default function AgentWallet() {
         <Pressable testID="agent-bank-card" onPress={openBank}>
           <Card>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 11, backgroundColor: bankVerified ? colors.successSubtle : colors.warningSubtle, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: bankVerified ? colors.successSubtle : colors.warningSubtle, alignItems: "center", justifyContent: "center" }}>
                 <Icon name={bankVerified ? "bank-check" : "bank-outline"} size={20} color={bankVerified ? colors.success : colors.warning} />
               </View>
               <View style={{ flex: 1 }}>
@@ -123,7 +123,7 @@ export default function AgentWallet() {
             <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
               {withdrawals.map((t, i) => (
                 <View key={t.id || i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
-                  <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                     <Icon name="bank-transfer-out" size={18} color={colors.textSecondary} />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -142,7 +142,7 @@ export default function AgentWallet() {
       <Modal visible={showWithdraw} transparent animationType="slide" onRequestClose={() => setShowWithdraw(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setShowWithdraw(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
               <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>Withdraw Money</Text>
               <Pressable testID="agent-close-withdraw" onPress={() => setShowWithdraw(false)} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>
@@ -161,7 +161,7 @@ export default function AgentWallet() {
       <Modal visible={showBank} transparent animationType="slide" onRequestClose={() => setShowBank(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setShowBank(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.sm }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.sm }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
               <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>Bank details</Text>
               <Pressable testID="agent-close-bank" onPress={() => setShowBank(false)} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>

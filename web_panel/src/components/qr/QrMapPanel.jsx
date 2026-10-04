@@ -163,7 +163,7 @@ export default function QrMapPanel({ onMapped }) {
                 <QrCode className="w-5 h-5 text-[#0D47A1]" />
                 <span className="font-mono font-semibold text-slate-800 dark:text-slate-100">{qr.token}</span>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusColor[qr.status] || ""}`}>{qr.status}</span>
+              <span className={`text-xs px-2.5 py-1 rounded-md font-medium ${statusColor[qr.status] || ""}`}>{qr.status}</span>
             </div>
             <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               {qr.merchant_id

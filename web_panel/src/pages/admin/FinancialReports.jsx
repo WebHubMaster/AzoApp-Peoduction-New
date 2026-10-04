@@ -146,7 +146,7 @@ export default function FinancialReports() {
         </div>
         <div className="flex items-center gap-2">
           <Button data-testid="fin-filter-toggle" variant="outline" onClick={() => setShowFilters((s) => !s)} className="gap-1">
-            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
+            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-md bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
           </Button>
           <Button data-testid="fin-refresh" variant="outline" onClick={load} className="gap-1"><RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} /> Refresh</Button>
           <Button data-testid="fin-export" onClick={exportCsv} className="gap-1 bg-primary-700 hover:bg-primary-800"><Download className="h-4 w-4" /> Export</Button>
@@ -157,7 +157,7 @@ export default function FinancialReports() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1" data-testid="fin-presets">
         {PRESETS.map((p) => (
           <button key={p.key} data-testid={`fin-preset-${p.key}`} onClick={() => applyPreset(p.key)}
-            className={`px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-all ${preset === p.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
+            className={`px-3.5 py-2 rounded-md text-sm whitespace-nowrap transition-all ${preset === p.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
             {p.label}
           </button>
         ))}

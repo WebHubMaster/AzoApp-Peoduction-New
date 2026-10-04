@@ -159,7 +159,7 @@ export function Badge({ label, tone = "neutral", icon }: { label: string; tone?:
         backgroundColor: c.bg,
         paddingHorizontal: 10,
         paddingVertical: 4,
-        borderRadius: radius.pill,
+        borderRadius: 6,
       }}
     >
       {icon ? <Icon name={icon} size={12} color={c.fg} /> : null}
@@ -211,7 +211,7 @@ export function StatCard({
           style={{
             width: 34,
             height: 34,
-            borderRadius: 10,
+            borderRadius: 6,
             backgroundColor: colors.primarySubtle,
             alignItems: "center",
             justifyContent: "center",
@@ -401,7 +401,7 @@ export function ListTile({
           style={{
             width: 38,
             height: 38,
-            borderRadius: 10,
+            borderRadius: 6,
             backgroundColor: colors.primarySubtle,
             alignItems: "center",
             justifyContent: "center",

@@ -44,10 +44,10 @@ export function MissedRingRecovery() {
   if (rows.length === 0) return null;
   const dark = mode === "dark";
   return (
-    <View testID="missed-ring-recovery" style={{ borderRadius: 10, borderWidth: 2, borderColor: dark ? TW.amber700 : TW.amber300, backgroundColor: dark ? "rgba(120,53,15,0.2)" : TW.amber50, padding: 16 }}>
+    <View testID="missed-ring-recovery" style={{ borderRadius: 6, borderWidth: 2, borderColor: dark ? TW.amber700 : TW.amber300, backgroundColor: dark ? "rgba(120,53,15,0.2)" : TW.amber50, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: TW.amber500, alignItems: "center", justifyContent: "center" }}><Icon name="wifi-off" size={20} color="#fff" /></View>
+          <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: TW.amber500, alignItems: "center", justifyContent: "center" }}><Icon name="wifi-off" size={20} color="#fff" /></View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>You missed {rows.length} job{rows.length > 1 ? "s" : ""} while offline</Text>
             <Text style={{ color: dark ? TW.amber200 : TW.amber800, fontSize: 12 }}>Still open — grab one before someone else does.</Text>
@@ -59,10 +59,10 @@ export function MissedRingRecovery() {
       </View>
       <View style={{ marginTop: 12, gap: 8 }}>
         {rows.map((j) => (
-          <View key={j.id} testID={`missed-job-${j.code}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, backgroundColor: colors.card, borderWidth: 1, borderColor: dark ? TW.amber800 : TW.amber200, padding: 12 }}>
+          <View key={j.id} testID={`missed-job-${j.code}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, backgroundColor: colors.card, borderWidth: 1, borderColor: dark ? TW.amber800 : TW.amber200, padding: 12 }}>
             {j.service_image
-              ? <Image source={{ uri: mediaUrl(j.service_image) }} style={{ width: 48, height: 48, borderRadius: 8 }} contentFit="cover" />
-              : <View style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="flash-outline" size={20} color={TW.slate400} /></View>}
+              ? <Image source={{ uri: mediaUrl(j.service_image) }} style={{ width: 48, height: 48, borderRadius: 6 }} contentFit="cover" />
+              : <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="flash-outline" size={20} color={TW.slate400} /></View>}
             <View style={{ flex: 1, minWidth: 0 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14, flexShrink: 1 }} numberOfLines={1}>{j.service_name}</Text>
@@ -81,7 +81,7 @@ export function MissedRingRecovery() {
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <Icon name="currency-inr" size={14} color={TW.emerald600} /><Text style={{ color: TW.emerald600, fontWeight: "800", fontSize: 14 }}>{j.total ?? "—"}</Text>
               </View>
-              <Pressable testID={`regrab-now-${j.code}`} onPress={() => regrab(j)} disabled={!!busy} style={{ marginTop: 4, height: 36, paddingHorizontal: 12, borderRadius: 8, backgroundColor: TW.emerald600, flexDirection: "row", alignItems: "center", gap: 6, opacity: busy ? 0.6 : 1 }}>
+              <Pressable testID={`regrab-now-${j.code}`} onPress={() => regrab(j)} disabled={!!busy} style={{ marginTop: 4, height: 36, paddingHorizontal: 12, borderRadius: 6, backgroundColor: TW.emerald600, flexDirection: "row", alignItems: "center", gap: 6, opacity: busy ? 0.6 : 1 }}>
                 {busy === j.id ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="refresh" size={14} color="#fff" />}
                 <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>Grab now</Text>
               </Pressable>

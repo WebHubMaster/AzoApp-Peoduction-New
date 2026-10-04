@@ -54,7 +54,7 @@ export const useChatUnread = (bookingId) => useChats().unreadFor(bookingId);
 export const UnreadPill = ({ count, testId }) => {
   if (!count) return null;
   return (
-    <span data-testid={testId} className="ml-1 h-[18px] min-w-[18px] px-1.5 rounded-full bg-red-500 text-white text-[10.5px] font-bold inline-flex items-center justify-center leading-none">
+    <span data-testid={testId} className="ml-1 h-[18px] min-w-[18px] px-1.5 rounded-md bg-red-500 text-white text-[10.5px] font-bold inline-flex items-center justify-center leading-none">
       {count > 9 ? "9+" : count}
     </span>
   );

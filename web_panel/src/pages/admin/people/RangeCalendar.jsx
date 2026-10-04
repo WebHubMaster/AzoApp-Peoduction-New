@@ -103,7 +103,7 @@ export default function RangeCalendar({ value, onChange, label = "Date", classNa
       {mobile && <div className="mx-auto mt-2 mb-1 h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700" />}
       <div className={`flex ${mobile ? "flex-col overflow-y-auto" : "flex-row"}`}>
         <div className={`${mobile ? "px-4 pt-2 flex gap-2 overflow-x-auto no-scrollbar" : "w-40 p-3 border-r border-slate-100 dark:border-slate-800 flex flex-col gap-0.5"}`}>
-          {PRESETS.map((p) => <button key={p.key} data-testid={`preset-${p.key}`} onClick={() => applyPreset(p)} className={`${mobile ? "shrink-0 h-8 px-3 rounded-full text-xs" : "text-left h-8 px-2.5 rounded-md text-sm"} font-medium transition ${preset === p.key || (!preset && lbl === p.label) ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p.label}</button>)}
+          {PRESETS.map((p) => <button key={p.key} data-testid={`preset-${p.key}`} onClick={() => applyPreset(p)} className={`${mobile ? "shrink-0 h-8 px-3 rounded-md text-xs" : "text-left h-8 px-2.5 rounded-md text-sm"} font-medium transition ${preset === p.key || (!preset && lbl === p.label) ? "bg-primary-600 text-white" : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>{p.label}</button>)}
         </div>
         <div className="p-4">
           {yearMode ? (

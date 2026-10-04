@@ -71,7 +71,7 @@ export default function PartnerPayouts() {
   const CardHead = ({ icon, title, right }: { icon: any; title: string; right?: React.ReactNode }) => (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.surfaceSubtle }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flexShrink: 1 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} color={colors.primary} /></View>
+        <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={20} color={colors.primary} /></View>
         <Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }} numberOfLines={1}>{title}</Text>
       </View>
       {right}
@@ -83,9 +83,9 @@ export default function PartnerPayouts() {
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScreenScroll refreshing={elig.isFetching && !elig.isLoading} onRefresh={refresh} contentStyle={{ paddingBottom: insets.bottom + 110 }}>
         {/* KYC status hero */}
-        <LinearGradient colors={heroColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }} testID="payouts-header">
+        <LinearGradient colors={heroColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20, boxShadow: "0px 16px 32px rgba(13,71,161,0.25)", elevation: 6 }} testID="payouts-header">
           <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-            <View style={{ width: 46, height: 46, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
+            <View style={{ width: 46, height: 46, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", alignItems: "center", justifyContent: "center" }}>
               <Icon name={e.eligible ? "shield-check-outline" : "shield-alert-outline"} size={23} color="#fff" />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -124,14 +124,14 @@ export default function PartnerPayouts() {
           <CardHead icon="credit-card-outline" title="PAN Card" right={<StatusBadge status={panStatus || "incomplete"} label={panStatus ? undefined : "Incomplete"} />} />
           <View style={{ padding: 20, gap: 12 }}>
             {panRejected && e.pan?.reason ? (
-              <View style={{ flexDirection: "row", gap: 8, backgroundColor: colors.dangerSubtle, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }}>
+              <View style={{ flexDirection: "row", gap: 8, backgroundColor: colors.dangerSubtle, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10 }}>
                 <Icon name="alert-outline" size={16} color={colors.danger} />
                 <Text style={{ color: colors.danger, fontSize: 13, flex: 1, lineHeight: 19 }}><Text style={{ fontWeight: "800" }}>Rejected: </Text>{e.pan.reason}</Text>
               </View>
             ) : null}
 
             {panApproved ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.successSubtle, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.successSubtle, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 14 }}>
                 <Icon name="lock-outline" size={20} color={colors.success} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontSize: 14 }}>PAN <Text style={{ fontFamily: "monospace", fontWeight: "800" }}>{e.pan.pan_number}</Text></Text>
@@ -144,7 +144,7 @@ export default function PartnerPayouts() {
                 ) : null}
               </View>
             ) : panPending ? (
-              <View style={{ backgroundColor: colors.warningSubtle, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 14 }} testID="pan-pending">
+              <View style={{ backgroundColor: colors.warningSubtle, borderRadius: 6, paddingHorizontal: 14, paddingVertical: 14 }} testID="pan-pending">
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                   <Icon name="clock-outline" size={20} color={colors.warning} />
                   <View style={{ flex: 1 }}>
@@ -176,20 +176,20 @@ export default function PartnerPayouts() {
         {/* Bank accounts */}
         <Surface style={{ overflow: "hidden" }}>
           <CardHead icon="bank-outline" title="Bank Accounts" right={
-            <Pressable testID="add-bank" onPress={() => setAddOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}>
+            <Pressable testID="add-bank" onPress={() => setAddOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: colors.border }}>
               <Icon name="plus" size={16} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Add bank</Text>
             </Pressable>} />
-          {banks.isLoading ? <View style={{ padding: 20 }}><View style={{ height: 60, borderRadius: 12, backgroundColor: colors.surfaceSubtle }} /></View>
+          {banks.isLoading ? <View style={{ padding: 20 }}><View style={{ height: 60, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} /></View>
             : bankList.length === 0 ? (
             <KitEmpty icon="bank-outline" title="No bank accounts yet" desc="Add a verified bank account or UPI to receive your withdrawals. Each account is reviewed before you can withdraw to it."
-              action={<Pressable testID="add-bank-empty" onPress={() => setAddOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 8, height: 44, paddingHorizontal: 20, borderRadius: 12, backgroundColor: colors.primary }}><Icon name="plus" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Add bank account</Text></Pressable>} />
+              action={<Pressable testID="add-bank-empty" onPress={() => setAddOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 8, height: 44, paddingHorizontal: 20, borderRadius: 6, backgroundColor: colors.primary }}><Icon name="plus" size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Add bank account</Text></Pressable>} />
           ) : (
             <View style={{ padding: 16, gap: 12 }}>
               {bankList.map((bk) => (
-                <View key={bk.id} style={{ borderRadius: 10, borderWidth: 1, borderColor: bk.is_primary ? "#93C5FD" : colors.border, padding: 14 }}>
+                <View key={bk.id} style={{ borderRadius: 6, borderWidth: 1, borderColor: bk.is_primary ? "#93C5FD" : colors.border, padding: 14 }}>
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                     <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
-                      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={colors.primary} /></View>
+                      <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bank-outline" size={20} color={colors.primary} /></View>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
                           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{bk.bank_name || "Bank"}</Text>
@@ -310,8 +310,8 @@ function UploadTile({ colors, label, value, docType, onUploaded, testID }: { col
   return (
     <>
       <Pressable testID={testID} onPress={() => !uploading && setChoose(true)} disabled={uploading}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 10, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
-        <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, borderWidth: 2, borderStyle: "dashed", borderRadius: 6, paddingHorizontal: 14, paddingVertical: 14, borderColor: has ? colors.success : colors.border, backgroundColor: has ? colors.successSubtle : "transparent" }}>
+        <View style={{ width: 44, height: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: has ? colors.successSubtle : colors.surfaceSubtle }}>
           {uploading ? <ActivityIndicator size="small" color={colors.primary} /> : has ? <Icon name="check-circle" size={22} color={colors.success} /> : <Icon name="camera-plus-outline" size={22} color={colors.textMuted} />}
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -323,7 +323,7 @@ function UploadTile({ colors, label, value, docType, onUploaded, testID }: { col
             </View>
           ) : null}
         </View>
-        {has && !uploading ? <Image source={{ uri: docUri(value) }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" /> : null}
+        {has && !uploading ? <Image source={{ uri: docUri(value) }} style={{ width: 44, height: 44, borderRadius: 6 }} contentFit="cover" /> : null}
       </Pressable>
       <SourceSheet open={choose} onClose={() => setChoose(false)} onPick={run} title={`Upload ${label}`} />
     </>
@@ -351,7 +351,7 @@ function DocViewer({ doc, onClose }: { doc: { url: string; label: string } | nul
               <Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Tap to open document</Text>
             </Pressable>
           ) : (
-            <Image source={{ uri }} style={{ width: "100%", height: 480, borderRadius: 12 }} contentFit="contain" />
+            <Image source={{ uri }} style={{ width: "100%", height: 480, borderRadius: 6 }} contentFit="contain" />
           )}
         </ScrollView>
       </View>
@@ -365,7 +365,7 @@ function Sheet({ open, onClose, title, children, insets, colors }: any) {
       <KeyboardProvider>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <ScrollView style={{ maxHeight: "88%", backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24 }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }} keyboardShouldPersistTaps="handled">
+        <ScrollView style={{ maxHeight: "88%", backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6 }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.md }} keyboardShouldPersistTaps="handled">
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "800" }}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={8}><Icon name="close" size={24} color={colors.textMuted} /></Pressable>

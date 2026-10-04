@@ -271,7 +271,7 @@ function HomeView({ user, bookings, wallet, refunds, categories, services, refer
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {[["orders", Package, "Bookings"], ["wallet", Wallet, "Wallet"], ["addresses", MapPin, "Addresses"], ["support", LifeBuoy, "Support"]].map(([k, Ic, l]) => (
-              <button key={k} data-testid={`quick-${k}`} onClick={() => onNavigate(k)} className="inline-flex items-center gap-1.5 text-sm font-semibold bg-white/15 hover:bg-white/25 backdrop-blur rounded-full px-3.5 h-9 azo-press">
+              <button key={k} data-testid={`quick-${k}`} onClick={() => onNavigate(k)} className="inline-flex items-center gap-1.5 text-sm font-semibold bg-white/15 hover:bg-white/25 backdrop-blur rounded-md px-3.5 h-9 azo-press">
                 <Ic className="h-4 w-4" /> {l}
               </button>
             ))}
@@ -714,18 +714,18 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
       <div className="flex gap-2 mt-3 flex-wrap items-center">
         {b.status === "pending_payment" && onPay && (
           <Button size="sm" onClick={() => onPay(b)} data-testid={`pay-${b.code}`}
-            className="rounded-full h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
+            className="rounded-md h-9 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold">
             <Wallet className="h-4 w-4 mr-1" /> {b.order_group_id ? "Pay Now · combined order" : `Pay ${fmt(b.pricing?.total)}`}
           </Button>
         )}
-        {assigned && <Button size="sm" onClick={callPartner} disabled={commLocked} data-testid={`call-${b.code}`} className="rounded-full h-9 px-4 bg-primary-700 hover:bg-primary-800 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <Phone className="h-4 w-4 mr-1" />} Call</Button>}
-        {assigned && <Button size="sm" variant="outline" onClick={chatPartner} disabled={commLocked} data-testid={`chat-${b.code}`} className="rounded-full h-9 px-4 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</Button>}
-        <Button size="sm" variant="outline" onClick={() => setShowDetails(true)} data-testid={`details-${b.code}`} className="rounded-full h-9 px-4"><InfoIcon className="h-4 w-4 mr-1" /> View Details</Button>
-        {canInvoice && <Button size="sm" variant="outline" onClick={() => setShowInvoice(true)} data-testid={`invoice-${b.code}`} className="rounded-full h-9 px-4"><FileText className="h-4 w-4 mr-1" /> Invoice</Button>}
-        {canRepeat && <Button data-testid={`repeat-${b.code}`} size="sm" variant="outline" onClick={() => onRepeat(b)} className="rounded-full h-9 px-4"><RefreshCcw className="h-4 w-4 mr-1" /> Book Again</Button>}
-        {canReview && <Button data-testid={`review-${b.code}`} size="sm" variant="outline" onClick={() => onReview(b)} className="rounded-full h-9 px-4 border-amber-200 text-amber-600 hover:bg-amber-50"><Star className="h-4 w-4 mr-1" /> Rate</Button>}
-        {canRequestResched && <Button size="sm" variant="outline" onClick={() => setShowResched(true)} data-testid={`reschedule-${b.code}`} className="rounded-full h-9 px-4"><Clock className="h-4 w-4 mr-1" /> Request Reschedule</Button>}
-        {canCancel && <Button data-testid={`cancel-${b.code}`} size="sm" variant="outline" onClick={() => onCancel(b)} className="rounded-full h-9 px-4 border-rose-200 text-rose-600 hover:bg-rose-50">Cancel</Button>}
+        {assigned && <Button size="sm" onClick={callPartner} disabled={commLocked} data-testid={`call-${b.code}`} className="rounded-md h-9 px-4 bg-primary-700 hover:bg-primary-800 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <Phone className="h-4 w-4 mr-1" />} Call</Button>}
+        {assigned && <Button size="sm" variant="outline" onClick={chatPartner} disabled={commLocked} data-testid={`chat-${b.code}`} className="rounded-md h-9 px-4 disabled:opacity-50">{commLocked ? <Lock className="h-4 w-4 mr-1" /> : <MessageCircle className="h-4 w-4 mr-1" />} Chat{!commLocked && <UnreadPill count={chatUnread} testId={`chat-unread-${b.code}`} />}</Button>}
+        <Button size="sm" variant="outline" onClick={() => setShowDetails(true)} data-testid={`details-${b.code}`} className="rounded-md h-9 px-4"><InfoIcon className="h-4 w-4 mr-1" /> View Details</Button>
+        {canInvoice && <Button size="sm" variant="outline" onClick={() => setShowInvoice(true)} data-testid={`invoice-${b.code}`} className="rounded-md h-9 px-4"><FileText className="h-4 w-4 mr-1" /> Invoice</Button>}
+        {canRepeat && <Button data-testid={`repeat-${b.code}`} size="sm" variant="outline" onClick={() => onRepeat(b)} className="rounded-md h-9 px-4"><RefreshCcw className="h-4 w-4 mr-1" /> Book Again</Button>}
+        {canReview && <Button data-testid={`review-${b.code}`} size="sm" variant="outline" onClick={() => onReview(b)} className="rounded-md h-9 px-4 border-amber-200 text-amber-600 hover:bg-amber-50"><Star className="h-4 w-4 mr-1" /> Rate</Button>}
+        {canRequestResched && <Button size="sm" variant="outline" onClick={() => setShowResched(true)} data-testid={`reschedule-${b.code}`} className="rounded-md h-9 px-4"><Clock className="h-4 w-4 mr-1" /> Request Reschedule</Button>}
+        {canCancel && <Button data-testid={`cancel-${b.code}`} size="sm" variant="outline" onClick={() => onCancel(b)} className="rounded-md h-9 px-4 border-rose-200 text-rose-600 hover:bg-rose-50">Cancel</Button>}
         {b.review && <span className="text-sm text-amber-600 flex items-center ml-auto"><Star className="h-4 w-4 fill-amber-400 text-amber-400 mr-1" />{b.review.rating}.0 rated</span>}
       </div>
 

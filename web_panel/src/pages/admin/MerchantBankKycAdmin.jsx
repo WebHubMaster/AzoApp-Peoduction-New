@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const Pill = ({ s }) => (
-  <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize font-medium ${s === "approved" ? "bg-emerald-100 text-emerald-700" : s === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{s || "not submitted"}</span>
+  <span className={`text-[11px] px-2 py-0.5 rounded-md capitalize font-medium ${s === "approved" ? "bg-emerald-100 text-emerald-700" : s === "rejected" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>{s || "not submitted"}</span>
 );
 
 function ReviewActions({ status, onApprove, onReject, busy }) {

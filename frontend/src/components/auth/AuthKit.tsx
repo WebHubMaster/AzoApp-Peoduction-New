@@ -48,5 +48,5 @@ export function TextLink({ title, onPress, testID, primary, align = "flex-start"
 /* Web card: p-5 rounded-2xl border border-slate-200 bg-slate-50/60 (or bg-white) */
 export function AuthCard({ children, subtle, testID, style }: { children: React.ReactNode; subtle?: boolean; testID?: string; style?: any }) {
   const { colors, mode } = useTheme();
-  return <View testID={testID} style={[{ padding: 20, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: subtle ? (mode === "dark" ? colors.surfaceSubtle : "rgba(248,250,252,0.6)") : colors.surface, gap: 12 }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ padding: 20, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: subtle ? (mode === "dark" ? colors.surfaceSubtle : "rgba(248,250,252,0.6)") : colors.surface, gap: 12 }, style]}>{children}</View>;
 }

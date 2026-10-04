@@ -132,7 +132,7 @@ export function FeeCard({ fee, amount }: { fee: any; amount: number }) {
   const pct = fee.discount_type === "percentage" && fee.discount_value > 0 ? ` (${Math.round(fee.discount_value)}% off)` : "";
   return (
     <Animated.View entering={enter(2)} testID="fee-summary-card"
-      style={{ marginTop: 24, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1, borderColor: C.line, boxShadow: "0px 10px 30px rgba(13,71,161,0.08)", overflow: "hidden" }}>
+      style={{ marginTop: 24, borderRadius: 6, backgroundColor: "#fff", borderWidth: 1, borderColor: C.line, boxShadow: "0px 10px 30px rgba(13,71,161,0.08)", overflow: "hidden" }}>
       <View style={{ padding: 20 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
           <View style={{ height: 44, width: 44, borderRadius: 22, backgroundColor: C.tint, alignItems: "center", justifyContent: "center" }}>
@@ -184,7 +184,7 @@ export function FeeIncluded({ items }: { items: [any, string, string][] }) {
     <Animated.View entering={enter(3)} style={{ marginTop: 32 }} testID="fee-included">
       <Text accessibilityRole="header" style={{ fontSize: 18, lineHeight: 24, fontWeight: "700", color: C.ink }}>What&rsquo;s included</Text>
       <Text style={{ fontSize: 13, lineHeight: 18, color: C.muted, marginTop: 4 }}>Your fee covers partner registration and onboarding.</Text>
-      <View style={{ marginTop: 16, borderRadius: 10, borderWidth: 1, borderColor: C.line, backgroundColor: "#fff", paddingHorizontal: 16 }}>
+      <View style={{ marginTop: 16, borderRadius: 6, borderWidth: 1, borderColor: C.line, backgroundColor: "#fff", paddingHorizontal: 16 }}>
         {items.map(([Icon, t, d], i) => (
           <View key={t} testID={`fee-included-item-${i}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12,
             borderTopWidth: i ? 1 : 0, borderTopColor: C.line }}>
@@ -205,7 +205,7 @@ export function FeeIncluded({ items }: { items: [any, string, string][] }) {
 export function FeeNotice() {
   return (
     <Animated.View entering={enter(4)} testID="fee-onetime-notice"
-      style={{ marginTop: 16, borderRadius: 10, padding: 16, flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
+      style={{ marginTop: 16, borderRadius: 6, padding: 16, flexDirection: "row", alignItems: "flex-start", gap: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line }}>
       <View style={{ height: 32, width: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: C.tint }}>
         <Info size={16} color={C.blue} />
       </View>
@@ -224,7 +224,7 @@ export const friendlyError = (m: string) =>
 export function FeeError({ message, onRetry, busy }: { message: string; onRetry: () => void; busy: boolean }) {
   return (
     <Animated.View entering={FadeIn.duration(220)} testID="fee-pay-error" accessibilityRole="alert"
-      style={{ marginTop: 16, borderRadius: 10, backgroundColor: C.redTint, borderWidth: 1, borderColor: C.redLine, padding: 16 }}>
+      style={{ marginTop: 16, borderRadius: 6, backgroundColor: C.redTint, borderWidth: 1, borderColor: C.redLine, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
         <View style={{ height: 32, width: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: "#fff" }}>
           <TriangleAlert size={16} color={C.red} />
@@ -235,7 +235,7 @@ export function FeeError({ message, onRetry, busy }: { message: string; onRetry:
         </View>
       </View>
       <Pressable testID="fee-retry-btn" onPress={onRetry} disabled={busy} accessibilityRole="button" accessibilityLabel="Retry payment"
-        style={({ pressed }) => ({ alignSelf: "flex-start", marginTop: 12, marginLeft: 44, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 36, borderRadius: 999,
+        style={({ pressed }) => ({ alignSelf: "flex-start", marginTop: 12, marginLeft: 44, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, height: 36, borderRadius: 6,
           backgroundColor: "#fff", borderWidth: 1, borderColor: C.redLine, opacity: busy ? 0.6 : pressed ? 0.8 : 1 })}>
         <RotateCcw size={14} color={C.red} />
         <Text style={{ fontSize: 13, lineHeight: 18, fontWeight: "600", color: C.red }}>Try again</Text>

@@ -30,7 +30,7 @@ export default function MerchantHome({ user, dash, code, refs = [], kycPending, 
         <div className="absolute inset-0 opacity-[0.06] bg-[linear-gradient(rgba(255,255,255,.7)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.7)_1px,transparent_1px)] bg-[size:28px_28px]" />
         <div className="relative">
           <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 backdrop-blur px-3 py-1.5 text-[12px] font-semibold text-white/85"><Store className="h-3.5 w-3.5" /> Merchant</span>
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-white/10 backdrop-blur px-3 py-1.5 text-[12px] font-semibold text-white/85"><Store className="h-3.5 w-3.5" /> Merchant</span>
             <span className="h-10 w-10 rounded-full bg-white/15 grid place-items-center font-heading font-extrabold text-sm ring-1 ring-white/25">{initials(shop)}</span>
           </div>
           <p className="mt-5 text-[11px] uppercase tracking-[0.22em] text-white/55">{greet}</p>

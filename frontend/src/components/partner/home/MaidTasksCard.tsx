@@ -87,7 +87,7 @@ export function MaidTasksCard() {
         const markable = t.date <= todayIso();
         return (
           <View key={`${t.subId}-${t.date}`} testID={`maid-task-${t.subId}-${t.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, paddingTop: 10 }}>
-            <View style={{ borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: t.overdue ? "#FFF1F2" : t.date === todayIso() ? "#ECFDF5" : colors.surfaceSubtle }}>
+            <View style={{ borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4, backgroundColor: t.overdue ? "#FFF1F2" : t.date === todayIso() ? "#ECFDF5" : colors.surfaceSubtle }}>
               <Text style={{ color: t.overdue ? "#F43F5E" : t.date === todayIso() ? "#059669" : colors.primary, fontSize: 11, fontWeight: "800" }}>{t.overdue ? `Missed · ${dayLabel(t.date)}` : dayLabel(t.date)}</Text>
             </View>
             <View style={{ flex: 1 }}>

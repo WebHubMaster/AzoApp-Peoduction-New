@@ -182,7 +182,7 @@ export const StatusBadge = ({ active, activeLabel = "Active", inactiveLabel = "I
   const Comp = onClick ? "button" : "span";
   return (
     <Comp onClick={onClick} className={cx(
-      "inline-flex items-center gap-1.5 h-6 px-2.5 rounded-full text-[11px] font-bold transition-colors",
+      "inline-flex items-center gap-1.5 h-6 px-2.5 rounded-md text-[11px] font-bold transition-colors",
       active ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
       onClick && "hover:ring-2 hover:ring-primary-200 dark:hover:ring-primary-900/50 cursor-pointer",
     )}>

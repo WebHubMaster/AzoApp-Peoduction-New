@@ -40,7 +40,7 @@ export default function PartnerActiveJob() {
   };
   const focusWrap = (id: string, el: React.ReactNode) => (
     <View key={id} onLayout={onCardLayout(id)} testID={`job-focus-wrap-${id}`}
-      style={{ borderRadius: 12, borderWidth: 2, borderColor: focusId === id ? colors.primary : "transparent", margin: -2 }}>{el}</View>
+      style={{ borderRadius: 6, borderWidth: 2, borderColor: focusId === id ? colors.primary : "transparent", margin: -2 }}>{el}</View>
   );
   const [view, setView] = useState<"active" | "completed">(params.view === "completed" ? "completed" : "active");
   useEffect(() => { if (params.view === "completed" || params.view === "active") setView(params.view); }, [params.view]);
@@ -85,7 +85,7 @@ export default function PartnerActiveJob() {
 function Empty({ text }: { text: string }) {
   const { colors } = useTheme();
   return (
-    <View testID="jobs-empty" style={{ backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderStyle: "dashed", borderColor: colors.border, padding: 40, alignItems: "center" }}>
+    <View testID="jobs-empty" style={{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: colors.border, padding: 40, alignItems: "center" }}>
       <Text style={{ color: SLATE400, fontSize: 16, textAlign: "center", lineHeight: 24 }}>{text}</Text>
     </View>
   );
@@ -94,13 +94,13 @@ function Empty({ text }: { text: string }) {
 /* ── shared card pieces ── */
 function JobCardShell({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
-  return <View style={{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 8px 30px rgba(2,32,71,0.06)", elevation: 2 }}>{children}</View>;
+  return <View style={{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 8px 30px rgba(2,32,71,0.06)", elevation: 2 }}>{children}</View>;
 }
 
 function InfoItem({ icon, label, value }: { icon: MdiName; label: string; value?: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
+    <View style={{ flex: 1, borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
         <Icon name={icon} size={12} color={SLATE400} />
         <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text>
@@ -114,7 +114,7 @@ function Collapse({ title, icon, children, testID }: { title: string; icon: MdiN
   const { colors } = useTheme();
   const [open, setOpen] = useState(false);
   return (
-    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
+    <View style={{ borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
       <Pressable testID={testID} onPress={() => setOpen((o) => !o)} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 12 }}>
         <Icon name={icon} size={16} color={SLATE400} />
         <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "700", flex: 1 }}>{title}</Text>
@@ -154,7 +154,7 @@ function ServiceBreakdown({ booking }: { booking: any }) {
   const totalServiceAmount = servicesSubtotal + chargesTotal;
   const hdr = { flexDirection: "row" as const, alignItems: "center" as const, justifyContent: "space-between" as const, paddingHorizontal: 12, paddingVertical: 8 };
   return (
-    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden", marginTop: 12 }} testID="service-breakdown">
+    <View style={{ borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", marginTop: 12 }} testID="service-breakdown">
       <View style={[hdr, { backgroundColor: colors.surfaceSubtle, borderBottomWidth: 1, borderBottomColor: colors.border }]}>
         <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Services to do ({list.length})</Text>
         <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "600" }}>Excl. taxes</Text>
@@ -248,7 +248,7 @@ function PartnerEarningSummary({ booking }: { booking: any }) {
     </View>
   );
   return (
-    <View style={{ borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden", marginTop: 12 }} testID="partner-earning-summary">
+    <View style={{ borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", marginTop: 12 }} testID="partner-earning-summary">
       {secHdr(colors.surfaceSubtle, colors.textMuted, "Payment Summary")}
       <View style={{ paddingHorizontal: 12, paddingVertical: 10 }}>
         <EarnRow k="Service Amount" v={fmt(bd.services_subtotal)} />
@@ -335,10 +335,10 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
   ];
   const accent = locked ? colors.primary : EMERALD;
   return (
-    <View testID="scheduled-card" style={{ borderRadius: 10, borderWidth: 2, borderColor: locked ? colors.primarySubtle : "#A7F3D0", backgroundColor: locked ? "rgba(239,246,255,0.6)" : "#ECFDF5", padding: 16 }}>
+    <View testID="scheduled-card" style={{ borderRadius: 6, borderWidth: 2, borderColor: locked ? colors.primarySubtle : "#A7F3D0", backgroundColor: locked ? "rgba(239,246,255,0.6)" : "#ECFDF5", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent, alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
+          <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: accent, alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Icon name="calendar-outline" size={18} color="#fff" /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={{ color: accent, fontSize: 10.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{s.is_instant ? "Instant Service" : "Scheduled Service"}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 2 }}>
@@ -389,7 +389,7 @@ function CompletedJob({ b }: { b: any }) {
       <View style={{ padding: 20, gap: 16 }} testID={`completed-job-${b.code}`}>
         <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <View style={{ flexDirection: "row", gap: 12, flex: 1 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
+            <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={20} color="#fff" /></View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, lineHeight: 22 }}>{b.service_name}</Text>
               <Text style={{ color: SLATE400, fontSize: 12, marginTop: 2, fontFamily: "monospace" }}>#{b.code}</Text>
@@ -397,7 +397,7 @@ function CompletedJob({ b }: { b: any }) {
           </View>
           <StatusBadge status={b.status} />
         </View>
-        <View style={{ flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 14, paddingVertical: 12 }}>
+        <View style={{ flexDirection: "row", gap: 8, borderRadius: 6, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 14, paddingVertical: 12 }}>
           <Icon name="map-marker-outline" size={16} color={EMERALD} />
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "600", lineHeight: 19 }}>{a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}</Text>
@@ -409,7 +409,7 @@ function CompletedJob({ b }: { b: any }) {
           <InfoItem icon="check-circle-outline" label="Job value" value={fmt(jobValue)} />
         </View>
         {earning != null ? (
-          <View style={{ borderRadius: 12, borderWidth: 2, borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.5)", paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ borderRadius: 6, borderWidth: 2, borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.5)", paddingHorizontal: 16, paddingVertical: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="trending-up" size={16} color="#047857" /><Text style={{ color: "#047857", fontSize: 12.5, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text></View>
             <Text style={{ color: "#047857", fontSize: 18, fontWeight: "800" }}>{fmt(earning)}</Text>
           </View>
@@ -509,7 +509,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
   const dest = a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""} ${a.pincode || ""}`);
   const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
 
-  const outlineBtn = (opts: { border: string }) => ({ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: opts.border, alignItems: "center" as const, justifyContent: "center" as const, flexDirection: "row" as const, gap: 6 });
+  const outlineBtn = (opts: { border: string }) => ({ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: opts.border, alignItems: "center" as const, justifyContent: "center" as const, flexDirection: "row" as const, gap: 6 });
 
   return (
     <JobCardShell>
@@ -521,7 +521,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
             <Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text>
             <Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5, marginTop: 2 }} numberOfLines={1}>{b.service_name}{startedAt ? ` · started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text>
           </View>
-          {startedAt ? <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "700", fontSize: 14, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>{elapsed}</Text> : null}
+          {startedAt ? <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "700", fontSize: 14, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}>{elapsed}</Text> : null}
         </LinearGradient>
       ) : arrived ? (
         <LinearGradient colors={["#7C3AED", colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 20, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -556,8 +556,8 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
           </View>
 
           {/* Customer address */}
-          <View testID={`job-address-${b.code}`} style={{ flexDirection: "row", gap: 10, marginTop: 14, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1, borderColor: colors.border, padding: 12 }}>
-            <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+          <View testID={`job-address-${b.code}`} style={{ flexDirection: "row", gap: 10, marginTop: 14, borderRadius: 6, backgroundColor: "#fff", borderWidth: 1, borderColor: colors.border, padding: 12 }}>
+            <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
               <Icon name="map-marker-outline" size={17} color={colors.primary} />
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
@@ -580,16 +580,16 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
 
         {/* Reschedule pending */}
         {pendingReq ? (
-          <View testID={`reschedule-pending-${b.code}`} style={{ borderRadius: 10, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", padding: 16 }}>
+          <View testID={`reschedule-pending-${b.code}`} style={{ borderRadius: 6, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", padding: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="clock-outline" size={16} color="#B45309" /><Text style={{ color: "#B45309", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>Reschedule request · pending</Text></View>
             <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{pendingReq.requester_name} · {b.service_name}</Text>
             <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-              <View style={{ flex: 1, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.7)", padding: 10 }}>
+              <View style={{ flex: 1, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.7)", padding: 10 }}>
                 <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Current schedule</Text>
                 <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "700" }}>{pendingReq.old_date}</Text>
                 <Text style={{ color: colors.textSecondary, fontSize: 13, fontWeight: "700" }}>{pendingReq.old_time}</Text>
               </View>
-              <View style={{ flex: 1, borderRadius: 12, backgroundColor: "rgba(255,255,255,0.7)", padding: 10, borderWidth: 1, borderColor: "#FDE68A" }}>
+              <View style={{ flex: 1, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.7)", padding: 10, borderWidth: 1, borderColor: "#FDE68A" }}>
                 <Text style={{ color: "#F59E0B", fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>New request</Text>
                 <Text style={{ color: "#B45309", fontSize: 13, fontWeight: "900" }}>{pendingReq.new_date}</Text>
                 <Text style={{ color: "#B45309", fontSize: 13, fontWeight: "900" }}>{pendingReq.new_time}</Text>
@@ -598,12 +598,12 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
             {theyRequested ? (
               <View style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
                 <Pressable testID={`reschedule-accept-${b.code}`} onPress={() => respondResched("accept")} style={{ flex: 1, height: 40, borderRadius: 6, backgroundColor: EMERALD, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}>Accept reschedule</Text></Pressable>
-                <Pressable testID={`reschedule-reject-${b.code}`} onPress={() => respondResched("reject")} style={{ flex: 1, height: 40, borderRadius: 12, borderWidth: 1, borderColor: "#FECDD3", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 13 }}>Reject</Text></Pressable>
+                <Pressable testID={`reschedule-reject-${b.code}`} onPress={() => respondResched("reject")} style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1, borderColor: "#FECDD3", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 13 }}>Reject</Text></Pressable>
               </View>
             ) : (
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, gap: 8 }}>
                 <Text style={{ color: "#B45309", fontSize: 12, flex: 1 }}>Waiting for the customer to accept.</Text>
-                <Pressable testID={`reschedule-withdraw-${b.code}`} onPress={cancelResched} style={{ height: 36, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 13 }}>Withdraw</Text></Pressable>
+                <Pressable testID={`reschedule-withdraw-${b.code}`} onPress={cancelResched} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontWeight: "600", fontSize: 13 }}>Withdraw</Text></Pressable>
               </View>
             )}
           </View>
@@ -612,7 +612,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
         {/* Primary CTA — Navigate */}
         <View>
           {commLocked ? (
-            <View testID={`navigate-locked-${b.code}`} style={{ height: 48, borderRadius: 12, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+            <View testID={`navigate-locked-${b.code}`} style={{ height: 48, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
               <Icon name="lock-outline" size={20} color={SLATE400} /><Text style={{ color: SLATE400, fontWeight: "600", fontSize: 15 }}>Navigation locked</Text>
             </View>
           ) : (
@@ -633,7 +633,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
           <Pressable testID={`chat-cust-${b.code}`} disabled={commLocked} onPress={() => (commLocked ? toast.info("Chat unlocks 30 minutes before the scheduled time") : router.push({ pathname: "/chat/[id]", params: { id: b.id, role: "partner", service: b.service_name || "" } }))} style={[outlineBtn({ border: "#BFDBFE" }), { opacity: commLocked ? 0.5 : 1 }]}>
             <Icon name={commLocked ? "lock-outline" : "message-outline"} size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "600", fontSize: 14 }}>Chat</Text>
             {!commLocked && unseen > 0 ? (
-              <View testID={`chat-unseen-${b.code}`} style={{ minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 5, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", marginLeft: 2 }}>
+              <View testID={`chat-unseen-${b.code}`} style={{ minWidth: 18, height: 18, borderRadius: 6, paddingHorizontal: 5, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", marginLeft: 2 }}>
                 <Text style={{ color: "#fff", fontSize: 10.5, fontWeight: "800" }}>{unseen > 9 ? "9+" : unseen}</Text>
               </View>
             ) : null}
@@ -673,7 +673,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
         <KeyboardProvider>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setReschedOpen(false)} />
-          <View testID={`reschedule-modal-${b.code}`} style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: insets.bottom + 20, gap: 12 }}>
+          <View testID={`reschedule-modal-${b.code}`} style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: 20, paddingBottom: insets.bottom + 20, gap: 12 }}>
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
               <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "700" }}>Request reschedule</Text>
               <Pressable onPress={() => setReschedOpen(false)} hitSlop={8}><Icon name="close" size={18} color={SLATE400} /></Pressable>

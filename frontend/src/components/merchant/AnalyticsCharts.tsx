@@ -41,7 +41,7 @@ function Tip({ label, rows, x, w }: { label: string; rows: { name: string; value
   const tw = 150;
   const left = Math.min(Math.max(x - tw / 2, 0), Math.max(0, w - tw));
   return (
-    <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, left, top: 0, width: tw, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }}>
+    <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, left, top: 0, width: tw, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }}>
       <Text style={{ color: "#fff", fontSize: 12, lineHeight: 16, fontWeight: "600", marginBottom: 4 }}>{label}</Text>
       {rows.map((r) => (
         <View key={r.name} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>

@@ -90,7 +90,7 @@ export default function ServiceDetail() {
         <div className="lg:col-span-3">
           <ServiceGallery svc={svc} />
           <p className="text-xs uppercase tracking-wider font-bold text-primary-700 mt-6">{svc.category_name}{svc.subcategory_name ? ` · ${svc.subcategory_name}` : ""}</p>
-          {svc.is_subscription && <span data-testid="subscription-badge" className="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">Recurring Subscription</span>}
+          {svc.is_subscription && <span data-testid="subscription-badge" className="inline-flex items-center gap-1 mt-2 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">Recurring Subscription</span>}
           <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-slate-900 mt-1">{svc.name}</h1>
           <div className="flex items-center gap-3 mt-2 text-sm text-slate-500">
             <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-amber-400 text-amber-400" /> {svc.rating}</span>
@@ -104,7 +104,7 @@ export default function ServiceDetail() {
             {svc.tax_pct > 0 && <span className="text-xs text-slate-400" data-testid="service-tax-note">{svc.tax_inclusive ? "Incl. Est. Govt. Taxes" : "+ Est. Govt. Taxes"}</span>}
           </div>
           {(svc.tags || []).length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3">{svc.tags.map((t) => <span key={t} className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full">{t}</span>)}</div>
+            <div className="flex flex-wrap gap-2 mt-3">{svc.tags.map((t) => <span key={t} className="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-md">{t}</span>)}</div>
           )}
 
           <div className="mt-4">

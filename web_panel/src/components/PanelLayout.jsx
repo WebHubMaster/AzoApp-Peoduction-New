@@ -146,7 +146,7 @@ const NotificationBell = () => {
     <div className="relative" ref={box}>
       <button data-testid="notif-bell" onClick={toggle} className="relative h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
         <Bell className="h-4 w-4" />
-        {unread > 0 && <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{unread > 9 ? "9+" : unread}</span>}
+        {unread > 0 && <span className="absolute -top-1.5 -right-1.5 h-5 min-w-[20px] px-1 rounded-md bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{unread > 9 ? "9+" : unread}</span>}
       </button>
       {open && (
         <div className="fixed sm:absolute left-1/2 -translate-x-1/2 sm:left-auto sm:translate-x-0 sm:right-0 top-[calc(env(safe-area-inset-top)+5.25rem)] sm:top-11 w-[calc(100vw-1.5rem)] max-w-sm sm:w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-96 overflow-y-auto z-50">
@@ -297,7 +297,7 @@ const ChildItem = ({ sub, active, onNavigate, badge, fav, onToggleFav, leadIcon,
         <span className="truncate flex-1 text-left">{sub.label}</span>
         {dot && <span data-testid={`nav-dot-${sub.key}`} title="Unreviewed profile updates" className={`h-2 w-2 rounded-full shrink-0 ${isActive ? "bg-white" : "bg-red-500"} ring-2 ${isActive ? "ring-white/40" : "ring-red-200 dark:ring-red-900/40"} animate-pulse`} />}
         {sub.soon && !isActive && <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400 border border-slate-200 dark:border-slate-700 rounded px-1 py-0.5">soon</span>}
-        {badge > 0 && <span data-testid={`nav-badge-${sub.key}`} className={`h-5 min-w-[20px] px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${isActive ? "bg-white/25 text-white" : "bg-primary-600 text-white"}`}>{badge > 99 ? "99+" : badge}</span>}
+        {badge > 0 && <span data-testid={`nav-badge-${sub.key}`} className={`h-5 min-w-[20px] px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center ${isActive ? "bg-white/25 text-white" : "bg-primary-600 text-white"}`}>{badge > 99 ? "99+" : badge}</span>}
       </button>
       {onToggleFav && (
         <button
@@ -486,7 +486,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                       <OIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
                       <span className="flex-1 text-left truncate">{only.label}</span>
                       {dotFor(only.key) && <span data-testid={`nav-dot-${only.key}`} className={`h-2 w-2 rounded-full shrink-0 animate-pulse ${isActive ? "bg-white" : "bg-red-500 ring-2 ring-red-200 dark:ring-red-900/40"}`} />}
-                      {b > 0 && <span data-testid={`nav-badge-${only.key}`} className={`h-5 min-w-[20px] px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center ${isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"}`}>{b > 99 ? "99+" : b}</span>}
+                      {b > 0 && <span data-testid={`nav-badge-${only.key}`} className={`h-5 min-w-[20px] px-1.5 rounded-md text-[10px] font-bold flex items-center justify-center ${isActive ? "bg-white/25 text-white" : "bg-red-500 text-white"}`}>{b > 99 ? "99+" : b}</span>}
                     </button>
                     <button
                       data-testid={`nav-fav-${only.key}`}
@@ -514,7 +514,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                     <GIcon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.75} />
                     <span className="flex-1 text-left truncate">{g.group}</span>
                     {groupDot && !isOpen && <span className="h-2 w-2 rounded-full bg-red-500 ring-2 ring-red-200 dark:ring-red-900/40 animate-pulse shrink-0" />}
-                    {groupBadge > 0 && <span className="h-5 min-w-[20px] px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{groupBadge > 99 ? "99+" : groupBadge}</span>}
+                    {groupBadge > 0 && <span className="h-5 min-w-[20px] px-1.5 rounded-md bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{groupBadge > 99 ? "99+" : groupBadge}</span>}
                     <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                   </button>
                   {isOpen && (
@@ -623,7 +623,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                     className={`relative flex flex-col items-center justify-center gap-1 pt-2 pb-1.5 text-[10px] font-semibold transition-colors ${on ? "text-primary-700 dark:text-primary-300" : "text-slate-400 dark:text-slate-500"}`}>
                     <span className={`relative flex items-center justify-center h-9 w-9 rounded-2xl transition-all duration-200 ${on ? "bg-gradient-to-br from-primary-600 to-primary-500 text-white shadow-md shadow-primary-500/40 scale-105" : ""}`}>
                       <Icon className="h-[18px] w-[18px]" strokeWidth={2} />
-                      {b > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">{b > 9 ? "9+" : b}</span>}
+                      {b > 0 && <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-md bg-red-500 text-white text-[9px] font-bold flex items-center justify-center ring-2 ring-white dark:ring-slate-900">{b > 9 ? "9+" : b}</span>}
                     </span>
                     <span className="truncate max-w-[64px]">{it.short || it.label}</span>
                   </button>
@@ -661,7 +661,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
                           <Icon className="h-5 w-5" strokeWidth={1.9} />
                         </span>
                         <span className={`text-[11px] font-semibold leading-tight ${on ? "text-primary-700 dark:text-primary-300" : "text-slate-600 dark:text-slate-300"}`}>{it.label}</span>
-                        {b > 0 && <span className="absolute top-2 right-2 h-4 min-w-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{b > 9 ? "9+" : b}</span>}
+                        {b > 0 && <span className="absolute top-2 right-2 h-4 min-w-[16px] px-1 rounded-md bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{b > 9 ? "9+" : b}</span>}
                       </button>
                     );
                   })}

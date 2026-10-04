@@ -107,7 +107,7 @@ export function LineChart({ data, height = 140, money = true, label = "Earnings"
   return (
     <Pressable onPress={onTap} onLayout={(e) => setVw(e.nativeEvent.layout.width)} testID="line-chart" style={{ height: H, width: "100%" }}>
       {sp && sel != null ? (
-        <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, left: tipLeft, top: Math.max(0, sp.y - 54), width: 120, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, left: tipLeft, top: Math.max(0, sp.y - 54), width: 120, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 }}>
           <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{data[sel].date}</Text>
           <Text style={{ color: "#fff", fontSize: 11 }}><Text style={{ color: colors.secondary }}>● </Text>{label}: <Text style={{ fontWeight: "800" }}>{money ? fmtC(data[sel].earning || 0) : data[sel].earning}</Text></Text>
         </View>

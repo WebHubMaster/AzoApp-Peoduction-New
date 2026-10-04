@@ -58,7 +58,7 @@ export function StatusBadge({ status, label, testID }: { status?: string; label?
   const s: Tone = (BADGES[key] || BADGES.default)[dark ? "dark" : "light"];
   const text = label || (status || "not submitted").replace(/_/g, " ");
   return (
-    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: s.bg, alignSelf: "flex-start" }}>
+    <View testID={testID} style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4, backgroundColor: s.bg, alignSelf: "flex-start" }}>
       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: s.dot }} />
       <Text style={{ color: s.text, fontSize: 11, lineHeight: 14, fontWeight: "600" }} numberOfLines={1}>{cap(text)}</Text>
     </View>
@@ -69,7 +69,7 @@ export function StatusBadge({ status, label, testID }: { status?: string; label?
 export function Surface({ children, style, testID }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string }) {
   const { card, dark } = useFin();
   return (
-    <View testID={testID} style={[{ borderRadius: 10, backgroundColor: card, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.8)", boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>
+    <View testID={testID} style={[{ borderRadius: 6, backgroundColor: card, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.8)", boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>
       {children}
     </View>
   );
@@ -114,7 +114,7 @@ export function KpiCard({ icon, label, value, sub, trend, tone = "slate", testID
   return (
     <Surface style={{ padding: 16 }} testID={testID}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-        {icon ? <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: t.bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={t.fg} /></View> : null}
+        {icon ? <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: t.bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={t.fg} /></View> : null}
         {trend != null ? (
           <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: up ? (dark ? EMERALD[950] : EMERALD[50]) : (dark ? ROSE[950] : ROSE[50]) }}>
             <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "700", color: up ? EMERALD[600] : ROSE[500] }}>{up ? "▲" : "▼"} {Math.abs(trend)}%</Text>
@@ -132,7 +132,7 @@ export function KpiCard({ icon, label, value, sub, trend, tone = "slate", testID
 export function SegTabs<T extends string>({ tabs, value, onChange, testidPrefix = "tab" }: { tabs: T[]; value: T; onChange: (v: T) => void; testidPrefix?: string }) {
   const { dark, subtle, card, P } = useFin();
   return (
-    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 10, backgroundColor: subtle }}>
+    <View style={{ flexDirection: "row", gap: 4, padding: 4, borderRadius: 6, backgroundColor: subtle }}>
       {tabs.map((t) => {
         const on = value === t;
         return (
@@ -153,14 +153,14 @@ export function DetailDrawer({ open, onClose, title, subtitle, children, testID 
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID={testID}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ maxHeight: "90%", backgroundColor: card, borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
+        <View style={{ maxHeight: "90%", backgroundColor: card, borderTopLeftRadius: 6, borderTopRightRadius: 6, borderTopWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
           <View style={{ alignSelf: "center", height: 6, width: 48, borderRadius: 3, backgroundColor: dark ? SLATE[700] : SLATE[200], marginTop: 12 }} />
           <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: hairline }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }} numberOfLines={1}>{title}</Text>
               {subtitle ? <Text style={{ fontSize: 12, lineHeight: 16, color: dark ? SLATE[500] : SLATE[400], marginTop: 2 }} numberOfLines={1}>{subtitle}</Text> : null}
             </View>
-            <Pressable testID="drawer-close" onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 8, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={16} color={SLATE[400]} /></Pressable>
+            <Pressable testID="drawer-close" onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={16} color={SLATE[400]} /></Pressable>
           </View>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 96 }}>{children}</ScrollView>
         </View>
@@ -204,7 +204,7 @@ export function EmptyState({ icon = "inbox-outline", title, hint, action, testID
   const { subtle, strong, dark } = useFin();
   return (
     <View testID={testID} style={{ paddingVertical: 56, paddingHorizontal: 24, alignItems: "center" }}>
-      <View style={{ height: 56, width: 56, borderRadius: 10, backgroundColor: subtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={SLATE[400]} /></View>
+      <View style={{ height: 56, width: 56, borderRadius: 6, backgroundColor: subtle, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={28} color={SLATE[400]} /></View>
       <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "700", color: strong, marginTop: 16, textAlign: "center" }}>{title}</Text>
       {hint ? <Text style={{ fontSize: 14, lineHeight: 20, color: dark ? SLATE[500] : SLATE[400], marginTop: 4, maxWidth: 320, textAlign: "center" }}>{hint}</Text> : null}
       {action ? <View style={{ marginTop: 16 }}>{action}</View> : null}
@@ -215,10 +215,10 @@ export function EmptyState({ icon = "inbox-outline", title, hint, action, testID
 /* ── skeletons ── */
 export function Sk({ style }: { style?: StyleProp<ViewStyle> }) {
   const { subtle } = useFin();
-  return <View style={[{ borderRadius: 8, backgroundColor: subtle, opacity: 0.8 }, style]} />;
+  return <View style={[{ borderRadius: 6, backgroundColor: subtle, opacity: 0.8 }, style]} />;
 }
 export function RowsSkeleton({ rows = 5 }: { rows?: number }) {
-  return <View style={{ gap: 8 }}>{Array.from({ length: rows }).map((_, i) => <Sk key={i} style={{ height: 56, borderRadius: 12 }} />)}</View>;
+  return <View style={{ gap: 8 }}>{Array.from({ length: rows }).map((_, i) => <Sk key={i} style={{ height: 56, borderRadius: 6 }} />)}</View>;
 }
 
 /* ── shadcn Button (default / outline) — h-10 rounded-md text-sm font-medium ── */
@@ -249,7 +249,7 @@ export function PremiumSelect<T extends string | number>({ value, onChange, opti
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "flex-end" }}>
           <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
-          <View testID={testID ? `${testID}-menu` : undefined} style={{ maxHeight: "70%", backgroundColor: card, borderTopLeftRadius: 16, borderTopRightRadius: 16, borderTopWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
+          <View testID={testID ? `${testID}-menu` : undefined} style={{ maxHeight: "70%", backgroundColor: card, borderTopLeftRadius: 6, borderTopRightRadius: 6, borderTopWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: hairline }}>
               <Text style={{ fontSize: 14, fontWeight: "600", color: body }}>{placeholder}</Text>
               <Pressable onPress={() => setOpen(false)} hitSlop={8} style={{ padding: 4 }}><Icon name="close" size={20} color={SLATE[400]} /></Pressable>
@@ -277,7 +277,7 @@ export function Paginator({ page, pages, total, pageSize, onPage, onPageSize }: 
   const { dark, card, body, muted, hairline } = useFin();
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
-  const nav = (disabled: boolean) => ({ height: 36, paddingHorizontal: 12, borderRadius: 8, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: dark ? SLATE[800] : card, alignItems: "center" as const, justifyContent: "center" as const, opacity: disabled ? 0.4 : 1 });
+  const nav = (disabled: boolean) => ({ height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: dark ? SLATE[800] : card, alignItems: "center" as const, justifyContent: "center" as const, opacity: disabled ? 0.4 : 1 });
   return (
     <View style={{ alignItems: "center", gap: 12, marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: hairline }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -297,8 +297,8 @@ export function Paginator({ page, pages, total, pageSize, onPage, onPageSize }: 
 export function SecurityNote({ text = "Your banking information is encrypted and securely protected. AzoApp never shares your financial details." }: { text?: string }) {
   const { dark, well, strong, muted } = useFin();
   return (
-    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 10, backgroundColor: well, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16 }}>
-      <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color={EMERALD[600]} /></View>
+    <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 6, backgroundColor: well, borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16 }}>
+      <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: dark ? EMERALD[950] : EMERALD[50], alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color={EMERALD[600]} /></View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text style={{ fontSize: 14, lineHeight: 20, fontWeight: "600", color: strong }}>Bank-grade security</Text>
         <Text style={{ fontSize: 12, lineHeight: 16, color: muted, marginTop: 2 }}>{text}</Text>
@@ -312,7 +312,7 @@ export function LockedCard({ completion, status, onGo }: { completion: number; s
   const { heading, muted, primaryText, dark } = useFin();
   return (
     <Surface testID="feature-locked" style={{ padding: 32, alignItems: "center" }}>
-      <View style={{ height: 56, width: 56, borderRadius: 10, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
+      <View style={{ height: 56, width: 56, borderRadius: 6, backgroundColor: dark ? AMBER[950] : AMBER[50], alignItems: "center", justifyContent: "center", marginBottom: 12 }}><Icon name="lock-outline" size={28} color={AMBER[600]} /></View>
       <Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Feature locked</Text>
       <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4, textAlign: "center", maxWidth: 384 }}>Yeh feature tab unlock hoga jab aapka profile 100% complete ho aur admin approve kar de.</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 12 }}>

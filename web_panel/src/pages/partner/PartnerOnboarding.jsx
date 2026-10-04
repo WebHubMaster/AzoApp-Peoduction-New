@@ -80,7 +80,7 @@ export default function PartnerOnboarding({ onDone }) {
       <div className="flex items-center gap-1 mb-6 overflow-x-auto no-scrollbar">
         {STEPS.map((s, i) => (
           <div key={s} className="flex items-center gap-1 shrink-0">
-            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${i === step ? "bg-primary-700 text-white" : i < step ? "bg-primary-100 text-primary-700" : "bg-slate-100 text-slate-400"}`}>
+            <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold ${i === step ? "bg-primary-700 text-white" : i < step ? "bg-primary-100 text-primary-700" : "bg-slate-100 text-slate-400"}`}>
               {i < step ? <Check className="h-3.5 w-3.5" /> : <span>{i + 1}</span>} {s}
             </div>
             {i < STEPS.length - 1 && <div className={`h-0.5 w-4 ${i < step ? "bg-primary-400" : "bg-slate-200"}`} />}

@@ -103,7 +103,7 @@ export default function VideoCapture({ open, title = "Record video", onClose, on
             <video ref={videoRef} playsInline muted className="max-h-full max-w-full object-contain" data-testid="video-live" />
             {!ready && <div className="absolute inset-0 grid place-items-center text-white/80"><Loader2 className="h-8 w-8 animate-spin" /></div>}
             {recording && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full bg-red-600 text-white px-3 py-1 text-sm font-bold" data-testid="video-timer">
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-md bg-red-600 text-white px-3 py-1 text-sm font-bold" data-testid="video-timer">
                 <span className="h-2 w-2 rounded-full bg-white animate-pulse" /> REC 00:{pad(secs)} / 00:{MAX_VIDEO_SEC}
               </div>
             )}

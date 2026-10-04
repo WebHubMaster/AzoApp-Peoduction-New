@@ -76,14 +76,14 @@ export function WBtn({
 /** web surface card: rounded-2xl bg-white border-slate-200/70 p-4 */
 export function KitCard({ children, style, testID, padded = true }: { children: React.ReactNode; style?: StyleProp<ViewStyle>; testID?: string; padded?: boolean }) {
   const { card, cardBorder } = useQrPalette();
-  return <View testID={testID} style={[{ borderRadius: 10, backgroundColor: card, borderWidth: 1, borderColor: cardBorder, padding: padded ? 16 : 0 }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ borderRadius: 6, backgroundColor: card, borderWidth: 1, borderColor: cardBorder, padding: padded ? 16 : 0 }, style]}>{children}</View>;
 }
 
 /** web segmented pills: bg-slate-100 rounded-lg p-1 · active bg-white text-primary-700 shadow-sm */
 export function KitSeg<T extends string>({ items, value, onChange, testidPrefix, flex }: { items: { v: T; l: string; icon?: MdiName }[]; value: T; onChange: (v: T) => void; testidPrefix: string; flex?: boolean }) {
   const { P, dark, subtle } = useQrPalette();
   return (
-    <View style={{ flexDirection: "row", gap: 4, backgroundColor: subtle, borderRadius: 8, padding: 4, alignSelf: flex ? "stretch" : "flex-start" }}>
+    <View style={{ flexDirection: "row", gap: 4, backgroundColor: subtle, borderRadius: 6, padding: 4, alignSelf: flex ? "stretch" : "flex-start" }}>
       {items.map((it) => {
         const on = value === it.v;
         return (

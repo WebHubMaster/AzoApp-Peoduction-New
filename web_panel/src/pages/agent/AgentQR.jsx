@@ -71,7 +71,7 @@ export default function AgentQR() {
               <button key={t.key} onClick={() => setTab(t.key)}
                 data-testid={`agent-nav-${t.key}`}
                 className="flex-1 flex flex-col items-center gap-1 py-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-                <span className={`px-4 py-1 rounded-full transition-all ${on ? "bg-blue-50 dark:bg-blue-900/40" : ""}`}>
+                <span className={`px-4 py-1 rounded-md transition-all ${on ? "bg-blue-50 dark:bg-blue-900/40" : ""}`}>
                   <t.icon className={`w-5 h-5 transition-colors ${on ? "text-[#0D47A1]" : "text-slate-400"}`} strokeWidth={on ? 2.4 : 2} />
                 </span>
                 <span className={`text-[10px] font-medium transition-colors ${on ? "text-[#0D47A1]" : "text-slate-400"}`}>{t.label}</span>
@@ -219,7 +219,7 @@ function WalletTab({ me, wallet, onChanged, onProfile }) {
               <div className="text-sm text-slate-700 dark:text-slate-200">{money(w.amount)}</div>
               <div className="text-[10px] text-slate-400">{new Date(w.requested_at).toLocaleString()}</div>
             </div>
-            <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : w.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{w.status}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-md capitalize ${w.status === "approved" ? "bg-emerald-100 text-emerald-700" : w.status === "rejected" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{w.status}</span>
           </div>
         ))}
         {withdrawals.length === 0 && <p className="text-sm text-slate-400 py-3 text-center">No withdrawals yet.</p>}
@@ -282,7 +282,7 @@ function ProfileTab({ me, onChanged, logout }) {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2"><Banknote className="w-4 h-4 text-[#0D47A1]" /> Bank details</h3>
           {bank && (
-            <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${bank.verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${bank.verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
               {bank.verified ? <><ShieldCheck className="w-3 h-3" /> Verified</> : "Pending verify"}
             </span>
           )}

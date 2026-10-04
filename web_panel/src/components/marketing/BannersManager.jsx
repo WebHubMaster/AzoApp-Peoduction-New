@@ -234,14 +234,14 @@ export default function BannersManager() {
                       <span className="h-7 w-7 grid place-items-center rounded-lg bg-black/40 text-white cursor-grab"><GripVertical className="h-4 w-4" /></span>
                       <Badge status={b.status === "active" ? "active" : "inactive"} />
                     </div>
-                    <span className="absolute top-2 right-2 text-[10px] font-semibold bg-black/45 text-white px-2 py-0.5 rounded-full">#{(b.order ?? 0) + 1}</span>
+                    <span className="absolute top-2 right-2 text-[10px] font-semibold bg-black/45 text-white px-2 py-0.5 rounded-md">#{(b.order ?? 0) + 1}</span>
                   </div>
                   <div className="p-4">
                     <p className="font-semibold text-slate-800 dark:text-slate-100 truncate">{b.title}</p>
                     <p className="text-xs text-slate-400 truncate">{b.subtitle}</p>
                     <div className="flex flex-wrap gap-1.5 mt-2 text-[10px]">
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 capitalize">{(b.position || "home_hero").replace("_", " ")}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">P{b.priority || 1}</span>
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 capitalize">{(b.position || "home_hero").replace("_", " ")}</span>
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">P{b.priority || 1}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500">
                       <span>{(b.clicks || 0).toLocaleString("en-IN")} clicks</span>

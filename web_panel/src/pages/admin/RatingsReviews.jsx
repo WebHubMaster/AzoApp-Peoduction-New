@@ -106,7 +106,7 @@ export default function RatingsReviews() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1">Stars</span>
               {[0, 5, 4, 3, 2, 1].map((r) => (
                 <button key={r} onClick={() => { setPage(1); setRating(r); }} data-testid={`rv-filter-${r}`}
-                  className={`h-8 px-3.5 rounded-full text-xs font-bold border transition-all ${rating === r ? "bg-primary-700 text-white border-transparent shadow-sm shadow-primary-700/30" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700"}`}>
+                  className={`h-8 px-3.5 rounded-md text-xs font-bold border transition-all ${rating === r ? "bg-primary-700 text-white border-transparent shadow-sm shadow-primary-700/30" : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-300 hover:text-primary-700"}`}>
                   {r === 0 ? "All" : `${r}★`}
                 </button>
               ))}

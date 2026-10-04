@@ -31,7 +31,7 @@ function PlanPreviewCard({ plan, device = "desktop" }) {
     <div className={`mx-auto ${device === "mobile" ? "max-w-[280px]" : "max-w-[340px]"}`}>
       <div className="rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
         <div className="p-5 text-white relative" style={{ background: `linear-gradient(135deg, ${p.color || BRAND}, ${p.color || BRAND}dd)` }}>
-          {p.badge && <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/25 backdrop-blur px-2 py-0.5 rounded-full">{p.badge}</span>}
+          {p.badge && <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/25 backdrop-blur px-2 py-0.5 rounded-md">{p.badge}</span>}
           <Crown className="h-6 w-6 mb-2 opacity-90" />
           <p className="font-heading font-extrabold text-lg leading-tight">{p.name || "Plan name"}</p>
           <p className="text-xs opacity-80">{p.tagline || "Your catchy tagline"}</p>
@@ -40,7 +40,7 @@ function PlanPreviewCard({ plan, device = "desktop" }) {
             {save > 0 && <span className="text-sm line-through opacity-70 mb-1">{fmt(p.original_price)}</span>}
             <span className="text-[11px] opacity-80 mb-1">/ {p.duration_days || 0}d</span>
           </div>
-          {pct > 0 && <span className="inline-block mt-1 text-[11px] font-bold bg-white/25 px-2 py-0.5 rounded-full">Save {pct}%</span>}
+          {pct > 0 && <span className="inline-block mt-1 text-[11px] font-bold bg-white/25 px-2 py-0.5 rounded-md">Save {pct}%</span>}
         </div>
         <div className="p-5 space-y-2.5">
           {(p.discount_pct > 0) && <Benefit text={`${p.discount_pct}% off every booking${p.max_discount_per_booking > 0 ? ` (up to ${fmt(p.max_discount_per_booking)})` : ""}`} />}
@@ -239,7 +239,7 @@ export default function MembershipManager() {
             {plans.map((p) => (
               <Card key={p.id} data-testid={`mp-plan-${p.id}`} className="p-0 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
                 <div className="p-5 text-white relative" style={{ background: `linear-gradient(135deg, ${p.color || BRAND}, ${p.color || BRAND}dd)` }}>
-                  {p.badge && <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/25 px-2 py-0.5 rounded-full">{p.badge}</span>}
+                  {p.badge && <span className="absolute top-3 right-3 text-[10px] font-bold bg-white/25 px-2 py-0.5 rounded-md">{p.badge}</span>}
                   <div className="flex items-center gap-2"><Crown className="h-5 w-5" /><p className="font-heading font-bold">{p.name}</p></div>
                   <p className="text-[11px] opacity-80 mt-0.5">{p.tagline}</p>
                   <div className="mt-3 flex items-end gap-2">
@@ -250,9 +250,9 @@ export default function MembershipManager() {
                 </div>
                 <div className="p-5 flex-1 flex flex-col">
                   <div className="flex flex-wrap gap-1.5 text-[11px] mb-3">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">{p.discount_pct}% off</span>
-                    {p.free_visits > 0 && <span className="px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">{p.free_visits} free visits</span>}
-                    {p.priority_support && <span className="px-2 py-0.5 rounded-full bg-violet-50 text-violet-700">Priority</span>}
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">{p.discount_pct}% off</span>
+                    {p.free_visits > 0 && <span className="px-2 py-0.5 rounded-md bg-sky-50 text-sky-700">{p.free_visits} free visits</span>}
+                    {p.priority_support && <span className="px-2 py-0.5 rounded-md bg-violet-50 text-violet-700">Priority</span>}
                     <Badge status={p.status === "active" ? "active" : "inactive"} />
                   </div>
                   <ul className="space-y-1.5 flex-1">
@@ -313,8 +313,8 @@ function Subscribers({ subs }) {
   const expBadge = (r) => {
     if (r.status !== "active") return null;
     if (r.days_left <= 0) return <Badge status="expired">Expired</Badge>;
-    if (r.days_left <= 3) return <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Expires in {r.days_left}d</span>;
-    if (r.days_left <= 7) return <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Expires in {r.days_left}d</span>;
+    if (r.days_left <= 3) return <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-md">Expires in {r.days_left}d</span>;
+    if (r.days_left <= 7) return <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md">Expires in {r.days_left}d</span>;
     return null;
   };
   return (

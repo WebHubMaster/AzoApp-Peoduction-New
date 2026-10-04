@@ -18,7 +18,7 @@ function LegalModal({ doc, onClose }: { doc: "terms" | "privacy" | null; onClose
       <View style={{ flex: 1, backgroundColor: "#fff", paddingTop: insets.top }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: AUTH.line }}>
           <Text numberOfLines={1} style={{ flex: 1, fontSize: 16, fontWeight: "800", color: AUTH.ink }}>{title}</Text>
-          <Pressable testID="legal-close" onPress={onClose} style={{ height: 36, width: 36, borderRadius: 8, borderWidth: 1, borderColor: AUTH.line, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={18} color={AUTH.ink} /></Pressable>
+          <Pressable testID="legal-close" onPress={onClose} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: AUTH.line, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={18} color={AUTH.ink} /></Pressable>
         </View>
         {doc ? <WebView testID="legal-webview" source={{ uri: legalUrl(doc) }} startInLoadingState renderLoading={() => <ActivityIndicator color={AUTH.blue} style={{ marginTop: 40 }} />} style={{ flex: 1, backgroundColor: "#F8FAFC" }} /> : null}
       </View>

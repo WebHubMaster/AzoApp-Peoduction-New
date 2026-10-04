@@ -192,7 +192,7 @@ export default function PeopleList({ role, onView, onCountsChanged, pro = false 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className={`h-12 w-12 rounded-2xl text-white flex items-center justify-center shadow-lg ${pro ? "bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/25" : "bg-gradient-to-br from-primary-600 to-primary-400 shadow-primary-600/25"}`}><HeadIcon className="h-6 w-6" /></div>
-          <div><h1 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight flex items-center gap-2">{title}{pro && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">AzoApp Pro members only</span>}</h1>
+          <div><h1 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-tight flex items-center gap-2">{title}{pro && <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700">AzoApp Pro members only</span>}</h1>
             <p className="text-xs text-slate-400" data-testid="total-records">{kp.data?.total ?? data?.total ?? "—"} total records{unread ? <span className="ml-2 inline-flex items-center gap-1 text-red-600 font-semibold"><span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />{unread} unreviewed profile update{unread > 1 ? "s" : ""}</span> : null}</p></div>
         </div>
         <div className="flex items-center gap-2">
@@ -210,7 +210,7 @@ export default function PeopleList({ role, onView, onCountsChanged, pro = false 
             <SearchBox value={q} onChange={setQ} placeholder={cfg.searchHint} testId="people-search" />
             <div className="flex flex-wrap items-center gap-2">
               <RangeCalendar value={{ from: filters.joined_from || "", to: filters.joined_to || "" }} onChange={(r) => setFilters((f) => ({ ...f, joined_from: r.from, joined_to: r.to }))} label="Joined date" testId="joined-range" align="right" />
-              <Btn onClick={() => setDrawer(true)} data-testid="open-filters" className={activeChips.length ? "ring-primary-300 text-primary-700" : ""}><SlidersHorizontal className="h-4 w-4" />Filters{activeChips.length ? <span className="h-5 min-w-[20px] px-1 rounded-full bg-primary-600 text-white text-[10px] font-bold flex items-center justify-center">{activeChips.length}</span> : null}</Btn>
+              <Btn onClick={() => setDrawer(true)} data-testid="open-filters" className={activeChips.length ? "ring-primary-300 text-primary-700" : ""}><SlidersHorizontal className="h-4 w-4" />Filters{activeChips.length ? <span className="h-5 min-w-[20px] px-1 rounded-md bg-primary-600 text-white text-[10px] font-bold flex items-center justify-center">{activeChips.length}</span> : null}</Btn>
               <div className="relative">
                 <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
                 <PremiumSelect data-testid="sort-select" value={sort.key} onChange={(e) => setSort({ key: e.target.value, order: e.target.value === "name" ? "asc" : "desc" })} searchable={false} className="!h-10 !w-auto min-w-[190px] rounded-xl">

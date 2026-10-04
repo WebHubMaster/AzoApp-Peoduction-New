@@ -235,7 +235,7 @@ export default function TestimonialsManager() {
                 <div key={t.id} className={`relative group ${t.status !== "active" ? "opacity-60" : ""}`}>
                   <TestimonialCard t={t} />
                   {/* order badge */}
-                  <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold bg-white/90 text-slate-500 rounded-full px-2 py-0.5 border border-slate-200">
+                  <span className="absolute top-2 left-2 inline-flex items-center gap-1 text-[10px] font-bold bg-white/90 text-slate-500 rounded-md px-2 py-0.5 border border-slate-200">
                     <GripVertical className="h-3 w-3" /> #{t.order ?? 0}
                   </span>
                   {/* actions */}

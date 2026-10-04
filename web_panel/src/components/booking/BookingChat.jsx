@@ -125,7 +125,7 @@ export default function BookingChat({ booking, role = "customer", open: controll
       <div className="flex gap-2 p-3 border-t border-primary-100 dark:border-primary-800/50">
         <Button onClick={() => setOpen(true)} data-testid={`chat-open-${booking.code}`} className="flex-1 bg-primary-700 hover:bg-primary-800 rounded-xl h-11">
           <MessageCircle className="h-4 w-4 mr-1.5" /> Chat
-          {unread ? <span data-testid={`chat-unread-${booking.code}`} className="ml-1.5 text-[11px] bg-red-500 rounded-full px-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center font-bold">{unread > 9 ? "9+" : unread}</span> : null}
+          {unread ? <span data-testid={`chat-unread-${booking.code}`} className="ml-1.5 text-[11px] bg-red-500 rounded-md px-1.5 min-w-[18px] h-[18px] inline-flex items-center justify-center font-bold">{unread > 9 ? "9+" : unread}</span> : null}
         </Button>
         {counterpart?.phone && (
           <a href={`tel:${counterpart.phone}`} data-testid={`call-${otherLabel}-${booking.code}`}
@@ -193,7 +193,7 @@ export default function BookingChat({ booking, role = "customer", open: controll
           <div className="flex gap-2 overflow-x-auto no-scrollbar px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900" data-testid="chat-quick">
             {quick.map((q) => (
               <button key={q} onClick={() => send(q)} disabled={sending} data-testid={`quick-${q.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`}
-                className="whitespace-nowrap text-xs font-semibold px-3 h-9 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-100 dark:border-primary-800 azo-press hover:bg-primary-100">
+                className="whitespace-nowrap text-xs font-semibold px-3 h-9 rounded-md bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-100 dark:border-primary-800 azo-press hover:bg-primary-100">
                 {q}
               </button>
             ))}

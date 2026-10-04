@@ -114,13 +114,13 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       </Pressable>
 
       {/* Summary hero — matches the requested layout */}
-      <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 22 }}>
+      <LinearGradient colors={[colors.primary, "#0f52ba", "#0a2e6b"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 22 }}>
         <Text style={{ color: "#BFDBFE", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 1.6 }}>{s.plan_label || s.plan_type} {s.category_name || "Maid"} Subscription</Text>
         <Text style={{ color: "#fff", fontSize: 22, fontWeight: "800", marginTop: 4 }}>{s.customer_name}</Text>
         <Text style={{ color: "#BFDBFE", fontSize: 13, marginTop: 2 }}>{shortDate(s.start_date)} – {shortDate(s.end_date)}</Text>
         <View style={{ flexDirection: "row", gap: 8, marginTop: 18 }}>
           {[["Working", s.working_days], ["Completed", s.completed_days], ["Absent", s.absent_days]].map(([k, v]) => (
-            <View key={String(k)} style={{ flex: 1, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.12)", padding: 10 }}>
+            <View key={String(k)} style={{ flex: 1, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.12)", padding: 10 }}>
               <Text style={{ color: "#BFDBFE", fontSize: 10, textTransform: "uppercase" }}>{k}</Text>
               <Text style={{ color: "#fff", fontSize: 18, fontWeight: "800", marginTop: 2 }}>{v ?? 0}</Text>
             </View>
@@ -161,7 +161,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       <Surface style={{ padding: 18 }}>
         <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800", marginBottom: 12 }}>Daily schedule & earnings</Text>
         {pendingDays.length > 0 ? (
-          <View testID="sub-pending-banner" style={{ backgroundColor: "#FFFBEB", borderRadius: 10, padding: 10, marginBottom: 10 }}>
+          <View testID="sub-pending-banner" style={{ backgroundColor: "#FFFBEB", borderRadius: 6, padding: 10, marginBottom: 10 }}>
             <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600" }}>{pendingDays.length} past day(s) not marked yet — aap neeche "Mark done" se baad me bhi mark kar sakti hain.</Text>
           </View>
         ) : null}
@@ -169,7 +169,7 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
           {schedule.map((d) => {
             const m = DAY_META[d.status] || DAY_META.scheduled;
             return (
-              <View key={d.date} testID={`sub-day-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, padding: 10 }}>
+              <View key={d.date} testID={`sub-day-${d.date}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 6, borderWidth: 1, borderColor: colors.surfaceSubtle, padding: 10 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: colors.text, fontWeight: "700", fontSize: 13 }}>{dayLabel(d.date)} · {shortDate(d.date)}</Text>
                   <View style={{ alignSelf: "flex-start", marginTop: 4, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: m.bg }}>
@@ -208,20 +208,20 @@ function SubDetail({ sub, onBack, reload }: { sub: any; onBack: () => void; relo
       <Modal visible={!!completeFor} transparent animationType="fade" onRequestClose={() => setCompleteFor(null)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.5)", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <View style={{ backgroundColor: colors.surface, borderRadius: 10, padding: 20, width: "100%", maxWidth: 380 }}>
+          <View style={{ backgroundColor: colors.surface, borderRadius: 6, padding: 20, width: "100%", maxWidth: 380 }}>
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>Complete Service</Text>
             <Text style={{ color: SLATE, fontSize: 12, marginTop: 4 }}>Kaam khatam karke complete mark karein. Photo proof optional hai.</Text>
             {photo ? (
-              <Image source={{ uri: photo }} style={{ height: 140, borderRadius: 12, marginTop: 12 }} resizeMode="cover" />
+              <Image source={{ uri: photo }} style={{ height: 140, borderRadius: 6, marginTop: 12 }} resizeMode="cover" />
             ) : null}
-            <Pressable testID="sub-photo-pick" onPress={pickPhoto} style={{ marginTop: 12, height: 42, borderRadius: 12, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
+            <Pressable testID="sub-photo-pick" onPress={pickPhoto} style={{ marginTop: 12, height: 42, borderRadius: 6, borderWidth: 1.5, borderStyle: "dashed", borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6 }}>
               <Icon name="camera-outline" size={16} color={colors.primary} />
               <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>{photo ? "Change photo" : "Add photo proof"}</Text>
             </Pressable>
             <TextInput testID="sub-complete-note" value={note} onChangeText={setNote} placeholder="Note (optional)" placeholderTextColor={SLATE}
               style={{ marginTop: 10, height: 42, borderWidth: 1, borderColor: colors.surfaceSubtle, borderRadius: 6, paddingHorizontal: 12, color: colors.text }} />
             <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-              <Pressable testID="sub-complete-cancel" onPress={() => setCompleteFor(null)} style={{ flex: 1, height: 44, borderRadius: 12, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
+              <Pressable testID="sub-complete-cancel" onPress={() => setCompleteFor(null)} style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                 <Text style={{ color: SLATE, fontWeight: "700" }}>Cancel</Text>
               </Pressable>
               <Pressable testID="sub-complete-confirm" disabled={complete.isPending} onPress={() => completeFor && complete.mutate({ date: completeFor, note, photo })}
@@ -275,7 +275,7 @@ export default function MaidSubscriptions() {
               {upcoming.map((t) => (
                 <Pressable key={`${t.subId}-${t.date}`} testID={`maid-task-${t.subId}-${t.date}`} onPress={() => setOpenId(t.subId)}
                   style={{ flexDirection: "row", alignItems: "center", gap: 10, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, paddingTop: 10 }}>
-                  <View style={{ borderRadius: 8, backgroundColor: t.date === todayIso() ? "#ECFDF5" : colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 4 }}>
+                  <View style={{ borderRadius: 6, backgroundColor: t.date === todayIso() ? "#ECFDF5" : colors.surfaceSubtle, paddingHorizontal: 8, paddingVertical: 4 }}>
                     <Text style={{ color: t.date === todayIso() ? "#059669" : colors.primary, fontSize: 11, fontWeight: "800" }}>{dayLabel(t.date)}</Text>
                   </View>
                   <Text style={{ color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 }}>{t.customer}</Text>
@@ -286,7 +286,7 @@ export default function MaidSubscriptions() {
           ) : null}
 
           {q.isLoading ? (
-            <Surface style={{ padding: 24 }}><View style={{ height: 120, borderRadius: 12, backgroundColor: colors.surfaceSubtle }} /></Surface>
+            <Surface style={{ padding: 24 }}><View style={{ height: 120, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} /></Surface>
           ) : subs.length === 0 ? (
             <KitEmpty icon="calendar-heart" title="No subscriptions yet" desc="Recurring maid subscriptions assigned to you will appear here." testID="maid-subs-empty" />
           ) : (

@@ -94,7 +94,7 @@ export default function SplashGate() {
               await logout();
               router.replace("/(auth)/welcome");
             }}
-            style={{ backgroundColor: "#fff", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12 }}
+            style={{ backgroundColor: "#fff", paddingHorizontal: 24, paddingVertical: 12, borderRadius: 6 }}
           >
             <Text style={{ color: "#0D47A1", fontWeight: "800" }}>Switch account</Text>
           </Pressable>

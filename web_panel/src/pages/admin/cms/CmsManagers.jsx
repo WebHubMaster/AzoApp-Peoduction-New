@@ -232,7 +232,7 @@ export function FaqManagerPro() {
                       <div className="text-xs text-slate-500 mt-1 line-clamp-2 rt-editor" dangerouslySetInnerHTML={{ __html: f.answer || "" }} />
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${f.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}>{f.status === "active" ? "Active" : "Hidden"}</span>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-md ${f.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}>{f.status === "active" ? "Active" : "Hidden"}</span>
                       <button onClick={() => setEditing({ ...f })} className="text-slate-400 hover:text-[#0D47A1]" data-testid={`faq-edit-${f.id}`}><Pencil className="h-4 w-4" /></button>
                       <button onClick={() => del(f.id)} className="text-slate-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                     </div>
@@ -443,8 +443,8 @@ export function BlogManagerPro() {
               </div>
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${statusPill(b.status)}`}>{b.status}</span>
-                  {b.category && <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500">{b.category}</span>}
+                  <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${statusPill(b.status)}`}>{b.status}</span>
+                  {b.category && <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500">{b.category}</span>}
                 </div>
                 <h3 className="font-heading font-bold text-slate-900 dark:text-white text-sm line-clamp-2">{b.title}</h3>
                 <p className="text-xs text-slate-500 mt-1 line-clamp-2">{b.excerpt}</p>

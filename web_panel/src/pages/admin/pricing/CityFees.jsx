@@ -13,7 +13,7 @@ export default function CityFees({ city, defaults, fees, setFees }) {
   return (
     <div className="space-y-3 max-w-3xl" data-testid="pm-fees">
       <div className="flex items-center gap-2">
-        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#0D47A1] bg-[#0D47A1]/[0.06] px-2.5 py-1 rounded-full"><MapPin className="h-3 w-3" />{city}</span>
+        <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#0D47A1] bg-[#0D47A1]/[0.06] px-2.5 py-1 rounded-md"><MapPin className="h-3 w-3" />{city}</span>
         <p className="text-[13px] text-slate-500">Leave blank to use the global default (Business Settings).</p>
       </div>
       <div className="grid sm:grid-cols-2 gap-2.5">

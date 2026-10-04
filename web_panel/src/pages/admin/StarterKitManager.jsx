@@ -95,7 +95,7 @@ function MandatoryAreas({ selected, onChange }) {
       <div className="flex flex-wrap gap-1.5 mb-2 min-h-[26px]" data-testid="mandatory-selected">
         {(selected || []).length === 0 && <span className="text-[12px] text-slate-400">No mandatory areas — Starter Kit is optional everywhere.</span>}
         {(selected || []).map((p) => (
-          <span key={p} className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-[12px] font-semibold rounded-full px-2.5 py-0.5 border border-primary-200">
+          <span key={p} className="inline-flex items-center gap-1 bg-primary-50 text-primary-700 text-[12px] font-semibold rounded-md px-2.5 py-0.5 border border-primary-200">
             {p}
             <button type="button" onClick={() => toggle(p)}><X className="h-3 w-3" /></button>
           </span>
@@ -244,7 +244,7 @@ export default function StarterKitManager() {
               </Field>
             </div>
             {savings > 0 && (
-              <div className="mt-3 inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 rounded-full px-3 py-1 text-sm font-semibold">
+              <div className="mt-3 inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 rounded-md px-3 py-1 text-sm font-semibold">
                 <IndianRupee className="h-3.5 w-3.5" /> Partner saves ₹{savings.toLocaleString("en-IN")}
               </div>
             )}

@@ -116,7 +116,7 @@ export const AddressForm = ({ value, onChange, cfg = {}, onServiceability, mapsK
         <div className="flex gap-2 mt-1">
           {["Home", "Office", "Parents", "Rental", "Other"].map((l) => (
             <button key={l} type="button" data-testid={`addr-label-${l.toLowerCase()}`} onClick={() => set("label", l)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${value.label === l ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-500"}`}>
+              className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${value.label === l ? "border-primary-700 bg-primary-50 text-primary-700" : "border-slate-200 text-slate-500"}`}>
               {l}
             </button>
           ))}

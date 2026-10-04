@@ -72,12 +72,12 @@ export default function ServicePriceRow({ s, sp = {}, onChange, selectable, sele
 
         {s.addons.length > 0 && (
           <button onClick={() => setOpen((o) => !o)} data-testid={`${tid}-addons-chip`}
-            className="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-full hover:bg-indigo-100">
+            className="hidden md:inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-1 rounded-md hover:bg-indigo-100">
             <Plus className="h-3 w-3" />{s.addons.length} add-on{s.addons.length > 1 ? "s" : ""}
           </button>
         )}
 
-        <span className={`hidden lg:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-full border ${st.cls}`}>
+        <span className={`hidden lg:inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border ${st.cls}`}>
           <StIcon className="h-3 w-3" />{st.label}
         </span>
 

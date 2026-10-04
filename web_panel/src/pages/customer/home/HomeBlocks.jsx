@@ -188,7 +188,7 @@ export function BlogSection({ title, subtitle, seeded, limit }) {
                 </div>
                 <div className="p-5">
                   <div className="flex items-center gap-2 text-[11px] text-slate-400 mb-2">
-                    {b.category && <span className="px-2 py-0.5 rounded-full bg-primary-50 text-primary-700 font-semibold">{b.category}</span>}
+                    {b.category && <span className="px-2 py-0.5 rounded-md bg-primary-50 text-primary-700 font-semibold">{b.category}</span>}
                     {b.publish_at || b.created_at ? <span className="inline-flex items-center gap-1"><Calendar className="h-3 w-3" />{fmtDate(b.publish_at || b.created_at)}</span> : null}
                   </div>
                   <h3 className="font-heading font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-primary-700">{b.title}</h3>

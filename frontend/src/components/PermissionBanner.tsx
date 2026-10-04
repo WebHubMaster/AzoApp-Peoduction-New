@@ -42,7 +42,7 @@ export function PermissionBanner() {
   return (
     <View testID="permission-banner" style={{ backgroundColor: "#FFF7ED", borderColor: "#FDBA74", borderWidth: 1, borderRadius: radius.lg, padding: spacing.md, gap: 10 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: "#FED7AA", alignItems: "center", justifyContent: "center" }}>
+        <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: "#FED7AA", alignItems: "center", justifyContent: "center" }}>
           <Icon name="bell-alert" size={22} color="#C2410C" />
         </View>
         <View style={{ flex: 1 }}>
@@ -64,7 +64,7 @@ export function PermissionBanner() {
           <Icon name="bell-ring" size={16} color="#fff" />
           <Text style={{ color: "#fff", fontWeight: "800", fontSize: fontSize.sm }}>Turn On Alerts</Text>
         </Pressable>
-        <Pressable testID="permission-banner-later" onPress={dismiss} style={({ pressed }) => ({ paddingHorizontal: 16, height: 42, borderRadius: 12, borderWidth: 1, borderColor: "#FDBA74", alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+        <Pressable testID="permission-banner-later" onPress={dismiss} style={({ pressed }) => ({ paddingHorizontal: 16, height: 42, borderRadius: 6, borderWidth: 1, borderColor: "#FDBA74", alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
           <Text style={{ color: "#9A3412", fontWeight: "800", fontSize: fontSize.sm }}>Dismiss</Text>
         </Pressable>
       </View>

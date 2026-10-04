@@ -95,3 +95,10 @@ Implemented:
 - Installed missing web_panel node_modules (craco) so the supervised preview runs.
 
 Verification: web_panel preview compiles & loads (200); buttons, search boxes and inputs render at 6px, cards keep their rounding. frontend tsc shows only pre-existing type warnings (no new errors).
+
+## [2026-06] UI follow-up: fully uniform 6px (cards, sheets, chips/pills) + shared token + focus ring
+- Shared radius token: web_panel `--radius` -> 6px and tailwind borderRadius scale (DEFAULT/sm/md/lg/xl/2xl/3xl) all = var(--radius); `rounded-full` kept for circles. Native: theme.ts radius sm/md/lg/xl = 6 (pill kept 999). => future screens stay 6px automatically.
+- Card Corners: all cards & sheets now 6px (token + circle-aware literal sweep of borderRadius 7–16 and sheet top-corner radii in RN; web cards via token).
+- Pill Buttons: status chips & filter pills -> 6px. RN: pill-radius chips (paddingHorizontal + alignSelf flex-start) -> 6. Web: `rounded-full` -> `rounded-md` only on pill-like class strings (has px-, not a circle). Avatars/dots/icon-circles (equal w/h, grid, aspect) preserved.
+- Focus Styles: web_panel input/textarea/select get a crisper 2px focus ring (ring-primary-300) that follows the 6px radius.
+- Verified on web preview: uniform 6px across cards, chips, inputs, buttons; circles intact. frontend tsc: no new errors.

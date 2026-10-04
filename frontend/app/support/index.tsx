@@ -65,15 +65,15 @@ export default function SupportList() {
     .sort((x, y) => (sort === "newest" ? 1 : -1) * (new Date(y.updated_at || y.created_at).getTime() - new Date(x.updated_at || x.created_at).getTime()));
   const DD = ({ id, value, options, onChange, flex }: { id: string; value: string; options: [string, string][]; onChange: (v: string) => void; flex?: number }) => (
     <View style={{ flex: flex ?? 1 }}>
-      <Pressable ref={(n) => { triggerRefs.current[id] = n; }} testID={`support-${id}`} onPress={() => (openDD === id ? setOpenDD(null) : openDropdown(id))} style={{ height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+      <Pressable ref={(n) => { triggerRefs.current[id] = n; }} testID={`support-${id}`} onPress={() => (openDD === id ? setOpenDD(null) : openDropdown(id))} style={{ height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ color: colors.textSecondary, fontSize: 15 }} numberOfLines={1}>{options.find((o) => o[0] === value)?.[1]}</Text><Icon name="chevron-down" size={18} color={SLATE400} />
       </Pressable>
       {/* Menu rendered in a foreground Modal (anchored to the trigger) so it floats ABOVE the ticket list cards instead of being painted behind them */}
       <Modal visible={openDD === id} transparent animationType="fade" onRequestClose={() => setOpenDD(null)} statusBarTranslucent>
         <Pressable testID={`support-${id}-backdrop`} style={{ flex: 1 }} onPress={() => setOpenDD(null)}>
           {ddAnchor ? (
-            <View style={{ position: "absolute", top: ddAnchor.y + ddAnchor.h + 4, left: ddAnchor.x, width: ddAnchor.w, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 4, boxShadow: "0px 10px 28px rgba(15,23,42,0.22)", elevation: 24 }}>
-              {options.map(([v, l]) => <Pressable key={v} testID={`support-${id}-${v || "all"}`} onPress={() => { onChange(v); setOpenDD(null); }} style={{ paddingHorizontal: 12, paddingVertical: 10, borderRadius: 8, backgroundColor: v === value ? colors.primarySubtle : "transparent" }}><Text style={{ color: v === value ? colors.primary : colors.textSecondary, fontSize: 14, fontWeight: "500" }}>{l}</Text></Pressable>)}
+            <View style={{ position: "absolute", top: ddAnchor.y + ddAnchor.h + 4, left: ddAnchor.x, width: ddAnchor.w, backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 4, boxShadow: "0px 10px 28px rgba(15,23,42,0.22)", elevation: 24 }}>
+              {options.map(([v, l]) => <Pressable key={v} testID={`support-${id}-${v || "all"}`} onPress={() => { onChange(v); setOpenDD(null); }} style={{ paddingHorizontal: 12, paddingVertical: 10, borderRadius: 6, backgroundColor: v === value ? colors.primarySubtle : "transparent" }}><Text style={{ color: v === value ? colors.primary : colors.textSecondary, fontSize: 14, fontWeight: "500" }}>{l}</Text></Pressable>)}
             </View>
           ) : null}
         </Pressable>
@@ -81,7 +81,7 @@ export default function SupportList() {
     </View>
   );
   const NewBtn = ({ testID }: { testID: string }) => (
-    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 10, height: 52, paddingHorizontal: 24, borderRadius: 12, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
+    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 10, height: 52, paddingHorizontal: 24, borderRadius: 6, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
       <Icon name="plus" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 17 }}>New Ticket</Text>
     </Pressable>
   );
@@ -103,7 +103,7 @@ export default function SupportList() {
             </View>
             <NewBtn testID="new-ticket" />
             <View style={{ flexDirection: "row", gap: 10, zIndex: 30 }}>
-              <View style={{ flex: 1.8, height: 48, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <View style={{ flex: 1.8, height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Icon name="magnify" size={18} color={SLATE400} /><TextInput testID="support-search" value={search} onChangeText={setSearch} placeholder="Search your tickets..." placeholderTextColor={SLATE400} style={{ flex: 1, color: colors.text, fontSize: 15 }} />
               </View>
               <DD id="range" value={range} options={[["all", "All time"], ["7d", "Last 7 days"], ["30d", "Last 30 days"]]} onChange={setRange} />
@@ -116,7 +116,7 @@ export default function SupportList() {
           </View>
         }
         ListEmptyComponent={isLoading ? <View style={{ gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View> : (
-          <View testID="support-empty" style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", backgroundColor: colors.surface, paddingVertical: 60, paddingHorizontal: 24, alignItems: "center" }}>
+          <View testID="support-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", backgroundColor: colors.surface, paddingVertical: 60, paddingHorizontal: 24, alignItems: "center" }}>
             <Icon name="inbox-outline" size={72} color="#CBD5E1" />
             <Text style={{ color: "#475569", fontSize: 22, fontWeight: "600", marginTop: 20 }}>No tickets found</Text>
             <Text style={{ color: SLATE400, fontSize: 16, marginTop: 6, textAlign: "center" }}>{tickets.length ? "Try changing your search or filters." : "Need help? Raise your first support ticket."}</Text>
@@ -145,7 +145,7 @@ export default function SupportList() {
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }} behavior="padding" keyboardVerticalOffset={0}>
           <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} />
-          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.sm }}>
+          <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg, gap: spacing.sm }}>
             <Text style={{ color: colors.text, fontSize: fontSize.lg, fontWeight: "900" }}>New Ticket</Text>
             <TextInput testID="ticket-subject" value={subject} onChangeText={setSubject} placeholder="Subject" placeholderTextColor={colors.textMuted} style={inputStyle(colors)} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>

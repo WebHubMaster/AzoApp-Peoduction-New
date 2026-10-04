@@ -152,7 +152,7 @@ export default function OnboardingSplash() {
                               </div>
                               <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
                                 {S.art.map((a) => (
-                                  <span key={a} className="inline-flex items-center gap-1 rounded-full bg-white/10 backdrop-blur px-3 py-1 text-[12px] font-medium text-white/85 ring-1 ring-white/10">
+                                  <span key={a} className="inline-flex items-center gap-1 rounded-md bg-white/10 backdrop-blur px-3 py-1 text-[12px] font-medium text-white/85 ring-1 ring-white/10">
                                     <ShieldCheck className="h-3.5 w-3.5 text-emerald-300" /> {a}
                                   </span>
                                 ))}

@@ -310,7 +310,7 @@ export default function PartnerInvoices() {
       {/* ── overlays ── */}
       <ActionSheet open={sortOpen} onClose={() => setSortOpen(false)} title="Sort by" testID="invoice-sort-sheet">
         {SORT_OPTIONS.map(([k, l]) => (
-          <Pressable key={k} testID={`invoice-sort-${k}`} onPress={() => { setSort(k); setSortOpen(false); }} style={{ height: 40, paddingHorizontal: 12, borderRadius: 8, justifyContent: "center", backgroundColor: sort === k ? t.primary50 : "transparent" }}>
+          <Pressable key={k} testID={`invoice-sort-${k}`} onPress={() => { setSort(k); setSortOpen(false); }} style={{ height: 40, paddingHorizontal: 12, borderRadius: 6, justifyContent: "center", backgroundColor: sort === k ? t.primary50 : "transparent" }}>
             <Text style={{ fontSize: 14, fontWeight: sort === k ? "600" : "400", color: sort === k ? t.primary700 : t.t800 }}>{l}</Text>
           </Pressable>
         ))}
@@ -322,7 +322,7 @@ export default function PartnerInvoices() {
           { key: "biz", pkg: "com.whatsapp.w4b", title: "WhatsApp Business", sub: "Send the invoice PDF", tid: "wa-business" },
         ].map((o) => (
           <Pressable key={o.key} testID={o.tid} onPress={() => doWhatsApp(waChooser, o.pkg)}
-            style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10 }}>
+            style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 6 }}>
             <View style={{ width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center", backgroundColor: t.dark ? "rgba(2,44,34,0.4)" : "#ECFDF5" }}>
               <Text style={{ fontSize: 18 }}>✆</Text>
             </View>
@@ -333,7 +333,7 @@ export default function PartnerInvoices() {
           </Pressable>
         ))}
         <Pressable testID="wa-other" onPress={() => { const inv = waChooser; setWaChooser(null); share(inv, "system"); }}
-          style={{ paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10, marginTop: 2, borderTopWidth: 1, borderTopColor: t.border }}>
+          style={{ paddingVertical: 14, paddingHorizontal: 12, borderRadius: 6, marginTop: 2, borderTopWidth: 1, borderTopColor: t.border }}>
           <Text style={{ fontSize: 14, fontWeight: "600", color: t.t700 }}>Other apps…</Text>
         </Pressable>
       </ActionSheet>

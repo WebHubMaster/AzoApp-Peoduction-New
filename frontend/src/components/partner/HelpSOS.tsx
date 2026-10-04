@@ -135,7 +135,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
 
       <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: C.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, overflow: "hidden" }}>
+          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: C.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderBottomWidth: 1, borderBottomColor: C.border }}>
               <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color="#fff" /></View>
               <View style={{ flex: 1 }}>
@@ -151,9 +151,9 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
                 const mine = m.sender_id && m.sender_id === ticket?.user_id;
                 return (
                   <View key={m.id || i} style={{ alignItems: mine ? "flex-end" : "flex-start" }}>
-                    <View style={{ maxWidth: "78%", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: mine ? C.primary : C.surface, borderWidth: mine ? 0 : 1, borderColor: C.border }}>
+                    <View style={{ maxWidth: "78%", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: mine ? C.primary : C.surface, borderWidth: mine ? 0 : 1, borderColor: C.border }}>
                       {!mine ? <Text style={{ fontSize: 10, fontWeight: "700", color: C.primary, marginBottom: 2 }}>{m.sender_name || "Support"}</Text> : null}
-                      {(m.attachments || []).filter((a: any) => a.kind !== "pdf").map((a: any, j: number) => <Image key={j} testID="help-sos-msg-photo" source={{ uri: a.thumb_url || a.url }} style={{ width: 200, height: 150, borderRadius: 10, marginTop: 2 }} contentFit="cover" />)}
+                      {(m.attachments || []).filter((a: any) => a.kind !== "pdf").map((a: any, j: number) => <Image key={j} testID="help-sos-msg-photo" source={{ uri: a.thumb_url || a.url }} style={{ width: 200, height: 150, borderRadius: 6, marginTop: 2 }} contentFit="cover" />)}
                       {m.text ? <Text style={{ fontSize: 14, color: mine ? "#fff" : C.text }}>{m.text}</Text> : null}
                     </View>
                   </View>

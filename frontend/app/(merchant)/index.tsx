@@ -47,7 +47,7 @@ function TypeBadge({ type }: { type?: string }) {
   const bg = isCust ? "#E0F2FE" : "#EDE9FE";
   const fg = isCust ? "#0369A1" : "#6D28D9";
   return (
-    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, alignSelf: "flex-start" }}>
+    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, alignSelf: "flex-start" }}>
       <Text style={{ color: fg, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{isCust ? "Customer" : "Partner"}</Text>
     </View>
   );
@@ -68,7 +68,7 @@ function KpiCard({ c }: { c: Kpi }) {
   if (c.primary) {
     return (
       <LinearGradient colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ flex: 1, borderRadius: 10, padding: spacing.lg }}>
+        style={{ flex: 1, borderRadius: 6, padding: spacing.lg }}>
         <Text style={{ color: "#ECFDF5", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>{c.label}</Text>
         <Text style={{ color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4, ...track(24), ...TABULAR }} numberOfLines={1}>{display}</Text>
         {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -76,7 +76,7 @@ function KpiCard({ c }: { c: Kpi }) {
     );
   }
   return (
-    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
+    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 6 }}>
       <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
       <Text style={{ color: c.money ? colors.success : colors.text, fontSize: 18, fontWeight: "800", marginTop: 4, ...track(18), ...TABULAR }} numberOfLines={1}>{display}</Text>
       {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -160,7 +160,7 @@ export default function MerchantHome() {
         testID="merchant-home"
       >
         {/* ── Hero (rounded-3xl = 24) ── */}
-        <LinearGradient colors={HERO} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, overflow: "hidden" }}>
+        <LinearGradient colors={HERO} locations={[0, 0.45, 1]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20, overflow: "hidden" }}>
           <Svg pointerEvents="none" style={StyleSheet.absoluteFill}>
             <Defs>
               <RadialGradient id="mhGlowW" cx="12%" cy="18%" r="62%">
@@ -202,13 +202,13 @@ export default function MerchantHome() {
 
           {/* two cards: lifetime commission + merchant code (rounded-2xl = 16) */}
           <View style={{ flexDirection: "row", gap: spacing.md, marginTop: 16 }}>
-            <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", borderRadius: 10, padding: 14 }}>
+            <View style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.1)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)", borderRadius: 6, padding: 14 }}>
               <Text style={{ color: "rgba(224,242,254,0.7)", fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>Lifetime Commission</Text>
               <Text testID="mh-total-earning" style={{ color: "#6EE7B7", fontSize: 24, fontWeight: "800", marginTop: 4, ...track(24), ...TABULAR }} numberOfLines={1}>{fmt(c.total)}</Text>
               <Text style={{ color: "rgba(224,242,254,0.7)", fontSize: 11, marginTop: 2 }}>{counts.transactions || 0} transactions</Text>
             </View>
             <Pressable testID="mh-merchant-code" onPress={copyCode} style={({ pressed }) => ({ flex: 1, transform: [{ scale: pressed ? 0.98 : 1 }] })}>
-              <LinearGradient colors={AMBER} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 14 }}>
+              <LinearGradient colors={AMBER} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 14 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
                   <Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 10, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }}>Merchant Code</Text>
                   <Icon name="content-copy" size={14} color="rgba(255,251,235,0.9)" />
@@ -238,8 +238,8 @@ export default function MerchantHome() {
             <View key={ri} style={{ flexDirection: "row", gap: spacing.md, alignItems: "stretch" }}>
               {row.map((q) => (
                 <Pressable key={q.k} testID={`mh-quick-${q.k}`} onPress={() => router.push(q.route as any)} style={{ flex: 1 }}>
-                  <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
-                    <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: q.bg, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm }}>
+                  <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 6 }}>
+                    <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: q.bg, alignItems: "center", justifyContent: "center", marginBottom: spacing.sm }}>
                       <Icon name={q.icon} size={20} color={q.fg} />
                     </View>
                     <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }}>{q.label}</Text>
@@ -261,7 +261,7 @@ export default function MerchantHome() {
         </View>
 
         {/* ── Recent commission (rounded-2xl = 16) ── */}
-        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 10 }} testID="mh-recent">
+        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 6 }} testID="mh-recent">
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
             <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", ...track(15) }}>Recent commission</Text>
             <Pressable testID="mh-recent-viewall" onPress={() => router.push("/merchant/commission")} hitSlop={8} style={{ flexDirection: "row", alignItems: "center" }}>
@@ -290,7 +290,7 @@ export default function MerchantHome() {
         </Card>
 
         {/* ── Wallet snapshot (rounded-2xl = 16) ── */}
-        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 10 }} testID="mh-wallet">
+        <Card padded={false} style={{ padding: spacing.lg, borderRadius: 6 }} testID="mh-wallet">
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: spacing.sm }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
               <Icon name="wallet-outline" size={16} color={colors.primary} />
@@ -325,7 +325,7 @@ export default function MerchantHome() {
         </Card>
 
         {/* ── Privacy note (rounded-xl = 12) ── */}
-        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10 }}>
           <View style={{ marginTop: 1 }}><Icon name="shield-check-outline" size={16} color={colors.success} /></View>
           <Text style={{ color: colors.textMuted, fontSize: 11, lineHeight: 17, flex: 1 }}>
             You only see your referred customers, partners and your actual earned commission. Personal contact details are protected.

@@ -251,7 +251,7 @@ export default function Services() {
           <div className="mb-12" data-testid="ratecard-search-results">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-heading font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">Rate card items</h2>
-              <span className="text-[11px] font-bold text-primary-700 bg-primary-50 dark:bg-primary-500/15 dark:text-primary-300 rounded-full px-2 py-0.5">{rcItems.length} found</span>
+              <span className="text-[11px] font-bold text-primary-700 bg-primary-50 dark:bg-primary-500/15 dark:text-primary-300 rounded-md px-2 py-0.5">{rcItems.length} found</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
               {rcItems.map((it) => {

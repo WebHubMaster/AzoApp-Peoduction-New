@@ -267,7 +267,7 @@ export default function ScanQRModule({ code = "", shopName = "My Shop", user }) 
             <QRCodeSVG value={link} size={150} level="M" fgColor="#0b1220" style={{ display: "none" }} />
           </div>
           <div className="min-w-0">
-            <div className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-3 py-1 text-xs font-semibold mb-2"><ShieldCheck className="h-3.5 w-3.5" /> Verified Merchant QR</div>
+            <div className="inline-flex items-center gap-1.5 bg-white/15 rounded-md px-3 py-1 text-xs font-semibold mb-2"><ShieldCheck className="h-3.5 w-3.5" /> Verified Merchant QR</div>
             <h2 className="font-heading font-extrabold text-2xl">{businessName}</h2>
             <p className="text-primary-100 text-sm">{config.tagline || "Trusted Home Services"}</p>
             <p className="text-primary-100 text-xs mt-2 break-all">{link}</p>

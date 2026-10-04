@@ -531,15 +531,15 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
           {String(basic.pincode || "").length === 6 && (
             <div data-testid="reg-pincode-badge" className="-mt-1">
               {pinChecking ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold px-3 py-1">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold px-3 py-1">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking availability…
                 </span>
               ) : pinCov && pinCov.serviceable === true ? (
-                <span data-testid="reg-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3 py-1">
+                <span data-testid="reg-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3 py-1">
                   <CheckCircle2 className="h-3.5 w-3.5" /> We serve your area
                 </span>
               ) : pinCov && pinCov.serviceable === false ? (
-                <span data-testid="reg-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-semibold px-3 py-1">
+                <span data-testid="reg-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-semibold px-3 py-1">
                   <AlertTriangle className="h-3.5 w-3.5" /> Not serviceable
                 </span>
               ) : null}

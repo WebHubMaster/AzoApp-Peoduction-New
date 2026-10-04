@@ -77,7 +77,7 @@ export default function MyCustomJobs() {
                     <p className="font-heading font-bold text-slate-900 dark:text-white truncate">{r.work_name}</p>
                     <p className="text-[11px] text-slate-400 mt-0.5">{r.request_id} · {r.category_name}</p>
                   </div>
-                  <span className={`shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-full ${st.cls}`}>{st.label}</span>
+                  <span className={`shrink-0 text-[11px] font-bold px-2.5 py-1 rounded-md ${st.cls}`}>{st.label}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 text-xs text-slate-500 dark:text-slate-400">
                   <span className="inline-flex items-center gap-1"><IndianRupee className="h-3.5 w-3.5" /> {rupee(r.expected_budget)}</span>

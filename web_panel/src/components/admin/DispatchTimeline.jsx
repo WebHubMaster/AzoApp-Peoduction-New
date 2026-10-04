@@ -41,7 +41,7 @@ function Lane({ l }) {
         <div className="min-w-0">
           <p className="font-semibold text-slate-800 dark:text-slate-100 text-sm truncate flex items-center gap-1.5">
             {l.partner_name || "Partner"}
-            {l.nearby && <span className="text-[10px] font-bold text-violet-700 bg-violet-100 rounded-full px-1.5">nearby</span>}
+            {l.nearby && <span className="text-[10px] font-bold text-violet-700 bg-violet-100 rounded-md px-1.5">nearby</span>}
           </p>
           <p className="text-[11px] text-slate-500">
             {SRC[l.source] || l.source}
@@ -49,7 +49,7 @@ function Lane({ l }) {
             {" · push: "}<span className={l.push === "sent" ? "text-emerald-600" : "text-slate-400"}>{l.push === "sse_only" ? "in-app only" : l.push}</span>
           </p>
         </div>
-        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${r.c}`}>{r.t}{l.response_ms != null ? ` · ${(l.response_ms / 1000).toFixed(1)}s` : ""}</span>
+        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${r.c}`}>{r.t}{l.response_ms != null ? ` · ${(l.response_ms / 1000).toFixed(1)}s` : ""}</span>
       </div>
       <div className="flex items-start mt-2">
         <Step done label="Rung" time={fmtT(l.rung_at)} Icon={BellRing} testid={`dtl-step-rung-${l.partner_id}`} />
@@ -113,12 +113,12 @@ export default function DispatchTimeline({ bookingId }) {
     <div data-testid="dispatch-timeline">
       <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
         <div className="flex flex-wrap gap-1.5 text-[11px]">
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300" data-testid="dtl-sum-rung">Rung {s.rung || 0}/{s.eligible || 0}</span>
-          <span className="rounded-full bg-sky-50 px-2 py-0.5 text-sky-700" data-testid="dtl-sum-seen">Seen {s.seen || 0}</span>
-          <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-700" data-testid="dtl-sum-accepted">Accepted {s.accepted || 0}</span>
-          <span className="rounded-full bg-red-50 px-2 py-0.5 text-red-700">Rejected {s.rejected || 0}</span>
-          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">No answer {s.timeout || 0}</span>
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">Waves {s.waves || 0}{s.nearby_expanded ? " · nearby" : ""}</span>
+          <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300" data-testid="dtl-sum-rung">Rung {s.rung || 0}/{s.eligible || 0}</span>
+          <span className="rounded-md bg-sky-50 px-2 py-0.5 text-sky-700" data-testid="dtl-sum-seen">Seen {s.seen || 0}</span>
+          <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-emerald-700" data-testid="dtl-sum-accepted">Accepted {s.accepted || 0}</span>
+          <span className="rounded-md bg-red-50 px-2 py-0.5 text-red-700">Rejected {s.rejected || 0}</span>
+          <span className="rounded-md bg-amber-50 px-2 py-0.5 text-amber-700">No answer {s.timeout || 0}</span>
+          <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300">Waves {s.waves || 0}{s.nearby_expanded ? " · nearby" : ""}</span>
         </div>
         <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 p-0.5 text-[11px]">
           {[["map", "Partner map"], ["rail", "Chronology"]].map(([k, l]) => (
@@ -139,7 +139,7 @@ export default function DispatchTimeline({ bookingId }) {
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1"><MapPin className="h-3 w-3" /> Eligible, not rung yet (busy / offline / next wave)</p>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {data.waiting.map((w) => (
-                  <span key={w.partner_id} className="text-[11px] rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-slate-600 dark:text-slate-300">
+                  <span key={w.partner_id} className="text-[11px] rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-slate-600 dark:text-slate-300">
                     {w.partner_name || w.partner_id.slice(0, 6)}{w.eta_min != null ? ` · ~${w.eta_min}m` : ""}{w.nearby ? " · nearby" : ""}
                   </span>
                 ))}

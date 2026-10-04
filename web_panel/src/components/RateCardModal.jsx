@@ -50,7 +50,7 @@ function GroupBlock({ group, q, forceOpen, index, accent, innerRef, onAdd, added
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-2">
             <span className="font-bold text-slate-900 truncate">{group.name || "Services"}</span>
-            <span className="text-[11px] font-semibold rounded-full px-2 py-0.5 shrink-0"
+            <span className="text-[11px] font-semibold rounded-md px-2 py-0.5 shrink-0"
               style={{ background: hexA(accent, "14"), color: accent }}>
               {group.rows.length}
             </span>
@@ -79,12 +79,12 @@ function GroupBlock({ group, q, forceOpen, index, accent, innerRef, onAdd, added
                     {(r.warranty || r.note) && (
                       <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                         {r.warranty && (
-                          <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+                          <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-md px-2 py-0.5">
                             <ShieldCheck className="h-3 w-3" /> {r.warranty} warranty
                           </span>
                         )}
                         {r.note && (
-                          <span className="inline-flex items-center gap-1 text-[10.5px] text-slate-500 bg-slate-100 rounded-full px-2 py-0.5">
+                          <span className="inline-flex items-center gap-1 text-[10.5px] text-slate-500 bg-slate-100 rounded-md px-2 py-0.5">
                             <Info className="h-3 w-3" /> {r.note}
                           </span>
                         )}
@@ -101,7 +101,7 @@ function GroupBlock({ group, q, forceOpen, index, accent, innerRef, onAdd, added
                         <>
                           {dActive && (
                             <span className="inline-flex flex-wrap items-center gap-1.5 mb-1">
-                              <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-white bg-rose-500 rounded-full px-1.5 py-0.5">
+                              <span className="inline-flex items-center gap-0.5 text-[10px] font-extrabold text-white bg-rose-500 rounded-md px-1.5 py-0.5">
                                 {Math.round(pct)}% OFF
                               </span>
                               {r.discount_until && <DiscountCountdown until={r.discount_until} />}
@@ -240,7 +240,7 @@ export function RateCardModal({ card, onClose, onAdd, cartApi, minLabour = 0 }) 
                 style={{ color: accent, background: hexA(accent, "12"), borderColor: hexA(accent, "22") }}>
                 <Sparkles className="h-3.5 w-3.5" /> {card.brand_label || "AzoCover"}
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 rounded-full px-2.5 py-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 bg-slate-100 rounded-md px-2.5 py-1">
                 <BadgeCheck className="h-3.5 w-3.5 text-slate-400" /> {card.category_name}
               </span>
             </div>
@@ -272,7 +272,7 @@ export function RateCardModal({ card, onClose, onAdd, cartApi, minLabour = 0 }) 
             <div className="mt-3 flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1">
               {(card.groups || []).map((g) => (
                 <button key={g.id} onClick={() => jump(g.id)}
-                  className="shrink-0 text-[12px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-full px-3 py-1.5 hover:border-slate-300 hover:text-slate-900 transition">
+                  className="shrink-0 text-[12px] font-semibold text-slate-600 bg-white border border-slate-200 rounded-md px-3 py-1.5 hover:border-slate-300 hover:text-slate-900 transition">
                   {g.name}
                 </button>
               ))}

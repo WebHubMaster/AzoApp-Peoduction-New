@@ -64,7 +64,7 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
   };
 
   return (
-    <View testID={`additional-section-${b.code}`} style={{ borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 14, backgroundColor: colors.surface }}>
+    <View testID={`additional-section-${b.code}`} style={{ borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 14, backgroundColor: colors.surface }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="wrench-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Additional work</Text></View>
         {addl && num(addl.total) > 0 ? (
@@ -75,7 +75,7 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
       </View>
       <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 17 }}>If any extra parts or labour were used, add them from the category rate card. <Text style={{ color: "#B45309", fontWeight: "700" }}>Collect the payment for additional work from the customer first, then complete the job.</Text></Text>
       {groups.length > 0 ? (
-        <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 8, padding: 12, gap: 6, marginBottom: 12 }}>
+        <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 6, padding: 12, gap: 6, marginBottom: 12 }}>
           {groups.map((g) => (
             <View key={g.key} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
               <Text style={{ color: colors.textSecondary, fontSize: 13, flex: 1 }}>
@@ -147,7 +147,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
       <KeyboardProvider>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: "88%", paddingBottom: insets.bottom + 12 }}>
+        <View style={{ backgroundColor: colors.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, maxHeight: "88%", paddingBottom: insets.bottom + 12 }}>
           <View style={{ height: 6, backgroundColor: accent }} />
           <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: colors.border }}>
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
@@ -170,9 +170,9 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
             {filtered.length === 0 ? (
               <View style={{ alignItems: "center", paddingVertical: 48 }}><Icon name="magnify" size={32} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 14, marginTop: 10 }}>No items match “{q}”.</Text></View>
             ) : filtered.map((g) => (
-              <View key={g.id} style={{ borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
+              <View key={g.id} style={{ borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 14, paddingVertical: 12, borderLeftWidth: 3, borderLeftColor: accent }}>
-                  <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: `${accent}1A`, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={16} color={accent} /></View>
+                  <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: `${accent}1A`, alignItems: "center", justifyContent: "center" }}><Icon name="wrench" size={16} color={accent} /></View>
                   <Text style={{ color: colors.text, fontSize: 15, fontWeight: "700", flex: 1 }}>{g.name || "Services"}</Text>
                   <View style={{ backgroundColor: `${accent}1A`, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: accent, fontSize: 11, fontWeight: "700" }}>{(g.rows || []).length}</Text></View>
                 </View>
@@ -185,7 +185,7 @@ function RateCardSheet({ open, onClose, card, items, onAdd, onRemoveRow }: { ope
                       <View style={{ flex: 1 }}>
                         <Text style={{ color: colors.text, fontSize: 14 }}>{r.description}</Text>
                         {r.warranty ? (
-                          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: "flex-start", marginTop: 6, backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 3, alignSelf: "flex-start", marginTop: 6, backgroundColor: "#ECFDF5", borderWidth: 1, borderColor: "#A7F3D0", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
                             <Icon name="shield-check-outline" size={11} color="#047857" /><Text style={{ color: "#047857", fontSize: 10.5, fontWeight: "600" }}>{r.warranty} warranty</Text>
                           </View>
                         ) : null}

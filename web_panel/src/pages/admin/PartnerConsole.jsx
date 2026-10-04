@@ -482,7 +482,7 @@ export default function PartnerConsole({ userId, onBack }) {
           <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.5) 0, transparent 45%), radial-gradient(circle at 80% 60%, rgba(255,255,255,0.35) 0, transparent 40%)" }} />
           <div className="absolute inset-0" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px)", backgroundSize: "26px 26px" }} />
           <div className="absolute top-4 right-5 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur px-3 py-1 text-white text-xs font-mono font-bold tracking-wide" data-testid="provider-code">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-white/15 backdrop-blur px-3 py-1 text-white text-xs font-mono font-bold tracking-wide" data-testid="provider-code">
               <Lock className="h-3 w-3" /> {u.partner_code || "—"}
             </span>
           </div>

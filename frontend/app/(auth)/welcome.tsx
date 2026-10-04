@@ -66,7 +66,7 @@ function BrandLogo({ uri, siteName, tagline, maxW, primary }: { uri: string; sit
   }
   return (
     <View style={{ height: H, justifyContent: "center" }}>
-      {state === "loading" ? <View testID="app-brand-logo-skeleton" style={{ position: "absolute", width: Math.min(maxW, 132), height: 30, borderRadius: 8, backgroundColor: "#E6ECF5" }} /> : null}
+      {state === "loading" ? <View testID="app-brand-logo-skeleton" style={{ position: "absolute", width: Math.min(maxW, 132), height: 30, borderRadius: 6, backgroundColor: "#E6ECF5" }} /> : null}
       <Image
         testID="app-brand-logo-dynamic"
         source={{ uri }}
@@ -103,7 +103,7 @@ function LanguagePill() {
       </Pressable>
       <Modal visible={open} transparent animationType="none" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} testID="welcome-language-backdrop">
-          <Animated.View style={{ position: "absolute", top: 100, right: 20, minWidth: 180, backgroundColor: C.white, borderRadius: 10, borderWidth: 1, borderColor: C.line, paddingVertical: 6, boxShadow: "0px 12px 32px rgba(11,26,63,0.14)", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] } as any}>
+          <Animated.View style={{ position: "absolute", top: 100, right: 20, minWidth: 180, backgroundColor: C.white, borderRadius: 6, borderWidth: 1, borderColor: C.line, paddingVertical: 6, boxShadow: "0px 12px 32px rgba(11,26,63,0.14)", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] } as any}>
             <Pressable testID="welcome-language-en" accessibilityRole="menuitem" onPress={() => setOpen(false)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, height: 46, backgroundColor: pressed ? "#F2F6FC" : "transparent" })}>
               <Text style={{ fontSize: 15, fontWeight: "600", color: C.navy }}>English</Text>
               <Icon name="check" size={18} color={C.success} />
@@ -124,11 +124,11 @@ function CtaButton({ testID, primary, color, icon, title, sub, onPress, height }
   return (
     <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} onPress={onPress} onPressIn={() => to(1)} onPressOut={() => to(0)}>
       <Animated.View style={{
-        height, borderRadius: 10, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 14,
+        height, borderRadius: 6, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 14,
         backgroundColor: primary ? color : C.white, borderWidth: primary ? 0 : 1.5, borderColor: C.line,
         boxShadow: primary ? `0px 10px 24px ${tint(color, 0.25)}` : "none", transform: [{ scale }],
       } as any}>
-        <View style={{ width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: primary ? "rgba(255,255,255,0.16)" : tint(color, 0.08) }}>
+        <View style={{ width: 44, height: 44, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: primary ? "rgba(255,255,255,0.16)" : tint(color, 0.08) }}>
           <Icon name={icon} size={23} color={primary ? C.white : color} />
         </View>
         <View style={{ flex: 1 }}>
@@ -198,7 +198,7 @@ export default function Welcome() {
           </View>
 
           <View style={{ paddingLeft: 20, width: textW + 20, zIndex: 6 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 6, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 10, height: 28 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 6, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, borderRadius: 6, paddingHorizontal: 10, height: 28 }}>
               <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.success }} />
               <Text style={{ fontSize: 12, fontWeight: "600", color: C.text2 }}>Available near you</Text>
             </View>
@@ -212,8 +212,8 @@ export default function Welcome() {
         {/* Trust indicators */}
         <Animated.View style={[{ flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: sp(8), zIndex: 6 }, aTrust]}>
           {TRUST.map((t) => (
-            <View key={t.title} testID={`welcome-trust-${t.title.toLowerCase()}`} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: C.line, borderRadius: 16, paddingHorizontal: 10, paddingVertical: sp(10) }}>
-              <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: tint(primary, 0.07), alignItems: "center", justifyContent: "center" }}>
+            <View key={t.title} testID={`welcome-trust-${t.title.toLowerCase()}`} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: C.line, borderRadius: 6, paddingHorizontal: 10, paddingVertical: sp(10) }}>
+              <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: tint(primary, 0.07), alignItems: "center", justifyContent: "center" }}>
                 <Icon name={t.icon} size={18} color={primary} />
               </View>
               <Text style={{ color: C.navy, fontSize: 14, fontWeight: "700", marginTop: 8 }}>{t.title}</Text>

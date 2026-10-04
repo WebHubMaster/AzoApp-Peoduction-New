@@ -177,8 +177,8 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   return (
     <View testID="otp-step-name" style={{ gap: 14 }}>
       <DeviceLockedModal visible={deviceBlocked} onClose={() => { setDeviceBlocked(false); setStep("phone"); setOtp(""); }} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: ac.border }}>
-        <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={20} color="#fff" /></View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: ac.soft, borderRadius: 6, padding: 12, borderWidth: 1, borderColor: ac.border }}>
+        <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: ac.main, alignItems: "center", justifyContent: "center" }}><Icon name={ac.icon} size={20} color="#fff" /></View>
         <Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700", flex: 1 }}>Mobile verified · creating your {cap(role || "")} account</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>

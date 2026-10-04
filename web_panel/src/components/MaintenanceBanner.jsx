@@ -24,7 +24,7 @@ export default function MaintenanceBanner() {
       <div className="max-w-7xl mx-auto flex items-center gap-3 px-4 py-2.5 text-sm font-medium">
         <AlertTriangle className="w-4 h-4 shrink-0" />
         <span className="flex-1">{maintenance.message}</span>
-        <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider bg-amber-950/10 rounded-full px-2.5 py-0.5">
+        <span className="hidden sm:inline text-xs font-bold uppercase tracking-wider bg-amber-950/10 rounded-md px-2.5 py-0.5">
           Maintenance
         </span>
       </div>

@@ -67,7 +67,7 @@ export default function PartnerStarterKit({ status, locked = false, onPurchased 
           <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full bg-white/10" />
           <div className="absolute -bottom-20 -left-10 h-52 w-52 rounded-full bg-white/5" />
           <div className="relative">
-            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-full px-4 py-1.5 text-sm font-bold">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur rounded-md px-4 py-1.5 text-sm font-bold">
               <Crown className="h-4 w-4 text-amber-300" /> {data.badge_label || cfg.badge_label || "AzoApp Pro"}
             </div>
             <h1 className="font-heading font-black text-3xl mt-4">You&apos;re an AzoApp Pro! 🎉</h1>
@@ -159,7 +159,7 @@ export default function PartnerStarterKit({ status, locked = false, onPurchased 
         <div className="absolute -top-20 -right-16 h-64 w-64 rounded-full bg-primary-500/20 blur-2xl" />
         <div className="relative p-8 sm:p-10 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-full px-3 py-1 text-[13px] font-bold text-amber-300">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur rounded-md px-3 py-1 text-[13px] font-bold text-amber-300">
               <Sparkles className="h-4 w-4" /> {cfg.tagline || "Become a verified AzoApp Pro"}
             </div>
             <h1 className="font-heading font-black text-3xl sm:text-4xl mt-4 leading-tight">{cfg.title || "AzoApp Pro Starter Kit"}</h1>
@@ -169,7 +169,7 @@ export default function PartnerStarterKit({ status, locked = false, onPurchased 
                 <span className="font-heading font-black text-4xl">{fmtINR(price)}</span>
                 {savings > 0 && <span className="text-white/50 line-through text-lg">{fmtINR(actual)}</span>}
               </div>
-              {discountPct > 0 && <span className="bg-emerald-500 text-white text-sm font-bold rounded-full px-3 py-1">{discountPct}% OFF</span>}
+              {discountPct > 0 && <span className="bg-emerald-500 text-white text-sm font-bold rounded-md px-3 py-1">{discountPct}% OFF</span>}
             </div>
             {savings > 0 && <p className="text-emerald-300 text-sm font-semibold mt-1">You save {fmtINR(savings)} today</p>}
             <Button onClick={purchase} disabled={buying} data-testid="starter-kit-buy-btn"

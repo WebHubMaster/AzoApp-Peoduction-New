@@ -119,7 +119,7 @@ export default function PartnerProfileModal({ bookingId, onClose }) {
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400 mb-1.5">Skills</p>
                 <div className="flex flex-wrap gap-1.5">
                   {data.skills.slice(0, 10).map((s, i) => (
-                    <span key={i} className="text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 capitalize">{s}</span>
+                    <span key={i} className="text-xs font-semibold px-2.5 py-1 rounded-md bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 capitalize">{s}</span>
                   ))}
                 </div>
               </div>

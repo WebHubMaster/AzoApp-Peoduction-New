@@ -103,7 +103,7 @@ export default function RateCardPrices({ cards, values, setValues, selectedCat, 
         <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden" data-testid="pm-rc-card">
           <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700" style={{ background: `${accent}0d` }}>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-full" style={{ background: accent }}>{current.brand_label || "AzoCover"}</span>
+              <span className="text-[10px] font-bold text-white px-2 py-0.5 rounded-md" style={{ background: accent }}>{current.brand_label || "AzoCover"}</span>
               <p className="text-[16px] font-bold text-slate-800 dark:text-slate-100">{current.category_name}</p>
               <span className="text-[12px] text-slate-400">· {current.title}</span>
             </div>

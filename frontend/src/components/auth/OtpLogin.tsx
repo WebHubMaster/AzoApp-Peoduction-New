@@ -147,7 +147,7 @@ export function OtpLogin({ registerRole, onPickRole, onSuccess }: { registerRole
         </View>
       ) : (
         <View testID="otp-no-account-step" style={{ gap: 12 }}>
-          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 12, backgroundColor: TW.amber50, borderWidth: 1, borderColor: TW.amber200, padding: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 6, backgroundColor: TW.amber50, borderWidth: 1, borderColor: TW.amber200, padding: 12 }}>
             <Icon name="account-alert-outline" size={18} color={TW.amber700} />
             <Text style={{ color: TW.amber800, fontSize: 13, flex: 1, lineHeight: 18 }}>No Partner or Merchant account found for <Text style={{ fontWeight: "700" }}>{normalizePhone(phone)}</Text>. Choose how you&apos;d like to register.</Text>
           </View>

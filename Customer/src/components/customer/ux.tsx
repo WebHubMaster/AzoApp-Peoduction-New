@@ -229,7 +229,7 @@ export function BottomSheet({ open, onClose, title, children, footer, testID, ma
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent navigationBarTranslucent>
       <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end", paddingTop: insets.top }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View testID={testID} style={{ backgroundColor: c.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight }}>
+        <View testID={testID} style={{ backgroundColor: c.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, maxHeight }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: isDark ? SLATE[800] : TC.surfaceAlt }}>
             <Text style={{ fontSize: 18, fontWeight: "600", color: c.text }}>{title}</Text>
             <Pressable testID={testID ? `${testID}-close` : undefined} onPress={onClose} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><X size={18} color={TC.textFaint} /></Pressable>

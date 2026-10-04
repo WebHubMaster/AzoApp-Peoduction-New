@@ -62,7 +62,7 @@ export default function MissedRingRecovery({ onAccepted }) {
             <div className="min-w-0 flex-1">
               <p className="font-semibold text-sm text-slate-800 dark:text-white truncate flex items-center gap-1.5">
                 {j.service_name}
-                {j.schedule_type === "emergency" && <span className="text-[10px] font-bold text-red-700 bg-red-100 rounded-full px-1.5">Emergency</span>}
+                {j.schedule_type === "emergency" && <span className="text-[10px] font-bold text-red-700 bg-red-100 rounded-md px-1.5">Emergency</span>}
               </p>
               <p className="text-[11px] text-slate-500 flex items-center gap-1 truncate"><MapPin className="h-3 w-3" /> {j.address_line || j.city || "—"}{j.eta_min != null ? ` · ~${j.eta_min} min` : ""}</p>
               <p className="text-[11px] text-amber-700 dark:text-amber-300 flex items-center gap-1"><Clock className="h-3 w-3" /> {REASON[j.missed_reason] || "Missed"} · {ago(j.created_at)}</p>

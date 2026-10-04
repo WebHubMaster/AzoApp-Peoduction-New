@@ -40,7 +40,7 @@ function BarChart({ data }: { data: { date: string; jobs: number }[] }) {
   return (
     <Pressable onPress={onTap} onLayout={(e) => setVw(e.nativeEvent.layout.width)} testID="bar-chart">
       {sel != null && data[sel] ? (
-        <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, top: 0, left: Math.min(Math.max(((padL + sel * step + step / 2) / W) * vw - 55, 0), vw - 110), width: 110, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 12, paddingHorizontal: 12, paddingVertical: 8 }}>
+        <View pointerEvents="none" style={{ position: "absolute", zIndex: 5, top: 0, left: Math.min(Math.max(((padL + sel * step + step / 2) / W) * vw - 55, 0), vw - 110), width: 110, backgroundColor: "rgba(15,23,42,0.95)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8 }}>
           <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{data[sel].date}</Text>
           <Text style={{ color: "#fff", fontSize: 11 }}><Text style={{ color: "#A78BFA" }}>● </Text>Jobs: <Text style={{ fontWeight: "800" }}>{data[sel].jobs}</Text></Text>
         </View>
@@ -96,7 +96,7 @@ export default function PartnerAnalytics() {
       <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-analytics"] })} tintColor={colors.primary} colors={[colors.primary]} />}>
         {/* Header */}
-        <LinearGradient colors={[colors.secondary, "#4338CA", "#7C3AED"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20 }} testID="partner-analytics-header">
+        <LinearGradient colors={[colors.secondary, "#4338CA", "#7C3AED"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20 }} testID="partner-analytics-header">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="trending-up" size={22} color="#fff" /><Text style={{ color: "#fff", fontSize: 22, fontWeight: "800" }}>Earnings Analytics</Text></View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}><Icon name="calendar-month-outline" size={14} color="#BFDBFE" /><Text style={{ color: "#BFDBFE", fontSize: 13 }}>{range.from} → {range.to}</Text></View>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
@@ -106,7 +106,7 @@ export default function PartnerAnalytics() {
               </Pressable>); })}
           </View>
           {showCustom && preset === "custom" ? (
-            <View testID="custom-range" style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 10, padding: 12 }}>
+            <View testID="custom-range" style={{ marginTop: 12, backgroundColor: "rgba(255,255,255,0.12)", borderRadius: 6, padding: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8 }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: "rgba(224,242,254,0.85)", fontSize: 11, marginBottom: 4 }}>From</Text>
@@ -128,7 +128,7 @@ export default function PartnerAnalytics() {
         {/* KPIs */}
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12, justifyContent: "space-between" }}>
           {KPIS.map((x) => (
-            <LinearGradient key={x.key} colors={x.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: "48%", borderRadius: 10, padding: 16, overflow: "hidden", minHeight: 96 }}>
+            <LinearGradient key={x.key} colors={x.grad} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: "48%", borderRadius: 6, padding: 16, overflow: "hidden", minHeight: 96 }}>
               <View style={{ position: "absolute", right: -8, top: -8, opacity: 0.15 }}><Icon name={x.icon} size={72} color="#fff" /></View>
               <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8 }}>{x.label}</Text>
               <Text style={{ color: "#fff", fontSize: 26, fontWeight: "800", marginTop: 6 }} numberOfLines={1}>{q.isLoading ? "…" : x.money ? fmtC(k[x.key]) : x.pct ? `${k[x.key] ?? 0}%` : k[x.key] ?? 0}</Text>
@@ -174,7 +174,7 @@ export default function PartnerAnalytics() {
                 <Text style={{ color: colors.text, fontSize: 17, fontWeight: "700", marginBottom: 12 }}>Recent Reviews</Text>
                 <View style={{ gap: 8 }}>
                   {rt.recent.map((r: any, i: number) => (
-                    <View key={i} style={{ borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
+                    <View key={i} style={{ borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <Text style={{ fontSize: 13, letterSpacing: 1 }}>{[1, 2, 3, 4, 5].map((s) => <Text key={s} style={{ color: s <= r.rating ? "#FBBF24" : "#E2E8F0" }}>★</Text>)}</Text>
                         <Text style={{ color: colors.textMuted, fontSize: 12 }}>{r.date} · {r.service}</Text>

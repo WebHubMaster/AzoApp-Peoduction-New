@@ -64,9 +64,9 @@ export default function PartnerStarterKit() {
     const r = data.renewal;
     return (
       <Wrap>
-        <LinearGradient colors={[colors.primary, "#4338CA", "#6D28D9"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 28, overflow: "hidden" }} testID="starter-kit-owned">
+        <LinearGradient colors={[colors.primary, "#4338CA", "#6D28D9"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 28, overflow: "hidden" }} testID="starter-kit-owned">
           <View style={{ position: "absolute", top: -64, right: -64, width: 224, height: 224, borderRadius: 112, backgroundColor: "rgba(255,255,255,0.1)" }} />
-          <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 999, paddingHorizontal: 16, paddingVertical: 6 }}>
+          <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.15)", borderRadius: 6, paddingHorizontal: 16, paddingVertical: 6 }}>
             <Icon name="crown-outline" size={16} color="#FCD34D" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>{data.badge_label || cfg.badge_label || "AzoApp Pro"}</Text>
           </View>
           <Text style={{ color: "#fff", fontSize: 28, fontWeight: "900", marginTop: 16 }}>You&apos;re an AzoApp Pro! 🎉</Text>
@@ -75,8 +75,8 @@ export default function PartnerStarterKit() {
         </LinearGradient>
         <View style={{ gap: 12 }}>
           {items.map((it) => (
-            <View key={it.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 16 }}>
-              {it.image ? <Image source={{ uri: mediaUrl(it.image) }} style={{ width: 48, height: 48, borderRadius: 8 }} contentFit="cover" /> : <View style={{ width: 48, height: 48, borderRadius: 8, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><ItemIcon it={it} size={24} color={colors.secondary} /></View>}
+            <View key={it.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 16 }}>
+              {it.image ? <Image source={{ uri: mediaUrl(it.image) }} style={{ width: 48, height: 48, borderRadius: 6 }} contentFit="cover" /> : <View style={{ width: 48, height: 48, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><ItemIcon it={it} size={24} color={colors.secondary} /></View>}
               <View style={{ flex: 1 }}><Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>{it.name}</Text><Text style={{ color: colors.textMuted, fontSize: 12 }} numberOfLines={2}>{it.description}</Text></View>
               <Icon name="check-decagram" size={20} color="#10B981" />
             </View>
@@ -100,7 +100,7 @@ export default function PartnerStarterKit() {
           </View>
         </Surface>
         {r?.expires_at ? (
-          <View testID="kit-renewal" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 10, borderWidth: 1, padding: 16, backgroundColor: r.expired ? "#FEF2F2" : r.expiring_soon ? "#FFFBEB" : colors.surfaceSubtle, borderColor: r.expired ? "#FECACA" : r.expiring_soon ? "#FDE68A" : colors.border }}>
+          <View testID="kit-renewal" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, padding: 16, backgroundColor: r.expired ? "#FEF2F2" : r.expiring_soon ? "#FFFBEB" : colors.surfaceSubtle, borderColor: r.expired ? "#FECACA" : r.expiring_soon ? "#FDE68A" : colors.border }}>
             <Icon name="refresh" size={20} color={r.expired ? "#DC2626" : r.expiring_soon ? "#D97706" : colors.textMuted} />
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>{r.expired ? "Your AzoApp Pro membership has expired" : `Membership valid till ${new Date(r.expires_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}`}</Text>
@@ -122,15 +122,15 @@ export default function PartnerStarterKit() {
   return (
     <Wrap>
       {data.locked ? (
-        <View testID="starter-kit-lock-notice" style={{ flexDirection: "row", gap: 12, borderRadius: 10, backgroundColor: dark ? colors.surface : "#FFFBEB", borderWidth: 1, borderColor: dark ? colors.border : "#FDE68A", padding: 16 }}>
+        <View testID="starter-kit-lock-notice" style={{ flexDirection: "row", gap: 12, borderRadius: 6, backgroundColor: dark ? colors.surface : "#FFFBEB", borderWidth: 1, borderColor: dark ? colors.border : "#FDE68A", padding: 16 }}>
           <Icon name="lock-outline" size={24} color="#D97706" />
           <View style={{ flex: 1 }}><Text style={{ color: dark ? colors.text : "#78350F", fontWeight: "700", fontSize: 15 }}>Starter Kit purchase required</Text><Text style={{ color: dark ? colors.textMuted : "#92400E", fontSize: 13, marginTop: 2, lineHeight: 18 }}>Your service area requires the AzoApp Pro Starter Kit before you can start taking jobs. Please complete the purchase below to unlock your dashboard.</Text></View>
         </View>
       ) : null}
-      <LinearGradient colors={["#0F172A", "#0A2E6B", "#312E81"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 28, overflow: "hidden", boxShadow: "0px 20px 40px rgba(15,23,42,0.3)", elevation: 8 }} testID="starter-kit-buy">
+      <LinearGradient colors={["#0F172A", "#0A2E6B", "#312E81"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 28, overflow: "hidden", boxShadow: "0px 20px 40px rgba(15,23,42,0.3)", elevation: 8 }} testID="starter-kit-buy">
         {cfg.hero_image ? <Image source={{ uri: mediaUrl(cfg.hero_image) }} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.25 }} contentFit="cover" /> : null}
         <View style={{ position: "absolute", top: -80, right: -64, width: 256, height: 256, borderRadius: 128, backgroundColor: "rgba(59,130,246,0.2)" }} />
-        <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5 }}>
+        <View style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 5 }}>
           <Icon name="creation" size={16} color="#FCD34D" /><Text style={{ color: "#FCD34D", fontSize: 13, fontWeight: "700" }}>{cfg.tagline || "Become a verified AzoApp Pro"}</Text>
         </View>
         <Text style={{ color: "#fff", fontSize: 30, fontWeight: "900", marginTop: 16, lineHeight: 36 }}>{cfg.title || "AzoApp Pro Starter Kit"}</Text>
@@ -162,11 +162,11 @@ export default function PartnerStarterKit() {
       </View>
 
       {(cfg.benefits || []).length > 0 ? (
-        <LinearGradient colors={dark ? [colors.surface, colors.surface] : ["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, borderWidth: 1, borderColor: dark ? colors.border : "#DBEAFE", padding: 24 }}>
+        <LinearGradient colors={dark ? [colors.surface, colors.surface] : ["#EFF6FF", "#EEF2FF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, borderWidth: 1, borderColor: dark ? colors.border : "#DBEAFE", padding: 24 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="crown-outline" size={20} color="#F59E0B" /><Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>Why partners love it</Text></View>
           <View style={{ gap: 12, marginTop: 16 }}>
             {cfg.benefits.map((b: string, i: number) => (
-              <View key={i} style={{ flexDirection: "row", gap: 10, backgroundColor: dark ? colors.surfaceSubtle : "rgba(255,255,255,0.7)", borderRadius: 12, padding: 12 }}>
+              <View key={i} style={{ flexDirection: "row", gap: 10, backgroundColor: dark ? colors.surfaceSubtle : "rgba(255,255,255,0.7)", borderRadius: 6, padding: 12 }}>
                 <Icon name="check-circle-outline" size={20} color="#10B981" /><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "500", flex: 1, lineHeight: 20 }}>{b}</Text>
               </View>
             ))}

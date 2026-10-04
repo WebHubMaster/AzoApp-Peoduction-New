@@ -22,7 +22,7 @@ type RingJob = any;
 const inr = (v: any) => Number(v || 0).toLocaleString("en-IN");
 
 function Glass({ children, style, testID }: { children: React.ReactNode; style?: any; testID?: string }) {
-  return <View testID={testID} style={[{ borderRadius: 10, backgroundColor: "rgba(255,255,255,0.10)", paddingHorizontal: 16, paddingVertical: 12 }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ borderRadius: 6, backgroundColor: "rgba(255,255,255,0.10)", paddingHorizontal: 16, paddingVertical: 12 }, style]}>{children}</View>;
 }
 
 function useLoop(toValue: number, duration: number, easing = Easing.linear) {
@@ -302,7 +302,7 @@ export function JobRingOverlay() {
             </Text>
             <Text style={{ color: "rgba(255,255,255,0.9)", fontSize: 18, fontWeight: "800", marginTop: 8, textAlign: "center" }}>{current.service_name || "Scheduled service"}</Text>
             {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
-            <View testID="reminder-time" style={{ marginTop: 22, width: "100%", maxWidth: 384, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View testID="reminder-time" style={{ marginTop: 22, width: "100%", maxWidth: 384, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.16)", borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", paddingHorizontal: 16, paddingVertical: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Icon name="calendar-clock" size={26} color="#fff" />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800" }}>Scheduled start</Text>
@@ -342,7 +342,7 @@ export function JobRingOverlay() {
             {current.code ? <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>#{current.code}</Text> : null}
 
             <View style={{ marginTop: 24, width: "100%", maxWidth: 384, gap: 12 }}>
-              <View testID="resched-old" style={{ borderRadius: 10, backgroundColor: "rgba(0,0,0,0.14)", paddingHorizontal: 16, paddingVertical: 14 }}>
+              <View testID="resched-old" style={{ borderRadius: 6, backgroundColor: "rgba(0,0,0,0.14)", paddingHorizontal: 16, paddingVertical: 14 }}>
                 <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Current time</Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Icon name="calendar-outline" size={18} color="rgba(255,255,255,0.85)" />
@@ -350,7 +350,7 @@ export function JobRingOverlay() {
                 </View>
               </View>
               <View style={{ alignItems: "center" }}><Icon name="arrow-down" size={22} color="#fff" /></View>
-              <View testID="resched-new" style={{ borderRadius: 10, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", paddingHorizontal: 16, paddingVertical: 14 }}>
+              <View testID="resched-new" style={{ borderRadius: 6, backgroundColor: "rgba(255,255,255,0.18)", borderWidth: 1, borderColor: "rgba(255,255,255,0.35)", paddingHorizontal: 16, paddingVertical: 14 }}>
                 <Text style={{ color: "rgba(255,255,255,0.85)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase", fontWeight: "800", marginBottom: 4 }}>New time</Text>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Icon name="calendar-check" size={20} color="#fff" />
@@ -407,7 +407,7 @@ export function JobRingOverlay() {
           </View>
 
           {current.is_scheduled && current.scheduled_date ? (
-            <View testID="ring-scheduled" style={{ marginBottom: 12, width: "100%", maxWidth: 384, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.25)", paddingHorizontal: 16, paddingVertical: 12, alignItems: "center" }}>
+            <View testID="ring-scheduled" style={{ marginBottom: 12, width: "100%", maxWidth: 384, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", borderWidth: 1, borderColor: "rgba(255,255,255,0.25)", paddingHorizontal: 16, paddingVertical: 12, alignItems: "center" }}>
               <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 10.5, letterSpacing: 2, textTransform: "uppercase", fontWeight: "700", marginBottom: 4 }}>Scheduled Work</Text>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 16 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="calendar-month-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{current.scheduled_date}</Text></View>
@@ -426,7 +426,7 @@ export function JobRingOverlay() {
           {singleServiceQty > 0 ? <View style={{ marginTop: 8 }}><View testID="ring-qty" style={{ borderRadius: 999, backgroundColor: "rgba(255,255,255,0.2)", paddingHorizontal: 12, paddingVertical: 4 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "700" }}>Quantity: {singleServiceQty}</Text></View></View> : null}
 
           {total !== "" ? (
-            <View testID="ring-amount" style={{ marginTop: 16, alignItems: "center", borderRadius: 10, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 24, paddingVertical: 12 }}>
+            <View testID="ring-amount" style={{ marginTop: 16, alignItems: "center", borderRadius: 6, backgroundColor: "rgba(255,255,255,0.15)", paddingHorizontal: 24, paddingVertical: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}>
                 <Text style={{ color: TW.emerald300, fontSize: 24, fontWeight: "700" }}>₹</Text>
                 <Text style={{ color: "#fff", fontSize: 48, lineHeight: 54, fontWeight: "900", fontVariant: ["tabular-nums"] }}>{inr(total)}</Text>
@@ -454,7 +454,7 @@ export function JobRingOverlay() {
               </Glass>
             ) : null}
             {couponCode ? (
-              <View testID="ring-coupon" style={{ borderRadius: 10, backgroundColor: "rgba(52,211,153,0.15)", borderWidth: 1, borderColor: "rgba(110,231,183,0.3)", paddingHorizontal: 16, paddingVertical: 12 }}>
+              <View testID="ring-coupon" style={{ borderRadius: 6, backgroundColor: "rgba(52,211,153,0.15)", borderWidth: 1, borderColor: "rgba(110,231,183,0.3)", paddingHorizontal: 16, paddingVertical: 12 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                   <Text style={{ color: TW.emerald200, fontSize: 14, fontWeight: "600" }}>Coupon {couponCode}</Text>
                   {Number(current.coupon_discount || 0) > 0 ? <Text style={{ color: TW.emerald200, fontSize: 14, fontVariant: ["tabular-nums"] }}>₹{inr(current.coupon_discount)} off</Text> : null}

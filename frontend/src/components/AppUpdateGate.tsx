@@ -87,11 +87,11 @@ export default function AppUpdateGate() {
         {mode === "maintenance" ? (
           <View style={{ alignItems: "center", maxWidth: 380 }}>
             {cfg?.maintenance_image ? (
-              <Image source={{ uri: mediaUrl(cfg.maintenance_image) }} style={{ width: 220, height: 160, borderRadius: 10, marginBottom: 20 }} contentFit="cover" />
+              <Image source={{ uri: mediaUrl(cfg.maintenance_image) }} style={{ width: 220, height: 160, borderRadius: 6, marginBottom: 20 }} contentFit="cover" />
             ) : cfg?.maintenance_icon ? (
-              <Image source={{ uri: mediaUrl(cfg.maintenance_icon) }} style={{ width: 96, height: 96, borderRadius: 10, marginBottom: 20 }} contentFit="contain" />
+              <Image source={{ uri: mediaUrl(cfg.maintenance_icon) }} style={{ width: 96, height: 96, borderRadius: 6, marginBottom: 20 }} contentFit="contain" />
             ) : (
-              <View style={{ width: 96, height: 96, borderRadius: 10, backgroundColor: "#F59E0B22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="wrench-outline" size={44} color="#F59E0B" /></View>
+              <View style={{ width: 96, height: 96, borderRadius: 6, backgroundColor: "#F59E0B22", alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="wrench-outline" size={44} color="#F59E0B" /></View>
             )}
             <Text testID="maint-title" style={{ fontSize: 24, fontWeight: "900", color: colors.text, textAlign: "center" }}>{cfg?.maintenance_title || "We’ll be back soon"}</Text>
             <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: "center", marginTop: 12, lineHeight: 21 }}>{cfg?.maintenance_description || "The app is under maintenance. Please try again later."}</Text>
@@ -101,12 +101,12 @@ export default function AppUpdateGate() {
           </View>
         ) : (
           <View style={{ alignItems: "center", maxWidth: 400, width: "100%" }}>
-            <View style={{ width: 96, height: 96, borderRadius: 10, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="cloud-download-outline" size={44} color={colors.primary} /></View>
+            <View style={{ width: 96, height: 96, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center", marginBottom: 20 }}><Icon name="cloud-download-outline" size={44} color={colors.primary} /></View>
             <Text style={{ fontSize: 22, fontWeight: "900", color: colors.text, textAlign: "center" }}>New Update Available</Text>
             <Text style={{ fontSize: 14, color: colors.textMuted, textAlign: "center", marginTop: 10, lineHeight: 21 }}>A new version of the app is available. Please update to continue.</Text>
             {cfg?.latest_version ? <Text style={{ fontSize: 13, color: colors.primary, fontWeight: "800", marginTop: 8 }}>Version {cfg.latest_version}</Text> : null}
             {cfg?.release_notes ? (
-              <View style={{ marginTop: 16, alignSelf: "stretch", backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
+              <View style={{ marginTop: 16, alignSelf: "stretch", backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
                 <Text style={{ fontSize: 11, fontWeight: "800", color: colors.textMuted, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 }}>Release Notes</Text>
                 <Text style={{ fontSize: 13, color: colors.text, lineHeight: 20 }}>{cfg.release_notes}</Text>
               </View>

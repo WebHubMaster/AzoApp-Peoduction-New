@@ -14,9 +14,9 @@ export function ProPerks({ label }: { label: string }) {
     { icon: "shield-check-outline", t: "Priority support", d: "Faster help from our team whenever you need assistance." },
   ];
   return (
-    <LinearGradient testID="pro-perks-section" colors={[TW.amber50, "#FFFFFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, borderWidth: 1, borderColor: TW.amber200, padding: 20 }}>
+    <LinearGradient testID="pro-perks-section" colors={[TW.amber50, "#FFFFFF"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, borderWidth: 1, borderColor: TW.amber200, padding: 20 }}>
       <Pressable testID="pro-perks-toggle" onPress={() => setOpen((v) => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <LinearGradient colors={[TW.amber400, TW.amber500]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
+        <LinearGradient colors={[TW.amber400, TW.amber500]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ width: 36, height: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}>
           <Icon name="crown-outline" size={20} color="#fff" />
         </LinearGradient>
         <View style={{ flex: 1, minWidth: 0 }}>
@@ -28,7 +28,7 @@ export function ProPerks({ label }: { label: string }) {
       {open ? (
         <View style={{ gap: 12, marginTop: 16 }}>
           {perks.map((p) => (
-            <View key={p.t} style={{ borderRadius: 12, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.amber100, padding: 16 }}>
+            <View key={p.t} style={{ borderRadius: 6, backgroundColor: "#fff", borderWidth: 1, borderColor: TW.amber100, padding: 16 }}>
               <Icon name={p.icon} size={20} color={TW.amber500} />
               <Text style={{ color: TW.slate800, fontWeight: "600", fontSize: 14, marginTop: 8 }}>{p.t}</Text>
               <Text style={{ color: TW.slate500, fontSize: 12, marginTop: 2, lineHeight: 17 }}>{p.d}</Text>
@@ -44,7 +44,7 @@ export function ProPerks({ label }: { label: string }) {
 export function OnboardingBanner({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();
   return (
-    <View testID="onboarding-banner" style={{ borderRadius: 10, backgroundColor: colors.primaryHover, padding: 20, gap: 12 }}>
+    <View testID="onboarding-banner" style={{ borderRadius: 6, backgroundColor: colors.primaryHover, padding: 20, gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Icon name="shield-check-outline" size={32} color="#fff" />
         <View style={{ flex: 1 }}>
@@ -52,7 +52,7 @@ export function OnboardingBanner({ onPress }: { onPress: () => void }) {
           <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>Finish onboarding & KYC to start receiving jobs.</Text>
         </View>
       </View>
-      <Pressable testID="goto-onboarding" onPress={onPress} style={{ alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 10, paddingHorizontal: 16, height: 40, justifyContent: "center" }}>
+      <Pressable testID="goto-onboarding" onPress={onPress} style={{ alignSelf: "flex-start", backgroundColor: "#fff", borderRadius: 6, paddingHorizontal: 16, height: 40, justifyContent: "center" }}>
         <Text style={{ color: colors.primaryHover, fontWeight: "600", fontSize: 14 }}>Complete now</Text>
       </Pressable>
     </View>

@@ -70,7 +70,7 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                 <Wrench size={16} color={colors.secondary} />
                 <Text style={{ color: colors.text, fontSize: 14, fontWeight: "700" }}>Service-wise commission</Text>
               </View>
-              <Card padded={false} style={{ paddingHorizontal: spacing.lg, borderRadius: 10 }}>
+              <Card padded={false} style={{ paddingHorizontal: spacing.lg, borderRadius: 6 }}>
                 {(d.services || []).length === 0 ? (
                   <View style={{ paddingVertical: 24, alignItems: "center" }}>
                     <Text style={{ color: colors.textMuted, fontSize: 13 }}>No commission-earning services yet.</Text>
@@ -144,7 +144,7 @@ export default function MerchantCustomers() {
 
         <MSearchBox value={qRaw} onChange={setQRaw} placeholder="Search customer name…" testID="customer-search" />
 
-        <Card padded={false} style={{ paddingHorizontal: spacing.lg, borderRadius: 10 }}>
+        <Card padded={false} style={{ paddingHorizontal: spacing.lg, borderRadius: 6 }}>
           {list.isLoading ? (
             <View style={{ paddingVertical: 32, alignItems: "center" }}><ActivityIndicator color={colors.primary} /></View>
           ) : items.length === 0 ? (

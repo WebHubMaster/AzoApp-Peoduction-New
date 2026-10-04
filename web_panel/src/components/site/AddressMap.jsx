@@ -83,7 +83,7 @@ export default function AddressMap({ mapsKey, lat, lng, onPick }) {
       <div ref={elRef} data-testid="google-address-map" className="w-full h-44 rounded-lg border border-slate-200 overflow-hidden bg-slate-100" />
       {!hasPoint && (
         <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center">
-          <span className="pointer-events-none rounded-full bg-white/90 shadow px-3 py-1 text-[11px] font-semibold text-slate-600">
+          <span className="pointer-events-none rounded-md bg-white/90 shadow px-3 py-1 text-[11px] font-semibold text-slate-600">
             Tap the map or use current location to set your spot
           </span>
         </div>

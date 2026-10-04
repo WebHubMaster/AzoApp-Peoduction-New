@@ -138,7 +138,7 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
   const [playing, setPlaying] = useState<string | null>(null);
   const { colors } = useTheme();
   const full = items.length >= MAX_PROOF_FILES;
-  const tile = { width: "31%" as const, aspectRatio: 1, borderRadius: 12, overflow: "hidden" as const, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle };
+  const tile = { width: "31%" as const, aspectRatio: 1, borderRadius: 6, overflow: "hidden" as const, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle };
   return (
     <>
     <View testID={testID}>

@@ -325,7 +325,7 @@ export default function RateCardsManager() {
                   <p className="font-bold text-slate-900 truncate">{c.category_name || "—"}</p>
                   <p className="text-xs text-slate-500 mt-0.5">{c.title}</p>
                 </div>
-                <span className={`text-[10px] font-bold rounded-full px-2 py-0.5 ${c.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
+                <span className={`text-[10px] font-bold rounded-md px-2 py-0.5 ${c.status === "active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
                   {c.status === "active" ? "Live" : "Hidden"}
                 </span>
               </div>

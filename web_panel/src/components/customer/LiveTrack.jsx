@@ -114,7 +114,7 @@ export default function LiveTrack({ booking }) {
           </div>
         )}
         {arrived && (
-          <span className="shrink-0 rounded-full bg-emerald-500 text-white text-xs font-bold px-3 py-1" data-testid="livetrack-arrived">Arrived</span>
+          <span className="shrink-0 rounded-md bg-emerald-500 text-white text-xs font-bold px-3 py-1" data-testid="livetrack-arrived">Arrived</span>
         )}
       </div>
       {loc && (

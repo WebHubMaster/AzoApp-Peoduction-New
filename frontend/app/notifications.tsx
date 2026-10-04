@@ -82,7 +82,7 @@ export default function Notifications() {
           <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, fontWeight: "600" }}>
             {items.length} notification{items.length > 1 ? "s" : ""}
           </Text>
-          <Pressable testID="notif-clear-all" onPress={clearAll} disabled={busy} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 10, backgroundColor: colors.dangerSubtle }}>
+          <Pressable testID="notif-clear-all" onPress={clearAll} disabled={busy} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 6, backgroundColor: colors.dangerSubtle }}>
             <Icon name="trash-can-outline" size={15} color={colors.danger} />
             <Text style={{ color: colors.danger, fontSize: fontSize.xs, fontWeight: "700" }}>Clear all</Text>
           </Pressable>
@@ -101,7 +101,7 @@ export default function Notifications() {
           renderItem={({ item }) => (
             <Card>
               <View style={{ flexDirection: "row", gap: spacing.md }}>
-                <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+                <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                   <Icon name="bell-ring" size={20} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>

@@ -341,7 +341,7 @@ export function WithdrawalsQueue() {
             </div>
             <div className="text-right">
               <p className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white">{fmt(x.amount)}</p>
-              <span className={`inline-block mt-1 text-xs px-2.5 py-1 rounded-full capitalize ${badge}`}>{label}</span>
+              <span className={`inline-block mt-1 text-xs px-2.5 py-1 rounded-md capitalize ${badge}`}>{label}</span>
             </div>
           </div>
           <div className="flex gap-2 mt-4 flex-wrap">

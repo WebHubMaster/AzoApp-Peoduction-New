@@ -29,7 +29,7 @@ export function RevenueChart({ series, bucket, onBucket, onReset, available }) {
       <div className="flex items-center gap-1.5 flex-wrap mb-3">
         {metrics.map((s) => (
           <button key={s.key} data-testid={`series-${s.key}`} onClick={() => setActive((a) => ({ ...a, [s.key]: !a[s.key] }))}
-            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-all ${active[s.key] ? "text-white border-transparent shadow-sm" : "text-slate-500 border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border transition-all ${active[s.key] ? "text-white border-transparent shadow-sm" : "text-slate-500 border-slate-200 dark:border-slate-700 hover:border-slate-300"}`}
             style={active[s.key] ? { background: s.color } : {}}>{s.name}</button>
         ))}
       </div>

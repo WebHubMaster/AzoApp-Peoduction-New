@@ -160,7 +160,7 @@ export default function MerchantProfileKyc() {
         testID="reg-embedded"
       >
         {/* Score header (web score banner) */}
-        <LinearGradient colors={["#0D47A1", "#1565C0"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 10, padding: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
+        <LinearGradient colors={["#0D47A1", "#1565C0"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 6, padding: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md }}>
           <ScoreRing score={score?.score || 0} />
           <View style={{ flex: 1 }}>
             <Text style={{ color: "#fff", fontWeight: "800", ...T.lg }}>Complete your shop profile</Text>
@@ -171,7 +171,7 @@ export default function MerchantProfileKyc() {
         {/* Status banners */}
         {status === "approved" ? <ApprovedBanner who="Merchant" /> : null}
         {status === "under_review" ? (
-          <View testID="reg-under-review" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 10, padding: spacing.md }}>
+          <View testID="reg-under-review" style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 6, padding: spacing.md }}>
             <View style={{ marginTop: 1 }}><ClipboardCheck size={18} color={colors.warning} /></View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: colors.warning, fontWeight: "800", ...T.sm }}>Under review</Text>
@@ -277,7 +277,7 @@ export default function MerchantProfileKyc() {
               ["GPS", addr.lat != null ? `${Number(addr.lat).toFixed(4)}, ${Number(addr.lng).toFixed(4)}` : "Not set"],
             ]} />
             {score?.missing?.length > 0 ? (
-              <View style={{ borderRadius: 12, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red100, padding: 12 }}>
+              <View style={{ borderRadius: 6, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red100, padding: 12 }}>
                 <Text style={{ ...T.sm, fontWeight: "600", color: TW.red600, marginBottom: 4 }}>Still required:</Text>
                 <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
                   {score.missing.map((m: string) => (

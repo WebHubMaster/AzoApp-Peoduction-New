@@ -31,7 +31,7 @@ export function ReportCards({ cards = [] }) {
 export function TypeBadge({ type }) {
   const isCust = type === "customer";
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${
       isCust ? "bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300"
              : "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"}`}>
       {isCust ? "Customer" : "Partner"}
@@ -48,7 +48,7 @@ export function StatusBadge({ status }) {
     inactive: "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400",
   };
   return (
-    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${map[status] || map.inactive}`}>
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md ${map[status] || map.inactive}`}>
       {(status === "active" || status === "approved") && <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />}
       {status || "—"}
     </span>

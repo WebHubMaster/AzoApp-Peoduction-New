@@ -68,7 +68,7 @@ function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: an
   return (
     <View testID="support-new-form">
       <Pressable testID="support-new-back" onPress={onCancel} style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 16, alignSelf: "flex-start" }}><ArrowLeft size={16} color={SLATE[500]} /><Text style={{ fontSize: 14, lineHeight: 20, color: SLATE[500] }}>Back</Text></Pressable>
-      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], backgroundColor: card, padding: 20, gap: 16 }}>
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], backgroundColor: card, padding: 20, gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={20} color={P[600]} /><Text style={{ fontSize: 18, lineHeight: 28, fontWeight: "700", color: heading }}>Raise a new ticket</Text></View>
         <View><Label>Subject *</Label><Input testID="support-subject" value={subject} onChangeText={setSubject} placeholder="Briefly, what's the issue?" /></View>
         <View style={{ flexDirection: "row", gap: 12 }}>
@@ -150,7 +150,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
   return (
     <View style={{ gap: 16 }} testID="support-thread">
       {/* ---- main conversation ---- */}
-      <View style={{ height: cardH, borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }}>
+      <View style={{ height: cardH, borderRadius: 6, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: hairline, zIndex: 20 }}>
           <IconBtn testID="support-thread-back" onPress={onBack} icon={<ArrowLeft size={16} color={heading} />} />
           <Avatar size={36} icon={20} />
@@ -169,7 +169,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
             <View style={{ position: "relative" }}>
               <IconBtn testID="support-menu-btn" onPress={() => setMenuOpen((v) => !v)} icon={<MoreVertical size={16} color={heading} />} />
               {menuOpen ? (
-                <View style={{ position: "absolute", right: 0, top: 36, zIndex: 30, width: 176, borderRadius: 12, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: dark ? SLATE[800] : "#fff", paddingVertical: 6, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }}>
+                <View style={{ position: "absolute", right: 0, top: 36, zIndex: 30, width: 176, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], backgroundColor: dark ? SLATE[800] : "#fff", paddingVertical: 6, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }}>
                   <Pressable testID="support-close-btn" onPress={closeTicket} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingVertical: 8, backgroundColor: pressed ? "#fef2f2" : "transparent" })}><X size={14} color="#dc2626" /><Text style={{ fontSize: 14, lineHeight: 20, color: "#dc2626" }}>Close ticket</Text></Pressable>
                 </View>
               ) : null}
@@ -195,7 +195,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
                       {!mine ? <Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: SLATE[500], paddingHorizontal: 4 }}>{isAdmin ? "Support" : m.sender_name}</Text> : null}
                       {(m.attachments || []).length > 0 ? <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{m.attachments.map((a: any, i: number) => <AttachmentView key={i} a={a} onOpen={setLightbox} />)}</View> : null}
                       {m.text ? (
-                        <View style={{ borderRadius: 10, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD500 : (dark ? SLATE[800] : "#fff"), borderWidth: mine ? 0 : 1, borderColor: bubbleBorder, boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
+                        <View style={{ borderRadius: 6, borderBottomRightRadius: mine ? 4 : 16, borderBottomLeftRadius: mine ? 16 : 4, paddingHorizontal: 14, paddingVertical: 8, backgroundColor: mine ? EMERALD500 : (dark ? SLATE[800] : "#fff"), borderWidth: mine ? 0 : 1, borderColor: bubbleBorder, boxShadow: "0px 1px 2px rgba(0,0,0,0.05)" }}>
                           <Text style={{ fontSize: 14, lineHeight: 20, color: mine ? "#fff" : body }}>{m.text}</Text>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4, justifyContent: mine ? "flex-end" : "flex-start" }}>
                             <Text style={{ fontSize: 10, lineHeight: 14, color: mine ? "rgba(255,255,255,0.8)" : SLATE[400] }}>{timeStr(m.at)}</Text>
@@ -211,7 +211,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
           })}
           {t.agent_typing ? (
             <View style={{ flexDirection: "row" }} testID="support-agent-typing">
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 10, borderBottomLeftRadius: 4, backgroundColor: dark ? SLATE[800] : "#fff", borderWidth: 1, borderColor: bubbleBorder, paddingHorizontal: 14, paddingVertical: 10 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, borderBottomLeftRadius: 4, backgroundColor: dark ? SLATE[800] : "#fff", borderWidth: 1, borderColor: bubbleBorder, paddingHorizontal: 14, paddingVertical: 10 }}>
                 <ShieldCheck size={12} color={P[600]} /><Text style={{ fontSize: 11, lineHeight: 14, fontWeight: "600", color: P[600] }}>Support is typing</Text>
                 <View style={{ flexDirection: "row", gap: 4, marginLeft: 4 }}>{[0, 1, 2].map((i) => <View key={i} style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: P[400] }} />)}</View>
               </View>
@@ -231,14 +231,14 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
                 {pending.map((a, i) => (
                   <View key={i} style={{ position: "relative" }}>
-                    {a.kind === "pdf" ? <View style={{ height: 64, width: 64, borderRadius: 8, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", backgroundColor: SLATE[50] }}><FileText size={24} color="#ef4444" /></View>
-                      : <Image source={{ uri: mediaUrl(a.thumb_url || a.url) }} style={{ height: 64, width: 64, borderRadius: 8, borderWidth: 1, borderColor: border }} contentFit="cover" />}
+                    {a.kind === "pdf" ? <View style={{ height: 64, width: 64, borderRadius: 6, borderWidth: 1, borderColor: border, alignItems: "center", justifyContent: "center", backgroundColor: SLATE[50] }}><FileText size={24} color="#ef4444" /></View>
+                      : <Image source={{ uri: mediaUrl(a.thumb_url || a.url) }} style={{ height: 64, width: 64, borderRadius: 6, borderWidth: 1, borderColor: border }} contentFit="cover" />}
                     <Pressable testID={`support-pending-remove-${i}`} onPress={() => setPending((p) => p.filter((_, j) => j !== i))} style={{ position: "absolute", top: -6, right: -6, height: 20, width: 20, borderRadius: 6, backgroundColor: SLATE[800], alignItems: "center", justifyContent: "center" }}><X size={12} color="#fff" /></Pressable>
                   </View>
                 ))}
               </View>
             ) : null}
-            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], padding: 8 }}>
+            <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], padding: 8 }}>
               <Pressable testID="support-attach-btn" onPress={() => setPick(true)} disabled={uploading} style={({ pressed }) => ({ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: pressed ? (dark ? SLATE[800] : SLATE[100]) : "transparent" })}>
                 {uploading ? <ActivityIndicator size="small" color={SLATE[500]} /> : <Paperclip size={16} color={SLATE[500]} />}
               </Pressable>
@@ -252,7 +252,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
       </View>
 
       {/* ---- info panel ---- */}
-      <View style={{ borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-ticket-info">
+      <View style={{ borderRadius: 6, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-ticket-info">
         <View style={{ padding: 16, borderBottomWidth: 1, borderBottomColor: hairline, gap: 2 }}>
           <Section>Ticket details</Section>
           <InfoRow icon={<Hash size={16} color={SLATE[400]} />} label="Ticket ID" value={t.code} />
@@ -272,7 +272,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
           <Section>{`Your other tickets · ${others.length}`}</Section>
           {others.length === 0 ? <Text style={{ fontSize: 12, lineHeight: 16, color: SLATE[400] }}>This is your only ticket.</Text>
             : <View style={{ gap: 6 }}>{others.slice(0, 12).map((p) => (
-              <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 8, borderWidth: 1, borderColor: hairline, paddingHorizontal: 10, paddingVertical: 6 }}>
+              <View key={p.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, borderRadius: 6, borderWidth: 1, borderColor: hairline, paddingHorizontal: 10, paddingVertical: 6 }}>
                 <Text style={{ flex: 1, fontSize: 12, lineHeight: 16, color: strong }} numberOfLines={1}>{p.subject}</Text>
                 <StatusBadge status={p.status} />
               </View>
@@ -283,7 +283,7 @@ function Thread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myI
       <SourceSheet open={pick} onClose={() => setPick(false)} onPick={pickFile} title="Attach screenshot" />
       <Modal visible={!!lightbox} transparent animationType="fade" onRequestClose={() => setLightbox(null)}>
         <Pressable testID="support-lightbox" onPress={() => setLightbox(null)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.8)", alignItems: "center", justifyContent: "center", padding: 16 }}>
-          {lightbox ? <Image source={{ uri: mediaUrl(lightbox) }} style={{ width: "90%", height: "90%", borderRadius: 8 }} contentFit="contain" /> : null}
+          {lightbox ? <Image source={{ uri: mediaUrl(lightbox) }} style={{ width: "90%", height: "90%", borderRadius: 6 }} contentFit="contain" /> : null}
           <View style={{ position: "absolute", top: 16, right: 16, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></View>
         </Pressable>
       </Modal>
@@ -362,14 +362,14 @@ export default function MerchantSupport({ title = "Help & Support" }: { title?: 
             {loading ? (
               <View style={{ paddingVertical: 64, alignItems: "center" }} testID="support-loading"><ActivityIndicator size="small" color={P[500]} /></View>
             ) : rows.length === 0 ? (
-              <View style={{ borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: dark ? SLATE[700] : SLATE[300], padding: 48, alignItems: "center" }} testID="support-empty">
+              <View style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: dark ? SLATE[700] : SLATE[300], padding: 48, alignItems: "center" }} testID="support-empty">
                 <Inbox size={40} color={SLATE[300]} />
                 <Text style={{ fontSize: 16, lineHeight: 24, fontWeight: "500", color: SLATE[500], marginTop: 12 }}>No tickets found</Text>
                 <Text style={{ fontSize: 14, lineHeight: 20, color: SLATE[400], marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
                 {newBtn("support-empty-new-btn")}
               </View>
             ) : (
-              <View style={{ borderRadius: 10, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-list">
+              <View style={{ borderRadius: 6, borderWidth: 1, borderColor: border, backgroundColor: card, overflow: "hidden" }} testID="support-list">
                 {rows.map((tk) => (
                   <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)}
                     style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: dark ? "rgba(30,41,59,0.6)" : SLATE[50], gap: 8, backgroundColor: pressed ? (dark ? "rgba(30,41,59,0.4)" : SLATE[50]) : "transparent" })}>

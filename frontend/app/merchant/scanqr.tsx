@@ -196,12 +196,12 @@ export default function MerchantScanQr() {
             </View>
 
             {/* Hero */}
-            <LinearGradient colors={[P[800], P[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 20, marginBottom: 24, gap: 24, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }} testID="scanqr-hero">
-              <View style={{ backgroundColor: "#fff", borderRadius: 10, padding: 16, alignSelf: "center" }}>
+            <LinearGradient colors={[P[800], P[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20, marginBottom: 24, gap: 24, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }} testID="scanqr-hero">
+              <View style={{ backgroundColor: "#fff", borderRadius: 6, padding: 16, alignSelf: "center" }}>
                 <QRCode value={link || " "} size={150} color="#0b1220" backgroundColor="#fff" />
               </View>
               <View style={{ minWidth: 0 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, marginBottom: 8 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(255,255,255,0.15)", alignSelf: "flex-start", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6, marginBottom: 8 }}>
                   <Icon name="shield-check" size={14} color="#fff" />
                   <Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>Verified Merchant QR</Text>
                 </View>
@@ -238,7 +238,7 @@ export default function MerchantScanQr() {
 
               {tab === "preview" ? (
                 <View>
-                  <View testID="poster-preview" onLayout={(e) => setBoxW(Math.max(200, e.nativeEvent.layout.width - 32))} style={{ borderRadius: 10, backgroundColor: dark ? "rgba(30,41,59,0.6)" : SLATE[100], borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16, alignItems: "center", overflow: "hidden" }}>
+                  <View testID="poster-preview" onLayout={(e) => setBoxW(Math.max(200, e.nativeEvent.layout.width - 32))} style={{ borderRadius: 6, backgroundColor: dark ? "rgba(30,41,59,0.6)" : SLATE[100], borderWidth: 1, borderColor: dark ? SLATE[800] : "rgba(226,232,240,0.7)", padding: 16, alignItems: "center", overflow: "hidden" }}>
                     <View style={{ flexDirection: "row", gap: 4, alignSelf: "flex-end", marginBottom: 12 }}>
                       {([["zoom-out", "magnify-minus-outline", () => setZoom((z) => Math.max(0.5, z - 0.15))], ["zoom-fit", "arrow-expand-all", () => setZoom(1)], ["zoom-in", "magnify-plus-outline", () => setZoom((z) => Math.min(2, z + 0.15))]] as [string, any, () => void][]).map(([id, ic, fn]) => (
                         <Pressable key={id} testID={id} onPress={fn} style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: dark ? SLATE[900] : "#fff", borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], alignItems: "center", justifyContent: "center" }}>
@@ -246,7 +246,7 @@ export default function MerchantScanQr() {
                         </Pressable>
                       ))}
                     </View>
-                    <View style={{ width: pw, height: ph, borderRadius: 12, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }}>
+                    <View style={{ width: pw, height: ph, borderRadius: 6, overflow: "hidden", boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1), 0px 8px 10px -6px rgba(0,0,0,0.1)" }}>
                       <QrBookingPoster qrValue={link} token={code} merchantName={businessName} brand={posterBrand} trustLine={posterTrust} width={pw} height={ph} scale={POSTER_CANVAS.scale * previewScale} />
                     </View>
                   </View>
@@ -275,10 +275,10 @@ export default function MerchantScanQr() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={() => setShareOpen(false)} />
-          <View testID="share-modal" style={{ backgroundColor: dark ? SLATE[900] : "#fff", borderRadius: 10, padding: 20, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
+          <View testID="share-modal" style={{ backgroundColor: dark ? SLATE[900] : "#fff", borderRadius: 6, padding: 20, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <Text style={{ fontSize: 18, fontWeight: "800", color: heading }}>Share your booking link</Text>
-              <Pressable testID="share-close" onPress={() => setShareOpen(false)} hitSlop={8} style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color={SLATE[400]} /></Pressable>
+              <Pressable testID="share-close" onPress={() => setShareOpen(false)} hitSlop={8} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><Icon name="close" size={20} color={SLATE[400]} /></Pressable>
             </View>
             <Text style={{ fontSize: 12, color: SLATE[500], marginBottom: 8 }}>Edit the message before sharing (your booking link is already included):</Text>
             <TextInput testID="share-message" multiline value={waMsg} onChangeText={setWaMsg} style={{ minHeight: 120, borderWidth: 1, borderColor: dark ? SLATE[700] : SLATE[200], borderRadius: 6, padding: 12, color: heading, fontSize: 14, lineHeight: 20, textAlignVertical: "top", backgroundColor: dark ? SLATE[900] : "#fff" }} />

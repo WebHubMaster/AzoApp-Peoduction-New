@@ -168,7 +168,7 @@ export default function HomepageBuilderPro() {
             <p className="text-[13.5px] text-[#6B7280]">Manage, organize and configure the sections displayed on the AzoApp homepage.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
-            {dirty && <span className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#B45309] bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-full px-2.5 h-7" data-testid="hp-unsaved"><span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse" /> Unsaved Changes</span>}
+            {dirty && <span className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-[#B45309] bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md px-2.5 h-7" data-testid="hp-unsaved"><span className="h-1.5 w-1.5 rounded-full bg-[#F59E0B] animate-pulse" /> Unsaved Changes</span>}
             {dirty && <Button variant="ghost" className="h-9 text-[13.5px] text-slate-600" onClick={discard} data-testid="hp-discard"><Undo2 className="h-4 w-4" /> Reset</Button>}
             <Button variant="outline" className="h-9 text-[13.5px]" onClick={() => setPreview(true)} data-testid="hp-preview-btn"><Eye className="h-4 w-4" /> Preview Homepage</Button>
             <SaveBtn tid="hp-save" />

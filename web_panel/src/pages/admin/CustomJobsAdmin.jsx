@@ -27,7 +27,7 @@ const fmtDate = (d) => { try { return new Date(d).toLocaleString("en-IN", { day:
 
 function StatusBadge({ s }) {
   const st = STATUS_STYLE[s] || STATUS_STYLE.pending;
-  return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${st.cls}`}>{st.label}</span>;
+  return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md whitespace-nowrap ${st.cls}`}>{st.label}</span>;
 }
 
 const STATUS_LABELS = { pending: "Pending", under_review: "Under Review", converted_to_service: "Converted", rejected: "Rejected", closed: "Closed" };

@@ -117,16 +117,16 @@ export default function PartnerProfileView({ user, kit }) {
             <h2 className="font-heading font-black text-2xl leading-tight truncate">{b.full_name || user?.name || "Partner"}</h2>
             <p className="text-primary-100 text-sm flex items-center gap-1.5 mt-0.5"><Phone className="h-3.5 w-3.5" /> {b.mobile || user?.phone}</p>
             <div className="flex flex-wrap items-center gap-2 mt-2.5">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/90 text-emerald-950 text-[11px] font-bold px-2.5 py-1">
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-400/90 text-emerald-950 text-[11px] font-bold px-2.5 py-1">
                 <ShieldCheck className="h-3.5 w-3.5" /> KYC Verified
               </span>
               {isPremium && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 text-amber-950 text-[11px] font-bold px-2.5 py-1">
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-400 text-amber-950 text-[11px] font-bold px-2.5 py-1">
                   <Crown className="h-3.5 w-3.5" /> {user?.partner_badge || kit?.badge_label || "AzoApp Pro"}
                 </span>
               )}
               {typeof user?.rating === "number" && user.rating > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 text-[11px] font-bold px-2.5 py-1">
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/15 text-[11px] font-bold px-2.5 py-1">
                   <Star className="h-3.5 w-3.5 fill-current" /> {user.rating.toFixed(1)}
                 </span>
               )}
@@ -164,7 +164,7 @@ export default function PartnerProfileView({ user, kit }) {
               <div key={i} className="flex items-center gap-2 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3.5 py-2">
                 <Briefcase className="h-4 w-4 text-primary-700 dark:text-primary-300" />
                 <span className="font-semibold text-sm text-slate-800 dark:text-slate-100">{c.category_name}</span>
-                {c.experience_label && <span className="text-[11px] font-bold text-primary-700 dark:text-primary-300 bg-white dark:bg-slate-900 rounded-full px-2 py-0.5">{c.experience_label}</span>}
+                {c.experience_label && <span className="text-[11px] font-bold text-primary-700 dark:text-primary-300 bg-white dark:bg-slate-900 rounded-md px-2 py-0.5">{c.experience_label}</span>}
               </div>
             ))}
           </div>

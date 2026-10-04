@@ -50,14 +50,14 @@ function NotificationBell() {
         style={{ height: 38, width: 38, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }}>
         <Bell size={18} color={colors.textSecondary} strokeWidth={1.9} />
         {unread > 0 ? (
-          <View style={{ position: "absolute", top: -6, right: -6, height: 18, minWidth: 18, paddingHorizontal: 4, borderRadius: 9, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
+          <View style={{ position: "absolute", top: -6, right: -6, height: 18, minWidth: 18, paddingHorizontal: 4, borderRadius: 6, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: colors.surface }}>
             <Text style={{ color: "#fff", fontSize: 9, fontWeight: "800" }}>{unread > 9 ? "9+" : unread}</Text>
           </View>
         ) : null}
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
-        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 320, maxWidth: "92%", maxHeight: 420, backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
+        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 320, maxWidth: "92%", maxHeight: 420, backgroundColor: colors.card, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
           <Text style={{ paddingHorizontal: 16, paddingVertical: 10, fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.textMuted, borderBottomWidth: 1, borderBottomColor: colors.border }}>Notifications</Text>
           <ScrollView>
             {items.length === 0 ? (
@@ -105,13 +105,13 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 28 }}>
+        <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: 20, paddingBottom: 28 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text }}>Edit Profile</Text>
             <Pressable onPress={onClose} hitSlop={8}><X size={20} color={colors.textMuted} /></Pressable>
           </View>
           {locked ? (
-            <View testID="profile-locked-banner" style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 12, padding: 12, marginBottom: 14 }}>
+            <View testID="profile-locked-banner" style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, backgroundColor: colors.warningSubtle, borderWidth: 1, borderColor: colors.warning, borderRadius: 6, padding: 12, marginBottom: 14 }}>
               <ShieldCheck size={16} color={colors.warning} style={{ marginTop: 1 }} />
               <Text style={{ flex: 1, fontSize: 12.5, color: colors.warning }}>Your profile is approved and locked — contact admin to change your details.</Text>
             </View>
@@ -144,23 +144,23 @@ function ProfileChip() {
   const photo = mediaUrl((user as any)?.photo);
   return (
     <>
-      <Pressable testID="profile-chip" onPress={() => setOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 38, paddingLeft: 3, paddingRight: 6, borderRadius: 12 }}>
-        <View style={{ height: 30, width: 30, borderRadius: 10, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+      <Pressable testID="profile-chip" onPress={() => setOpen(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 38, paddingLeft: 3, paddingRight: 6, borderRadius: 6 }}>
+        <View style={{ height: 30, width: 30, borderRadius: 6, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
           {photo ? <Image testID="profile-chip-photo" source={{ uri: photo }} style={{ height: 30, width: 30 }} contentFit="cover" /> : <Text style={{ color: "#fff", fontSize: 12, fontWeight: "800" }}>{initials}</Text>}
         </View>
         <ChevronDown size={16} color={colors.textMuted} />
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
-        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 232, backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
+        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 232, backgroundColor: colors.card, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 6, boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
           <View style={{ paddingHorizontal: 12, paddingVertical: 10 }}>
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "800", color: colors.text }}>{user?.name || "—"}</Text>
             <Text style={{ fontSize: 12, color: colors.textMuted }}>{user?.phone || ""}</Text>
           </View>
-          <Pressable testID="edit-profile-button" onPress={() => { setOpen(false); setEdit(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 }}>
+          <Pressable testID="edit-profile-button" onPress={() => { setOpen(false); setEdit(true); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 6 }}>
             <UserIcon size={16} color={colors.textSecondary} /><Text style={{ fontSize: 14, fontWeight: "600", color: colors.textSecondary }}>Edit Profile</Text>
           </Pressable>
-          <Pressable testID="logout-button" onPress={async () => { setOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10 }}>
+          <Pressable testID="logout-button" onPress={async () => { setOpen(false); await logout(); router.replace("/(auth)/welcome"); }} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 6 }}>
             <LogOut size={16} color="#DC2626" /><Text style={{ fontSize: 14, fontWeight: "700", color: "#DC2626" }}>Logout</Text>
           </Pressable>
         </View>
@@ -190,11 +190,11 @@ export function MerchantTopBar() {
   return (
     <View style={{ backgroundColor: colors.background, paddingTop: insets.top + 8, paddingHorizontal: 12, paddingBottom: 8 }}>
       <StatusBar style={colors.background === "#0B1120" ? "light" : "dark"} />
-      <View style={{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
+      <View style={{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
         {logo ? (
-          <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 36, width: 44, borderRadius: 10 }} contentFit="contain" transition={150} />
+          <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 36, width: 44, borderRadius: 6 }} contentFit="contain" transition={150} />
         ) : (
-          <LinearGradient testID="merchant-brand-fallback" colors={[colors.primary, colors.primaryDark] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }}>
+          <LinearGradient testID="merchant-brand-fallback" colors={[colors.primary, colors.primaryDark] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}>
             <Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{brandInitial}</Text>
           </LinearGradient>
         )}

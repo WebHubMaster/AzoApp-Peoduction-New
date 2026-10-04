@@ -467,7 +467,7 @@ export default function LivePartnerMap() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold text-slate-900 dark:text-white">Partner Operations</h1>
-            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" data-testid="live-badge">
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" data-testid="live-badge">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" /> LIVE
             </span>
           </div>
@@ -506,12 +506,12 @@ export default function LivePartnerMap() {
 
       <div className="flex flex-wrap items-center gap-2" data-testid="status-filter">
         <span className="text-xs font-semibold text-slate-400 flex items-center gap-1"><SlidersHorizontal className="h-3.5 w-3.5" /> Status</span>
-        <button data-testid="status-chip-all" onClick={() => setStatusF([])} className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${!statusF.length ? "bg-primary-600 border-primary-600 text-white" : "border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>All</button>
+        <button data-testid="status-chip-all" onClick={() => setStatusF([])} className={`text-xs font-semibold px-3 py-1.5 rounded-md border transition-colors ${!statusF.length ? "bg-primary-600 border-primary-600 text-white" : "border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}>All</button>
         {STATUS_ORDER.map((s) => {
           const on = statusF.includes(s); const c = statusColor(s);
           return (
             <button key={s} data-testid={`status-chip-${s}`} onClick={() => toggleStatus(s)}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1.5 transition-colors"
+              className="text-xs font-semibold px-3 py-1.5 rounded-md border border-slate-200 dark:border-slate-700 inline-flex items-center gap-1.5 transition-colors"
               style={on ? { background: c, borderColor: c, color: "#fff" } : { color: c }}>
               <span className="h-2 w-2 rounded-full" style={{ background: on ? "#fff" : c }} /> {statusLabel(s)}
             </button>
@@ -599,7 +599,7 @@ export default function LivePartnerMap() {
             </div>
           )}
 
-          <button data-testid="mobile-list-btn" onClick={() => setSheetOpen(true)} className="lg:hidden absolute bottom-3 right-3 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-full bg-primary-600 text-white shadow-lg">
+          <button data-testid="mobile-list-btn" onClick={() => setSheetOpen(true)} className="lg:hidden absolute bottom-3 right-3 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-md bg-primary-600 text-white shadow-lg">
             <Users className="h-4 w-4" /> {filtered.length}
           </button>
         </div>
@@ -658,7 +658,7 @@ function StatCard({ label, status, value, total, sub, active, tone, onClick }) {
 
 function Chip({ label, onClear, testid }) {
   return (
-    <span data-testid={testid} className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-100 dark:border-primary-800">
+    <span data-testid={testid} className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-md bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-100 dark:border-primary-800">
       {label}<button onClick={onClear} className="hover:text-primary-900 dark:hover:text-white"><X className="h-3 w-3" /></button>
     </span>
   );

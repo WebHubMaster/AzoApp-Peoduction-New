@@ -24,7 +24,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
       <Container className="pt-8 sm:pt-12 lg:pt-16 pb-10 lg:pb-16">
         <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           <div className="lg:col-span-7">
-            <motion.div {...fade(0)} className="inline-flex items-center gap-2 rounded-full bg-primary-50 ring-1 ring-primary-100 px-3.5 py-1.5">
+            <motion.div {...fade(0)} className="inline-flex items-center gap-2 rounded-md bg-primary-50 ring-1 ring-primary-100 px-3.5 py-1.5">
               <ShieldCheck className="h-4 w-4 text-primary-700" />
               <span className="text-xs font-semibold text-primary-800">{branding.tagline || `${branding.site_name || "AzoApp"} — verified home services`}</span>
             </motion.div>
@@ -42,7 +42,7 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
                 {!loaded && [0, 1, 2, 3].map((i) => <Sk key={i} className="h-7 w-24 rounded-full" />)}
                 {tiles.slice(0, 5).map((c) => (
                   <button key={c.id} onClick={() => (onCategory ? onCategory(c) : navigate(`/services?category=${c.id}`))} data-testid={`hero-chip-${c.id}`}
-                    className="h-8 px-3 rounded-full bg-white ring-1 ring-slate-200 text-xs font-semibold text-slate-700 hover:ring-primary-400 hover:text-primary-700 hover:-translate-y-px transition-all">{c.name}</button>
+                    className="h-8 px-3 rounded-md bg-white ring-1 ring-slate-200 text-xs font-semibold text-slate-700 hover:ring-primary-400 hover:text-primary-700 hover:-translate-y-px transition-all">{c.name}</button>
                 ))}
               </div>
             </motion.div>

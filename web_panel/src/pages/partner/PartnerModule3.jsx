@@ -33,7 +33,7 @@ const STATUS_STYLE = {
 const StatusPill = ({ status }) => {
   const s = STATUS_STYLE[status] || STATUS_STYLE.pending;
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${s.c}`}>
+    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-md ${s.c}`}>
       <s.Icon className="h-3.5 w-3.5" /> {s.t}
     </span>
   );
@@ -654,7 +654,7 @@ export function AvailabilitySection() {
                   aria-label={`${fmtLong(ds)}${st ? ` — ${st}` : ""}`}
                   onClick={() => setPicked(ds)}
                   className={`relative rounded-2xl border p-1 min-h-[46px] sm:min-h-[60px] flex flex-col items-center justify-center gap-0.5 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-400 ${cls} ${isToday ? "ring-2 ring-primary-500" : ""}`}>
-                  {isToday && <span className="absolute top-1 right-1 text-[7.5px] font-black uppercase tracking-wide bg-primary-600 text-white rounded-full px-1.5 py-0.5">Today</span>}
+                  {isToday && <span className="absolute top-1 right-1 text-[7.5px] font-black uppercase tracking-wide bg-primary-600 text-white rounded-md px-1.5 py-0.5">Today</span>}
                   <span className="text-base sm:text-lg font-black leading-none">{dt.getDate()}</span>
                   {st === "available" && <span className="text-[8px] sm:text-[10px] font-bold leading-none">Available</span>}
                   {st === "unavailable" && <span className="text-[8px] sm:text-[10px] font-bold leading-none">Not Avail.</span>}

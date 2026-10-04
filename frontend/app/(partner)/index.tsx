@@ -141,10 +141,10 @@ export default function PartnerHome() {
         {showOnboarding ? <OnboardingBanner onPress={() => nav("onboarding")} /> : null}
 
         {loading ? <DashboardSkeleton /> : dash.isError && !d ? (
-          <View testID="ph-error" style={{ borderRadius: 10, borderWidth: 1, borderColor: TW.rose200, backgroundColor: TW.rose50, padding: 40, alignItems: "center" }}>
+          <View testID="ph-error" style={{ borderRadius: 6, borderWidth: 1, borderColor: TW.rose200, backgroundColor: TW.rose50, padding: 40, alignItems: "center" }}>
             <Icon name="alert-outline" size={32} color={TW.rose500} />
             <Text style={{ color: TW.slate800, fontWeight: "600", marginTop: 12 }}>Unable to load your dashboard</Text>
-            <Pressable testID="ph-retry" onPress={() => dash.refetch()} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12, backgroundColor: colors.primaryHover }}>
+            <Pressable testID="ph-retry" onPress={() => dash.refetch()} style={{ marginTop: 16, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: colors.primaryHover }}>
               <Icon name="refresh" size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>Retry</Text>
             </Pressable>
           </View>

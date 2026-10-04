@@ -25,7 +25,7 @@ function MKpiCard({ c }: { c: Kpi }) {
   if (c.primary) {
     return (
       <LinearGradient colors={["#10B981", "#059669"] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={{ flex: 1, borderRadius: 10, padding: spacing.lg }}>
+        style={{ flex: 1, borderRadius: 6, padding: spacing.lg }}>
         <Text style={{ color: "#ECFDF5", fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
         <Text style={{ color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4, letterSpacing: -0.24, ...TAB }} numberOfLines={1}>{display}</Text>
         {c.sub ? <Text style={{ color: "rgba(236,253,245,0.9)", fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -33,7 +33,7 @@ function MKpiCard({ c }: { c: Kpi }) {
     );
   }
   return (
-    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 10 }}>
+    <Card padded={false} style={{ flex: 1, padding: spacing.lg, borderRadius: 6 }}>
       <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "600", textTransform: "uppercase", letterSpacing: 0.3 }} numberOfLines={1}>{c.label}</Text>
       <Text style={{ color: c.money ? colors.success : colors.text, fontSize: 18, fontWeight: "800", marginTop: 4, letterSpacing: -0.18, ...TAB }} numberOfLines={1}>{display}</Text>
       {c.sub ? <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={1}>{c.sub}</Text> : null}
@@ -164,7 +164,7 @@ export function MTypeBadge({ type }: { type?: string }) {
   const bg = isCust ? "#E0F2FE" : "#EDE9FE";
   const fg = isCust ? "#0369A1" : "#6D28D9";
   return (
-    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.pill, alignSelf: "flex-start" }} testID={`type-badge-${isCust ? "customer" : "partner"}`}>
+    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, alignSelf: "flex-start" }} testID={`type-badge-${isCust ? "customer" : "partner"}`}>
       <Text style={{ color: fg, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.4 }}>{isCust ? "Customer" : "Partner"}</Text>
     </View>
   );

@@ -5,9 +5,9 @@ import { ComboSelect } from "./FilterDrawer";
 
 const PayBadge = ({ s }) => {
   const m = { paid: "bg-emerald-50 text-emerald-700", pending: "bg-amber-50 text-amber-700", failed: "bg-red-50 text-red-600", refunded: "bg-fuchsia-50 text-fuchsia-700" };
-  return s ? <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full capitalize ${m[s] || "bg-slate-100 text-slate-500"}`}>{s}</span> : <span className="text-slate-300">—</span>;
+  return s ? <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md capitalize ${m[s] || "bg-slate-100 text-slate-500"}`}>{s}</span> : <span className="text-slate-300">—</span>;
 };
-const StatusBadge = ({ s }) => <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full capitalize whitespace-nowrap" style={{ background: `${sMeta(s).hex}1a`, color: sMeta(s).hex }}>{sMeta(s).label}</span>;
+const StatusBadge = ({ s }) => <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md capitalize whitespace-nowrap" style={{ background: `${sMeta(s).hex}1a`, color: sMeta(s).hex }}>{sMeta(s).label}</span>;
 
 export default function RecentBookings({ rows, onOpenBooking, onReset, faServices }) {
   const [q, setQ] = useState(""); const [dq, setDq] = useState("");
@@ -80,7 +80,7 @@ export default function RecentBookings({ rows, onOpenBooking, onReset, faService
               <tbody>
                 {pageRows.map((b) => (
                   <tr key={b.id} data-testid={`rb-row-${b.code}`} className="border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-2.5 pr-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">#{b.code}<span className={`ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full capitalize ${b.booking_type === "merchant" ? "bg-primary-50 text-primary-700" : "bg-slate-100 text-slate-500"}`}>{b.booking_type}</span></td>
+                    <td className="py-2.5 pr-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">#{b.code}<span className={`ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-md capitalize ${b.booking_type === "merchant" ? "bg-primary-50 text-primary-700" : "bg-slate-100 text-slate-500"}`}>{b.booking_type}</span></td>
                     <td className="py-2.5 pr-3 text-slate-700 dark:text-slate-200">{b.service_name}</td>
                     <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">{b.customer_name || "—"}</td>
                     <td className="py-2.5 pr-3 text-slate-500 dark:text-slate-400">{b.partner_name || "—"}</td>

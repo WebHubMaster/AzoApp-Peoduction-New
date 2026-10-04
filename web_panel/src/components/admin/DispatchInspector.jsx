@@ -176,7 +176,7 @@ export default function DispatchInspector({ bookingId, booking, onClose, onAssig
                           <div key={w.partner_id} className="flex items-center justify-between rounded-xl border border-[#E6EAF0] bg-white px-3 py-2">
                             <span className="text-[13px] font-semibold text-[#172033] truncate">{w.partner_name || "Partner"}</span>
                             <span className="text-[12px] text-[#64748B] flex items-center gap-2 shrink-0">
-                              {w.nearby && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FEF5E7] text-[#B45309]">Nearby</span>}
+                              {w.nearby && <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[#FEF5E7] text-[#B45309]">Nearby</span>}
                               {w.eta_min != null && <span className="flex items-center gap-1"><Timer className="h-3 w-3" />~{w.eta_min}m</span>}
                               {w.distance_km != null && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{w.distance_km}km</span>}
                             </span>

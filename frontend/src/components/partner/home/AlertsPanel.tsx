@@ -14,7 +14,7 @@ import { TW } from "./tw";
 
 function Surface({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
   const { colors } = useTheme();
-  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 16, boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ backgroundColor: colors.card, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 16, boxShadow: "0px 3px 12px rgba(47,43,61,0.1)" }, style]}>{children}</View>;
 }
 
 /* ------------------------------------------------------------ Alert check (TestRingCard) */
@@ -132,7 +132,7 @@ export function TestRingCard() {
   return (
     <Surface testID="test-ring-card" style={{ borderColor: "#FCD9A8" }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="bell-alert-outline" size={20} color={TW.amber600} /></View>
+        <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="bell-alert-outline" size={20} color={TW.amber600} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Alert check</Text>
           <Text style={{ color: TW.slate400, fontSize: 12, marginTop: 1 }}>
@@ -143,7 +143,7 @@ export function TestRingCard() {
       {issues.length ? (
         <View testID="alert-issues" style={{ marginTop: 12, gap: 8 }}>
           {issues.map((it) => (
-            <View key={it.key} testID={`alert-issue-${it.key}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 10 }}>
+            <View key={it.key} testID={`alert-issue-${it.key}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 10 }}>
               <Icon name={it.icon} size={16} color={TW.amber600} />
               <Text style={{ flex: 1, fontSize: 12, lineHeight: 17, color: colors.textSecondary }}>{it.text}</Text>
               {it.action ? (
@@ -162,7 +162,7 @@ export function TestRingCard() {
           <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>Send test ring</Text>
         </Pressable>
         {Platform.OS !== "web" ? (
-          <Pressable testID="test-lockscreen-ring" onPress={lockTest} disabled={lockCountdown !== null} style={{ height: 40, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: lockCountdown !== null ? 0.6 : 1 }}>
+          <Pressable testID="test-lockscreen-ring" onPress={lockTest} disabled={lockCountdown !== null} style={{ height: 40, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: lockCountdown !== null ? 0.6 : 1 }}>
             <Icon name="cellphone-lock" size={16} color={colors.primaryHover} />
             <Text style={{ color: colors.primaryHover, fontSize: 13, fontWeight: "600" }}>{lockCountdown !== null ? `Lock now… ${Math.max(0, lockCountdown)}s` : "Test lock-screen ring"}</Text>
           </Pressable>
@@ -203,7 +203,7 @@ export function SnoozeCard() {
   return (
     <Surface testID="snooze-card" style={on ? { borderColor: dark ? TW.amber700 : TW.amber300, backgroundColor: dark ? "rgba(120,53,15,0.2)" : TW.amber50 } : undefined}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: on ? TW.amber500 : colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="coffee-outline" size={20} color={on ? "#fff" : TW.slate500} /></View>
+        <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: on ? TW.amber500 : colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="coffee-outline" size={20} color={on ? "#fff" : TW.slate500} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>{on ? "You're on a break" : "Smart Snooze"}</Text>
           {on ? (
@@ -220,7 +220,7 @@ export function SnoozeCard() {
         ) : (
           <>
             <Pressable testID="snooze-30" onPress={() => start(30)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Busy 30 min</Text></Pressable>
-            <Pressable testID="snooze-60" onPress={() => start(60)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>1 hour</Text></Pressable>
+            <Pressable testID="snooze-60" onPress={() => start(60)} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: "600" }}>1 hour</Text></Pressable>
           </>
         )}
       </View>
@@ -250,19 +250,19 @@ export function StreakCard({ stats }: { stats: any }) {
     <Surface testID="partner-streak-card" style={{ padding: 20 }}>
       <View style={{ gap: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 56, height: 56, borderRadius: 10, alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
+          <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 56, height: 56, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.15)" }}>
             <Icon name="fire" size={28} color="#fff" />
           </LinearGradient>
           <View>
             <Text style={lbl}>Accept Streak</Text>
             <Text testID="streak-count" style={{ color: colors.text, fontSize: 24, fontWeight: "800", lineHeight: 26 }}>{stats.accept_streak || 0}</Text>
-            <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4 }}>
+            <LinearGradient colors={badge.cls} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ alignSelf: "flex-start", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4 }}>
               <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>{badge.label}</Text>
             </LinearGradient>
           </View>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: dark ? "rgba(120,53,15,0.3)" : TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="medal-outline" size={20} color={TW.amber600} /></View>
+          <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: dark ? "rgba(120,53,15,0.3)" : TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="medal-outline" size={20} color={TW.amber600} /></View>
           <View>
             <Text style={lbl}>Best Streak</Text>
             <Text style={{ color: colors.text, fontSize: 20, fontWeight: "800" }}>{stats.best_streak || 0}</Text>
@@ -281,7 +281,7 @@ export function StreakCard({ stats }: { stats: any }) {
         </View>
       </View>
       {rw?.enabled ? (
-        <View testID="reward-payout" style={{ marginTop: 16, borderRadius: 12, borderWidth: 1, borderColor: dark ? TW.emerald800 : TW.emerald200, backgroundColor: dark ? "rgba(6,78,59,0.25)" : "rgba(236,253,245,0.7)", padding: 14 }}>
+        <View testID="reward-payout" style={{ marginTop: 16, borderRadius: 6, borderWidth: 1, borderColor: dark ? TW.emerald800 : TW.emerald200, backgroundColor: dark ? "rgba(6,78,59,0.25)" : "rgba(236,253,245,0.7)", padding: 14 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
               <Icon name="gift-outline" size={16} color={dark ? TW.emerald200 : TW.emerald800} />
@@ -331,7 +331,7 @@ export function MissedRequestsCard() {
     <Surface style={{ padding: 20 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: mode === "dark" ? "rgba(120,53,15,0.3)" : TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="history" size={20} color={TW.amber600} /></View>
+          <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: mode === "dark" ? "rgba(120,53,15,0.3)" : TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="history" size={20} color={TW.amber600} /></View>
           <View>
             <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Missed Requests</Text>
             <Text style={{ color: TW.slate400, fontSize: 12 }}>Jobs you did not answer in time</Text>
@@ -348,10 +348,10 @@ export function MissedRequestsCard() {
       ) : (
         <View style={{ gap: 10 }}>
           {missed.map((m) => (
-            <View key={m.id} testID={`missed-${m.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, padding: 10 }}>
+            <View key={m.id} testID={`missed-${m.id}`} style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 10 }}>
               {m.service_image
-                ? <Image source={{ uri: mediaUrl(m.service_image) }} style={{ width: 44, height: 44, borderRadius: 8 }} contentFit="cover" />
-                : <View style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bell-outline" size={20} color={TW.slate400} /></View>}
+                ? <Image source={{ uri: mediaUrl(m.service_image) }} style={{ width: 44, height: 44, borderRadius: 6 }} contentFit="cover" />
+                : <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bell-outline" size={20} color={TW.slate400} /></View>}
               <View style={{ flex: 1, minWidth: 0 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14, flexShrink: 1 }} numberOfLines={1}>{m.service_name || "Service request"}</Text>
@@ -362,7 +362,7 @@ export function MissedRequestsCard() {
                   <Text style={{ color: TW.slate400, fontSize: 11, flex: 1 }} numberOfLines={1}>{m.address_line || m.city || "—"}{m.total ? ` · ₹${m.total}` : ""}</Text>
                 </View>
               </View>
-              <Pressable testID={`regrab-${m.id}`} onPress={() => regrab(m)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 8, backgroundColor: TW.emerald600, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Pressable testID={`regrab-${m.id}`} onPress={() => regrab(m)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, backgroundColor: TW.emerald600, flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Icon name="refresh" size={14} color="#fff" /><Text style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}>Re-grab</Text>
               </Pressable>
             </View>

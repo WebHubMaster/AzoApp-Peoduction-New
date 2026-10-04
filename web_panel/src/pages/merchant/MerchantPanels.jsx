@@ -22,7 +22,7 @@ const STATUS_PILL = {
   open: "bg-amber-100 text-amber-700", done: "bg-emerald-100 text-emerald-700",
   cancelled: "bg-slate-100 text-slate-500",
 };
-const Pill = ({ s }) => <span className={`text-[11px] px-2 py-0.5 rounded-full capitalize ${STATUS_PILL[s] || "bg-slate-100 text-slate-600"}`}>{(s || "").replace(/_/g, " ")}</span>;
+const Pill = ({ s }) => <span className={`text-[11px] px-2 py-0.5 rounded-md capitalize ${STATUS_PILL[s] || "bg-slate-100 text-slate-600"}`}>{(s || "").replace(/_/g, " ")}</span>;
 const TONE = {
   slate: "bg-slate-50 border-slate-100", sky: "bg-sky-50 border-sky-100",
   emerald: "bg-emerald-50 border-emerald-100", amber: "bg-amber-50 border-amber-100",
@@ -296,7 +296,7 @@ export function MyCustomers({ shopName = "My Shop", logoUrl = "" }) {
                   </td>
                   <td className="px-4 py-3 relative">
                     <div className="flex items-center gap-1 flex-wrap max-w-[160px]">
-                      {(c.tags || []).map((tg) => <span key={tg} className={`text-[10px] px-1.5 py-0.5 rounded-full uppercase font-semibold ${TAG_STYLE[tg] || "bg-slate-100 text-slate-600"}`}>{tg}</span>)}
+                      {(c.tags || []).map((tg) => <span key={tg} className={`text-[10px] px-1.5 py-0.5 rounded-md uppercase font-semibold ${TAG_STYLE[tg] || "bg-slate-100 text-slate-600"}`}>{tg}</span>)}
                       <button data-testid={`cust-tagbtn-${c.customer_key}`} onClick={() => setTagOpen(tagOpen === c.customer_key ? null : c.customer_key)} className="h-6 w-6 rounded-full border border-dashed border-slate-300 text-slate-400 hover:border-primary-400 hover:text-primary-600 grid place-items-center"><TagIcon className="h-3 w-3" /></button>
                     </div>
                     {tagOpen === c.customer_key && (
@@ -541,8 +541,8 @@ export function Reminders() {
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-heading font-bold text-lg">Upcoming Reminders</h3>
           <div className="flex gap-1">
-            <button data-testid="rem-view-list" onClick={() => setView("list")} className={`px-3 py-1.5 rounded-full text-xs font-medium ${view === "list" ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>List</button>
-            <button data-testid="rem-view-calendar" onClick={() => setView("calendar")} className={`px-3 py-1.5 rounded-full text-xs font-medium ${view === "calendar" ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>Calendar</button>
+            <button data-testid="rem-view-list" onClick={() => setView("list")} className={`px-3 py-1.5 rounded-md text-xs font-medium ${view === "list" ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>List</button>
+            <button data-testid="rem-view-calendar" onClick={() => setView("calendar")} className={`px-3 py-1.5 rounded-md text-xs font-medium ${view === "calendar" ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>Calendar</button>
           </div>
         </div>
         {view === "calendar" ? <ReminderCalendar items={items} />
@@ -674,7 +674,7 @@ export function Performance() {
         <div className="flex gap-1.5">
           {[["monthly", "Monthly"], ["quarterly", "Quarterly"], ["yearly", "Yearly"]].map(([v, l]) => (
             <button key={v} data-testid={`perf-${v}`} onClick={() => setPeriod(v)}
-              className={`px-3.5 py-1.5 rounded-full text-sm ${period === v ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{l}</button>
+              className={`px-3.5 py-1.5 rounded-md text-sm ${period === v ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{l}</button>
           ))}
         </div>
       </div>
@@ -720,7 +720,7 @@ export function TopCustomers() {
         <div className="flex gap-1.5">
           {[["month", "This Month"], ["all", "All Time"]].map(([v, l]) => (
             <button key={v} data-testid={`top-${v}`} onClick={() => setPeriod(v)}
-              className={`px-3.5 py-1.5 rounded-full text-sm ${period === v ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{l}</button>
+              className={`px-3.5 py-1.5 rounded-md text-sm ${period === v ? "bg-primary-700 text-white" : "bg-slate-100 text-slate-600"}`}>{l}</button>
           ))}
         </div>
       </div>
@@ -925,7 +925,7 @@ export function ScanQR({ code, shopName = "My Shop" }) {
               {code ? <QRCodeCanvas value={link} size={260} level="M" includeMargin style={{ width: 150, height: 150 }} /> : <div className="h-[150px] w-[150px] grid place-items-center text-slate-300">No code</div>}
             </div>
             <p className="font-bold text-lg mt-4">📱 Scan to Book</p>
-            <span className="inline-block mt-3 bg-white/15 px-4 py-1.5 rounded-full text-sm font-bold tracking-widest">Ref: {code}</span>
+            <span className="inline-block mt-3 bg-white/15 px-4 py-1.5 rounded-md text-sm font-bold tracking-widest">Ref: {code}</span>
           </div>
         </div>
         {/* controls */}

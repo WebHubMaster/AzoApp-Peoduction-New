@@ -142,7 +142,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
     { value: "partner_asc", label: "Partner A → Z" }, { value: "partner_desc", label: "Partner Z → A" },
   ];
   const dateLabel = range.from ? (range.from === range.to || !range.to ? fmtShort(range.from) : `${fmtShort(range.from)} – ${fmtShort(range.to)}`) : "";
-  const chipCls = (on) => `shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-full text-xs font-semibold ring-1 transition-all duration-150 ${on ? "bg-primary-700 text-white ring-primary-700 shadow-sm shadow-primary-700/25" : "bg-white text-slate-600 ring-slate-200 hover:ring-primary-300 hover:text-primary-800"}`;
+  const chipCls = (on) => `shrink-0 inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-xs font-semibold ring-1 transition-all duration-150 ${on ? "bg-primary-700 text-white ring-primary-700 shadow-sm shadow-primary-700/25" : "bg-white text-slate-600 ring-slate-200 hover:ring-primary-300 hover:text-primary-800"}`;
 
   return (
     <div className="space-y-4" data-testid="sk-purchases">
@@ -197,12 +197,12 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
 
         <div className="flex gap-2 overflow-x-auto sm:overflow-visible sm:flex-wrap no-scrollbar -mx-2 px-2 py-1" data-testid="sk-status-chips">
           <button data-testid="sk-status-all" onClick={() => setStatus("all")} className={chipCls(status === "all")}>
-            All <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === "all" ? "bg-white/20" : "bg-slate-100"}`}>{d.base_total ?? 0}</span>
+            All <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${status === "all" ? "bg-white/20" : "bg-slate-100"}`}>{d.base_total ?? 0}</span>
           </button>
           {STATUS_ORDER.map((s) => (
             <button key={s} data-testid={`sk-status-${s}`} onClick={() => setStatus(s)} className={chipCls(status === s)}>
               <span className={`h-1.5 w-1.5 rounded-full ${status === s ? "bg-white" : STATUS_META[s].dot}`} />
-              {STATUS_META[s].label} <span className={`px-1.5 py-0.5 rounded-full text-[10px] ${status === s ? "bg-white/20" : "bg-slate-100"}`}>{sc[s] ?? 0}</span>
+              {STATUS_META[s].label} <span className={`px-1.5 py-0.5 rounded-md text-[10px] ${status === s ? "bg-white/20" : "bg-slate-100"}`}>{sc[s] ?? 0}</span>
             </button>
           ))}
         </div>
@@ -231,7 +231,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
           <h3 className="font-heading font-bold text-slate-800 flex items-center gap-2">
             <ShoppingBag className="h-4 w-4 text-primary-700" /> Kit purchases
           </h3>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-50 ring-1 ring-slate-200 rounded-full px-2.5 py-1 tabular-nums" data-testid="sk-results-count">
+          <span className="text-xs font-semibold text-slate-500 bg-slate-50 ring-1 ring-slate-200 rounded-md px-2.5 py-1 tabular-nums" data-testid="sk-results-count">
             {d.filtered_count ?? 0} result{(d.filtered_count ?? 0) === 1 ? "" : "s"}
           </span>
         </div>
@@ -277,7 +277,7 @@ export default function StarterKitPurchases({ onSummary, kitTitle, refreshKey })
                       <td className="px-4 py-3 font-heading font-bold text-slate-900 tabular-nums whitespace-nowrap">{inr(p.amount)}</td>
                       <td className="px-4 py-3 whitespace-nowrap"><span className="inline-flex text-xs font-semibold px-2 py-1 rounded-md bg-slate-100 text-slate-700">{methodLabel(p.method)}</span></td>
                       <td className="px-4 py-3 text-slate-600 whitespace-nowrap"><span className="inline-flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-slate-400" />{fmtDateTime(p.created_at)}</span></td>
-                      <td className="px-4 py-3"><span className={`inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-full ring-1 ${p.status === "paid" ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-slate-50 text-slate-600 ring-slate-200"}`}>{p.status === "paid" ? "Paid" : (p.status || "—")}</span></td>
+                      <td className="px-4 py-3"><span className={`inline-flex text-[11px] font-semibold px-2.5 py-1 rounded-md ring-1 ${p.status === "paid" ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-slate-50 text-slate-600 ring-slate-200"}`}>{p.status === "paid" ? "Paid" : (p.status || "—")}</span></td>
                       <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <StatusBadge status={p.tracking_status} />

@@ -27,7 +27,7 @@ function Stat({ icon, label, value, bg, fg }: { icon: MdiName; label: string; va
   const { heading } = useQrPalette();
   return (
     <KitCard style={{ width: "48.2%" }}>
-      <View style={{ height: 36, width: 36, borderRadius: 12, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={fg} /></View>
+      <View style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={fg} /></View>
       <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "800", color: heading, marginTop: 12, fontVariant: ["tabular-nums"] }}>{value}</Text>
       <Text style={{ fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.25, color: SLATE[400], marginTop: 2 }}>{label}</Text>
     </KitCard>
@@ -150,7 +150,7 @@ export function QrAnalytics() {
               const bk = a.type === "booking";
               return (
                 <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6, borderBottomWidth: i === recent.length - 1 ? 0 : 1, borderBottomColor: dark ? SLATE[800] : SLATE[50] }}>
-                  <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: bk ? (dark ? "rgba(16,185,129,0.2)" : EMERALD[50]) : (dark ? "rgba(13,71,161,0.25)" : P[50]), alignItems: "center", justifyContent: "center" }}>
+                  <View style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: bk ? (dark ? "rgba(16,185,129,0.2)" : EMERALD[50]) : (dark ? "rgba(13,71,161,0.25)" : P[50]), alignItems: "center", justifyContent: "center" }}>
                     <Icon name={bk ? "shopping" : "qrcode"} size={16} color={bk ? EMERALD[600] : P[600]} />
                   </View>
                   <View style={{ flex: 1, minWidth: 0 }}>

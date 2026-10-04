@@ -83,7 +83,7 @@ export default function Promotions() {
               <Crown className="absolute -right-6 -top-6 h-44 w-44 text-white/[0.06]" />
               <div className="relative grid lg:grid-cols-12 gap-8 p-6 sm:p-10 items-center">
                 <div className="lg:col-span-7">
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-white/15 ring-1 ring-white/20 px-3 py-1 rounded-full"><Sparkles className="h-3.5 w-3.5" /> {topPlan.badge || "Membership"}</span>
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider bg-white/15 ring-1 ring-white/20 px-3 py-1 rounded-md"><Sparkles className="h-3.5 w-3.5" /> {topPlan.badge || "Membership"}</span>
                   <h2 className="font-heading font-black text-2xl sm:text-4xl mt-4 leading-tight">{maxPct > 0 ? <>Save up to <span className="text-amber-300">{maxPct}%</span> on every booking</> : topPlan.name}</h2>
                   <p className="text-white/75 mt-3 max-w-xl text-sm sm:text-base">{topPlan.description || topPlan.tagline}</p>
                   {Array.isArray(topPlan.benefits) && topPlan.benefits.length > 0 && (

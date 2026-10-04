@@ -125,7 +125,7 @@ export default function RegistrationFeeReport({ onView }) {
                           <td className="px-4 py-2.5 font-mono text-xs text-slate-500">{t.txn_ref}</td>
                           <td className="px-4 py-2.5 font-bold text-slate-900">{fmt(t.amount)}</td>
                           <td className="px-4 py-2.5 capitalize text-slate-600">{t.gateway || "—"}</td>
-                          <td className="px-4 py-2.5"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${t.mode === "live" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{(t.mode || "test").toUpperCase()}</span></td>
+                          <td className="px-4 py-2.5"><span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${t.mode === "live" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>{(t.mode || "test").toUpperCase()}</span></td>
                           <td className="px-4 py-2.5 text-slate-500 text-xs">{fmtDate(t.created_at)}</td>
                         </tr>
                       ))}
@@ -151,7 +151,7 @@ export default function RegistrationFeeReport({ onView }) {
                           <td className="px-4 py-2.5"><p className="font-semibold text-slate-800">{p.name}</p><p className="text-xs text-slate-400">{p.phone}</p></td>
                           <td className="px-4 py-2.5 text-slate-500">{p.partner_code || "—"}</td>
                           <td className="px-4 py-2.5 capitalize text-slate-600">{p.kyc_status || "—"}</td>
-                          <td className="px-4 py-2.5"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${p.pending_order ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-600"}`}>{p.pending_order ? "Pending" : "Not paid"}</span></td>
+                          <td className="px-4 py-2.5"><span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${p.pending_order ? "bg-amber-50 text-amber-700" : "bg-rose-50 text-rose-600"}`}>{p.pending_order ? "Pending" : "Not paid"}</span></td>
                           <td className="px-4 py-2.5 text-slate-500 text-xs">{fmtDate(p.created_at)}</td>
                         </tr>
                       ))}

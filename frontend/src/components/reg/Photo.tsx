@@ -142,7 +142,7 @@ export function SourceSheet({ open, onClose, onPick, title }: { open: boolean; o
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }} onPress={onClose} />
-        <View style={{ backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: insets.bottom + 8 }}>
+        <View style={{ backgroundColor: "#fff", borderTopLeftRadius: 6, borderTopRightRadius: 6, paddingBottom: insets.bottom + 8 }}>
           <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate700, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>{title}</Text>
           {row("camera", Camera, "Take a photo")}
           {row("gallery", ImageIcon, "Choose from gallery", true)}
@@ -153,7 +153,7 @@ export function SourceSheet({ open, onClose, onPick, title }: { open: boolean; o
 }
 
 const ErrorBox = ({ text, Icon = CameraOff, onRetry }: { text: string; Icon?: any; onRetry?: () => void }) => (
-  <View style={{ marginTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 8, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red200, padding: 10 }}>
+  <View style={{ marginTop: 12, flexDirection: "row", alignItems: "flex-start", gap: 8, borderRadius: 6, backgroundColor: TW.red50, borderWidth: 1, borderColor: TW.red200, padding: 10 }}>
     <Icon size={16} color={TW.red600} style={{ marginTop: 2 }} />
     <Text style={{ flex: 1, ...T.xs, color: TW.red600 }}>{text}</Text>
     {onRetry ? <Pressable onPress={onRetry}><Text style={{ ...T.xs, fontWeight: "600", color: TW.red600, textDecorationLine: "underline" }}>Retry</Text></Pressable> : null}
@@ -180,13 +180,13 @@ export function Uploader({ label, value, onUploaded, docType, aadhaar, ocr, requ
   return (
     <Field label={label} required={required}>
       <Pressable testID={`upload-${docType}`} disabled={busy} onPress={() => setChoose(true)}
-        style={{ borderRadius: 12, borderWidth: 2, borderStyle: "dashed", padding: 16, flexDirection: "row", alignItems: "center", gap: 12, borderColor: value ? TW.emerald300 : TW.slate200, backgroundColor: value ? TW.emerald50 : TW.slate50 }}>
+        style={{ borderRadius: 6, borderWidth: 2, borderStyle: "dashed", padding: 16, flexDirection: "row", alignItems: "center", gap: 12, borderColor: value ? TW.emerald300 : TW.slate200, backgroundColor: value ? TW.emerald50 : TW.slate50 }}>
         {busy ? <ActivityIndicator size="small" color={P[600]} /> : value ? <CheckCircle2 size={24} color={TW.emerald600} /> : <Idle size={24} color={TW.slate400} />}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={{ ...T.sm, fontWeight: "500", color: TW.slate700 }}>{busy ? "Uploading…" : value ? "Uploaded — tap to replace" : "Tap to upload (JPG/PNG/PDF)"}</Text>
           {value && !busy ? <Text numberOfLines={1} style={{ ...T.xs, color: TW.emerald600 }}>{String(value).split("/").pop()}</Text> : null}
         </View>
-        {value && variant === "partner" ? <Image source={{ uri: mediaUrl(value) }} style={{ height: 48, width: 48, borderRadius: 8, borderWidth: 1, borderColor: TW.emerald200 }} contentFit="cover" /> : null}
+        {value && variant === "partner" ? <Image source={{ uri: mediaUrl(value) }} style={{ height: 48, width: 48, borderRadius: 6, borderWidth: 1, borderColor: TW.emerald200 }} contentFit="cover" /> : null}
       </Pressable>
       {ocr?.matched ? (
         <View style={{ marginTop: 6, flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={14} color={TW.emerald600} /><Text style={{ ...T.xs, color: TW.emerald600 }}>Aadhaar number verified via OCR</Text></View>
@@ -217,9 +217,9 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
     setUploading(false);
   };
   return (
-    <View testID="live-photo-capture" style={{ borderRadius: 10, borderWidth: 2, borderStyle: "dashed", borderColor: P[200], backgroundColor: `${P[50]}80`, padding: 16 }}>
+    <View testID="live-photo-capture" style={{ borderRadius: 6, borderWidth: 2, borderStyle: "dashed", borderColor: P[200], backgroundColor: `${P[50]}80`, padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: P[100], alignItems: "center", justifyContent: "center" }}><Camera size={16} color={P[700]} /></View>
+        <View style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: P[100], alignItems: "center", justifyContent: "center" }}><Camera size={16} color={P[700]} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate800 }}>Live Photo <Text style={{ color: TW.red500 }}>*</Text></Text>
           <Text style={{ ...T.px11, color: TW.slate500 }}>Capture a real-time selfie from your camera. Gallery upload is not allowed.</Text>
@@ -227,7 +227,7 @@ export function LivePhotoCapture({ value, onCaptured, base, editable = true }: {
       </View>
       {value && !uploading ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-          <Image source={{ uri: mediaUrl(value) }} style={{ height: 96, width: 96, borderRadius: 10, borderWidth: 4, borderColor: TW.emerald200 }} contentFit="cover" />
+          <Image source={{ uri: mediaUrl(value) }} style={{ height: 96, width: 96, borderRadius: 6, borderWidth: 4, borderColor: TW.emerald200 }} contentFit="cover" />
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700 }}>Photo captured</Text></View>
             {editable ? (
@@ -283,9 +283,9 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
     setBusy(false);
   };
   return (
-    <View testID="gps-photo-capture" style={{ borderRadius: 10, borderWidth: 2, borderStyle: "dashed", borderColor: TW.amber300, backgroundColor: "#FFFBEB80", padding: 16 }}>
+    <View testID="gps-photo-capture" style={{ borderRadius: 6, borderWidth: 2, borderStyle: "dashed", borderColor: TW.amber300, backgroundColor: "#FFFBEB80", padding: 16 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 }}>
-        <View style={{ height: 32, width: 32, borderRadius: 8, backgroundColor: TW.amber100, alignItems: "center", justifyContent: "center" }}><MapPin size={16} color={TW.amber700} /></View>
+        <View style={{ height: 32, width: 32, borderRadius: 6, backgroundColor: TW.amber100, alignItems: "center", justifyContent: "center" }}><MapPin size={16} color={TW.amber700} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ ...T.sm, fontWeight: "600", color: TW.slate800 }}>Shop Verification Photo <Text style={{ color: TW.red500 }}>*</Text></Text>
           <Text style={{ ...T.px11, color: TW.slate500 }}>Stand in front of your shop poster/banner/signboard and click a live GPS photo. Location is captured with the shot.</Text>
@@ -293,7 +293,7 @@ export function GpsPhotoCapture({ value, lat, lng, distance, verified, gpsOk, on
       </View>
       {value && !busy ? (
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 16 }}>
-          <Image source={{ uri: mediaUrl(value) }} style={{ height: 112, width: 112, borderRadius: 10, borderWidth: 4, borderColor: TW.amber200 }} contentFit="cover" />
+          <Image source={{ uri: mediaUrl(value) }} style={{ height: 112, width: 112, borderRadius: 6, borderWidth: 4, borderColor: TW.amber200 }} contentFit="cover" />
           <View style={{ flex: 1, gap: 4 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><CheckCircle2 size={16} color={TW.emerald700} /><Text style={{ ...T.sm, fontWeight: "600", color: TW.emerald700 }}>Photo captured</Text></View>
             {gpsOk && lat != null ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><MapPin size={12} color={TW.amber600} /><Text style={{ ...T.px11, color: TW.slate600 }}>{Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}</Text></View> : null}

@@ -249,7 +249,7 @@ export default function MerchantRegistration({ embedded = false, onComplete, adm
           </div>
           <h2 className="font-heading font-extrabold text-2xl text-slate-900">Account Under Review</h2>
           <p className="text-slate-500 mt-2 max-w-md mx-auto">Your account is under review. You will receive an update within 24–48 hours. Please wait until your account is approved.</p>
-          <span className="inline-block mt-5 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold px-4 py-1.5">Under Review</span>
+          <span className="inline-block mt-5 rounded-md bg-amber-100 text-amber-700 text-sm font-semibold px-4 py-1.5">Under Review</span>
           <div className="mt-8">
             <Button variant="outline" data-testid="reg-refresh-status" onClick={async () => { await load(); await refresh?.(); }}>Refresh status</Button>
           </div>
@@ -378,7 +378,7 @@ export default function MerchantRegistration({ embedded = false, onComplete, adm
                 return (
                   <button key={c.id} type="button" disabled={!editable}
                     onClick={() => setShop({ ...shop, categories: on ? [] : [{ category_id: c.id, category_name: c.name }] })}
-                    className={`text-sm rounded-full px-3.5 py-1.5 border font-medium transition ${on ? "bg-primary-700 text-white border-primary-700" : "bg-white text-slate-600 border-slate-200 hover:border-primary-300"}`}>{c.name}</button>
+                    className={`text-sm rounded-md px-3.5 py-1.5 border font-medium transition ${on ? "bg-primary-700 text-white border-primary-700" : "bg-white text-slate-600 border-slate-200 hover:border-primary-300"}`}>{c.name}</button>
                 );
               })}
             </div>
@@ -411,15 +411,15 @@ export default function MerchantRegistration({ embedded = false, onComplete, adm
           {String(addr.pincode || "").length === 6 && (
             <div data-testid="reg-pincode-badge" className="mt-1">
               {pinChecking ? (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold px-3 py-1">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold px-3 py-1">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking availability…
                 </span>
               ) : pinCov && pinCov.serviceable === true ? (
-                <span data-testid="reg-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3 py-1">
+                <span data-testid="reg-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold px-3 py-1">
                   <CheckCircle2 className="h-3.5 w-3.5" /> We serve your area
                 </span>
               ) : pinCov && pinCov.serviceable === false ? (
-                <span data-testid="reg-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-semibold px-3 py-1">
+                <span data-testid="reg-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-md bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 text-xs font-semibold px-3 py-1">
                   <AlertTriangle className="h-3.5 w-3.5" /> Not serviceable
                 </span>
               ) : null}
@@ -456,7 +456,7 @@ export default function MerchantRegistration({ embedded = false, onComplete, adm
           {score.missing?.length > 0 && (
             <div className="rounded-xl bg-red-50 dark:bg-rose-950/30 border border-red-100 dark:border-rose-900/50 p-3 text-sm text-red-600 dark:text-rose-300">
               <p className="font-semibold mb-1">Still required:</p>
-              <div className="flex flex-wrap gap-1.5">{score.missing.map((m) => <span key={m} className="text-[11px] bg-white dark:bg-slate-900 border border-red-100 dark:border-rose-900/50 rounded-full px-2 py-0.5">{m}</span>)}</div>
+              <div className="flex flex-wrap gap-1.5">{score.missing.map((m) => <span key={m} className="text-[11px] bg-white dark:bg-slate-900 border border-red-100 dark:border-rose-900/50 rounded-md px-2 py-0.5">{m}</span>)}</div>
             </div>
           )}
           <div className="rounded-xl bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800/50 p-3.5 text-sm text-primary-700 dark:text-primary-300 flex items-start gap-2">

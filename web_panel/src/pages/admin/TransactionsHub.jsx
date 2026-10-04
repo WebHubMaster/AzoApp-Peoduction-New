@@ -116,7 +116,7 @@ export default function TransactionsHub() {
                 </div>
                 <div className="text-right">
                   <p className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white">{fmt(p.amount)}</p>
-                  {S.label && <span className={`inline-flex items-center gap-1 mt-1 text-xs px-2.5 py-1 rounded-full ${S.cls}`}>{S.icon && <S.icon className="h-3.5 w-3.5" />}{S.label}</span>}
+                  {S.label && <span className={`inline-flex items-center gap-1 mt-1 text-xs px-2.5 py-1 rounded-md ${S.cls}`}>{S.icon && <S.icon className="h-3.5 w-3.5" />}{S.label}</span>}
                 </div>
               </div>
               {p.status === "failed" && (
@@ -209,7 +209,7 @@ export default function TransactionsHub() {
             <Input data-testid="txn-search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ref / customer / service" className="pl-9 w-56" />
           </div>
           <Button data-testid="txn-filter-toggle" variant="outline" onClick={() => setShowFilters((s) => !s)} className="gap-1">
-            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
+            <Filter className="h-4 w-4" /> Filters {activeFilters > 0 && <span className="ml-1 h-5 min-w-[20px] px-1 rounded-md bg-primary-600 text-white text-[10px] flex items-center justify-center">{activeFilters}</span>}
           </Button>
           <Button data-testid="txn-export" onClick={exportCsv} className="gap-1 bg-primary-700 hover:bg-primary-800"><Download className="h-4 w-4" /> Export</Button>
         </div>
@@ -240,7 +240,7 @@ export default function TransactionsHub() {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
         {TABS.map((t) => (
           <button key={t.key} data-testid={`txn-tab-${t.key}`} onClick={() => setTab(t.key)}
-            className={`px-3.5 py-2 rounded-full text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
+            className={`px-3.5 py-2 rounded-md text-sm whitespace-nowrap transition-all ${tab === t.key ? "bg-primary-700 text-white shadow" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200"}`}>
             {t.label}<span className={`ml-1.5 text-[11px] ${tab === t.key ? "text-white/80" : "text-slate-400"}`}>{counts[t.key] ?? 0}</span>
           </button>
         ))}
@@ -266,7 +266,7 @@ export default function TransactionsHub() {
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.service_name}</td>
                     <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">{fmt(p.amount)}</td>
                     <td className="px-4 py-3"><span className="inline-flex items-center gap-1 text-xs text-slate-600 dark:text-slate-300"><MI className="h-3.5 w-3.5 text-slate-400" />{p.method_label}</span></td>
-                    <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full ${S.cls}`}>{S.icon && <S.icon className="h-3 w-3" />}{S.label}</span></td>
+                    <td className="px-4 py-3"><span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md ${S.cls}`}>{S.icon && <S.icon className="h-3 w-3" />}{S.label}</span></td>
                     <td className="px-4 py-3 text-xs">{p.booking_code ? <span className="text-emerald-600">#{p.booking_code}</span> : <span className="text-slate-400">—</span>}</td>
                     <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{new Date(p.created_at).toLocaleDateString()}</td>
                     <td className="px-4 py-3"><span data-testid={`txn-view-${p.id}`} className="text-primary-700 text-xs font-medium hover:underline">View</span></td>

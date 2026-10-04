@@ -4,7 +4,7 @@ import { statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partner
 function StatusPill({ status }) {
   const c = statusColor(status);
   return (
-    <span data-testid="drawer-status-pill" className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full"
+    <span data-testid="drawer-status-pill" className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
       style={{ background: `${c}1A`, color: c }}>
       <span className="h-2 w-2 rounded-full" style={{ background: c }} /> {statusLabel(status)}
     </span>

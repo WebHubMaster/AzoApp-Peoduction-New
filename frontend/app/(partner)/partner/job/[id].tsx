@@ -187,7 +187,7 @@ function Cta({ label, icon, color, onPress, disabled, testID }: { label: string;
 
 function Card({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
   const { colors } = useTheme();
-  return <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: colors.border, padding: 16 }, style]}>{children}</View>;
+  return <View testID={testID} style={[{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, padding: 16 }, style]}>{children}</View>;
 }
 function SectionTitle({ icon, title }: { icon: MdiName; title: string }) {
   const { colors } = useTheme();
@@ -196,7 +196,7 @@ function SectionTitle({ icon, title }: { icon: MdiName; title: string }) {
 function KV({ label, value }: { label: string; value?: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flex: 1, minWidth: "45%", borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
+    <View style={{ flex: 1, minWidth: "45%", borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
       <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text>
       <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "700", marginTop: 3 }}>{value || "—"}</Text>
     </View>
@@ -231,7 +231,7 @@ function DetailsStep({ b }: { b: any }) {
           {b.checkin?.distance_km != null ? <KV label="Distance at check-in" value={`~${b.checkin.distance_km} km`} /> : null}
         </View>
         {items.length ? (
-          <View style={{ marginTop: 12, borderRadius: 12, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
+          <View style={{ marginTop: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
             {items.map((it, i) => (
               <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border }}>
                 <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{it.name || it.service_name || "Service"}{num(it.qty) > 1 ? ` × ${it.qty}` : ""}</Text>
@@ -247,7 +247,7 @@ function DetailsStep({ b }: { b: any }) {
           </View>
         ) : null}
         {b.notes ? (
-          <View style={{ marginTop: 12, backgroundColor: "#FFFBEB", borderRadius: 12, padding: 10, flexDirection: "row", gap: 8 }}>
+          <View style={{ marginTop: 12, backgroundColor: "#FFFBEB", borderRadius: 6, padding: 10, flexDirection: "row", gap: 8 }}>
             <Icon name="note-text-outline" size={16} color="#B45309" />
             <Text style={{ color: "#92400E", fontSize: 12.5, flex: 1, lineHeight: 18 }}>{b.notes}</Text>
           </View>
@@ -262,7 +262,7 @@ function DetailsStep({ b }: { b: any }) {
             {b.customer_phone ? <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 2 }}>{b.customer_phone}</Text> : null}
           </View>
         </View>
-        <View style={{ flexDirection: "row", gap: 8, marginTop: 12, backgroundColor: colors.surfaceSubtle, borderRadius: 12, padding: 10 }}>
+        <View style={{ flexDirection: "row", gap: 8, marginTop: 12, backgroundColor: colors.surfaceSubtle, borderRadius: 6, padding: 10 }}>
           <Icon name="map-marker-outline" size={16} color={colors.secondary} />
           <Text style={{ color: colors.textSecondary, fontSize: 13.5, lineHeight: 19, flex: 1 }}>{a.line || "Address unavailable"}{a.landmark ? `, ${a.landmark}` : ""}{a.city ? `, ${a.city}` : ""}{a.pincode ? ` · ${a.pincode}` : ""}</Text>
         </View>
@@ -360,7 +360,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
       <Card testID="wizard-checkin-done">
         <SectionTitle icon="check-circle-outline" title="Checked in" />
         <View style={{ flexDirection: "row", gap: 14 }}>
-          <Image source={{ uri: mediaUrl(c.selfie_url) }} style={{ width: 96, height: 120, borderRadius: 10 }} contentFit="cover" />
+          <Image source={{ uri: mediaUrl(c.selfie_url) }} style={{ width: 96, height: 120, borderRadius: 6 }} contentFit="cover" />
           <View style={{ flex: 1, justifyContent: "center", gap: 6 }}>
             <Text style={{ color: "#047857", fontSize: 15, fontWeight: "800" }}>Selfie & location recorded</Text>
             <Text style={{ color: colors.textMuted, fontSize: 12.5 }}>{fmtDT(c.at)}</Text>
@@ -395,13 +395,13 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
             <Pressable testID="wizard-location-refresh" onPress={getLocation} hitSlop={8}><Icon name="refresh" size={20} color={colors.textMuted} /></Pressable>
           </View>
         ) : (
-          <Pressable testID="wizard-location-btn" onPress={getLocation} disabled={locBusy} style={{ height: 46, borderRadius: 12, borderWidth: 1, borderColor: "#BFDBFE", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
+          <Pressable testID="wizard-location-btn" onPress={getLocation} disabled={locBusy} style={{ height: 46, borderRadius: 6, borderWidth: 1, borderColor: "#BFDBFE", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
             {locBusy ? <ActivityIndicator size="small" color={colors.primary} /> : <Icon name="crosshairs-gps" size={18} color={colors.primary} />}<Text style={{ color: colors.primary, fontWeight: "700" }}>{locBusy ? "Getting location…" : "Share live location"}</Text>
           </Pressable>
         )}
       </Card>
       {locked ? (
-        <View style={{ borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
+        <View style={{ borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
       ) : null}
       <Pressable testID="wizard-checkin-submit" disabled={!selfie || !loc || sending || locked} onPress={submit} style={{ height: 54, borderRadius: 6, backgroundColor: colors.primary, opacity: !selfie || !loc || sending || locked ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
         {sending ? <ActivityIndicator color="#fff" /> : <Icon name="check-circle-outline" size={20} color="#fff" />}<Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{sending ? "Checking in…" : "Check-in & Continue"}</Text>
@@ -416,7 +416,7 @@ function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, on
   return (
     <>
       {locked ? (
-        <View testID={`start-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
+        <View testID={`start-locked-${b.code}`} style={{ borderRadius: 6, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="lock-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Start Work locked</Text></View>
           <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>You can start this job 30 minutes before {b.schedule?.scheduled_time} on {b.schedule?.scheduled_date}.</Text>
         </View>
@@ -446,10 +446,10 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
   const elapsed = `${String(Math.floor(es / 3600)).padStart(2, "0")}:${String(Math.floor((es % 3600) / 60)).padStart(2, "0")}:${String(es % 60).padStart(2, "0")}`;
   return (
     <>
-      <LinearGradient colors={["#F59E0B", "#F97316"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 10, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <LinearGradient colors={["#F59E0B", "#F97316"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#fff" }} />
         <View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text><Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5 }}>{startedAt ? `Started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text></View>
-        <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}>{elapsed}</Text>
+        <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5 }}>{elapsed}</Text>
       </LinearGradient>
       <HelpSOS booking={b} testPrefix="wizard-" />
       <Card testID="wizard-after-proof">
@@ -458,7 +458,7 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
       </Card>
       <AdditionalWork b={b} onUpdate={onUpdate} />
       {addlPending ? (
-        <View testID={`complete-locked-${b.code}`} style={{ borderRadius: 12, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", paddingHorizontal: 16, paddingVertical: 12 }}>
+        <View testID={`complete-locked-${b.code}`} style={{ borderRadius: 6, borderWidth: 2, borderColor: "#FCD34D", backgroundColor: "#FFFBEB", paddingHorizontal: 16, paddingVertical: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="alert-outline" size={16} color="#B45309" /><Text style={{ color: "#92400E", fontSize: 14, fontWeight: "800" }}>Additional payment pending</Text></View>
           <Text style={{ color: "#B45309", fontSize: 12.5, marginTop: 4 }}>Customer must pay the additional work first — then complete with OTP.</Text>
         </View>
@@ -484,7 +484,7 @@ function DoneStep({ b }: { b: any }) {
       <View style={{ width: 84, height: 84, borderRadius: 42, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center" }}><Icon name="check-decagram" size={44} color={EMERALD} /></View>
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: "900", marginTop: 16 }}>Job completed!</Text>
       <Text style={{ color: colors.textMuted, fontSize: 13.5, marginTop: 6, textAlign: "center" }}>{b.service_name} · #{b.code}</Text>
-      {earning != null ? <View style={{ marginTop: 18, borderRadius: 10, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text style={{ color: "#047857", fontSize: 26, fontWeight: "900" }}>{fmt(earning)}</Text></View> : null}
+      {earning != null ? <View style={{ marginTop: 18, borderRadius: 6, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text style={{ color: "#047857", fontSize: 26, fontWeight: "900" }}>{fmt(earning)}</Text></View> : null}
     </Card>
   );
 }
