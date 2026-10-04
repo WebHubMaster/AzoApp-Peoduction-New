@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://unified-search-box-1.preview.emergentagent.com"
+BASE_URL = "https://expo-mobile-test-3.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

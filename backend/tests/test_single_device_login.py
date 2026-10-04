@@ -5,7 +5,7 @@ import os
 import requests
 import pytest
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://unified-search-box-1.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://expo-mobile-test-3.preview.emergentagent.com').rstrip('/')
 
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"

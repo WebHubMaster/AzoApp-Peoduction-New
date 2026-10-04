@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://unified-search-box-1.preview.emergentagent.com/api"
+BASE_URL = "https://expo-mobile-test-3.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

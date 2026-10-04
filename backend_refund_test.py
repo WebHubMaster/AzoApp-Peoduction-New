@@ -9,7 +9,7 @@ import sys
 from typing import Dict, List, Optional
 
 # Configuration
-BASE_URL = "https://unified-search-box-1.preview.emergentagent.com/api"
+BASE_URL = "https://expo-mobile-test-3.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

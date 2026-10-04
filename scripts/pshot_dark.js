@@ -1,5 +1,5 @@
 const puppeteer = require('/tmp/node_modules/puppeteer-core');
-const BASE = 'https://unified-search-box-1.preview.emergentagent.com';
+const BASE = 'https://expo-mobile-test-3.preview.emergentagent.com';
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 (async () => {
   const browser = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', headless: 'new',

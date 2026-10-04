@@ -17,7 +17,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://unified-search-box-1.preview.emergentagent.com",
+    "https://expo-mobile-test-3.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -27,7 +27,7 @@ CAPTION = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link:\n"
-    f"https://unified-search-box-1.preview.emergentagent.com/?ref={VALID_CODE}"
+    f"https://expo-mobile-test-3.preview.emergentagent.com/?ref={VALID_CODE}"
 )
 
 
