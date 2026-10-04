@@ -1,0 +1,30 @@
+{
+  "summary": "Backend-only verification of GET /api/site/config fee_info contract consumed by the customer NATIVE (Expo) app's BrandContext + FeeInfoTip. Wrote /app/backend/tests/test_site_config_fee_info.py (5 tests, all PASSED) against the local backend (http://localhost:8001). Response is 200 OK and contains top-level `fee_info` as an object with string keys `tax` and `platform_fee`. In this DB, admin-configured values flow through verbatim: fee_info.tax='GST @18% on platform commission & platform fee.' and fee_info.platform_fee='A small fee to run secure payments & support.' (sourced from settings.general.tax_info / settings.general.platform_fee_info — see site_controller.py L85-88). Regression: top-level `branding` (dict), `theme` (dict), `currency` ('INR'), plus `stats`, `cancellation_reasons`, `apps`, `business`, `seo`, `maintenance` all present and unchanged. No modifications to application code.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/site/config", "issue": "External preview URL https://api.webhubmaster.shop/api/site/config returns fee_info.tax='' and fee_info.platform_fee='' because its DB settings.general has no tax_info/platform_fee_info configured. Contract is correct (keys always emitted as strings); this is an admin data-config matter, not a code bug. If native UI needs non-empty text to visibly render the tooltip in that environment, admin must set the strings under General Settings → Fees & Taxes there."},
+      {"endpoint": "GET /api/site/config", "issue": "Response is slow on first (uncached) call locally (~25s due to _home_stats aggregation). Cached (120s TTL) afterwards. Not a regression but worth noting."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_site_config_fee_info.py",
+    "/app/test_reports/pytest/site_config_fee_info.xml"
+  ],
+  "action_items": [
+    "If the external preview environment (api.webhubmaster.shop) is expected to show non-empty tooltip text in the native app, update its settings.general.tax_info and settings.general.platform_fee_info via Admin → General Settings → Fees & Taxes (local DB already has non-empty values and the pipeline is verified)."
+  ],
+  "critical_code_review_comments": [
+    "site_controller._public_site_config correctly coalesces None → '' for both fee_info keys (defensive).",
+    "Response is cached for 120s via cache_service — admin edits to tax_info/platform_fee_info may take up to 2 minutes to reflect in the native app; acceptable but document for admins."
+  ],
+  "updated_files": ["/app/backend/tests/test_site_config_fee_info.py"],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "none required — /api/site/config is public (auth:false)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Local backend http://localhost:8001 has non-empty fee_info values (admin configured). External URL https://api.webhubmaster.shop points to a different environment where fee_info values are currently empty strings — contract still valid. Run: REACT_APP_BACKEND_URL=http://localhost:8001 TEST_BACKEND_URL=http://localhost:8001 pytest /app/backend/tests/test_site_config_fee_info.py -v",
+  "rca of the issue": "n/a — no bug. The native-app change relies on fee_info object which is present and correctly populated from settings.general.tax_info / settings.general.platform_fee_info."
+}
