@@ -12,6 +12,16 @@ Monorepo:
 - MongoDB local :27017, DB_NAME=azoapp.
 - Local-only env (gitignored): `backend/.env`, `web_panel/.env.local`.
 
+## 2026-10-04 (v2) — Amplify fix moved to TRACKED files
+First attempt used `web_panel/.env.production` (DISABLE_ESLINT_PLUGIN) but root `.gitignore`
+(`.env`, `.env.*`, `*.env`) ignores it → never reached GitHub/Amplify → same error repeated.
+Final fix (both git-tracked, will deploy):
+1. `web_panel/craco.config.js` — `eslint: { enable: isDevServer, ... }` disables CRA ESLint
+   during production build (NODE_ENV=production on Amplify); dev linting unchanged.
+2. `/app/.eslintrc.json` — removed the hardcoded absolute `parser` line (portable now).
+Verified: `CI=true yarn build` succeeds with NO `.env.production` present (mimics Amplify).
+USER MUST: Save to GitHub + redeploy on Amplify for the fix to take effect.
+
 ## 2026-10-04 — AWS Amplify build fix (DONE, verified)
 Error: `[eslint] Failed to load parser '/app/frontend/node_modules/@typescript-eslint/parser/dist/index.js' declared in '../.eslintrc.json'`.
 

@@ -71,6 +71,11 @@ if (config.enableHealthCheck) {
 
 let webpackConfig = {
   eslint: {
+    // Disable CRA/react-scripts ESLint during the production build (e.g. AWS Amplify).
+    // Amplify runs `craco build` with NODE_ENV=production and CI=true, which turns lint
+    // warnings into build-failing errors and also tries to load the repo-root .eslintrc.
+    // Linting still runs locally in dev (craco start). isDevServer === NODE_ENV!=="production".
+    enable: isDevServer,
     configure: {
       extends: ["plugin:react-hooks/recommended"],
       rules: {
