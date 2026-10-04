@@ -51,10 +51,11 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
     setLoading(false);
   };
 
+  const tid = ticket?.id;
   const refresh = useCallback(async () => {
-    if (!ticket?.id) return;
-    try { const d: any = await api.get(`/support/tickets/${ticket.id}`); setTicket(d); if (d?.agent_typing) setAgentTyping(true); } catch {}
-  }, [ticket?.id]);
+    if (!tid) return;
+    try { const d: any = await api.get(`/support/tickets/${tid}`); setTicket(d); if (d?.agent_typing) setAgentTyping(true); } catch {}
+  }, [tid]);
 
   useEffect(() => {
     if (!open || !ticket?.id) return undefined;

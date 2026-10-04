@@ -107,3 +107,6 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 
 ## 2026-06 — Partner app uniform font
 - Partner app (frontend/) now uses Inter (same as web) via `src/lib/globalFont.ts` APP_FONTS (Regular..Black in assets/fonts); OS font scaling disabled on Text/TextInput so size is identical on every phone. Web build injects InterX @font-face from bundled assets. PublicSans removed from partner app. iteration_200.
+
+## 2026-06 — Customer app uniform font
+- Customer app now uses the same Inter globalFont as partner app (fixed sizes, no OS font scaling); PublicSans removed. iteration_201.
