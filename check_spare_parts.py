@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://services-marketplace-15.preview.emergentagent.com/api"
+BASE_URL = "https://kare-health.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

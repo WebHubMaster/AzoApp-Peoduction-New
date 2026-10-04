@@ -180,22 +180,22 @@
       "tests": [
         {
           "name": "Partner GET /invoices",
-          "url": "https://services-marketplace-15.preview.emergentagent.com/api/invoices",
+          "url": "https://kare-health.preview.emergentagent.com/api/invoices",
           "passed": true
         },
         {
           "name": "Customer GET /invoices",
-          "url": "https://services-marketplace-15.preview.emergentagent.com/api/invoices",
+          "url": "https://kare-health.preview.emergentagent.com/api/invoices",
           "passed": true
         },
         {
           "name": "Partner GET cancellation invoice",
-          "url": "https://services-marketplace-15.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e",
+          "url": "https://kare-health.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e",
           "passed": true
         },
         {
           "name": "Partner GET cancellation HTML",
-          "url": "https://services-marketplace-15.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e/view",
+          "url": "https://kare-health.preview.emergentagent.com/api/invoices/df12dc19-573e-4bd5-b030-203b5141b81e/view",
           "passed": true
         }
       ]

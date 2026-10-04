@@ -1,5 +1,5 @@
 {
-  "base_url": "https://services-marketplace-15.preview.emergentagent.com/api",
+  "base_url": "https://kare-health.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Chandan Cancellation (AZO9HWVU1)",

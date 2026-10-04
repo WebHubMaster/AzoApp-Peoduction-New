@@ -25,7 +25,7 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --upgrade pip \
     && pip install -r requirements.txt \
-    && pip install emergentintegrations \
+    && pip install emergentintegrations==0.2.2 \
        --extra-index-url https://d33sy5i8bnduwe.cloudfront.net/simple/
 
 # Copy application

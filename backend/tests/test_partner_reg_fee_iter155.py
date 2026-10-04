@@ -4,7 +4,7 @@ import requests
 import pytest
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/") or \
-    "https://services-marketplace-15.preview.emergentagent.com"
+    "https://kare-health.preview.emergentagent.com"
 
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
