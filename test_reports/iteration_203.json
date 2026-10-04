@@ -1,0 +1,37 @@
+{
+  "summary": "Verified the new 'Your Professional' feature end-to-end. Backend: direct controller test of partner_public_card against a disposable Mongo DB — 9/9 tests pass (payload shape, rating distribution, review masking, authorization matrix, 404 cases, mask_reviewer helper, and list_bookings carrying partner_id). Confirmed no confidential fields (phone/email/address/bank/aadhaar/wallet_balance/earnings/selfie_leak) leak into the response. Frontend: static review of web PartnerProfileModal + CustomerDashboard CurrentStepCard and mobile PartnerProfileSheet + BookingCard — all imports (theme PRIMARY/AMBER/EMERALD/SLATE/TC/useTheme, BottomSheet from ux, api/mediaUrl) resolve, hook order safe, data-testids match the spec. Backend was not runnable (no .env with MONGO_URL) and web_panel/Customer have no node_modules, so no live UI test was executed.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Mobile CurrentStepCard partner-chip", "issues": ["Verified (ShieldCheck) badge next to partner name is shown on web but NOT on mobile chip — only Crown (premium) is rendered. Minor inconsistency with the web chip. The full ShieldCheck is still shown inside the bottom sheet, so this is cosmetic."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_partner_public_card.py",
+    "/app/test_reports/pytest/partner_public_card.xml"
+  ],
+  "action_items": [
+    "(Optional/cosmetic) Mirror web behaviour and render the <ShieldCheck/> verified badge beside the partner name in Customer/src/components/customer/BookingCard.tsx CurrentStepCard chip (right after the name Text, before the Crown)."
+  ],
+  "critical_code_review_comments": [
+    "partner_public_card correctly uses a projection on db.users that excludes phone/email/address/bank — defence-in-depth: good.",
+    "db.partner_profiles projection correctly whitelists only {documents.selfie, experience_years, experience, languages} — bank/other docs stay invisible.",
+    "jobs_completed uses max(count_documents(completed|paid), stored jobs_completed) — small server-side DB count on every call; for very active partners consider caching or indexing bookings on (partner_id, status). Not a bug.",
+    "rating_distribution is derived only from the recent 300 reviews fetched; if a partner has >300 reviews, the distribution shown differs from the stored lifetime stats. Acceptable for 'Recent reviews' but worth noting.",
+    "Average rating is recomputed from the fetched reviews rather than the stored users.rating when any reviews exist — fine, but the first few bookings' reviews will dominate the displayed average vs a lifetime stat.",
+    "Review date (`at`) is passed through from the stored review dict without validation — if the DB stores it as a datetime instead of ISO string, JSON serialisation of the HTTP response may break. The pytest covers only ISO-string reviews.",
+    "booking_controller.py is 4254 lines — well past the 700-line split guideline. Not a regression from this task, but a long-standing refactor opportunity.",
+    "CurrentStepCard in CustomerDashboard.jsx is called with a 4th arg `commLocked={commLocked}` at L661 but its signature is `({ b, onCall, onChat })` — the extra prop is silently dropped; `onCall`/`onChat` are received but never used inside the chip. Pre-existing, not caused by this task."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_partner_public_card.py (NEW)"
+  ],
+  "success_rate": { "backend": "100%", "frontend": "N/A (static review only — no node_modules)" },
+  "test_credentials": "Not needed — direct controller test with seeded disposable DB.",
+  "seed_data_creation": "Temporary MongoDB database test_partner_card_<uuid> created and dropped by the pytest fixture (seed_and_cleanup teardown). Verified post-run: no residual test_partner_card_* DB remains.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend partner-card endpoint is fully covered by /app/backend/tests/test_partner_public_card.py (runs against a disposable DB, independent of the live backend). To re-run: `cd /app/backend && REACT_APP_BACKEND_URL=http://localhost:8001 python -m pytest tests/test_partner_public_card.py -v`. For UI validation, node_modules are missing in both web_panel and Customer — install (yarn install) is required before running Playwright/Expo flows."
+}

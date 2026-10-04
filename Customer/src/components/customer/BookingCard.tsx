@@ -3,7 +3,7 @@ import { TC } from "@/src/theme";
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Linking, Animated } from "react-native";
 import * as Clipboard from "expo-clipboard";
-import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, MessageCircle, FileText, Crown, Calendar, Circle, ChevronRight } from "lucide-react-native";
+import { Wrench, CheckCircle2, X, Copy, User, Phone, Clock, ChevronDown, Wallet, Info, RefreshCcw, Star, AlertTriangle, Lock, MessageCircle, FileText, Crown, Calendar, Circle, ChevronRight, ShieldCheck } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, ROSE, AMBER, useTheme, shadowBtn, shadowElev } from "../../theme";
 import { StatusChip } from "./ux";
 import { statusText, statusTone, DONE_STATES, bkDate } from "./nav";
@@ -89,6 +89,7 @@ export function CurrentStepCard({ b }: { b: any }) {
         <View style={{ flex: 1, minWidth: 0 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
             <Text testID={`partner-chip-name-${b.code}`} numberOfLines={1} style={{ fontSize: 14, fontWeight: "800", color: isDark ? SLATE[100] : TC.text, flexShrink: 1 }}>{name || "Assigning…"}</Text>
+            {pc?.verified ? <ShieldCheck size={13} color={EMERALD[500]} /> : null}
             {pc?.premium || b.partner_premium ? <Crown size={13} color={AMBER[600]} /> : null}
           </View>
           {pc ? (
