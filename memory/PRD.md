@@ -117,3 +117,7 @@ Unified component system: PageHeader (icon/title/desc/last-updated/refresh/expor
 - Invoice 3-dot menus: only View Details / View Invoice / Download PDF.
 - Partner invoice PDF now uses customer GST layout (gst_invoice_service.build_partner_html), amount = role_earning.net only. Logo: admin Branding logo (email_logo→logo_light→logo→logo_url→logo_dark); text wordmark only when no logo.
 - PDF render cached by HTML hash + run in threadpool; Android download auto-opens the PDF.
+- Active Job card header: status + code, service, Job value (price) top-right, customer address block w/ distance/ETA chips.
+- Splash (app/index.tsx): single dynamic brand mark — admin logo image if set, else admin site_name/tagline; static fallback image removed.
+- Home Recent jobs tap → /(partner)/active?view=active|completed&focus=<id> (scrolls+highlights); other statuses → booking detail.
+- Alert check card (AlertsPanel TestRingCard) only shows when there are issues; friendly messages only (no raw error codes); hidden when all configured.

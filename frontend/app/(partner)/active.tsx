@@ -27,7 +27,21 @@ export default function PartnerActiveJob() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const params = useLocalSearchParams<{ view?: string }>();
+  const params = useLocalSearchParams<{ view?: string; focus?: string }>();
+  const scrollRef = useRef<ScrollView>(null);
+  const scrolledFor = useRef<string | undefined>(undefined);
+  const [focusId, setFocusId] = useState<string | undefined>(params.focus);
+  useEffect(() => { setFocusId(params.focus); scrolledFor.current = undefined; }, [params.focus]);
+  useEffect(() => { if (!focusId) return; const t = setTimeout(() => setFocusId(undefined), 2500); return () => clearTimeout(t); }, [focusId]);
+  const onCardLayout = (id: string) => (e: any) => {
+    if (id !== params.focus || scrolledFor.current === id) return;
+    scrolledFor.current = id;
+    scrollRef.current?.scrollTo({ y: Math.max(0, e.nativeEvent.layout.y - 12), animated: true });
+  };
+  const focusWrap = (id: string, el: React.ReactNode) => (
+    <View key={id} onLayout={onCardLayout(id)} testID={`job-focus-wrap-${id}`}
+      style={{ borderRadius: 12, borderWidth: 2, borderColor: focusId === id ? colors.primary : "transparent", margin: -2 }}>{el}</View>
+  );
   const [view, setView] = useState<"active" | "completed">(params.view === "completed" ? "completed" : "active");
   useEffect(() => { if (params.view === "completed" || params.view === "active") setView(params.view); }, [params.view]);
 
@@ -41,6 +55,7 @@ export default function PartnerActiveJob() {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScrollView
+        ref={scrollRef}
         testID="active-jobs"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
@@ -57,9 +72,9 @@ export default function PartnerActiveJob() {
         </View>
 
         {view === "active" ? (
-          activeQ.isLoading ? <Empty text="Loading…" /> : activeJobs.length === 0 ? <Empty text="No active jobs. Accept a request to get started." /> : activeJobs.map((b) => <ActiveJobCard key={b.id} b={b} onUpdate={refresh} />)
+          activeQ.isLoading ? <Empty text="Loading…" /> : activeJobs.length === 0 ? <Empty text="No active jobs. Accept a request to get started." /> : activeJobs.map((b) => focusWrap(b.id, <ActiveJobCard b={b} onUpdate={refresh} />))
         ) : (
-          doneQ.isLoading ? <Empty text="Loading…" /> : completedJobs.length === 0 ? <Empty text="No completed jobs yet. Finished jobs will appear here." /> : completedJobs.map((b) => <CompletedJob key={b.id} b={b} />)
+          doneQ.isLoading ? <Empty text="Loading…" /> : completedJobs.length === 0 ? <Empty text="No completed jobs yet. Finished jobs will appear here." /> : completedJobs.map((b) => focusWrap(b.id, <CompletedJob b={b} />))
         )}
       </ScrollView>
     </View>
@@ -408,7 +423,7 @@ function CompletedJob({ b }: { b: any }) {
 }
 
 /* ── ActiveJob (web ActiveJob) ── */
-function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
+export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const { colors } = useTheme();
   const toast = useToast();
   const router = useRouter();
@@ -519,37 +534,47 @@ function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
       )}
 
       <View style={{ padding: 20, gap: 16 }} testID={`active-job-${b.code}`}>
-        {/* Header (tap → job wizard): soft tinted band, gradient icon tile, big status pill */}
-        <Pressable testID={`job-card-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ marginHorizontal: -16, marginTop: -16, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 14, borderTopLeftRadius: 20, borderTopRightRadius: 20, backgroundColor: inProgress ? "#ECFDF5" : colors.primarySubtle, opacity: pressed ? 0.92 : 1 })}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-            <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: inProgress ? EMERALD : colors.primary, alignItems: "center", justifyContent: "center", boxShadow: inProgress ? "0px 6px 14px rgba(5,150,105,0.28)" : "0px 6px 14px rgba(13,71,161,0.25)" } as any}><Icon name={inProgress ? "progress-wrench" : "wrench"} size={22} color="#fff" /></View>
+        {/* Premium header (tap → job wizard): price + customer address up top */}
+        <Pressable testID={`job-card-${b.code}`} onPress={openWizard} accessibilityRole="button" accessibilityLabel={`Open job ${b.code}`}
+          style={({ pressed }) => ({ marginHorizontal: -20, marginTop: -20, paddingHorizontal: 20, paddingTop: 18, paddingBottom: 16, backgroundColor: inProgress ? "#F0FDF7" : "#F5F9FF", borderBottomWidth: 1, borderBottomColor: colors.border, opacity: pressed ? 0.94 : 1 })}>
+          <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text numberOfLines={2} style={{ color: colors.text, fontWeight: "800", fontSize: 16.5, lineHeight: 22 }}>{b.service_name}</Text>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-                <View style={{ backgroundColor: "#fff", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: colors.border }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", fontFamily: "monospace" }}>#{b.code}</Text></View>
-                {b.category_name ? <Text style={{ color: colors.textMuted, fontSize: 11.5 }}>{b.category_name}</Text> : null}
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <View testID={`status-pill-${b.code}`} style={{ flexDirection: "row", alignItems: "center", gap: 5, height: 24, paddingHorizontal: 9, borderRadius: 6, backgroundColor: inProgress ? EMERALD : colors.primary }}>
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: "#fff" }} />
+                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 11, textTransform: "capitalize" }}>{inProgress ? "Work in progress" : String(status).replace(/_/g, " ")}</Text>
+                </View>
+                <Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", fontFamily: "monospace" }}>#{b.code}</Text>
               </View>
+              <Text numberOfLines={2} style={{ color: colors.text, fontWeight: "800", fontSize: 17, lineHeight: 23, marginTop: 8 }}>{b.service_name}</Text>
+              {b.category_name ? <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 1 }}>{b.category_name}</Text> : null}
+            </View>
+            <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
+              <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }}>Job value</Text>
+              <Text testID={`job-price-${b.code}`} style={{ color: inProgress ? "#047857" : colors.text, fontWeight: "800", fontSize: 22, lineHeight: 28, fontVariant: ["tabular-nums"] }}>{fmt(b.breakdown?.total || b.total || 0)}</Text>
             </View>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
-            <View testID={`status-pill-${b.code}`} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 32, paddingHorizontal: 12, borderRadius: 16, backgroundColor: inProgress ? EMERALD : colors.primary }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff", opacity: 0.9 }} />
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12.5, textTransform: "capitalize" }}>{inProgress ? "Work in progress" : String(status).replace(/_/g, " ")}</Text>
+
+          {/* Customer address */}
+          <View testID={`job-address-${b.code}`} style={{ flexDirection: "row", gap: 10, marginTop: 14, borderRadius: 10, backgroundColor: "#fff", borderWidth: 1, borderColor: colors.border, padding: 12 }}>
+            <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+              <Icon name="map-marker-outline" size={17} color={colors.primary} />
             </View>
-            <Text style={{ color: inProgress ? "#047857" : colors.primary, fontWeight: "800", fontSize: 15 }}>{fmt(b.breakdown?.total || b.total || 0)}</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }}>Customer address</Text>
+              <Text numberOfLines={2} style={{ color: colors.text, fontSize: 13.5, fontWeight: "600", lineHeight: 19, marginTop: 1 }}>{a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}</Text>
+              {a.pincode || det.distance_km != null || det.eta_min != null ? (
+                <View style={{ flexDirection: "row", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                  {a.pincode ? <Text style={{ color: colors.textMuted, fontSize: 11.5 }}>{a.pincode}</Text> : null}
+                  {det.distance_km != null ? <Text testID={`job-distance-${b.code}`} style={{ color: colors.primary, fontSize: 11, fontWeight: "700", backgroundColor: colors.primarySubtle, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1 }}>~{det.distance_km} km</Text> : null}
+                  {det.eta_min != null ? <Text testID={`job-eta-${b.code}`} style={{ color: colors.primary, fontSize: 11, fontWeight: "700", backgroundColor: colors.primarySubtle, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 1 }}>~{det.eta_min} min</Text> : null}
+                </View>
+              ) : null}
+            </View>
           </View>
         </Pressable>
 
         {inProgress ? <HelpSOS booking={b} /> : null}
-
-        {/* Customer location */}
-        <View style={{ flexDirection: "row", gap: 8, borderRadius: 12, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 14, paddingVertical: 12 }}>
-          <Icon name="map-marker-outline" size={16} color={colors.secondary} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "600", lineHeight: 19 }}>{a.line || "Address unavailable"}{a.city ? `, ${a.city}` : ""}</Text>
-            <Text style={{ color: SLATE400, fontSize: 11.5, marginTop: 2 }}>{a.pincode || ""}{det.distance_km != null ? ` · ~${det.distance_km} km` : ""}{det.eta_min != null ? ` · ~${det.eta_min} min` : ""}</Text>
-          </View>
-        </View>
 
         {showSchedule ? <ScheduledCard schedule={sched} role="partner" /> : null}
 

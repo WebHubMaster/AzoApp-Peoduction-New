@@ -5,20 +5,19 @@ import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useAuth } from "@/src/context/AuthContext";
-import { useBrand } from "@/src/context/BrandContext";
+import { useBrand, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { shouldShowPermissionGate } from "@/src/lib/notifications";
 import { storage } from "@/src/utils/storage";
 import { Icon } from "@/src/components/Icon";
 import { fontSize } from "@/src/theme";
 
 const ONBOARD_DONE_KEY = "azo_onboarding_done";
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const FALLBACK_LOGO = require("../assets/brand-logo.png");
 
 export default function SplashGate() {
   const router = useRouter();
   const { booting, user, logout } = useAuth();
   const brand = useBrand();
+  const cfgQ = useSiteConfigQuery();
   const [minElapsed, setMinElapsed] = useState(false);
   const [unsupported, setUnsupported] = useState(false);
 
@@ -63,20 +62,19 @@ export default function SplashGate() {
   return (
     <LinearGradient colors={["#1565C0", "#08306E"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
       <StatusBar style="light" />
-      <Animated.View style={{ opacity: logoOpacity, transform: [{ scale: logoScale }], alignItems: "center" }}>
-        {logo ? (
-          <Image source={{ uri: logo }} style={{ width: 120, height: 120, borderRadius: 26 }} contentFit="contain" />
+      {/* ONE dynamic brand mark: admin logo if uploaded, else admin site name + tagline */}
+      <Animated.View testID="splash-brand" style={{ opacity: logoOpacity, transform: [{ scale: logoScale }], alignItems: "center", minHeight: 84, justifyContent: "center" }}>
+        {cfgQ.isLoading ? null : logo ? (
+          <Image testID="splash-logo" source={{ uri: logo }} style={{ width: 220, height: 84 }} contentFit="contain" transition={200}
+            accessibilityLabel={brand.branding.site_name} />
         ) : (
-          <Image source={FALLBACK_LOGO} style={{ width: 120, height: 120, borderRadius: 26 }} contentFit="contain" />
+          <View style={{ alignItems: "center" }} testID="splash-brand-text">
+            <Text style={{ color: "#fff", fontSize: 30, fontWeight: "900", letterSpacing: 0.5 }}>{brand.branding.site_name}</Text>
+            <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: fontSize.sm, marginTop: 6 }}>{brand.branding.tagline}</Text>
+          </View>
         )}
       </Animated.View>
-      <Animated.View style={{ opacity: textOpacity, alignItems: "center", marginTop: 22 }}>
-        <Text style={{ color: "#fff", fontSize: 30, fontWeight: "900", letterSpacing: 0.5 }}>
-          {brand.branding.site_name}
-        </Text>
-        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: fontSize.sm, marginTop: 6 }}>
-          {brand.branding.tagline}
-        </Text>
+      <Animated.View style={{ opacity: textOpacity, alignItems: "center", marginTop: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10 }}>
           <Icon name="shield-check" size={14} color="rgba(255,255,255,0.7)" />
           <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: fontSize.xs, fontWeight: "600" }}>

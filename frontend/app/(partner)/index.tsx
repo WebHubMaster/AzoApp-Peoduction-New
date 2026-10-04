@@ -159,7 +159,10 @@ export default function PartnerHome() {
             <TrendCard k={k} chart={chart} filterKey={filter.key} />
             <PerformanceCard k={k} />
             <GrowthCard growth={growth} alerts={alerts} nav={nav} />
-            <RecentJobs recent={d?.recent || []} nav={nav} onOpen={(id) => router.push(`/(partner)/booking/${id}` as any)} onViewAll={() => router.push({ pathname: "/(partner)/active", params: { view: "completed" } } as any)} />
+            <RecentJobs recent={d?.recent || []} nav={nav} onOpen={(id, st) => {
+              const view = ["completed", "paid"].includes(String(st)) ? "completed" : ["assigned", "accepted", "arrived_shop", "arrived_customer", "started"].includes(String(st)) ? "active" : null;
+              router.push((view ? { pathname: "/(partner)/active", params: { view, focus: id } } : `/(partner)/booking/${id}`) as any);
+            }} onViewAll={() => router.push({ pathname: "/(partner)/active", params: { view: "completed" } } as any)} />
             <QuickActions k={k} nav={nav} />
           </>
         )}

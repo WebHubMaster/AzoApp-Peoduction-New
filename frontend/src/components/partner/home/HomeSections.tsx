@@ -259,7 +259,7 @@ export function GrowthCard({ growth, alerts, nav }: { growth: any; alerts: { ico
 }
 
 /* ------------------------------------------------------------ RECENT JOBS */
-export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; nav: Nav; onOpen: (id: string) => void; onViewAll?: () => void }) {
+export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; nav: Nav; onOpen: (id: string, status?: string) => void; onViewAll?: () => void }) {
   const { colors } = useTheme();
   return (
     <Card testID="ph-recent" style={{ overflow: "hidden" }}>
@@ -275,7 +275,7 @@ export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; 
       ) : recent.map((b) => {
         const amt = b.total || b.pricing?.total || 0;
         return (
-          <Pressable key={b.id} testID={`recent-${b.id}`} onPress={() => onOpen(b.id)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: colors.border }}>
+          <Pressable key={b.id} testID={`recent-${b.id}`} onPress={() => onOpen(b.id, b.status)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: colors.border }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
               <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="briefcase-outline" size={16} color={colors.primaryHover} /></View>
               <View style={{ flex: 1, minWidth: 0 }}>

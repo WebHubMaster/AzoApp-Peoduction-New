@@ -10,7 +10,6 @@ import { useToast } from "@/src/components/Toast";
 import { fmt } from "@/src/lib/format";
 import { getPermissionStatus, requestNotificationPermission, registerPushToken, openFullScreenIntentSettings, fullScreenState, batteryState, requestBatteryExemption, overlayState, requestOverlayPermission, oemState, requestOemSettings } from "@/src/lib/notifications";
 import { getMissed, removeMissed, onRing, setSnooze, clearSnooze, snoozeRemainingMs, syncPrefsFromServer, emitRing, loadLocal, MissedJob } from "@/src/lib/ringPrefs";
-import { useRealtime } from "@/src/context/RealtimeContext";
 import { TW } from "./tw";
 
 function Surface({ children, testID, style }: { children: React.ReactNode; testID?: string; style?: any }) {
@@ -22,7 +21,6 @@ function Surface({ children, testID, style }: { children: React.ReactNode; testI
 export function TestRingCard() {
   const { colors } = useTheme();
   const toast = useToast();
-  const { bgListening } = useRealtime();
   const [busy, setBusy] = useState(false);
   const [perm, setPerm] = useState<"granted" | "denied" | "prompt">("prompt");
   const [last, setLast] = useState<{ sentAt: number; push: any; doneAt: number | null; verb?: string } | null>(null);
@@ -65,13 +63,13 @@ export function TestRingCard() {
       if (reg.ok) {
         toast.success("Device registered — background push is ON");
       } else if (reg.reason === "fcm_registration_failed") {
-        toast.error("FCM registration rejected by Google — ask admin to enable Firebase Installations + Cloud Messaging API. Tap the error below for details.");
+        toast.error("This phone couldn't register for job alerts. Please try again later.");
       } else if (reg.reason === "play_services") {
         toast.error("Update Google Play services on this phone, then tap Fix again");
       } else if (reg.reason === "permission") {
         toast.error("Notifications are blocked — allow them in Settings");
       } else {
-        toast.error(`Could not register this device (${reg.reason || "unknown"}). Details below.`);
+        toast.error("Could not turn on job alerts on this phone. Please try again.");
       }
     } finally { setFixing(false); }
   };
@@ -83,7 +81,7 @@ export function TestRingCard() {
       const p = data.push || {};
       setLast({ sentAt: Date.now(), push: p, doneAt: null });
       if ((p.success || 0) > 0) toast.success("Test ring sent — screen ring + push notification on your device");
-      else toast.info("Test ring sent to this screen" + (p.skipped === "no_devices" ? " · push skipped: device not registered" : p.error ? ` · push failed: ${p.error}` : ""));
+      else toast.info("Test ring shown on this screen");
     } catch (e: any) { toast.error(e?.detail || "Could not send test ring"); }
     finally { setBusy(false); }
   };
@@ -110,162 +108,77 @@ export function TestRingCard() {
   };
 
   const pushOk = perm === "granted" && registered;
+  const rs: any = devices.data?.ring_state;
+  const android = Platform.OS === "android";
+  type Issue = { key: string; icon: any; text: string; action?: { label: string; onPress: () => void; busy?: boolean } };
+  const issues: Issue[] = [];
+  if (!pushOk) {
+    issues.push({ key: "push", icon: "bell-off-outline",
+      text: perm === "denied" ? "Notifications are blocked on this phone. Allow them to receive job alerts."
+        : devices.data?.push_state?.reason || devices.data?.push_state?.error ? "This phone couldn't register for job alerts. Tap Fix to try again."
+        : "Job alerts are not turned on for this phone yet.",
+      action: { label: fixing ? "Fixing…" : "Fix", onPress: fix, busy: fixing } });
+  }
+  if (android && extra.fsi?.granted === false) issues.push({ key: "fsi", icon: "cellphone-message", text: "Allow full-screen call alerts so job rings open on a locked phone.", action: { label: "Allow", onPress: () => { openFullScreenIntentSettings().then(loadExtra); } } });
+  if (android && extra.battery?.granted === false) issues.push({ key: "battery", icon: "battery-heart-variant", text: "Allow the app to run in the background so you never miss a job.", action: { label: "Allow", onPress: () => { requestBatteryExemption().then(loadExtra); } } });
+  if (android && extra.overlay?.granted === false) issues.push({ key: "overlay", icon: "cellphone-arrow-down", text: "Allow display over other apps to see job rings while using your phone.", action: { label: "Allow", onPress: () => { requestOverlayPermission().then(loadExtra); } } });
+  if (android && extra.oem?.available && !extra.oem?.granted) issues.push({ key: "oem", icon: "shield-alert-outline", text: "Turn on Autostart and pop-up windows for this app, otherwise you'll only get a silent notification.", action: { label: "Enable", onPress: () => { requestOemSettings().then(loadExtra); } } });
+  if (rs && rs.ok === false) issues.push({ key: "ring", icon: "phone-alert-outline", text: "Your last job ring didn't show on screen. Check the permissions above, then send a test ring." });
+
+  // Hidden while checking, and hidden completely when everything is already configured.
+  const checking = devices.isLoading || (android && !extra.fsi && !extra.battery && !extra.overlay);
+  if (checking || (issues.length === 0 && lockCountdown === null && !last)) return null;
+
   return (
-    <Surface testID="test-ring-card">
-      <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Icon name="bell-ring-outline" size={20} color={colors.primaryHover} /></View>
+    <Surface testID="test-ring-card" style={{ borderColor: "#FCD9A8" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: TW.amber50, alignItems: "center", justifyContent: "center" }}><Icon name="bell-alert-outline" size={20} color={TW.amber600} /></View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: colors.text, fontWeight: "700", fontSize: 15 }}>Alert check</Text>
-          <Text style={{ color: TW.slate400, fontSize: 12, marginTop: 2 }}>Ring this phone like a real job to confirm sound, vibration & push.</Text>
-          <View testID="test-ring-device-state" style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
-            <Icon name="cellphone" size={14} color={colors.textMuted} />
-            <Text style={{ fontSize: 11, fontWeight: "600", color: pushOk ? TW.emerald600 : perm === "denied" ? TW.red600 : TW.amber600 }}>
-              {pushOk ? "Background push: ON (device registered)" : perm === "denied" ? "Background push: blocked on this device" : "Background push: OFF (device not registered)"}
-            </Text>
-            {!pushOk ? <Pressable testID="test-ring-fix" onPress={fix} disabled={fixing} hitSlop={6}><Text style={{ color: colors.primaryHover, fontSize: 11, fontWeight: "600", textDecorationLine: "underline" }}>{fixing ? "Fixing…" : "Fix"}</Text></Pressable> : null}
-          </View>
+          <Text style={{ color: TW.slate400, fontSize: 12, marginTop: 1 }}>
+            {issues.length ? `${issues.length} thing${issues.length > 1 ? "s" : ""} to fix so you never miss a job` : "All set — job alerts are working"}
+          </Text>
         </View>
       </View>
-      {!pushOk && devices.data?.push_state && (devices.data.push_state.reason || devices.data.push_state.error) ? (() => {
-        const ps: any = devices.data.push_state;
-        const isFcm = ps.reason === "fcm_registration_failed" || String(ps.error || "").includes("FCM Registration failed");
-        return (
-          <Pressable
-            testID="push-error-detail"
-            onPress={() => toast.info(String(ps.error || ps.reason))}
-            style={{ marginTop: 10, borderRadius: 12, borderWidth: 1, borderColor: "#FECACA", backgroundColor: "rgba(254,242,242,0.7)", padding: 12, gap: 4 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <Icon name="alert-circle-outline" size={15} color={TW.red600} />
-              <Text style={{ color: TW.red600, fontSize: 12, fontWeight: "700", flex: 1 }}>
-                Why push is off: {ps.reason || "registration failed"}
-              </Text>
+      {issues.length ? (
+        <View testID="alert-issues" style={{ marginTop: 12, gap: 8 }}>
+          {issues.map((it) => (
+            <View key={it.key} testID={`alert-issue-${it.key}`} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 10 }}>
+              <Icon name={it.icon} size={16} color={TW.amber600} />
+              <Text style={{ flex: 1, fontSize: 12, lineHeight: 17, color: colors.textSecondary }}>{it.text}</Text>
+              {it.action ? (
+                <Pressable testID={`alert-fix-${it.key}`} onPress={it.action.onPress} disabled={it.action.busy} hitSlop={6}
+                  style={{ paddingHorizontal: 12, height: 30, borderRadius: 8, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center", opacity: it.action.busy ? 0.6 : 1 }}>
+                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>{it.action.label}</Text>
+                </Pressable>
+              ) : null}
             </View>
-            <Text style={{ color: TW.slate500, fontSize: 11, lineHeight: 15 }} numberOfLines={4}>
-              {String(ps.error || "This device could not obtain a push token.")}
-            </Text>
-            {isFcm ? (
-              <Text style={{ color: TW.amber600, fontSize: 11, lineHeight: 15, marginTop: 2 }}>
-                This is a Firebase project setting (not the app). Ask the admin to enable “Firebase Installations API” + “Firebase Cloud Messaging API (V1)” for the project and un‑restrict the Android API key, then tap Fix again.
-              </Text>
-            ) : null}
-            {ps.at ? <Text style={{ color: TW.slate400, fontSize: 10 }}>Last attempt: {new Date(ps.at).toLocaleString()}</Text> : null}
-          </Pressable>
-        );
-      })() : null}
-      {Platform.OS === "android" ? (
-        <View testID="bg-listener-state" style={{ marginTop: 10, flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 12, borderWidth: 1, borderColor: bgListening ? TW.emerald200 : colors.border, backgroundColor: colors.surfaceSubtle, padding: 10 }}>
-          <Icon name={bgListening ? "radio-tower" : "radio-tower"} size={16} color={bgListening ? TW.emerald600 : TW.slate400} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 12, fontWeight: "700", color: bgListening ? TW.emerald600 : colors.textSecondary }}>
-              {bgListening ? "Locked/closed ring listener: ON" : "Locked/closed ring listener: OFF"}
-            </Text>
-            <Text style={{ fontSize: 11, color: TW.slate400, marginTop: 1 }}>
-              {bgListening
-                ? "Full-screen job ring works even when locked or app is closed — no internet push needed."
-                : "Go ONLINE (toggle at the top) to start it. This is what rings you when the phone is locked."}
-            </Text>
-          </View>
-        </View>
-      ) : null}
-      {Platform.OS === "android" ? (
-        <View testID="ring-permissions" style={{ marginTop: 10, gap: 8, borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 10 }}>
-          <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>For the call-style ring on a locked / closed phone</Text>
-          {/* Full-Screen intent — detection is unreliable on some OEMs, so ALWAYS offer the button */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Icon name={extra.fsi?.granted ? "check-circle" : "cellphone-message"} size={15} color={extra.fsi?.granted ? TW.emerald600 : TW.amber600} />
-            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Full-Screen Call Alert{extra.fsi?.granted ? " · allowed" : ""}</Text>
-            <Pressable testID="alert-allow-fsi" onPress={() => openFullScreenIntentSettings().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.fsi?.granted ? colors.surfaceSubtle : colors.primary }}>
-              <Text style={{ color: extra.fsi?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.fsi?.granted ? "Open" : "Allow"}</Text>
-            </Pressable>
-          </View>
-          {/* Battery / background — reliably detectable via Notifee */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Icon name={extra.battery?.granted ? "check-circle" : "battery-heart-variant"} size={15} color={extra.battery?.granted ? TW.emerald600 : TW.amber600} />
-            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Run in Background{extra.battery?.granted ? " · allowed" : ""}</Text>
-            {!extra.battery?.granted ? (
-              <Pressable testID="alert-allow-battery" onPress={() => requestBatteryExemption().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.primary }}>
-                <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Allow</Text>
-              </Pressable>
-            ) : null}
-          </View>
-          {/* Display over other apps — full-screen ring even when the phone is UNLOCKED */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Icon name={extra.overlay?.granted ? "check-circle" : "cellphone-arrow-down"} size={15} color={extra.overlay?.granted ? TW.emerald600 : TW.amber600} />
-            <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Full-Screen on Unlocked{extra.overlay?.granted ? " · allowed" : ""}</Text>
-            <Pressable testID="alert-allow-overlay" onPress={() => requestOverlayPermission().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.overlay?.granted ? colors.surfaceSubtle : colors.primary }}>
-              <Text style={{ color: extra.overlay?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.overlay?.granted ? "Open" : "Allow"}</Text>
-            </Pressable>
-          </View>
-          {/* OEM autostart / pop-up permission — MIUI/ColorOS/FuntouchOS block the
-              call-style ring (show only a notification) without this. Only shown on
-              aggressive-OEM phones (Poco/Redmi/Xiaomi, Oppo/Realme, Vivo, Huawei). */}
-          {extra.oem?.available ? (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Icon name={extra.oem?.granted ? "check-circle" : "shield-alert-outline"} size={15} color={extra.oem?.granted ? TW.emerald600 : TW.red600} />
-              <Text style={{ flex: 1, fontSize: 11, fontWeight: "600", color: colors.textSecondary }}>Autostart & Pop-up{extra.oem?.granted ? " · opened" : " · needed on this phone"}</Text>
-              <Pressable testID="alert-allow-oem" onPress={() => requestOemSettings().then(loadExtra)} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: extra.oem?.granted ? colors.surfaceSubtle : colors.primary }}>
-                <Text style={{ color: extra.oem?.granted ? colors.textSecondary : "#fff", fontSize: 11, fontWeight: "700" }}>{extra.oem?.granted ? "Open" : "Enable"}</Text>
-              </Pressable>
-            </View>
-          ) : null}
-          {extra.oem?.available && !extra.oem?.granted ? (
-            <Text style={{ color: TW.amber600, fontSize: 10.5, lineHeight: 15 }}>
-              Your phone brand blocks the call-style ring unless you turn ON “Autostart” and “Display pop-up windows while running in background” (and “Show on lock screen”). Tap Enable, find AzoApp, and turn these ON — otherwise you’ll only get a silent notification.
-            </Text>
-          ) : null}
+          ))}
         </View>
       ) : null}
       <View style={{ marginTop: 12, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-        <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
+        <Pressable testID="test-ring-send" onPress={send} disabled={busy} style={{ height: 40, paddingHorizontal: 14, borderRadius: 10, backgroundColor: colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: busy ? 0.6 : 1 }}>
           {busy ? <ActivityIndicator size="small" color="#fff" /> : <Icon name="bell-ring-outline" size={16} color="#fff" />}
-          <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>Send me a test job ring</Text>
+          <Text style={{ color: "#fff", fontSize: 13, fontWeight: "600" }}>Send test ring</Text>
         </Pressable>
         {Platform.OS !== "web" ? (
-          <Pressable testID="test-lockscreen-ring" onPress={lockTest} disabled={lockCountdown !== null} style={{ height: 40, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: lockCountdown !== null ? 0.6 : 1 }}>
+          <Pressable testID="test-lockscreen-ring" onPress={lockTest} disabled={lockCountdown !== null} style={{ height: 40, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1.5, borderColor: colors.primary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 6, opacity: lockCountdown !== null ? 0.6 : 1 }}>
             <Icon name="cellphone-lock" size={16} color={colors.primaryHover} />
-            <Text style={{ color: colors.primaryHover, fontSize: 14, fontWeight: "600" }}>{lockCountdown !== null ? `Lock now… ${Math.max(0, lockCountdown)}s` : "Test lock-screen ring"}</Text>
+            <Text style={{ color: colors.primaryHover, fontSize: 13, fontWeight: "600" }}>{lockCountdown !== null ? `Lock now… ${Math.max(0, lockCountdown)}s` : "Test lock-screen ring"}</Text>
           </Pressable>
         ) : null}
       </View>
       {lockCountdown !== null ? (
-        <View testID="lockscreen-ring-hint" style={{ marginTop: 8, borderRadius: 12, backgroundColor: colors.primarySubtle, padding: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Icon name="cellphone-lock" size={18} color={colors.primaryHover} />
-          <Text style={{ color: colors.textSecondary, fontSize: 12, flex: 1 }}>
-            {lockCountdown > 0 ? `Lock your phone or switch to another app now — the full-screen job ring will fire in ${lockCountdown}s.` : "Ring sent! You should see the full-screen call now. Not showing? Allow the permissions above and try again."}
-          </Text>
-        </View>
+        <Text testID="lockscreen-ring-hint" style={{ marginTop: 8, color: colors.textSecondary, fontSize: 12 }}>
+          {lockCountdown > 0 ? `Lock your phone now — the job ring will fire in ${lockCountdown}s.` : "Ring sent! You should see the full-screen call now."}
+        </Text>
       ) : null}
       {last ? (
-        <View testID="test-ring-result" style={{ marginTop: 12, borderRadius: 12, backgroundColor: colors.surfaceSubtle, padding: 12, gap: 4 }}>
-          <Text style={{ color: colors.textSecondary, fontSize: 11 }}>Sent {new Date(last.sentAt).toLocaleTimeString()}</Text>
-          <Text style={{ color: TW.emerald600, fontSize: 11 }}>Screen ring: delivered via live connection</Text>
-          <Text style={{ color: (last.push?.success || 0) > 0 ? TW.emerald600 : TW.amber600, fontSize: 11 }}>
-            Push: {(last.push?.success || 0) > 0 ? `sent to ${last.push.success} device(s)` : last.push?.skipped === "no_devices" ? "skipped — device not registered" : last.push?.skipped === "not_configured" ? "skipped — push not configured by admin" : last.push?.error ? `failed (${last.push.error})` : "not sent"}
-          </Text>
-          {last.doneAt ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="check-circle-outline" size={14} color={TW.emerald700} /><Text style={{ color: TW.emerald700, fontSize: 11, fontWeight: "600" }}>You {last.verb} it in {((last.doneAt - last.sentAt) / 1000).toFixed(1)}s</Text></View> : null}
-        </View>
+        <Text testID="test-ring-result" style={{ marginTop: 8, fontSize: 12, color: (last.push?.success || 0) > 0 ? TW.emerald600 : TW.amber600 }}>
+          {(last.push?.success || 0) > 0 ? "Test ring sent to this phone." : "Test ring shown on screen, but background alerts are not working yet."}
+          {last.doneAt ? ` You ${last.verb} it in ${((last.doneAt - last.sentAt) / 1000).toFixed(1)}s.` : ""}
+        </Text>
       ) : null}
-      {devices.data?.ring_state ? (() => {
-        const rs: any = devices.data.ring_state;
-        return (
-          <View testID="ring-diagnostic" style={{ marginTop: 8, borderRadius: 12, borderWidth: 1, borderColor: rs.ok ? TW.emerald200 : "#FECACA", backgroundColor: colors.surfaceSubtle, padding: 12, gap: 3 }}>
-            <Text style={{ color: colors.textSecondary, fontSize: 11, fontWeight: "700" }}>Last job ring on this phone</Text>
-            <Text style={{ color: rs.ok ? TW.emerald600 : TW.red600, fontSize: 11, fontWeight: "600" }}>
-              {rs.ctx === "bg" ? "App closed / locked" : "App open"}: {rs.ok ? `full-screen ring shown ✓${rs.src ? ` (via ${rs.src === "fcm" ? "push" : "live"})` : ""}` : "NOT shown ✗"}
-            </Text>
-            {rs.fsi === false ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <Text style={{ color: TW.amber600, fontSize: 11, flex: 1, minWidth: 160 }}>⚠ Full-screen permission is OFF — the call screen can't open on a locked phone.</Text>
-                <Pressable testID="ring-fix-fsi" onPress={() => openFullScreenIntentSettings()} style={{ paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: colors.primary }}>
-                  <Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>Allow full-screen</Text>
-                </Pressable>
-              </View>
-            ) : null}
-            {rs.error ? <Text style={{ color: TW.slate400, fontSize: 10 }} numberOfLines={2}>{String(rs.error)}</Text> : null}
-            {rs.at ? <Text style={{ color: TW.slate400, fontSize: 10 }}>{new Date(rs.at).toLocaleString()}</Text> : null}
-          </View>
-        );
-      })() : null}
     </Surface>
   );
 }
