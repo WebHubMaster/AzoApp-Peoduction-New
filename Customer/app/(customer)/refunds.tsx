@@ -35,8 +35,6 @@ export default function RefundsScreen() {
 
   const header = (
     <View>
-      <Text testID="page-title" style={{ fontSize: 24, fontWeight: "900", color: TC.text, letterSpacing: -0.4 }}>Refunds</Text>
-      <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2, marginBottom: 16 }}>Track cancellations and refund status</Text>
       {loading && refunds.length === 0 ? <StatSkeleton /> : (
         <View style={{ gap: 12, marginBottom: 16 }}>
           <View style={{ flexDirection: "row", gap: 12 }}><StatTile testID="rf-total" label="Total Refunds" value={refunds.length} count icon={Receipt} tone="primary" /><StatTile testID="rf-pending" label="Pending" value={refunds.filter((r: any) => pendingSet.includes(r.status)).length} count icon={Clock} tone="amber" /></View>

@@ -126,11 +126,6 @@ export default function ReferralScreen() {
 
   return (
     <View testID="referral-page" style={{ gap: 20 }}>
-      <View>
-        <Text testID="page-title" style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>Refer & Earn</Text>
-        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Invite friends and earn rewards together</Text>
-      </View>
-
       <View style={{ borderRadius: 10, overflow: "hidden", ...shadowElev }}>
         <LinearGradient colors={[PRIMARY[800], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 24 }}>
           <Gift size={40} color="#fff" />

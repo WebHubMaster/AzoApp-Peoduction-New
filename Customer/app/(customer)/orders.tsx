@@ -121,13 +121,7 @@ export default function OrdersScreen() {
   return (
     <View testID="orders-page">
       {/* SectionHeader */}
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text testID="page-title" numberOfLines={1} style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>My Bookings</Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Track, manage and rebook your home services</Text>
-        </View>
-        <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
-      </View>
+      <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ height: 44, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 20, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
 
       {/* KPI (grid-cols-2) */}
       {loading && bookings.length === 0 ? <StatSkeleton /> : (

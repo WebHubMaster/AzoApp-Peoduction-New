@@ -84,11 +84,6 @@ export default function AlertHealthCheck() {
 
   return (
     <View testID="alert-health-check" style={{ gap: 16 }}>
-      <View>
-        <Text testID="page-title" style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>Alert Health Check</Text>
-        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Make sure booking alerts ring even when the app is closed · {readyCount}/{shown.length} ready</Text>
-      </View>
-
       {criticalMissing ? (
         <View testID="alert-warning" style={{ flexDirection: "row", gap: 10, backgroundColor: isDark ? "rgba(120,53,15,0.25)" : "#FEF3C7", borderColor: "#FCD34D", borderWidth: 1, borderRadius: 10, padding: 14 }}>
           <AlertCircle size={20} color="#B45309" />

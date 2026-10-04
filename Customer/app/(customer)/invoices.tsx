@@ -107,10 +107,6 @@ export default function InvoicesScreen() {
 
   return (
     <View testID="invoice-center" style={{ gap: 20 }}>
-      <View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><ReceiptText size={20} color={c.primaryText} /><Text testID="page-title" style={{ fontSize: 20, fontWeight: "800", color: c.text }}>My Invoices</Text></View>
-        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>View & download invoices for your bookings and payments.</Text>
-      </View>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <SearchInput value={search} onChange={setSearch} placeholder="Search invoice #, booking…" testID="invoice-search" />
         <FilterButton activeCount={activeFilterCount} onPress={() => setShowFilters(true)} testID="invoice-filters-btn" />

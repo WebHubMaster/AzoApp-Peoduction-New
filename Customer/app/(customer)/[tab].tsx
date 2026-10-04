@@ -21,10 +21,6 @@ export default function ComingSoon() {
   const sub = extra.length ? extra.map(([k, v]) => `${k}: ${v}`).join(" · ") : "";
   return (
     <View testID={`page-${seg}`} style={{ gap: 20 }}>
-      <View>
-        <Text testID="page-title" style={{ fontWeight: "900", fontSize: 24, color: c.text }}>{title}</Text>
-        {sub ? <Text style={{ color: c.textMuted, fontSize: 14, marginTop: 2 }}>{sub}</Text> : null}
-      </View>
       <EmptyState icon={Construction} title="Coming next" desc="This page will be ported from the Customer Web Panel in the next step." testID="coming-soon" />
     </View>
   );

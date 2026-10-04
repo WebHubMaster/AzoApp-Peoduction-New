@@ -347,10 +347,6 @@ export default function SubscriptionsScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <CalendarHeart size={22} color={TC.primaryText} />
-          <Text style={{ color: c.text, fontSize: 20, fontWeight: "800" }}>Subscriptions</Text>
-        </View>
         <SegTabs tabs={[{ key: "browse", label: "Browse Plans" }, { key: "mine", label: "My Subscriptions" }]} value={tab} onChange={setTab} counts={{ mine: mine.length }} />
 
         {loading ? <SkeletonList rows={3} /> : tab === "browse" ? (

@@ -46,3 +46,11 @@ User: fonts too big + remove page Header/Subheader from all screens; buttons acr
 - src/components/invoice.tsx PageHeader: removed title + subtitle; kept small shopName chip.
 - src/components/merchant/ReferralShared.tsx MModuleHeader: removed gradient title/subtitle banner; renders `right` full-width if provided, else null.
 Verified: all 4 edited files parse clean (no syntax errors). Native screens are auth-gated → not screenshot-able in this web preview env; verify via Expo Go / EAS build.
+
+## 2026-10-04 — Customer app UI cleanup (Expo app in /app/Customer)
+Same treatment as Partner/Merchant: smaller fonts + remove page heading/subheading; header-adjacent buttons go full-width.
+- src/lib/globalFont.ts: global font scale FS 1.09 → 0.92 (app-wide smaller text; native only).
+- Removed page-title + subtitle from (customer) screens: invoices, wallet, referral, alerts, [tab], refunds, subscriptions.
+- Removed heading/subheading AND made the header action button full-width: orders (Booking), addresses (Booking), profile (Booking), support (New Ticket), custom_jobs (Service + refresh row).
+- Global top shell (CustomerShell avatar/location/bell/theme) + bottom nav kept.
+Verified: all 13 edited files parse clean (no syntax errors). Verify visually via Expo Go / EAS build.

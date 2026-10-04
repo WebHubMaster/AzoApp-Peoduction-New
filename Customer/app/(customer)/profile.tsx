@@ -74,13 +74,7 @@ export default function ProfileScreen() {
 
   return (
     <View testID="profile-page" style={{ gap: 20 }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text testID="page-title" numberOfLines={1} style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>My Profile</Text>
-          <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Manage your personal details & preferences</Text>
-        </View>
-        <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 40, paddingHorizontal: 16, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
-      </View>
+      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ height: 44, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, ...shadowBtn })}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Booking</Text></Pressable>
 
       <View testID="profile-shortcuts" style={{ flexDirection: "row", gap: 12 }}>
         {[["addresses", "Addresses", MapPin, "/(customer)/addresses"], ["wallet", "Wallet", Wallet, "/(customer)/wallet"], ["orders", "Bookings", Package, "/(customer)/orders"]].map(([k, label, Icon, route]: any) => (

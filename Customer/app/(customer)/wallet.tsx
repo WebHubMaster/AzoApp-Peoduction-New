@@ -50,10 +50,6 @@ export default function WalletScreen() {
 
   return (
     <View testID="wallet-page">
-      <View style={{ marginBottom: 20 }}>
-        <Text testID="page-title" style={{ fontSize: 24, fontWeight: "900", color: c.text, letterSpacing: -0.4 }}>Wallet</Text>
-        <Text style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>Your AzoApp balance, top-ups and payments</Text>
-      </View>
       <View style={{ gap: 16, marginBottom: 20 }}>
         <LinearGradient colors={[PRIMARY[600], PRIMARY[800], "#1E7AD6"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 10, padding: 24, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -24, bottom: -24, height: 128, width: 128, borderRadius: 64, backgroundColor: "rgba(255,255,255,0.1)" }} />

@@ -80,11 +80,7 @@ export default function SupportScreen() {
 
   return (
     <View testID="support-center" style={{ gap: 16 }}>
-      <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={24} color={PRIMARY[600]} /><Text testID="page-title" style={{ fontSize: 24, fontWeight: "800", color: c.text, letterSpacing: -0.4 }}>Help & Support</Text></View>
-          <Text testID="support-count" style={{ fontSize: 14, color: c.textMuted, marginTop: 2 }}>{rows.length} ticket{rows.length !== 1 ? "s" : ""} · chat with our support team, attach screenshots, track status.</Text>
-        </View>
+      <View style={{ width: "100%" }}>
         <GreenBtn testID="support-new-btn" label="New Ticket" onPress={() => setView("new")} />
       </View>
 

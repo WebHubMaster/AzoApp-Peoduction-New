@@ -36,15 +36,9 @@ export default function CustomJobsScreen() {
   useEffect(() => { load(); }, [load]);
 
   const header = (
-    <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12, marginBottom: 20 }}>
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Sparkles size={22} color={PRIMARY[600]} /><Text testID="page-title" style={{ fontSize: 22, fontWeight: "900", color: TC.text, letterSpacing: -0.4 }}>My Custom Job Requests</Text></View>
-        <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 2 }}>Track services you asked us to build for you.</Text>
-      </View>
-      <View style={{ flexDirection: "row", gap: 8 }}>
-        <Pressable testID="mcj-refresh" onPress={load} style={{ height: 40, width: 40, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><RefreshCcw size={16} color={TC.textMuted} /></Pressable>
-        <Pressable testID="mcj-new" onPress={() => setWizardOpen(true)} style={{ height: 40, paddingHorizontal: 14, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Service</Text></Pressable>
-      </View>
+    <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>
+      <Pressable testID="mcj-refresh" onPress={load} style={{ height: 44, width: 44, borderRadius: 12, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}><RefreshCcw size={16} color={TC.textMuted} /></Pressable>
+      <Pressable testID="mcj-new" onPress={() => setWizardOpen(true)} style={{ flex: 1, height: 44, borderRadius: 12, backgroundColor: PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}><Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Service</Text></Pressable>
     </View>
   );
 
