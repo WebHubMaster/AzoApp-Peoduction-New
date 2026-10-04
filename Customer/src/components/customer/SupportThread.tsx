@@ -9,6 +9,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ArrowLeft, ShieldCheck, MoreVertical, X, Send, Paperclip, CheckCircle2, Check, CheckCheck, Hash, Tag, AlertCircle, CalendarDays, Clock, FileText, Info } from "lucide-react-native";
 import { api } from "../../api/client";
 import { useToast } from "../Toast";
+import { useRealtime } from "../../context/RealtimeContext";
 import { PRIMARY, SLATE, EMERALD, useTheme } from "../../theme";
 import { CenterDialog } from "./BookingDialogs";
 import { STATUS_STYLE, STATUS_LABEL, PRIORITY_STYLE, timeStr, dateFull, dayKey, daySep, ago, Badge, AttachmentView, assetToFormData } from "./supportShared";
@@ -26,6 +27,9 @@ const InfoRow = ({ icon: Icon, label, value, testID }: { icon: any; label: strin
 export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ticket: any; myId?: string; tickets: any[]; onBack: () => void; onChanged: () => void }) {
   const { c, isDark } = useTheme();
   const toast = useToast();
+  const { subscribe } = useRealtime();
+  const [rtTyping, setRtTyping] = useState(false);
+  const typingTimer = useRef<any>(null);
   const [t, setT] = useState<any>(ticket);
   const [text, setText] = useState("");
   const [pending, setPending] = useState<any[]>([]);
@@ -57,8 +61,22 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   }, [ticket.id]);
   const pingTyping = useCallback(() => { const now = Date.now(); if (now - lastTypingSent.current < 3000) return; lastTypingSent.current = now; api.post(`/support/tickets/${ticket.id}/typing`).catch(() => {}); }, [ticket.id]);
 
-  useEffect(() => { refresh(); const iv = setInterval(refresh, 3000); return () => clearInterval(iv); }, [refresh]);
-  useEffect(() => { const h = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); return () => clearTimeout(h); }, [t.messages?.length, t.agent_typing]);
+  useEffect(() => { refresh(); const iv = setInterval(refresh, 15000); return () => clearInterval(iv); }, [refresh]);
+  // Real-time over SSE: backend pushes support_message / support_typing for THIS ticket (no 3s polling lag).
+  useEffect(() => {
+    const off = subscribe((ev) => {
+      if (ev.type === "__resync__") { refresh(); return; }
+      if (ev.data?.ticket_id && ev.data.ticket_id !== ticket.id) return;
+      if (ev.type === "support_message") { setRtTyping(false); refresh(); }
+      else if (ev.type === "support_typing" && ev.data?.actor === "agent") {
+        setRtTyping(true);
+        if (typingTimer.current) clearTimeout(typingTimer.current);
+        typingTimer.current = setTimeout(() => setRtTyping(false), 5000);
+      }
+    });
+    return () => { off(); if (typingTimer.current) clearTimeout(typingTimer.current); };
+  }, [subscribe, refresh, ticket.id]);
+  useEffect(() => { const h = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); return () => clearTimeout(h); }, [t.messages?.length, t.agent_typing, rtTyping]);
 
   const pickFiles = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -139,7 +157,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
               </View>
             );
           })}
-          {t.agent_typing ? (
+          {(t.agent_typing || rtTyping) ? (
             <View testID="support-agent-typing" style={{ flexDirection: "row" }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 6, borderBottomLeftRadius: 4, backgroundColor: c.surface, borderWidth: 1, borderColor: c.borderSoft, paddingHorizontal: 14, paddingVertical: 10 }}>
                 <ShieldCheck size={12} color={PRIMARY[600]} /><Text style={{ fontSize: 11, fontWeight: "600", color: PRIMARY[600] }}>Support is typing</Text><ActivityIndicator size="small" color={PRIMARY[400]} />

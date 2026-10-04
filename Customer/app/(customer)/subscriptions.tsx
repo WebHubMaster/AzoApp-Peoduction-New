@@ -4,6 +4,7 @@
  * payment snapshot, maid details and invoice download — parity with the web panel. */
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, TextInput, Linking } from "react-native";
+import { useRouter } from "expo-router";
 import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
@@ -325,6 +326,7 @@ function SubCard({ s }: { s: any }) {
 
 export default function SubscriptionsScreen() {
   const { c } = useTheme();
+  const router = useRouter();
   const [tab, setTab] = useState("browse");
   const [services, setServices] = useState<any[]>([]);
   const [mine, setMine] = useState<any[]>([]);
@@ -351,7 +353,24 @@ export default function SubscriptionsScreen() {
 
         {loading ? <SkeletonList rows={3} /> : tab === "browse" ? (
           services.length === 0 ? (
-            <EmptyState icon={CalendarHeart} title="No subscription services yet" desc="Recurring maid & home-help plans will appear here." />
+            <View testID="sub-browse-empty" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 24, alignItems: "center", gap: 10, marginTop: 8 }}>
+              <View style={{ height: 72, width: 72, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
+                <CalendarHeart size={36} color={TC.primaryText} />
+              </View>
+              <Text style={{ color: c.text, fontWeight: "800", fontSize: 17, textAlign: "center" }}>No subscription plans yet</Text>
+              <Text style={{ color: c.textMuted, fontSize: 13, textAlign: "center", lineHeight: 19, maxWidth: 300 }}>Recurring maid & home-help plans will appear here. Set it once and a verified pro visits on schedule — no rebooking needed.</Text>
+              <View style={{ alignSelf: "stretch", gap: 8, marginTop: 6 }}>
+                {([["Verified maids", "Background-checked & rated pros"], ["Pay once", "Full plan upfront, no surprises"], ["Daily attendance", "Arrival captured by location"]] as [string, string][]).map(([t2, d2]) => (
+                  <View key={t2} style={{ flexDirection: "row", alignItems: "center", gap: 10, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.bg, paddingHorizontal: 12, paddingVertical: 10 }}>
+                    <CheckCircle2 size={18} color={EMERALD[600]} />
+                    <View style={{ flex: 1 }}><Text style={{ color: c.text, fontWeight: "700", fontSize: 13 }}>{t2}</Text><Text style={{ color: c.textMuted, fontSize: 11 }}>{d2}</Text></View>
+                  </View>
+                ))}
+              </View>
+              <Pressable testID="sub-browse-cta" onPress={() => router.push("/(site)/services" as any)} style={{ alignSelf: "stretch", marginTop: 6, height: 46, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Explore all services</Text>
+              </Pressable>
+            </View>
           ) : (
             <View style={{ gap: 12 }}>
               {services.map((s) => (

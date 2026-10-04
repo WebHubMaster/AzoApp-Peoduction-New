@@ -73,3 +73,8 @@ Verification: esbuild tsx parse OK on all 60 swept files. (Expo app not on runni
 4. Refer & Earn (referral.tsx): top duplicate gradient hero card hata diya (code/copy/share neeche share-card me already hai).
 5. Support chat (SupportThread.tsx): full-height chat panel (viewport fill) with composer bottom; ticket details/attachments/other-tickets ab header ke (i) Info button se Modal me khulte hain; real-time polling (3s) + auto-scroll to latest intact.
 Verified: esbuild tsx parse OK (8/8). Expo app not on running web preview; no browser test.
+
+## Customer App — session 3 (2026-10-04)
+2. WebSocket/Real-time chat: SupportThread ab app ke SSE realtime channel (useRealtime subscribe) par — backend already emits 'support_message' & 'support_typing' (actor=agent) via rt.emit_user. On support_message -> instant refresh; on support_typing -> instant typing indicator (5s auto-clear). Polling 3s -> 15s safety net; __resync__ triggers refresh. (Transport = SSE, app ka true realtime channel.)
+3. Subscription empty state: Browse Plans khali -> rich card (CalendarHeart illustration + 3 benefit rows + 'Explore all services' CTA -> /(site)/services).
+1. Live Preview: NOT possible in this web preview — Customer is a native Expo app (node_modules absent, port 3000 = web_panel). Verify via Expo Go QR (expo_customer_qr.png) / dev build / deploy. All changes esbuild tsx parse-verified.
