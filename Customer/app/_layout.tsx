@@ -22,7 +22,7 @@ import { ToastProvider } from "@/src/components/Toast";
 import { PaymentWebViewHost } from "@/src/components/PaymentWebViewHost";
 import AppUpdateGate from "@/src/components/AppUpdateGate";
 import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
-import { PUBLIC_SANS_FONTS, installGlobalFont } from "@/src/lib/globalFont";
+import { APP_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initCrashReporter("customer");
@@ -90,7 +90,7 @@ function PushTapBridge() {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts(PUBLIC_SANS_FONTS);
+  const [fontsLoaded] = useFonts(APP_FONTS);
   if (fontsLoaded) installGlobalFont();
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
