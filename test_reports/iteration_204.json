@@ -1,0 +1,22 @@
+{
+  "summary": "Backend-only validation of (A) Custom-Job service visibility (all vs requester_only) and (B) additional-work tax recompute. All 19 pytest tests PASS against the live preview backend. Visibility rules enforced correctly for guest / other-customer / requester across both list and detail endpoints; invalid visibility value returns 400; non-admin convert/visibility return 403. _recompute_additional math matches spec exactly (parts no GST/commission, GST only on labour commission).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_custom_job_visibility_and_additional_tax.py",
+    "/app/test_reports/pytest/custom_job_tax.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "custom_job_routes.py PATCH /visibility accepts a plain dict instead of a Pydantic model — type-safety is only in the service layer.",
+    "booking_controller.py is >4200 lines; recommend splitting (adds/billing/chat/reschedule) for maintainability.",
+    "_recompute_additional correctly uses booking.commission_config snapshot before settings (platform_pct ladder); GST only on commission portion matches spec."
+  ],
+  "updated_files": ["/app/backend/tests/test_custom_job_visibility_and_additional_tax.py (new)"],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "skipped"},
+  "test_credentials": "Admin +919000000000, Requester +919000000777, Other +919000000888. OTP is dynamic — captured from `dev_otp` field in /api/auth/send-otp response (demo mode). Fixed OTP '123456' does NOT work.",
+  "seed_data_creation": "Created 1 TEST custom-job request → converted to draft service → activated with base_price=999. Visibility toggled to 'all' at end of run. Service remains in DB.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Use dev_otp from send-otp response (not fixed '123456'). conftest.py in /app/backend/tests requires REACT_APP_BACKEND_URL env var. Project pytest.ini enables xdist loadscope — run with `-o addopts=` to disable parallel distribution for order-dependent fixture flows."
+}

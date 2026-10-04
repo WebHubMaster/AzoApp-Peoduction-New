@@ -110,3 +110,22 @@ Verification: web_panel preview compiles & loads (200); buttons, search boxes an
 - Home (src/components/customer/HomeView.tsx): 5 quick-stat cards now a slider.
 - Notifications: new full page app/(customer)/notifications.tsx (Clear all + per-item X delete via DELETE /notifications[/{id}]; opening marks all read via azo_notif_seen). NotificationBell.tsx now navigates to the page (no modal) and marks read; AppHeader bell repointed from ?notif=1 to /(customer)/notifications.
 - Verification: static (transpile/syntax clean; reuses existing endpoints/components). Customer Expo app is not served in this env, so no live run/screenshot was possible.
+
+---
+## Update — 2026-10-04 (Custom Job visibility + Additional-work tax)
+
+### Feature 1: Custom Job service visibility
+- Admin can choose, per Custom-Job request, whether the converted+activated service is:
+  - **all** (default): live for every customer in its category, like a normal service, OR
+  - **requester_only**: private to the customer who requested it (hidden from everyone else).
+- Backend: `custom_job_service.set_visibility` + `PATCH /api/custom-jobs/{id}/visibility`; service stores `custom_job_customer_id` + `custom_job_visibility`; catalog `list_services`/`get_service` are user-aware (via `get_current_user_optional`); `_service_visible` hides requester_only from public lists.
+- Web admin: visibility toggle added in `CustomJobsAdmin.jsx` detail → Actions.
+- Verified e2e (guest/other hidden, requester visible; detail 404/404/200; 'all' visible to all).
+
+### Feature 2: Additional-work (rate-card) tax — matches normal billing
+- `_recompute_additional` (booking_controller): product/part cost → NO GST, NO commission, 100% to partner. Service/labour charge → platform commission applies, and GST charged ONLY on the commission portion (like normal billing). Rate card `service_charge` + `labour_charge` are BOTH commissionable+taxable (frontend mapping fixed in Partner app `AdditionalWork.tsx` and web `JobWizard.jsx`; product cost entered separately).
+- Verified: parts=500,labour=1000 → commission 320, gst 57.6, total 1557.6, partner 1180, platform 377.6. Product-only → gst 0, 100% partner.
+
+### Backlog / follow-up
+- Embed additional-work line items into the FORMAL generated PDF/Invoice Center documents (currently additional work shows in the in-app booking breakdown of all apps with correct tax, not yet in the 2-page GST PDF).
+- Optional: add a manual product-cost entry field in the rate-card add sheet.
