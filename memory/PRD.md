@@ -78,3 +78,8 @@ Verified: esbuild tsx parse OK (8/8). Expo app not on running web preview; no br
 2. WebSocket/Real-time chat: SupportThread ab app ke SSE realtime channel (useRealtime subscribe) par — backend already emits 'support_message' & 'support_typing' (actor=agent) via rt.emit_user. On support_message -> instant refresh; on support_typing -> instant typing indicator (5s auto-clear). Polling 3s -> 15s safety net; __resync__ triggers refresh. (Transport = SSE, app ka true realtime channel.)
 3. Subscription empty state: Browse Plans khali -> rich card (CalendarHeart illustration + 3 benefit rows + 'Explore all services' CTA -> /(site)/services).
 1. Live Preview: NOT possible in this web preview — Customer is a native Expo app (node_modules absent, port 3000 = web_panel). Verify via Expo Go QR (expo_customer_qr.png) / dev build / deploy. All changes esbuild tsx parse-verified.
+
+## Customer App — session 4 (2026-10-04)
+Chat Sound (done): SupportThread.notifyNewReply() — new agent reply (realtime support_message) par expo-haptics Success haptic + job-ring.wav ko 0.4 volume par 1.2s ka short blip (web-guarded, try/catch). subscribe branch me refresh se pehle call hota hai.
+Typing Echo (done/verified): customer keystroke par pingTyping -> POST /support/tickets/:id/typing -> backend rt.emit_admin('support_typing', actor:user) (symmetric). Throttle 3s->2s for snappier echo. Admin->customer typing session-3 me wire ho chuka. (Admin-side display web_panel me hai, already event receive karta hai — Customer app scope ke bahar.)
+Verified: esbuild tsx parse OK.

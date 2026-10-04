@@ -1,7 +1,7 @@
 import { TC } from "@/src/theme";
 /** Support ticket thread — port of web SupportCenter.jsx `Thread` (mobile: conversation + info panel below). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions, Platform } from "react-native";
 import { useKeyboardState } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -49,6 +49,19 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const lastTypingSent = useRef(0);
   const closed = t.status === "closed";
 
+  // Light notification on a new agent reply: success haptic + a short, low-volume blip.
+  const notifyNewReply = useCallback(() => {
+    try { const H = require("expo-haptics"); H.notificationAsync?.(H.NotificationFeedbackType.Success); } catch { /* ignore */ }
+    if (Platform.OS === "web") return;
+    try {
+      const AA = require("expo-audio");
+      const p = AA.createAudioPlayer(require("../../../assets/sounds/job-ring.wav"));
+      try { p.volume = 0.4; } catch { /* ignore */ }
+      p.seekTo?.(0); p.play();
+      setTimeout(() => { try { p.pause(); p.remove?.(); } catch { /* ignore */ } }, 1200);
+    } catch { /* ignore */ }
+  }, []);
+
   const refresh = useCallback(async () => {
     try {
       const data: any = await api.get(`/support/tickets/${ticket.id}`);
@@ -59,7 +72,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
       });
     } catch {}
   }, [ticket.id]);
-  const pingTyping = useCallback(() => { const now = Date.now(); if (now - lastTypingSent.current < 3000) return; lastTypingSent.current = now; api.post(`/support/tickets/${ticket.id}/typing`).catch(() => {}); }, [ticket.id]);
+  const pingTyping = useCallback(() => { const now = Date.now(); if (now - lastTypingSent.current < 2000) return; lastTypingSent.current = now; api.post(`/support/tickets/${ticket.id}/typing`).catch(() => {}); }, [ticket.id]);
 
   useEffect(() => { refresh(); const iv = setInterval(refresh, 15000); return () => clearInterval(iv); }, [refresh]);
   // Real-time over SSE: backend pushes support_message / support_typing for THIS ticket (no 3s polling lag).
@@ -67,7 +80,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
     const off = subscribe((ev) => {
       if (ev.type === "__resync__") { refresh(); return; }
       if (ev.data?.ticket_id && ev.data.ticket_id !== ticket.id) return;
-      if (ev.type === "support_message") { setRtTyping(false); refresh(); }
+      if (ev.type === "support_message") { setRtTyping(false); notifyNewReply(); refresh(); }
       else if (ev.type === "support_typing" && ev.data?.actor === "agent") {
         setRtTyping(true);
         if (typingTimer.current) clearTimeout(typingTimer.current);
@@ -75,7 +88,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
       }
     });
     return () => { off(); if (typingTimer.current) clearTimeout(typingTimer.current); };
-  }, [subscribe, refresh, ticket.id]);
+  }, [subscribe, refresh, ticket.id, notifyNewReply]);
   useEffect(() => { const h = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); return () => clearTimeout(h); }, [t.messages?.length, t.agent_typing, rtTyping]);
 
   const pickFiles = async () => {
