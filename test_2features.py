@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
+BASE_URL = "https://service-layout-fixes.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

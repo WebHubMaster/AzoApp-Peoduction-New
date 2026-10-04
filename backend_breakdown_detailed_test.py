@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
+BASE_URL = "https://service-layout-fixes.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://amplify-build-test.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://service-layout-fixes.preview.emergentagent.com').rstrip('/')
 PHONE = "+919000000004"
 OTP = "123456"
 

@@ -10,7 +10,7 @@ import time
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
+BASE_URL = "https://service-layout-fixes.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

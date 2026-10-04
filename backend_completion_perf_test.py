@@ -28,7 +28,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
+BASE_URL = "https://service-layout-fixes.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
