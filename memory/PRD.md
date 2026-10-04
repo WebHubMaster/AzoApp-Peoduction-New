@@ -55,3 +55,32 @@
 - Full dark-mode styling.
 
 **Preserved (verified by testing agent, 100% pass):** card click → /service/:id, Book Now quick-add → cart + view-booking-bar, live search, rate-card search (/ratecards/search), category filtering, pricing/ratings, SEO, cart bar, MobileBottomNav. Shared SiteNavbar/SiteFooter untouched.
+
+---
+## Update 2026-10-04 — Partner Growth Module Premium Upgrade + Payout Log Removal
+
+### Scope
+Upgraded the Super Admin "Partner Growth" module (web_panel) to a premium, unified, production-ready experience and fully removed the deprecated "Payout Log" feature.
+
+### Payout Log — fully removed
+- Frontend: sidebar nav item, KNOWN route key, title map, render switch (AdminDashboard.jsx); PayoutLog component + KIND_META (partnerAdminSections.jsx); unused icon imports cleaned.
+- Backend: `/admin/partner/payout-log` route (partner_admin_routes.py) + `admin_payout_log()` service (partner_service.py).
+- No shared payout/wallet/finance/incentive/commission logic touched. No lingering references.
+
+### Premium redesign (web_panel/src/pages/admin/partnerGrowthPro.jsx — rewritten)
+Unified component system: PageHeader (icon/title/desc/last-updated/refresh/export), KpiCard + KpiSkeleton, SectionCard, EmptyState, ErrorState (retry, preserves filters), server-side Pager (rows/first/prev/next/last/total), responsive FilterToolbar (desktop inline → mobile bottom-sheet drawer w/ active count + reset), TableSkeleton, SlideOver (partner detail), Avatar, StatusPill/KycPill, FormSection/Field.
+- **Performance**: KPIs, real analytics charts (rating distribution + top earners via recharts, powered by new backend `analytics` field; empty states when no data), sortable enterprise table (desktop) / cards (mobile), row click → partner detail drawer, CSV export.
+- **Incentives**: KPIs, premium challenge cards w/ award-coverage progress, multi-section create/edit form w/ inline validation + loading, award leaderboard w/ skeletons, delete confirm dialog.
+- **Penalties**: KPIs, filterable table (desktop) / cards (mobile), Apply Penalty 2-step form (sections + validation + review/confirm + loading, submit disabled while processing), Reverse penalty AlertDialog w/ full detail + consequence.
+
+### Backend additive change (non-breaking)
+`admin_performance()` now returns an extra `analytics` key (rating_buckets, status_mix, kyc_mix, top_earners, top_performers) computed fleet-wide from real data. Existing fields/routes unchanged.
+
+### Verification
+- web_panel production build: PASS (zero warnings on Partner Growth files; only pre-existing unrelated warning in AdminDashboard.jsx:289).
+- ESLint: clean on all 3 modified files.
+- Service-level checks against seeded DB: admin_performance (analytics shape correct), incentives_overview, penalties_board all return valid data; backend boots 200.
+- NOT run: full browser E2E — this fork's supervisor serves the PartnerApp (/app/frontend), not web_panel, so the admin panel isn't reachable at the preview URL here.
+
+### Next
+- P1: wire web_panel into preview serving for full browser E2E of the redesigned flows.

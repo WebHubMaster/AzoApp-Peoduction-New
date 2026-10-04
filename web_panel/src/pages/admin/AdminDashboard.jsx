@@ -106,7 +106,6 @@ const NAV = [
     { key: "partner_performance", label: "Performance", icon: TrendingUp },
     { key: "pm_incentives", label: "Incentives", icon: Gift },
     { key: "pm_penalties", label: "Penalties", icon: ShieldAlert },
-    { key: "pm_payout_log", label: "Payout Log", icon: Banknote },
   ]},
 
   { group: "Customers", icon: Users, items: [
@@ -231,7 +230,7 @@ const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pr
   "authcfg","addresscfg","deletions","categories","subcategories","services","addons","custom_jobs","ratings","homepage","media","branding","rate_cards",
   "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","banners","blogs","testimonials","starter_kit_admin",
   "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",
-  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_payout_log","pm_training","pm_leaves","business","sms_templates",
+  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
   "service_requests","checklists","service_areas","launch_demand","coverage_map","partner_jobs","partner_performance","merchant_verification",
   "merchant_services","merchant_orders","merchant_settlements","taxes","settlements","fin_reports","offers","pages",
   "seo_dashboard","global_seo","category_seo","service_seo","sitemap","schema","redirects","channels",
@@ -334,7 +333,6 @@ export default function AdminDashboard() {
     pm_withdrawals: "Withdrawal Requests", pm_incentives: "Partner Incentives",
     payout_config: "Payouts, Withdrawal Rules & Rewards",
     pm_penalties: "Partner Penalties", pm_training: "Training Videos",
-    pm_payout_log: "Payout Log (Auto Payouts & Bonuses)",
     pm_leaves: "Leave Requests", area_partners: "Area Partner", realtime_settings: "Real-time & Alerts", dispatch_feed: "Live Dispatch Feed", sys_performance: "Performance", ...SOON_TITLES };
 
   const d = dash || {};
@@ -446,7 +444,6 @@ export default function AdminDashboard() {
       {active === "payout_config" && <PM.WalletRewardConfig />}
       {active === "pm_incentives" && <IncentivesManagerPro />}
       {active === "pm_penalties" && <PenaltiesManagerPro />}
-      {active === "pm_payout_log" && <PM.PayoutLog />}
       {active === "pm_training" && <PM.TrainingManager />}
       {active === "pm_leaves" && <PM.LeavesQueue />}
       {active === "reg_kyc_pending" && <PR.KycQueue status="pending" title="Pending KYC" onOpenProfile={setViewUser} />}

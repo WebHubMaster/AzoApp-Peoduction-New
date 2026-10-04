@@ -1187,42 +1187,6 @@ async def send_streak_reminders():
         return 0
 
 
-# ------------------------------------------------- admin payout log (auto/bonus)
-async def admin_payout_log(kind="", date_from="", date_to="", page=1, page_size=50):
-    """All automatic wallet credits (auto-payout incentives, streak bonuses,
-    weekly leaderboard rewards) with partner names — a live audit for admins."""
-    kinds = ["incentive", "streak_bonus", "leaderboard_reward"]
-    q = {"kind": {"$in": [kind] if kind in kinds else kinds}, "direction": "credit"}
-    if date_from or date_to:
-        rng = {}
-        if date_from:
-            rng["$gte"] = date_from
-        if date_to:
-            rng["$lte"] = date_to + "T23:59:59"
-        q["created_at"] = rng
-    total = await db.partner_ledger.count_documents(q)
-    skip = max(0, (page - 1) * page_size)
-    rows = await db.partner_ledger.find(q, {"_id": 0}) \
-        .sort("created_at", -1).skip(skip).limit(page_size).to_list(page_size)
-    # Attach partner names.
-    pids = list({r["partner_id"] for r in rows})
-    names = {}
-    if pids:
-        for u in await db.users.find({"id": {"$in": pids}}, {"_id": 0, "id": 1, "name": 1}).to_list(5000):
-            names[u["id"]] = u.get("name")
-    for r in rows:
-        r["partner_name"] = names.get(r["partner_id"], "—")
-    # Summary totals across the whole filtered set (not just this page).
-    agg = await db.partner_ledger.aggregate([
-        {"$match": q},
-        {"$group": {"_id": "$kind", "total": {"$sum": "$amount"}, "count": {"$sum": 1}}},
-    ]).to_list(20)
-    summary = {a["_id"]: {"total": money.money(a["total"]), "count": a["count"]} for a in agg}
-    grand = money.add(*[v["total"] for v in summary.values()])
-    return {"rows": rows, "total": total, "page": page, "page_size": page_size,
-            "summary": summary, "grand_total": grand}
-
-
 # ---------------------------------------------------------------- penalties
 async def list_penalties(partner_id=None):
     q = {"partner_id": partner_id} if partner_id else {}
@@ -1844,6 +1808,41 @@ async def admin_performance(q="", status="", kyc="", min_rating=0.0,
         "avg_acceptance": round(sum(r["acceptance_rate"] for r in rows) / total_partners) if total_partners else 0,
     }
 
+    # Fleet-wide analytics (real data, computed over the whole fleet pre-filter).
+    def _rating_bucket(rt):
+        if rt <= 0:
+            return "unrated"
+        if rt >= 4.5:
+            return "4.5★+"
+        if rt >= 4.0:
+            return "4.0–4.5★"
+        if rt >= 3.0:
+            return "3.0–4.0★"
+        return "<3.0★"
+    rating_order = ["4.5★+", "4.0–4.5★", "3.0–4.0★", "<3.0★", "unrated"]
+    rb = {k: 0 for k in rating_order}
+    status_mix = defaultdict(int)
+    kyc_mix = defaultdict(int)
+    for r in rows:
+        rb[_rating_bucket(r["rating"])] += 1
+        status_mix[r["status"] or "offline"] += 1
+        kyc_mix[r["kyc_status"] or "pending"] += 1
+    top_earners = sorted(
+        [{"name": r["name"], "earnings": r["earnings"], "jobs_done": r["jobs_done"]}
+         for r in rows if r["earnings"] > 0],
+        key=lambda x: x["earnings"], reverse=True)[:5]
+    top_performers = sorted(
+        [{"name": r["name"], "jobs_done": r["jobs_done"], "rating": r["rating"]}
+         for r in rows if r["jobs_done"] > 0],
+        key=lambda x: x["jobs_done"], reverse=True)[:5]
+    analytics = {
+        "rating_buckets": [{"label": k, "count": rb[k]} for k in rating_order],
+        "status_mix": [{"label": k, "count": v} for k, v in status_mix.items()],
+        "kyc_mix": [{"label": k, "count": v} for k, v in kyc_mix.items()],
+        "top_earners": top_earners,
+        "top_performers": top_performers,
+    }
+
     # Filters.
     ql = (q or "").strip().lower()
     if ql:
@@ -1868,7 +1867,7 @@ async def admin_performance(q="", status="", kyc="", min_rating=0.0,
         r["rank"] = rank_map.get(r["id"])
 
     items, total, pages, page, page_size = _paginate(rows, page, page_size)
-    return {"summary": summary, "items": items, "total": total,
+    return {"summary": summary, "analytics": analytics, "items": items, "total": total,
             "page": page, "page_size": page_size, "pages": pages,
             "filtered": bool(ql or status or kyc or min_rating)}
 

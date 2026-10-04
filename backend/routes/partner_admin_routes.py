@@ -124,15 +124,6 @@ async def update_wallet_config(req: WalletConfigUpdate, admin=Depends(ADMIN)):
     return await ps.update_wallet_config(admin, req.dict())
 
 
-@router.get("/payout-log")
-async def payout_log(kind: str = "", date_from: str = "", date_to: str = "",
-                     page: int = 1, page_size: int = 50, admin=Depends(ADMIN)):
-    """Live history of all automatic wallet credits: auto-payout incentives,
-    streak bonuses and weekly leaderboard rewards."""
-    return await ps.admin_payout_log(kind=kind, date_from=date_from, date_to=date_to,
-                                     page=page, page_size=page_size)
-
-
 @router.get("/withdrawals")
 async def withdrawals(status: str = None, admin=Depends(ADMIN)):
     return await ps.list_withdrawals(status=status)

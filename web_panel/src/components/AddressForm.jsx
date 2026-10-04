@@ -140,7 +140,6 @@ export const AddressForm = ({ value, onChange, cfg = {}, onServiceability, mapsK
             <><CheckCircle2 className="h-4 w-4" /> We serve your area</>
           ) : (
             <span className="flex-1"><AlertTriangle className="h-4 w-4 inline mr-1 -mt-0.5" /> We don&apos;t serve this pincode yet, so this booking can&apos;t be placed here.
-              {svc && Array.isArray(svc.serviced_cities) && svc.serviced_cities.length > 0 && (<> Currently serving: <b>{svc.serviced_cities.slice(0, 12).join(", ")}</b>.</>)}
             </span>
           )}
         </div>

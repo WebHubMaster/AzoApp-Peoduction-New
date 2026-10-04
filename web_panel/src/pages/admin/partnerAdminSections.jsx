@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Trash2, Plus, ArrowUp, ArrowDown, CheckCircle2, XCircle, Award, Gift, AlertTriangle,
-  Zap, Flame, Trophy, Banknote, RotateCcw, Download,
+  RotateCcw, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusTabs } from "@/pages/admin/adminSections";
@@ -796,103 +796,5 @@ export function LeavesQueue() {
   );
 }
 
-// ============================================================ PAYOUT LOG (auto payouts & bonuses)
-const KIND_META = {
-  incentive: { label: "Auto Incentive", Icon: Zap, tone: "bg-emerald-100 text-emerald-700" },
-  streak_bonus: { label: "Streak Bonus", Icon: Flame, tone: "bg-orange-100 text-orange-700" },
-  leaderboard_reward: { label: "Leaderboard Reward", Icon: Trophy, tone: "bg-amber-100 text-amber-700" },
-};
+// ============================================================ PAYOUT LOG removed (feature deprecated)
 
-export function PayoutLog() {
-  const [data, setData] = useState(null);
-  const [kind, setKind] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [page, setPage] = useState(1);
-  const pageSize = 50;
-
-  const load = useCallback(() => {
-    const params = new URLSearchParams();
-    if (kind) params.set("kind", kind);
-    if (dateFrom) params.set("date_from", dateFrom);
-    if (dateTo) params.set("date_to", dateTo);
-    params.set("page", page);
-    params.set("page_size", pageSize);
-    api.get(`/admin/partner/payout-log?${params.toString()}`).then((r) => setData(r.data)).catch(() => setData({ rows: [], total: 0, summary: {}, grand_total: 0 }));
-  }, [kind, dateFrom, dateTo, page]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const summary = data?.summary || {};
-  const rows = data?.rows || [];
-  const totalPages = Math.max(1, Math.ceil((data?.total || 0) / pageSize));
-
-  return (
-    <div className="max-w-5xl space-y-5" data-testid="admin-payout-log">
-      <p className="text-sm text-slate-500">Every automatic wallet credit — incentives paid the moment they unlock, 5★ streak bonuses, and weekly leaderboard rewards. No manual approval involved.</p>
-
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="payout-summary">
-        {["incentive", "streak_bonus", "leaderboard_reward"].map((k) => {
-          const m = KIND_META[k];
-          const s = summary[k] || { total: 0, count: 0 };
-          return (
-            <Card key={k} className="!p-3">
-              <p className="text-[11px] uppercase tracking-wider text-slate-400 flex items-center gap-1"><m.Icon className="h-3.5 w-3.5" /> {m.label}</p>
-              <p className="text-lg font-bold text-slate-800">{fmt(s.total)}</p>
-              <p className="text-[11px] text-slate-400">{s.count} payout{s.count === 1 ? "" : "s"}</p>
-            </Card>
-          );
-        })}
-        <Card className="!p-3 bg-primary-700 border-primary-700">
-          <p className="text-[11px] uppercase tracking-wider text-primary-100 flex items-center gap-1"><Banknote className="h-3.5 w-3.5" /> Grand Total</p>
-          <p className="text-lg font-bold text-white">{fmt(data?.grand_total || 0)}</p>
-          <p className="text-[11px] text-primary-200">{data?.total || 0} records</p>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-end gap-2" data-testid="payout-filters">
-        <div className="w-48">
-          <label className="text-[11px] text-slate-500 block mb-1">Type</label>
-          <PremiumSelect className="w-full border rounded-md h-10 px-3 text-sm" value={kind || "all"} onChange={(e) => { setPage(1); setKind(e.target.value === "all" ? "" : e.target.value); }}
-            options={[{ value: "all", label: "All types" }, { value: "incentive", label: "Auto Incentive" }, { value: "streak_bonus", label: "Streak Bonus" }, { value: "leaderboard_reward", label: "Leaderboard Reward" }]} />
-        </div>
-        <div><label className="text-[11px] text-slate-500 block mb-1">From</label><DatePicker value={dateFrom} onChange={(v) => { setPage(1); setDateFrom(v); }} placeholder="From date" /></div>
-        <div><label className="text-[11px] text-slate-500 block mb-1">To</label><DatePicker value={dateTo} onChange={(v) => { setPage(1); setDateTo(v); }} placeholder="To date" /></div>
-        {(kind || dateFrom || dateTo) && <Button size="sm" variant="ghost" className="text-slate-500" onClick={() => { setKind(""); setDateFrom(""); setDateTo(""); setPage(1); }}>Clear</Button>}
-      </div>
-
-      {/* Table */}
-      <div className="space-y-2" data-testid="payout-rows">
-        {rows.length === 0 && <Empty text="No automatic payouts yet. They'll appear here the moment a bonus is credited." />}
-        {rows.map((r) => {
-          const m = KIND_META[r.kind] || { label: r.kind, Icon: Award, tone: "bg-slate-100 text-slate-600" };
-          return (
-            <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-3 flex items-center gap-3">
-              <div className={`h-9 w-9 rounded-lg grid place-items-center ${m.tone}`}><m.Icon className="h-4.5 w-4.5" /></div>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-slate-800 truncate">{r.partner_name}</p>
-                <p className="text-xs text-slate-400 truncate">{r.note}</p>
-              </div>
-              <Badge className={`border-0 ${m.tone}`}>{m.label}</Badge>
-              <div className="text-right w-24">
-                <p className="font-semibold text-emerald-600">+{fmt(r.amount)}</p>
-                <p className="text-[11px] text-slate-400">{r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3">
-          <Button size="sm" variant="outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
-          <span className="text-sm text-slate-500">Page {page} / {totalPages}</span>
-          <Button size="sm" variant="outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
-        </div>
-      )}
-    </div>
-  );
-}
