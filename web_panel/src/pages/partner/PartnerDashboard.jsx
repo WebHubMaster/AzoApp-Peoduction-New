@@ -259,7 +259,7 @@ export default function PartnerDashboard() {
               type="button"
               data-testid="job-view-active"
               onClick={() => setJobView("active")}
-              className={`h-9 px-4 rounded-full text-sm font-semibold transition ${jobView === "active" ? "bg-primary-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              className={`h-9 px-4 rounded-lg text-sm font-semibold transition ${jobView === "active" ? "bg-primary-700 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
             >
               Active{activeJobs.length ? ` (${activeJobs.length})` : ""}
             </button>
@@ -267,7 +267,7 @@ export default function PartnerDashboard() {
               type="button"
               data-testid="job-view-completed"
               onClick={() => setJobView("completed")}
-              className={`h-9 px-4 rounded-full text-sm font-semibold transition ${jobView === "completed" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              className={`h-9 px-4 rounded-lg text-sm font-semibold transition ${jobView === "completed" ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
             >
               Completed{completedJobs.length ? ` (${completedJobs.length})` : ""}
             </button>

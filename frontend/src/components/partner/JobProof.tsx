@@ -110,7 +110,8 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
           keyboardType="number-pad"
           maxLength={1}
           onChangeText={(t) => setAt(i, t.replace(/\D/g, "").slice(-1))}
-          onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && refs.current[i - 1]) refs.current[i - 1]?.focus(); }}
+          onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && i > 0) { setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
+          selectTextOnFocus
           style={{ width: 56, height: 56, borderRadius: 14, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
         />
       ))}

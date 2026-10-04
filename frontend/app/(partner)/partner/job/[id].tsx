@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -106,7 +106,7 @@ export default function PartnerJobWizard() {
       setStep(path === "start-otp" ? 3 : 4);
       toast.success(label);
       refresh();
-    } catch (e: any) { toast.error(e?.detail || "Invalid OTP"); }
+    } catch (e: any) { setOtp(""); toast.error(e?.detail || "Invalid OTP"); }
     finally { setBusy(null); }
   };
 
@@ -145,7 +145,7 @@ export default function PartnerJobWizard() {
         </View>
       </LinearGradient>
 
-      <KeyboardAwareScrollView bottomOffset={240} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 140, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView bottomOffset={96} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 100, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {(phase === 4 || step >= 4) ? <DoneStep b={b} /> :
           step === 0 ? <DetailsStep b={b} /> :
           step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
@@ -156,8 +156,9 @@ export default function PartnerJobWizard() {
           )}
       </KeyboardAwareScrollView>
 
-      {/* Bottom CTA bar (replaces the hidden tab bar) */}
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
+      {/* Bottom CTA bar (replaces the hidden tab bar) — sticks right above the keyboard */}
+      <KeyboardStickyView offset={{ opened: insets.bottom }} style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
         {(phase === 4 || step >= 4) ? (
           <Cta testID="wizard-finish" label="Back to Active Jobs" icon="arrow-left" color={EMERALD} onPress={() => router.replace("/(partner)/active" as any)} />
         ) : step === 0 ? (
@@ -170,6 +171,7 @@ export default function PartnerJobWizard() {
           <Cta testID={`complete-otp-${b.code}`} label={busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : "Verify OTP & Complete Job"} icon="check-decagram-outline" color={EMERALD} disabled={addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", "Job completed! Earnings credited 🎉")} />
         )}
       </View>
+      </KeyboardStickyView>
     </View>
   );
 }

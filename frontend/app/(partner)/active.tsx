@@ -47,10 +47,10 @@ export default function PartnerActiveJob() {
       >
         {/* Active / Completed chips */}
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <Pressable testID="job-view-active" onPress={() => setView("active")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: view === "active" ? colors.primary : colors.surfaceSubtle }}>
+          <Pressable testID="job-view-active" onPress={() => setView("active")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: view === "active" ? colors.primary : colors.surfaceSubtle }}>
             <Text style={{ color: view === "active" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Active{activeJobs.length ? ` (${activeJobs.length})` : ""}</Text>
           </Pressable>
-          <Pressable testID="job-view-completed" onPress={() => setView("completed")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 999, alignItems: "center", justifyContent: "center", backgroundColor: view === "completed" ? EMERALD : colors.surfaceSubtle }}>
+          <Pressable testID="job-view-completed" onPress={() => setView("completed")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: view === "completed" ? EMERALD : colors.surfaceSubtle }}>
             <Text style={{ color: view === "completed" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Completed{completedJobs.length ? ` (${completedJobs.length})` : ""}</Text>
           </Pressable>
         </View>

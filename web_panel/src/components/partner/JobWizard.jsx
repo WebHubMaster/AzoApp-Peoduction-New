@@ -54,7 +54,8 @@ export function OtpBoxes({ value, onChange, len = 4, testid = "otp-boxes" }) {
       {digits.map((d, i) => (
         <input key={i} ref={(el) => (refs.current[i] = el)} inputMode="numeric" maxLength={1} value={d} data-testid={`otp-box-${i}`}
           onChange={(e) => setAt(i, e.target.value.replace(/\D/g, "").slice(-1))}
-          onKeyDown={(e) => { if (e.key === "Backspace" && !d && refs.current[i - 1]) refs.current[i - 1].focus(); }}
+          onKeyDown={(e) => { if (e.key === "Backspace" && !d && i > 0) { e.preventDefault(); setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
+          onFocus={(e) => { e.target.select(); setTimeout(() => e.target.scrollIntoView({ block: "center", behavior: "smooth" }), 250); }}
           className="h-14 w-14 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-2xl font-extrabold text-slate-900 dark:text-white focus:border-primary-500 focus:ring-2 focus:ring-primary-200 outline-none transition" />
       ))}
     </div>
@@ -266,12 +267,27 @@ function AdditionalWork({ b, onUpdate }) {
   );
 }
 
+// Track the visual viewport so the wizard shrinks to sit right above the mobile keyboard (no blank gap).
+function useVisualViewport() {
+  const [v, setV] = useState({ h: 0, top: 0 });
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return undefined;
+    const on = () => setV({ h: vv.height, top: vv.offsetTop });
+    on();
+    vv.addEventListener("resize", on); vv.addEventListener("scroll", on);
+    return () => { vv.removeEventListener("resize", on); vv.removeEventListener("scroll", on); };
+  }, []);
+  return v;
+}
+
 /** Full-screen step wizard: Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */
 export default function JobWizard({ booking: initial, onClose, onUpdate }) {
   const [b, setB] = useState(initial);
   const phase = phaseOf(b);
   const [step, setStep] = useState(0);
   const [otp, setOtp] = useState("");
+  const { h: vh, top: vTop } = useVisualViewport();
   const [busy, setBusy] = useState(null);
   const [progress, setProgress] = useState(0);
   const [cam, setCam] = useState(null); // { stage, kind }
@@ -306,7 +322,7 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
     finally { setBusy(null); setProgress(0); }
   };
   const removeProof = async (stage, url) => { try { await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url }); toast.success("Removed"); await reload(); } catch (e) { toast.error(errMsg(e, "Could not remove")); } };
-  const verify = async (path, label) => { setBusy(path); try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); await reload(); } catch (e) { toast.error(errMsg(e, "Invalid OTP")); } finally { setBusy(null); } };
+  const verify = async (path, label) => { setBusy(path); try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); await reload(); } catch (e) { setOtp(""); toast.error(errMsg(e, "Invalid OTP")); } finally { setBusy(null); } };
 
   const cur = Math.min(step, 3);
   const footer = phase === 4
@@ -317,7 +333,7 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
     : <FooterBtn testid={`complete-otp-${b.code}`} disabled={addlPending || !after.length || otp.length < 4 || !!busy} onClick={() => verify("complete", "Job completed! Earnings credited 🎉")} className="bg-emerald-600 hover:bg-emerald-700"><BadgeCheck className="h-5 w-5" /> {busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : "Verify OTP & Complete Job"}</FooterBtn>;
 
   return createPortal(
-    <div className="fixed inset-0 z-[150] bg-slate-50 dark:bg-slate-950 flex flex-col" data-testid="job-wizard">
+    <div className="fixed left-0 right-0 top-0 z-[150] bg-slate-50 dark:bg-slate-950 flex flex-col" style={{ height: vh ? `${vh}px` : "100dvh", top: vTop }} data-testid="job-wizard">
       <div className="bg-gradient-to-br from-primary-700 to-primary-500 text-white px-4 pt-4 pb-4 shrink-0">
         <div className="max-w-2xl mx-auto">
           <div className="flex items-center gap-3">
