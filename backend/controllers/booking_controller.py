@@ -3104,13 +3104,19 @@ async def _recompute_additional(booking, settings):
     labour_total = money.add(*[_num(i.get("labour_charge")) for i in items])
     cm = CommissionEngine._cm(booking.get("commission_config") or settings)
     platform_pct = float(cm.get("platform_pct", 32))
+    # Platform commission is charged ONLY on the service/labour charge — never on the
+    # product/part cost (that is 100% the partner's, tax & commission free).
     labour_platform = money.pct(labour_total, platform_pct)
     labour_partner = money.add(labour_total, -labour_platform)
     gst_pct = float(settings.get("gst_pct", 0) or 0)
-    gst = money.pct(money.add(parts_total, labour_total), gst_pct)
+    # GST exactly like normal billing: levied ONLY on the platform-commission portion
+    # of the service/labour charge. Product/part cost carries NO GST (and no commission).
+    gst = money.pct(labour_platform, gst_pct)
     addl["parts_total"] = parts_total
     addl["labour_total"] = labour_total
     addl["gst"] = gst
+    addl["gst_pct"] = gst_pct
+    addl["commission"] = labour_platform
     addl["total"] = money.add(parts_total, labour_total, gst)
     addl["platform_pct"] = platform_pct
     addl["partner_earning"] = money.add(parts_total, labour_partner)

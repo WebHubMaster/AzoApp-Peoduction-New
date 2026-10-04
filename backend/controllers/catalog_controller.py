@@ -33,6 +33,10 @@ def _service_visible(svc, active_cats, active_subs):
         return False
     if svc.get("approval_status", "approved") != "approved":
         return False
+    # A Custom-Job service restricted to its requester is NEVER shown in public /
+    # category listings — it is injected only for that one customer (see list_services).
+    if svc.get("source") == "custom_job" and svc.get("custom_job_visibility") == "requester_only":
+        return False
     if svc.get("category_id") not in active_cats:
         return False
     sub = svc.get("subcategory_id")
@@ -113,10 +117,52 @@ async def list_subcategories(category_id=None):
         lambda: db.subcategories.find({"status": "active"}, {"_id": 0}).sort("order", 1).to_list(2000))
 
 
-async def list_services(category_id=None, subcategory_id=None, q=None, featured=None, trending=None):
+async def _private_custom_services(user, category_id=None, subcategory_id=None,
+                                   q=None, featured=None, trending=None):
+    """Custom-Job services marked 'requester_only' are private to the ONE customer who
+    requested them. Returned ONLY for that customer so they can see & book it, while it
+    stays hidden from every other customer and the public catalog."""
+    if not user or user.get("role") != "customer":
+        return []
+    query = {"source": "custom_job", "custom_job_visibility": "requester_only",
+             "custom_job_customer_id": user.get("id"), "status": "active",
+             "approval_status": "approved"}
+    if category_id:
+        query["category_id"] = category_id
+    if subcategory_id:
+        query["subcategory_id"] = subcategory_id
+    if featured:
+        query["is_featured"] = True
+    if trending:
+        query["is_trending"] = True
+    rows = await db.services.find(query, {"_id": 0}).sort("created_at", -1).to_list(200)
+    active_cats = await _active_category_ids()
+    active_subs = await _active_subcategory_ids()
+    out = []
+    ql = (q or "").strip().lower()
+    for s in rows:
+        if s.get("category_id") not in active_cats:
+            continue
+        sub = s.get("subcategory_id")
+        if sub and sub not in active_subs:
+            continue
+        if ql and ql not in (s.get("name") or "").lower() and ql not in (s.get("short_description") or "").lower():
+            continue
+        out.append(s)
+    return out
+
+
+async def list_services(category_id=None, subcategory_id=None, q=None, featured=None,
+                        trending=None, user=None):
     if not any([category_id, subcategory_id, q, featured, trending]):
         from services import cache_service as _cache
-        return await _cache.cached(_CK_SERVICES, 45, _list_all_services)
+        base = await _cache.cached(_CK_SERVICES, 45, _list_all_services)
+        priv = await _private_custom_services(user)
+        if not priv:
+            return base
+        seen = {s.get("id") for s in base}
+        extra = await _apply_addon_library([s for s in priv if s.get("id") not in seen])
+        return base + extra
     query = {}
     if category_id:
         query["category_id"] = category_id
@@ -136,6 +182,9 @@ async def list_services(category_id=None, subcategory_id=None, q=None, featured=
     active_cats = await _active_category_ids()
     active_subs = await _active_subcategory_ids()
     visible = [s for s in rows if _service_visible(s, active_cats, active_subs)]
+    priv = await _private_custom_services(user, category_id, subcategory_id, q, featured, trending)
+    seen = {s.get("id") for s in visible}
+    visible += [s for s in priv if s.get("id") not in seen]
     return await _apply_addon_library(visible)
 
 async def upsell_suggestions(service_ids):
@@ -255,18 +304,31 @@ def build_service_jsonld(svc: dict) -> dict:
     return data
 
 
-async def get_service(service_id, public=True):
+async def get_service(service_id, public=True, user=None):
     svc = await db.services.find_one({"id": service_id}, {"_id": 0})
     if not svc:
         svc = await db.services.find_one({"slug": service_id}, {"_id": 0})
     if not svc:
         raise HTTPException(status_code=404, detail="Service not found")
     if public:
-        active_cats = await _active_category_ids()
-        active_subs = await _active_subcategory_ids()
-        if not _service_visible(svc, active_cats, active_subs):
-            raise HTTPException(status_code=404, detail="Service not available")
-        await _apply_addon_library([svc])
+        restricted = (svc.get("source") == "custom_job"
+                      and svc.get("custom_job_visibility") == "requester_only")
+        if restricted:
+            # Private Custom-Job service — only the requesting customer may open it.
+            if not user or user.get("id") != svc.get("custom_job_customer_id"):
+                raise HTTPException(status_code=404, detail="Service not available")
+            active_cats = await _active_category_ids()
+            if (svc.get("status") != "active"
+                    or svc.get("approval_status", "approved") != "approved"
+                    or svc.get("category_id") not in active_cats):
+                raise HTTPException(status_code=404, detail="Service not available")
+            await _apply_addon_library([svc])
+        else:
+            active_cats = await _active_category_ids()
+            active_subs = await _active_subcategory_ids()
+            if not _service_visible(svc, active_cats, active_subs):
+                raise HTTPException(status_code=404, detail="Service not available")
+            await _apply_addon_library([svc])
     # Always attach fresh auto-generated JSON-LD for SEO rich snippets
     svc["jsonld"] = build_service_jsonld(svc)
     return svc

@@ -253,9 +253,11 @@ function AdditionalWork({ b, onUpdate }) {
   const addl = b.additional || null;
   useEffect(() => { if (!b.category_id) return; api.get(`/ratecards/by-category/${b.category_id}`).then((r) => { if (r.data && (r.data.groups || []).length) setRcCard(r.data); }).catch(() => {}); }, [b.category_id]);
   const addRow = async (row) => {
-    const part = Number(row.service_charge) || 0, labour = Number(row.labour_charge) || 0;
-    if (part <= 0 && labour <= 0) return toast.error("This item has no charge to add");
-    try { await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: part, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] }); toast.success(`Added "${row.description}" — ask customer to pay`); onUpdate(); }
+    // Rate card service charge + labour charge are BOTH commissionable + taxable (like
+    // normal billing). Product/part cost (tax-free, commission-free) is entered separately.
+    const labour = (Number(row.service_charge) || 0) + (Number(row.labour_charge) || 0);
+    if (labour <= 0) return toast.error("This item has no charge to add");
+    try { await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: 0, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] }); toast.success(`Added "${row.description}" — ask customer to pay`); onUpdate(); }
     catch (e) { toast.error(errMsg(e, "Failed to add")); }
   };
   const remove = async (id) => { try { await api.delete(`/bookings/${b.id}/additional/${id}`); toast.success("Removed"); onUpdate(); } catch (e) { toast.error(errMsg(e, "Failed")); } };
@@ -268,7 +270,7 @@ function AdditionalWork({ b, onUpdate }) {
       <p className="text-xs text-slate-500 mb-3">If any extra parts or labour were used, add them from the category rate card. <b className="text-amber-700">Collect the payment for additional work from the customer first, then complete the job.</b></p>
       {addl && (addl.items || []).length > 0 && (
         <div className="space-y-1.5 mb-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3">
-          {addl.items.map((it) => <div key={it.id} className="flex items-center justify-between text-sm"><span className="text-slate-700 dark:text-slate-200">{it.description}<span className="text-slate-400"> · part {fmt(it.part_charge)}{it.labour_charge > 0 ? ` + labour ${fmt(it.labour_charge)}` : ""}</span></span>{addl.status !== "paid" && <button data-testid={`addl-remove-${it.id}`} onClick={() => remove(it.id)} className="text-red-500 ml-2"><Trash2 className="h-4 w-4" /></button>}</div>)}
+          {addl.items.map((it) => <div key={it.id} className="flex items-center justify-between text-sm"><span className="text-slate-700 dark:text-slate-200">{it.description}<span className="text-slate-400"> · {fmt((Number(it.part_charge) || 0) + (Number(it.labour_charge) || 0))}</span></span>{addl.status !== "paid" && <button data-testid={`addl-remove-${it.id}`} onClick={() => remove(it.id)} className="text-red-500 ml-2"><Trash2 className="h-4 w-4" /></button>}</div>)}
           <div className="flex justify-between text-sm font-extrabold text-slate-900 dark:text-white pt-1.5 border-t border-slate-200"><span>Additional total</span><span>{fmt(addl.total)}</span></div>
           {addl.status === "paid" ? <p className="text-[12px] text-emerald-700 font-semibold flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Customer paid — you can complete the job now</p> : <p className="text-[12px] text-amber-700 font-semibold flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Waiting for customer to pay the additional amount</p>}
         </div>

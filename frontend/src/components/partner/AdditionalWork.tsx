@@ -36,11 +36,13 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
   }, [addl]);
 
   const addAdditionalRow = async (row: any, quiet = false) => {
-    const part = num(row.service_charge);
-    const labour = num(row.labour_charge);
-    if (part <= 0 && labour <= 0) { toast.error("This item has no charge to add"); return; }
+    // Per billing rule: the rate card's service charge AND labour charge are BOTH
+    // commissionable + taxable (like normal billing). Pure product/part cost (which is
+    // tax-free & commission-free) is entered separately, never from the rate card.
+    const labour = num(row.service_charge) + num(row.labour_charge);
+    if (labour <= 0) { toast.error("This item has no charge to add"); return; }
     try {
-      await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: part, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] });
+      await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: 0, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] });
       if (!quiet) toast.success(`Added "${row.description}" — ask customer to pay`);
       onUpdate();
     } catch (e: any) { toast.error(e?.detail || "Failed to add"); }
@@ -81,13 +83,13 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
               <Text style={{ color: colors.textSecondary, fontSize: 13, flex: 1 }}>
                 {g.description}
                 {g.qty > 1 ? <Text style={{ color: colors.primary, fontWeight: "800" }}>{"  "}×{g.qty}</Text> : null}
-                <Text style={{ color: SLATE400 }}> · part {fmt(g.part)}{g.labour > 0 ? ` + labour ${fmt(g.labour)}` : ""}</Text>
+                <Text style={{ color: SLATE400 }}> · {fmt(num(g.part) + num(g.labour))}</Text>
               </Text>
               {addl.status !== "paid" ? <Pressable testID={`addl-remove-${g.key}`} onPress={() => removeGroup(g.ids)} hitSlop={8}><Icon name="trash-can-outline" size={16} color="#EF4444" /></Pressable> : null}
             </View>
           ))}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Parts (no commission)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.parts_total)}</Text></View>
-          <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Labour (commission applies)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.labour_total)}</Text></View>
+          {num(addl.parts_total) > 0 ? <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Product / parts (no tax, no commission)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.parts_total)}</Text></View> : null}
+          <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: num(addl.parts_total) > 0 ? 0 : 1, borderTopColor: colors.border, paddingTop: num(addl.parts_total) > 0 ? 0 : 6 }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Service &amp; labour (commission applies)</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.labour_total)}</Text></View>
           {num(addl.gst) > 0 ? <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ color: colors.textMuted, fontSize: 12 }}>Est. Govt. Taxes</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>{fmt(addl.gst)}</Text></View> : null}
           <View style={{ flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: colors.border, paddingTop: 6 }}><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>Additional total</Text><Text style={{ color: colors.text, fontSize: 13, fontWeight: "800" }}>{fmt(addl.total)}</Text></View>
           {addl.status === "paid" ? (

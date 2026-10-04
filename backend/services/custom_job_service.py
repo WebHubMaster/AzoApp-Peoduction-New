@@ -79,6 +79,7 @@ async def _decorate(job: dict) -> dict:
     svc = await _service_view(job.get("converted_service_id"))
     job["service"] = svc
     job["display_status"] = _display_status(job, svc)
+    job["visibility"] = job.get("visibility") or "all"
     return job
 
 
@@ -191,6 +192,7 @@ async def submit(user: dict, data: dict) -> dict:
         "lng": data.get("lng"),
         "service_area_status": "available",
         "status": "pending",
+        "visibility": "all",
         "converted_service_id": None,
         "source": "custom_job_request",
         "idempotency_key": idem,
@@ -273,6 +275,37 @@ async def admin_set_status(job_id: str, status: str, admin: dict, note: str = ""
     return await _decorate(job)
 
 
+async def set_visibility(job_id: str, visibility: str, admin: dict) -> dict:
+    """Admin chooses whether a Custom-Job service is live for EVERY customer in its
+    category ('all') or private to the ONE customer who requested it ('requester_only').
+    Propagates to the linked service (if already converted) and busts the catalog cache
+    so the change reflects immediately."""
+    visibility = (visibility or "").strip().lower()
+    if visibility not in ("all", "requester_only"):
+        raise HTTPException(status_code=400, detail="Invalid visibility option.")
+    job = await db.custom_jobs.find_one({"id": job_id}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Custom job request not found")
+    entry = _audit("visibility_changed", by=admin.get("id", ""),
+                   by_name=admin.get("name", "Admin"),
+                   note=f"{job.get('visibility') or 'all'} → {visibility}")
+    await db.custom_jobs.update_one(
+        {"id": job_id},
+        {"$set": {"visibility": visibility, "updated_at": now_iso()}, "$push": {"audit": entry}})
+    if job.get("converted_service_id"):
+        await db.services.update_one(
+            {"id": job["converted_service_id"]},
+            {"$set": {"custom_job_visibility": visibility}})
+        try:
+            from services import cache_service as _cache
+            await _cache.bust("catalog:services:all")
+            await _cache.bust_prefix("site:")
+        except Exception:  # noqa: BLE001
+            pass
+    job = await db.custom_jobs.find_one({"id": job_id}, {"_id": 0})
+    return await _decorate(job)
+
+
 async def convert_to_service(job_id: str, admin: dict) -> dict:
     """Create a DRAFT service (inactive) prefilled from the request using the
     EXISTING service-creation system, then permanently link them. Idempotent:
@@ -304,6 +337,10 @@ async def convert_to_service(job_id: str, admin: dict) -> dict:
         "source": "custom_job",
         "custom_job_request_id": job["request_id"],
         "custom_job_id": job["id"],
+        # visibility: 'all' = live for every customer in the category (like a normal
+        # service); 'requester_only' = private to the customer who requested it.
+        "custom_job_customer_id": job.get("customer_id"),
+        "custom_job_visibility": job.get("visibility") or "all",
     }
     svc = await cc.create_service(service_data)
 

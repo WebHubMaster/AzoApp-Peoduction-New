@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from controllers import catalog_controller as c
 from models.catalog import CategoryCreate, SubCategoryCreate, ServiceCreate
-from middleware.auth import require_role
+from middleware.auth import require_role, get_current_user_optional
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 ADMIN = require_role("admin")
@@ -26,9 +26,10 @@ async def subcategories(category_id: str = None):
 
 @router.get("/services")
 async def services(category_id: str = None, subcategory_id: str = None, q: str = None,
-                   featured: bool = None, trending: bool = None):
+                   featured: bool = None, trending: bool = None,
+                   user=Depends(get_current_user_optional)):
     from services.city_pricing_service import filter_services
-    return await filter_services(await c.list_services(category_id, subcategory_id, q, featured, trending))
+    return await filter_services(await c.list_services(category_id, subcategory_id, q, featured, trending, user))
 
 
 @router.get("/upsell")
@@ -38,10 +39,10 @@ async def upsell(service_ids: str = ""):
 
 
 @router.get("/services/{service_id}")
-async def service(service_id: str):
+async def service(service_id: str, user=Depends(get_current_user_optional)):
     from fastapi import HTTPException
     from services.city_pricing_service import price_one
-    out = await price_one(await c.get_service(service_id, public=True))
+    out = await price_one(await c.get_service(service_id, public=True, user=user))
     if not out:
         raise HTTPException(status_code=404, detail="This service is not available in your city")
     return out

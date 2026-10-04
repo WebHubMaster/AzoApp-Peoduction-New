@@ -43,6 +43,11 @@ async def admin_set_status(job_id: str, data: CustomJobStatusUpdate, admin=Depen
     return await svc.admin_set_status(job_id, data.status, admin, data.note)
 
 
+@router.patch("/{job_id}/visibility")
+async def admin_set_visibility(job_id: str, data: dict, admin=Depends(ADMIN)):
+    return await svc.set_visibility(job_id, (data or {}).get("visibility"), admin)
+
+
 @router.post("/{job_id}/convert")
 async def admin_convert(job_id: str, admin=Depends(ADMIN)):
     return await svc.convert_to_service(job_id, admin)

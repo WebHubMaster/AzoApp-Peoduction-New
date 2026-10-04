@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Loader2, Search, Eye, ArrowLeft, RefreshCcw, Wrench, IndianRupee, MapPin, Phone,
   User as UserIcon, Calendar, CheckCircle2, XCircle, Clock, FileText, ArrowRightLeft,
-  ShieldCheck, History, ExternalLink, Ban,
+  ShieldCheck, History, ExternalLink, Ban, Users,
 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "sonner";
@@ -185,6 +185,18 @@ function CustomJobDetail({ id, onBack, onConverted, navigate }) {
     setBusy("");
   };
 
+  const setVisibility = async (visibility) => {
+    setBusy("vis");
+    try {
+      await api.patch(`/custom-jobs/${id}/visibility`, { visibility });
+      toast.success(visibility === "all"
+        ? "Live for all customers in this category"
+        : "Private — only the requesting customer can see & book it");
+      load();
+    } catch (e) { toast.error(e?.response?.data?.detail || "Failed"); }
+    setBusy("");
+  };
+
   const switchToService = async () => {
     setBusy("convert");
     try {
@@ -285,6 +297,27 @@ function CustomJobDetail({ id, onBack, onConverted, navigate }) {
         <p className="text-[11px] text-slate-400 mt-3">
           Note: the customer budget ({rupee(job.expected_budget)}) is only a suggestion. Set the real price in the Service editor after converting.
         </p>
+
+        {/* visibility — who can see this service once live */}
+        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5"><Eye className="h-4 w-4" /> Service Visibility</p>
+          <p className="text-[12px] text-slate-500 mb-3">Choose who can see & book this service once it is activated.</p>
+          <div className="flex flex-wrap gap-2.5" data-testid="cja-visibility">
+            <button onClick={() => setVisibility("all")} disabled={busy === "vis"} data-testid="cja-visibility-all"
+              className={`h-11 px-4 rounded-md border font-semibold flex items-center gap-1.5 disabled:opacity-50 ${(job.visibility || "all") === "all" ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+              <Users className="h-4 w-4" /> All customers in category
+            </button>
+            <button onClick={() => setVisibility("requester_only")} disabled={busy === "vis"} data-testid="cja-visibility-requester"
+              className={`h-11 px-4 rounded-md border font-semibold flex items-center gap-1.5 disabled:opacity-50 ${job.visibility === "requester_only" ? "border-violet-500 bg-violet-50 text-violet-700" : "border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+              <UserIcon className="h-4 w-4" /> Only this customer
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2">
+            {(job.visibility || "all") === "all"
+              ? "This service will appear for every customer in its category, like any normal service."
+              : "Only the customer who requested it will see this service in their category — it stays hidden from everyone else."}
+          </p>
+        </div>
       </div>
 
       {/* audit trail */}
