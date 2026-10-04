@@ -8,7 +8,7 @@ import json
 from decimal import Decimal
 
 # Configuration
-BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
+BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

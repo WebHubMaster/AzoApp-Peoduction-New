@@ -14,7 +14,7 @@ import requests
 import json
 
 # Base URL from frontend/.env
-BASE_URL = "https://modest-payne-18.preview.emergentagent.com/api"
+BASE_URL = "https://amplify-build-test.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

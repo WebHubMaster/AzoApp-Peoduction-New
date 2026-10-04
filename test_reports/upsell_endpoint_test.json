@@ -1,7 +1,7 @@
 {
   "timestamp": "2026-09-10T02:25:04.576199",
   "endpoint": "GET /api/catalog/upsell",
-  "base_url": "https://modest-payne-18.preview.emergentagent.com/api",
+  "base_url": "https://amplify-build-test.preview.emergentagent.com/api",
   "summary": {
     "total": 40,
     "passed": 40,

@@ -14,7 +14,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://modest-payne-18.preview.emergentagent.com",
+    "https://amplify-build-test.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -44,7 +44,7 @@ CAPTION_MULTILINE = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link to book now:\n"
-    "https://modest-payne-18.preview.emergentagent.com/?ref=XZ6SV49"
+    "https://amplify-build-test.preview.emergentagent.com/?ref=XZ6SV49"
 )
 
 

@@ -1,6 +1,6 @@
 {
   "test_run_time": "2026-09-16T14:19:46.407116",
-  "base_url": "https://modest-payne-18.preview.emergentagent.com/api",
+  "base_url": "https://amplify-build-test.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Admin login",

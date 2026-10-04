@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://modest-payne-18.preview.emergentagent.com",
+  "base_url": "https://amplify-build-test.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

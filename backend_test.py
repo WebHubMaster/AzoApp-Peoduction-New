@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://modest-payne-18.preview.emergentagent.com"
+BASE_URL = "https://amplify-build-test.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
