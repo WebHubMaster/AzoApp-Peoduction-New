@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, useWindowDimensions, ActivityIndicator } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, useWindowDimensions, ActivityIndicator, ScrollView, Animated, Easing, Modal } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -9,29 +9,139 @@ import { Icon, MdiName } from "@/src/components/Icon";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { homeFor, LOGIN_ROLES } from "@/src/components/auth/OtpFlow";
-import { FS } from "@/src/components/auth/AuthUi";
 
 const LOGO_A = require("../../assets/welcome-logo-a.png");
 const PERSON = require("../../assets/welcome-person.webp");
 const PERSON_RATIO = 682 / 1255;
 
 const C = {
-  bg: "#F6F9FE",
-  navy: "#0E1B45",
-  blue: "#1F6FEB",
-  blueDeep: "#1656C9",
-  blob: "#D8E7FA",
-  gray: "#5E6B86",
-  muted: "#7C879F",
-  line: "#DCE4F2",
+  bg: "#F4F7FC",
+  navy: "#0B1A3F",
+  text2: "#4A5672",
+  muted: "#7A859D",
+  line: "#E3E9F3",
   white: "#FFFFFF",
+  success: "#12A150",
 };
 
-const FEATURES: { icon: MdiName; title: string; sub: string; bg: string; fg: string }[] = [
-  { icon: "shield-check", title: "Verified", sub: "Professionals", bg: "#E4EEFC", fg: C.blue },
-  { icon: "lightning-bolt", title: "Fast", sub: "Service", bg: "#E4EEFC", fg: C.blue },
-  { icon: "currency-inr", title: "Affordable", sub: "Pricing", bg: "#FDF1D3", fg: "#C7891A" },
+/* Brand colour with alpha — tolerant of #RGB / #RRGGBB / non-hex values. */
+const tint = (c: string, a: number) => {
+  let h = (c || "").trim().replace("#", "");
+  if (/^[0-9a-f]{3}$/i.test(h)) h = h.split("").map((x) => x + x).join("");
+  if (!/^[0-9a-f]{6}$/i.test(h)) return `rgba(6,89,178,${a})`;
+  return `rgba(${parseInt(h.slice(0, 2), 16)},${parseInt(h.slice(2, 4), 16)},${parseInt(h.slice(4, 6), 16)},${a})`;
+};
+
+const TRUST: { icon: MdiName; title: string; sub: string }[] = [
+  { icon: "shield-check", title: "Verified", sub: "Trusted experts" },
+  { icon: "lightning-bolt", title: "Fast", sub: "At your doorstep" },
+  { icon: "currency-inr", title: "Affordable", sub: "Fair pricing" },
 ];
+
+/* Fade + rise entrance, staggered by `delay`. */
+function useEntrance(delay: number) {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(v, { toValue: 1, duration: 420, delay, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [v, delay]);
+  return { opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] };
+}
+
+/* Admin-configured logo, aspect-ratio safe, with skeleton while loading and built-in fallback on error. */
+function BrandLogo({ uri, siteName, tagline, maxW, primary }: { uri: string; siteName: string; tagline: string; maxW: number; primary: string }) {
+  const [state, setState] = useState<"loading" | "ok" | "error">(uri ? "loading" : "error");
+  const [ratio, setRatio] = useState(3.2);
+  useEffect(() => { setState(uri ? "loading" : "error"); }, [uri]);
+  const H = 40;
+  if (state === "error") {
+    return (
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Image source={LOGO_A} style={{ width: 40, height: 36 }} contentFit="contain" transition={0} />
+        <View>
+          <Text style={{ color: C.navy, fontSize: 22, fontWeight: "900", letterSpacing: -0.4, lineHeight: 25 }}>{siteName}</Text>
+          <Text style={{ color: primary, fontSize: 10.5, fontWeight: "600", marginTop: 1 }}>{tagline}</Text>
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View style={{ height: H, justifyContent: "center" }}>
+      {state === "loading" ? <View testID="app-brand-logo-skeleton" style={{ position: "absolute", width: Math.min(maxW, 132), height: 30, borderRadius: 8, backgroundColor: "#E6ECF5" }} /> : null}
+      <Image
+        testID="app-brand-logo-dynamic"
+        source={{ uri }}
+        accessibilityLabel={`${siteName} logo`}
+        style={{ height: H, width: Math.min(maxW, H * ratio), opacity: state === "ok" ? 1 : 0 }}
+        contentFit="contain"
+        contentPosition="left center"
+        cachePolicy="memory-disk"
+        transition={180}
+        onLoad={(e) => { const { width: w, height: h } = e.source || ({} as any); if (w && h) setRatio(w / h); setState("ok"); }}
+        onError={() => setState("error")}
+      />
+    </View>
+  );
+}
+
+function LanguagePill() {
+  const [open, setOpen] = useState(false);
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(fade, { toValue: open ? 1 : 0, duration: 160, useNativeDriver: true }).start(); }, [open, fade]);
+  return (
+    <>
+      <Pressable
+        testID="welcome-language-btn"
+        accessibilityRole="button"
+        accessibilityLabel="Language: English. Change language"
+        onPress={() => setOpen(true)}
+        hitSlop={6}
+        style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 6, height: 40, paddingHorizontal: 12, borderRadius: 20, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, transform: [{ scale: pressed ? 0.96 : 1 }] })}
+      >
+        <Icon name="web" size={16} color={C.navy} />
+        <Text style={{ fontSize: 13.5, fontWeight: "600", color: C.navy }}>English</Text>
+        <Icon name="chevron-down" size={16} color={C.muted} />
+      </Pressable>
+      <Modal visible={open} transparent animationType="none" onRequestClose={() => setOpen(false)}>
+        <Pressable style={{ flex: 1 }} onPress={() => setOpen(false)} testID="welcome-language-backdrop">
+          <Animated.View style={{ position: "absolute", top: 100, right: 20, minWidth: 180, backgroundColor: C.white, borderRadius: 16, borderWidth: 1, borderColor: C.line, paddingVertical: 6, boxShadow: "0px 12px 32px rgba(11,26,63,0.14)", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [-6, 0] }) }] } as any}>
+            <Pressable testID="welcome-language-en" accessibilityRole="menuitem" onPress={() => setOpen(false)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, height: 46, backgroundColor: pressed ? "#F2F6FC" : "transparent" })}>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: C.navy }}>English</Text>
+              <Icon name="check" size={18} color={C.success} />
+            </Pressable>
+          </Animated.View>
+        </Pressable>
+      </Modal>
+    </>
+  );
+}
+
+function CtaButton({ testID, primary, color, icon, title, sub, onPress, height }: { testID: string; primary?: boolean; color: string; icon: MdiName; title: string; sub: string; onPress: () => void; height: number }) {
+  const press = useRef(new Animated.Value(0)).current;
+  const to = (v: number) => Animated.timing(press, { toValue: v, duration: 120, useNativeDriver: true }).start();
+  const scale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] });
+  const arrowX = press.interpolate({ inputRange: [0, 1], outputRange: [0, 4] });
+  const fg = primary ? C.white : C.navy;
+  return (
+    <Pressable testID={testID} accessibilityRole="button" accessibilityLabel={`${title}. ${sub}`} onPress={onPress} onPressIn={() => to(1)} onPressOut={() => to(0)}>
+      <Animated.View style={{
+        height, borderRadius: 18, flexDirection: "row", alignItems: "center", paddingHorizontal: 14, gap: 14,
+        backgroundColor: primary ? color : C.white, borderWidth: primary ? 0 : 1.5, borderColor: C.line,
+        boxShadow: primary ? `0px 10px 24px ${tint(color, 0.25)}` : "none", transform: [{ scale }],
+      } as any}>
+        <View style={{ width: 44, height: 44, borderRadius: 13, alignItems: "center", justifyContent: "center", backgroundColor: primary ? "rgba(255,255,255,0.16)" : tint(color, 0.08) }}>
+          <Icon name={icon} size={23} color={primary ? C.white : color} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: fg, fontSize: 16.5, fontWeight: "700", letterSpacing: -0.1 }}>{title}</Text>
+          <Text numberOfLines={1} style={{ color: primary ? "rgba(255,255,255,0.82)" : C.muted, fontSize: 13, fontWeight: "400", marginTop: 2 }}>{sub}</Text>
+        </View>
+        <Animated.View style={{ width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: primary ? "rgba(255,255,255,0.16)" : "#F2F5FA", transform: [{ translateX: arrowX }] }}>
+          <Icon name="arrow-right" size={18} color={fg} />
+        </Animated.View>
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 export default function Welcome() {
   const insets = useSafeAreaInsets();
@@ -39,117 +149,100 @@ export default function Welcome() {
   const brand = useBrand();
   const { user, booting } = useAuth();
   const { width, height } = useWindowDimensions();
-  const [heroH, setHeroH] = useState(0);
 
   useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) router.replace(homeFor(user) as any); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const S = Math.max(0.84, Math.min(1.12, width / 390));
-  // Vertical scale from the usable height — everything (header, hero, card, footer) is laid
-  // out in one flex column, the hero simply takes whatever is left, so the screen never scrolls.
-  const avail = height - insets.top - insets.bottom;
-  const V = Math.max(0.7, Math.min(1, avail / 800));
-  const compact = V < 0.86;
-  const personH = Math.round(heroH * 1.04);
-  const personW = Math.round(personH * PERSON_RATIO);
-  const blobD = Math.round(width * 0.62);
-  const btnH = Math.round(62 * V) + 4;
-
+  const primary = brand.theme?.primary || "#0659B2";
   const siteName = brand.branding.site_name || "AzoApp";
   const tagline = brand.branding.tagline || "Service at Your Doorstep";
   const adminLogo = brand.branding.logo_light || brand.branding.logo || brand.branding.logo_dark || "";
 
+  // Height-aware scale: small phones tighten spacing so the CTA panel stays on screen.
+  const avail = height - insets.top - insets.bottom;
+  const V = Math.max(0.72, Math.min(1, avail / 780));
+  const sp = (n: number) => Math.round(n * V);
+  const [heroH, setHeroH] = useState(() => Math.max(200, Math.min(330, Math.round(avail * 0.36))));
+  const personW = Math.round(Math.min(heroH * 1.02 * PERSON_RATIO, width * 0.48));
+  const personH = Math.round(personW / PERSON_RATIO);
+  const blobD = Math.round(Math.min(width * 0.66, heroH * 1.02));
+  const textW = Math.max(150, Math.min(width - personW - 28, 240));
+  const titleFS = Math.round(Math.max(27, Math.min(34, width / 11.6)) * Math.max(0.9, V));
+  const btnH = Math.max(58, sp(66));
+
+  const aHeader = useEntrance(0);
+  const aHero = useEntrance(80);
+  const aTrust = useEntrance(160);
+  const aPanel = useEntrance(240);
+
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar style="dark" />
-      <LinearGradient colors={["#FFFFFF", "#F3F7FD", "#EEF4FC"]} locations={[0, 0.5, 1]} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
+      <LinearGradient colors={["#FFFFFF", "#F4F7FC"]} style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} />
 
-      <View testID="welcome-screen" style={{ flex: 1, paddingBottom: insets.bottom + 10 }}>
-        {/* ---------- Header ---------- */}
-        <View style={{ paddingTop: insets.top + Math.round(10 * V), paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 5 }}>
-          <View testID="app-brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, marginRight: 12 }}>
-            {adminLogo ? (
-              <Image testID="app-brand-logo-dynamic" source={{ uri: adminLogo }} style={{ height: 44, width: Math.min(170, width * 0.45) }} contentFit="contain" contentPosition="left center" cachePolicy="memory-disk" transition={0} />
-            ) : (
-              <>
-                <Image source={LOGO_A} style={{ width: 44, height: 40 }} contentFit="contain" transition={0} />
-                <View>
-                  <Text style={{ color: C.navy, fontSize: 24, fontWeight: "900", letterSpacing: -0.3, lineHeight: 27 }}>{siteName}</Text>
-                  <Text style={{ color: C.gray, fontSize: 11, fontWeight: "500", marginTop: 1 }}>{tagline}</Text>
-                </View>
-              </>
-            )}
+      <ScrollView testID="welcome-screen" bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
+        {/* Header */}
+        <Animated.View style={[{ paddingTop: insets.top + sp(12), paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 5 }, aHeader]}>
+          <View testID="app-brand-logo" style={{ flex: 1, marginRight: 12 }}>
+            <BrandLogo uri={adminLogo} siteName={siteName} tagline={tagline} maxW={Math.min(170, width * 0.46)} primary={primary} />
+          </View>
+          <LanguagePill />
+        </Animated.View>
+
+        {/* Hero */}
+        <Animated.View onLayout={(e) => { const h = Math.round(e.nativeEvent.layout.height); if (Math.abs(h - heroH) > 2) setHeroH(h); }} style={[{ flex: 1, minHeight: 230, maxHeight: 420, marginTop: sp(14) }, aHero]}>
+          <View style={{ position: "absolute", right: -blobD * 0.2, top: sp(6), width: blobD, height: blobD, borderRadius: blobD / 2, backgroundColor: tint(primary, 0.08), pointerEvents: "none" }} />
+          <View style={{ position: "absolute", right: blobD * 0.42, top: sp(40), width: 12, height: 12, borderRadius: 6, backgroundColor: tint(primary, 0.2), pointerEvents: "none" }} />
+          <View style={{ position: "absolute", right: 0, bottom: 0, width: personW, height: personH, overflow: "hidden", pointerEvents: "none" }}>
+            <Image testID="welcome-hero" source={PERSON} accessibilityIgnoresInvertColors style={{ position: "absolute", right: 0, bottom: 0, width: personW, height: personH }} contentFit="contain" contentPosition="bottom center" transition={200} priority="high" />
+            <LinearGradient colors={["rgba(244,247,252,0)", C.bg]} style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: Math.round(personH * 0.22) }} />
           </View>
 
-          <Pressable testID="welcome-language-btn" onPress={() => {}} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, borderRadius: 24, paddingHorizontal: 13, paddingVertical: 9, transform: [{ scale: pressed ? 0.97 : 1 }], boxShadow: "0px 2px 8px rgba(14,27,69,0.05)" })}>
-            <Icon name="web" size={16} color={C.navy} />
-            <Text style={{ fontSize: FS.small, fontWeight: "600", color: C.navy }}>English</Text>
-            <Icon name="chevron-down" size={14} color={C.navy} />
-          </Pressable>
-        </View>
-
-        {/* ---------- Hero (flexes to fill what is left) ---------- */}
-        <View style={{ flex: 1, minHeight: 190, marginTop: Math.round(16 * V) }} onLayout={(e) => setHeroH(Math.round(e.nativeEvent.layout.height))}>
-          <View style={{ position: "absolute", right: -blobD * 0.18, top: -8, width: blobD, height: blobD, borderRadius: blobD / 2, backgroundColor: C.blob, pointerEvents: "none" }} />
-          <View style={{ position: "absolute", right: 30, bottom: -30, width: blobD * 0.72, height: blobD * 0.72, borderRadius: blobD, backgroundColor: C.blob, pointerEvents: "none" }} />
-
-          {heroH > 0 ? (
-            <Image testID="welcome-hero" source={PERSON} style={{ position: "absolute", right: -personW * 0.1, bottom: -Math.round(24 * V), width: personW, height: personH, pointerEvents: "none" }} contentFit="contain" contentPosition="bottom center" transition={0} priority="high" />
-          ) : null}
-
-          <View style={{ paddingLeft: 22, width: Math.min(width - 90, 270), zIndex: 6 }}>
-            <Text testID="welcome-title" style={{ color: C.navy, fontSize: Math.round(32 * S * Math.max(0.84, V)), lineHeight: Math.round(38 * S * Math.max(0.84, V)), fontWeight: "900", letterSpacing: -0.6 }}>
-              Reliable{"\n"}Home Services
-            </Text>
-            <Text style={{ color: C.gray, fontSize: FS.subtitle, lineHeight: 22, marginTop: Math.round(12 * V), width: Math.min(width * 0.52, 215), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
-          </View>
-
-          <View style={{ paddingLeft: 22, marginTop: Math.round(22 * V), gap: Math.round(compact ? 10 : 16), zIndex: 6 }}>
-            {FEATURES.map((f) => (
-              <View key={f.title} style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
-                <View style={{ width: compact ? 38 : 46, height: compact ? 38 : 46, borderRadius: 23, backgroundColor: f.bg, alignItems: "center", justifyContent: "center" }}><Icon name={f.icon} size={compact ? 19 : 22} color={f.fg} /></View>
-                <View>
-                  <Text style={{ color: C.navy, fontSize: FS.input, fontWeight: "800", lineHeight: 19 }}>{f.title}</Text>
-                  <Text style={{ color: C.muted, fontSize: FS.small, fontWeight: "400", lineHeight: 17, marginTop: 1 }}>{f.sub}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* ---------- Get Started card ---------- */}
-        <View testID="get-started-card" style={{ marginHorizontal: 12, marginTop: Math.round(12 * V), backgroundColor: C.white, borderRadius: 30, paddingTop: Math.round(18 * V), paddingHorizontal: 18, paddingBottom: Math.round(18 * V), boxShadow: "0px 14px 40px rgba(14,27,69,0.10)", zIndex: 7 }}>
-          <Text style={{ textAlign: "center", color: C.navy, fontSize: FS.title, fontWeight: "900", letterSpacing: -0.4 }}>Get Started</Text>
-          <Text style={{ textAlign: "center", color: C.gray, fontSize: FS.subtitle, fontWeight: "400", marginTop: 4 }}>Choose how you want to continue</Text>
-
-          <Pressable testID="welcome-login-btn" onPress={() => router.push("/(auth)/login" as any)} style={({ pressed }) => ({ marginTop: Math.round(16 * V), transform: [{ scale: pressed ? 0.985 : 1 }] })}>
-            <LinearGradient colors={[C.blueDeep, "#2A7BEA"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: btnH, borderRadius: 20, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, boxShadow: "0px 10px 22px rgba(31,111,235,0.30)" }}>
-              <Icon name="login-variant" size={28} color={C.white} />
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: C.white, fontSize: FS.label, fontWeight: "800" }}>Log In</Text>
-                <Text style={{ color: "rgba(255,255,255,0.88)", fontSize: FS.buttonSub, fontWeight: "500", marginTop: 2 }}>Access your existing account</Text>
-              </View>
-              <Icon name="chevron-right" size={24} color={C.white} />
-            </LinearGradient>
-          </Pressable>
-
-          <Pressable testID="welcome-register-btn" onPress={() => router.push("/(auth)/register" as any)} style={({ pressed }) => ({ marginTop: Math.round(10 * V), height: btnH, borderRadius: 20, borderWidth: 1.5, borderColor: C.line, backgroundColor: C.white, flexDirection: "row", alignItems: "center", paddingHorizontal: 18, gap: 16, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
-            <Icon name="account-plus-outline" size={28} color={C.blue} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: C.navy, fontSize: FS.label, fontWeight: "800" }}>Create New Account</Text>
-              <Text style={{ color: C.gray, fontSize: FS.buttonSub, fontWeight: "400", marginTop: 2 }}>Join {siteName} today</Text>
+          <View style={{ paddingLeft: 20, width: textW + 20, zIndex: 6 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 6, backgroundColor: C.white, borderWidth: 1, borderColor: C.line, borderRadius: 999, paddingHorizontal: 10, height: 28 }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: C.success }} />
+              <Text style={{ fontSize: 12, fontWeight: "600", color: C.text2 }}>Available near you</Text>
             </View>
-            <Icon name="chevron-right" size={24} color={C.navy} />
-          </Pressable>
-        </View>
+            <Text testID="welcome-title" accessibilityRole="header" style={{ color: C.navy, fontSize: titleFS, lineHeight: Math.round(titleFS * 1.14), fontWeight: "800", letterSpacing: -0.9, marginTop: sp(14) }}>
+              Reliable{"\n"}Home{"\n"}Services
+            </Text>
+            <Text style={{ color: C.text2, fontSize: 14.5, lineHeight: 21, marginTop: sp(10), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
+          </View>
+        </Animated.View>
 
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: Math.round(12 * V) }}>
-          <Icon name="shield-check-outline" size={18} color={C.gray} />
-          <Text style={{ color: C.gray, fontSize: FS.small, fontWeight: "500" }}>Your data is secure & encrypted</Text>
-        </View>
-      </View>
+        {/* Trust indicators */}
+        <Animated.View style={[{ flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: sp(8), zIndex: 6 }, aTrust]}>
+          {TRUST.map((t) => (
+            <View key={t.title} testID={`welcome-trust-${t.title.toLowerCase()}`} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: C.line, borderRadius: 16, paddingHorizontal: 10, paddingVertical: sp(10) }}>
+              <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: tint(primary, 0.07), alignItems: "center", justifyContent: "center" }}>
+                <Icon name={t.icon} size={18} color={primary} />
+              </View>
+              <Text style={{ color: C.navy, fontSize: 14, fontWeight: "700", marginTop: 8 }}>{t.title}</Text>
+              <Text numberOfLines={2} style={{ color: C.muted, fontSize: 11.5, lineHeight: 15, fontWeight: "400", marginTop: 2 }}>{t.sub}</Text>
+            </View>
+          ))}
+        </Animated.View>
+
+
+        {/* Get Started panel */}
+        <Animated.View testID="get-started-card" style={[{ marginTop: sp(8), backgroundColor: C.white, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: sp(12), paddingHorizontal: 20, paddingBottom: insets.bottom + sp(14), boxShadow: "0px -8px 30px rgba(11,26,63,0.07)" } as any, aPanel]}>
+          <View style={{ alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.line, marginBottom: sp(12) }} />
+          <Text accessibilityRole="header" style={{ color: C.navy, fontSize: 24, fontWeight: "800", letterSpacing: -0.5 }}>Get Started</Text>
+          <Text style={{ color: C.text2, fontSize: 14.5, fontWeight: "400", marginTop: 4 }}>Choose how you want to continue</Text>
+
+          <View style={{ marginTop: sp(16), gap: sp(10) }}>
+            <CtaButton testID="welcome-login-btn" primary color={primary} icon="login-variant" title="Log In" sub="Access your existing account" height={btnH} onPress={() => router.push("/(auth)/login" as any)} />
+            <CtaButton testID="welcome-register-btn" color={primary} icon="account-plus-outline" title="Create New Account" sub={`Join ${siteName} today`} height={btnH} onPress={() => router.push("/(auth)/register" as any)} />
+          </View>
+
+          <View testID="welcome-security-note" style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: sp(14) }}>
+            <Icon name="shield-lock-outline" size={15} color={C.muted} />
+            <Text style={{ color: C.muted, fontSize: 12.5, fontWeight: "500" }}>Your data is secure & encrypted</Text>
+          </View>
+        </Animated.View>
+      </ScrollView>
 
       {booting || (user && LOGIN_ROLES.includes(user.role as any)) ? (
-        <View testID="welcome-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: C.bg, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={C.blue} /></View>
+        <View testID="welcome-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: C.bg, alignItems: "center", justifyContent: "center" }}><ActivityIndicator size="large" color={primary} /></View>
       ) : null}
     </View>
   );

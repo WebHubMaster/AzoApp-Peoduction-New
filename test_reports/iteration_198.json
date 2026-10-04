@@ -1,0 +1,24 @@
+{
+  "summary": "Iteration 198 — Live Partner Map avatar fix (profile photo or SVG placeholder, no pravatar). Backend pytest /app/backend/tests/test_livemap_partner_photo.py: GET /api/admin/partners/live returns 'photo' field for every online partner; Raj Kumar (+919000000003) has unsplash URL, Amit Singh (+919000000005) has empty photo. 1/1 passed. Frontend (admin@/admin?tab=livemap, 1920x1080): /api/admin/partners/live hit (mode=real), [data-testid=partner-list] shows 2 rows — [data-testid=partner-avatar-<raj-id>] src = https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200, [data-testid=partner-avatar-<amit-id>] src = data:image/svg+xml;utf8,%3Csvg... (the DUMMY_AVATAR). Zero pravatar.cc occurrences on the whole page. Clicking Raj's row opens [data-testid=partner-drawer] with the same unsplash URL in the drawer header avatar (verified via DOM query).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_livemap_partner_photo.py",
+    "/app/test_reports/pytest/livemap_partner_photo.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "web_panel/src/pages/admin/LivePartnerMap.jsx partnerPhoto() + DUMMY_AVATAR correctly handles 3 cases: (a) absolute http(s)/data:/blob: URLs returned as-is, (b) relative paths prefixed with REACT_APP_BACKEND_URL, (c) falsy value → inline SVG placeholder. The <img> onError fallback to DUMMY_AVATAR provides a second safety net.",
+    "backend/controllers/admin_controller.py partners_live projection now includes 'photo' and 'avatar' — correct. Note: filter {live_location: {$exists:true}} is implicit via Python-side `if not loc: continue`; a Mongo-side filter would be a minor perf win."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_livemap_partner_photo.py"
+  ],
+  "success_rate": {"backend": "100% (1/1)", "frontend": "100%"},
+  "test_credentials": "Admin +919000000000 OTP 123456 via /api/auth/send-otp + /api/auth/verify-otp; demo-admin quick-login button on /login works too.",
+  "seed_data_creation": "Set partner_status='online' on users +919000000003 and +919000000005 before testing (they were offline at test start despite the task note). This is required for partners_live to return them.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "If /api/admin/partners/live returns 0 partners, check partner_status in DB — only partners with partner_status='online' AND a live_location object are returned. The seeded test partners can flip to offline between test runs; re-set them to online. Google Maps API logs an AdvancedMarkerElement deprecation warning (non-blocking) and a async-loading warning — both pre-existing, unrelated to this change.",
+  "rca of the issue": "N/A — fix is correct and verified end-to-end."
+}
