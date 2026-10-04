@@ -52,7 +52,7 @@ export default function PartnerRewards() {
   const reload = () => { qc.invalidateQueries({ queryKey: ["partner-challenges"] }); qc.invalidateQueries({ queryKey: ["partner-bonuses"] }); };
 
   const H = ({ icon, color, t, right }: { icon: MdiName; color: string; t: string; right?: React.ReactNode }) => (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}><Icon name={icon} size={22} color={color} /><Text style={{ color: colors.text, fontSize: 20, fontWeight: "700" }}>{t}</Text>{right}</View>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}><Icon name={icon} size={20} color={color} /><Text style={{ color: colors.text, fontSize: 17, fontWeight: "700" }}>{t}</Text>{right}</View>
   );
 
   return (
@@ -67,13 +67,13 @@ export default function PartnerRewards() {
           return (
             <>
               {/* Hero */}
-              <LinearGradient colors={[colors.primary, colors.primaryDark, "#0F172A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 24, overflow: "hidden" }}>
+              <LinearGradient colors={[colors.primary, colors.primaryDark, "#0F172A"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20, overflow: "hidden" }}>
                 <View style={{ position: "absolute", right: -24, top: -24, opacity: 0.1 }}><Icon name="trophy-outline" size={180} color="#fff" /></View>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="creation" size={16} color="#BFDBFE" /><Text style={{ color: "#BFDBFE", fontSize: 15 }}>Rewards & Challenges</Text></View>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end", columnGap: 32, rowGap: 16, marginTop: 12 }}>
-                  <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Total bonuses earned</Text><Text style={{ color: "#fff", fontSize: 36, fontWeight: "800" }}>{fmt(s.total_earned || 0)}</Text></View>
-                  <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Fleet rank</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="crown-outline" size={20} color="#FCD34D" /><Text style={{ color: "#fff", fontSize: 24, fontWeight: "800" }}>#{s.rank || "—"}</Text><Text style={{ color: "#93C5FD", fontSize: 14, fontWeight: "500" }}> / {s.total_partners || 0}</Text></View></View>
-                  <View><Text style={{ color: "#BFDBFE", fontSize: 13 }}>Active challenges</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="fire" size={20} color="#FDBA74" /><Text style={{ color: "#fff", fontSize: 24, fontWeight: "800" }}>{s.active_count || 0}</Text></View></View>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="creation" size={15} color="#BFDBFE" /><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Rewards & Challenges</Text></View>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-end", columnGap: 28, rowGap: 14, marginTop: 12 }}>
+                  <View><Text style={{ color: "#BFDBFE", fontSize: 12 }}>Total bonuses earned</Text><Text style={{ color: "#fff", fontSize: 27, fontWeight: "800" }}>{fmt(s.total_earned || 0)}</Text></View>
+                  <View><Text style={{ color: "#BFDBFE", fontSize: 12 }}>Fleet rank</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="crown-outline" size={18} color="#FCD34D" /><Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>#{s.rank || "—"}</Text><Text style={{ color: "#93C5FD", fontSize: 13, fontWeight: "500" }}> / {s.total_partners || 0}</Text></View></View>
+                  <View><Text style={{ color: "#BFDBFE", fontSize: 12 }}>Active challenges</Text><View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}><Icon name="fire" size={18} color="#FDBA74" /><Text style={{ color: "#fff", fontSize: 20, fontWeight: "800" }}>{s.active_count || 0}</Text></View></View>
                   {s.eligible_count > 0 ? <Pulse style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "rgba(52,211,153,0.9)", borderRadius: 6, paddingHorizontal: 16, paddingVertical: 8 }}><Icon name="flash" size={16} color="#022C22" /><Text style={{ color: "#022C22", fontWeight: "600" }}>{s.eligible_count} reward{s.eligible_count > 1 ? "s" : ""} unlocked!</Text></Pulse> : null}
                 </View>
               </LinearGradient>
@@ -82,7 +82,7 @@ export default function PartnerRewards() {
               <View testID="auto-payout-card" style={{ flexDirection: "row", alignItems: "center", gap: 12, borderRadius: 6, borderWidth: 1, padding: 16, backgroundColor: s.auto_payout ? "#ECFDF5" : colors.surface, borderColor: s.auto_payout ? "#A7F3D0" : colors.border }}>
                 <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: s.auto_payout ? "#10B981" : "#CBD5E1", alignItems: "center", justifyContent: "center" }}><Icon name="flash" size={24} color="#fff" /></View>
                 <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text style={{ color: colors.text, fontSize: 17, fontWeight: "700" }}>Auto Payout</Text><View style={{ backgroundColor: s.auto_payout ? "#D1FAE5" : colors.surfaceSubtle, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: s.auto_payout ? "#047857" : colors.textMuted, fontSize: 12, fontWeight: "700" }}>{s.auto_payout ? "ON" : "OFF"}</Text></View></View>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Text style={{ color: colors.text, fontSize: 15, fontWeight: "700" }}>Auto Payout</Text><View style={{ backgroundColor: s.auto_payout ? "#D1FAE5" : colors.surfaceSubtle, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}><Text style={{ color: s.auto_payout ? "#047857" : colors.textMuted, fontSize: 12, fontWeight: "700" }}>{s.auto_payout ? "ON" : "OFF"}</Text></View></View>
                   <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 2, lineHeight: 18 }}>{s.auto_payout ? "Unlocked bonuses land in your wallet instantly — no admin approval needed." : "Bonuses are released after admin approval."}</Text>
                 </View>
               </View>
@@ -90,8 +90,8 @@ export default function PartnerRewards() {
               {/* Streak */}
               <LinearGradient colors={dark ? ["#2A1E10", "#231B0C"] : ["#FFF7ED", "#FFFBEB"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, borderWidth: 1, borderColor: dark ? colors.border : "#FED7AA", padding: 16 }} testID="streak-card">
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="fire" size={22} color="#F97316" /><Text style={{ color: colors.text, fontSize: 18, fontWeight: "700" }}>5★ Streak</Text></View>
-                  <Text><Text style={{ color: "#EA580C", fontSize: 24, fontWeight: "800" }}>{streak.current || 0}</Text><Text style={{ color: SLATE400, fontSize: 13 }}> in a row</Text></Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="fire" size={20} color="#F97316" /><Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>5★ Streak</Text></View>
+                  <Text><Text style={{ color: "#EA580C", fontSize: 20, fontWeight: "800" }}>{streak.current || 0}</Text><Text style={{ color: SLATE400, fontSize: 13 }}> in a row</Text></Text>
                 </View>
                 {streak.enabled === false ? <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 8 }}>Streak bonuses are currently paused.</Text> : (
                   <>

@@ -81,8 +81,8 @@ export default function SupportList() {
     </View>
   );
   const NewBtn = ({ testID }: { testID: string }) => (
-    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 10, height: 52, paddingHorizontal: 24, borderRadius: 6, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
-      <Icon name="plus" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 17 }}>New Ticket</Text>
+    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, height: 46, paddingHorizontal: 20, borderRadius: 6, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
+      <Icon name="plus" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Ticket</Text>
     </Pressable>
   );
 
@@ -98,8 +98,8 @@ export default function SupportList() {
         ListHeaderComponent={
           <View style={{ gap: 16, marginBottom: 8, zIndex: 20 }}>
             <View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}><Icon name="lifebuoy" size={30} color={colors.primary} /><Text testID="support-header" style={{ color: "#334155", fontSize: 28, fontWeight: "800" }}>Help & Support</Text></View>
-              <Text style={{ color: colors.textMuted, fontSize: 16, marginTop: 6, lineHeight: 24 }}>{tickets.length} ticket{tickets.length === 1 ? "" : "s"} · chat with our support team, attach screenshots, track status.</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="lifebuoy" size={24} color={colors.primary} /><Text testID="support-header" style={{ color: "#334155", fontSize: 22, fontWeight: "800" }}>Help & Support</Text></View>
+              <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4, lineHeight: 19 }}>{tickets.length} ticket{tickets.length === 1 ? "" : "s"} · chat with our support team, attach screenshots, track status.</Text>
             </View>
             <NewBtn testID="new-ticket" />
             <View style={{ flexDirection: "row", gap: 10, zIndex: 30 }}>
@@ -118,8 +118,8 @@ export default function SupportList() {
         ListEmptyComponent={isLoading ? <View style={{ gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View> : (
           <View testID="support-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: "#CBD5E1", backgroundColor: colors.surface, paddingVertical: 60, paddingHorizontal: 24, alignItems: "center" }}>
             <Icon name="inbox-outline" size={72} color="#CBD5E1" />
-            <Text style={{ color: "#475569", fontSize: 22, fontWeight: "600", marginTop: 20 }}>No tickets found</Text>
-            <Text style={{ color: SLATE400, fontSize: 16, marginTop: 6, textAlign: "center" }}>{tickets.length ? "Try changing your search or filters." : "Need help? Raise your first support ticket."}</Text>
+            <Text style={{ color: "#475569", fontSize: 18, fontWeight: "600", marginTop: 20 }}>No tickets found</Text>
+            <Text style={{ color: SLATE400, fontSize: 14, marginTop: 6, textAlign: "center" }}>{tickets.length ? "Try changing your search or filters." : "Need help? Raise your first support ticket."}</Text>
             <View style={{ marginTop: 28 }}><NewBtn testID="new-ticket-empty" /></View>
           </View>
         )}

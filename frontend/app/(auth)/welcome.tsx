@@ -166,8 +166,8 @@ export default function Welcome() {
   const personH = Math.round(personW / PERSON_RATIO);
   const blobD = Math.round(Math.min(width * 0.66, heroH * 1.02));
   const textW = Math.max(150, Math.min(width - personW - 28, 240));
-  const titleFS = Math.round(Math.max(27, Math.min(34, width / 11.6)) * Math.max(0.9, V));
-  const btnH = Math.max(58, sp(66));
+  const titleFS = Math.round(Math.max(22, Math.min(28, width / 13.5)) * Math.max(0.9, V));
+  const btnH = Math.max(68, sp(78));
 
   const aHeader = useEntrance(0);
   const aHero = useEntrance(80);
@@ -205,31 +205,31 @@ export default function Welcome() {
             <Text testID="welcome-title" accessibilityRole="header" style={{ color: C.navy, fontSize: titleFS, lineHeight: Math.round(titleFS * 1.14), fontWeight: "800", letterSpacing: -0.9, marginTop: sp(14) }}>
               Reliable{"\n"}Home{"\n"}Services
             </Text>
-            <Text style={{ color: C.text2, fontSize: 14.5, lineHeight: 21, marginTop: sp(10), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
+            <Text style={{ color: C.text2, fontSize: 13, lineHeight: 18, marginTop: sp(8), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
           </View>
         </Animated.View>
 
         {/* Trust indicators */}
-        <Animated.View style={[{ flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: sp(8), zIndex: 6 }, aTrust]}>
+        <Animated.View style={[{ flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: sp(2), zIndex: 6 }, aTrust]}>
           {TRUST.map((t) => (
-            <View key={t.title} testID={`welcome-trust-${t.title.toLowerCase()}`} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: C.line, borderRadius: 6, paddingHorizontal: 10, paddingVertical: sp(10) }}>
-              <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: tint(primary, 0.07), alignItems: "center", justifyContent: "center" }}>
-                <Icon name={t.icon} size={18} color={primary} />
+            <View key={t.title} testID={`welcome-trust-${t.title.toLowerCase()}`} style={{ flex: 1, backgroundColor: "rgba(255,255,255,0.92)", borderWidth: 1, borderColor: C.line, borderRadius: 6, paddingHorizontal: 10, paddingVertical: sp(8) }}>
+              <View style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: tint(primary, 0.07), alignItems: "center", justifyContent: "center" }}>
+                <Icon name={t.icon} size={16} color={primary} />
               </View>
-              <Text style={{ color: C.navy, fontSize: 14, fontWeight: "700", marginTop: 8 }}>{t.title}</Text>
-              <Text numberOfLines={2} style={{ color: C.muted, fontSize: 11.5, lineHeight: 15, fontWeight: "400", marginTop: 2 }}>{t.sub}</Text>
+              <Text style={{ color: C.navy, fontSize: 12.5, fontWeight: "700", marginTop: 6 }}>{t.title}</Text>
+              <Text numberOfLines={2} style={{ color: C.muted, fontSize: 10.5, lineHeight: 14, fontWeight: "400", marginTop: 1 }}>{t.sub}</Text>
             </View>
           ))}
         </Animated.View>
 
 
         {/* Get Started panel */}
-        <Animated.View testID="get-started-card" style={[{ marginTop: sp(8), backgroundColor: C.white, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: sp(12), paddingHorizontal: 20, paddingBottom: insets.bottom + sp(14), boxShadow: "0px -8px 30px rgba(11,26,63,0.07)" } as any, aPanel]}>
-          <View style={{ alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.line, marginBottom: sp(12) }} />
-          <Text accessibilityRole="header" style={{ color: C.navy, fontSize: 24, fontWeight: "800", letterSpacing: -0.5 }}>Get Started</Text>
+        <Animated.View testID="get-started-card" style={[{ marginTop: sp(12), backgroundColor: C.white, borderTopLeftRadius: 32, borderTopRightRadius: 32, paddingTop: sp(18), paddingHorizontal: 20, paddingBottom: insets.bottom + sp(18), boxShadow: "0px -8px 30px rgba(11,26,63,0.07)" } as any, aPanel]}>
+          <View style={{ alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: C.line, marginBottom: sp(14) }} />
+          <Text accessibilityRole="header" style={{ color: C.navy, fontSize: 26, fontWeight: "800", letterSpacing: -0.5 }}>Get Started</Text>
           <Text style={{ color: C.text2, fontSize: 14.5, fontWeight: "400", marginTop: 4 }}>Choose how you want to continue</Text>
 
-          <View style={{ marginTop: sp(16), gap: sp(10) }}>
+          <View style={{ marginTop: sp(18), gap: sp(12) }}>
             <CtaButton testID="welcome-login-btn" primary color={primary} icon="login-variant" title="Log In" sub="Access your existing account" height={btnH} onPress={() => router.push("/(auth)/login" as any)} />
             <CtaButton testID="welcome-register-btn" color={primary} icon="account-plus-outline" title="Create New Account" sub={`Join ${siteName} today`} height={btnH} onPress={() => router.push("/(auth)/register" as any)} />
           </View>
