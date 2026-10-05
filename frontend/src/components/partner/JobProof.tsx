@@ -4,6 +4,7 @@ import { Image } from "expo-image";
 import { Modal } from "react-native";
 import { InlineVideo } from "@/src/components/InlineVideo";
 import * as ImagePicker from "expo-image-picker";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { File as FsFile, FileMode } from "expo-file-system";
 import { fromByteArray } from "base64-js";
 import { useTheme } from "@/src/theme";
@@ -182,6 +183,7 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
 export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testID, locked }: { items: string[]; onPhoto: () => void; onVideo: () => void; onRemove: (u: string) => void; busy: boolean; progress?: number; testID: string; locked?: boolean }) {
   const [playing, setPlaying] = useState<string | null>(null);
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const full = items.length >= MAX_PROOF_FILES;
   const tile = { width: "31%" as const, aspectRatio: 1, borderRadius: 6, overflow: "hidden" as const, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle };
   const addTile = items.length === 0 ? { flex: 1, height: 104, borderRadius: 6, overflow: "hidden" as const } : tile;
@@ -233,7 +235,7 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
     </View>
       <Modal visible={!!playing} transparent animationType="fade" onRequestClose={() => setPlaying(null)}>
         <View testID="video-player-modal" style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.94)", justifyContent: "center", padding: 12 }}>
-          <Pressable testID="video-player-close" onPress={() => setPlaying(null)} style={{ position: "absolute", top: 44, right: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon name="close" size={22} color="#fff" /></Pressable>
+          <Pressable testID="video-player-close" onPress={() => setPlaying(null)} style={{ position: "absolute", top: insets.top + 12, right: 16, width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center", zIndex: 2 }}><Icon name="close" size={22} color="#fff" /></Pressable>
           <View style={{ height: "60%" }}>{playing ? <InlineVideo uri={playing} testID="inline-video" /> : null}</View>
         </View>
       </Modal>

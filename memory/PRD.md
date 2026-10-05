@@ -131,3 +131,18 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   backend/tests/test_additional_split_logic.py (user example 300+100@20%/18% → total
   403.6, partner 380, gst 3.6; no-labour 149 → all partner, no tax). Both apps tsc/eslint clean.
 - NOTE: native app + web E2E not run here (no running local backend; source monorepo).
+
+## 2026-06 — Partner App: 6px radius, safe-area & keyboard sweep
+- Corner radius 12→6: all 5 box/button occurrences in
+  app/(partner)/partner/availability.tsx. Kept the 24x24 circle step-dot in
+  starter-kit.tsx round (design-correct; it's a circle, not a 12px corner).
+- Keyboard (WhatsApp-style auto-scroll) EVERYWHERE: converted the shared ScreenScroll
+  (src/components/Screen.tsx) from plain ScrollView → KeyboardAwareScrollView
+  (bottomOffset 24, keyboardShouldPersistTaps). This fixes keyboard-hidden inputs on
+  all ~15 screens that use ScreenScroll (incl. Bank & KYC form). Other input screens
+  already handled it (RegShell, job wizard, wallet, payouts, support, chat, AppShell).
+- Safe area: partner screens already receive insets via shared shells
+  (AppHeader/AppShell/RegShell); the "N" partner routes are re-exports of safe screens
+  or redirects. SelfieCamera already insets-aware. Fixed one hardcoded top:44 →
+  insets.top+12 on the work-proof video-player close button (JobProof.tsx).
+- Verified: tsc clean, eslint 0 errors. Native keyboard/safe-area needs on-device confirm.

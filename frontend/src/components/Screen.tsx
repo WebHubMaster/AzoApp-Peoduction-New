@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, StyleProp, ViewStyle } from "react-native";
+import { View, Text, Pressable, RefreshControl, StyleProp, ViewStyle } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
@@ -77,12 +78,14 @@ export function ScreenScroll({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
+      bottomOffset={24}
       style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[
         { padding: spacing.lg, paddingBottom: (bottomInset ? insets.bottom : 0) + 96, gap: spacing.lg },
         contentStyle,
       ]}
+      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       refreshControl={
         onRefresh ? (
@@ -91,7 +94,7 @@ export function ScreenScroll({
       }
     >
       {children}
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

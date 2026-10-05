@@ -59,7 +59,7 @@ export default function PartnerAvailability() {
         <Surface testID="partner-availability-header" style={{ padding: 18, borderRadius: 14 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+              <View style={{ width: 44, height: 44, borderRadius: 6, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
                 <Icon name="calendar-month-outline" size={22} color={colors.primary} />
               </View>
               <View>
@@ -123,7 +123,7 @@ export default function PartnerAvailability() {
           {upcoming.length === 0 ? (
             <Surface style={{ padding: 20, alignItems: "center", borderStyle: "dashed", borderRadius: 14 }}><Text style={{ color: SLATE400, fontSize: 14, textAlign: "center" }}>No available dates picked yet. Tap a day above to mark it Available.</Text></Surface>
           ) : upcoming.map((d: string) => (
-            <View key={d} testID={`next-${d}`} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 12, borderWidth: 1, borderColor: GREEN_200, backgroundColor: dark ? "rgba(6,78,59,0.25)" : "rgba(236,253,245,0.6)", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8 }}>
+            <View key={d} testID={`next-${d}`} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderRadius: 6, borderWidth: 1, borderColor: GREEN_200, backgroundColor: dark ? "rgba(6,78,59,0.25)" : "rgba(236,253,245,0.6)", paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="calendar-check-outline" size={18} color={GREEN_700} /><Text style={{ color: colors.text, fontSize: 15, fontWeight: "700" }}>{new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</Text></View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="check-circle-outline" size={18} color={GREEN_700} /><Text style={{ color: GREEN_700, fontSize: 14, fontWeight: "700" }}>Available</Text></View>
             </View>
@@ -138,7 +138,7 @@ export default function PartnerAvailability() {
               <View style={{ alignSelf: "center", height: 5, width: 44, borderRadius: 3, backgroundColor: colors.border, marginBottom: 16 }} />
               <Text style={{ color: colors.primary, fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 1 }}>Availability</Text>
               <Text style={{ color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 }}>Are you available on this date?</Text>
-              <View style={{ marginTop: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 16, paddingVertical: 12 }}>
+              <View style={{ marginTop: 14, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, paddingHorizontal: 16, paddingVertical: 12 }}>
                 <Text style={{ color: SLATE400, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Date</Text>
                 <Text style={{ color: colors.text, fontSize: 15, fontWeight: "800", marginTop: 2 }}>{new Date(picked + "T00:00:00").toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</Text>
               </View>
@@ -146,8 +146,8 @@ export default function PartnerAvailability() {
                 <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 12 }}>Currently: <Text style={{ color: statusMap[picked] === "available" ? GREEN_700 : "#E11D48", fontWeight: "700" }}>{statusMap[picked] === "available" ? "Available" : "Not Available"}</Text> · tap either to change</Text>
               ) : null}
               <View style={{ flexDirection: "row", gap: 12, marginTop: 16 }}>
-                <Pressable testID="popup-available" disabled={setDate.isPending} onPress={() => choose("available")} style={{ flex: 1, height: 48, borderRadius: 12, backgroundColor: GREEN_700, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="check-circle-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{setDate.isPending ? "Saving…" : "Available"}</Text></Pressable>
-                <Pressable testID="popup-unavailable" disabled={setDate.isPending} onPress={() => choose("unavailable")} style={{ flex: 1, height: 48, borderRadius: 12, borderWidth: 2, borderColor: RED_200, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="close-circle-outline" size={18} color="#E11D48" /><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 15 }}>Not Available</Text></Pressable>
+                <Pressable testID="popup-available" disabled={setDate.isPending} onPress={() => choose("available")} style={{ flex: 1, height: 48, borderRadius: 6, backgroundColor: GREEN_700, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="check-circle-outline" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{setDate.isPending ? "Saving…" : "Available"}</Text></Pressable>
+                <Pressable testID="popup-unavailable" disabled={setDate.isPending} onPress={() => choose("unavailable")} style={{ flex: 1, height: 48, borderRadius: 6, borderWidth: 2, borderColor: RED_200, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: setDate.isPending ? 0.6 : 1 }}><Icon name="close-circle-outline" size={18} color="#E11D48" /><Text style={{ color: "#E11D48", fontWeight: "700", fontSize: 15 }}>Not Available</Text></Pressable>
               </View>
             </Pressable>
           </Pressable>
