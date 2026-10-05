@@ -241,7 +241,7 @@ function CheckinStep({ b, onDone }) {
       </Card>
       {locked && <p className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-xs text-slate-500 flex items-center gap-2"><Lock className="h-4 w-4" /> Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</p>}
       <button type="button" data-testid="wizard-checkin-submit" disabled={!ready} onClick={submit} className="w-full h-13 py-3.5 rounded-2xl bg-primary-700 hover:bg-primary-800 text-white font-extrabold flex items-center justify-center gap-2 disabled:opacity-45">{sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />} {sending ? "Checking in…" : "Check-in & Continue"}</button>
-      <CameraCapture key={camOpen ? "selfie-open" : "selfie-closed"} open={camOpen} title="Take your live selfie" initialFacing="user" onClose={() => setCamOpen(false)}
+      <CameraCapture key={camOpen ? "selfie-open" : "selfie-closed"} open={camOpen} title="Take your live selfie" initialFacing="user" faceGuide onClose={() => setCamOpen(false)}
         onCapture={(file) => { setSelfie({ file, url: URL.createObjectURL(file) }); setCamOpen(false); }} />
     </>
   );

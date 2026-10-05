@@ -6,7 +6,31 @@ import { Camera, X, RefreshCw, Check, RotateCcw, Loader2 } from "lucide-react";
  * Opens the device camera via getUserMedia, lets the user snap a frame, preview it,
  * and confirm. onCapture receives a JPEG File. Rear camera preferred on mobile.
  */
-export default function CameraCapture({ open, title = "Capture photo", onClose, onCapture, uploading, initialFacing = "environment" }) {
+function FaceGuide() {
+  const ref = useRef(null);
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const ro = new ResizeObserver(([e]) => setBox({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el); return () => ro.disconnect();
+  }, []);
+  const { w, h } = box;
+  const rx = Math.min(w * 0.34, h * 0.3, 170), ry = rx * 1.32, cx = w / 2, cy = h * 0.46;
+  const hole = `M${cx - rx} ${cy} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
+  return (
+    <div ref={ref} className="pointer-events-none absolute inset-0" data-testid="face-guide">
+      {w > 0 && (
+        <svg width={w} height={h} className="absolute inset-0">
+          <path d={`M0 0H${w}V${h}H0Z ${hole}`} fill="rgba(0,0,0,0.5)" fillRule="evenodd" />
+          <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="10 8" />
+        </svg>
+      )}
+      {w > 0 && <p data-testid="face-guide-hint" className="absolute left-0 right-0 text-center text-white text-sm font-semibold drop-shadow" style={{ top: Math.min(h - 28, cy + ry + 14) }}>Align your face inside the oval</p>}
+    </div>
+  );
+}
+
+export default function CameraCapture({ open, title = "Capture photo", onClose, onCapture, uploading, initialFacing = "environment", faceGuide = false }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const [error, setError] = useState("");
@@ -115,6 +139,7 @@ export default function CameraCapture({ open, title = "Capture photo", onClose, 
         ) : (
           <>
             <video ref={videoRef} playsInline muted className="max-h-full max-w-full object-contain" data-testid="camera-video" />
+            {faceGuide && ready && <FaceGuide />}
             {!ready && <div className="absolute inset-0 grid place-items-center text-white/80"><Loader2 className="h-8 w-8 animate-spin" /></div>}
           </>
         )}
