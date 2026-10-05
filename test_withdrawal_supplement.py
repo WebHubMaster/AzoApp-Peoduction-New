@@ -5,7 +5,7 @@ Supplementary test for withdrawal flow with balance
 import requests
 import sys
 
-BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
+BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"

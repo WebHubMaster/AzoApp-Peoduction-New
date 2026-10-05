@@ -23,7 +23,7 @@ const TONES: Record<string, { bg: string; fg: string }> = {
 function KpiCard({ icon, tone, label, value, sub, trend, testID }: { icon: MdiName; tone: string; label: string; value: string; sub?: string; trend?: number | null; testID?: string }) {
   const { colors } = useTheme();
   return (
-    <Surface testID={testID} style={{ padding: 16, width: "48%" }}>
+    <Surface testID={testID} style={{ padding: 16, width: 210 }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TONES[tone].bg, alignItems: "center", justifyContent: "center" }}><Icon name={icon} size={18} color={TONES[tone].fg} /></View>
         {trend != null ? (
@@ -222,12 +222,12 @@ export default function PartnerWallet() {
               </Surface>
             ) : null}
 
-            {/* KPI grid — always 2 per row, responsive on all widths */}
-            <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 }}>
+            {/* KPI cards — single horizontal row, slide left/right */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -spacing.lg }} contentContainerStyle={{ paddingHorizontal: spacing.lg, gap: 12 }} testID="wallet-kpi-row">
               <KpiCard icon="trending-up" tone="emerald" label="Total Earned" value={money(s.total_earned)} sub="Lifetime earnings" trend={trend} testID="kpi-total-earned" />
               <KpiCard icon="gift-outline" tone="primary" label="Incentives" value={money(s.total_incentive)} sub="Bonuses & rewards" testID="kpi-incentives" />
               <KpiCard icon="clock-outline" tone="amber" label="Processing" value={money(s.pending_balance)} sub="Locked in withdrawals" testID="kpi-processing" />
-            </View>
+            </ScrollView>
 
             <SegTabs tabs={["overview", "transactions", "withdrawals"]} value={tab} onChange={setTab} />
 

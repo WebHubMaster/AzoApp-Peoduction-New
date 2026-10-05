@@ -11,7 +11,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { AppShellHeader, Surface } from "@/src/components/AppShell";
 import {
-  PageHeader, InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, AdvancedPaginator, TableSkeleton, InvEmpty, InvError,
+  InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, AdvancedPaginator, TableSkeleton, InvEmpty, InvError,
   IconSquare, ActiveChip, ActionSheet, RowMenuSheet, EmailSheet, useDebounced, useInv,
 } from "@/src/components/invoice";
 import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
@@ -258,9 +258,6 @@ export default function PartnerInvoices() {
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 20 }} keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={pulling} onRefresh={async () => { setPulling(true); clearInvoiceHtmlCache(); try { await q.refetch(); } finally { setPulling(false); } }} tintColor={t.primary} colors={[t.primary]} />}>
-        {/* ── page header ── */}
-        <PageHeader shopName={shopName} title="My Invoices" subtitle="Booking, earnings, settlement & withdrawal documents" />
-
         {/* ── mobile toolbar ── */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <SearchBox value={searchRaw} onChange={setSearchRaw} searching={searching} />

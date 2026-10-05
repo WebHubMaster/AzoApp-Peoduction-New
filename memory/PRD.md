@@ -191,3 +191,12 @@ Files: app/(customer)/orders.tsx, src/components/customer/BookingCard.tsx, src/c
 - Already-rated completed jobs show a subtle "You rated X / 5" note instead.
 - Tab order is dynamic: active job present → Active tab first then Completed; no active job → Completed tab first then Active (default selected tab follows the same).
 - NOTE: Customer Expo app not runnable in this env (no node_modules, not served) → verified by code review only; test in Expo Go / dev build.
+
+## Partner App UI update (Jun 2026)
+Four Partner-app (Expo RN) screen changes:
+1. Support list (app/support/index.tsx) — redesigned to match Customer app: full-width search, single horizontal-scroll filter row (time/status/sort pills), unified bordered ticket list (unread dot + code, priority/status badges, subject, category + ago). New-ticket sheet + thread nav unchanged.
+2. Invoices (app/(partner)/partner/invoices.tsx) — removed PageHeader partner-name chip entirely (no name at top or in list).
+3. Availability (app/(partner)/partner/availability.tsx) — removed "My Availability" title; kept a clean professional "Available dates x/y" counter with % + progress bar; redesigned full-width calendar (status dots instead of per-cell text labels, today ring, pro legend).
+4. Wallet (app/(partner)/wallet.tsx) — KPI cards now a single horizontal-scroll row (slide left/right) instead of 2-per-row wrap grid.
+
+All changes type-check clean (tsc). No backend changes. Mobile app — not verifiable via web preview (preview serves separate web_panel).

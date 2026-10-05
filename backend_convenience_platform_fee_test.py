@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
+BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

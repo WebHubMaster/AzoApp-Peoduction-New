@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
+BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"
