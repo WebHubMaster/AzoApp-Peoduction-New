@@ -1,0 +1,47 @@
+{
+  "summary": "Live end-to-end verification on preview URL for all Round 1 + Round 2 items that can run in a browser. Backend review API accepts rating 4.5 and persists it; UI rating row renders 9 buttons on ONE line at both mobile 360/390px and desktop 1280px; review dialog shows '4.5 / 5' preview; submission returns HTTP 200 (no 'valid integer' error) and card updates to '4.5 / 5 rated'. Backend rejects rating 0.5 and 5.5 with HTTP 422. Unregistered-number verify-otp returns {new_user:true} with HTTP 200 (no 5xx). CSS override for .keep-round .rounded-full on preview computes border-radius 9999px (circular) despite global 6px override. ScheduledCard has no 'now available' text. AddressMap fallback iframe uses https://maps.google.com embed (not OSM). Expo-native changes (JobProof centering, SelfieCamera, Welcome title, PartnerFeePayment safe-area, OtpFlow account-not-found) could not be exercised in a web browser; static code review in iteration_206 already confirmed them and the backend side of unregistered OTP is now verified live.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_live": [
+    {"item": "POST /api/bookings/7f48a7bd-5891-4b49-9d7c-fab19fdb4f8a/review rating=4.5", "result": "HTTP 200, review.rating=4.5 persisted in response payload"},
+    {"item": "POST /review rating=0.5 and 5.5", "result": "HTTP 422 pydantic ge/le violation"},
+    {"item": "POST /api/auth/verify-otp phone +919876500001 create_if_new false", "result": "HTTP 200 body {\"new_user\":true}"},
+    {"item": "web rate-row-AZO75B426 9 buttons", "result": "all 9 found with equal y (424.5) at viewport 390px AND at 1280px — single horizontal line both sizes"},
+    {"item": "rate-AZO75B426-4.5 click opens review dialog", "result": "review-rating-preview text = '4.5 / 5'"},
+    {"item": "submit-review click", "result": "POST 200, no 'valid integer' error anywhere; card updates to '4.5 / 5 rated'"},
+    {"item": "ScheduledCard.jsx 'now available' text", "result": "not present (grep empty)"},
+    {"item": "AddressMap.jsx fallback src", "result": "https://maps.google.com/maps?...&output=embed (Google embed)"},
+    {"item": ".keep-round + .rounded-full computed border-radius", "result": "9999px on both <div> and <img> injected test nodes (cascade order fixed)"}
+  ],
+  "static_only_verified_prev_iter": [
+    "Customer/src/components/customer/BookingCard.tsx — no 'now available', 9-item single-line flex rating row",
+    "Customer/app/(customer)/refunds.tsx — timeline wraps",
+    "Customer/src/components/customer/AddressForm.tsx + CheckoutSteps.tsx — Google maps embed",
+    "frontend/src/components/partner/JobProof.tsx — Photo/Video tiles centered",
+    "frontend/src/components/partner/SelfieCamera.tsx + partner/job/[id].tsx — expo-camera CameraView with onCameraReady/onMountError and ImagePicker fallback",
+    "frontend/src/components/reg/PartnerFeePayment.tsx — paddingBottom insets.bottom",
+    "frontend/app/(auth)/welcome.tsx — 'Reliable Home' / 'Services' on 2 lines, fontWeight 500",
+    "frontend/src/components/auth/OtpFlow.tsx — notFound panel with testID account-not-found, Create / Try another number buttons"
+  ],
+  "critical_code_review_comments": [
+    "Pydantic ReviewRequest uses rating: float Field(ge=1, le=5) — correct, allows 1.0..5.0 decimals (confirmed 4.5 accepted, 0.5/5.5 rejected).",
+    "AddressMap.jsx:9 comment still says 'OpenStreetMap embed' but implementation at line 77 uses maps.google.com — update the stale comment for clarity (cosmetic).",
+    "SelfieCamera flip resets ready state without unmount; worth smoke-testing on a real device as noted in iter_206."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "Minor: fix stale comment in web_panel/src/components/site/AddressMap.jsx (line 9) that still mentions OpenStreetMap."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100% (3/3 checks pass)", "frontend": "100% (6/6 web checks pass)" },
+  "test_credentials": "Customer +919000000004 OTP 123456; demo-customer button; unregistered test +919876500001",
+  "seed_data_creation": "Booking AZO75B426 (7f48a7bd-5891-4b49-9d7c-fab19fdb4f8a) now has review 4.5 persisted — any re-test will need a different un-reviewed completed booking or a fresh seed.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "AZO75B426 is now rated 4.5/5 via UI submit — to retest 4.5 flow again, pick another completed un-reviewed booking or reseed. All browser-side Round 1 + Round 2 items (rating decimal, scheduled card copy, Google map fallback, incoming ring circle, unregistered OTP backend) are verified live. Expo native items remain static-only verified from iter_206.",
+  "rca of the issue": "N/A — fixes verified; no new regressions found."
+}

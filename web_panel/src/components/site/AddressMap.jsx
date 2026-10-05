@@ -6,7 +6,7 @@ import { loadGoogleMaps } from "@/lib/gmaps";
   configured (admin → Integration Center). The marker is draggable and clicking
   the map moves it; both report the new position via onPick(lat, lng) so the
   parent can reverse-geocode & auto-fill the address. Falls back to a static
-  OpenStreetMap embed if no key is configured or the SDK fails to load.
+  Google Maps embed if no key is configured or the SDK fails to load.
 */
 const INDIA = { lat: 22.9734, lng: 78.6569 };
 
