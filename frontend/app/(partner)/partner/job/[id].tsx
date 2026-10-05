@@ -57,6 +57,7 @@ export default function PartnerJobWizard() {
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [footerH, setFooterH] = useState(120); // measured sticky-footer height → keyboard offset
 
   // Opening a DIFFERENT job (id change) must never carry over the previous job's
   // step / OTP / busy state — otherwise the wrong service's wizard step shows.
@@ -147,7 +148,7 @@ export default function PartnerJobWizard() {
         </View>
       </LinearGradient>
 
-      <KeyboardAwareScrollView bottomOffset={96} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 100, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView bottomOffset={footerH + 16} contentContainerStyle={{ padding: 16, paddingBottom: footerH + 28, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {(phase === 4 || step >= 4) ? <DoneStep b={b} /> :
           step === 0 ? <DetailsStep b={b} /> :
           step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
@@ -160,7 +161,7 @@ export default function PartnerJobWizard() {
 
       {/* Bottom CTA bar (replaces the hidden tab bar) — sticks right above the keyboard */}
       <KeyboardStickyView offset={{ opened: insets.bottom }} style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
+      <View onLayout={(e) => setFooterH(Math.round(e.nativeEvent.layout.height))} style={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }} testID="wizard-footer">
         {(phase === 4 || step >= 4) ? (
           <Cta testID="wizard-finish" label="Back to Active Jobs" icon="arrow-left" color={EMERALD} onPress={() => router.replace("/(partner)/active" as any)} />
         ) : step === 0 ? (

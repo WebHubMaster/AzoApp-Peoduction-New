@@ -102,3 +102,17 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   the local backend is not runnable in this source repo (no MONGO_URL; targets prod).
   Verified via tsc + eslint + a byte-exact chunk-encoding compatibility test.
   Needs on-device confirmation.
+
+## 2026-06 — Partner App: OTP box hidden behind keyboard (job wizard)
+- app/(partner)/partner/job/[id].tsx: the Complete/Start OTP card sits in a
+  KeyboardAwareScrollView with an absolutely-positioned KeyboardStickyView footer.
+  bottomOffset was a fixed 96px — smaller than the footer height on gesture-nav
+  devices, so the focused OTP box ended up hidden behind the footer at the keyboard
+  edge.
+- Fix: measure the sticky footer height via onLayout (footerH) and set
+  bottomOffset={footerH + 16} + contentContainerStyle paddingBottom={footerH + 28}.
+  Now the focused OTP box always auto-scrolls above the footer + keyboard on every
+  device (WhatsApp-style).
+- NOTE: native keyboard behavior can't be exercised by the browser testing agent and
+  the local backend isn't runnable here; verified via tsc (clean) + eslint (0 errors).
+  Needs on-device confirmation.
