@@ -3,7 +3,7 @@
  * activate. Premium full-width subscription cards with progress bar, attendance calendar,
  * payment snapshot, maid details and invoice download — parity with the web panel. */
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, TextInput, Linking } from "react-native";
+import { View, Text, Pressable, TextInput, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
@@ -347,8 +347,7 @@ export default function SubscriptionsScreen() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
+    <View testID="subscriptions-page" style={{ gap: 14 }}>
         <SegTabs tabs={[{ key: "browse", label: "Browse Plans" }, { key: "mine", label: "My Subscriptions" }]} value={tab} onChange={setTab} counts={{ mine: mine.length }} />
 
         {loading ? <SkeletonList rows={3} /> : tab === "browse" ? (
@@ -404,7 +403,6 @@ export default function SubscriptionsScreen() {
             <View style={{ gap: 14 }}>{mine.map((s) => <SubCard key={s.id} s={s} />)}</View>
           )
         )}
-      </ScrollView>
       {picked ? <PlanSheet service={picked} onClose={() => setPicked(null)} onDone={() => { setPicked(null); setTab("mine"); load(); }} /> : null}
     </View>
   );
