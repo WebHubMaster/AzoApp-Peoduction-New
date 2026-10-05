@@ -81,13 +81,13 @@ export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any
   const tiles: any[] = cats.slice(0, limit);
   if (showMore) tiles.push({ id: "__more", name: config?.more_label || "All services", more: true });
   const gap = 10;
-  const tileW = (width - 32 - gap * 2) / 3;
+  const tileW = (width - 32 - gap * 2) / 3; // always exactly 3 per row, fully responsive
   return (
     <View testID="app-categories" style={{ marginBottom: 20, paddingHorizontal: 16, flexDirection: "row", flexWrap: "wrap", gap }}>
       {tiles.map((c: any) => (
         <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={({ pressed }) => ({ width: tileW, transform: [{ translateY: pressed ? -2 : 0 }] })}>
           <View>
-            <View style={{ width: "100%", aspectRatio: 1, borderRadius: 12, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+            <View style={{ width: "100%", aspectRatio: 1, borderRadius: 6, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
               {c.more ? <Grip size={30} color={TC.text} strokeWidth={2.2} />
                 : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} cachePolicy="memory-disk" recyclingKey={c.id} priority="high" />
                 : c.icon ? <LucideByName name={c.icon} size={34} color={TC.primaryText} strokeWidth={1.6} /> : <Sparkles size={30} color={TC.primaryText} />}
