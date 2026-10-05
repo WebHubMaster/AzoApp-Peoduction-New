@@ -253,11 +253,13 @@ function AdditionalWork({ b, onUpdate }) {
   const addl = b.additional || null;
   useEffect(() => { if (!b.category_id) return; api.get(`/ratecards/by-category/${b.category_id}`).then((r) => { if (r.data && (r.data.groups || []).length) setRcCard(r.data); }).catch(() => {}); }, [b.category_id]);
   const addRow = async (row) => {
-    // Rate card service charge + labour charge are BOTH commissionable + taxable (like
-    // normal billing). Product/part cost (tax-free, commission-free) is entered separately.
-    const labour = (Number(row.service_charge) || 0) + (Number(row.labour_charge) || 0);
-    if (labour <= 0) return toast.error("This item has no charge to add");
-    try { await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: 0, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] }); toast.success(`Added "${row.description}" — ask customer to pay`); onUpdate(); }
+    // Billing rule: the rate card's service/product charge is the ITEM cost — it goes
+    // 100% to the partner, tax-free & commission-free (→ part_charge). Only the labour
+    // charge is commissionable, and GST is levied solely on that commission portion.
+    const part = Number(row.service_charge) || 0;
+    const labour = Number(row.labour_charge) || 0;
+    if (part <= 0 && labour <= 0) return toast.error("This item has no charge to add");
+    try { await api.post(`/bookings/${b.id}/additional`, { items: [{ description: row.description, part_charge: part, labour_charge: labour, warranty: row.warranty || "", ratecard_row_id: row.id, category_id: b.category_id }] }); toast.success(`Added "${row.description}" — ask customer to pay`); onUpdate(); }
     catch (e) { toast.error(errMsg(e, "Failed to add")); }
   };
   const remove = async (id) => { try { await api.delete(`/bookings/${b.id}/additional/${id}`); toast.success("Removed"); onUpdate(); } catch (e) { toast.error(errMsg(e, "Failed")); } };

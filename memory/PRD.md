@@ -116,3 +116,18 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
 - NOTE: native keyboard behavior can't be exercised by the browser testing agent and
   the local backend isn't runnable here; verified via tsc (clean) + eslint (0 errors).
   Needs on-device confirmation.
+
+## 2026-06 — Rate-card additional work: tax only on labour commission (not on item cost)
+- BUG: partner app + web panel sent a rate-card row as part_charge:0 /
+  labour_charge:(service_charge + labour_charge), so commission + GST hit the FULL
+  amount (incl. the item/product cost).
+- FIX (UI only — backend _recompute_additional was already correct):
+  - PartnerApp/src/components/partner/AdditionalWork.tsx addAdditionalRow
+  - web_panel/src/components/partner/JobWizard.jsx addRow
+  Now map rate-card service_charge -> part_charge (item cost: 100% partner, tax-free,
+  commission-free) and labour_charge -> labour_charge (platform commission; GST only on
+  that commission). Partner-app summary hides the "Service & labour" line when ₹0.
+- Verified backend math with the real _recompute_additional via
+  backend/tests/test_additional_split_logic.py (user example 300+100@20%/18% → total
+  403.6, partner 380, gst 3.6; no-labour 149 → all partner, no tax). Both apps tsc/eslint clean.
+- NOTE: native app + web E2E not run here (no running local backend; source monorepo).
