@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { View, Text, Pressable, Modal, Linking } from "react-native";
 import { Image } from "expo-image";
 import { Wrench, Package, Camera, User, CreditCard, MapPin, AlertTriangle, FileText, MessageCircle, Download, X, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Navigation } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme } from "../../theme";
 import { api, API_BASE, mediaUrl } from "../../api/client";
 import { useSiteConfig } from "../../context/BrandContext";
@@ -37,6 +38,7 @@ const Sep = () => { const { c } = useTheme(); return <View style={{ borderTopWid
 const norm = (x: any) => (typeof x === "string" ? x : x?.url || x?.image || "");
 function PhotoGrid({ images, title, testID }: { images: string[]; title: string; testID: string }) {
   const { c, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(-1);
   const i = Math.min(Math.max(open, 0), images.length - 1);
   return (
@@ -46,11 +48,11 @@ function PhotoGrid({ images, title, testID }: { images: string[]; title: string;
       </View>
       <Modal visible={open >= 0} transparent animationType="fade" onRequestClose={() => setOpen(-1)}>
         <View testID="workproof-lightbox" style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.9)" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, marginTop: 40 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, marginTop: insets.top + 8 }}>
             <Text style={{ fontSize: 14, fontWeight: "600", color: "rgba(255,255,255,0.9)" }}>{title} <Text style={{ color: "rgba(255,255,255,0.5)", fontWeight: "400" }}>· {i + 1}/{images.length}</Text></Text>
             <Pressable testID="lightbox-close" onPress={() => setOpen(-1)} style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></Pressable>
           </View>
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingBottom: 16 }}>
+          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 8, paddingBottom: insets.bottom + 16 }}>
             {open >= 0 ? (isVideoUrl(images[i]) ? <InlineVideo testID="lightbox-video" uri={mediaUrl(images[i]) || images[i]} /> : <Image testID="lightbox-image" source={{ uri: mediaUrl(images[i]) }} style={{ width: "100%", height: "100%", borderRadius: 6 }} contentFit="contain" />) : null}
             {images.length > 1 ? <>
               <Pressable testID="lightbox-prev" disabled={i === 0} onPress={() => setOpen(Math.max(i - 1, 0))} style={{ position: "absolute", left: 8, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.1)", alignItems: "center", justifyContent: "center", opacity: i === 0 ? 0.3 : 1 }}><ChevronLeft size={20} color="#fff" /></Pressable>

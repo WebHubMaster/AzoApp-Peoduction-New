@@ -4,6 +4,7 @@ import { TC } from "@/src/theme";
  * Tapping a card opens a full-screen viewer that plays the short video (WebView). */
 import React, { useState } from "react";
 import { View, Text, Pressable, ScrollView, Modal, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, ArrowRight, Play } from "lucide-react-native";
@@ -49,6 +50,7 @@ const StyleFill = { position: "absolute" as const, left: 0, right: 0, top: 0, bo
 /* ---------------- Full-screen story viewer ---------------- */
 export function StoryViewer({ stories, startIndex, onClose, navigate }: { stories: Story[]; startIndex: number; onClose: () => void; navigate: Nav }) {
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [idx, setIdx] = useState(startIndex);
   const [muted, setMuted] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -67,7 +69,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
         )}
 
         {/* progress segments */}
-        <View style={{ position: "absolute", top: 52, left: 12, right: 12, flexDirection: "row", gap: 5 }}>
+        <View style={{ position: "absolute", top: insets.top + 10, left: 12, right: 12, flexDirection: "row", gap: 5 }}>
           {stories.map((_, i) => (
             <View key={i} style={{ flex: 1, height: 3, borderRadius: 2, backgroundColor: "rgba(255,255,255,0.3)", overflow: "hidden" }}>
               <View style={{ height: "100%", width: i < idx ? "100%" : i === idx ? `${Math.round(progress * 100)}%` : "0%", backgroundColor: TC.surface }} />
@@ -76,7 +78,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
         </View>
 
         {/* header: avatar + title + mute + close */}
-        <View style={{ position: "absolute", top: 66, left: 14, right: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ position: "absolute", top: insets.top + 24, left: 14, right: 14, flexDirection: "row", alignItems: "center", gap: 10 }}>
           {cur.avatar ? <Image source={{ uri: cur.avatar }} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 2, borderColor: TC.surface }} contentFit="cover" /> : null}
           <Text numberOfLines={1} style={{ flex: 1, color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.title}</Text>
           <Pressable testID="story-mute" onPress={() => setMuted((m) => !m)} hitSlop={10} style={{ height: 34, width: 34, borderRadius: 6, backgroundColor: "rgba(0,0,0,0.35)", alignItems: "center", justifyContent: "center" }}>
@@ -97,7 +99,7 @@ export function StoryViewer({ stories, startIndex, onClose, navigate }: { storie
 
         {/* CTA */}
         {cur.cta_link ? (
-          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: 44, height: 50, borderRadius: 6, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <Pressable testID="story-cta" onPress={() => { onClose(); navigate(cur.cta_link!); }} style={{ position: "absolute", left: 24, right: 24, bottom: insets.bottom + 24, height: 50, borderRadius: 6, backgroundColor: PRIMARY[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <Text style={{ color: "#fff", fontSize: 15, fontWeight: "800" }}>{cur.cta_label || "Book Now"}</Text>
             <ArrowRight size={17} color="#fff" />
           </Pressable>

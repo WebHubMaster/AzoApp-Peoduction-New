@@ -17,7 +17,7 @@ const STATUS_OPTS = [{ value: "", label: "All statuses" }, ...STATUSES.map((s) =
 const cap = (s: string) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) });
 
 const GreenBtn = ({ label, onPress, testID, full, center }: { label: string; onPress: () => void; testID?: string; full?: boolean; center?: boolean }) => (
-  <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ alignSelf: full ? "stretch" : center ? "center" : "flex-start", height: 44, paddingHorizontal: 22, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{label}</Text></Pressable>
+  <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ alignSelf: full ? "stretch" : center ? "center" : "flex-start", height: 44, paddingHorizontal: 22, borderRadius: 6, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{label}</Text></Pressable>
 );
 
 function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: any) => void; onCancel: () => void }) {

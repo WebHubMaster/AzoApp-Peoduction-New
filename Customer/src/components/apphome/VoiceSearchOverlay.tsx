@@ -1,10 +1,12 @@
 /** Google/YouTube-style full-screen voice search overlay — pulsing mic + live transcript. */
 import React, { useEffect, useRef } from "react";
 import { Modal, View, Text, Pressable, Animated, Easing } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Mic, X } from "lucide-react-native";
 import { PRIMARY, ROSE } from "../../theme";
 
 export function VoiceSearchOverlay({ visible, heard, error, onCancel }: { visible: boolean; heard: string; error?: string; onCancel: () => void }) {
+  const insets = useSafeAreaInsets();
   const r0 = useRef(new Animated.Value(0)).current;
   const r1 = useRef(new Animated.Value(0)).current;
   const r2 = useRef(new Animated.Value(0)).current;
@@ -28,7 +30,7 @@ export function VoiceSearchOverlay({ visible, heard, error, onCancel }: { visibl
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
       <Pressable testID="voice-overlay" onPress={onCancel} style={{ flex: 1, backgroundColor: "rgba(9,13,24,0.86)", alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-        <Pressable testID="voice-close" onPress={onCancel} style={{ position: "absolute", top: 56, right: 24, height: 44, width: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
+        <Pressable testID="voice-close" onPress={onCancel} style={{ position: "absolute", top: insets.top + 12, right: 24, height: 44, width: 44, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.12)", alignItems: "center", justifyContent: "center" }}>
           <X size={22} color="#fff" />
         </Pressable>
 
