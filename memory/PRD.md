@@ -146,3 +146,13 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   or redirects. SelfieCamera already insets-aware. Fixed one hardcoded top:44 →
   insets.top+12 on the work-proof video-player close button (JobProof.tsx).
 - Verified: tsc clean, eslint 0 errors. Native keyboard/safe-area needs on-device confirm.
+
+## 2026-06 — Customer App: support chat → full-screen, WhatsApp-style keyboard
+- src/components/customer/SupportThread.tsx: was an embedded fixed-height "panel"
+  inside the customer shell (app header + bottom nav visible + wasted space below input).
+- Now renders as a full-screen Modal (statusBarTranslucent, slide) with its own
+  KeyboardProvider + KeyboardAvoidingView (behavior padding/height). Layout: safe-area
+  top padding → header → messages ScrollView (flex:1) → composer (paddingBottom
+  insets.bottom). Input now rises with the keyboard like a real chat app; no leftover
+  gap. Removed old winH/kbH/panelH manual height math.
+- Verified: Customer app tsc clean. Native keyboard needs on-device confirm.

@@ -1,8 +1,8 @@
 import { TC } from "@/src/theme";
 /** Support ticket thread — port of web SupportCenter.jsx `Thread` (mobile: conversation + info panel below). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
-import { useKeyboardState } from "react-native-keyboard-controller";
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, Platform } from "react-native";
+import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -42,11 +42,6 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const scrollRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
   const [infoOpen, setInfoOpen] = useState(false);
-  const { height: winH } = useWindowDimensions();
-  const kbH = useKeyboardState((k) => (k.isVisible ? k.height : 0));
-  // Full-height chat (fills the viewport between the app header and bottom nav); shrinks when the keyboard opens.
-  const fullH = Math.max(380, winH - insets.top - insets.bottom - 56 - 64 - 32);
-  const panelH = kbH > 0 ? Math.max(240, Math.min(fullH, winH - kbH - 150)) : fullH;
   const lastTypingSent = useRef(0);
   const closed = t.status === "closed";
 
@@ -115,12 +110,13 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
   const allAttachments = (t.messages || []).flatMap((m: any) => m.attachments || []);
   const others = (tickets || []).filter((x) => x.id !== ticket.id);
-  const panel = { borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" as const };
   const sec = { fontSize: 11, textTransform: "uppercase" as const, letterSpacing: 0.8, color: TC.textFaint, fontWeight: "700" as const, marginBottom: 8 };
 
   return (
-    <View testID="support-thread" style={{ gap: 16 }}>
-      <View style={{ ...panel, height: panelH }}>
+    <Modal visible transparent={false} animationType="slide" statusBarTranslucent onRequestClose={onBack}>
+      <KeyboardProvider>
+      <View testID="support-thread" style={{ flex: 1, backgroundColor: c.bg, paddingTop: insets.top }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
         {/* header */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: c.borderSoft }}>
           <Pressable testID="support-thread-back" onPress={onBack} hitSlop={8} style={{ height: 32, width: 32, borderRadius: 6, alignItems: "center", justifyContent: "center" }}><ArrowLeft size={16} color={c.text} /></Pressable>
@@ -179,11 +175,11 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
 
         {/* composer */}
         {closed ? (
-          <View testID="support-closed-note" style={{ paddingHorizontal: 16, paddingVertical: 16, borderTopWidth: 1, borderTopColor: c.borderSoft, backgroundColor: c.bg, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <View testID="support-closed-note" style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: insets.bottom + 16, borderTopWidth: 1, borderTopColor: c.borderSoft, backgroundColor: c.bg, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
             <CheckCircle2 size={16} color={EMERALD[500]} /><Text style={{ fontSize: 14, color: TC.textMuted, flex: 1 }}>This ticket is closed. Please raise a new ticket for further help.</Text>
           </View>
         ) : (
-          <View style={{ borderTopWidth: 1, borderTopColor: c.borderSoft, padding: 12, gap: 8 }}>
+          <View style={{ borderTopWidth: 1, borderTopColor: c.borderSoft, paddingHorizontal: 12, paddingTop: 12, paddingBottom: insets.bottom + 12, gap: 8, backgroundColor: c.surface }}>
             {pending.length > 0 ? (
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {pending.map((a, i) => (
@@ -203,7 +199,7 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
             </View>
           </View>
         )}
-      </View>
+      </KeyboardAvoidingView>
 
       {/* info panel — opened from the header (i) button */}
       <Modal visible={infoOpen} transparent animationType="slide" onRequestClose={() => setInfoOpen(false)}>
@@ -254,6 +250,8 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
           <View style={{ position: "absolute", top: 16, right: 16, height: 40, width: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.2)", alignItems: "center", justifyContent: "center" }}><X size={20} color="#fff" /></View>
         </Pressable>
       </Modal>
-    </View>
+      </View>
+      </KeyboardProvider>
+    </Modal>
   );
 }
