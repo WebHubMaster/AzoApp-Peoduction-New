@@ -449,7 +449,7 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleString();
 }
 /* ── Dispatch Control Center: premium live sliders ── */
-const JK_FONT = "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif";
+const JK_FONT = "'Inter',system-ui,sans-serif";
 const ControlCard = ({ k, icon: Icon, label, min, max, step = 1, unit, help, value, disabled, onDrag, onCommit }) => {
   const pct = Math.max(0, Math.min(100, Math.round(((value - min) / (max - min)) * 100)));
   return (

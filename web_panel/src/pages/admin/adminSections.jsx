@@ -2780,7 +2780,7 @@ export const LiveOps = ({ onNavigate }) => {
   const clearFilters = () => { setQ(""); setCityF("all"); setSvcF("all"); };
 
   return (
-    <div data-testid="live-ops" style={{ fontFamily: "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif" }}>
+    <div data-testid="live-ops" style={{ fontFamily: "'Inter',system-ui,sans-serif" }}>
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
         <div className="flex items-start gap-3">

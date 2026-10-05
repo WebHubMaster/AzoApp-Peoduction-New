@@ -158,3 +158,12 @@ Env note: this pod has empty Mongo + missing backend/.env, so backend/web-panel 
 - Wallet: top-up amount input + Add Money ab dono flex:1 same size (h44); search+All types+All time ab ek line me (no wrap).
 - Home: hero ke quick-action chips (Bookings/Wallet/Addresses/Support) हटाए; StatTile label single-line (Total Bookings ek line me).
 Verification: eslint clean (only pre-existing warnings); Android bundle compiles (HTTP 200, no resolve/syntax errors). Preview served via Expo on port 3000; URL exp://5e34fdf6-...preview.emergentagent.com (open in Expo Go).
+
+---
+## UI Update — Squared 6px Design Language + Inter (2026-06)
+- Scope: web_panel (admin, partner, customer, merchant panels).
+- All cards, buttons, search boxes, filter chips, inputs, pills, badges, avatars, dots & toggles unified to **6px** corner radius; loading spinners kept circular (animate-spin exempt) so the rotating ring doesn't look broken.
+- Implemented centrally (no mass JSX edits):
+  - `src/index.css`: added squared-radius override block (`.rounded-full`, directional `rounded-*-full`, arbitrary `rounded-[..]`, inline `border-radius:50%/9999px`) → 6px !important; `--control-radius` 8px→6px. Tailwind config already maps all named radii to `var(--radius)=6px`.
+  - Font Inter enforced everywhere: replaced Plus Jakarta Sans (`JK`/`JK_FONT` in admin Live-Ops/Dispatch/PartnerCoverage/LiveOpsSearching + adminSections live-ops) and Segoe UI (MerchantPanels print template) with Inter. Print template radii (18/14/28px) → 6px.
+- Verified via screenshots: customer landing + login/auth screens render squared 6px + Inter. Global CSS => applies to all 4 panels.

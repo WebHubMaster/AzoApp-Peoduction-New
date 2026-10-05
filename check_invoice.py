@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://wallet-slider.preview.emergentagent.com/api"
+BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

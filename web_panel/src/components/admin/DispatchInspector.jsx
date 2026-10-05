@@ -7,7 +7,7 @@ import {
   Wallet, ChevronRight,
 } from "lucide-react";
 
-const JK = "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif";
+const JK = "'Inter',system-ui,sans-serif";
 
 const SOURCE_LABEL = {
   auto_broadcast: "Wave 1 · nearest",

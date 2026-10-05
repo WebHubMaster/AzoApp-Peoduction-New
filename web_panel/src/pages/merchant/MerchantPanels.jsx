@@ -48,11 +48,11 @@ function printReceipt({ logo, shopName = "My Shop", title, rows = [], total, foo
     ? `<div class="total"><span>Total</span><span>${total}</span></div>` : "";
   w.document.write(`<!doctype html><html><head><title>${shopName} — ${title}</title>
     <style>
-      *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;color:#0f172a}
+      *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',Arial,sans-serif;color:#0f172a}
       body{padding:40px;background:#fff}
-      .doc{max-width:520px;margin:0 auto;border:1px solid #e2e8f0;border-radius:18px;overflow:hidden}
+      .doc{max-width:520px;margin:0 auto;border:1px solid #e2e8f0;border-radius:6px;overflow:hidden}
       .head{background:linear-gradient(135deg,#0D47A1,#1565C0);color:#fff;padding:24px 28px;display:flex;align-items:center;gap:14px}
-      .logo{width:56px;height:56px;border-radius:14px;object-fit:cover;background:#fff;padding:4px}
+      .logo{width:56px;height:56px;border-radius:6px;object-fit:cover;background:#fff;padding:4px}
       .head h1{font-size:22px;font-weight:800;color:#fff}
       .head p{font-size:12px;opacity:.85;letter-spacing:1px;text-transform:uppercase}
       .title{padding:18px 28px 0;font-size:15px;font-weight:700;color:#334155}
@@ -902,7 +902,7 @@ export function ScanQR({ code, shopName = "My Shop" }) {
     w.document.write(`<!doctype html><html><head><title>${shopName} — Booking Poster</title>
       <style>*{margin:0;padding:0;box-sizing:border-box}
       body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f1f5f9}
-      img{width:560px;max-width:92vw;height:auto;border-radius:28px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+      img{width:560px;max-width:92vw;height:auto;border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
       @media print{body{background:#fff}img{box-shadow:none}}
       </style></head><body onload="setTimeout(function(){window.print()},300)"><img src="${url}"/></body></html>`);
     w.document.close();

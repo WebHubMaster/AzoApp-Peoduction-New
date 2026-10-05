@@ -8,7 +8,7 @@ import {
   UserPlus, Eye, Search, X, Loader2, Star, Timer, ChevronRight, RadioTower,
 } from "lucide-react";
 
-const JK = "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif";
+const JK = "'Inter',system-ui,sans-serif";
 
 export const fmtDur = (sec) => {
   sec = Math.max(0, Math.floor(sec));

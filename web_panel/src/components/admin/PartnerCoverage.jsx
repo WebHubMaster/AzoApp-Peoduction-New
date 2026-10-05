@@ -4,7 +4,7 @@ import {
   MapPin, Star, Phone, RefreshCw, Loader2, Radar, Circle,
 } from "lucide-react";
 
-const JK = "'Plus Jakarta Sans','Public Sans',system-ui,sans-serif";
+const JK = "'Inter',system-ui,sans-serif";
 
 /* Deterministic pseudo-position so the same partner stays put between refreshes. */
 const hashPos = (id, i) => {

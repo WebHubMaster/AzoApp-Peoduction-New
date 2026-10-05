@@ -17,7 +17,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://wallet-slider.preview.emergentagent.com",
+    "https://multi-panel-ui.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -27,7 +27,7 @@ CAPTION = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link:\n"
-    f"https://wallet-slider.preview.emergentagent.com/?ref={VALID_CODE}"
+    f"https://multi-panel-ui.preview.emergentagent.com/?ref={VALID_CODE}"
 )
 
 

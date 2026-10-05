@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://wallet-slider.preview.emergentagent.com/api"
+BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

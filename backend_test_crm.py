@@ -8,7 +8,7 @@ import io
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://wallet-slider.preview.emergentagent.com/api"
+BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
 
 # Test credentials
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals

@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://wallet-slider.preview.emergentagent.com/api"
+BACKEND_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

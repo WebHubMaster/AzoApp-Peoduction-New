@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://wallet-slider.preview.emergentagent.com/api"
+BASE_URL = "https://multi-panel-ui.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

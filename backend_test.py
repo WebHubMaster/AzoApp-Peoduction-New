@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://wallet-slider.preview.emergentagent.com"
+BASE_URL = "https://multi-panel-ui.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
