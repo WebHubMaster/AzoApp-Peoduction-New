@@ -201,3 +201,8 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 1. Partner receipt line (frontend/app/(partner)/partner/job/[id].tsx DoneStep): completed COS job shows "Token already paid online" + "Cash collected from customer" (data-testid done-cos-receipt / done-cos-cash). Also recorded in partner_ledger as `cos_cash_earning`.
 2. Admin COS report: backend GET /api/admin/bookings-cos-report (admin_controller.cos_report) → {bookings, count, totals{token_paid, cash_to_collect, cash_collected, cash_pending}}. Web: BookingsPro "Cash on Service" filter button (bk-cos-filter) + totals strip (bk-cos-totals). Tested 100% (3 backend + 3 frontend).
 3. Partner cash reminder: booking_controller.partner_set_travel_status — on "On my way" (arrived_shop) for a COS booking, sends a `cos_cash_reminder` notification with the exact cash to collect.
+
+## COS admin UI relocation (2026-06)
+- Removed the extra standalone "Business Settings" sidebar tab (reverted AdminDashboard nav link + removed COS toggle from adminSections.jsx standalone page).
+- Cash on Service toggle + Partner Reminder Lead Time now live inside the Integration Center → Business Settings modal (adminTemplateIntegration.jsx BusinessModal): fields cos_enabled (default ON) + reminder_lead_minutes (default 30), saved via PUT /admin/settings business_config (deep-merge, verified). data-testid: biz-cos-enabled, biz-reminder-lead.
+- Commission (confirmed, no change needed): category_commission_service.resolve() already uses the per-category "Commission & Refund" config when set, else falls back to the global commission block. COS token (= total − partner_share) therefore automatically uses the correct category-or-global commission.

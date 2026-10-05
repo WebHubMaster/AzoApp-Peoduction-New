@@ -1735,6 +1735,8 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
     max_distance_km: biz.max_distance_km ?? "",
     platform_fee: biz.platform_fee ?? 10,
     min_labour_charge: biz.min_labour_charge ?? "",
+    cos_enabled: biz.cos_enabled !== false,
+    reminder_lead_minutes: biz.reminder_lead_minutes ?? 30,
   });
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
@@ -1753,6 +1755,8 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           apply_platform_fee: true,
           platform_fee: f.platform_fee === "" ? 10 : Math.max(0, Number(f.platform_fee) || 0),
           min_labour_charge: Number(f.min_labour_charge) || 0,
+          cos_enabled: !!f.cos_enabled,
+          reminder_lead_minutes: Number(f.reminder_lead_minutes) || 30,
         },
       });
       toast.success("Business settings saved"); onSaved();
@@ -1788,6 +1792,27 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           <div className="pt-3 border-t border-slate-100">
             <L label="Platform Fee (₹)"><Input data-testid="biz-platform-fee" type="number" min="0" value={f.platform_fee} onChange={(e) => set("platform_fee", e.target.value)} placeholder="e.g. 10" /></L>
             <p className="text-[11px] text-slate-400 mt-1">Flat platform fee added to every booking (once per order). Default ₹10.</p>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Cash on Service</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Let customers pay a non-refundable token online (the platform's cut) and the rest in cash to the professional after the job. Turn off to hide this payment option everywhere.</p>
+            </div>
+            <button type="button" data-testid="biz-cos-enabled" onClick={() => set("cos_enabled", !f.cos_enabled)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition ${f.cos_enabled ? "bg-emerald-500" : "bg-slate-300"}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${f.cos_enabled ? "left-[22px]" : "left-0.5"}`} />
+            </button>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100">
+            <L label="Partner Reminder Lead Time">
+              <PremiumSelect data-testid="biz-reminder-lead" value={String(f.reminder_lead_minutes)} onChange={(e) => set("reminder_lead_minutes", e.target.value)}
+                className="w-full h-10 rounded-md border border-slate-200 px-3 text-sm">
+                {[10, 15, 30, 45, 60, 90, 120].map((m) => <option key={m} value={m}>{m} minutes before</option>)}
+              </PremiumSelect>
+            </L>
+            <p className="text-[11px] text-slate-400 mt-1">Full-screen reminder ring + Call/Chat/Navigation &amp; OTP unlock fire this many minutes before a scheduled job starts.</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-3">
