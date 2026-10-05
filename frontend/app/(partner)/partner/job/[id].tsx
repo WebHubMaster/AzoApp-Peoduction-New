@@ -511,6 +511,13 @@ function DoneStep({ b }: { b: any }) {
       <Text style={{ color: colors.text, fontSize: 22, fontWeight: "900", marginTop: 16 }}>Job completed!</Text>
       <Text style={{ color: colors.textMuted, fontSize: 13.5, marginTop: 6, textAlign: "center" }}>{b.service_name} · #{b.code}</Text>
       {earning != null ? <View style={{ marginTop: 18, borderRadius: 6, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text style={{ color: "#047857", fontSize: 26, fontWeight: "900" }}>{fmt(earning)}</Text></View> : null}
+      {b.payment_method === "cos" && b.cos ? (
+        <View testID="done-cos-receipt" style={{ marginTop: 16, width: "100%", borderRadius: 6, backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FED7AA", paddingHorizontal: 16, paddingVertical: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Icon name="cash-multiple" size={15} color="#9A3412" /><Text style={{ color: "#9A3412", fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>Cash On Service</Text></View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 3 }}><Text style={{ color: "#9A3412", fontSize: 13 }}>Token already paid online</Text><Text style={{ color: "#9A3412", fontSize: 13, fontWeight: "700" }}>{fmt(b.cos.token_amount)}</Text></View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, borderTopWidth: 1, borderTopColor: "#FED7AA", marginTop: 3, paddingTop: 6 }}><Text style={{ color: "#7C2D12", fontSize: 13, fontWeight: "700" }}>Cash collected from customer</Text><Text testID="done-cos-cash" style={{ color: "#7C2D12", fontSize: 14, fontWeight: "900" }}>{fmt(b.cos.collected_amount ?? b.cos.cash_to_collect)}</Text></View>
+        </View>
+      ) : null}
     </Card>
   );
 }

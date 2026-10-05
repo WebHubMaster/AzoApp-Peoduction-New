@@ -286,6 +286,11 @@ async def bookings(status: str = None, admin=Depends(ADMIN)):
     return await c.all_bookings(status)
 
 
+@router.get("/bookings-cos-report")
+async def bookings_cos_report(status: str = None, admin=Depends(ADMIN)):
+    return await c.cos_report(status)
+
+
 @router.get("/bookings/{booking_id}/detail")
 async def booking_detail(booking_id: str, admin=Depends(ADMIN)):
     return await c.booking_detail(booking_id)

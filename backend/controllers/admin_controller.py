@@ -832,6 +832,44 @@ async def all_bookings(status=None):
     return await db.bookings.find(q, {"_id": 0}).sort("created_at", -1).to_list(1000)
 
 
+async def cos_report(status: str = None):
+    """Cash On Service report: every COS booking with its token-paid (online) and
+    cash-to-collect / cash-collected amounts, plus summary totals."""
+    q = {"payment_method": "cos"}
+    if status:
+        q["status"] = status
+    rows = await db.bookings.find(q, {"_id": 0}).sort("created_at", -1).to_list(2000)
+    out, tot_token, tot_cash_due, tot_cash_collected = [], 0.0, 0.0, 0.0
+    for b in rows:
+        cos = b.get("cos") or {}
+        pr = b.get("pricing") or {}
+        token = round(float(cos.get("token_amount") or 0), 2)
+        cash_due = round(float(cos.get("cash_to_collect") or 0), 2)
+        collected = round(float(cos.get("collected_amount") or 0), 2) if cos.get("cash_collected") else 0.0
+        tot_token += token
+        tot_cash_due += cash_due
+        tot_cash_collected += collected
+        out.append({
+            "id": b.get("id"), "code": b.get("code"), "status": b.get("status"),
+            "customer_name": b.get("customer_name"), "partner_name": b.get("partner_name"),
+            "service_name": b.get("service_name"), "category_name": b.get("category_name"),
+            "total": round(float(pr.get("total") or 0), 2),
+            "token_amount": token, "token_paid": bool(cos.get("token_paid")),
+            "cash_to_collect": cash_due, "cash_collected": bool(cos.get("cash_collected")),
+            "collected_amount": collected,
+            "created_at": b.get("created_at"), "updated_at": b.get("updated_at"),
+        })
+    return {
+        "bookings": out, "count": len(out),
+        "totals": {
+            "token_paid": round(tot_token, 2),
+            "cash_to_collect": round(tot_cash_due, 2),
+            "cash_collected": round(tot_cash_collected, 2),
+            "cash_pending": round(max(0.0, tot_cash_due - tot_cash_collected), 2),
+        },
+    }
+
+
 async def _merchant_public(mid):
     """Minimal, safe merchant profile for the booking detail view."""
     if not mid:

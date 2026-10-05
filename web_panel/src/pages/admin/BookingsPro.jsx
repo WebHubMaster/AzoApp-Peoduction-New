@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { Search, SlidersHorizontal, Download, ChevronDown, X, AlertTriangle, RefreshCcw, Inbox, ClipboardList, Clock, Activity, CheckCircle2, Wallet, XCircle } from "lucide-react";
-import api from "@/lib/api";
+import { Search, SlidersHorizontal, Download, ChevronDown, X, AlertTriangle, RefreshCcw, Inbox, ClipboardList, Clock, Activity, CheckCircle2, Wallet, XCircle, Banknote } from "lucide-react";
+import api, { fmt } from "@/lib/api";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
   const [size, setSize] = useState(10);
   const [selected, setSelected] = useState(() => new Set());
   const [view, setView] = useState(null);
+  const [cosOnly, setCosOnly] = useState(false);
   const isMobile = useIsMobile();
 
   const load = useCallback(() => { setErr(false); setRows(null); api.get("/admin/bookings").then((r) => setRows(r.data || [])).catch(() => setErr(true)); }, []);
@@ -67,12 +68,26 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
       && (!adv.payment || (b.payment_status || "pending") === adv.payment)
       && (!adv.customer || `${b.customer_name || ""} ${b.customer_phone || ""}`.toLowerCase().includes(adv.customer.toLowerCase()))
       && (!adv.partner || (adv.partner.toLowerCase() === "unassigned" ? !b.partner_name : String(b.partner_name || "").toLowerCase().includes(adv.partner.toLowerCase())))
-      && (adv.min === "" || amountOf(b) >= Number(adv.min)) && (adv.max === "" || amountOf(b) <= Number(adv.max)) && inRange(adv.date, b.created_at));
+      && (adv.min === "" || amountOf(b) >= Number(adv.min)) && (adv.max === "" || amountOf(b) <= Number(adv.max)) && inRange(adv.date, b.created_at)
+      && (!cosOnly || (b.payment_method === "cos")));
     const v = (b) => (sort.key === "amount" ? amountOf(b) : String(b[sort.key] ?? ""));
     return out.sort((x, y) => { const a = v(x), b = v(y); const r = typeof a === "number" ? a - b : a.localeCompare(b); return sort.dir === "asc" ? r : -r; });
-  }, [all, tab, q, qs, qt, date, adv, sort]);
+  }, [all, tab, q, qs, qt, date, adv, sort, cosOnly]);
 
-  useEffect(() => { setPage(1); }, [tab, q, qs, qt, date, adv]);
+  const cosTotals = useMemo(() => {
+    const r = { token_paid: 0, cash_to_collect: 0, cash_collected: 0 };
+    for (const b of filtered) {
+      if (b.payment_method !== "cos") continue;
+      const c = b.cos || {};
+      r.token_paid += Number(c.token_amount || 0);
+      r.cash_to_collect += Number(c.cash_to_collect || 0);
+      r.cash_collected += c.cash_collected ? Number(c.collected_amount || 0) : 0;
+    }
+    r.cash_pending = Math.max(0, r.cash_to_collect - r.cash_collected);
+    return r;
+  }, [filtered]);
+
+  useEffect(() => { setPage(1); }, [tab, q, qs, qt, date, adv, cosOnly]);
   const pages = Math.max(1, Math.ceil(filtered.length / size));
   const pageRows = filtered.slice((Math.min(page, pages) - 1) * size, Math.min(page, pages) * size);
   const nAdv = advCount(adv);
@@ -93,8 +108,22 @@ export default function BookingsPro({ onOpen, onOpenCustomer, tab: tabProp, onTa
       <div className="space-y-4 text-[14px]" data-testid="bookings-page">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div><h1 className="text-[24px] leading-8 font-bold tracking-tight text-[#111827] dark:text-white">Bookings</h1><p className="text-[13.5px] text-[#6B7280]">Manage, monitor and track all customer bookings and service orders.</p></div>
-          <Button variant="outline" className="h-9 text-[13.5px] self-start" disabled={!rows} onClick={() => doExport(filtered, "bookings")} data-testid="bk-export-top"><Download className="h-4 w-4" /> Export</Button>
+          <div className="flex items-center gap-2 self-start">
+            <Button variant={cosOnly ? "default" : "outline"} className={`h-9 text-[13.5px] ${cosOnly ? "bg-amber-500 hover:bg-amber-600 border-amber-500" : ""}`} disabled={!rows} onClick={() => setCosOnly((v) => !v)} data-testid="bk-cos-filter"><Banknote className="h-4 w-4" /> Cash on Service</Button>
+            <Button variant="outline" className="h-9 text-[13.5px]" disabled={!rows} onClick={() => doExport(filtered, "bookings")} data-testid="bk-export-top"><Download className="h-4 w-4" /> Export</Button>
+          </div>
         </div>
+
+        {cosOnly && rows ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5" data-testid="bk-cos-totals">
+            {[["Token paid (online)", cosTotals.token_paid, "text-emerald-700"], ["Cash to collect", cosTotals.cash_to_collect, "text-slate-800"], ["Cash collected", cosTotals.cash_collected, "text-emerald-700"], ["Cash pending", cosTotals.cash_pending, "text-amber-700"]].map(([l, v, c]) => (
+              <div key={l} className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2.5">
+                <span className="block text-[11.5px] text-amber-800/80 truncate">{l}</span>
+                <span className={`block text-[17px] leading-6 font-bold tabular-nums ${c}`} data-testid={`bk-cos-${String(l).toLowerCase().replace(/[^a-z]+/g, "-").replace(/-$/, "")}`}>{fmt(v)}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar -mx-1 px-1 pb-0.5" role="tablist" data-testid="bk-status-tabs">
           {!rows && !err && [0, 1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-8 w-28 rounded-lg shrink-0" />)}

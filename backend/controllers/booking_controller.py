@@ -2891,6 +2891,19 @@ async def partner_set_travel_status(partner, booking_id, status):
     if b["status"] not in allowed[status]:
         raise HTTPException(status_code=400, detail="Invalid step")
     out = await _advance(booking_id, status)
+    # Cash On Service reminder: when the partner sets off ("On my way"), remind them of
+    # the EXACT cash to collect from the customer after the job.
+    if status == "arrived_shop" and (b.get("payment_method") or "") == "cos":
+        _cash = money.money((b.get("cos") or {}).get("cash_to_collect") or 0)
+        if _cash > 0:
+            try:
+                await _notify(partner["id"], "Cash On Service — collect \u20b9{:.0f}".format(_cash),
+                              f"This is a Cash On Service job (#{b.get('code')}). Collect \u20b9{_cash} in cash from the customer after the work is done and the completion OTP is verified.",
+                              "cos_cash_reminder",
+                              {"booking_id": booking_id, "code": b.get("code"), "type": "booking_status",
+                               "cash_to_collect": _cash})
+            except Exception:
+                pass
     out["otps"] = {}
     return _slim_partner_job(out, partner["id"])
 
