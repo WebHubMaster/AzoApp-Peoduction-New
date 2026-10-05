@@ -167,3 +167,10 @@ Verification: eslint clean (only pre-existing warnings); Android bundle compiles
   - `src/index.css`: added squared-radius override block (`.rounded-full`, directional `rounded-*-full`, arbitrary `rounded-[..]`, inline `border-radius:50%/9999px`) → 6px !important; `--control-radius` 8px→6px. Tailwind config already maps all named radii to `var(--radius)=6px`.
   - Font Inter enforced everywhere: replaced Plus Jakarta Sans (`JK`/`JK_FONT` in admin Live-Ops/Dispatch/PartnerCoverage/LiveOpsSearching + adminSections live-ops) and Segoe UI (MerchantPanels print template) with Inter. Print template radii (18/14/28px) → 6px.
 - Verified via screenshots: customer landing + login/auth screens render squared 6px + Inter. Global CSS => applies to all 4 panels.
+
+---
+## Bug Fix — Login broken (missing backend/.env) (2026-06)
+- Root cause: `/app/backend/.env` was missing → FastAPI startup `KeyError: 'MONGO_URL'` → backend 502 on every `/api` call → all logins failed.
+- Fix: recreated `/app/backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database, JWT_SECRET, CORS_ORIGINS=*). Restarted backend; startup `seed()` repopulated demo accounts.
+- Verified (testing_agent, iteration_login_env_fix.json, 100% pass): OTP login works for admin/partner/customer/merchant via one-click demo buttons and manual OTP (123456).
+- test_credentials.md updated.
