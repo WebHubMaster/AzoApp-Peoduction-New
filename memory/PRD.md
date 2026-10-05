@@ -165,3 +165,15 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   2. Added `booking_code` to `_summary()` so client-side dedup + ticket lists work correctly.
 - Behaviour preserved: different booking → separate ticket; a closed ticket → a new click opens a fresh ticket; SOS path unchanged (already deduped).
 - Verified directly against the service layer: 3 clicks → 1 ticket.
+
+## Feature — Partner single-device login (last-login-wins) (2026-06)
+- Change: `backend/services/auth_service.py verify_otp()` — a partner logging in on a NEW device now REBINDS the account to it instead of being blocked (`device_mismatch` removed from the normal path). The old device's JWT `did` no longer matches `registered_device_id`, so `middleware/auth.get_current_user` returns 401 `device_revoked` on its next request → old device auto-logs-out. No admin "Reset Device" needed.
+- Partner app (frontend) already handles `device_revoked` → force logout (client.ts / AuthContext).
+- Verified via real API: Device A login OK → Device B login OK → Device A `/auth/me` = 401 device_revoked.
+
+## Feature — Rate-card direct booking: commission on labour + visiting + quick-service fee (2026-06)
+- "Quick Service Fee" = the ASAP/emergency fee (`emergency_fee`, shown as "Quick Services" in UI).
+- For rate-card / custom bookings the commissionable base is now LABOUR + VISITING (if applicable) + QUICK/EMERGENCY fee (if applicable), using that category's commission %. The product/service cost stays a 0-commission pass-through to the partner. Normal (non-rate-card) bookings unchanged.
+- Files: `backend/services/engines.py compute()` (single service) and `backend/controllers/booking_controller.py cart_quote()` (cart). Both feed `PricingEngine.finalize`, where `tax_base = commission + platform_fee` and `gst = tax_base × gst%`.
+- Backend is the single source of truth; Customer app, Partner app and web all render the same breakdown → fixed everywhere at once.
+- Verified: product ₹1000 + labour ₹200 + quick ₹150 → base ₹350, commission 40% = ₹140, GST base ₹150 (140+10 platform fee), GST ₹27; partner gets ₹1210 incl. ₹1000 pass-through.

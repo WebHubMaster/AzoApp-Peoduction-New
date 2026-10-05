@@ -179,12 +179,20 @@ async def verify_otp(phone: str, otp: str, name: str = None, create_if_new: bool
                 "$push": {"device_history": {"$each": [entry], "$slice": -15}}})
             user["registered_device_id"] = device_id
         elif reg != device_id:
-            # Audit the blocked attempt from an unregistered device.
-            entry = {"event": "blocked", "device_id": device_id,
-                     "device_name": device_name or "", "at": now_iso()}
-            await db.users.update_one({"id": user["id"]},
-                                      {"$push": {"device_history": {"$each": [entry], "$slice": -15}}})
-            return {"ok": False, "reason": "device_mismatch"}
+            # Last-login-wins: a login from a NEW device REBINDS the account to it and
+            # automatically logs the PREVIOUS device out (the old JWT's `did` no longer
+            # matches registered_device_id → middleware returns 401 `device_revoked` on
+            # its next request). No admin "Reset Device" is needed anymore.
+            entry = {"event": "switched", "device_id": device_id,
+                     "device_name": device_name or "", "at": now_iso(),
+                     "from_device_id": reg,
+                     "from_device_name": user.get("registered_device_name", "")}
+            _set = {"registered_device_id": device_id, "device_registered_at": now_iso(),
+                    "registered_device_name": device_name or ""}
+            await db.users.update_one({"id": user["id"]}, {
+                "$set": _set,
+                "$push": {"device_history": {"$each": [entry], "$slice": -15}}})
+            user["registered_device_id"] = device_id
         elif device_name and user.get("registered_device_name") != device_name:
             # Same registered device — keep its human-readable label fresh.
             await db.users.update_one({"id": user["id"]}, {"$set": {"registered_device_name": device_name}})

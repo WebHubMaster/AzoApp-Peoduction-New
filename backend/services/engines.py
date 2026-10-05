@@ -171,10 +171,12 @@ class PricingEngine:
             "platform_fee": platform_fee, "discount": discount,
             "commission_pct": await PricingEngine.commission_pct(settings, service.get("category_id")),
         }
-        # Rate-card / custom items: only the labour charge is commissionable (service
-        # cost is NOT). When provided, commission applies to this amount only.
+        # Rate-card / custom items: commission applies to the LABOUR charge PLUS the
+        # Visiting Charge and Quick Service (emergency) Fee whenever they apply — the
+        # product/service cost stays a pass-through to the partner (no commission).
         if commission_base is not None:
-            pricing["commission_base"] = money.money(commission_base)
+            pricing["commission_base"] = money.add(money.money(commission_base),
+                                                   visiting_charge, emergency_fee)
         return PricingEngine.finalize(pricing, settings["gst_pct"])
 
     @staticmethod

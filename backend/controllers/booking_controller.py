@@ -533,10 +533,12 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
         "convenience_fee": money.money(convenience_fee), "platform_fee": money.money(platform_fee),
         "subtotal": subtotal, "discount": money.money(discount),
         "commission_pct": commission_pct,
-        # Pure rate-card cart (every line is a custom/rate-card item): only the labour
-        # charge is commissionable — the product/service cost passes through to the
-        # partner with NO commission. Mixed/normal carts keep the full base.
-        **({"commission_base": money.money(labour_total)}
+        # Pure rate-card cart (every line is a custom/rate-card item): commission applies
+        # to the LABOUR charge PLUS the Visiting Charge and Quick Service (emergency) Fee
+        # when they apply. The product/service cost passes through to the partner with NO
+        # commission. Mixed/normal carts keep the full base (unchanged).
+        **({"commission_base": money.add(money.money(labour_total),
+                                         money.money(visiting_charge), money.money(emergency_fee))}
            if items and all(it.get("custom") for it in items) else {}),
     }, settings["gst_pct"])
     # Active membership → automatic % discount on top (platform-absorbed).
