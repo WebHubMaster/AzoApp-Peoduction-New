@@ -75,6 +75,15 @@ async def create_ticket(user, data: dict):
         raise HTTPException(status_code=400, detail="Please enter a subject")
     category = data.get("category") if data.get("category") in CATEGORIES else "other"
     priority = data.get("priority") if data.get("priority") in PRIORITIES else "medium"
+    booking_code = (data.get("booking_code") or "").strip()
+    # One ticket per booking: if an open (non-closed) ticket already exists for this
+    # user + booking, reuse it instead of creating a duplicate on every Help/SOS click.
+    if booking_code:
+        existing = await db.support_tickets.find_one(
+            {"user_id": user["id"], "booking_code": booking_code, "status": {"$ne": "closed"}},
+            {"_id": 0})
+        if existing:
+            return existing
     text = (data.get("message") or "").strip()
     atts = _clean_attachments(data.get("attachments"))
     if not text and not atts:
@@ -87,7 +96,7 @@ async def create_ticket(user, data: dict):
         "user_id": user["id"], "user_name": user.get("name") or "User",
         "user_role": user["role"], "user_phone": user.get("phone", ""),
         "subject": subject, "category": category, "priority": priority,
-        "status": "open", "booking_code": (data.get("booking_code") or "").strip(),
+        "status": "open", "booking_code": booking_code,
         "assigned_to": None, "assigned_name": None,
         "messages": [first],
         "unread_admin": 1, "unread_user": 0,
@@ -379,6 +388,7 @@ def _summary(t):
     return {
         "id": t["id"], "code": t["code"], "subject": t["subject"],
         "category": t["category"], "priority": t["priority"], "status": t["status"],
+        "booking_code": t.get("booking_code", ""),
         "user_name": t["user_name"], "user_role": t["user_role"], "user_phone": t.get("user_phone", ""),
         "assigned_name": t.get("assigned_name"),
         "unread_admin": t.get("unread_admin", 0), "unread_user": t.get("unread_user", 0),

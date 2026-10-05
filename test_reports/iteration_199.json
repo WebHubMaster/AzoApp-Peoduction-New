@@ -19,6 +19,6 @@
   "seed_data_creation": "None",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "Preview partner web export lives at https://full-width-booking.preview.emergentagent.com/pp/index.html (baseUrl /pp). To route to any screen use history.pushState + popstate dispatch after waiting ~6s for the Expo bundle to boot. Admin branding (logo_light/logo/logo_dark) is empty in this preview so the AzoApp text fallback is rendered — this is expected, not a bug.",
+  "context_for_next_testing_agent": "Preview partner web export lives at https://customer-support-fix.preview.emergentagent.com/pp/index.html (baseUrl /pp). To route to any screen use history.pushState + popstate dispatch after waiting ~6s for the Expo bundle to boot. Admin branding (logo_light/logo/logo_dark) is empty in this preview so the AzoApp text fallback is rendered — this is expected, not a bug.",
   "rca of the issue": "N/A — no issues found."
 }

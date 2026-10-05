@@ -10,7 +10,7 @@ import requests
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://full-width-booking.preview.emergentagent.com/api"
+BASE_URL = "https://customer-support-fix.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo accounts

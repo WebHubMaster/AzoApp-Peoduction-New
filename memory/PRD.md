@@ -156,3 +156,12 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   insets.bottom). Input now rises with the keyboard like a real chat app; no leftover
   gap. Removed old winH/kbH/panelH manual height math.
 - Verified: Customer app tsc clean. Native keyboard needs on-device confirm.
+
+## Bug Fix — One support ticket per booking (2026-06)
+- Issue: Help/SOS button on an active booking created a NEW ticket on every click (Customer app, Partner app, web panel).
+- Root cause: `GET /api/support/tickets` summary (`_summary` in backend/services/support_service.py) omitted `booking_code`, so each client's dedup lookup (`t.booking_code === code`) never matched → always created a new ticket.
+- Fix (backend only, shared by all 3 apps):
+  1. `create_ticket()` is now idempotent per booking — if a non-closed ticket already exists for the same user + booking_code, it is reused instead of creating a duplicate.
+  2. Added `booking_code` to `_summary()` so client-side dedup + ticket lists work correctly.
+- Behaviour preserved: different booking → separate ticket; a closed ticket → a new click opens a fresh ticket; SOS path unchanged (already deduped).
+- Verified directly against the service layer: 3 clicks → 1 ticket.
