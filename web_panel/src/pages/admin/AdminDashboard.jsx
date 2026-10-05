@@ -291,6 +291,11 @@ export default function AdminDashboard() {
   const [dash, setDash] = useState(null);
   const [openBooking, setOpenBooking] = useState(null);
   const [bookingDetailId, setBookingDetailId] = useState(null);
+  // Deep link from alerts (e.g. face mismatch): /admin?tab=bookings&booking=<id>
+  useEffect(() => {
+    const sp = new URLSearchParams(window.location.search); const bid = sp.get("booking");
+    if (bid) setBookingDetailId(bid);
+  }, [typeof window !== "undefined" ? window.location.search : ""]); // eslint-disable-line react-hooks/exhaustive-deps
   const [bookingsTab, setBookingsTab] = useState("");
   const [viewUser, setViewUser] = useState(null);
   // Profile-update red dots: unread self-service profile changes per role (persisted server-side).

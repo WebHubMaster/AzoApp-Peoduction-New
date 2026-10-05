@@ -2127,6 +2127,7 @@ async def list_bookings(user):
     for b in rows:
         b["otps"] = _visible_otps(user, b)
         b["schedule"] = schedule_state(b)
+        _strip_face_match(user, b)
         # Canonical financial breakdown (single source of truth) — every panel renders
         # THIS, never re-derives amounts locally.
         b["breakdown"] = PricingEngine.build_breakdown(b, settings, audience=role)
@@ -2155,6 +2156,13 @@ async def list_bookings(user):
     return rows
 
 
+def _strip_face_match(user, b):
+    """Face-match verdict + KYC photo are admin-only."""
+    if user.get("role") not in ("admin", "staff"):
+        (b.get("checkin") or {}).pop("face_match", None)
+        b.pop("face_mismatch", None)
+
+
 async def _get_booking(booking_id):
     b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     if not b:
@@ -2169,6 +2177,7 @@ async def get_booking(user, booking_id):
     b["schedule"] = st
     b["otps"] = _visible_otps(user, b)
     b["breakdown"] = PricingEngine.build_breakdown(b, await get_settings(), audience=user.get("role"))
+    _strip_face_match(user, b)
     if user.get("role") in ("partner", "merchant"):
         _hide_platform_fees(b)
     # Customer needs the assigned partner's phone for the one-tap Call (tel:) button —
@@ -2864,6 +2873,7 @@ def _slim_partner_job(b: dict, partner_id: str = None) -> dict:
     hold hundreds of ids). Keeps only this partner's own eligible_detail entry."""
     b.pop("eligible_partner_ids", None)
     b.pop("idempotency_key", None)
+    _strip_face_match({"role": "partner"}, b)
     det = b.get("eligible_detail")
     if isinstance(det, dict) and partner_id:
         b["eligible_detail"] = {partner_id: det[partner_id]} if partner_id in det else {}
@@ -3012,7 +3022,13 @@ async def checkin_job(partner, booking_id, raw, content_type, lat, lng):
         dist = round(_haversine_km(float(lat), float(lng), float(a["lat"]), float(a["lng"])), 2)
     checkin = {"selfie_url": res["url"], "lat": lat, "lng": lng, "distance_km": dist,
                "far": bool(dist is not None and dist > 0.5), "at": now_iso()}
-    await db.bookings.update_one({"id": booking_id}, {"$set": {"checkin": checkin, "updated_at": now_iso()}})
+    await db.bookings.update_one({"id": booking_id}, {"$set": {"checkin": checkin, "face_mismatch": False, "updated_at": now_iso()}})
+    try:
+        import asyncio
+        from services import face_match_service
+        asyncio.create_task(face_match_service.run_checkin_face_match(booking_id, partner, res["url"]))
+    except Exception:  # noqa: BLE001
+        pass
     if lat is not None and lng is not None:
         try:
             await update_location(partner, booking_id, float(lat), float(lng))

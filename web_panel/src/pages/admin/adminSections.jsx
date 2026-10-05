@@ -360,7 +360,7 @@ export const BookingDetailModal = ({ booking, onClose, onChanged }) => {
           {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0 || b.checkin?.selfie_url) && (
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Work Proof Photos</p>
-              <WorkProofSection evidence={b.evidence} checkin={b.checkin} compact />
+              <WorkProofSection evidence={b.evidence} checkin={b.checkin} bookingId={b.id} admin compact />
             </div>
           )}
           {b.otps && Object.keys(b.otps).length > 0 && (
@@ -747,7 +747,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
           {/* Point #10 — partner-uploaded before/after work proof with full-size lightbox */}
           {((b.evidence?.before || []).length > 0 || (b.evidence?.after || []).length > 0 || b.checkin?.selfie_url) && (
             <DCard title="Work Proof Photos" icon={Camera}>
-              <WorkProofSection evidence={b.evidence} checkin={b.checkin} compact />
+              <WorkProofSection evidence={b.evidence} checkin={b.checkin} bookingId={b.id} admin compact />
             </DCard>
           )}
 

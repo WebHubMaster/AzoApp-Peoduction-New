@@ -291,6 +291,18 @@ async def booking_detail(booking_id: str, admin=Depends(ADMIN)):
     return await c.booking_detail(booking_id)
 
 
+@router.post("/bookings/{booking_id}/face-match")
+async def booking_face_match(booking_id: str, admin=Depends(ADMIN)):
+    from fastapi import HTTPException
+    from config.database import db
+    from services import face_match_service
+    b = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "partner_id": 1, "checkin": 1})
+    if not b or not (b.get("checkin") or {}).get("selfie_url") or not b.get("partner_id"):
+        raise HTTPException(status_code=400, detail="No check-in selfie on this booking")
+    partner = await db.users.find_one({"id": b["partner_id"]}, {"_id": 0, "id": 1, "name": 1}) or {"id": b["partner_id"]}
+    return await face_match_service.run_checkin_face_match(booking_id, partner, b["checkin"]["selfie_url"])
+
+
 @router.get("/bookings/{booking_id}/detail/pdf")
 async def booking_detail_pdf(booking_id: str, admin=Depends(ADMIN)):
     from fastapi.responses import Response

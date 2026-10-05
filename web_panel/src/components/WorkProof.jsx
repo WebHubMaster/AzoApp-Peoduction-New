@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, ChevronLeft, ChevronRight, Camera, ImageOff, PlayCircle, MapPin } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Camera, ImageOff, PlayCircle, MapPin, ShieldAlert, ShieldCheck, ScanFace, RefreshCw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import api from "@/lib/api";
 
 /**
  * Shared work-proof (before/after photo) viewer used by Customer, Partner & Admin
@@ -100,10 +102,52 @@ function ProofBlock({ label, imgs, testid }) {
 }
 
 /** Before/After work-proof section (read-only) for customer & admin panels. */
-export function CheckinProof({ checkin }) {
+const FM_STYLE = {
+  match: { label: "Face matched", cls: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800" },
+  mismatch: { label: "Face mismatch", cls: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/20 dark:text-rose-300 dark:border-rose-800" },
+  unverified: { label: "Face not verified", cls: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700" },
+};
+
+/** Admin-only: KYC photo vs check-in selfie verdict + re-check. */
+function FaceMatchPanel({ bookingId, checkin }) {
+  const [fm, setFm] = useState(checkin?.face_match || null);
+  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const recheck = async () => {
+    setBusy(true);
+    try { const { data } = await api.post(`/admin/bookings/${bookingId}/face-match`); setFm(data); toast.success(`Face check: ${FM_STYLE[data.status]?.label || data.status}`); }
+    catch (e) { toast.error(e?.response?.data?.detail || "Face check failed"); }
+    finally { setBusy(false); }
+  };
+  const st = FM_STYLE[fm?.status] || null;
+  return (
+    <div data-testid="face-match-panel" className={`rounded-xl border p-2.5 text-xs ${st ? st.cls : "bg-slate-50 border-slate-200 text-slate-600 dark:bg-slate-800/50 dark:border-slate-700 dark:text-slate-300"}`}>
+      <div className="flex items-center gap-2 flex-wrap">
+        {fm?.status === "mismatch" ? <ShieldAlert className="h-4 w-4" /> : fm?.status === "match" ? <ShieldCheck className="h-4 w-4" /> : <ScanFace className="h-4 w-4" />}
+        <span data-testid="face-match-status" className="font-extrabold">{st ? st.label : "Face check pending…"}</span>
+        {fm?.confidence != null && <span data-testid="face-match-confidence" className="font-semibold opacity-80">{fm.confidence}% confidence</span>}
+        <button type="button" data-testid="face-match-recheck" onClick={recheck} disabled={busy} className="ml-auto inline-flex items-center gap-1 rounded-md border border-current/20 bg-white/70 dark:bg-slate-900/40 px-2 py-1 font-bold disabled:opacity-50">
+          {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />} Re-check
+        </button>
+      </div>
+      {fm?.reason && <p data-testid="face-match-reason" className="mt-1 opacity-90">{fm.reason}</p>}
+      {fm?.kyc_photo_url && (
+        <div className="mt-2 flex items-center gap-2">
+          <button type="button" onClick={() => { setIdx(0); setOpen(true); }} className="h-14 w-12 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 cursor-zoom-in" data-testid="face-match-kyc-photo"><img src={fm.kyc_photo_url} alt="KYC" className="h-full w-full object-cover" /></button>
+          <span className="opacity-80">KYC photo vs check-in selfie</span>
+        </div>
+      )}
+      {open && <Lightbox images={[fm.kyc_photo_url, checkin.selfie_url]} index={idx} title="KYC photo · Check-in selfie" onClose={() => setOpen(false)} onNav={setIdx} />}
+    </div>
+  );
+}
+
+export function CheckinProof({ checkin, bookingId, admin = false }) {
   const [open, setOpen] = useState(false);
   if (!checkin?.selfie_url) return null;
   return (
+    <div className="space-y-2">
     <div data-testid="checkin-proof" className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-2.5">
       <button type="button" onClick={() => setOpen(true)} className="h-16 w-14 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-zoom-in">
         <img src={checkin.selfie_url} alt="Partner selfie" className="h-full w-full object-cover" />
@@ -119,16 +163,18 @@ export function CheckinProof({ checkin }) {
       </div>
       {open && <Lightbox images={[checkin.selfie_url]} index={0} title="Check-in selfie" onClose={() => setOpen(false)} onNav={() => {}} />}
     </div>
+    {admin && bookingId && <FaceMatchPanel bookingId={bookingId} checkin={checkin} />}
+    </div>
   );
 }
 
-export default function WorkProofSection({ evidence, compact = false, checkin = null }) {
+export default function WorkProofSection({ evidence, compact = false, checkin = null, bookingId = null, admin = false }) {
   const before = (evidence?.before || []).map(norm).filter(Boolean);
   const after = (evidence?.after || []).map(norm).filter(Boolean);
   if (!before.length && !after.length && !checkin?.selfie_url) return null;
   return (
     <div className={compact ? "space-y-3" : "rounded-xl border border-slate-200 dark:border-slate-800 p-3.5 space-y-3"} data-testid="work-proof-section">
-      <CheckinProof checkin={checkin} />
+      <CheckinProof checkin={checkin} bookingId={bookingId} admin={admin} />
       <ProofBlock label="Before Work" imgs={before} testid="proof-before" />
       <ProofBlock label="After Work" imgs={after} testid="proof-after" />
     </div>
