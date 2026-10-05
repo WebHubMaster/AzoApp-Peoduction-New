@@ -191,7 +191,7 @@ export default function CustomerDashboard() {
 
       {active === "orders" && (
         <BookingsView bookings={bookings} wallet={wallet} loading={loading} focusCode={focusCode}
-          onNew={() => navigate("/services")} onRepeat={repeat} onCancel={setCancelTarget} onReview={(b) => { setRev(b); setStars(5); setCmt(""); }}
+          onNew={() => navigate("/services")} onRepeat={repeat} onCancel={setCancelTarget} onReview={(b, n = 5) => { setRev(b); setStars(n); setCmt(""); }}
           onPay={pay} onPayAddl={setAddlTarget} onSpare={spareAction} onRefresh={load} />
       )}
 
@@ -726,8 +726,21 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
         {canReview && <Button data-testid={`review-${b.code}`} size="sm" variant="outline" onClick={() => onReview(b)} className="rounded-md h-9 px-4 border-amber-200 text-amber-600 hover:bg-amber-50"><Star className="h-4 w-4 mr-1" /> Rate</Button>}
         {canRequestResched && <Button size="sm" variant="outline" onClick={() => setShowResched(true)} data-testid={`reschedule-${b.code}`} className="rounded-md h-9 px-4"><Clock className="h-4 w-4 mr-1" /> Request Reschedule</Button>}
         {canCancel && <Button data-testid={`cancel-${b.code}`} size="sm" variant="outline" onClick={() => onCancel(b)} className="rounded-md h-9 px-4 border-rose-200 text-rose-600 hover:bg-rose-50">Cancel</Button>}
-        {b.review && <span className="text-sm text-amber-600 flex items-center ml-auto"><Star className="h-4 w-4 fill-amber-400 text-amber-400 mr-1" />{b.review.rating}.0 rated</span>}
+        {b.review && <span className="text-sm text-amber-600 flex items-center ml-auto"><Star className="h-4 w-4 fill-amber-400 text-amber-400 mr-1" />{b.review.rating} / 5 rated</span>}
       </div>
+      {canReview && (
+        <div data-testid={`rate-row-${b.code}`} className="mt-3.5 border-t border-slate-100 dark:border-slate-800 pt-3">
+          <p className="text-xs font-bold text-slate-500 mb-2">Rate this service</p>
+          <div className="flex gap-1">
+            {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((n) => (
+              <button key={n} data-testid={`rate-${b.code}-${n}`} onClick={() => onReview(b, n)}
+                className="flex-1 min-w-0 h-8 rounded-md border border-amber-200 bg-amber-50 dark:bg-amber-900/15 hover:bg-amber-100 active:bg-amber-200 flex items-center justify-center gap-0.5 text-[11px] font-extrabold text-amber-700 transition-colors">
+                <Star className="h-2.5 w-2.5 shrink-0 fill-amber-400 text-amber-500" />{n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(b.spare_parts || []).length > 0 && ["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status) && (
         <div className="mt-3 border-t border-slate-100 dark:border-slate-800 pt-3" data-testid={`spares-${b.code}`}>
@@ -1074,6 +1087,7 @@ function ReviewDialog({ rev, setRev, stars, setStars, cmt, setCmt, onSubmit }) {
         <div className="flex gap-1 justify-center my-2">
           {[1, 2, 3, 4, 5].map((n) => <button key={n} data-testid={`star-${n}`} onClick={() => setStars(n)}><Star className={`h-9 w-9 transition-transform hover:scale-110 ${n <= stars ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} /></button>)}
         </div>
+        <p data-testid="review-rating-preview" className="text-center font-extrabold text-amber-600">{stars} / 5</p>
         <Input data-testid="review-comment" placeholder="Add a comment (optional)" value={cmt} onChange={(e) => setCmt(e.target.value)} />
         <Button data-testid="submit-review" onClick={submit} disabled={busy} className="w-full bg-primary-700 hover:bg-primary-800 mt-3">
           {busy ? "Submitting…" : "Submit Review"}

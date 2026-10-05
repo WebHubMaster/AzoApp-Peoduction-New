@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
+BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

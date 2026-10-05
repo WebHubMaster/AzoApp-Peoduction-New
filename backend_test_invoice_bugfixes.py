@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any
 
 # Configuration
-BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
+BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

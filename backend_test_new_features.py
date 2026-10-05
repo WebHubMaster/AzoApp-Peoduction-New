@@ -16,7 +16,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL from frontend/.env
-BASE_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
+BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
 
 # Test credentials from test_credentials.md
 ADMIN_PHONE = "+919000000000"

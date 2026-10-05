@@ -169,11 +169,11 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
           <>
             <Pressable testID={`${testID}-photo`} onPress={onPhoto} disabled={busy} style={[addTile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#93C5FD", backgroundColor: "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
               <Icon name="camera-outline" size={24} color={colors.primary} />
-              <Text style={{ color: colors.primary, fontSize: 11.5, fontWeight: "700", marginTop: 4 }}>Photo</Text>
+              <Text style={{ color: colors.primary, fontSize: 11.5, fontWeight: "700", marginTop: 4, textAlign: "center" }}>Photo</Text>
             </Pressable>
             <Pressable testID={`${testID}-video`} onPress={onVideo} disabled={busy} style={[addTile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#C4B5FD", backgroundColor: "rgba(245,243,255,0.8)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
               <Icon name="video-outline" size={24} color="#7C3AED" />
-              <Text style={{ color: "#7C3AED", fontSize: 11.5, fontWeight: "700", marginTop: 4 }}>Video ≤{MAX_VIDEO_SEC}s</Text>
+              <Text style={{ color: "#7C3AED", fontSize: 11.5, fontWeight: "700", marginTop: 4, textAlign: "center" }}>Video ≤{MAX_VIDEO_SEC}s</Text>
             </Pressable>
           </>
         ) : null}

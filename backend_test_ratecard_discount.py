@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL from environment
-BACKEND_URL = "https://partner-app-upgrade.preview.emergentagent.com/api"
+BACKEND_URL = "https://rating-box-compact.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"
