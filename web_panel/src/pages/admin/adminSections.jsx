@@ -2381,6 +2381,7 @@ export const BusinessSettings = () => {
       max_distance_km: Number(b.max_distance_km) || 0,
       distance_unit: b.distance_unit || "km",
       reminder_lead_minutes: Number(b.reminder_lead_minutes) || 30,
+      cos_enabled: b.cos_enabled !== false,
     };
     const { data } = await api.put("/admin/settings", { business_config: payload });
     setS(data); toast.success("Business settings saved");
@@ -2417,6 +2418,16 @@ export const BusinessSettings = () => {
             </Select>
           </div>
           <p className="text-[11px] text-rose-500 mt-1">Note : This distance is used while searching nearby providers for a customer.</p>
+        </div>
+        <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+          <div className="pr-4">
+            <label className="text-sm font-semibold text-slate-800 dark:text-slate-100">Cash on Service</label>
+            <p className="text-[11px] text-slate-400 mt-0.5">Let customers pay a non-refundable token online (the platform's cut) and the rest in cash to the professional after the job. Turn off to hide this payment option everywhere.</p>
+          </div>
+          <button type="button" data-testid="biz-cos-enabled" onClick={() => set("cos_enabled", b.cos_enabled === false)}
+            className={`relative h-6 w-11 shrink-0 rounded-full transition ${b.cos_enabled !== false ? "bg-emerald-500" : "bg-slate-300"}`}>
+            <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${b.cos_enabled !== false ? "left-[22px]" : "left-0.5"}`} />
+          </button>
         </div>
         <div>
           <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Partner Reminder Lead Time</label>

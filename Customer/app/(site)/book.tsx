@@ -50,7 +50,7 @@ export default function Checkout() {
   const [serviceable, setServiceable] = useState<any>(null);
   const [cfg, setCfg] = useState<any>({ address_config: {} });
   const [placing, setPlacing] = useState(false);
-  const [payMethod, setPayMethod] = useState<"online" | "wallet">("online");
+  const [payMethod, setPayMethod] = useState<"online" | "wallet" | "cos">("online");
   const [walletBal, setWalletBal] = useState(0);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [placed, setPlaced] = useState<any>(null);
@@ -84,7 +84,7 @@ export default function Checkout() {
         const byId: Record<string, any> = {};
         (r.lines || []).forEach((ln: any, i: number) => { const it = items[i]; if (it) byId[it.id] = { line_total: ln.line_total ?? ln.line_service_total, unit_total: ln.unit_total }; });
         setQuotes(byId);
-        setCartPricing({ ...r.pricing, cart_service_total: r.cart_service_total, labour_total: r.labour_total || 0, category_charges: r.category_charges || [] });
+        setCartPricing({ ...r.pricing, cart_service_total: r.cart_service_total, labour_total: r.labour_total || 0, category_charges: r.category_charges || [], cos: r.cos || null, cos_enabled: r.cos_enabled !== false });
         if (applied && r.coupon_applied === false) { setApplied(""); setCouponMsg({ ok: false, text: "Coupon no longer applies to this order (minimum order not met)" }); }
       } catch { if (!cancelled && n < 4) setTimeout(() => { if (!cancelled) attempt(n + 1); }, 600 * n); }
     };
@@ -94,6 +94,10 @@ export default function Checkout() {
 
   const totals = useMemo(() => (cartPricing ? { ...cartPricing, ready: true } : { base: 0, addons_total: 0, emergency_fee: 0, visiting_charge: 0, convenience_fee: 0, platform_fee: 0, gst: 0, discount: 0, total: 0, ready: false }), [cartPricing]);
   const displayTotal = totals.ready && items.length ? totals.total : estimateTotal;
+  const cosInfo = totals?.cos || null;
+  const cosEnabled = !isSub && totals?.cos_enabled !== false && !!cosInfo && (cosInfo.token_amount || 0) > 0 && (cosInfo.cash_to_collect || 0) > 0;
+  const isCos = payMethod === "cos" && cosEnabled;
+  const payNow = isCos && cosInfo ? cosInfo.token_amount : displayTotal;
   const lineTotal = useCallback((it: any) => { const p = quotes[it.id]; return p && p.line_total != null ? p.line_total : lineEstimate(it); }, [quotes]);
   const go = (n: number) => { setStep(n); setMaxReached((m) => Math.max(m, n)); scrollRef.current?.scrollTo({ y: 0, animated: true }); };
   const pickAddress = (aid: string) => { setSelectedId(aid); if (aid === "new") { setAddr(emptyAddress()); setServiceable(null); } else { const a = savedAddresses.find((x) => x.id === aid); if (a) setAddr({ ...emptyAddress(), ...a }); } };
@@ -182,7 +186,7 @@ export default function Checkout() {
     const cartItems = keys.flatMap((k) => groups[k].map(toReqItem));
     for (const k of keys) {
       try {
-        const data: any = await postResilient("/bookings/grouped", { items: groups[k].map(toReqItem), cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cartPricing?.cart_service_total ?? null, apply_visiting: firstGroup, apply_emergency: firstGroup, idempotency_key: `${nonce}:grp:${k}`, order_group_id: nonce });
+        const data: any = await postResilient("/bookings/grouped", { items: groups[k].map(toReqItem), cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cartPricing?.cart_service_total ?? null, apply_visiting: firstGroup, apply_emergency: firstGroup, idempotency_key: `${nonce}:grp:${k}`, order_group_id: nonce, payment_method: isCos ? "cos" : payMethod });
         firstGroup = false;
         created.push({ id: data.id, code: data.code || data.id, category: data.category_name || groups[k][0]?.category_name || "Services", total: data.pricing?.total ?? null });
         setProgress((p) => ({ ...p, done: p.done + 1 }));
@@ -234,11 +238,11 @@ export default function Checkout() {
         {stepKey === "schedule" ? <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} isSub={isSub} /> : null}
         {stepKey === "contact" ? <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} /> : null}
         {stepKey === "summary" ? <StepSummary items={items} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} isSub={isSub} /> : null}
-        {stepKey === "confirm" ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} /> : null}
+        {stepKey === "confirm" ? <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} cosInfo={cosInfo} cosEnabled={cosEnabled} /> : null}
         {maxReached > step ? <Pressable testID="checkout-jump-forward" onPress={() => go(maxReached)} style={{ marginTop: 16, alignSelf: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: TC.primaryText }}>Jump back to {activeSteps[maxReached]?.label} →</Text></Pressable> : null}
       </KeyboardAwareScrollView>
       <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: insets.bottom + 12, flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{showFull ? "Total payable" : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(showFull ? displayTotal : subtotal)}</Text></View>
+        <View style={{ flex: 1, minWidth: 0 }}><Text style={{ fontSize: 11, color: TC.textFaint, fontWeight: "500" }}>{showFull ? (isCos ? "Pay now (token) · rest cash on service" : "Total payable") : "Services subtotal · taxes at checkout"}</Text><Text testID="checkout-bar-total" numberOfLines={1} style={{ fontSize: 20, fontWeight: "800", color: TC.text }}>{fmt(showFull ? payNow : subtotal)}</Text></View>
         {step < activeSteps.length - 1 ? (
           <Pressable testID="checkout-next" onPress={next} disabled={!canNext()} style={({ pressed }) => ({ height: 48, paddingHorizontal: 24, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6, opacity: canNext() ? 1 : 0.5 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{stepKey === "summary" ? "Review order" : "Continue"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
         ) : (

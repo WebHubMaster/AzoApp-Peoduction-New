@@ -114,8 +114,32 @@ def _job_brief(b):
         "coupon_discount": _disc if b.get("coupon_code") else 0.0,
         "partner_id": b.get("partner_id"), "partner_name": b.get("partner_name"),
         "partner_phone": b.get("partner_phone"),
+        "payment_method": b.get("payment_method") or None,
+        "cos": b.get("cos") or None,
         "created_at": b.get("created_at"), "updated_at": b.get("updated_at"),
     }
+
+
+def _cos_enabled(settings) -> bool:
+    """Cash On Service master switch (admin → Business Settings). Default ON."""
+    biz = (settings or {}).get("business_config") or {}
+    return bool(biz.get("cos_enabled", True))
+
+
+async def _attach_cos(b):
+    """Tag a freshly-created booking as Cash On Service: compute the online TOKEN
+    (platform's full cut) and the CASH the partner collects on service."""
+    settings = await get_settings()
+    if not _cos_enabled(settings):
+        raise HTTPException(status_code=400, detail="Cash On Service is not available right now.")
+    cos = PricingEngine.cos_split(b.get("pricing") or {})
+    cos.update({"token_paid": False, "cash_collected": False})
+    await db.bookings.update_one(
+        {"id": b["id"]},
+        {"$set": {"payment_method": "cos", "cos": cos, "updated_at": now_iso()}})
+    b["payment_method"] = "cos"
+    b["cos"] = cos
+    return b
 
 
 def _otp():
@@ -364,7 +388,8 @@ async def quote(service_id, schedule_type, addons, coupon_code=None, tier_index=
     coupon = await _load_coupon(coupon_code, pricing.get("subtotal"))
     if coupon:
         pricing = await PricingEngine.compute(svc, settings, schedule_type, addons, coupon)
-    return {"service": svc, "pricing": pricing, "coupon_applied": bool(coupon), "tier_label": tier_label}
+    return {"service": svc, "pricing": pricing, "coupon_applied": bool(coupon), "tier_label": tier_label,
+            "cos": PricingEngine.cos_split(pricing), "cos_enabled": _cos_enabled(settings)}
 
 
 async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, address=None, redeem_points=0,
@@ -566,6 +591,7 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
             "category_charges": category_charges,
             "cart_service_total": services_total,
             "labour_total": money.money(labour_total),
+            "cos": PricingEngine.cos_split(pricing), "cos_enabled": _cos_enabled(settings),
             "coupon_applied": bool(coupon)}
 
 
@@ -1820,9 +1846,15 @@ async def mark_paid_and_search(booking_id):
         raise HTTPException(status_code=404, detail="Booking not found")
     if b.get("payment_status") == "paid":
         return b
+    _paid_set = {"payment_status": "paid", "paid_at": now_iso(), "updated_at": now_iso()}
+    # Cash On Service: only the online TOKEN has been paid here; the balance is still
+    # collected as cash by the partner at completion.
+    if (b.get("payment_method") or "") == "cos":
+        _paid_set["cos.token_paid"] = True
+        _paid_set["cos.token_paid_at"] = now_iso()
     await db.bookings.update_one(
         {"id": booking_id},
-        {"$set": {"payment_status": "paid", "paid_at": now_iso(), "updated_at": now_iso()},
+        {"$set": _paid_set,
          "$push": {"timeline": {"status": "payment_received", "at": now_iso()}}})
     b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
     # consume a membership free-visit if this booking used the waiver (idempotent)
@@ -1924,6 +1956,8 @@ async def create_direct(customer, req):
             b = await _loy.apply_redemption(customer, b, int(req.redeem_points))
         except Exception:
             pass
+    if (getattr(req, "payment_method", None) or "").lower() == "cos":
+        b = await _attach_cos(b)
     return b
 
 
@@ -2077,6 +2111,8 @@ async def create_grouped_booking(customer, req):
     b["service_name"] = svc_name
     b["is_multi"] = n > 1
     b["order_group_id"] = group_id
+    if (req.get("payment_method") or "").lower() == "cos":
+        b = await _attach_cos(b)
     b["otps"] = _visible_otps(customer, b)
     return b
 
@@ -3260,7 +3296,8 @@ async def complete_job(partner, booking_id, otp):
     if b["otps"]["completion"] != otp:
         raise HTTPException(status_code=400, detail="Invalid completion OTP")
     settings = await get_settings()
-    ledger = await CommissionEngine.settle(b, settings, partner)
+    is_cos = (b.get("payment_method") or "") == "cos"
+    ledger = await CommissionEngine.settle(b, settings, partner, cash_mode=is_cos)
     await db.users.update_one({"id": partner["id"]}, {"$inc": {"jobs_completed": 1}})
     # approved spare parts are reimbursed to the partner
     spare_total = money.add(*[p.get("total", 0) for p in b.get("spare_parts", [])
@@ -3317,6 +3354,9 @@ async def complete_job(partner, booking_id, otp):
         {"id": booking_id},
         {"$set": {"status": "completed", "payment_status": "paid",
                   "payment_method": b.get("payment_method") or "prepaid",
+                  **({"cos.cash_collected": True,
+                      "cos.collected_amount": float((b.get("cos") or {}).get("cash_to_collect") or 0),
+                      "cos.collected_at": now_iso()} if is_cos else {}),
                   "commission": ledger, "updated_at": now_iso()},
          "$push": {"timeline": {"status": "completed", "at": now_iso()}}})
     try:
@@ -3598,6 +3638,56 @@ async def cancel_booking(customer, booking_id, reason=""):
     if status in ("completed", "paid", "cancelled"):
         raise HTTPException(status_code=400, detail="This booking can't be cancelled.")
     settings = await get_settings()
+    # ---- Cash On Service cancellation ----------------------------------------------
+    # The token the customer paid online is NON-REFUNDABLE. It equals the platform's
+    # entire cut (commission + platform fee + GST), so on cancellation it is simply
+    # RETAINED and distributed exactly like a completed booking's platform + govt
+    # portion. No cash was collected yet, so the partner's share is 0.
+    if (b.get("payment_method") or "") == "cos":
+        cos = b.get("cos") or {}
+        if not cos.get("token_paid"):
+            await db.bookings.update_one({"id": booking_id}, {"$set": {
+                "status": "cancelled", "updated_at": now_iso(),
+                "cancellation": {"by": "customer", "reason": reason, "payment_method": "cos",
+                                 "refund": 0.0, "at": now_iso()}},
+                "$push": {"timeline": {"status": "cancelled", "at": now_iso()}}})
+            return await _get_booking(booking_id)
+        pr = b.get("pricing") or {}
+        token = money.money(cos.get("token_amount") or 0)
+        commission = money.money(pr.get("platform_commission") or 0)
+        platform_fees = PricingEngine.platform_only_fees(pr)
+        gst = money.money(pr.get("gst") or pr.get("tax") or 0)
+        platform_keep = money.add(commission, platform_fees)
+        await db.commission_ledger.insert_one({
+            "id": new_id(), "booking_id": booking_id, "booking_code": b.get("code"),
+            "partner_id": b.get("partner_id"), "customer_id": b.get("customer_id"),
+            "partner_earning": 0.0, "platform_earning": platform_keep,
+            "platform_gross": platform_keep, "merchant_referral": 0.0, "merchant_customer": 0.0,
+            "tax": gst, "base": money.money(pr.get("commissionable_base") or 0),
+            "gross": token, "kind": "cancellation_cos", "created_at": now_iso()})
+        await db.bookings.update_one({"id": booking_id}, {"$set": {
+            "status": "cancelled", "payment_status": "paid",
+            "cos.cancelled": True, "cos.token_retained": token,
+            "cancellation": {"by": "customer", "reason": reason, "payment_method": "cos",
+                             "token_retained": token, "non_refundable": True, "refund": 0.0,
+                             "platform_earning": platform_keep, "tax": gst, "partner_earning": 0.0,
+                             "at": now_iso()},
+            "updated_at": now_iso()},
+            "$push": {"timeline": {"status": "cancelled", "at": now_iso()}}})
+        try:
+            await _notify(b["customer_id"], "Booking cancelled",
+                          f"{b.get('code')} cancelled. The token amount \u20b9{token} is non-refundable.",
+                          "booking_cancelled",
+                          {"booking_id": booking_id, "code": b.get("code"), "type": "booking_status"})
+        except Exception:
+            pass
+        out = await _get_booking(booking_id)
+        try:
+            rt.emit_admin("job_update", _job_brief(out))
+        except Exception:
+            pass
+        return out
+    # --------------------------------------------------------------------------------
     partner_id = b.get("partner_id")
     partner = None
     if partner_id:

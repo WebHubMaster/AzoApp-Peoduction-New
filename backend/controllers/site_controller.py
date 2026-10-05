@@ -118,6 +118,8 @@ async def _public_site_config():
             "logo": branding.get("logo", ""),
             "phone": branding.get("phone") or seo.get("phone", ""),
         },
+        # Cash On Service master switch (admin → Business Settings). Default ON.
+        "cos_enabled": bool((s.get("business_config") or {}).get("cos_enabled", True)),
     }
 
 

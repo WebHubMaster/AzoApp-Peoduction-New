@@ -433,6 +433,12 @@ export function JobRingOverlay() {
               </View>
               <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>{visitingCharge > 0 ? "Total incl. visiting charge · excl. taxes" : "Service amount · excl. taxes"}</Text>
               {visitingCharge > 0 ? <Text testID="ring-visiting" style={{ color: "rgba(167,243,208,0.9)", fontSize: 11, marginTop: 2 }}>includes ₹{inr(visitingCharge)} visiting charge</Text> : null}
+              {current.payment_method === "cos" ? (
+                <View testID="ring-cos-badge" style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 8, backgroundColor: "#F59E0B", borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4 }}>
+                  <Icon name="cash-multiple" size={13} color="#451A03" />
+                  <Text style={{ color: "#451A03", fontSize: 11, fontWeight: "800", letterSpacing: 0.3 }}>CASH ON SERVICE{current.cos?.cash_to_collect ? ` · collect ₹${inr(current.cos.cash_to_collect)}` : ""}</Text>
+                </View>
+              ) : null}
             </View>
           ) : null}
 

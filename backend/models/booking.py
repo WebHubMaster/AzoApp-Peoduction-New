@@ -48,6 +48,10 @@ class DirectBookingRequest(BaseModel):
     # merchant. Once a customer uses a code, we also persist the link on their
     # user record so future bookings auto-tag (no code re-required).
     merchant_ref_code: Optional[str] = None
+    # Payment method chosen at checkout: "online" | "wallet" | "cos" (Cash On Service).
+    # For "cos" the customer pays only a token (the platform's cut) online and the
+    # partner collects the remaining cash on service.
+    payment_method: Optional[str] = None
 
 
 class MerchantBookingRequest(BaseModel):

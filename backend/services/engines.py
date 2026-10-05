@@ -303,6 +303,22 @@ class PricingEngine:
         })
         return pricing
 
+    @staticmethod
+    def cos_split(pricing: dict) -> dict:
+        """Cash-On-Service breakdown. The customer pays a TOKEN online = the platform's
+        ENTIRE cut (commission + platform/convenience fee + GST) = total − partner_share.
+        The partner then collects the remaining CASH, which equals their earning to the
+        paisa — so completion/cancellation settle inside the token with ZERO wallet
+        reconciliation. token + cash == total, always."""
+        pricing = pricing or {}
+        total = money.money(pricing.get("total") or 0)
+        partner_share = money.money(pricing.get("partner_share") or 0)
+        token = money.money(max(0.0, money.add(total, -partner_share)))
+        cash = money.money(max(0.0, money.add(total, -token)))
+        pct = round((token / total * 100.0), 2) if total > 0 else 0.0
+        return {"token_amount": token, "cash_to_collect": cash, "token_pct": pct,
+                "total": total, "partner_share": partner_share}
+
     # ------------------------------------------------------------------ breakdown
     # Labels for every possible non-service charge. Kept in one place so Customer,
     # Partner, Merchant, Admin panels AND invoices all use identical wording/order.
@@ -633,7 +649,7 @@ class CommissionEngine:
         return s
 
     @staticmethod
-    async def settle(booking: dict, settings: dict, partner: dict) -> dict:
+    async def settle(booking: dict, settings: dict, partner: dict, cash_mode: bool = False) -> dict:
         cfg = booking.get("commission_config") or settings  # versioned: rate captured at booking time
         cm = CommissionEngine._cm(cfg)
         pricing = booking.get("pricing") or {}
@@ -662,13 +678,26 @@ class CommissionEngine:
             "tax": money.money(pricing.get("tax") or pricing.get("gst") or 0),
             "platform_fees": PricingEngine.platform_only_fees(pricing),
             "platform_total": money.add(platform_earning, PricingEngine.platform_only_fees(pricing)),
-            "rates": s["rates"], "kind": "completion", "created_at": now_iso(),
+            "rates": s["rates"], "kind": "completion_cos" if cash_mode else "completion",
+            "cash_mode": bool(cash_mode), "created_at": now_iso(),
         }
         await db.commission_ledger.insert_one(dict(ledger))
 
-        # credit wallets + transactions
-        await CommissionEngine._credit(partner["id"], partner_earning, "earning",
-                                       f"Job {booking['code']} earning")
+        # credit wallets + transactions.
+        # Cash-On-Service: the partner has ALREADY collected their earning in CASH from
+        # the customer, so we must NOT credit their wallet again (that would double-pay).
+        # We record the earning for history via the partner ledger instead. The platform
+        # funds the merchant referral payouts from the token it collected online.
+        if cash_mode:
+            if partner_earning > 0:
+                await db.partner_ledger.insert_one({
+                    "id": new_id(), "partner_id": partner["id"], "kind": "cos_cash_earning",
+                    "direction": "credit", "amount": partner_earning, "ref_type": "booking",
+                    "ref_id": booking["id"], "note": f"Cash collected on service · {booking['code']}",
+                    "cash": True, "status": "completed", "created_at": now_iso()})
+        else:
+            await CommissionEngine._credit(partner["id"], partner_earning, "earning",
+                                           f"Job {booking['code']} earning")
         if merchant_referral and partner_merchant_id:
             await CommissionEngine._credit(partner_merchant_id, merchant_referral, "referral_commission",
                                            f"Partner referral commission · {booking['code']}")

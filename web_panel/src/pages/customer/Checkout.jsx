@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Plus, Minus, Trash2, Check, CheckCircle2, ShoppingBag,
-  Tag, MapPin, CalendarClock, Zap, ShieldCheck, User, Pencil, PartyPopper, Clock, Star, LocateFixed, Loader2, Wallet, CreditCard, Layers,
+  Tag, MapPin, CalendarClock, Zap, ShieldCheck, User, Pencil, PartyPopper, Clock, Star, LocateFixed, Loader2, Wallet, CreditCard, Banknote, Layers,
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { runPayment, openCheckout } from "@/lib/payments";
@@ -242,7 +242,7 @@ export default function Checkout() {
         // line_total is the authoritative full line amount (base×qty + add-ons×addonQty).
         (r.data.lines || []).forEach((ln, i) => { const it = items[i]; if (it) byId[it.id] = { line_total: ln.line_total ?? ln.line_service_total, unit_total: ln.unit_total }; });
         setQuotes(byId);
-        setCartPricing({ ...r.data.pricing, cart_service_total: r.data.cart_service_total, labour_total: r.data.labour_total || 0, category_charges: r.data.category_charges || [] });
+        setCartPricing({ ...r.data.pricing, cart_service_total: r.data.cart_service_total, labour_total: r.data.labour_total || 0, category_charges: r.data.category_charges || [], cos: r.data.cos || null, cos_enabled: r.data.cos_enabled !== false });
         if (applied && r.data.coupon_applied === false) {
           setApplied("");
           setCouponMsg({ ok: false, text: "Coupon no longer applies to this order (minimum order not met)" });
@@ -266,6 +266,10 @@ export default function Checkout() {
   }, [cartPricing]);
 
   const displayTotal = totals.ready && items.length ? totals.total : estimateTotal;
+  const cosInfo = totals?.cos || null;
+  const cosEnabled = !isSub && totals?.cos_enabled !== false && !!cosInfo && (cosInfo.token_amount || 0) > 0 && (cosInfo.cash_to_collect || 0) > 0;
+  const isCos = payMethod === "cos" && cosEnabled;
+  const payNow = isCos && cosInfo ? cosInfo.token_amount : displayTotal;
   const lineTotal = useCallback((it) => {
     const p = quotes[it.id];
     // Backend line_total is the source of truth (base×qty + add-ons at their own qty).
@@ -435,7 +439,7 @@ export default function Checkout() {
       const gItems = groups[key].map(toReqItem);
       const idempotency_key = `${nonce}:grp:${key}`;
       try {
-        const body = { items: gItems, cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cst, apply_visiting: firstGroup, apply_emergency: firstGroup, idempotency_key, order_group_id: nonce, merchant_ref_code: getMerchantRefCode() || undefined };
+        const body = { items: gItems, cart_items: cartItems, address: addr, schedule_type: schedule, scheduled_at: scheduledAt, coupon_code: applied || null, cart_service_total: cst, apply_visiting: firstGroup, apply_emergency: firstGroup, idempotency_key, order_group_id: nonce, merchant_ref_code: getMerchantRefCode() || undefined, payment_method: isCos ? "cos" : payMethod };
         const { data } = await postResilient("/bookings/grouped", body, { retries: 3, timeout: 20000 });
         firstGroup = false;
         created.push({ id: data.id, code: data.code || data.id, category: data.category_name || groups[key][0]?.category_name || "Services", total: data.pricing?.total ?? null });
@@ -575,7 +579,7 @@ export default function Checkout() {
               {stepKey === "schedule" && <StepSchedule schedule={schedule} setSchedule={setSchedule} scheduledAt={scheduledAt} setScheduledAt={setScheduledAt} isSub={isSub} />}
               {stepKey === "contact" && <StepContact user={user} refresh={refresh} savedAddresses={savedAddresses} selectedId={selectedId} pickAddress={pickAddress} addr={addr} setAddr={setAddr} acfg={acfg} setServiceable={setServiceable} useCurrentLocation={useCurrentLocation} mapsKey={cfg.integrations?.google_maps_api_key || ""} />}
               {stepKey === "summary" && <StepSummary items={items} quotes={quotes} totals={totals} lineTotal={lineTotal} estimateTotal={estimateTotal} coupon={coupon} setCoupon={setCoupon} applyCoupon={applyCoupon} applied={applied} clearCoupon={clearCoupon} couponMsg={couponMsg} setCouponMsg={setCouponMsg} couponChecking={couponChecking} isSub={isSub} />}
-              {stepKey === "confirm" && <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} />}
+              {stepKey === "confirm" && <StepReview items={items} totals={totals} lineTotal={lineTotal} schedule={schedule} scheduledAt={scheduledAt} addr={addr} user={user} go={go} displayTotal={displayTotal} payMethod={payMethod} setPayMethod={setPayMethod} walletBal={walletBal} isSub={isSub} cosInfo={cosInfo} cosEnabled={cosEnabled} />}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -1039,7 +1043,7 @@ const scheduleLabel = (schedule, scheduledAt) => {
   return `${d.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })} · ${hh}:${String(m).padStart(2, "0")} ${ap}`;
 };
 
-const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub }) => (
+const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub, cosInfo, cosEnabled }) => (
   <div className="space-y-4">
     <div>
       <h2 className="font-heading font-bold text-xl text-slate-900">Review &amp; confirm</h2>
@@ -1105,6 +1109,21 @@ const StepReview = ({ items, totals, lineTotal, schedule, scheduledAt, addr, use
               <span className={`h-4 w-4 rounded-full border-2 ${payMethod === "wallet" ? "border-emerald-600 bg-emerald-600" : "border-slate-300"}`} />
             </button>
             {walletBal <= 0 && <p className="text-[11px] text-slate-400">New here? Wallet unlocks once you have balance (e.g. from a refund). For now, pay online.</p>}
+            {cosEnabled && (
+              <button type="button" data-testid="pay-cos" onClick={() => setPayMethod("cos")}
+                className={`w-full flex items-center gap-3 rounded-md border-2 px-4 py-3 text-left transition ${payMethod === "cos" ? "border-amber-500 bg-amber-50" : "border-slate-200 hover:border-slate-300"}`}>
+                <span className={`h-9 w-9 rounded-lg grid place-items-center ${payMethod === "cos" ? "bg-amber-500 text-white" : "bg-slate-100 text-slate-500"}`}><Banknote className="h-5 w-5" /></span>
+                <span className="flex-1"><span className="block text-sm font-semibold text-slate-900">Cash on Service</span><span className="block text-xs text-slate-500">Pay {fmt(cosInfo?.token_amount || 0)} token now · {fmt(cosInfo?.cash_to_collect || 0)} cash after the job</span></span>
+                <span className={`h-4 w-4 rounded-full border-2 ${payMethod === "cos" ? "border-amber-500 bg-amber-500" : "border-slate-300"}`} />
+              </button>
+            )}
+            {payMethod === "cos" && cosEnabled && (
+              <div data-testid="cos-note" className="rounded-md border border-amber-200 bg-amber-50 p-3 space-y-1.5">
+                <div className="flex justify-between text-sm font-semibold text-amber-800"><span>Token to pay now</span><span>{fmt(cosInfo?.token_amount || 0)}</span></div>
+                <div className="flex justify-between text-sm text-amber-800"><span>Cash to pay on service</span><span className="font-semibold">{fmt(cosInfo?.cash_to_collect || 0)}</span></div>
+                <p className="text-[11px] text-amber-700">The token amount is non-refundable if you cancel. Pay the remaining amount in cash to the professional after the work is done.</p>
+              </div>
+            )}
           </div>
         );
       })()}

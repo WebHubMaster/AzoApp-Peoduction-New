@@ -42,11 +42,21 @@ async def create_order(user, purpose, booking_id=None, amount=None, group_id=Non
         for b in group_unpaid:
             if b["status"] not in ("pending_payment", "completed"):
                 raise HTTPException(status_code=400, detail="This order is not awaiting payment")
-        amt = round(sum(float((b.get("pricing") or {}).get("total") or 0) for b in group_unpaid), 2)
+        amt = round(sum(
+            float((b.get("cos") or {}).get("token_amount") or 0)
+            if (b.get("payment_method") or "") == "cos"
+            else float((b.get("pricing") or {}).get("total") or 0)
+            for b in group_unpaid), 2)
         receipt = ("GRP-" + (rows[0].get("code") or str(group_id)))[:40]
     elif purpose == "booking":
         b = await _booking_for_pay(user, booking_id)
-        amt, receipt = float(b["pricing"]["total"]), b["code"]
+        # Cash On Service: the customer pays only the TOKEN online (the platform's cut);
+        # the partner collects the remaining cash on service.
+        if (b.get("payment_method") or "") == "cos":
+            amt = float((b.get("cos") or {}).get("token_amount") or 0)
+        else:
+            amt = float(b["pricing"]["total"])
+        receipt = b["code"]
     elif purpose == "additional":
         b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
         if not b:

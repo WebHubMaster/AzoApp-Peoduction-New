@@ -4,7 +4,7 @@ import React from "react";
 import { View, Text, Pressable, TextInput, Platform } from "react-native";
 import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
-import { MapPin, Plus, LocateFixed, ShoppingBag, Tag, Layers, CalendarClock, User, Zap, Wallet, CreditCard, ShieldCheck, PartyPopper, ArrowRight } from "lucide-react-native";
+import { MapPin, Plus, LocateFixed, ShoppingBag, Tag, Layers, CalendarClock, User, Zap, Wallet, CreditCard, Banknote, ShieldCheck, PartyPopper, ArrowRight } from "lucide-react-native";
 import { fmt } from "../../lib/format";
 import { PRIMARY, SLATE, EMERALD } from "../../theme";
 import { AddressForm } from "../customer/AddressForm";
@@ -108,8 +108,10 @@ function PayOpt({ k, Icon, title, sub, disabled, tone, testID, payMethod, setPay
       <View style={{ height: 16, width: 16, borderRadius: 6, borderWidth: 2, borderColor: on ? col : TC.border, backgroundColor: on ? col : "transparent" }} />
     </Pressable>); }
 
-export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub }: any) {
+export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, addr, user, go, displayTotal, payMethod, setPayMethod, walletBal, isSub, cosInfo, cosEnabled }: any) {
   const canWallet = walletBal >= displayTotal && displayTotal > 0;
+  const token = cosInfo?.token_amount || 0;
+  const cash = cosInfo?.cash_to_collect || 0;
   return (
     <View style={{ gap: 16 }}>
       <H2 t="Review & confirm" s="Please verify everything before placing your order." />
@@ -123,6 +125,14 @@ export function StepReview({ items, totals, lineTotal, schedule, scheduledAt, ad
         <View style={{ gap: 10 }}>
           <PayOpt k="online" Icon={CreditCard} title="Pay Online" sub="UPI · Card · Netbanking" testID="pay-online" payMethod={payMethod} setPayMethod={setPayMethod} />
           <PayOpt k="wallet" Icon={Wallet} title="Pay with Wallet" sub={`Balance ${fmt(walletBal)}${!canWallet ? " · insufficient for this order" : ""}`} disabled={!canWallet} tone="green" testID="pay-wallet" payMethod={payMethod} setPayMethod={setPayMethod} />
+          {cosEnabled ? <PayOpt k="cos" Icon={Banknote} title="Cash on Service" sub={`Pay ${fmt(token)} token now · ${fmt(cash)} cash after the job`} tone="green" testID="pay-cos" payMethod={payMethod} setPayMethod={setPayMethod} /> : null}
+          {payMethod === "cos" && cosEnabled ? (
+            <View testID="cos-note" style={{ borderRadius: 6, backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FED7AA", padding: 12, gap: 6 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 13, fontWeight: "600", color: "#9A3412" }}>Token to pay now</Text><Text style={{ fontSize: 13, fontWeight: "800", color: "#9A3412" }}>{fmt(token)}</Text></View>
+              <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 13, color: "#9A3412" }}>Cash to pay on service</Text><Text style={{ fontSize: 13, fontWeight: "700", color: "#9A3412" }}>{fmt(cash)}</Text></View>
+              <Text style={{ fontSize: 11, color: "#B45309" }}>The token amount is non-refundable if you cancel. Pay the remaining amount in cash to the professional after the work is done.</Text>
+            </View>
+          ) : null}
           {walletBal <= 0 ? <Text style={{ fontSize: 11, color: TC.textFaint }}>New here? Wallet unlocks once you have balance (e.g. from a refund). For now, pay online.</Text> : null}
         </View>
       </SectionCard>

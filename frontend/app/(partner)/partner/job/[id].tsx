@@ -171,7 +171,7 @@ export default function PartnerJobWizard() {
         ) : step === 2 ? (
           <Cta testID={`start-otp-${b.code}`} label={busy === "start-otp" ? "Verifying…" : "Verify OTP & Start Job"} icon="play-circle-outline" color={primary} disabled={commLocked || before.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("start-otp", "Job started ✓")} />
         ) : (
-          <Cta testID={`complete-otp-${b.code}`} label={busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : "Verify OTP & Complete Job"} icon="check-decagram-outline" color={EMERALD} disabled={addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", "Job completed! Earnings credited 🎉")} />
+          <Cta testID={`complete-otp-${b.code}`} label={busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : (b.payment_method === "cos" ? "Payment Received · Complete Job" : "Verify OTP & Complete Job")} icon="check-decagram-outline" color={EMERALD} disabled={addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", b.payment_method === "cos" ? "Cash received · Job completed! 🎉" : "Job completed! Earnings credited 🎉")} />
         )}
       </View>
       </KeyboardStickyView>
@@ -479,6 +479,15 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
           <Text style={{ color: "#B45309", fontSize: 12.5, marginTop: 4 }}>Customer must pay the additional work first — then complete with OTP.</Text>
         </View>
       ) : (
+        <>
+        {b.payment_method === "cos" && b.cos ? (
+          <Card testID="wizard-cos-collect" style={{ borderColor: "#FED7AA", backgroundColor: "#FFF7ED" }}>
+            <SectionTitle icon="cash-multiple" title="Collect Cash on Service" />
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 6 }}><Text style={{ color: "#9A3412", fontSize: 13 }}>Token already paid online</Text><Text style={{ color: "#9A3412", fontSize: 13, fontWeight: "700" }}>{fmt(b.cos.token_amount)}</Text></View>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 8, borderTopWidth: 1, borderTopColor: "#FED7AA", paddingTop: 8 }}><Text style={{ color: "#7C2D12", fontSize: 15, fontWeight: "800" }}>Cash to collect now</Text><Text testID={`cos-cash-${b.code}`} style={{ color: "#7C2D12", fontSize: 18, fontWeight: "900" }}>{fmt(b.cos.cash_to_collect)}</Text></View>
+            <Text style={{ color: "#B45309", fontSize: 12, marginTop: 8 }}>Collect this amount in cash from the customer, then enter the Completion OTP and tap "Payment Received".</Text>
+          </Card>
+        ) : null}
         <Card testID="wizard-complete-otp" style={{ borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.5)" }}>
           <SectionTitle icon="check-circle-outline" title="Complete the job" />
           <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 14 }}>Enter the customer's <Text style={{ fontWeight: "800" }}>Completion OTP</Text> to finish & credit your earnings.</Text>
@@ -486,6 +495,7 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
           {demoOtp ? <Text testID="demo-complete-otp" style={{ color: colors.info, fontSize: 12, fontWeight: "700", textAlign: "center", marginTop: 10 }}>Demo · Completion OTP {demoOtp}</Text> : null}
           {after.length === 0 ? <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 10 }}>Add at least one after-work photo/video to enable Complete.</Text> : null}
         </Card>
+        </>
       )}
     </>
   );
