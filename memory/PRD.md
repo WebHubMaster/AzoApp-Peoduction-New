@@ -196,3 +196,8 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
   - Admin web (adminSections.jsx Business Settings): "Cash on Service" master toggle (data-testid biz-cos-enabled), persisted via business_config deep-merge; added to AdminDashboard sidebar.
 - Verified: direct engine tests (exact numbers), live API (create COS booking token 270.93 + cash 329.40 = total 600.33, cash==partner_share), and testing agent 4/4 web UI scenarios PASS (admin toggle persist, customer checkout COS option gated by toggle, no regression).
 - Env note: this stripped pod was missing backend/.env and web_panel/.env — both recreated; web_panel deps installed.
+
+## COS follow-ups (2026-06)
+1. Partner receipt line (frontend/app/(partner)/partner/job/[id].tsx DoneStep): completed COS job shows "Token already paid online" + "Cash collected from customer" (data-testid done-cos-receipt / done-cos-cash). Also recorded in partner_ledger as `cos_cash_earning`.
+2. Admin COS report: backend GET /api/admin/bookings-cos-report (admin_controller.cos_report) → {bookings, count, totals{token_paid, cash_to_collect, cash_collected, cash_pending}}. Web: BookingsPro "Cash on Service" filter button (bk-cos-filter) + totals strip (bk-cos-totals). Tested 100% (3 backend + 3 frontend).
+3. Partner cash reminder: booking_controller.partner_set_travel_status — on "On my way" (arrived_shop) for a COS booking, sends a `cos_cash_reminder` notification with the exact cash to collect.

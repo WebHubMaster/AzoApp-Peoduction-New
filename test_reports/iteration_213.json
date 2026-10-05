@@ -1,0 +1,26 @@
+{
+  "summary": "Verified COS admin filter + backend COS report. Backend: GET /api/admin/bookings-cos-report returns 200 with correct shape {bookings, count, totals:{token_paid, cash_to_collect, cash_collected, cash_pending}} and rejects unauth (3/3 pytests pass). Frontend: bk-cos-filter toggles filter + bk-cos-totals strip on/off; shows Token paid ₹270.93, Cash to collect ₹329.40, Cash collected ₹0, Cash pending ₹329.40; filtered row count 1 (vs 15 total); toggling again hides totals and restores full list.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_scenarios": {
+    "backend_cos_report_shape": "PASS - 200 OK with bookings/count/totals(token_paid, cash_to_collect, cash_collected, cash_pending)",
+    "backend_cos_report_requires_admin": "PASS - 401/403 without auth",
+    "backend_cos_report_has_rows": "PASS - count>=1, booking fields present",
+    "frontend_cos_filter_toggle_on": "PASS - clicking bk-cos-filter shows bk-cos-totals and filters to COS-only (1 row)",
+    "frontend_cos_totals_values": "PASS - Token ₹270.93, Cash-to-collect ₹329.40, Collected ₹0, Pending ₹329.40 (matches expected ~270.93 / ~329.40)",
+    "frontend_cos_filter_toggle_off": "PASS - second click hides bk-cos-totals and restores 15 bookings"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_cos_report.py",
+    "/app/test_reports/pytest/cos_report.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_cos_report.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "100% (3/3)"},
+  "test_credentials": "Admin +919000000000 / OTP 123456 (one-click 'Login as Admin' button on sign-in page)",
+  "seed_data_creation": "None - used existing single COS pending_payment booking (AZ0HCY000, Priya Verma, Door Repair, ₹600.33) from prior iteration.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "COS filter button is in BookingsPro header (data-testid=bk-cos-filter). Totals strip (bk-cos-totals) renders only when cosOnly=true AND rows loaded. Individual total cells: bk-cos-token-paid-online, bk-cos-cash-to-collect, bk-cos-cash-collected, bk-cos-cash-pending. Backend endpoint: GET /api/admin/bookings-cos-report (admin auth)."
+}
