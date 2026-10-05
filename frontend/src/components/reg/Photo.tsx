@@ -102,6 +102,17 @@ export async function toSmallDataUrl(asset: ImagePicker.ImagePickerAsset, maxSid
   return asset?.base64 ? `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}` : null;
 }
 
+/* Reject if a native/web upload stalls, so the UI never gets stuck on "Uploading…"
+ * (the user gets a clear retry message instead of an infinite spinner). */
+function withTimeout<T>(p: Promise<T>, ms: number, msg: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(msg)), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+const UPLOAD_TIMEOUT_MS = 60000;
+const UPLOAD_TIMEOUT_MSG = "Upload timed out. Please check your connection and try again.";
+
 /* Multipart upload — native uses expo-file-system File.upload (expo/fetch does not support {uri} parts). */
 export async function uploadAsset(base: string, docType: string, asset: ImagePicker.ImagePickerAsset, extra?: Record<string, string>): Promise<any> {
   const token = await getToken();
@@ -116,15 +127,20 @@ export async function uploadAsset(base: string, docType: string, asset: ImagePic
     const blob = await (await fetch(asset.uri)).blob();
     fd.append("file", blob, asset.fileName || `${docType}_${Date.now()}.jpg`);
     Object.entries(params).forEach(([k, v]) => fd.append(k, v));
-    const r = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+    let r: Response;
+    try { r = await fetch(url, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: fd, signal: controller.signal }); }
+    catch { throw new Error(UPLOAD_TIMEOUT_MSG); }
+    finally { clearTimeout(timer); }
     if (!r.ok) throw parseUploadError(r.status, await r.text());
     return r.json();
   }
 
-  const res = await new FsFile(asset.uri).upload(url, {
+  const res = await withTimeout(new FsFile(asset.uri).upload(url, {
     httpMethod: "POST", uploadType: UploadType.MULTIPART, fieldName: "file", mimeType: mime, parameters: params,
     headers: { Authorization: `Bearer ${token}` },
-  });
+  }), UPLOAD_TIMEOUT_MS, UPLOAD_TIMEOUT_MSG);
   if (res.status < 200 || res.status >= 300) throw parseUploadError(res.status, res.body);
   return JSON.parse(res.body);
 }

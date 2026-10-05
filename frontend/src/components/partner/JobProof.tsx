@@ -4,7 +4,8 @@ import { Image } from "expo-image";
 import { Modal } from "react-native";
 import { InlineVideo } from "@/src/components/InlineVideo";
 import * as ImagePicker from "expo-image-picker";
-import { File as FsFile } from "expo-file-system";
+import { File as FsFile, FileMode } from "expo-file-system";
+import { fromByteArray } from "base64-js";
 import { useTheme } from "@/src/theme";
 import { api, mediaUrl } from "@/src/api/client";
 import { Icon } from "@/src/components/Icon";
@@ -14,6 +15,7 @@ export const MAX_PROOF_FILES = 5;
 export const MAX_VIDEO_SEC = 30;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
 const CHUNK_B64 = 700 * 1024; // ~525KB binary per JSON part — small enough for proxy body limits on mobile networks
+const VIDEO_READ_BYTES = 525 * 1024; // binary bytes read per chunk (→ ~700KB base64, under the proxy limit)
 const SLATE400 = "#94A3B8";
 
 export const isVideoUrl = (u: string) => /\.(mp4|mov|webm|3gp|mkv)(\?|$)/i.test(u || "");
@@ -25,6 +27,20 @@ export async function ensureCamera(toast: { error: (m: string) => void }) {
     toast.error("Camera access is required to capture live job proof. Please allow camera permission.");
     if (!perm.canAskAgain) Linking.openSettings();
     return false;
+  }
+  return true;
+}
+
+/** Camera + microphone (video recording needs both — some Android OEMs won't launch
+ *  the recorder, or capture silent/blank clips, without the mic grant). Mic is best-effort. */
+export async function ensureVideoPermissions(toast: { error: (m: string) => void }) {
+  if (!(await ensureCamera(toast))) return false;
+  if (Platform.OS !== "web") {
+    try {
+      const Cam = require("expo-camera"); // eslint-disable-line @typescript-eslint/no-require-imports
+      let m = await Cam.getMicrophonePermissionsAsync();
+      if (!m.granted && m.canAskAgain) await Cam.requestMicrophonePermissionsAsync();
+    } catch { /* mic is best-effort — the system recorder still captures */ }
   }
   return true;
 }
@@ -56,33 +72,62 @@ async function assetToBase64(asset: ImagePicker.ImagePickerAsset): Promise<strin
   return await new FsFile(asset.uri).base64();
 }
 
-/** LIVE camera video (≤30s) → chunked base64 upload to /bookings/{id}/evidence/chunk */
+/** LIVE camera video (≤30s) → chunked base64 upload to /bookings/{id}/evidence/chunk.
+ *  Native streams the file from disk one chunk at a time (flat memory → works on low-RAM
+ *  devices, and the first chunk starts uploading immediately). Web reads the whole file. */
 export async function captureProofVideo(bookingId: string, stage: "before" | "after", toast: any, onProgress?: (p: number) => void) {
-  if (!(await ensureCamera(toast))) return false;
+  if (!(await ensureVideoPermissions(toast))) return false;
   await new Promise((r) => setTimeout(r, 250));
   const res = await ImagePicker.launchCameraAsync({ mediaTypes: ["videos"], videoMaxDuration: MAX_VIDEO_SEC, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium, cameraType: ImagePicker.CameraType.back });
   if (res.canceled || !res.assets?.[0]?.uri) return false;
   const asset = res.assets[0];
   if (asset.duration && asset.duration > (MAX_VIDEO_SEC + 2) * 1000) { toast.error(`Video must be ${MAX_VIDEO_SEC} seconds or shorter`); return false; }
-  const size = assetSizeBytes(asset);
-  if (size > MAX_VIDEO_BYTES) { toast.error("Video too large (max 25 MB). Record a shorter clip."); return false; }
-  const b64 = await assetToBase64(asset);
-  if (b64.length * 0.75 > MAX_VIDEO_BYTES) { toast.error("Video too large (max 25 MB). Record a shorter clip."); return false; }
   const uploadId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-  const total = Math.max(1, Math.ceil(b64.length / CHUNK_B64));
   const mime = asset.mimeType || (asset.uri.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4");
-  let out: any = null;
-  for (let i = 0; i < total; i++) {
-    const body = { stage, upload_id: uploadId, index: i, total, content_type: mime, data: b64.slice(i * CHUNK_B64, (i + 1) * CHUNK_B64) };
+
+  // Send one base64 part, retrying transient failures (timeout/502/503/504/413, or a
+  // dropped connection) up to 3 times so a flaky mobile network doesn't lose the upload.
+  const sendChunk = async (index: number, total: number, data: string) => {
     let attempt = 0;
     for (;;) {
-      try { out = await api.post(`/bookings/${bookingId}/evidence/chunk`, body); break; }
+      try { return await api.post(`/bookings/${bookingId}/evidence/chunk`, { stage, upload_id: uploadId, index, total, content_type: mime, data }); }
       catch (e: any) {
-        if (e?.status && e.status !== 502 && e.status !== 503 && e.status !== 504 && e.status !== 413) throw e;
-        if (++attempt >= 3) throw new Error(e?.detail || `Video upload failed at part ${i + 1}/${total}. Check your connection and try again.`);
+        const retryable = !e?.status || [0, 408, 502, 503, 504, 413].includes(e.status);
+        if (!retryable) throw e;
+        if (++attempt >= 3) throw new Error(e?.detail || e?.message || `Video upload failed at part ${index + 1}/${total}. Check your connection and try again.`);
         await new Promise((r) => setTimeout(r, 800 * attempt));
       }
     }
+  };
+
+  // Native streaming path.
+  if (Platform.OS !== "web") {
+    const file = new FsFile(asset.uri);
+    const size = file.size || assetSizeBytes(asset) || 0;
+    if (size && size > MAX_VIDEO_BYTES) { toast.error("Video too large (max 25 MB). Record a shorter clip."); return false; }
+    if (size > 0) {
+      const total = Math.max(1, Math.ceil(size / VIDEO_READ_BYTES));
+      const handle = file.open(FileMode.ReadOnly);
+      let out: any = null;
+      try {
+        for (let i = 0; i < total; i++) {
+          const bytes = handle.readBytes(VIDEO_READ_BYTES);
+          if (!bytes.length) break;
+          out = await sendChunk(i, total, fromByteArray(bytes));
+          onProgress?.(Math.round(((i + 1) / total) * 100));
+        }
+      } finally { handle.close(); }
+      return !!out?.done;
+    }
+  }
+
+  // Web / unknown-size fallback: read the whole file, then slice the base64 string.
+  const b64 = await assetToBase64(asset);
+  if (b64.length * 0.75 > MAX_VIDEO_BYTES) { toast.error("Video too large (max 25 MB). Record a shorter clip."); return false; }
+  const total = Math.max(1, Math.ceil(b64.length / CHUNK_B64));
+  let out: any = null;
+  for (let i = 0; i < total; i++) {
+    out = await sendChunk(i, total, b64.slice(i * CHUNK_B64, (i + 1) * CHUNK_B64));
     onProgress?.(Math.round(((i + 1) / total) * 100));
   }
   return !!out?.done;

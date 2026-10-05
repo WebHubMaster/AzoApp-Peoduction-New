@@ -86,3 +86,19 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
 - DISABLED (must enable for exact ETA + native route line): Routes API (backend exact ETA) and
   Directions API (native route polyline). Until enabled: ETA/distance = estimate, native map shows
   both pins without the route line (graceful fallback). Web route (Embed directions) already works.
+
+## 2026-06 — Partner App: work-proof camera & upload hardening
+- captureProofVideo now STREAMS the recording from disk one ~525KB chunk at a time
+  (FileHandle.readBytes + base64-js fromByteArray) instead of loading the whole file
+  into a base64 string → flat memory, works on low-RAM devices, first chunk uploads
+  immediately. Each chunk is independently base64-encoded; verified byte-for-byte
+  compatible with backend /evidence/chunk assembly (incl. 25MB → 49 chunks).
+- Added microphone permission (expo-camera) before video capture (ensureVideoPermissions)
+  so Android OEMs reliably launch the recorder.
+- Chunk upload retries transient failures incl. timeouts (status 0/408/502/503/504/413).
+- uploadAsset (Photo.tsx) now has a 60s timeout (native + web) so photo uploads can
+  never hang forever on "Uploading…".
+- NOTE: native camera/upload UI cannot be exercised by the browser testing agent, and
+  the local backend is not runnable in this source repo (no MONGO_URL; targets prod).
+  Verified via tsc + eslint + a byte-exact chunk-encoding compatibility test.
+  Needs on-device confirmation.
