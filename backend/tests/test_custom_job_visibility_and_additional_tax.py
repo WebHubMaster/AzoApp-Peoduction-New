@@ -14,7 +14,7 @@ import requests
 BASE_URL = (
     os.environ.get("REACT_APP_BACKEND_URL")
     or os.environ.get("EXPO_PUBLIC_BACKEND_URL")
-    or "https://rating-box-compact.preview.emergentagent.com"
+    or "https://commission-mgr.preview.emergentagent.com"
 ).rstrip("/")
 
 API = f"{BASE_URL}/api"

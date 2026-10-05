@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://rating-box-compact.preview.emergentagent.com"
+BASE_URL = "https://commission-mgr.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

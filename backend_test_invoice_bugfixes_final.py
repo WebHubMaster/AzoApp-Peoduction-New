@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
+BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"

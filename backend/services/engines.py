@@ -128,7 +128,7 @@ class PricingEngine:
     async def compute(service: dict, settings: dict, schedule_type: str,
                       addon_names: list, coupon: dict = None, address: dict = None,
                       cart_service_total: float = None, apply_visiting: bool = True,
-                      apply_emergency: bool = True) -> dict:
+                      apply_emergency: bool = True, commission_base: float = None) -> dict:
         base = selling_price(service)
         # Add-on quantity is INDEPENDENT of the main service quantity. Each selected
         # add-on carries its own qty (default 1); the price is add-on price × add-on
@@ -171,6 +171,10 @@ class PricingEngine:
             "platform_fee": platform_fee, "discount": discount,
             "commission_pct": await PricingEngine.commission_pct(settings, service.get("category_id")),
         }
+        # Rate-card / custom items: only the labour charge is commissionable (service
+        # cost is NOT). When provided, commission applies to this amount only.
+        if commission_base is not None:
+            pricing["commission_base"] = money.money(commission_base)
         return PricingEngine.finalize(pricing, settings["gst_pct"])
 
     @staticmethod
@@ -265,8 +269,21 @@ class PricingEngine:
             remaining = money.add(remaining, -v)
         service_net = money.money(remaining)
         cpct = float(pricing.get("commission_pct") or 0)
-        partner_share = money.pct(service_net, max(0.0, 100.0 - cpct))
-        commission = money.money(max(0.0, money.add(service_net, -partner_share)))
+        # Commission base: normally the FULL service_net. For rate-card / custom items
+        # where ONLY the labour charge is commissionable (the product/service cost is
+        # NOT), the caller passes an explicit `commission_base` (labour only). The
+        # non-commissionable remainder (service_net − commission_base) is a pass-through
+        # that goes 100% to the partner. When no override is given the math is byte-for-
+        # byte identical to the legacy behaviour (normal bookings are unaffected).
+        cb = pricing.get("commission_base")
+        if cb is None:
+            partner_share = money.pct(service_net, max(0.0, 100.0 - cpct))
+            commission = money.money(max(0.0, money.add(service_net, -partner_share)))
+            commissionable = service_net
+        else:
+            commissionable = money.money(max(0.0, min(float(cb), service_net)))
+            commission = money.pct(commissionable, cpct)
+            partner_share = money.money(max(0.0, money.add(service_net, -commission)))
         tax_base = money.add(commission, platform_only)
         gst = money.pct(tax_base, gst_pct)
         cgst = money.money(gst / 2)
@@ -276,8 +293,9 @@ class PricingEngine:
             "total_discount": money.add(service_charges, -service_net),
             "taxable": taxable, "gst_pct": float(gst_pct or 0), "gst": gst, "tax": gst,
             "cgst": cgst, "sgst": money.add(gst, -cgst),
-            "total": money.add(taxable, gst), "commissionable_base": service_net,
+            "total": money.add(taxable, gst), "commissionable_base": commissionable,
             "service_net": service_net, "commission_pct": cpct,
+            "pass_through": money.money(max(0.0, money.add(service_net, -commissionable))),
             "platform_commission": commission, "partner_share": partner_share,
             "tax_base": tax_base, "platform_only_fees": platform_only,
         })
@@ -546,28 +564,35 @@ class CommissionEngine:
         return cm
 
     @staticmethod
-    def split(base, cm: dict, partner_merchant_id=None, customer_merchant_id=None) -> dict:
+    def split(base, cm: dict, partner_merchant_id=None, customer_merchant_id=None,
+              pass_through: float = 0.0) -> dict:
         """Pure 4-way split of a tax-EXCLUDED amount (the ONLY place the split math lives):
-          1. partner_earning  = base × partner%
-          2. platform_gross   = base − partner_earning            (everything else goes to platform)
+          1. partner_earning  = base × partner% (+ pass_through, see below)
+          2. platform_gross   = base − base × partner%           (everything else goes to platform)
           3. from platform_gross → merchant_referral (C%) if the partner came via a merchant,
                                  → merchant_customer (D%) if the customer came via a merchant
           4. platform_earning = platform_gross − merchant shares (platform keeps C/D when no merchant)
-        Sum of the four payouts always equals `base` to the paisa."""
+        `pass_through` is a NON-COMMISSIONABLE amount (e.g. a rate-card product/service
+        cost on which no commission is charged) that is added 100% to the partner. The
+        commission (platform + merchant) is computed ONLY on `base`. Sum of the four
+        payouts always equals `base + pass_through` to the paisa."""
         base = money.money(base)
+        pass_through = money.money(pass_through)
         partner_pct = float(cm.get("partner_pct", 60))
         platform_pct = float(cm.get("platform_pct", 32))
         mref_pct = float(cm.get("merchant_partner_referral_pct", 5))
         mcust_pct = float(cm.get("merchant_customer_pct", 3))
-        partner_earning = money.pct(base, partner_pct)
-        platform_gross = money.add(base, -partner_earning)
+        partner_on_base = money.pct(base, partner_pct)
+        partner_earning = money.add(partner_on_base, pass_through)
+        platform_gross = money.add(base, -partner_on_base)
         merchant_referral = money.pct(base, mref_pct) if partner_merchant_id else 0.0
         merchant_customer = money.pct(base, mcust_pct) if customer_merchant_id else 0.0
         platform_earning = money.add(platform_gross, -merchant_referral, -merchant_customer)
         if platform_earning < 0:
             platform_earning = 0.0
         return {
-            "base": base, "partner_earning": partner_earning, "platform_gross": platform_gross,
+            "base": base, "pass_through": pass_through,
+            "partner_earning": partner_earning, "platform_gross": platform_gross,
             "merchant_referral": merchant_referral, "referral_merchant_id": partner_merchant_id or None,
             "merchant_customer": merchant_customer, "customer_merchant_id": customer_merchant_id or None,
             "platform_earning": platform_earning,
@@ -577,12 +602,28 @@ class CommissionEngine:
         }
 
     @staticmethod
+    def _commissionable_and_passthrough(pricing: dict):
+        """(commissionable_base, pass_through) for the partner/merchant split, derived
+        from the stored pricing. commissionable_base is the amount commission applies to
+        (labour only for rate-card items); pass_through = service_net − commissionable is
+        the partner's non-commissionable share. Legacy bookings → full base, 0 pass."""
+        pricing = pricing or {}
+        full = PricingEngine.commission_base_excl_tax(pricing)
+        cb = pricing.get("commissionable_base")
+        if cb is None:
+            return full, 0.0
+        commissionable = money.money(max(0.0, min(float(cb), full)))
+        return commissionable, money.money(max(0.0, money.add(full, -commissionable)))
+
+    @staticmethod
     def compute_split(booking: dict, settings: dict, partner: dict = None) -> dict:
         """Pure (no DB write) commission split — mirrors settle() exactly."""
         cm = CommissionEngine._cm(booking.get("commission_config") or settings)
         pricing = booking.get("pricing") or {}
-        s = CommissionEngine.split(PricingEngine.commission_base_excl_tax(pricing), cm,
-                                   (partner or {}).get("referred_by_merchant"), booking.get("merchant_id"))
+        _cb, _pt = CommissionEngine._commissionable_and_passthrough(pricing)
+        s = CommissionEngine.split(_cb, cm,
+                                   (partner or {}).get("referred_by_merchant"), booking.get("merchant_id"),
+                                   pass_through=_pt)
         pf = PricingEngine.platform_only_fees(pricing)
         s.update({"visiting_charge": 0.0, "partner_total": s["partner_earning"],
                   "platform_fees": pf, "platform_total": money.add(s["platform_earning"], pf),
@@ -595,10 +636,12 @@ class CommissionEngine:
         cm = CommissionEngine._cm(cfg)
         pricing = booking.get("pricing") or {}
         # Commission base = everything the customer paid EXCLUDING tax (service + add-ons +
-        # visiting/emergency/surge/fees − all discounts). The visiting charge is part of
-        # this base, so the partner receives only their configured % of it.
-        s = CommissionEngine.split(PricingEngine.commission_base_excl_tax(pricing), cm,
-                                   partner.get("referred_by_merchant"), booking.get("merchant_id"))
+        # visiting/emergency/surge/fees − all discounts). For rate-card items only the
+        # labour portion is commissionable; the rest passes through 100% to the partner.
+        _cb, _pt = CommissionEngine._commissionable_and_passthrough(pricing)
+        s = CommissionEngine.split(_cb, cm,
+                                   partner.get("referred_by_merchant"), booking.get("merchant_id"),
+                                   pass_through=_pt)
         partner_earning, platform_earning = s["partner_earning"], s["platform_earning"]
         merchant_referral, merchant_customer = s["merchant_referral"], s["merchant_customer"]
         partner_merchant_id, customer_merchant_id = s["referral_merchant_id"], s["customer_merchant_id"]

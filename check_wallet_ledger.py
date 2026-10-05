@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
+BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"
 

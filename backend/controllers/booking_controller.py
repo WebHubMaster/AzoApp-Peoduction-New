@@ -533,6 +533,11 @@ async def cart_quote(user, items, schedule_type="schedule", coupon_code=None, ad
         "convenience_fee": money.money(convenience_fee), "platform_fee": money.money(platform_fee),
         "subtotal": subtotal, "discount": money.money(discount),
         "commission_pct": commission_pct,
+        # Pure rate-card cart (every line is a custom/rate-card item): only the labour
+        # charge is commissionable — the product/service cost passes through to the
+        # partner with NO commission. Mixed/normal carts keep the full base.
+        **({"commission_base": money.money(labour_total)}
+           if items and all(it.get("custom") for it in items) else {}),
     }, settings["gst_pct"])
     # Active membership → automatic % discount on top (platform-absorbed).
     # Skipped for guests (user is None) — applied once they log in.
@@ -627,13 +632,15 @@ async def _build_booking(customer, svc, address, schedule_type, addons, notes,
     pricing = await PricingEngine.compute(svc, settings, schedule_type, addons, None, address,
                                           cart_service_total=cart_service_total,
                                           apply_visiting=apply_visiting,
-                                          apply_emergency=apply_emergency)
+                                          apply_emergency=apply_emergency,
+                                          commission_base=(eff_labour if svc.get("is_custom") else None))
     coupon = await _load_coupon(coupon_code, pricing.get("subtotal"))
     if coupon:
         pricing = await PricingEngine.compute(svc, settings, schedule_type, addons, coupon, address,
                                               cart_service_total=cart_service_total,
                                               apply_visiting=apply_visiting,
-                                              apply_emergency=apply_emergency)
+                                              apply_emergency=apply_emergency,
+                                              commission_base=(eff_labour if svc.get("is_custom") else None))
     else:
         coupon_code = None
     # Active membership → automatic % discount on the charged total (platform-absorbed).
@@ -655,6 +662,13 @@ async def _build_booking(customer, svc, address, schedule_type, addons, notes,
     # snapshot the canonical commission block so later rate changes don't alter this booking
     from services import category_commission_service as _ccs
     ccfg["commission"] = await _ccs.resolve(settings, svc.get("category_id"))
+    # Merchant commission % is CITY-wise (Price Manager → Fee & Charges). When the
+    # booking's city configures merchant %s they OVERRIDE the category/global values so
+    # a merchant earns exactly the rate set for that city.
+    from services import city_pricing_service as _cps
+    _city_merch = await _cps.merchant_commission((address or {}).get("city"))
+    if _city_merch:
+        ccfg["commission"].update(_city_merch)
     eligible = await MatchingEngine.eligible_partners(svc, settings, address)
     booking = {
         "id": new_id(), "code": await _unique_code(),
@@ -3119,7 +3133,11 @@ async def _recompute_additional(booking, settings):
     parts_total = money.add(*[_num(i.get("part_charge")) for i in items])
     labour_total = money.add(*[_num(i.get("labour_charge")) for i in items])
     cm = CommissionEngine._cm(booking.get("commission_config") or settings)
-    platform_pct = float(cm.get("platform_pct", 32))
+    partner_pct = float(cm.get("partner_pct", 60))
+    # Commission on additional labour uses the SAME full platform-side rate as normal
+    # billing: (100 − partner%) — NOT the platform-only slice. Keeps rate-card add-ons
+    # consistent with the main booking (merchant shares, if any, come out of this).
+    platform_pct = round(max(0.0, 100.0 - partner_pct), 4)
     # Platform commission is charged ONLY on the service/labour charge — never on the
     # product/part cost (that is 100% the partner's, tax & commission free).
     labour_platform = money.pct(labour_total, platform_pct)

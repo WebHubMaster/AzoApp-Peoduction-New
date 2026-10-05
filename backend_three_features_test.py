@@ -18,7 +18,7 @@ import random
 import string
 
 # Base URL from environment
-BASE_URL = "https://rating-box-compact.preview.emergentagent.com/api"
+BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts
