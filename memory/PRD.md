@@ -68,3 +68,21 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
 
 ## Notes
 - .env files were missing in this preview pod; created /app/backend/.env (local Mongo). Prod uses remote DB.
+
+## Done (2026-06, Customer app — Live Map + Help chat)
+- LiveTrackCard (Customer/src/components/customer/LiveTrackCard.tsx): switched from OpenStreetMap
+  to REAL Google Maps (Maps JS on native, Embed API on web) with partner + customer markers and a
+  driving route; OSM kept as fallback only when no Google key is set. Backend /track now returns
+  `maps_key` (from geo_service._google_key — Admin Integration Center or GOOGLE_MAPS_API_KEY env).
+- Exact distance/ETA already computed server-side via geo_service.road_eta (Google Routes/Distance
+  Matrix) with estimate fallback.
+- Google Maps key saved in preview settings.integrations.google_maps_api_key.
+- HelpSOS chat (booking Help): added bottom safe-area padding + WhatsApp-style keyboard handling via
+  react-native-keyboard-controller (sheet lifts above keyboard, composer sits on top). Removed the
+  Android-broken KeyboardAvoidingView(behavior=undefined).
+
+## Google Cloud action needed (project 960503871336) for FULL live-map fidelity
+- Enabled & working: Maps JavaScript API, Maps Embed API, Geocoding API → the Google map RENDERS.
+- DISABLED (must enable for exact ETA + native route line): Routes API (backend exact ETA) and
+  Directions API (native route polyline). Until enabled: ETA/distance = estimate, native map shows
+  both pins without the route line (graceful fallback). Web route (Embed directions) already works.

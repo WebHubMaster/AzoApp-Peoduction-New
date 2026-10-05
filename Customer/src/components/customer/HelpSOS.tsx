@@ -1,6 +1,8 @@
 /** Help & SOS — on a started job. Help → real-time WhatsApp-style chat with Support; SOS → calls 112. */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, Linking, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, Linking, Alert, useWindowDimensions } from "react-native";
+import { useKeyboardState } from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LifeBuoy, AlertTriangle, X, Send, ShieldCheck, Paperclip } from "lucide-react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -34,6 +36,13 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
   const typingTimer = useRef<any>(null);
   const lastTyping = useRef(0);
   const code = booking?.code || "";
+  const insets = useSafeAreaInsets();
+  const { height: winH } = useWindowDimensions();
+  const kbH = useKeyboardState((k) => (k.isVisible ? k.height : 0));
+  // WhatsApp-style: the whole sheet lifts above the keyboard and shrinks so the
+  // composer sits directly on top of it; when closed it respects the bottom safe area.
+  const sheetH = kbH > 0 ? Math.max(300, winH - kbH - insets.top - 8) : Math.round(winH * 0.85);
+  const composerPad = kbH > 0 ? 12 : Math.max(insets.bottom, 12);
 
   const openChat = async () => {
     setOpen(true);
@@ -132,9 +141,9 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
         </Pressable>
       </View>
 
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: TC.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)} statusBarTranslucent>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View testID="help-sos-modal" style={{ height: sheetH, marginBottom: kbH, backgroundColor: TC.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderBottomWidth: 1, borderBottomColor: TC.borderSoft }}>
               <View style={{ width: 36, height: 36, borderRadius: 6, backgroundColor: PRIMARY[600], alignItems: "center", justifyContent: "center" }}><ShieldCheck size={18} color="#fff" /></View>
               <View style={{ flex: 1 }}>
@@ -160,7 +169,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
               })}
               {agentTyping ? <Text testID="help-sos-agent-typing" style={{ fontSize: 11, fontWeight: "600", color: PRIMARY[600] }}>Support is typing…</Text> : null}
             </ScrollView>
-            <View style={{ flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: TC.borderSoft }}>
+            <View style={{ flexDirection: "row", gap: 8, paddingHorizontal: 12, paddingTop: 12, paddingBottom: composerPad, borderTopWidth: 1, borderTopColor: TC.borderSoft, backgroundColor: TC.surface }}>
               <Pressable testID="help-sos-attach" onPress={sendPhoto} disabled={!ticket || uploading} style={{ width: 44, height: 44, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center", opacity: !ticket ? 0.4 : 1 }}>
                 {uploading ? <ActivityIndicator size="small" color={TC.textMuted} /> : <Paperclip size={18} color={TC.textMuted} />}
               </Pressable>
@@ -172,7 +181,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
               </Pressable>
             </View>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
     </>
   );

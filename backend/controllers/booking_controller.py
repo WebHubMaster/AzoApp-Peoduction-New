@@ -4127,6 +4127,8 @@ async def track_booking(user, booking_id):
     if sched_st.get("comm_locked") and partner:
         partner["phone"] = None
 
+    from services import geo_service
+    maps_key = await geo_service._google_key()
     return {
         "id": b["id"], "code": b.get("code"), "status": status,
         "service_name": b.get("service_name"),
@@ -4139,6 +4141,7 @@ async def track_booking(user, booking_id):
         "distance_km": distance_km, "eta_source": eta_source,
         "timeline": timeline,
         "demo": demo,
+        "maps_key": maps_key or "",
         "schedule": sched_st,
         "otps": {},
     }
