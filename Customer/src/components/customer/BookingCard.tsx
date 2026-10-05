@@ -155,9 +155,7 @@ export function ScheduledCard({ schedule }: { schedule: any }) {
             </View>
             <Text style={{ fontSize: 12, color: TC.textMuted, marginTop: 8 }}>Available 30 minutes before the scheduled time.</Text>
           </>
-        ) : (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><CheckCircle2 size={16} color={EMERALD[700]} /><Text style={{ fontSize: 12.5, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>Call, Chat & your Start OTP are now available.</Text></View>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -361,11 +359,11 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
       {canReview ? (
         <View testID={`rate-row-${b.code}`} style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: c.borderSoft, paddingTop: 12 }}>
           <Text style={{ fontSize: 12, fontWeight: "700", color: TC.textMuted, marginBottom: 8 }}>Rate this service</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <View style={{ flexDirection: "row", gap: 4 }}>
             {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((n) => (
               <Pressable key={n} testID={`rate-${b.code}-${n}`} onPress={() => a.onReview(b, n)}
-                style={({ pressed }) => ({ minWidth: 46, height: 40, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: AMBER[200], backgroundColor: pressed ? AMBER[200] : (isDark ? "rgba(120,53,15,0.15)" : AMBER[50]), flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 })}>
-                <Star size={13} color={AMBER[500]} fill={AMBER[400]} /><Text style={{ fontSize: 13, fontWeight: "800", color: AMBER[700] }}>{n}</Text>
+                style={({ pressed }) => ({ flex: 1, height: 34, borderRadius: 6, borderWidth: 1, borderColor: AMBER[200], backgroundColor: pressed ? AMBER[200] : (isDark ? "rgba(120,53,15,0.15)" : AMBER[50]), flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 2 })}>
+                <Star size={10} color={AMBER[500]} fill={AMBER[400]} /><Text style={{ fontSize: 11.5, fontWeight: "800", color: AMBER[700] }}>{n}</Text>
               </Pressable>
             ))}
           </View>

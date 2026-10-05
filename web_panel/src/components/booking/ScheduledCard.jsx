@@ -97,14 +97,7 @@ export default function ScheduledCard({ schedule, role = "customer", compact = f
                 Available 30 minutes before the scheduled time.
               </p>
             </>
-          ) : (
-            <p className="text-[12.5px] font-semibold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4" />
-              {role === "customer"
-                ? "Call, Chat & your Start OTP are now available."
-                : "Call, Chat, Navigation & Start Work are now available."}
-            </p>
-          )}
+          ) : null}
         </div>
       )}
     </div>

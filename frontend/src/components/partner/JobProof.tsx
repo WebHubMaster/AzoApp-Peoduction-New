@@ -139,6 +139,7 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
   const { colors } = useTheme();
   const full = items.length >= MAX_PROOF_FILES;
   const tile = { width: "31%" as const, aspectRatio: 1, borderRadius: 6, overflow: "hidden" as const, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surfaceSubtle };
+  const addTile = items.length === 0 ? { flex: 1, height: 104, borderRadius: 6, overflow: "hidden" as const } : tile;
   return (
     <>
     <View testID={testID}>
@@ -166,11 +167,11 @@ export function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, t
         ))}
         {!full && !locked ? (
           <>
-            <Pressable testID={`${testID}-photo`} onPress={onPhoto} disabled={busy} style={[tile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#93C5FD", backgroundColor: "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
+            <Pressable testID={`${testID}-photo`} onPress={onPhoto} disabled={busy} style={[addTile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#93C5FD", backgroundColor: "rgba(239,246,255,0.7)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
               <Icon name="camera-outline" size={24} color={colors.primary} />
               <Text style={{ color: colors.primary, fontSize: 11.5, fontWeight: "700", marginTop: 4 }}>Photo</Text>
             </Pressable>
-            <Pressable testID={`${testID}-video`} onPress={onVideo} disabled={busy} style={[tile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#C4B5FD", backgroundColor: "rgba(245,243,255,0.8)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
+            <Pressable testID={`${testID}-video`} onPress={onVideo} disabled={busy} style={[addTile, { borderWidth: 2, borderStyle: "dashed", borderColor: "#C4B5FD", backgroundColor: "rgba(245,243,255,0.8)", alignItems: "center", justifyContent: "center", opacity: busy ? 0.6 : 1 }]}>
               <Icon name="video-outline" size={24} color="#7C3AED" />
               <Text style={{ color: "#7C3AED", fontSize: 11.5, fontWeight: "700", marginTop: 4 }}>Video ≤{MAX_VIDEO_SEC}s</Text>
             </Pressable>

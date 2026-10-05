@@ -85,7 +85,7 @@ class EvidenceRequest(BaseModel):
 
 
 class ReviewRequest(BaseModel):
-    rating: int = Field(ge=1, le=5)
+    rating: float = Field(ge=1, le=5)
     comment: str = ""
 
 

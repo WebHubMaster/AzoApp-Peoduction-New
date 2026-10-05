@@ -76,7 +76,7 @@ export default function RefundsScreen() {
             {(r.status_history || []).length ? (
               <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingTop: 12 }}>
                 <Text style={{ fontSize: 11, fontWeight: "700", color: TC.textFaint, textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 6 }}>Refund timeline</Text>
-                {r.status_history.map((h: any, i: number) => <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 2 }}><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: PRIMARY[500] }} /><Text style={{ fontSize: 12, fontWeight: "600", color: TC.text2, textTransform: "capitalize" }}>{(h.status || "").replace("_", " ")}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>· {h.at ? new Date(h.at).toLocaleString("en-IN") : ""}{h.note ? ` · ${h.note}` : ""}</Text></View>)}
+                {r.status_history.map((h: any, i: number) => <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingVertical: 3 }}><View style={{ height: 6, width: 6, borderRadius: 3, backgroundColor: PRIMARY[500], marginTop: 6 }} /><View style={{ flex: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "center" }}><Text style={{ fontSize: 12, fontWeight: "600", color: TC.text2, textTransform: "capitalize" }}>{(h.status || "").replace("_", " ")}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}> · {h.at ? new Date(h.at).toLocaleString("en-IN") : ""}{h.note ? ` · ${h.note}` : ""}</Text></View></View>)}
               </View>
             ) : null}
           </View>
