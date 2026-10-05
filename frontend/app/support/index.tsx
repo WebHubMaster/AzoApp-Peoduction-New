@@ -108,15 +108,6 @@ export default function SupportList() {
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }}
         refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["support-tickets"] })} tintColor={colors.primary} colors={[colors.primary]} />}
       >
-        {/* header */}
-        <View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Icon name="lifebuoy" size={24} color={colors.primary} />
-            <Text testID="support-header" style={{ color: colors.text, fontSize: 22, fontWeight: "800" }}>Help & Support</Text>
-          </View>
-          <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4, lineHeight: 19 }}>{tickets.length} ticket{tickets.length === 1 ? "" : "s"} · chat with our support team, attach screenshots, track status.</Text>
-        </View>
-
         <NewBtn full testID="new-ticket" />
 
         {/* search */}
