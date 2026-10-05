@@ -14,7 +14,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://commission-mgr.preview.emergentagent.com",
+    "https://full-width-booking.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -44,7 +44,7 @@ CAPTION_MULTILINE = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link to book now:\n"
-    "https://commission-mgr.preview.emergentagent.com/?ref=XZ6SV49"
+    "https://full-width-booking.preview.emergentagent.com/?ref=XZ6SV49"
 )
 
 

@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
+BASE_URL = "https://full-width-booking.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

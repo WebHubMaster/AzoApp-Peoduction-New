@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
+BASE_URL = "https://full-width-booking.preview.emergentagent.com/api"
 ADMIN = "+919000000000"
 OTP = "123456"
 

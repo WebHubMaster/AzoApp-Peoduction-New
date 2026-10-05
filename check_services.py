@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
+BASE_URL = "https://full-width-booking.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()

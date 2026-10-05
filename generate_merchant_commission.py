@@ -8,7 +8,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://commission-mgr.preview.emergentagent.com/api"
+BASE_URL = "https://full-width-booking.preview.emergentagent.com/api"
 OTP = "123456"
 
 MERCHANT_PHONE = "+919000000002"  # Sharma Electricals
