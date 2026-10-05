@@ -125,16 +125,20 @@ export function CancelDialog({ booking, reasons, onClose, onConfirm }: { booking
 export function ReviewDialog({ booking, onClose, onSubmit }: { booking: any; onClose: () => void; onSubmit: (b: any, stars: number, cmt: string) => Promise<void> }) {
   const { c } = useTheme();
   const [stars, setStars] = useState(5); const [cmt, setCmt] = useState(""); const [busy, setBusy] = useState(false);
-  useEffect(() => { setStars(5); setCmt(""); }, [booking]);
+  useEffect(() => { setStars(booking?._initRating ?? 5); setCmt(""); }, [booking]);
   if (!booking) return null;
+  const full = Math.floor(stars); const half = stars - full >= 0.5;
   return (
     <CenterDialog open={!!booking} onClose={onClose} testID="review-dialog">
       <Title t="Rate your service" d={`How was your experience${booking.partner_name ? ` with ${booking.partner_name}` : ""}?`} />
-      <View style={{ flexDirection: "row", justifyContent: "center", gap: 4, marginVertical: 8 }}>
-        {[1, 2, 3, 4, 5].map((n) => <Pressable key={n} testID={`star-${n}`} onPress={() => setStars(n)} style={({ pressed }) => ({ transform: [{ scale: pressed ? 1.1 : 1 }] })}><Star size={36} color={n <= stars ? AMBER[400] : TC.border} fill={n <= stars ? AMBER[400] : "transparent"} /></Pressable>)}
+      <View style={{ alignItems: "center", gap: 6, marginVertical: 8 }}>
+        <View style={{ flexDirection: "row", justifyContent: "center", gap: 4 }}>
+          {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={32} color={n <= full || (n === full + 1 && half) ? AMBER[400] : TC.border} fill={n <= full ? AMBER[400] : (n === full + 1 && half ? AMBER[200] : "transparent")} />)}
+        </View>
+        <Text testID="review-rating-preview" style={{ fontSize: 16, fontWeight: "800", color: AMBER[600] }}>{stars} / 5</Text>
       </View>
-      <TextInput testID="review-comment" value={cmt} onChangeText={setCmt} placeholder="Add a comment (optional)" placeholderTextColor={TC.textFaint} style={{ height: 40, borderRadius: 6, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, fontSize: 14, color: c.text }} />
-      <Btn testID="submit-review" label={busy ? "Submitting…" : "Submit Review"} disabled={busy} onPress={async () => { setBusy(true); try { await onSubmit(booking, stars, cmt); } finally { setBusy(false); } }} style={{ marginTop: 4 }} />
+      <TextInput testID="review-comment" value={cmt} onChangeText={setCmt} placeholder="Write your review…" placeholderTextColor={TC.textFaint} multiline style={{ minHeight: 76, borderRadius: 6, borderWidth: 1, borderColor: c.border, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14, color: c.text, textAlignVertical: "top" }} />
+      <Btn testID="submit-review" label={busy ? "Submitting…" : "Submit Review"} disabled={busy} onPress={async () => { setBusy(true); try { await onSubmit(booking, stars, cmt); } finally { setBusy(false); } }} style={{ marginTop: 8 }} />
     </CenterDialog>
   );
 }

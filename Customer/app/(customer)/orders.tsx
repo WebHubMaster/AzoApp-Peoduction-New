@@ -1,5 +1,5 @@
 /** My Bookings — 1:1 port of BookingsView (CustomerDashboard.jsx) mobile view: KPIs, search + filters, tabs, cards, paginator, all dialogs. */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Package, Clock, CheckCircle2, AlertTriangle, Plus, CreditCard } from "lucide-react-native";
@@ -19,7 +19,6 @@ import { BookingChat, useChatSummary } from "../../src/components/customer/Booki
 
 const SORTS = [{ value: "new", label: "Newest first" }, { value: "old", label: "Oldest first" }, { value: "amt_hi", label: "Amount: High → Low" }, { value: "amt_lo", label: "Amount: Low → High" }];
 const PAYMENTS = [{ value: "all", label: "All payments" }, { value: "paid", label: "Paid" }, { value: "pending", label: "Pending" }, { value: "refunded", label: "Refunded" }];
-const BK_TABS = [{ key: "active", label: "Active" }, { key: "searching", label: "Searching" }, { key: "ongoing", label: "Ongoing" }, { key: "completed", label: "Completed" }, { key: "cancelled", label: "Cancelled" }, { key: "all", label: "All" }];
 const ONGOING = ["assigned", "arrived_shop", "arrived_customer", "started"];
 const matchTab = (b: any, tab: string) => {
   switch (tab) {
@@ -76,6 +75,20 @@ export default function OrdersScreen() {
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const activeFilters = (payment !== "all" ? 1 : 0) + (range.preset !== "All" ? 1 : 0) + (sort !== "new" ? 1 : 0);
   const counts: Record<string, number> = { all: bookings.length, active: bookings.filter((b: any) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b: any) => b.status === "searching").length, ongoing: bookings.filter((b: any) => ONGOING.includes(b.status)).length, completed: bookings.filter((b: any) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b: any) => b.status === "cancelled").length };
+  // Tab order: if there's an active job show Active first then Completed; otherwise show Completed first then Active.
+  const hasActive = counts.active > 0;
+  const bkTabs = useMemo(() => {
+    const T: Record<string, { key: string; label: string }> = { active: { key: "active", label: "Active" }, completed: { key: "completed", label: "Completed" }, searching: { key: "searching", label: "Searching" }, ongoing: { key: "ongoing", label: "Ongoing" }, cancelled: { key: "cancelled", label: "Cancelled" }, all: { key: "all", label: "All" } };
+    const order = hasActive ? ["active", "completed", "ongoing", "searching", "cancelled", "all"] : ["completed", "active", "ongoing", "searching", "cancelled", "all"];
+    return order.map((k) => T[k]);
+  }, [hasActive]);
+  // Default the selected tab once bookings first load: Active if any active job, else Completed.
+  const didInitTab = useRef(false);
+  useEffect(() => {
+    if (didInitTab.current || loading || focusCode) return;
+    didInitTab.current = true;
+    setTab(hasActive ? "active" : "completed");
+  }, [loading, hasActive, focusCode]);
   const clearAll = () => { setPayment("all"); setRange(ALL_RANGE); setSort("new"); setTab("all"); };
   const goNew = () => router.push("/(site)/services" as any);
   const err = (e: any, fb: string) => toast.error(e?.message || fb);
@@ -112,7 +125,7 @@ export default function OrdersScreen() {
     try { await api.post(`/bookings/${b.id}/reschedule/cancel`); toast.success("Reschedule request withdrawn"); reload(); } catch (e) { err(e, "Could not withdraw"); }
   };
   const actions: CardActions = {
-    onRepeat: repeat, onCancel: setCancelT, onReview: setRev, onPay: pay, onPayAddl: setAddl, onSpare: spareAction, onRefresh: reload, onDetails: setDetails, onInvoice: setInvoice, onChat: setChat, onReschedule: setResched,
+    onRepeat: repeat, onCancel: setCancelT, onReview: (b: any, rating?: number) => setRev(rating != null ? { ...b, _initRating: rating } : b), onPay: pay, onPayAddl: setAddl, onSpare: spareAction, onRefresh: reload, onDetails: setDetails, onInvoice: setInvoice, onChat: setChat, onReschedule: setResched,
     respondResched, cancelResched, unreadFor, toast,
   };
 
@@ -139,7 +152,7 @@ export default function OrdersScreen() {
           <SearchInput value={q} onChange={setQ} placeholder="Search service, booking ID, partner…" testID="bk-search" />
           <FilterButton activeCount={activeFilters} onPress={() => setFOpen(true)} testID="bk-filter-btn" />
         </View>
-        <SegTabs tabs={BK_TABS} value={tab} onChange={setTab} testID="bk-tab" counts={counts} />
+        <SegTabs tabs={bkTabs} value={tab} onChange={setTab} testID="bk-tab" counts={counts} />
       </View>
 
       {/* List */}

@@ -181,3 +181,13 @@ Target: /app/Customer (Expo RN app), support chat screen.
 - Hide bottom tab bar while the support chat thread is open (shared flag src/lib/chatPresence.ts; SupportThread enter/exit; CustomerShell hides nav when chatOpen).
 - Sound: inside chat = silent (removed audio from SupportThread.notifyNewReply, kept haptic). Outside chat = new pleasant chime assets/sounds/message-chime.wav played globally in CustomerShell on `support_message` when !isChatOpen().
 - NOTE: Customer Expo app has no node_modules and is not served in this env, so changes were verified by code review, NOT run live. User should test in Expo Go / dev build.
+
+---
+## Customer App — Bookings rating revamp (2026-06)
+Files: app/(customer)/orders.tsx, src/components/customer/BookingCard.tsx, src/components/customer/BookingDialogs.tsx (Customer Expo app).
+- Removed the side "X.0 rated" badge and the inline "Rate" chip from completed cards.
+- Added a bottom number-rating selector (1,1.5,2,…,5) shown whenever a completed job is not yet reviewed (canReview = DONE && !b.review) → always visible until rated.
+- Tapping a number opens the review popup (ReviewDialog) with that rating preselected, showing a star+"X/5" preview and a multiline review box + Submit. _initRating passed via booking object.
+- Already-rated completed jobs show a subtle "You rated X / 5" note instead.
+- Tab order is dynamic: active job present → Active tab first then Completed; no active job → Completed tab first then Active (default selected tab follows the same).
+- NOTE: Customer Expo app not runnable in this env (no node_modules, not served) → verified by code review only; test in Expo Go / dev build.

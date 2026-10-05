@@ -227,7 +227,7 @@ export const Chip = ({ testID, icon: Icon, label, onPress, tone = "outline", dis
 };
 
 export type CardActions = {
-  onRepeat: (b: any) => void; onCancel: (b: any) => void; onReview: (b: any) => void; onPay: (b: any) => void; onPayAddl: (b: any) => void;
+  onRepeat: (b: any) => void; onCancel: (b: any) => void; onReview: (b: any, rating?: number) => void; onPay: (b: any) => void; onPayAddl: (b: any) => void;
   onSpare: (b: any, partId: string, action: string) => void; onRefresh: () => void; onDetails: (b: any) => void; onInvoice: (b: any) => void; onChat: (b: any) => void;
   onReschedule: (b: any) => void; respondResched: (b: any, action: "accept" | "reject") => Promise<void>; cancelResched: (b: any) => Promise<void>;
   unreadFor: (id: string) => number; toast: any;
@@ -353,11 +353,25 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
         <Chip testID={`details-${b.code}`} icon={Info} onPress={() => a.onDetails(b)} label="View Details" />
         {canInvoice ? <Chip testID={`invoice-${b.code}`} icon={FileText} onPress={() => a.onInvoice(b)} label="Invoice" /> : null}
         {canRepeat ? <Chip testID={`repeat-${b.code}`} icon={RefreshCcw} onPress={() => a.onRepeat(b)} label="Book Again" /> : null}
-        {canReview ? <Chip testID={`review-${b.code}`} icon={Star} tone="amber" onPress={() => a.onReview(b)} label="Rate" /> : null}
         {canRequestResched ? <Chip testID={`reschedule-${b.code}`} icon={Clock} onPress={() => a.onReschedule(b)} label="Request Reschedule" /> : null}
         {canCancel ? <Chip testID={`cancel-${b.code}`} tone="rose" onPress={() => a.onCancel(b)} label="Cancel" /> : null}
-        {b.review ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginLeft: "auto" }}><Star size={16} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 14, color: AMBER[600] }}>{b.review.rating}.0 rated</Text></View> : null}
       </View>
+
+      {/* Completed & not yet rated → bottom number-rating selector (1 → 5 in 0.5 steps). Tapping opens the review popup with that rating preselected. */}
+      {canReview ? (
+        <View testID={`rate-row-${b.code}`} style={{ marginTop: 14, borderTopWidth: 1, borderTopColor: c.borderSoft, paddingTop: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: "700", color: TC.textMuted, marginBottom: 8 }}>Rate this service</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {[1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((n) => (
+              <Pressable key={n} testID={`rate-${b.code}-${n}`} onPress={() => a.onReview(b, n)}
+                style={({ pressed }) => ({ minWidth: 46, height: 40, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: AMBER[200], backgroundColor: pressed ? AMBER[200] : (isDark ? "rgba(120,53,15,0.15)" : AMBER[50]), flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 })}>
+                <Star size={13} color={AMBER[500]} fill={AMBER[400]} /><Text style={{ fontSize: 13, fontWeight: "800", color: AMBER[700] }}>{n}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : null}
+      {b.review ? <View testID={`rated-note-${b.code}`} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 4 }}><Star size={16} color={AMBER[400]} fill={AMBER[400]} /><Text style={{ fontSize: 13, fontWeight: "600", color: AMBER[600] }}>You rated {b.review.rating} / 5</Text></View> : null}
 
       {(b.spare_parts || []).length > 0 && assigned ? (
         <View testID={`spares-${b.code}`} style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: c.borderSoft, paddingTop: 12 }}>
