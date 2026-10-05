@@ -19,3 +19,6 @@ Original: Customer App, Partner App (Expo), Customer Web panel, FastAPI backend.
 - Welcome title 2 lines medium
 - Web incoming job image circular (keep-round)
 - Login unregistered number -> Account not found panel
+
+## Jun 2026 - Selfie face guide
+- Oval face guide overlay (SVG mask + dashed ellipse + hint) in web CameraCapture (faceGuide prop, selfie only) and Expo SelfieCamera

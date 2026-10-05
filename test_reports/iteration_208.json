@@ -1,0 +1,33 @@
+{
+  "summary": "Verified face-guide overlay on the WEB partner Job wizard check-in selfie end-to-end against preview URL. Logged in as demo partner (Raj Kumar / +919000000003), opened active assigned booking AZOB98D25 (AC Gas Refill, customer Priya Verma +919000000004), advanced the wizard to Step 1 - Live selfie, injected a fake MediaStream (navigator.mediaDevices.getUserMedia stubbed with a canvas.captureStream so the <video> can go ready without a real camera), clicked wizard-selfie-btn, and observed the CameraCapture overlay with the FaceGuide. All face-guide requirements pass. Static code review confirms before/after work photo CameraCapture is instantiated WITHOUT faceGuide prop (defaults to false), so no overlay there. Expo native SelfieCamera.tsx reviewed statically: imports Svg, Path, Ellipse from react-native-svg; FaceGuide is a pointerEvents='none' overlay rendered only when ready; evenodd mask + dashed white Ellipse (stroke-width 3, strokeDasharray '10 8'); hint text 'Align your face inside the oval' rendered from the parent View.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "verified_live": [
+    {"item": "wizard-selfie-btn click opens camera-capture", "result": "data-testid='camera-capture' present"},
+    {"item": "face-guide overlay renders when camera stream ready", "result": "data-testid='face-guide' present with SVG child containing <path fill-rule='evenodd' fill='rgba(0,0,0,0.5)'> and <ellipse stroke='#fff' stroke-width='3' stroke-dasharray='10 8' fill='none'>"},
+    {"item": "face-guide-hint text", "result": "data-testid='face-guide-hint' text == 'Align your face inside the oval'"},
+    {"item": "face-guide pointer-events", "result": "computed style = 'none' (does not intercept clicks)"},
+    {"item": "camera-shutter clickable through overlay", "result": "document.elementFromPoint at shutter center returns camera-shutter"},
+    {"item": "shutter -> preview -> confirm flow", "result": "camera-preview appears after click, face-guide is removed in preview mode, camera-confirm button present"},
+    {"item": "Before/after work proof CameraCapture face-guide absence", "result": "JobWizard.jsx line 406 instantiates CameraCapture WITHOUT faceGuide prop (default false) so overlay not rendered -- confirmed by code grep"},
+    {"item": "Visual confirmation (screenshot p6_camera.png)", "result": "Dashed white oval centered over fake camera stream with 'Align your face inside the oval' hint text visible"}
+  ],
+  "static_only_verified": [
+    "frontend/src/components/partner/SelfieCamera.tsx -- imports Svg, Path, Ellipse from 'react-native-svg'; FaceGuide View has testID='face-guide', pointerEvents='none'; evenodd mask Path with hole; dashed Ellipse stroke='#fff' strokeWidth=3 strokeDasharray='10 8'; FaceGuide only rendered when `ready` state is true; hint text 'Align your face inside the oval' shown via parent Text when ready. Types/imports look consistent."
+  ],
+  "critical_code_review_comments": [
+    "CameraCapture FaceGuide ResizeObserver fallback: when w/h are 0 initially the hint is not rendered -- fine because ResizeObserver fires on mount with contentRect. No action required.",
+    "Hint y-position uses Math.min(h - 28, cy + ry + 14) which places hint just below the ellipse; verified visually in screenshot. OK.",
+    "SelfieCamera.tsx (expo) listens to visibility to reset ready/busy but the FaceGuide uses useWindowDimensions -- make sure Modal statusBarTranslucent sizing matches dims; cosmetic only, verify on device."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% (8/8 web checks pass; expo static review clean)"},
+  "test_credentials": "Partner +919000000003 OTP 123456 (demo-partner button); Customer +919000000004; Admin +919000000000",
+  "seed_data_creation": "None. Used existing seeded booking AZOB98D25 (Assigned to Raj Kumar).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "To reproduce the live face-guide render in a headless browser, inject a stub navigator.mediaDevices.getUserMedia (page.add_init_script) that returns a canvas.captureStream -- CameraCapture then sets ready=true and the FaceGuide SVG mounts. Use booking AZOB98D25 (status assigned) and click wizard-continue once from Details to reach the Check-in step. The web FaceGuide testids: face-guide, face-guide-hint, camera-capture, camera-shutter, camera-preview, camera-confirm. Before/after work CameraCapture (JobWizard.jsx:406) does NOT pass faceGuide; faceGuide defaults to false in CameraCapture.jsx:33.",
+  "rca of the issue": "N/A -- feature works as specified."
+}
