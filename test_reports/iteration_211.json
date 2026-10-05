@@ -1,0 +1,22 @@
+{
+  "summary": "Phase 1 billing/tax/commission rules — all 7 scenarios covered. 10/10 tests PASSED. HTTP /api/bookings/quote returns the exact expected numbers for Patna (schedule 442.86 total, emergency 598.26 total). Rate-card commission applies only to labour (+Min Labour Charge fallback). Additional-work _recompute_additional uses platform_pct=(100-partner_pct), no platform_fee, GST only on labour commission. Merchant city-wise commission (Patna 4%/2%) correctly OVERRIDES category (5%/3%) via CommissionEngine.split. Partner invoice breakdown strips platform_fee + GST (tax=0, platform_fee not in additional_charges) while customer breakdown keeps them. Regression: normal booking still distributes 80/20 with pass_through=0, distributed==service_net.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter_billing_rules.py",
+    "/app/test_reports/pytest/iter_billing_rules.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller._build_booking (line ~631) mutates svc['base_price'] by adding min_labour but DOES NOT clear/update discounted_price. For a standard (non-custom) service this would cause selling_price() to still return the smaller discounted price, silently losing the labour-charge addition. Currently safe only because the branch is gated to svc.get('is_custom') AND custom services are created with discounted_price=0 (line 226). Add an explicit comment or also set svc['discounted_price']=0 defensively.",
+    "engines.CommissionEngine._cm reads commission block from booking.commission_config directly, but booking_controller stores it under commission_config['commission']. compute_split/settle both correctly use booking.get('commission_config') or settings which is then _cm'd — the fallback keys inside _cm reference legacy flat keys from settings, so a snapshot like {'commission': {...}} works, but a snapshot that FORGOT the 'commission' sub-key would silently fall through to legacy constants (60/32/5/3). Consider validating ccfg contains the 'commission' subdoc on write.",
+    "Partner-facing build_breakdown surfaces customer_only_charges separately but strip_platform_fees_breakdown recomputes tax=0 hardcoded; if a future change puts non-platform-only GST on the service side it would be wiped for partners. Acceptable today (GST only on commission + platform fee), but worth asserting invariant."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter_billing_rules.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "test_credentials": "Loaded from /app/memory/test_credentials.md — customer +919000000004 for cart-quote; OTP via dev_otp field.",
+  "seed_data_creation": "None. Used seeded Patna city config + Fan Installation service.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter_billing_rules.py covers all 7 Phase-1 scenarios. HTTP tests hit /api/bookings/quote with X-City Patna; engine tests cover rate-card/additional/merchant/partner-invoice/regression via PricingEngine.compute, PricingEngine.build_breakdown, CommissionEngine.compute_split and _recompute_additional directly. Keys: Patna city fees + merchant pct(4/2) are seeded in db.city_pricing. Fan Installation id dee618a2-9970-4710-bf19-c983d262ae08. GST_pct=18 default. partner_pct=80 (Electrician category commission block)."
+}

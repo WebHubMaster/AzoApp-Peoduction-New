@@ -629,6 +629,7 @@ async def _build_booking(customer, svc, address, schedule_type, addons, notes,
         elif min_labour > 0:
             eff_labour = min_labour
             svc["base_price"] = money.add(svc.get("base_price", 0), min_labour)
+            svc["discounted_price"] = 0  # defensive: labour-bumped base is the charged price
     pricing = await PricingEngine.compute(svc, settings, schedule_type, addons, None, address,
                                           cart_service_total=cart_service_total,
                                           apply_visiting=apply_visiting,

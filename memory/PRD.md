@@ -1,34 +1,57 @@
-# AzoApp PRD
+# AzoApp — Billing, Tax & Commission Correction (PRD)
 
-Original: Customer App, Partner App (Expo), Customer Web panel, FastAPI backend.
+## Problem statement (verbatim intent)
+Billing/Tax/Commission/Invoice calculations were wrong in many places. All pricing is
+dynamic and admin-controlled; calculation must be server-side. Required formula per booking:
+1. service_cost
+2. if service_cost < city "Min Service Amount for Visiting" → add city Visiting Charge
+3. if Quick/Emergency booking → add city Quick/Emergency Fee
+4. commission = (service + visiting + quick) × category commission% (category-wise)
+5. tax_base = commission + city platform_fee
+6. GST = tax_base × gst%
+7. customer total = service_net + platform_fee + GST
+- Partner invoice shows ONLY the partner's amount (no tax line).
+- Rate-card: commission ONLY on labour charge (never on product/service cost); no labour → city Minimum Labour Charge (fresh booking).
+- During-job rate-card work: commission only on labour, product 100% to partner, NO platform fee.
+- Merchant commission is CITY-wise (Price Manager → Fee & Charges), out of platform-side commission.
 
-## Jun 2026 - UI fixes batch
-- Removed 'Call, Chat & your Start OTP are now available.' (Customer app + web)
-- Partner proof Photo/Video tiles centered
-- Refund timeline text wraps (Customer app)
-- Compact single-line 9-option rating row (Customer app + web)
-- Backend ReviewRequest.rating float (4.5 allowed)
+## User choices
+- Category commission is GLOBAL per category (NOT city-wise).
+- Quick Service Fee = city-wise emergency/quick fee (Price Manager → Fee & Charges).
+- Merchant commission is CITY-wise (Price Manager).
+- Priority: backend engine + Admin config FIRST, then Customer/Partner apps.
+- Apply new logic to NEW bookings only (no recompute of old invoices).
 
-## Backlog
-- Rebuild Expo apps + redeploy backend so fixes reach devices/production
+## Architecture
+- Backend: FastAPI (/app/backend), engine in services/engines.py (PricingEngine, CommissionEngine),
+  city config in services/city_pricing_service.py, category commission in category_commission_service.py.
+- Admin/Customer web: /app/web_panel (React). Partner app: /app/frontend (Expo). Customer app: /app/Customer (Expo).
+- DB: MongoDB (DB_NAME=azoapp). Dev OTP 123456. City via X-City header.
 
-## Jun 2026 - batch 2
-- Real Google map embed on booking address (Customer app + web fallback)
-- In-app expo-camera selfie (fallback ImagePicker + pending result recovery)
-- Partner fee checkout bottom safe area
-- Welcome title 2 lines medium
-- Web incoming job image circular (keep-round)
-- Login unregistered number -> Account not found panel
+## Done (2026-06, Phase 1 — backend + admin) — TESTED 10/10
+- PricingEngine.finalize(): added `commission_base` override so rate-card/custom items are
+  commissioned on LABOUR ONLY; stores commissionable_base + pass_through. Normal bookings
+  byte-identical (backward compatible).
+- CommissionEngine.split(): added pass_through (non-commissionable → 100% partner);
+  _commissionable_and_passthrough() feeds compute_split()/settle().
+- booking_controller: custom bookings pass commission_base=eff_labour; pure rate-card carts
+  pass commission_base=labour_total; min-labour fallback defensive fix.
+- City-wise merchant commission override (city_pricing_service.merchant_commission) applied in
+  _build_booking commission snapshot.
+- _recompute_additional (during-job add-ons) now uses full commission rate (100−partner_pct),
+  not platform_pct; product cost 100% to partner; GST only on labour commission; no platform fee.
+- Admin Price Manager → Fee & Charges UI (web_panel CityFees.jsx): added city-wise merchant
+  commission % fields (merchant_partner_referral_pct, merchant_customer_pct).
+- Verified live: Fan Installation / Patna / Electrician(20%) → commission 79.8, tax_base 104.8,
+  GST 18.86, total 442.86 (matches user example exactly).
 
-## Jun 2026 - Selfie face guide
-- Oval face guide overlay (SVG mask + dashed ellipse + hint) in web CameraCapture (faceGuide prop, selfie only) and Expo SelfieCamera
+## Backlog / Next
+- P1: Customer app (/app/Customer) + Partner app (/app/frontend) invoice screens — surface the
+  corrected breakdown (customer: full incl platform fee + GST; partner: only partner amount, no tax;
+  rate-card add-ons & labour line after payment).
+- P1: web_panel customer/partner/merchant invoice views reflect labour-only commission + merchant city split.
+- P2: Merchant wallet crediting for during-job additional labour commission (currently platform vs partner only).
+- P2: Mixed carts (normal + rate-card) labour-only handling (currently full override only for pure rate-card carts).
 
-## Jun 2026 - Selfie smart checks
-- Web: MediaPipe face detection (green oval + shutter enabled only with face), luma low-light warning, 3s countdown, fallback when detector unavailable
-- App: ML Kit (@infinitered/react-native-mlkit-face-detection) via silent probe frames, EXIF low-light, 3s countdown, fallback
-
-## Jun 2026 - Selfie Face Match
-- services/face_match_service.py: vision LLM (admin OCR config) compares KYC live photo vs check-in selfie in background; booking.checkin.face_match + face_mismatch flag; admin notifications on mismatch; users.face_mismatch_count
-- POST /api/admin/bookings/{id}/face-match re-check; admin-only (stripped for customer/partner)
-- Admin web: FaceMatchPanel in Work Proof; deep link /admin?tab=bookings&booking=<id>
-- Backlog: mismatch filter/chip in admin bookings list; partner-level mismatch report
+## Notes
+- .env files were missing in this preview pod; created /app/backend/.env (local Mongo). Prod uses remote DB.
