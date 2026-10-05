@@ -198,6 +198,7 @@ const NAV = [
     { key: "logs_monitor", label: "Logs & Monitoring", icon: Activity },
     { key: "branding", label: "Branding & Theme", icon: Sparkles },
     { key: "settings_general", label: "General Settings", icon: Settings },
+    { key: "business", label: "Business Settings", icon: Settings },
   ]},
 
   { group: "Platform", icon: Activity, items: [

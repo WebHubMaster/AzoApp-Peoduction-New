@@ -177,3 +177,22 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
 - Files: `backend/services/engines.py compute()` (single service) and `backend/controllers/booking_controller.py cart_quote()` (cart). Both feed `PricingEngine.finalize`, where `tax_base = commission + platform_fee` and `gst = tax_base × gst%`.
 - Backend is the single source of truth; Customer app, Partner app and web all render the same breakdown → fixed everywhere at once.
 - Verified: product ₹1000 + labour ₹200 + quick ₹150 → base ₹350, commission 40% = ₹140, GST base ₹150 (140+10 platform fee), GST ₹27; partner gets ₹1210 incl. ₹1000 pass-through.
+
+## Feature — Cash On Service (COS) payment method (2026-06)
+Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partner on service.
+- Token model (user-confirmed): token = platform's ENTIRE cut = commission + platform fee + GST = total − partner_share. Cash collected by partner = partner_share exactly → ZERO wallet reconciliation.
+- Backend (all shared by Customer app, Partner app, Web):
+  - `engines.PricingEngine.cos_split(pricing)` → {token_amount, cash_to_collect, token_pct}; token+cash==total, cash==partner_share.
+  - `engines.CommissionEngine.settle(..., cash_mode=True)`: on COS completion the partner's earning is NOT credited to wallet (already collected in cash); recorded in partner_ledger as `cos_cash_earning`; ledger kind `completion_cos`.
+  - `create_direct` & `create_grouped_booking`: when payment_method=='cos', `_attach_cos()` stores payment_method+cos block (gated by admin `business_config.cos_enabled`, default ON).
+  - `payment_controller.create_order`: COS bookings (single & group) charge the TOKEN, not the full total.
+  - `confirm_booking`: sets `cos.token_paid` when COS token is paid.
+  - `complete_job`: COS → cash_mode settlement + records `cos.cash_collected`/`collected_amount`.
+  - `cancel_booking`: COS branch → token non-refundable, retained & split platform(commission+fee)+govt(GST), partner share 0; refund 0; ledger kind `cancellation_cos`.
+  - `site_controller`: GET /api/site/config exposes `cos_enabled`. quote & cart_quote return `cos` + `cos_enabled`.
+- Frontend:
+  - Customer app (Customer/app/(site)/book.tsx + CheckoutSteps.tsx) and Customer web (web_panel Checkout.jsx): 3rd payment option "Cash on Service" with token/cash + non-refundable note; sends payment_method:"cos".
+  - Partner app (frontend/.../job/[id].tsx WorkStep): cash-collection card (token paid + cash to collect) + "Payment Received · Complete Job" button; JobRingOverlay.tsx shows a "CASH ON SERVICE · collect ₹X" badge on the job alert.
+  - Admin web (adminSections.jsx Business Settings): "Cash on Service" master toggle (data-testid biz-cos-enabled), persisted via business_config deep-merge; added to AdminDashboard sidebar.
+- Verified: direct engine tests (exact numbers), live API (create COS booking token 270.93 + cash 329.40 = total 600.33, cash==partner_share), and testing agent 4/4 web UI scenarios PASS (admin toggle persist, customer checkout COS option gated by toggle, no regression).
+- Env note: this stripped pod was missing backend/.env and web_panel/.env — both recreated; web_panel deps installed.

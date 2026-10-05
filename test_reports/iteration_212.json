@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only UI verification of Cash on Service (COS) feature on web_panel. All 4 scenarios PASS: admin toggle visible+persists; COS-enabled customer checkout shows pay-online + pay-wallet + pay-cos with cos-note (Token/Cash/non-refundable); COS-disabled hides pay-cos while online+wallet remain. Token+Cash math matches total (318.6 + 390 = 708.6).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin sidebar", "issues": ["'Business Settings' is not reachable via the sidebar navigation (sidebar search returns 'No menu matches Business'). It is only reachable via URL ?tab=business. The NAV array in AdminDashboard.jsx should include a sidebar entry (e.g. under Website/CMS or System) for 'Business Settings' so admins can discover the COS toggle."]}
+    ]
+  },
+  "test_scenarios": {
+    "admin_cos_toggle_visible_and_persists": "PASS - biz-cos-enabled toggled OFF then ON, each state persisted across page reload",
+    "customer_cos_enabled_shows_pay_cos_and_note": "PASS - pay-online, pay-wallet, pay-cos all render; selecting pay-cos reveals cos-note with 'Token to pay now ₹318.6', 'Cash to pay on service ₹390', and non-refundable text",
+    "customer_cos_disabled_hides_pay_cos": "PASS - pay-cos absent; pay-online + pay-wallet still render",
+    "regression_online_and_wallet_render": "PASS - pay-online selectable, pay-wallet rendered (disabled only because wallet balance=0, which is expected UX)"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Low priority) Add a sidebar nav entry for 'Business Settings' in web_panel AdminDashboard.jsx NAV so the COS admin toggle is discoverable without manually appending ?tab=business."
+  ],
+  "critical_code_review_comments": [
+    "Business Settings page is reachable only via URL ?tab=business - no sidebar link makes the admin feature undiscoverable.",
+    "COS feature end-to-end wiring (admin -> site/config -> cart_quote cos/cos_enabled -> Checkout StepReview) works correctly."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (4/4 scenarios)"},
+  "test_credentials": "Admin +919000000000 / Customer +919000000004 / OTP 123456 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None - used Priya Verma's existing saved Patna address (12 MG Road, 800001)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "COS admin toggle lives at /admin?tab=business (data-testid=biz-cos-enabled). After toggling, click biz-save; reload to confirm persistence. Customer flow: /services -> add any non-sub service -> view-booking-bar -> step through checkout (Services, Details, Schedule=emergency, Your Info OTP login, Summary) to reach Review step. Payment selectors: pay-online, pay-wallet, pay-cos, cos-note.",
+  "rca of the issue": "No bug found. Feature works as specified."
+}
