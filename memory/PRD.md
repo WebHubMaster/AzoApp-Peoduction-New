@@ -200,3 +200,13 @@ Four Partner-app (Expo RN) screen changes:
 4. Wallet (app/(partner)/wallet.tsx) — KPI cards now a single horizontal-scroll row (slide left/right) instead of 2-per-row wrap grid.
 
 All changes type-check clean (tsc). No backend changes. Mobile app — not verifiable via web preview (preview serves separate web_panel).
+
+## Customer/Partner/Web-panel UI fixes (Jun 2026 — round 2)
+1. Customer app profile (Customer/app/(customer)/profile.tsx) — removed top "New Booking" button; saved photo already previews via ProfilePhotoPicker value (user.photo).
+2. Support "New Ticket" button — top button full width, empty-state button centered. Done in BOTH Customer (Customer/app/(customer)/support.tsx GreenBtn full/center) and Partner (frontend/app/support/index.tsx NewBtn full/center).
+3. Category tiles shown "free" (no card border/bg/shadow): Customer app dashboard (HomeView.tsx) + Customer web panel (CustomerDashboard.jsx). Web verified PASS.
+4. Customer app site home (Blocks.tsx CategoriesGrid) — tiles free (no card), 3 per line (already); SiteNavbar.tsx VIP/crown now opens /(site)/membership instead of /(customer)/subscriptions.
+5. FeeInfoTip ⓘ next to Platform fee & Est. Govt. Taxes now ALWAYS renders (added default tooltip text when admin fee_info empty) — Customer app (FeeInfoTip.tsx) + web panel (FeeInfoTip.jsx). Shows in checkout Step 5 & Step 6. Web verified PASS.
+
+Env/infra: web_panel had no node_modules + CRA heap OOM. Installed deps; set NODE_OPTIONS max-old-space-size=8192 + GENERATE_SOURCEMAP=false in web_panel/package.json start. Panel compiles & serves 200. backend/.env was missing — recreated (MONGO_URL/DB_NAME/CORS_ORIGINS).
+Testing: web-panel tasks 3 & 5 PASS (iteration_205). Expo (Customer/Partner) apps type-check clean (tsc) but not browser-testable.
