@@ -16,8 +16,8 @@ const SORTS = [{ value: "newest", label: "Newest first" }, { value: "oldest", la
 const STATUS_OPTS = [{ value: "", label: "All statuses" }, ...STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))];
 const cap = (s: string) => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) });
 
-const GreenBtn = ({ label, onPress, testID }: { label: string; onPress: () => void; testID?: string }) => (
-  <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ alignSelf: "flex-start", height: 44, paddingHorizontal: 22, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{label}</Text></Pressable>
+const GreenBtn = ({ label, onPress, testID, full, center }: { label: string; onPress: () => void; testID?: string; full?: boolean; center?: boolean }) => (
+  <Pressable testID={testID} onPress={onPress} style={({ pressed }) => ({ alignSelf: full ? "stretch" : center ? "center" : "flex-start", height: 44, paddingHorizontal: 22, borderRadius: 12, backgroundColor: pressed ? EMERALD[700] : EMERALD[600], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>{label}</Text></Pressable>
 );
 
 function NewTicket({ meta, onCreated, onCancel }: { meta: any; onCreated: (t: any) => void; onCancel: () => void }) {
@@ -80,9 +80,7 @@ export default function SupportScreen() {
 
   return (
     <View testID="support-center" style={{ gap: 16 }}>
-      <View style={{ width: "100%", alignItems: "flex-start" }}>
-        <GreenBtn testID="support-new-btn" label="New Ticket" onPress={() => setView("new")} />
-      </View>
+      <GreenBtn full testID="support-new-btn" label="New Ticket" onPress={() => setView("new")} />
 
       <SearchInput value={q} onChange={setQ} placeholder="Search your tickets…" testID="support-list-search" />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -95,7 +93,7 @@ export default function SupportScreen() {
         : rows.length === 0 ? (
           <View testID="support-empty" style={{ borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: isDark ? SLATE[700] : TC.border, padding: 48, alignItems: "center" }}>
             <Inbox size={40} color={TC.textFaint} /><Text style={{ fontSize: 15, fontWeight: "500", color: TC.textMuted, marginTop: 12 }}>No tickets found</Text><Text style={{ fontSize: 14, color: TC.textFaint, marginBottom: 16 }}>Need help? Raise your first support ticket.</Text>
-            <GreenBtn testID="support-empty-new" label="New Ticket" onPress={() => setView("new")} />
+            <GreenBtn center testID="support-empty-new" label="New Ticket" onPress={() => setView("new")} />
           </View>
         ) : (
           <View testID="support-list" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" }}>

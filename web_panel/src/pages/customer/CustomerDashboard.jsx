@@ -303,8 +303,8 @@ function HomeView({ user, bookings, wallet, refunds, categories, services, refer
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 azo-stagger">
               {categories.slice(0, 12).map((c) => (
-                <button key={c.id} data-testid={`cat-${c.slug}`} onClick={() => onCategory(c.id)} className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 azo-hover-lift azo-elev text-center">
-                  <div className="mx-auto h-14 w-14 rounded-2xl overflow-hidden bg-primary-50 dark:bg-primary-900/30 grid place-items-center">
+                <button key={c.id} data-testid={`cat-${c.slug}`} onClick={() => onCategory(c.id)} className="group azo-hover-lift text-center">
+                  <div className="mx-auto h-16 w-16 rounded-2xl overflow-hidden bg-primary-50 dark:bg-primary-900/30 grid place-items-center">
                     {c.image ? <img src={c.image} alt="" className="h-full w-full object-cover group-hover:scale-105 transition-transform" /> : <Zap className="h-6 w-6 text-primary-600" />}
                   </div>
                   <p className="mt-2 text-xs font-semibold text-slate-700 dark:text-slate-200 line-clamp-2 leading-tight">{c.name}</p>

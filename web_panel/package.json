@@ -85,7 +85,7 @@
     "zod": "3.24.4"
   },
   "scripts": {
-    "start": "craco start",
+    "start": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--max-old-space-size=8192 craco start",
     "build": "craco build",
     "test": "craco test"
   },

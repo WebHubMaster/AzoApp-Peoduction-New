@@ -110,7 +110,7 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
   const logo = (isDark ? branding.logo_dark || branding.logo_light : branding.logo_light || branding.logo_dark) || "";
   const account = () => router.push(user ? "/(customer)" : "/login");
   // Existing membership / subscription screen (see clarification).
-  const membership = () => router.push((user ? "/(customer)/subscriptions" : "/(site)/membership") as any);
+  const membership = () => router.push("/(site)/membership" as any);
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: TC.surface, borderBottomWidth: 1, borderBottomColor: "rgba(226,232,240,0.7)", zIndex: 50 }}>
       <View style={{ height: 64, flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 }}>

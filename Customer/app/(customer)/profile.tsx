@@ -2,12 +2,12 @@
 import React, { useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import { Plus, ShieldAlert, MapPin, Wallet, Package } from "lucide-react-native";
+import { ShieldAlert, MapPin, Wallet, Package } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
-import { PRIMARY, SLATE, ROSE, useTheme, shadowBtn, shadowElev, TC } from "../../src/theme";
+import { PRIMARY, SLATE, ROSE, useTheme, shadowElev, TC } from "../../src/theme";
 import { PrimaryButton } from "../../src/components/customer/ux";
 import { PField, FInput, FSelect, DateField, onlyDigits } from "../../src/components/customer/FormControls";
 import { ProfilePhotoPicker } from "../../src/components/customer/ProfilePhotoPicker";
@@ -74,8 +74,6 @@ export default function ProfileScreen() {
 
   return (
     <View testID="profile-page" style={{ gap: 20 }}>
-      <Pressable testID="book-new" onPress={() => router.push("/(site)/services" as any)} style={({ pressed }) => ({ alignSelf: "flex-start", height: 46, paddingHorizontal: 24, borderRadius: 12, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Booking</Text></Pressable>
-
       <View testID="profile-shortcuts" style={{ flexDirection: "row", gap: 12 }}>
         {[["addresses", "Addresses", MapPin, "/(customer)/addresses"], ["wallet", "Wallet", Wallet, "/(customer)/wallet"], ["orders", "Bookings", Package, "/(customer)/orders"]].map(([k, label, Icon, route]: any) => (
           <Pressable key={k} testID={`shortcut-${k}`} onPress={() => router.push(route)} style={({ pressed }) => ({ flex: 1, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: pressed ? c.primarySoft : c.surface, paddingVertical: 14, alignItems: "center", gap: 6, ...shadowElev })}>

@@ -107,14 +107,10 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
         <View testID="home-categories" style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
           {categories.slice(0, 12).map((cat) => (
             <Pressable key={cat.id} testID={`cat-${cat.slug}`} onPress={() => onCategory(cat.id)} style={({ pressed }) => ({ width: "31.5%", marginBottom: 14, transform: [{ translateY: pressed ? -2 : 0 }] })}>
-              <View style={{ borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, ...shadowElev }}>
-                <View style={{ width: "100%", aspectRatio: 1, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
-                  {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={cat.id} /> : <Zap size={24} color={PRIMARY[600]} />}
-                </View>
-                <View style={{ paddingHorizontal: 6, paddingVertical: 8, minHeight: 42, alignItems: "center", justifyContent: "center" }}>
-                  <Text numberOfLines={2} style={{ fontSize: 11.5, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2, textAlign: "center", lineHeight: 14 }}>{cat.name}</Text>
-                </View>
+              <View style={{ width: "100%", aspectRatio: 1, borderRadius: 12, overflow: "hidden", backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
+                {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={cat.id} /> : <Zap size={24} color={PRIMARY[600]} />}
               </View>
+              <Text numberOfLines={2} style={{ marginTop: 6, fontSize: 11.5, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2, textAlign: "center", lineHeight: 14 }}>{cat.name}</Text>
             </Pressable>
           ))}
         </View>

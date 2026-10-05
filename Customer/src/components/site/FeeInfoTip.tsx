@@ -14,7 +14,11 @@ import { useSiteConfig } from "@/src/context/BrandContext";
  */
 export function FeeInfoTip({ kind }: { kind: "tax" | "platform_fee" }) {
   const cfg = useSiteConfig();
-  const text = String((cfg?.fee_info as any)?.[kind] || "").trim();
+  const DEFAULTS: Record<string, string> = {
+    platform_fee: "A small platform fee helps us run the app, provide support and keep your bookings secure.",
+    tax: "Estimated government taxes (GST) applicable on this order. The exact amount is confirmed before payment.",
+  };
+  const text = String((cfg?.fee_info as any)?.[kind] || "").trim() || DEFAULTS[kind] || "";
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const ref = useRef<View>(null);

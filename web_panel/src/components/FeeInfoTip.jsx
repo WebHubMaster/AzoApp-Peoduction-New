@@ -14,7 +14,11 @@ export default function FeeInfoTip({ kind = "tax", text: textProp }) {
   const cfg = useSiteConfig();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const text = (textProp || (cfg?.fee_info || {})[kind] || "").trim();
+  const DEFAULTS = {
+    platform_fee: "A small platform fee helps us run the app, provide support and keep your bookings secure.",
+    tax: "Estimated government taxes (GST) applicable on this order. The exact amount is confirmed before payment.",
+  };
+  const text = (textProp || (cfg?.fee_info || {})[kind] || DEFAULTS[kind] || "").trim();
 
   useEffect(() => {
     if (!open) return undefined;

@@ -86,8 +86,8 @@ export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any
     <View testID="app-categories" style={{ marginBottom: 20, paddingHorizontal: 16, flexDirection: "row", flexWrap: "wrap", gap }}>
       {tiles.map((c: any) => (
         <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={({ pressed }) => ({ width: tileW, transform: [{ translateY: pressed ? -2 : 0 }] })}>
-          <View style={{ borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, boxShadow: "0px 6px 16px rgba(15,23,42,0.08)" } as any}>
-            <View style={{ width: "100%", aspectRatio: 1, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+          <View>
+            <View style={{ width: "100%", aspectRatio: 1, borderRadius: 12, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
               {c.more ? <Grip size={30} color={TC.text} strokeWidth={2.2} />
                 : c.image ? <Image source={{ uri: c.image }} style={{ width: "100%", height: "100%" }} contentFit="cover" transition={150} cachePolicy="memory-disk" recyclingKey={c.id} priority="high" />
                 : c.icon ? <LucideByName name={c.icon} size={34} color={TC.primaryText} strokeWidth={1.6} /> : <Sparkles size={30} color={TC.primaryText} />}

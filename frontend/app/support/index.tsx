@@ -94,8 +94,8 @@ export default function SupportList() {
     </>
   );
 
-  const NewBtn = ({ testID }: { testID: string }) => (
-    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, height: 46, paddingHorizontal: 22, borderRadius: radius.md, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
+  const NewBtn = ({ testID, full, center }: { testID: string; full?: boolean; center?: boolean }) => (
+    <Pressable testID={testID} onPress={() => setOpen(true)} style={{ alignSelf: full ? "stretch" : center ? "center" : "flex-start", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, paddingHorizontal: 22, borderRadius: radius.md, backgroundColor: GREEN, boxShadow: "0px 6px 16px rgba(5,150,105,0.3)", elevation: 3 }}>
       <Icon name="plus" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Ticket</Text>
     </Pressable>
   );
@@ -117,7 +117,7 @@ export default function SupportList() {
           <Text style={{ color: colors.textMuted, fontSize: 13, marginTop: 4, lineHeight: 19 }}>{tickets.length} ticket{tickets.length === 1 ? "" : "s"} · chat with our support team, attach screenshots, track status.</Text>
         </View>
 
-        <NewBtn testID="new-ticket" />
+        <NewBtn full testID="new-ticket" />
 
         {/* search */}
         <View style={{ height: 48, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -141,7 +141,7 @@ export default function SupportList() {
             <Icon name="inbox-outline" size={64} color="#CBD5E1" />
             <Text style={{ color: colors.textSecondary, fontSize: 17, fontWeight: "600", marginTop: 16 }}>No tickets found</Text>
             <Text style={{ color: SLATE400, fontSize: 14, marginTop: 6, textAlign: "center" }}>{tickets.length ? "Try changing your search or filters." : "Need help? Raise your first support ticket."}</Text>
-            <View style={{ marginTop: 24 }}><NewBtn testID="new-ticket-empty" /></View>
+            <View style={{ marginTop: 24 }}><NewBtn center testID="new-ticket-empty" /></View>
           </View>
         ) : (
           <View testID="support-list" style={{ borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, overflow: "hidden" }}>
