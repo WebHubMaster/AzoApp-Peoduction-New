@@ -11,3 +11,11 @@ Original: Customer App, Partner App (Expo), Customer Web panel, FastAPI backend.
 
 ## Backlog
 - Rebuild Expo apps + redeploy backend so fixes reach devices/production
+
+## Jun 2026 - batch 2
+- Real Google map embed on booking address (Customer app + web fallback)
+- In-app expo-camera selfie (fallback ImagePicker + pending result recovery)
+- Partner fee checkout bottom safe area
+- Welcome title 2 lines medium
+- Web incoming job image circular (keep-round)
+- Login unregistered number -> Account not found panel

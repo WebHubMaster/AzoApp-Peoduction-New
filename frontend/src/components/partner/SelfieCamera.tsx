@@ -29,7 +29,7 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View testID="selfie-camera" style={{ flex: 1, backgroundColor: "#000" }}>
         {visible ? (
-          <CameraView ref={cam} style={{ flex: 1 }} facing={facing} mirror={facing === "front"} animateShutter
+          <CameraView key={facing} ref={cam} style={{ flex: 1 }} facing={facing} mirror={facing === "front"} animateShutter
             onCameraReady={() => setReady(true)} onMountError={(e) => onFail(e?.message || "Camera unavailable on this device")} />
         ) : null}
         <View style={{ position: "absolute", top: insets.top + 12, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" }}>

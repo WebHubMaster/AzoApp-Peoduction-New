@@ -1,0 +1,31 @@
+{
+  "summary": "Static code verification only (per request). Reviewed all 7 reported changes across Customer app, Partner (frontend/expo), and web_panel. No runtime testing — preview has no .env and expo native apps cannot run in a browser. All referenced changes are structurally correct, no logic bugs, no undefined variables, no broken hook order.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_changes": [
+    {"area": "Customer map", "files": ["Customer/src/components/customer/AddressForm.tsx", "Customer/src/components/site/CheckoutSteps.tsx"], "status": "OK — Google Maps embed via iframe (web) / WebView (native) with baseUrl https://maps.google.com; previously OSM"},
+    {"area": "web_panel map", "files": ["web_panel/src/components/site/AddressMap.jsx"], "status": "OK — interactive Google JS Map when mapsKey set, draggable marker + click to pick; fallback is Google embed iframe"},
+    {"area": "Selfie in-app camera", "files": ["frontend/src/components/partner/SelfieCamera.tsx", "frontend/app/(partner)/partner/job/[id].tsx"], "status": "OK — expo-camera CameraView, 'mirror' prop valid in expo-camera 57 types; onCameraReady/onMountError wired; onFail falls back to ImagePicker with getPendingResultAsync recovery; expo-camera 57.0.6 present in package.json + app.json plugins"},
+    {"area": "Secure Checkout bottom safe area", "files": ["frontend/src/components/reg/PartnerFeePayment.tsx"], "status": "OK — container paddingBottom = insets.bottom for razorpay WebView; hosted mode has its own footer with Math.max(insets.bottom,12)+16"},
+    {"area": "Welcome title 2 lines, medium weight, smaller", "files": ["frontend/app/(auth)/welcome.tsx"], "status": "OK — 'Reliable Home' and 'Services' on separate <Text>, fontWeight:'500', size titleFS*0.82 with matching lineHeight"},
+    {"area": "Incoming job ring image circle", "files": ["web_panel/src/components/partner/IncomingJobRing.jsx", "web_panel/src/index.css"], "status": "OK — keep-round applied on <img> + placeholder <div> + outer pulse <span>; CSS override rule (line 519) placed AFTER global 6px override (lines 513-517) so cascade order wins"},
+    {"area": "Login with unregistered number", "files": ["frontend/src/components/auth/OtpFlow.tsx"], "status": "OK — on login mode new_user, keyboard dismissed and setNotFound(true); notFound panel renders with testID=account-not-found, Create & Try-another-number buttons; no router.replace, no undefined vars, hooks order preserved"}
+  ],
+  "critical_code_review_comments": [
+    "Minor: On flip in SelfieCamera.tsx the ready state is reset but CameraView does not unmount — relying on expo-camera to re-emit onCameraReady after facing change. Expected behaviour but worth smoke-testing on a real device.",
+    "Minor: notFound branch keeps internal step='otp'. If user later re-opens via onNewUser they will land on register flow which resets state — no bug observed."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (skipped)", "frontend": "static-only, all 7 changes verified OK" },
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "This iteration was static code verification only (per main-agent instruction). Preview env has no .env; Expo native cannot run in browser. Changes across the 7 reported bugs look structurally correct; main agent can self-test on device/simulator.",
+  "rca of the issue": "Not applicable — this iteration verified fixes rather than reproducing issues."
+}
