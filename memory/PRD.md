@@ -150,3 +150,11 @@ Open / needs repro:
 - Custom-job -> service visibility on web panel. Backend (catalog_controller) already treats a converted custom-job service with custom_job_visibility="all" + status active + approved as a NORMAL service in all public list/detail endpoints both frontends use. No backend code bug found. Could not reproduce here (pod DB empty, backend/.env missing). Likely cause: service visibility left as requester_only, or stale web-panel cache.
 
 Env note: this pod has empty Mongo + missing backend/.env, so backend/web-panel can't serve data here; Customer Expo app runs on device via EXPO_PUBLIC_BACKEND_URL. Verification was static (eslint clean on all 14 edited files).
+
+## Customer App — filter/layout iteration 2 (June 2026)
+- Support: filter buttons (All time / All statuses / Newest first) ab ek hi horizontal-scroll line me (flexWrap hटाया).
+- Refunds: alag date-range row हटाई; status tabs ki line me ek Date filter (SlidersHorizontal OptionMenu) add kiya — sab ek scrollable line me. Stat cards slider (pehle se).
+- Invoices: card-in-card हटाया — ab har invoice ek direct standalone card (border + shadow), Paginator neeche.
+- Wallet: top-up amount input + Add Money ab dono flex:1 same size (h44); search+All types+All time ab ek line me (no wrap).
+- Home: hero ke quick-action chips (Bookings/Wallet/Addresses/Support) हटाए; StatTile label single-line (Total Bookings ek line me).
+Verification: eslint clean (only pre-existing warnings); Android bundle compiles (HTTP 200, no resolve/syntax errors). Preview served via Expo on port 3000; URL exp://5e34fdf6-...preview.emergentagent.com (open in Expo Go).

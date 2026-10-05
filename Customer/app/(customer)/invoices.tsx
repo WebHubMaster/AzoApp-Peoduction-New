@@ -141,9 +141,9 @@ export default function InvoicesScreen() {
           <EmptyState icon={FileText} title={filteredView ? "No invoices match your filters" : "No invoices yet"} desc={filteredView ? "Try clearing filters or changing the date range." : "Your booking invoices will appear here."} actionLabel={filteredView ? "Clear Filters" : undefined} onAction={() => { resetFilters(); setSearch(""); setRange("all"); }} testID="invoice-empty" />
         </View>
       ) : (
-        <View style={{ borderRadius: 6, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, padding: 16, gap: 10 }}>
+        <View style={{ gap: 12 }}>
           {items.map((inv) => (
-            <Pressable key={inv.id} testID={`invoice-card-${inv.invoice_number}`} onPress={() => openDrawer(inv)} style={{ borderRadius: 6, borderWidth: 1, borderColor: c.borderSoft, padding: 14 }}>
+            <Pressable key={inv.id} testID={`invoice-card-${inv.invoice_number}`} onPress={() => openDrawer(inv)} style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, ...shadowBtn }}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}><Text style={{ fontSize: 15, fontWeight: "600", color: c.text }}>{inv.invoice_number}</Text><StatusBadge status={inv.payment_status} /></View>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 6, gap: 8 }}>
                 <View style={{ flex: 1 }}><Text style={{ fontSize: 12, color: c.textMuted }}>{TYPE_LABEL[inv.invoice_type] || inv.invoice_type} · {inv.customer_snapshot?.name || inv.booking_code || "—"}</Text><Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 2 }}>{shortDate(inv.issue_date)}</Text></View>

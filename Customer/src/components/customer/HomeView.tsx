@@ -3,7 +3,7 @@ import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { MapPin, Plus, Package, Wallet, LifeBuoy, CheckCircle2, Clock, Receipt, ChevronRight, Zap, Star, Gift, Navigation } from "lucide-react-native";
+import { MapPin, Plus, Package, Wallet, CheckCircle2, Clock, Receipt, ChevronRight, Zap, Star, Gift, Navigation } from "lucide-react-native";
 import { fmt, fmtC } from "@/src/lib/format";
 import { mediaUrl } from "@/src/api/client";
 import { useTheme, PRIMARY, SLATE, AMBER, ORANGE, shadowElev, shadowBtn, TC } from "@/src/theme";
@@ -78,14 +78,6 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
                 ))}
               </View>
             ) : null}
-          </View>
-
-          <View style={{ marginTop: 16, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {([["orders", Package, "Bookings"], ["wallet", Wallet, "Wallet"], ["addresses", MapPin, "Addresses"], ["support", LifeBuoy, "Support"]] as [NavKey, any, string][]).map(([k, Ic, l]) => (
-              <Pressable key={k} testID={`quick-${k}`} onPress={() => onNavigate(k)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: pressed ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.15)", borderRadius: 6, paddingHorizontal: 14, height: 36, transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-                <Ic size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>{l}</Text>
-              </Pressable>
-            ))}
           </View>
         </LinearGradient>
       </View>

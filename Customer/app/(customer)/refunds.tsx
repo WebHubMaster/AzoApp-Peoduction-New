@@ -2,14 +2,15 @@
 import React, { useMemo, useState } from "react";
 import { PlainList } from "../../src/components/customer/ux";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
-import { Receipt, Clock, CheckCircle2, IndianRupee, Search } from "lucide-react-native";
+import { Receipt, Clock, CheckCircle2, IndianRupee, Search, SlidersHorizontal } from "lucide-react-native";
 import { useCustomerData } from "../../src/context/CustomerDataContext";
-import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList, StatSkeleton } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList, StatSkeleton, OptionMenu } from "../../src/components/customer/ux";
 import { fmt, fmtC } from "../../src/lib/format";
 import { PRIMARY, SLATE, TC, useTheme } from "../../src/theme";
 
 const REFUND_TABS = [{ key: "all", label: "All" }, { key: "pending", label: "Pending" }, { key: "processed", label: "Completed" }, { key: "failed", label: "Rejected" }];
 const RANGES = ["All", "7 days", "30 days", "90 days"];
+const RANGE_OPTS = RANGES.map((r) => ({ value: r, label: r === "All" ? "All time" : r }));
 const REFUND_STATUS: Record<string, string> = { initiated: "blue", pending: "amber", processing: "amber", processed: "green", failed: "rose" };
 const RefundStatusBadge = ({ status }: { status: string }) => <StatusChip tone={(REFUND_STATUS[status] || "slate") as any} label={status === "processed" ? "Refund successful" : `Refund ${(status || "").replace("_", " ")}`} />;
 const Info = ({ label, value, cap }: { label: string; value: any; cap?: boolean }) => (
@@ -48,8 +49,10 @@ export default function RefundsScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, paddingHorizontal: 12, gap: 8 }}>
         <Search size={16} color={TC.textFaint} /><TextInput testID="rf-search" value={q} onChangeText={setQ} placeholder="Search booking ID, service…" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 14, color: TC.text, height: 42, paddingVertical: 0, outlineStyle: "none" } as any} />
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 12 }}>{RANGES.map((r) => <Pressable key={r} testID={`rf-range-${r.split(" ")[0]}`} onPress={() => setRange(r)} style={pill(range === r)}><Text style={pillT(range === r)}>{r}</Text></Pressable>)}</ScrollView>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 12 }}>{REFUND_TABS.map((t) => <Pressable key={t.key} testID={`rf-tab-${t.key}`} onPress={() => setTab(t.key)} style={pill(tab === t.key)}><Text style={pillT(tab === t.key)}>{t.label}</Text></Pressable>)}</ScrollView>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 12, alignItems: "center" }}>
+        <OptionMenu value={range} options={RANGE_OPTS} onChange={setRange} icon={SlidersHorizontal} title="Date range" testID="rf-date" />
+        {REFUND_TABS.map((t) => <Pressable key={t.key} testID={`rf-tab-${t.key}`} onPress={() => setTab(t.key)} style={pill(tab === t.key)}><Text style={pillT(tab === t.key)}>{t.label}</Text></Pressable>)}
+      </ScrollView>
     </View>
   );
 

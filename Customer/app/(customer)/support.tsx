@@ -1,6 +1,6 @@
 /** Help & Support — port of web SupportCenter.jsx (list / new ticket / thread). */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, ScrollView } from "react-native";
 import { LifeBuoy, Plus, ArrowLeft, Inbox, CalendarRange, Filter, ArrowUpDown } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
 import { useToast } from "../../src/components/Toast";
@@ -85,11 +85,11 @@ export default function SupportScreen() {
       </View>
 
       <SearchInput value={q} onChange={setQ} placeholder="Search your tickets…" testID="support-list-search" />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         <OptionMenu value={range} options={RANGES} onChange={setRange} icon={CalendarRange} title="Time range" testID="support-range" />
         <OptionMenu value={status} options={STATUS_OPTS} onChange={setStatus} icon={Filter} title="Status" testID="support-filter-status" placeholder="All statuses" />
         <OptionMenu value={sort} options={SORTS} onChange={setSort} icon={ArrowUpDown} title="Sort by" testID="support-sort" />
-      </View>
+      </ScrollView>
 
       {loading ? <View style={{ paddingVertical: 64, alignItems: "center" }}><ActivityIndicator size="small" color={PRIMARY[500]} /></View>
         : rows.length === 0 ? (

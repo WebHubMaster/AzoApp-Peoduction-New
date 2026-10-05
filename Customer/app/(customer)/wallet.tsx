@@ -25,8 +25,8 @@ function WalletTopup({ onDone, toast }: { onDone: () => void; toast: any }) {
         {[100, 250, 500, 1000].map((v) => { const on = Number(amt) === v; return <Pressable key={v} testID={`topup-preset-${v}`} onPress={() => setAmt(String(v))} style={({ pressed }) => ({ height: 32, paddingHorizontal: 12, borderRadius: 6, backgroundColor: on ? "#fff" : "rgba(255,255,255,0.2)", justifyContent: "center", transform: [{ scale: pressed ? 0.96 : 1 }] })}><Text style={{ fontSize: 14, fontWeight: "700", color: on ? PRIMARY[700] : TC.surface }}>₹{v}</Text></Pressable>; })}
       </View>
       <View style={{ flexDirection: "row", gap: 8 }}>
-        <TextInput testID="topup-amount" value={amt} onChangeText={(v) => setAmt(v.replace(/[^0-9]/g, ""))} keyboardType="numeric" placeholder="Amount" placeholderTextColor="rgba(255,255,255,0.6)" style={{ width: 112, height: 40, borderRadius: 6, borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", paddingHorizontal: 12, fontSize: 14, outlineStyle: "none" } as any} />
-        <Pressable testID="topup-btn" disabled={busy || !Number(amt)} onPress={add} style={{ flex: 1, height: 40, borderRadius: 6, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center", opacity: busy || !Number(amt) ? 0.6 : 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{busy ? "Processing…" : "Add Money"}</Text></Pressable>
+        <TextInput testID="topup-amount" value={amt} onChangeText={(v) => setAmt(v.replace(/[^0-9]/g, ""))} keyboardType="numeric" placeholder="Amount" placeholderTextColor="rgba(255,255,255,0.6)" style={{ flex: 1, height: 44, borderRadius: 6, borderWidth: 1, borderColor: "rgba(255,255,255,0.3)", backgroundColor: "rgba(255,255,255,0.2)", color: "#fff", paddingHorizontal: 12, fontSize: 14, outlineStyle: "none" } as any} />
+        <Pressable testID="topup-btn" disabled={busy || !Number(amt)} onPress={add} style={{ flex: 1, height: 44, borderRadius: 6, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center", opacity: busy || !Number(amt) ? 0.6 : 1 }}><Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{busy ? "Processing…" : "Add Money"}</Text></Pressable>
       </View>
     </View>
   );
@@ -67,8 +67,8 @@ export default function WalletScreen() {
         </View>
       </View>
 
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
-        <SearchInput value={q} onChange={setQ} placeholder="Search transactions…" testID="w-search" style={{ minWidth: 180 }} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <SearchInput value={q} onChange={setQ} placeholder="Search transactions…" testID="w-search" style={{ flex: 1, minWidth: 120 }} />
         <OptionMenu value={type} options={TYPES} onChange={setType} icon={Layers} title="Transaction type" testID="w-type" />
         <DateRangePicker value={range} onChange={setRange} testID="w-date" />
       </View>
