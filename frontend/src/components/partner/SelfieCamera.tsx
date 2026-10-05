@@ -112,7 +112,7 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     if (!cam.current) return;
     shooting.current = true; setBusy(true);
     try {
-      while (probing.current) await new Promise((r) => setTimeout(r, 80));
+      for (let i = 0; probing.current && i < 40; i++) await new Promise((r) => setTimeout(r, 80));
       const p = await cam.current.takePictureAsync({ quality: 0.7, exif: false });
       if (p?.uri) onCapture({ uri: p.uri, width: p.width, height: p.height, mimeType: "image/jpeg" });
     } catch (e: any) { onFail(e?.message || "Couldn't capture the selfie. Please try again."); }

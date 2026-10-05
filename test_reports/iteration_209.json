@@ -1,0 +1,36 @@
+{
+  "summary": "LIVE end-to-end verification of partner selfie camera (web_panel CameraCapture with faceGuide) against preview URL. Logged in as demo partner (Raj Kumar / +919000000003), opened Active Jobs, selected booking AZOB98D25 (AC Gas Refill, assigned), advanced JobWizard: Details -> Check-in, clicked wizard-selfie-btn to open CameraCapture. Stubbed navigator.mediaDevices.getUserMedia with a canvas.captureStream whose frames are swapped between (a) a real human face image loaded same-origin via /__test_face.jpg (served from web_panel/public), (b) a plain two-tone 'landscape' frame, (c) a near-black frame. MediaPipe FaceDetector (@mediapipe/tasks-vision 1.0.1) actually loaded from cdn.jsdelivr.net + storage.googleapis.com and ran against the canvas-sourced <video>. All 4 required behaviours plus countdown + confirm flow + CDN-blocked fallback verified. Expo SelfieCamera.tsx reviewed statically; `tsc --noEmit --ignoreDeprecations 6.0` in /app/frontend reports no errors in SelfieCamera.tsx.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "verified_live": [
+    {"scenario": "(a) Real face centered ~40% of frame", "result": "data-face-ok='true', data-dark='false', face-guide-oval stroke='#22C55E' stroke-width=5 stroke-dasharray='none' (solid green), face-guide-hint='Perfect! Hold still and tap capture', camera-shutter ENABLED with bg-emerald-400 ring-emerald-300/60"},
+    {"scenario": "(b) Plain mid-grey landscape, no face", "result": "data-face-ok='false', oval stroke='#FFFFFF' stroke-width=3 stroke-dasharray='10 8' (white dashed), hint='Align your face inside the oval', camera-shutter DISABLED"},
+    {"scenario": "(c) Near-black canvas", "result": "data-dark='true', face-guide-dark-warning visible with text 'Too dark \u2014 move to light', face-guide-hint='Too dark \u2014 move to a brighter place', shutter disabled"},
+    {"scenario": "3-second countdown with face OK", "result": "camera-countdown shows 3 -> 2 -> 1 at ~1s intervals (states captured: [{cd:'3',flipDisabled:true},{cd:'2',flipDisabled:true},{cd:'1',flipDisabled:true},{cd:null}]), camera-flip disabled during countdown"},
+    {"scenario": "Preview + confirm", "result": "After countdown camera-preview appears (snapshot blob URL), camera-confirm 'Use photo' click sets wizard selfie thumb (blob: image rendered inside wizard check-in)"},
+    {"scenario": "Fallback when MediaPipe CDN blocked (page.route abort for cdn.jsdelivr.net and storage.googleapis.com/mediapipe-models)", "result": "face-guide reports data-face-ok='true' (fallback), hint 'Align your face inside the oval', camera-shutter ENABLED, countdown and preview flow still works -> check-in never blocked"},
+    {"scenario": "Before/after work-proof CameraCapture", "result": "Static grep JobWizard.jsx line 406 instantiates CameraCapture WITHOUT faceGuide prop (defaults to false) -> no FaceGuide overlay, no countdown; snap() runs immediately"}
+  ],
+  "static_only_verified": [
+    "frontend/src/components/partner/SelfieCamera.tsx (Expo): lazy require('@infinitered/react-native-mlkit-face-detection') with cached detectorInit promise; probe loop every ~900ms calls takePictureAsync({quality:0.15, exif:true, shutterSound:false, skipProcessing:false}); isDark() uses iOS BrightnessValue (<-0.5) or EV100 from ExposureTime/FNumber/ISOSpeedRatings; faceInOval uses MAX scaling (cover) consistent with CameraView preview; probing/shooting mutex (shoot() awaits while probing.current); 3-fail fallback sets {faceOk:true, unavailable:true}; countdown via setCount(3) + setTimeout chain. tsc --noEmit --ignoreDeprecations 6.0 in /app/frontend reports NO errors in SelfieCamera.tsx."
+  ],
+  "critical_code_review_comments": [
+    "CameraCapture.jsx FaceGuide fallback (unavailable=true): color stays white (`st.faceOk && !st.unavailable ? '#22C55E' : '#FFFFFF'`) so oval remains white-dashed even though shutter is active & green. Functionally correct (capture not blocked) but visually mildly inconsistent. Low priority.",
+    "CameraCapture.jsx FaceGuide useEffect [] deps -- `videoRef` and `onStatus` are referenced inside but omitted (comment eslint-disable). OK since videoRef is stable and onStatus is captured via setFace in parent; no action needed.",
+    "SelfieCamera.tsx shoot() uses a busy-wait loop (while probing.current) with 80ms sleep. Fine in practice; could add a maxWait to avoid rare deadlock if a probe hangs. Low priority.",
+    "SelfieCamera.tsx silent probe uses full takePictureAsync with shutterSound:false - on some Android (Xiaomi/Samsung/Vivo) OEMs the system shutter sound may still play (hardware policy). Needs physical-device confirmation (out of scope here).",
+    "web CameraCapture snap() in selfie mode: `canvas.getContext('2d').drawImage(v,0,0)` captures raw video (not mirrored). Front camera is NOT CSS-mirrored in the <video>, so the stored selfie is the raw camera orientation. Acceptable but worth confirming with product spec."
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "updated_files": [
+    "/app/web_panel/public/__test_face.jpg (test fixture - REMOVED after test, no code change left behind)"
+  ],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% (7/7 live scenarios + fallback pass; Expo static clean)"},
+  "test_credentials": "Partner +919000000003 OTP 123456 (demo-partner button); Customer +919000000004",
+  "seed_data_creation": "None. Used seeded booking AZOB98D25 (Assigned to Raj Kumar).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reproduce by: (1) add_init_script that overrides navigator.mediaDevices.getUserMedia with a canvas.captureStream, (2) preload a frontal face image via same-origin URL (temporarily drop in /app/web_panel/public), (3) expose window.__setScenario('face'|'none'|'dark') that redraws the canvas (periodic timer so captureStream has fresh frames), (4) login via [data-testid=demo-partner], (5) nav-active -> click 'AZOB98D25' -> wizard-continue -> wizard-selfie-btn. Testids used: face-guide, face-guide-oval, face-guide-hint, face-guide-dark-warning, camera-shutter, camera-countdown, camera-flip, camera-preview, camera-confirm, camera-close, wizard-selfie-btn, wizard-continue. MediaPipe fallback: use page.route to abort '**/cdn.jsdelivr.net/**' and '**/storage.googleapis.com/mediapipe-models/**' - CameraCapture then sets state.unavailable=true, faceOk is force-true, capture proceeds.",
+  "rca of the issue": "N/A -- feature works to spec. Physical-device checks on Xiaomi/Samsung/Vivo (shutter sound suppression, Camera2 EXIF availability for isDark) remain out of scope and must be verified on real hardware."
+}

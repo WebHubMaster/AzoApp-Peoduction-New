@@ -22,3 +22,7 @@ Original: Customer App, Partner App (Expo), Customer Web panel, FastAPI backend.
 
 ## Jun 2026 - Selfie face guide
 - Oval face guide overlay (SVG mask + dashed ellipse + hint) in web CameraCapture (faceGuide prop, selfie only) and Expo SelfieCamera
+
+## Jun 2026 - Selfie smart checks
+- Web: MediaPipe face detection (green oval + shutter enabled only with face), luma low-light warning, 3s countdown, fallback when detector unavailable
+- App: ML Kit (@infinitered/react-native-mlkit-face-detection) via silent probe frames, EXIF low-light, 3s countdown, fallback
