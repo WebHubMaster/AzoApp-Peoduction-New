@@ -203,8 +203,8 @@ export default function Welcome() {
               <Text style={{ fontSize: 12, fontWeight: "600", color: C.text2 }}>Available near you</Text>
             </View>
             <View testID="welcome-title" accessibilityRole="header" style={{ marginTop: sp(14) }}>
-              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: C.navy, fontSize: Math.round(titleFS * 0.82), lineHeight: Math.round(titleFS * 0.82 * 1.2), fontWeight: "500", letterSpacing: -0.4 }}>Reliable Home</Text>
-              <Text numberOfLines={1} style={{ color: C.navy, fontSize: Math.round(titleFS * 0.82), lineHeight: Math.round(titleFS * 0.82 * 1.2), fontWeight: "500", letterSpacing: -0.4 }}>Services</Text>
+              <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} style={{ color: C.navy, fontSize: Math.round(titleFS * 0.82), lineHeight: Math.round(titleFS * 0.82 * 1.2), fontWeight: "600", letterSpacing: -0.4 }}>Reliable Home</Text>
+              <Text numberOfLines={1} style={{ color: C.navy, fontSize: Math.round(titleFS * 0.82), lineHeight: Math.round(titleFS * 0.82 * 1.2), fontWeight: "600", letterSpacing: -0.4 }}>Services</Text>
             </View>
             <Text style={{ color: C.text2, fontSize: 13, lineHeight: 18, marginTop: sp(8), fontWeight: "400" }}>Book trusted professionals and local service providers near you.</Text>
           </View>
