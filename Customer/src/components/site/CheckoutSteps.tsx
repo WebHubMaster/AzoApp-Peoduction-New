@@ -12,10 +12,10 @@ import { OtpInline } from "./OtpInline";
 import { H2, Lbl, SectionCard, Row, PriceRows, addonLabel, card, SubscriptionHeader } from "./CheckoutUi";
 
 const OsmMap = ({ lat, lng }: { lat: number; lng: number }) => {
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.008}%2C${lng + 0.008}%2C${lat + 0.008}&layer=mapnik&marker=${lat}%2C${lng}`;
+  const src = `https://maps.google.com/maps?q=${lat},${lng}&z=17&hl=en&output=embed`;
   const box = { height: 176, borderRadius: 6, borderWidth: 1, borderColor: TC.border, overflow: "hidden" as const };
   if (Platform.OS === "web") return <View style={box}>{React.createElement("iframe", { title: "saved-map", src, style: { width: "100%", height: "100%", border: 0 } })}</View>;
-  return <View style={box}><WebView source={{ uri: src }} style={{ flex: 1 }} /></View>;
+  return <View style={box}><WebView source={{ html: `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0"><iframe src="${src}" style="border:0;width:100%;height:100vh" loading="lazy"></iframe></body></html>`, baseUrl: "https://maps.google.com" }} originWhitelist={["*"]} setSupportMultipleWindows={false} scrollEnabled={false} style={{ flex: 1 }} /></View>;
 };
 
 /* ================= STEP 4 ================= */

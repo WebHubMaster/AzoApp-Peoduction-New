@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, ActivityIndicator, TextInput } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, TextInput, Keyboard } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { Icon } from "@/src/components/Icon";
@@ -50,6 +50,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
   const [resendIn, setResendIn] = useState(0);
   const [accepted, setAccepted] = useState(false);
   const [deviceBlocked, setDeviceBlocked] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const otpRef = useRef<TextInput>(null);
   const setStep = (s: Step) => { setStepRaw(s); onStepChange?.(s); };
 
@@ -95,7 +96,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
       const data = await api.post<any>("/auth/verify-otp", { phone: `+91${phone.trim()}`, otp: otp.trim(), create_if_new: false, role: mode === "register" ? role : undefined }, { auth: false });
       if (data?.new_user) {
         if (mode === "register") setStep("name");
-        else { toast.info("No account found for this number — please create an account."); onNewUser?.(); }
+        else { Keyboard.dismiss(); otpRef.current?.blur(); setNotFound(true); }
         setBusy(""); return;
       }
       await finish(data, mode === "register" ? `Account already exists — welcome back, ${data.user?.name || ""}!` : undefined);
@@ -137,6 +138,18 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
         <View style={{ flexDirection: "row", alignItems: "center", gap: 6, justifyContent: "center" }}>
           <Icon name="lock-outline" size={14} color="#94A3B8" /><Text style={{ color: "#94A3B8", fontSize: FS.tiny }}>Only Partner & Merchant numbers can sign in here</Text>
         </View>
+      </View>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <View testID="account-not-found" style={{ gap: 14, alignItems: "center" }}>
+        <View style={{ width: 56, height: 56, borderRadius: 6, backgroundColor: "#FEF2F2", alignItems: "center", justifyContent: "center" }}><Icon name="account-alert-outline" size={30} color="#DC2626" /></View>
+        <Text testID="account-not-found-title" style={{ color: AUTH.ink, fontSize: FS.label, fontWeight: "800" }}>Account not found</Text>
+        <Text style={{ color: AUTH.muted, fontSize: FS.subtitle, textAlign: "center" }}>No account is registered with <Text style={{ fontWeight: "800", color: AUTH.ink }}>+91 {phone}</Text>. Create a new account to continue.</Text>
+        <View style={{ alignSelf: "stretch" }}><GradButton testID="not-found-create-btn" title="Create New Account" icon="account-plus-outline" busy={false} onPress={() => { setTimeout(() => onNewUser?.(), 50); }} grad={ac.grad} /></View>
+        <Pressable testID="not-found-change-number" onPress={() => { setNotFound(false); setStep("phone"); setOtp(""); }} hitSlop={8}><Text style={{ color: ac.dark, fontSize: FS.small, fontWeight: "700" }}>Try another number</Text></Pressable>
       </View>
     );
   }

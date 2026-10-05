@@ -516,6 +516,7 @@ body { -webkit-overflow-scrolling: touch; }
 [class*="rounded-["]:not([class*="rounded-[inherit]"]) {
   border-radius: 6px !important;
 }
+.rounded-full.keep-round { border-radius: 9999px !important; }
 [class*="rounded-t-["] { border-top-left-radius: 6px !important; border-top-right-radius: 6px !important; }
 [class*="rounded-b-["] { border-bottom-left-radius: 6px !important; border-bottom-right-radius: 6px !important; }
 [class*="rounded-l-["] { border-top-left-radius: 6px !important; border-bottom-left-radius: 6px !important; }

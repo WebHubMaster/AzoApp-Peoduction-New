@@ -26,10 +26,10 @@ function AddressMap({ lat, lng }: { lat: any; lng: any }) {
   if (lat == null || lng == null || lat === "" || lng === "") return null;
   const la = Number(lat), ln = Number(lng);
   if (!Number.isFinite(la) || !Number.isFinite(ln)) return null;
-  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${ln - 0.008}%2C${la - 0.008}%2C${ln + 0.008}%2C${la + 0.008}&layer=mapnik&marker=${la}%2C${ln}`;
+  const src = `https://maps.google.com/maps?q=${la},${ln}&z=17&hl=en&output=embed`;
   const box = { height: 176, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, overflow: "hidden" as const };
   if (Platform.OS === "web") return <View testID="address-map" style={box}>{React.createElement("iframe", { title: "address-map", src, style: { width: "100%", height: "100%", border: 0 } })}</View>;
-  return <View testID="address-map" style={box}><WebView source={{ uri: src }} style={{ flex: 1 }} /></View>;
+  return <View testID="address-map" style={box}><WebView source={{ html: `<html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0"><iframe src="${src}" style="border:0;width:100%;height:100vh" loading="lazy"></iframe></body></html>`, baseUrl: "https://maps.google.com" }} originWhitelist={["*"]} setSupportMultipleWindows={false} scrollEnabled={false} style={{ flex: 1 }} /></View>;
 }
 
 export function AddressForm({ value, onChange, cfg = {}, onServiceability }: { value: any; onChange: (v: any) => void; cfg?: any; onServiceability?: (s: any) => void }) {

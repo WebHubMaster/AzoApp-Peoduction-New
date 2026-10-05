@@ -74,7 +74,7 @@ export default function AddressMap({ mapsKey, lat, lng, onPick }) {
     if (!hasPoint) return null;
     return (
       <iframe title="address-map" className="w-full h-44 rounded-lg border border-slate-200"
-        src={`https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.008}%2C${lat - 0.008}%2C${lng + 0.008}%2C${lat + 0.008}&layer=mapnik&marker=${lat}%2C${lng}`} />
+        src={`https://maps.google.com/maps?q=${lat},${lng}&z=17&hl=en&output=embed`} />
     );
   }
 

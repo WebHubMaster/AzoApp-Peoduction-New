@@ -389,16 +389,16 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
 
         {/* service image with pulsing rings — steady, non-expiring waiting ring */}
         <div className="relative my-4 h-40 w-40 flex items-center justify-center">
-          <span className="absolute h-32 w-32 rounded-full bg-white/10 animate-ping" />
+          <span className="keep-round absolute h-32 w-32 rounded-full bg-white/10 animate-ping" />
           <svg className="absolute inset-0 animate-spin" style={{ animationDuration: "3s" }} width="160" height="160" viewBox="0 0 160 160" data-testid="ring-countdown">
             <circle cx="80" cy="80" r="74" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="5" />
             <circle cx="80" cy="80" r="74" fill="none" stroke="#ffffff" strokeWidth="5" strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 74 * 0.28} ${2 * Math.PI * 74}`} transform="rotate(-90 80 80)" />
           </svg>
           {current.service_image ? (
-            <img src={current.service_image} alt={current.service_name} className="relative h-28 w-28 rounded-full object-cover ring-4 ring-white/30 shadow-2xl" />
+            <img src={current.service_image} alt={current.service_name} className="keep-round relative h-28 w-28 rounded-full object-cover ring-4 ring-white/30 shadow-2xl" />
           ) : (
-            <div className="relative h-28 w-28 rounded-full bg-white/15 ring-4 ring-white/30 flex items-center justify-center shadow-2xl">
+            <div className="keep-round relative h-28 w-28 rounded-full bg-white/15 ring-4 ring-white/30 flex items-center justify-center shadow-2xl">
               <Briefcase className="h-11 w-11" />
             </div>
           )}

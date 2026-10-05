@@ -18,6 +18,7 @@ import { useToast } from "@/src/components/Toast";
 import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@/src/components/reg/Photo";
 import { OtpBoxes, ProofGrid, captureProofPhoto, captureProofVideo, ensureCamera } from "@/src/components/partner/JobProof";
 import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
+import { SelfieCamera } from "@/src/components/partner/SelfieCamera";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -323,24 +324,37 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
   };
   useEffect(() => { if (!done) getLocation(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const takeSelfie = async () => {
+  const [camOpen, setCamOpen] = useState(false);
+  const pickerSelfie = async () => {
     try {
-      if (!(await ensureCamera(toast))) return;
-      await new Promise((r) => setTimeout(r, 250));
       let res;
       try {
         res = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.7, base64: false, exif: false, cameraType: ImagePicker.CameraType.front });
       } catch {
-        // Some devices reject the front-camera hint — retry with the default camera.
         res = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.7, base64: false, exif: false });
       }
-      if (res.canceled || !res.assets?.[0]?.uri) return;
+      if (res.canceled || !res.assets?.[0]?.uri) {
+        // Android may kill the app while the system camera is open — recover the photo.
+        const pending: any = await ImagePicker.getPendingResultAsync().catch(() => null);
+        const a = Array.isArray(pending) ? pending[0]?.assets?.[0] : pending?.assets?.[0];
+        if (!a?.uri) return;
+        res = { canceled: false, assets: [a] } as any;
+      }
       const msg = oversizeMessage(assetSizeBytes(res.assets[0]), "camera");
       if (msg) { toast.error(msg); return; }
       setSelfie(res.assets[0]);
     } catch (e: any) {
       toast.error(e?.detail || e?.message || "Couldn't open the camera. Please try again.");
     }
+  };
+  const takeSelfie = async () => {
+    if (!(await ensureCamera(toast))) return;
+    setCamOpen(true);
+  };
+  const onCamFail = (m: string) => {
+    setCamOpen(false);
+    toast.info(m);
+    setTimeout(pickerSelfie, 400);
   };
   const submit = async () => {
     if (!selfie || !loc) return;
@@ -380,6 +394,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
             <><Icon name="camera-front-variant" size={36} color={colors.primary} /><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700", marginTop: 8 }}>Take selfie</Text></>
           )}
         </Pressable>
+        <SelfieCamera visible={camOpen} onClose={() => setCamOpen(false)} onFail={onCamFail} onCapture={(shot) => { setCamOpen(false); setSelfie({ ...shot, type: "image" } as any); }} />
         {selfie ? <Pressable testID="wizard-selfie-retake" onPress={takeSelfie} style={{ alignSelf: "center", marginTop: 8 }}><Text style={{ color: colors.primary, fontSize: 13, fontWeight: "700" }}>Retake</Text></Pressable> : null}
       </Card>
       <Card testID="wizard-location">

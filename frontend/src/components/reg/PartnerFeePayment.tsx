@@ -186,7 +186,7 @@ export function PartnerFeePayment({
 
         {/* gateway checkout */}
         <Modal visible={!!checkout} animationType="slide" onRequestClose={() => { if (!verifying) setCheckout(null); }} statusBarTranslucent>
-          <View style={{ flex: 1, backgroundColor: "#fff" }} testID="fee-checkout-webview">
+          <View style={{ flex: 1, backgroundColor: "#fff", paddingBottom: checkout?.kind === "hosted" ? 0 : insets.bottom }} testID="fee-checkout-webview">
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: insets.top + 12, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: TW.slate100 }}>
               <Pressable onPress={() => { if (!verifying) setCheckout(null); }} hitSlop={8} accessibilityLabel="Close checkout"><ChevronLeft size={22} color={TW.slate700} /></Pressable>
               <Text style={{ ...T.base, fontWeight: "800", color: INK }}>Secure Checkout</Text>
