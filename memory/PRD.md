@@ -46,12 +46,24 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   GST 18.86, total 442.86 (matches user example exactly).
 
 ## Backlog / Next
-- P1: Customer app (/app/Customer) + Partner app (/app/frontend) invoice screens — surface the
-  corrected breakdown (customer: full incl platform fee + GST; partner: only partner amount, no tax;
-  rate-card add-ons & labour line after payment).
-- P1: web_panel customer/partner/merchant invoice views reflect labour-only commission + merchant city split.
+- P2: web_panel customer invoice — add the same rate-card additional-work section post-payment (app parity).
 - P2: Merchant wallet crediting for during-job additional labour commission (currently platform vs partner only).
 - P2: Mixed carts (normal + rate-card) labour-only handling (currently full override only for pure rate-card carts).
+
+## Done (2026-06, Phase 2 — Customer & Partner app invoices)
+- Customer App invoice (Customer/src/components/customer/BookingDrawers.tsx + ServiceBreakdown.tsx):
+  already renders the corrected bill from the server `breakdown` (services, visiting, quick/emergency
+  fee, platform fee, GST, total). ADDED a "Additional Work (Rate Card)" section in InvoiceDrawer that
+  shows each added rate-card item (labour/parts split), its GST and additional total, plus a combined
+  Grand Total (incl. additional) once the additional work is paid.
+- Partner App invoice (frontend/src/components/invoices/DetailPanel.tsx): already hides tax
+  (role_earning "Excluded", payment summary "Not applicable") and now reflects the labour-only
+  commission automatically because invoice_service reads pricing.commissionable_base (engine Phase 1).
+- Partner App during-job rate-card add-ons (frontend/src/components/partner/AdditionalWork.tsx):
+  already lists items with parts (no tax/commission) vs service+labour (commission applies), GST and total.
+- NOTE: Expo apps cannot be run/screenshotted in this preview pod (only backend + web served). The app
+  invoice edits are lint-clean (eslint pass) but were NOT runtime-verified in a live app; backend
+  correctness IS verified.
 
 ## Notes
 - .env files were missing in this preview pod; created /app/backend/.env (local Mongo). Prod uses remote DB.

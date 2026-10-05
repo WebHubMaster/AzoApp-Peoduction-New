@@ -245,6 +245,23 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
           </View>
         ) : null}
       </View>
+      {b.additional && b.additional.status === "paid" && (Number(b.additional.total) || 0) > 0 ? (
+        <View testID="invoice-additional-work" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
+          <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>Additional Work (Rate Card)</Text>
+          {(b.additional.items || []).map((it: any, i: number) => {
+            const part = Number(it.part_charge) || 0; const lab = Number(it.labour_charge) || 0;
+            return (
+              <View key={it.id || i} testID={`invoice-addl-item-${i}`} style={{ gap: 2 }}>
+                <DRow k={it.description || "Additional work"} v={fmt(part + lab)} />
+                {lab > 0 ? <Text style={{ fontSize: 11, color: TC.textFaint }}>Includes labour {fmt(lab)}{part > 0 ? ` · parts ${fmt(part)}` : ""}</Text> : null}
+              </View>
+            );
+          })}
+          {Number(b.additional.gst || 0) > 0 ? <DRow k="Est. Govt. Taxes" v={fmt(b.additional.gst)} /> : null}
+          <Sep /><DRow k="Additional Total" v={fmt(b.additional.total)} strong />
+          <DRow k="Grand Total (incl. additional)" v={fmt((Number(bd?.total ?? p.total ?? 0)) + Number(b.additional.total || 0))} strong />
+        </View>
+      ) : null}
       {Number(bd?.discount ?? p.discount ?? 0) > 0 ? (
         <View testID="invoice-coupon-note" style={{ borderRadius: 6, backgroundColor: isDark ? "rgba(6,78,59,0.2)" : EMERALD[50], borderWidth: 1, borderColor: isDark ? "#065F46" : EMERALD[200], paddingHorizontal: 12, paddingVertical: 10 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: isDark ? EMERALD[300] : EMERALD[700] }}>Coupon{bd?.coupon_code ? ` ${bd.coupon_code}` : ""}</Text><Text style={{ fontSize: 12, fontWeight: "600", color: isDark ? EMERALD[300] : EMERALD[700] }}>{fmt(bd?.discount ?? p.discount)} off</Text></View>
