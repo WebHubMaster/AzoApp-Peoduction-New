@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import api, { API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { isChatOpen } from "@/lib/chatPresence";
 
 const RealtimeCtx = createContext(null);
 
@@ -55,20 +56,32 @@ export const RealtimeProvider = ({ children }) => {
   // ---- sound alert (Web Audio, no asset needed) ----
   const playSound = useCallback(() => {
     if (!config.sound) return;
+    // Stay silent while the user is actually viewing a chat screen — they can
+    // already see the message. The pleasant chime only plays when NOT in a chat.
+    if (isChatOpen()) return;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
       const ctx = new AC();
-      const beep = (freq, start, dur) => {
+      const now = ctx.currentTime;
+      // Soft master envelope for a gentle, premium bell-like chime.
+      const master = ctx.createGain();
+      master.gain.value = 0.9;
+      master.connect(ctx.destination);
+      const note = (freq, start, dur, type = "sine", gain = 0.4) => {
         const o = ctx.createOscillator(); const g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination); o.type = "sine"; o.frequency.value = freq;
-        g.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-        g.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + start + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
-        o.start(ctx.currentTime + start); o.stop(ctx.currentTime + start + dur + 0.02);
+        o.type = type; o.frequency.value = freq;
+        o.connect(g); g.connect(master);
+        g.gain.setValueAtTime(0.0001, now + start);
+        g.gain.exponentialRampToValueAtTime(gain, now + start + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+        o.start(now + start); o.stop(now + start + dur + 0.04);
       };
-      beep(880, 0, 0.28); beep(1174, 0.22, 0.34);
-      setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 900);
+      // Friendly ascending two-note chime (E5 → B5) with a soft shimmer harmonic.
+      note(659.25, 0.00, 0.55, "sine", 0.45);     // E5
+      note(987.77, 0.13, 0.70, "sine", 0.40);     // B5
+      note(1318.51, 0.13, 0.55, "triangle", 0.10); // soft shimmer
+      setTimeout(() => { try { ctx.close(); } catch { /* ignore */ } }, 1400);
     } catch { /* ignore */ }
   }, [config.sound]);
 

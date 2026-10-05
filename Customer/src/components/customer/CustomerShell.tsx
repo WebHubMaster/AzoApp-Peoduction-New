@@ -2,8 +2,8 @@
  * CustomerShell — mobile view of web_panel/src/components/customer/CustomerShell.jsx:
  * sticky mobile header (avatar · deliver-to/brand · bell · theme) + 5-slot bottom nav + "More" sheet.
  */
-import React, { useState } from "react";
-import { View, Text, Pressable, Modal, ScrollView } from "react-native";
+import React, { useState, useCallback, useEffect } from "react";
+import { View, Text, Pressable, Modal, ScrollView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter, usePathname } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,6 +15,8 @@ import { useTheme, PRIMARY, SLATE, ROSE, TC } from "@/src/theme";
 import { NAV, MOBILE_PRIMARY, NavKey, NavItem } from "@/src/components/customer/nav";
 import { mediaUrl } from "@/src/api/client";
 import { NotificationBell } from "@/src/components/customer/NotificationBell";
+import { useChatOpen, isChatOpen } from "@/src/lib/chatPresence";
+import { useRealtime } from "@/src/context/RealtimeContext";
 
 export function Avatar({ user, size = 36 }: { user: any; size?: number }) {
   const initials = (user?.name || "U").split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
@@ -51,6 +53,24 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
   const { branding } = useSiteConfig();
   const { c, isDark } = useTheme();
   const [moreOpen, setMoreOpen] = useState(false);
+  const chatOpen = useChatOpen();
+  const { subscribe } = useRealtime();
+
+  // Pleasant chime when a support reply arrives while the user is NOT viewing the
+  // chat (inside the chat it stays silent — SupportThread only fires a haptic).
+  const playChime = useCallback(() => {
+    if (Platform.OS === "web") return;
+    try {
+      const AA = require("expo-audio");
+      const p = AA.createAudioPlayer(require("../../../assets/sounds/message-chime.wav"));
+      try { p.volume = 0.6; } catch { /* ignore */ }
+      p.seekTo?.(0); p.play();
+      setTimeout(() => { try { p.pause(); p.remove?.(); } catch { /* ignore */ } }, 1600);
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => subscribe((ev) => {
+    if (ev?.type === "support_message" && !isChatOpen()) playChime();
+  }), [subscribe, playChime]);
 
   const active = activeKeyFor(pathname);
   const brandLogo = (isDark ? branding.logo_dark || branding.logo_light : branding.logo_light || branding.logo_dark) || "";
@@ -94,6 +114,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
       </ScrollView>
 
       {/* Bottom nav */}
+      {!chatOpen && (
       <View testID="m-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: isDark ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.95)", borderTopWidth: 1, borderTopColor: c.border, paddingBottom: insets.bottom, flexDirection: "row" }}>
         {primaryNav.map((n) => {
           const on = active === n.key;
@@ -111,6 +132,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
           <Text style={{ fontSize: 10, fontWeight: "700", color: moreOpen || moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : TC.textFaint }}>More</Text>
         </Pressable>
       </View>
+      )}
 
       {/* More sheet */}
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)}>

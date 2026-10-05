@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { useTheme } from "@/context/ThemeContext";
+import { useChatOpen } from "@/lib/chatPresence";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -115,6 +116,7 @@ function AvatarMenu({ user, onNavigate }) {
 export default function CustomerShell({ nav, active, onNavigate, user, badges = {}, mobilePrimary, children }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const chatOpen = useChatOpen();
   const { branding } = useSiteConfig();
   const { isDark } = useTheme();
   const brandLogo = (isDark ? (branding?.logo_dark || branding?.logo_light) : (branding?.logo_light || branding?.logo_dark)) || "";
@@ -237,6 +239,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
       </div>
 
       {/* ============ MOBILE BOTTOM NAV ============ */}
+      {!chatOpen && (
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]">
         <div className="grid grid-cols-5">
           {primaryNav.map((n) => {
@@ -260,6 +263,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
           </button>
         </div>
       </nav>
+      )}
 
       {/* ============ MOBILE MORE SHEET ============ */}
       <Sheet open={moreOpen} onOpenChange={setMoreOpen}>

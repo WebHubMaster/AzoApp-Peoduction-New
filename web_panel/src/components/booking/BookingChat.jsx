@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useRealtime } from "@/context/RealtimeContext";
 import { useChats } from "@/context/ChatContext";
+import { enterChat, exitChat } from "@/lib/chatPresence";
 
 const QUICK = {
   customer: ["I'm at home, please come in", "Please call me", "Reaching the spot in 5 min", "Door is open", "Please share your live location"],
@@ -55,6 +56,14 @@ export default function BookingChat({ booking, role = "customer", open: controll
   }, [booking?.id, refreshChats]);
 
   useEffect(() => { load(); }, [load]);
+
+  // While the chat sheet is open: hide the mobile bottom nav and mute the
+  // new-message sound (a pleasant chime only plays when the chat is closed).
+  useEffect(() => {
+    if (!open) return undefined;
+    enterChat();
+    return () => exitChat();
+  }, [open]);
 
   // Deep link from a push notification: /partner?tab=active&chat=<booking_id>
   useEffect(() => {

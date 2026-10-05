@@ -3,6 +3,7 @@ import api from "@/lib/api";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import { useAuth } from "@/context/AuthContext";
 import { useRealtime } from "@/context/RealtimeContext";
+import { enterChat, exitChat } from "@/lib/chatPresence";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -170,6 +171,9 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
   }, [ticket.id]);
 
   useEffect(() => { refresh(); }, [refresh]);
+  // While the chat thread is on screen: hide the mobile bottom nav and stay
+  // silent on new-message sounds (the user can already see the conversation).
+  useEffect(() => { enterChat(); return () => exitChat(); }, []);
   useEffect(() => { const iv = setInterval(refresh, 3000); return () => clearInterval(iv); }, [refresh]);
   // Real-time (WhatsApp-style): instantly refresh on a live support_message frame and
   // show "Support is typing" the moment an agent typing frame arrives — no 3s wait.

@@ -1,7 +1,7 @@
 import { TC } from "@/src/theme";
 /** Support ticket thread — port of web SupportCenter.jsx `Thread` (mobile: conversation + info panel below). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions, Platform } from "react-native";
+import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Modal, useWindowDimensions } from "react-native";
 import { useKeyboardState } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -13,6 +13,7 @@ import { useRealtime } from "../../context/RealtimeContext";
 import { PRIMARY, SLATE, EMERALD, useTheme } from "../../theme";
 import { CenterDialog } from "./BookingDialogs";
 import { STATUS_STYLE, STATUS_LABEL, PRIORITY_STYLE, timeStr, dateFull, dayKey, daySep, ago, Badge, AttachmentView, assetToFormData } from "./supportShared";
+import { enterChat, exitChat } from "@/src/lib/chatPresence";
 
 const InfoRow = ({ icon: Icon, label, value, testID }: { icon: any; label: string; value: any; testID?: string }) => {
   const { c } = useTheme();
@@ -49,17 +50,11 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const lastTypingSent = useRef(0);
   const closed = t.status === "closed";
 
-  // Light notification on a new agent reply: success haptic + a short, low-volume blip.
+  // While in the chat the user can already SEE new replies, so stay silent —
+  // only a light success haptic fires here. A pleasant chime (handled globally
+  // in CustomerShell) plays instead when a reply arrives while NOT in the chat.
   const notifyNewReply = useCallback(() => {
     try { const H = require("expo-haptics"); H.notificationAsync?.(H.NotificationFeedbackType.Success); } catch { /* ignore */ }
-    if (Platform.OS === "web") return;
-    try {
-      const AA = require("expo-audio");
-      const p = AA.createAudioPlayer(require("../../../assets/sounds/job-ring.wav"));
-      try { p.volume = 0.4; } catch { /* ignore */ }
-      p.seekTo?.(0); p.play();
-      setTimeout(() => { try { p.pause(); p.remove?.(); } catch { /* ignore */ } }, 1200);
-    } catch { /* ignore */ }
   }, []);
 
   const refresh = useCallback(async () => {
@@ -75,6 +70,9 @@ export function SupportThread({ ticket, myId, tickets, onBack, onChanged }: { ti
   const pingTyping = useCallback(() => { const now = Date.now(); if (now - lastTypingSent.current < 2000) return; lastTypingSent.current = now; api.post(`/support/tickets/${ticket.id}/typing`).catch(() => {}); }, [ticket.id]);
 
   useEffect(() => { refresh(); const iv = setInterval(refresh, 15000); return () => clearInterval(iv); }, [refresh]);
+  // While the chat thread is on screen: hide the bottom nav + suppress the global
+  // new-message chime (handled in CustomerShell via this shared presence flag).
+  useEffect(() => { enterChat(); return () => exitChat(); }, []);
   // Real-time over SSE: backend pushes support_message / support_typing for THIS ticket (no 3s polling lag).
   useEffect(() => {
     const off = subscribe((ev) => {

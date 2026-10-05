@@ -174,3 +174,10 @@ Verification: eslint clean (only pre-existing warnings); Android bundle compiles
 - Fix: recreated `/app/backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database, JWT_SECRET, CORS_ORIGINS=*). Restarted backend; startup `seed()` repopulated demo accounts.
 - Verified (testing_agent, iteration_login_env_fix.json, 100% pass): OTP login works for admin/partner/customer/merchant via one-click demo buttons and manual OTP (123456).
 - test_credentials.md updated.
+
+---
+## Customer App — Chat nav hide + smart sound (2026-06)
+Target: /app/Customer (Expo RN app), support chat screen.
+- Hide bottom tab bar while the support chat thread is open (shared flag src/lib/chatPresence.ts; SupportThread enter/exit; CustomerShell hides nav when chatOpen).
+- Sound: inside chat = silent (removed audio from SupportThread.notifyNewReply, kept haptic). Outside chat = new pleasant chime assets/sounds/message-chime.wav played globally in CustomerShell on `support_message` when !isChatOpen().
+- NOTE: Customer Expo app has no node_modules and is not served in this env, so changes were verified by code review, NOT run live. User should test in Expo Go / dev build.

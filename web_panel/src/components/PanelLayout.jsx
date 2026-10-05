@@ -16,6 +16,7 @@ import {
   User as UserIcon, Camera, Save, MoreHorizontal, ShieldCheck,
 } from "lucide-react";
 import ProfilePhotoPicker from "@/components/common/ProfilePhotoPicker";
+import { useChatOpen } from "@/lib/chatPresence";
 
 const applyTheme = (mode) => {
   const root = document.documentElement;
@@ -333,6 +334,7 @@ const NavItem = ({ sub, active, onNavigate, badge, collapsed, dot }) => {
 // ---- main layout ---------------------------------------------------------
 export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots = {}, appMode = false, primaryTabs = [], children }) => {
   const { user, logout } = useAuth();
+  const chatOpen = useChatOpen();
   const { branding } = useSiteConfig();
   const { isDark } = useTheme();
   // Show the dark-mode logo when the panel is in dark mode, else the light one (with graceful fallback)
@@ -612,6 +614,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
       {appMode && (
         <>
           {/* Mobile app-style bottom tab bar */}
+          {!chatOpen && (
           <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 shadow-[0_-4px_24px_rgba(15,23,42,0.08)] pb-[env(safe-area-inset-bottom)]" data-testid="app-bottom-nav">
             <div className="w-full grid grid-cols-5 px-1.5 py-1">
               {primaryTabs.map((k) => flat[k]).filter(Boolean).map((it) => {
@@ -638,6 +641,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
               </button>
             </div>
           </nav>
+          )}
 
           {/* "More" bottom sheet with the full menu */}
           {moreOpen && (
