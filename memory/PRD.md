@@ -26,3 +26,9 @@ Original: Customer App, Partner App (Expo), Customer Web panel, FastAPI backend.
 ## Jun 2026 - Selfie smart checks
 - Web: MediaPipe face detection (green oval + shutter enabled only with face), luma low-light warning, 3s countdown, fallback when detector unavailable
 - App: ML Kit (@infinitered/react-native-mlkit-face-detection) via silent probe frames, EXIF low-light, 3s countdown, fallback
+
+## Jun 2026 - Selfie Face Match
+- services/face_match_service.py: vision LLM (admin OCR config) compares KYC live photo vs check-in selfie in background; booking.checkin.face_match + face_mismatch flag; admin notifications on mismatch; users.face_mismatch_count
+- POST /api/admin/bookings/{id}/face-match re-check; admin-only (stripped for customer/partner)
+- Admin web: FaceMatchPanel in Work Proof; deep link /admin?tab=bookings&booking=<id>
+- Backlog: mismatch filter/chip in admin bookings list; partner-level mismatch report

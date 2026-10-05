@@ -1,0 +1,24 @@
+{
+  "summary": "Iter210 Selfie Face Match - full backend + admin UI validation. 9/9 pytest cases pass incl. unit tests for face_match_service._parse / compare_faces (match/mismatch/low-conf unverified/no-face mismatch) and integration test for run_checkin_face_match (mismatch path -> booking.face_mismatch=True, users.face_mismatch_count incremented, notifications doc per admin with correct title + link, match path resets face_mismatch=False). Partner check-in upload returns 200 fast (<15s) and background task writes checkin.face_match with status 'unverified' + reason containing 'Integration Center' when OCR not configured. Admin POST /admin/bookings/{id}/face-match returns 400 w/o selfie, 403 for non-admin, 200 verdict for admin. Privacy enforced: customer /api/bookings[/id] and partner /api/bookings/partner/jobs responses strip checkin.face_match and face_mismatch; admin booking detail retains them. Admin web UI deep link /admin?tab=bookings&booking=<id> opens booking detail directly; FaceMatchPanel renders face-match-panel + face-match-status (emerald 'Face matched'), face-match-confidence '95% confidence', face-match-reason, face-match-recheck button that re-calls API and updates status (observed 'Face not verified' after recheck since no vision key configured) + toast. Customer side does not show face-match-panel.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_face_match_iter210.py", "/app/test_reports/pytest/face_match_iter210.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "face_match_service: good separation; _parse uses non-greedy regex but with re.S matches first-to-last brace which can over-capture if LLM returns pre/post text with braces - low risk since prompt forces compact JSON.",
+    "run_checkin_face_match update filter requires booking.checkin.selfie_url == selfie_url; if partner re-checks in between, the write silently no-ops (acceptable but not logged).",
+    "FaceMatchPanel: face-match-kyc-photo thumbnail only renders if fm.kyc_photo_url is non-empty; current AZOB98D25 partner has no partner_profiles.basic.live_photo_url nor users.live_photo_url so the lightbox was not testable from UI. Backend fallback chain is correct; may want to populate demo partner KYC photo in seed data for better UX demo."
+  ],
+  "updated_files": ["/app/backend/tests/test_face_match_iter210.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "100% core flows (deep link + panel + recheck verified; KYC thumbnail/lightbox not visible because demo partner has no KYC photo)"},
+  "test_credentials": "Admin +919000000000 / Partner +919000000003 / Customer +919000000004 - OTP 123456",
+  "seed_data_creation": "Used existing booking AZOB98D25 (customer Priya Verma, partner Raj Kumar). After tests booking is in 'arrived_customer' state with checkin.face_match populated. face_mismatch_count on partner incremented once then match path reset face_mismatch to False. Notifications for admins created under data.type='face_mismatch'.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend tests live at /app/backend/tests/test_face_match_iter210.py (9 cases, auto-finds assigned booking via admin /bookings?status=assigned fallback). Face-match UI testids: face-match-panel, face-match-status, face-match-confidence, face-match-reason, face-match-recheck, face-match-kyc-photo. Partner jobs endpoint is /api/bookings/partner/jobs (not /api/partner/jobs). Demo partner has no KYC live_photo_url - seed one in partner_profiles.basic.live_photo_url to visualise KYC thumbnail + lightbox.",
+  "rca of the issue": "N/A - feature works as designed."
+}
