@@ -16,9 +16,6 @@ from config.database import db, now_iso
 current_city = contextvars.ContextVar("current_city", default="")
 FEE_KEYS = ("global_visiting_charge", "min_service_amount_for_visiting", "emergency_fee",
             "platform_fee", "min_labour_charge")
-# City-wise merchant commission %s (Price Manager → Fee & Charges). These OVERRIDE the
-# category/global merchant %s so a merchant earns the rate set for that specific city.
-MERCHANT_COMM_KEYS = ("merchant_partner_referral_pct", "merchant_customer_pct")
 _CACHE: dict = {}
 
 
@@ -135,16 +132,6 @@ async def settings_for(settings: dict, city=None) -> dict:
     if "emergency_fee" in fees:
         out["emergency_fee"] = fees["emergency_fee"]
     return out
-
-
-async def merchant_commission(city=None) -> dict:
-    """City-wise merchant commission %s (Price Manager → Fee & Charges), or {} when the
-    city does not override them (callers then keep the category/global values)."""
-    doc = await active_doc(city)
-    if not doc:
-        return {}
-    fees = doc.get("fees") or {}
-    return {k: float(fees[k]) for k in MERCHANT_COMM_KEYS if _num(fees.get(k)) is not None}
 
 
 async def apply_ratecard(card: dict, city=None) -> dict:

@@ -36,8 +36,9 @@ dynamic and admin-controlled; calculation must be server-side. Required formula 
   _commissionable_and_passthrough() feeds compute_split()/settle().
 - booking_controller: custom bookings pass commission_base=eff_labour; pure rate-card carts
   pass commission_base=labour_total; min-labour fallback defensive fix.
-- City-wise merchant commission override (city_pricing_service.merchant_commission) applied in
-  _build_booking commission snapshot.
+- Merchant commission is CATEGORY-wise only (Commission by Service Category →
+  merchant_partner_referral_pct, merchant_customer_pct). City-wise merchant commission was
+  removed per user request — no city override anywhere; it comes out of platform-side commission.
 - _recompute_additional (during-job add-ons) now uses full commission rate (100−partner_pct),
   not platform_pct; product cost 100% to partner; GST only on labour commission; no platform fee.
 - Admin Price Manager → Fee & Charges UI (web_panel CityFees.jsx): added city-wise merchant
