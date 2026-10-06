@@ -1,0 +1,36 @@
+{
+  "summary": "Verified AzoApp-funded coupon no longer reduces partner earnings. 9/9 tests passing (unit + integration). Screenshot scenario reproduced exactly: Switchboard-style booking service 249 + visiting 100 + platform_fee 10 + coupon 150, 80/20 split → commission_base_excl_tax=349, partner_earning=279.20 (previously 159.20). Customer still pays discounted total 217.96 and sees discount 150 (unchanged).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_scenarios": {
+    "U1_commission_base_adds_back_coupon": "PASS - 249+100 with ₹150 coupon → base=349",
+    "U1_no_coupon_regression": "PASS - same booking no coupon → base=349 (identical)",
+    "U1_membership_discount_stays_deducted": "PASS - only `discount` (coupon) added back; membership_discount keeps reducing partner base (249+100-50=299)",
+    "U2_partner_earning_on_full_amount": "PASS - 80% × 349 = 279.20",
+    "U2_customer_total_unchanged": "PASS - service_net 199, taxable 209, total 217.96 (customer still pays discounted)",
+    "U4_rate_card_commission_base_override_with_coupon": "PASS - base=300 commission_base=200 coupon=150 → commissionable 200, pass_through 100; partner = 200×80% + 100 = 260",
+    "U5_strip_platform_fees_breakdown_adds_coupon_back": "PASS - provider taxable 199+150=339, platform_fee stripped, coupon_platform_funded=true, discount zeroed",
+    "I1_partner_jobs_feed_full_partner_amount": "PASS - /api/bookings/partner/jobs row.partner_amount=349, breakdown.coupon_discount=150 (surfaced), coupon_platform_funded=true; _job_brief ring payload partner_amount=349",
+    "I2_partner_active_and_job_detail": "PASS - /api/bookings/partner/active & /partner/job/{id} partner_amount=349, breakdown.total=349 (platform_fee+tax hidden), earning.partner_earning=279.20, pricing has NO platform_fee leak",
+    "I3_customer_breakdown_unchanged": "PASS - /api/bookings/{id} as customer: total=217.96, discount=150, coupon_discount=150, no coupon_platform_funded flag"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_coupon_partner_earning.py",
+    "/app/test_reports/pytest/coupon_partner_earning.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "engines.py L222-240 commission_base_excl_tax correctly adds back pricing['discount']; the service_net branch (used by finalize-ed bookings) and the derive-from-paid branch both apply it. Clean.",
+    "engines.py L205 DISCOUNT_KEYS correctly groups membership/loyalty/referral under non-coupon discounts (deducted). Only `discount` (coupon) is the add-back key — matches spec that AzoApp funds coupons only.",
+    "booking_controller.py _job_brief L86 & _hide_platform_fees L2287 BOTH compute partner_amount via commission_base_excl_tax — single source of truth. Good.",
+    "invoice_service.py _strip_platform_fees_invoice L1362-1367 correctly adjusts invoice discount/taxable/total_amount; _attach_role_earning L1296-1319 surfaces coupon_code / coupon_discount / coupon_bearer='AzoApp Platform' / coupon_note on partner invoice.",
+    "COS cash_mode branch (engines.py L702-714) correctly caps cash earning at cos_split.cash_to_collect and credits remainder to wallet as 'Coupon compensation' — needs live COS booking to execute, but logic is sound (test on this path would require a full COS lifecycle)."
+  ],
+  "updated_files": ["/app/backend/tests/test_coupon_partner_earning.py"],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "N/A - frontend testing not in scope (Expo/web dev servers cannot run in this pod)"},
+  "test_credentials": "Customer +919000000004, Partner +919000000005 (Amit Singh, AC+Patna 800001). OTP 123456 via /api/auth/send-otp.",
+  "seed_data_creation": "Direct emergency bookings for AC service in Patna 800001 with Mongo-patched pricing to simulate coupon (service 249 + visiting 100, coupon 150, platform_fee 10, 80/20 split). Bookings prefixed 'TEST_coupon_partner_earning' in notes.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test file at /app/backend/tests/test_coupon_partner_earning.py reuses conftest.py (needs REACT_APP_BACKEND_URL=http://localhost:8001 at runtime). Unit tests exercise PricingEngine.finalize+commission_base_excl_tax+CommissionEngine math directly; integration tests patch pricing via Mongo (post-/bookings POST) to deterministically set the coupon scenario. Not tested live-API-wise (would need full COS lifecycle): COS cash_mode split (cash_to_collect cap + 'Coupon compensation' wallet topup) and partner cancellation on coupon booking — code was code-reviewed and logic is correct. Previous iter213 passed cleanly."
+}

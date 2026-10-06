@@ -227,3 +227,11 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 ## 2026-06 — Partner app live updates (no manual refresh)
 - Backend emits SSE `finance_update` to partner: on earning credit (record_earning), on every invoice insert (_emit_finance → partner/merchant/customer), and after job-complete background task.
 - App: src/lib/partnerLive.ts (refreshPartnerLive, LIVE_EVENTS, useRefreshOnFocus). Partner _layout subscribes to realtime + refreshes on app foreground; wallet/invoices/earnings refetch on focus; wizard/booking detail call refreshPartnerLive. Backend SSE verified by testing agent (tests/test_partner_realtime_finance.py).
+
+## 2026-06 — Coupon never reduces partner earning (AzoApp-funded)
+- engines.commission_base_excl_tax adds back coupon `discount` (membership/loyalty/referral still deducted) → partner split, ledger, wallet, earnings ledger, invoices, cancellation all on pre-coupon amount. Customer total/GST unchanged.
+- Rate-card: uses uncapped pricing.commission_base for labour-only commission.
+- Provider-facing breakdown/invoice: coupon added back to taxable/total, discount excludes coupon, coupon_discount surfaced as AzoApp-funded.
+- Partner payloads carry `partner_amount`; app + web job value / ring / history / requests use it.
+- COS: cash entry capped at actual cash collected; coupon-funded remainder credited to wallet ("Coupon compensation").
+- Old completed bookings keep old ledger (no backfill yet).
