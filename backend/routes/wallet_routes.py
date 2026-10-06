@@ -17,5 +17,5 @@ async def wallet_transactions(type: str = "all", search: str = "", date_from: st
 
 
 @router.get("/partner/earnings")
-async def partner_earnings(user=Depends(require_role("partner"))):
-    return await c.partner_earnings(user)
+async def partner_earnings(page: int = 0, page_size: int = 0, user=Depends(require_role("partner"))):
+    return await c.partner_earnings(user, page, page_size)

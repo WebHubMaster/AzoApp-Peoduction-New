@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, Modal, TextInput, Platform, ScrollView, RefreshControl } from "react-native";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
@@ -6,6 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme, spacing } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
+import { useDebounced } from "@/src/components/invoice";
 import { api } from "@/src/api/client";
 import { AppShellHeader, Surface, KitEmpty, SegTabs, KV, StatusBadge, money, shortDate } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
@@ -117,12 +119,14 @@ export default function PartnerWallet() {
   const [tab, setTab] = useState("overview");
   const [txq, setTxq] = useState("");
   const [dir, setDir] = useState("");
-  const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<any>(null);
   const [wdDetail, setWdDetail] = useState<any>(null);
   const [flow, setFlow] = useState(false);
 
-  const wallet = useQuery({ queryKey: ["partner-wallet"], queryFn: () => api.get<any>("/partner/wallet") });
+  const wallet = useQuery({ queryKey: ["partner-wallet"], queryFn: () => api.get<any>("/partner/wallet?lite=1") });
+  // Transactions: 10 per request from the server, next page on scroll.
+  const txqD = useDebounced(txq.trim(), 350);
+  const txList = useInfiniteList(["partner-wallet-ledger", txqD, dir], (pg, size) => api.get<any>(`/partner/wallet/ledger?q=${encodeURIComponent(txqD)}&direction=${dir}&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }), { enabled: tab === "transactions" });
   const cfgQ = useQuery({ queryKey: ["partner-wallet-config"], queryFn: () => api.get<any>("/partner/wallet/config") });
   const wdQ = useQuery({ queryKey: ["partner-withdrawals"], queryFn: () => api.get<any>("/partner/withdrawals") });
   const kycQ = useQuery({ queryKey: ["partner-fkyc"], queryFn: () => api.get<any>("/partner/finance-kyc") });
@@ -134,31 +138,14 @@ export default function PartnerWallet() {
   const banks: any[] = k.banks || [];
   const fin = { eligible: !!k.eligible, blockers: k.blockers || [], banks, primary_bank: banks.find((b) => b.is_primary) || banks.find((b) => b.status === "approved") || null };
   const eligible = fin.eligible;
-  const ledger: any[] = s.ledger || [];
 
-  const trend = useMemo(() => {
-    if (!ledger.length) return null;
-    const now = new Date(); const cur = monthKey(now.toISOString());
-    const prev = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString());
-    let c = 0, p = 0;
-    ledger.forEach((l) => { if (l.direction !== "credit") return; const m = monthKey(l.created_at); if (m === cur) c += l.amount; else if (m === prev) p += l.amount; });
-    if (!p) return c > 0 ? 100 : null;
-    return Math.round(((c - p) / p) * 100);
-  }, [ledger]);
+  const trend: number | null = s.trend ?? null;
 
-  const PAGE = 10;
-  const tx = useMemo(() => {
-    let items = ledger.slice();
-    if (txq) { const q = txq.toLowerCase(); items = items.filter((t) => (t.note || "").toLowerCase().includes(q) || (t.kind || "").toLowerCase().includes(q) || (t.ref_id || "").toLowerCase().includes(q)); }
-    if (dir) items = items.filter((t) => t.direction === dir);
-    const total = items.length; const pages = Math.max(1, Math.ceil(total / PAGE)); const pg = Math.min(page, pages);
-    return { items: items.slice((pg - 1) * PAGE, pg * PAGE), total, pages, page: pg };
-  }, [ledger, txq, dir, page]);
 
-  const reload = () => ["partner-wallet", "partner-wallet-config", "partner-withdrawals", "partner-fkyc"].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
+  const reload = () => ["partner-wallet", "partner-wallet-ledger", "partner-wallet-config", "partner-withdrawals", "partner-fkyc"].forEach((key) => qc.invalidateQueries({ queryKey: [key] }));
   const gotoKyc = () => router.push("/partner/payouts");
   const startWithdraw = () => { if (!eligible) { gotoKyc(); toast.info("Complete Bank & KYC verification first"); } else setFlow(true); };
-  const recentTx = ledger.slice(0, 6);
+  const recentTx: any[] = s.recent || [];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -167,6 +154,7 @@ export default function PartnerWallet() {
         testID="wallet-module"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 20 }}
         showsVerticalScrollIndicator={false}
+        {...txList.scrollProps}
         refreshControl={<RefreshControl refreshing={wallet.isFetching && !wallet.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         {wallet.isLoading ? (
@@ -261,27 +249,22 @@ export default function PartnerWallet() {
                 <View style={{ gap: 8, marginBottom: 16 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, backgroundColor: colors.surface }}>
                     <Icon name="magnify" size={16} color={SLATE400} />
-                    <TextInput testID="wallet-tx-search" value={txq} onChangeText={(v) => { setTxq(v); setPage(1); }} placeholder="Search description, reference…" placeholderTextColor={SLATE400} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 14 }} />
+                    <TextInput testID="wallet-tx-search" value={txq} onChangeText={setTxq} placeholder="Search description, reference…" placeholderTextColor={SLATE400} style={{ flex: 1, marginLeft: 8, color: colors.text, fontSize: 14 }} />
                   </View>
                   <View style={{ flexDirection: "row", gap: 6 }}>
                     {[["", "All types"], ["credit", "Credit"], ["debit", "Debit"]].map(([v, l]) => (
-                      <Pressable key={v} testID={`wallet-tx-direction-${v || "all"}`} onPress={() => { setDir(v); setPage(1); }} style={{ height: 36, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: dir === v ? colors.primary : colors.border, backgroundColor: dir === v ? colors.primarySubtle : colors.surface, alignItems: "center", justifyContent: "center" }}>
+                      <Pressable key={v} testID={`wallet-tx-direction-${v || "all"}`} onPress={() => setDir(v)} style={{ height: 36, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: dir === v ? colors.primary : colors.border, backgroundColor: dir === v ? colors.primarySubtle : colors.surface, alignItems: "center", justifyContent: "center" }}>
                         <Text style={{ color: dir === v ? colors.primary : colors.textSecondary, fontSize: 13, fontWeight: "600" }}>{l}</Text>
                       </Pressable>
                     ))}
                   </View>
                 </View>
-                {tx.items.length === 0 ? <KitEmpty icon="receipt-text-outline" title="No transactions found" desc="Try adjusting your search or filters." testID="wallet-tx-empty" /> : (
+                {txList.isLoading ? <View style={{ height: 56, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} />
+                  : txList.isError && !txList.items.length ? <KitEmpty icon="wifi-off" title="Couldn't load transactions" desc="Slow connection. Pull down to retry." testID="wallet-tx-error" />
+                  : txList.items.length === 0 ? <KitEmpty icon="receipt-text-outline" title="No transactions found" desc="Try adjusting your search or filters." testID="wallet-tx-empty" /> : (
                   <>
-                    <View style={{ gap: 8 }}>{tx.items.map((t) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} card />)}</View>
-                    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle }}>
-                      <Text testID="pagination-info" style={{ color: colors.textMuted, fontSize: 12 }}>Showing <Text style={{ fontWeight: "700", color: colors.textSecondary }}>{(tx.page - 1) * PAGE + 1}–{Math.min(tx.page * PAGE, tx.total)}</Text> of <Text style={{ fontWeight: "700", color: colors.textSecondary }}>{tx.total}</Text></Text>
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                        <Pressable testID="page-prev" disabled={tx.page <= 1} onPress={() => setPage(tx.page - 1)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: tx.page <= 1 ? 0.4 : 1 }}><Icon name="chevron-left" size={16} color={colors.textSecondary} /></Pressable>
-                        <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600", paddingHorizontal: 8 }}>{tx.page} / {tx.pages}</Text>
-                        <Pressable testID="page-next" disabled={tx.page >= tx.pages} onPress={() => setPage(tx.page + 1)} style={{ height: 36, paddingHorizontal: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: tx.page >= tx.pages ? 0.4 : 1 }}><Icon name="chevron-right" size={16} color={colors.textSecondary} /></Pressable>
-                      </View>
-                    </View>
+                    <View style={{ gap: 8 }}>{txList.items.map((t: any) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} card />)}</View>
+                    <LoadMoreFooter list={txList} testID="wallet-tx-load-more" />
                   </>
                 )}
               </Surface>

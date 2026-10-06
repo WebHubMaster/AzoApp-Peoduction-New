@@ -2,7 +2,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import { SlidersHorizontal, RefreshCw, ArrowUpDown, Search } from "lucide-react-native";
@@ -11,7 +12,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { AppShellHeader, Surface } from "@/src/components/AppShell";
 import {
-  InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, AdvancedPaginator, TableSkeleton, InvEmpty, InvError,
+  InvoiceKpis, KpiSkeleton, DateChips, SearchBox, InvoiceCardList, TableSkeleton, InvEmpty, InvError,
   IconSquare, ActiveChip, ActionSheet, RowMenuSheet, EmailSheet, useDebounced, useInv,
 } from "@/src/components/invoice";
 import InvoiceFilterSheet from "@/src/components/invoices/FilterSheet";
@@ -34,8 +35,6 @@ export default function PartnerInvoices() {
   const role = "partner"; const shopName = user?.name || "Partner";
 
   /* ── list state ── */
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [range, setRange] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -64,7 +63,7 @@ export default function PartnerInvoices() {
   const lastPctRef = useRef<number>(-1);
 
   const params = useMemo(() => ({
-    page, page_size: pageSize, range, sort,
+    range, sort,
     date_from: range === "custom" ? applied.from || undefined : undefined,
     date_to: range === "custom" ? applied.to || undefined : undefined,
     search: search || undefined,
@@ -72,23 +71,15 @@ export default function PartnerInvoices() {
     payment_status: filters.statuses.length ? filters.statuses.join(",") : "all",
     min_amount: filters.minAmount || undefined, max_amount: filters.maxAmount || undefined,
     customer: filters.customer || undefined, booking_id: filters.booking || undefined,
-  }), [page, pageSize, range, sort, applied, search, filters]);
+  }), [range, sort, applied, search, filters]);
 
-  const q = useQuery({
-    queryKey: ["partner-invoices", params],
-    queryFn: () => api.get<any>(`/invoices?${qs(params)}`),
-    placeholderData: keepPreviousData,
-    retry: false,
-  });
-  const data = q.data;
-  const loading = q.isFetching;
+  // 10 invoices per request; next page loads on scroll.
+  const q = useInfiniteList(["partner-invoices", params], (pg, size) => api.get<any>(`/invoices?${qs({ ...params, page: pg, page_size: size })}`, { timeoutMs: 60000 } as any));
+  const data = q.data ? q.first : undefined;
+  const loading = q.isFetching && !q.isFetchingNextPage;
   const error: null | "offline" | "error" = q.isError ? ((q.error as ApiError)?.status === 0 ? "offline" : "error") : null;
   const load = useCallback(() => { clearInvoiceHtmlCache(); return q.refetch(); }, [q]);
 
-  // reset to page 1 whenever filters / search / sort / size change
-  const resetKey = JSON.stringify({ range, applied, sort, search, filters, pageSize });
-  const firstRun = useRef(true);
-  useEffect(() => { if (firstRun.current) { firstRun.current = false; return; } setPage(1); }, [resetKey]);
 
   // reconnect handling
   const errRef = useRef(error); errRef.current = error;
@@ -243,7 +234,7 @@ export default function PartnerInvoices() {
   const onRangeApplyFromDrawer = (k: string, f: string, tt: string) => { setRange(k); setDateFrom(f); setDateTo(tt); setApplied(k === "custom" ? { from: f, to: tt } : { from: "", to: "" }); };
   const clearAll = () => { setFilters(EMPTY_FILTERS); setSearchRaw(""); setRange("all"); setApplied({ from: "", to: "" }); setDateFrom(""); setDateTo(""); };
 
-  const items: any[] = data?.items || [];
+  const items: any[] = q.items;
   const summary = data?.summary || {};
   const cur = items[0]?.currency || "INR";
   const nFilters = countFilters(filters);
@@ -256,7 +247,7 @@ export default function PartnerInvoices() {
   return (
     <View style={{ flex: 1, backgroundColor: t.background }} testID="merchant-invoices">
       <AppShellHeader profileRoute="/(partner)/profile" />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 20 }} keyboardShouldPersistTaps="handled"
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 110, gap: 20 }} keyboardShouldPersistTaps="handled" {...q.scrollProps}
         refreshControl={<RefreshControl refreshing={pulling} onRefresh={async () => { setPulling(true); clearInvoiceHtmlCache(); try { await q.refetch(); } finally { setPulling(false); } }} tintColor={t.primary} colors={[t.primary]} />}>
         {/* ── mobile toolbar ── */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -288,20 +279,17 @@ export default function PartnerInvoices() {
         {loading && !data ? <KpiSkeleton /> : <InvoiceKpis summary={summary} currency={cur} rangeLabel={rangeLabel} />}
 
         {/* ── list ── */}
-        <Surface testID="invoice-list-surface" style={{ overflow: "hidden" }}>
-          {loading && !data ? <TableSkeleton /> : error ? <InvError offline={error === "offline"} onRetry={() => load()} />
-            : items.length === 0 ? <InvEmpty filtered={isFiltered} onClear={clearAll} hint={emptyHint} />
+        {/* ── list (cards directly, no outer wrapper card) ── */}
+        <View testID="invoice-list-surface">
+          {loading && !data ? <Surface style={{ overflow: "hidden" }}><TableSkeleton /></Surface> : error && !items.length ? <Surface><InvError offline={error === "offline"} onRetry={() => load()} /></Surface>
+            : items.length === 0 ? <Surface><InvEmpty filtered={isFiltered} onClear={clearAll} hint={emptyHint} /></Surface>
             : (
-              <View style={{ opacity: loading ? 0.6 : 1 }} pointerEvents={loading ? "none" : "auto"}>
-                <View style={{ padding: 12 }}>
-                  <InvoiceCardList items={items} busyId={busyId} onMore={setMenuFor} {...rowActions} />
-                </View>
-                <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-                  <AdvancedPaginator page={data.page} pages={data.pages} total={data.total} pageSize={pageSize} onPage={(p) => setPage(p)} onPageSize={setPageSize} />
-                </View>
+              <View style={{ opacity: loading && !pulling ? 0.6 : 1 }}>
+                <InvoiceCardList items={items} busyId={busyId} onMore={setMenuFor} {...rowActions} />
+                <LoadMoreFooter list={q} testID="invoice-load-more" />
               </View>
             )}
-        </Surface>
+        </View>
       </ScrollView>
 
       {/* ── overlays ── */}

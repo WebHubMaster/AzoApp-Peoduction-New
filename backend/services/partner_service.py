@@ -1,6 +1,6 @@
 """Module 3 — Partner engine: verification workflow, skills/assessment eligibility,
 wallet ledger, withdrawals, incentives & penalties. All financial + status logic server-side."""
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from fastapi import HTTPException
 from config.database import db, now_iso
 from models.user import new_id
@@ -479,6 +479,35 @@ async def wallet_summary(partner):
         "total_withdrawn": money.money(total_withdrawn),
         "ledger": entries,
     }
+
+
+def _month_trend(entries):
+    now = datetime.now(timezone.utc)
+    cur = now.strftime("%Y-%m")
+    prev = (now.replace(day=1) - timedelta(days=1)).strftime("%Y-%m")
+    c = sum(float(e.get("amount") or 0) for e in entries if e.get("direction") == "credit" and str(e.get("created_at", ""))[:7] == cur)
+    p = sum(float(e.get("amount") or 0) for e in entries if e.get("direction") == "credit" and str(e.get("created_at", ""))[:7] == prev)
+    if not p:
+        return 100 if c > 0 else None
+    return round((c - p) / p * 100)
+
+
+async def wallet_summary_lite(partner):
+    """Wallet KPIs without the full ledger (fast first load); list comes from wallet_ledger_paged."""
+    s = await wallet_summary(partner)
+    entries = s.pop("ledger")
+    return {**s, "recent": entries[:6], "trend": _month_trend(entries), "ledger_count": len(entries)}
+
+
+async def wallet_ledger_paged(partner, q="", direction="", page=1, page_size=10):
+    entries = await _ledger_entries(partner["id"])
+    if q:
+        ql = q.lower()
+        entries = [e for e in entries if ql in (e.get("note") or "").lower() or ql in (e.get("kind") or "").lower() or ql in (e.get("ref_id") or "").lower()]
+    if direction:
+        entries = [e for e in entries if e.get("direction") == direction]
+    page = max(1, int(page)); page_size = min(50, max(1, int(page_size)))
+    return {"items": entries[(page - 1) * page_size: page * page_size], "total": len(entries), "page": page, "page_size": page_size}
 
 
 async def request_withdrawal(partner, amount, method, upi_id, bank):
@@ -976,7 +1005,6 @@ def _streak_stats(partner, cfg):
 
 
 # ---------------------------------------------------------------- leaderboard
-from datetime import timedelta  # noqa: E402
 
 IST = timezone(timedelta(hours=5, minutes=30))
 

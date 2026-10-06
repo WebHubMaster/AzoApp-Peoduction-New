@@ -3,12 +3,13 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } 
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
 import { Users, Wrench, CheckCircle2, ChevronRight } from "lucide-react-native";
 import { AppShellHeader } from "@/src/components/AppShell";
 import { fmt, fmtDate, initials } from "@/src/lib/format";
 import { Card, EmptyState } from "@/src/components/ui";
-import { MReportCards, MSearchBox, MPagination, MModuleHeader, MBackLink, MPrivacyNote, Kpi } from "@/src/components/merchant/ReferralShared";
+import { MReportCards, MSearchBox, MModuleHeader, MBackLink, MPrivacyNote, Kpi } from "@/src/components/merchant/ReferralShared";
 
 const TAB = { fontVariant: ["tabular-nums" as const] };
 
@@ -101,22 +102,17 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
 export default function MerchantCustomers() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [qRaw, setQRaw] = useState("");
   const [q, setQ] = useState("");
   const [sel, setSel] = useState<string | null>(null);
 
   // debounce search (350ms) — matches web; reset to page 1 when the query changes
-  useEffect(() => { const t = setTimeout(() => { setQ(qRaw); setPage(1); }, 350); return () => clearTimeout(t); }, [qRaw]);
+  useEffect(() => { const t = setTimeout(() => setQ(qRaw), 350); return () => clearTimeout(t); }, [qRaw]);
 
-  const list = useQuery({
-    queryKey: ["m-ref-customers", page, pageSize, q],
-    queryFn: () => api.get<any>(`/merchant/referral/customers?page=${page}&page_size=${pageSize}&q=${encodeURIComponent(q)}`),
-  });
-  const data = list.data;
+  const list = useInfiniteList(["m-ref-customers", q], (pg, size) => api.get<any>(`/merchant/referral/customers?page=${pg}&page_size=${size}&q=${encodeURIComponent(q)}`, { timeoutMs: 60000 }));
+  const data: any = list.first;
   const rep = data?.report || {};
-  const items: any[] = data?.items || [];
+  const items: any[] = list.items;
 
   const cards: Kpi[] = [
     { label: "Total Commission", value: rep.total_commission, money: true, primary: true, sub: `${rep.total_customers || 0} customers` },
@@ -135,8 +131,9 @@ export default function MerchantCustomers() {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={list.isFetching} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={list.isRefetching && !list.isFetchingNextPage} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
         testID="merchant-customers"
+        {...list.scrollProps}
       >
         <MModuleHeader card title="My Customers" subtitle="Customers referred via your QR / code — and your earned commission" icon={Users} />
 
@@ -174,8 +171,7 @@ export default function MerchantCustomers() {
             ))
           )}
         </Card>
-
-        <MPagination page={data?.page || 1} pages={data?.pages || 1} total={data?.total || 0} pageSize={pageSize} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />
+        <LoadMoreFooter list={list} testID="customers-load-more" />
       </ScrollView>
     </View>
   );

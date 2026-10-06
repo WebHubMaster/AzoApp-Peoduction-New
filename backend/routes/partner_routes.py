@@ -112,8 +112,13 @@ async def eligibility(user=Depends(PARTNER)):
 
 # ---- wallet / withdrawals ----
 @router.get("/wallet")
-async def wallet(user=Depends(PARTNER)):
-    return await ps.wallet_summary(user)
+async def wallet(lite: int = 0, user=Depends(PARTNER)):
+    return await (ps.wallet_summary_lite(user) if lite else ps.wallet_summary(user))
+
+
+@router.get("/wallet/ledger")
+async def wallet_ledger(q: str = "", direction: str = "", page: int = 1, page_size: int = 10, user=Depends(PARTNER)):
+    return await ps.wallet_ledger_paged(user, q, direction, page, page_size)
 
 
 @router.get("/earnings-summary")

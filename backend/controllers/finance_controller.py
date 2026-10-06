@@ -39,7 +39,7 @@ async def topup(user, amount):
     return await wallet(user)
 
 
-async def partner_earnings(partner):
+async def partner_earnings(partner, page=0, page_size=0):
     ledger = await db.commission_ledger.find({"partner_id": partner["id"]}, {"_id": 0}).sort("created_at", -1).to_list(500)
     out = []
     total = 0.0
@@ -78,5 +78,8 @@ async def partner_earnings(partner):
             row["label"] = "Job earning"
             out.append(row)
             total += pe
-    return {"wallet_balance": partner.get("wallet_balance", 0), "total_earned": round(total, 2),
-            "jobs": len(out), "ledger": out}
+    res = {"wallet_balance": partner.get("wallet_balance", 0), "total_earned": round(total, 2), "jobs": len(out)}
+    if page > 0:
+        page_size = min(50, max(1, int(page_size or 10)))
+        return {**res, "items": out[(page - 1) * page_size: page * page_size], "total": len(out), "page": page, "page_size": page_size}
+    return {**res, "ledger": out}

@@ -3,11 +3,12 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } 
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
 import { Network, Wrench, CheckCircle2, ChevronRight } from "lucide-react-native";
 import { fmt, fmtDate, initials } from "@/src/lib/format";
 import { Card, EmptyState, Badge, statusTone } from "@/src/components/ui";
-import { MReportCards, MSearchBox, MPagination, MModuleHeader, MBackLink, MPrivacyNote, Kpi } from "@/src/components/merchant/ReferralShared";
+import { MReportCards, MSearchBox, MModuleHeader, MBackLink, MPrivacyNote, Kpi } from "@/src/components/merchant/ReferralShared";
 
 /* ─────────────── Avatar (violet tone, matches web) ─────────────── */
 function PAvatar({ name }: { name?: string }) {
@@ -134,8 +135,6 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
 export default function MerchantPartners() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [qRaw, setQRaw] = useState("");
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("");
@@ -143,15 +142,11 @@ export default function MerchantPartners() {
 
   // debounce search (350ms) — matches web
   useEffect(() => { const t = setTimeout(() => setQ(qRaw), 350); return () => clearTimeout(t); }, [qRaw]);
-  useEffect(() => { setPage(1); }, [q, status, pageSize]);
 
-  const list = useQuery({
-    queryKey: ["m-ref-partners", page, pageSize, q, status],
-    queryFn: () => api.get<any>(`/merchant/referral/partners?page=${page}&page_size=${pageSize}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`),
-  });
-  const data = list.data;
+  const list = useInfiniteList(["m-ref-partners", q, status], (pg, size) => api.get<any>(`/merchant/referral/partners?page=${pg}&page_size=${size}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`, { timeoutMs: 60000 }));
+  const data: any = list.first;
   const rep = data?.report || {};
-  const items: any[] = data?.items || [];
+  const items: any[] = list.items;
 
   const cards: Kpi[] = [
     { label: "Total Commission", value: rep.total_commission, money: true, primary: true, sub: `${rep.total_partners || 0} partners` },
@@ -169,8 +164,9 @@ export default function MerchantPartners() {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={list.isFetching} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={list.isRefetching && !list.isFetchingNextPage} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
         testID="merchant-partners"
+        {...list.scrollProps}
       >
         <MModuleHeader card title="My Partners" subtitle="Partners registered with your merchant code — and your earned commission" icon={Network} />
         <MReportCards cards={cards} />
@@ -213,8 +209,7 @@ export default function MerchantPartners() {
             ))
           )}
         </Card>
-
-        <MPagination page={data?.page || 1} pages={data?.pages || 1} total={data?.total || 0} pageSize={pageSize} onPage={setPage} onPageSize={setPageSize} />
+        <LoadMoreFooter list={list} testID="partners-load-more" />
       </ScrollView>
     </View>
   );

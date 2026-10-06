@@ -3,10 +3,11 @@ import { View, Text, Pressable, ScrollView, RefreshControl, ActivityIndicator } 
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
 import { fmt, fmtDate } from "@/src/lib/format";
 import { Card, EmptyState } from "@/src/components/ui";
-import { MReportCards, MSearchBox, MPagination, MModuleHeader, MTypeBadge, MDateRangeFilter, DateRange, Kpi } from "@/src/components/merchant/ReferralShared";
+import { MReportCards, MSearchBox, MModuleHeader, MTypeBadge, MDateRangeFilter, DateRange, Kpi } from "@/src/components/merchant/ReferralShared";
 
 const TYPE_TABS: [string, string][] = [["", "All"], ["customer", "Customer"], ["partner", "Partner"]];
 
@@ -38,8 +39,6 @@ function TypeTabs({ value, onChange }: { value: string; onChange: (v: string) =>
 export default function MerchantCommission() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const [type, setType] = useState("");
   const [qRaw, setQRaw] = useState("");
   const [q, setQ] = useState("");
@@ -47,20 +46,16 @@ export default function MerchantCommission() {
 
   // debounce search (350ms) — matches web
   useEffect(() => { const t = setTimeout(() => setQ(qRaw), 350); return () => clearTimeout(t); }, [qRaw]);
-  useEffect(() => { setPage(1); }, [type, q, date, pageSize]);
 
   const qs = new URLSearchParams({
-    page: String(page), page_size: String(pageSize), type, q,
+    type, q,
     range: date.range || "", date_from: date.date_from || "", date_to: date.date_to || "",
   }).toString();
 
-  const list = useQuery({
-    queryKey: ["m-ref-commission", page, pageSize, type, q, date],
-    queryFn: () => api.get<any>(`/merchant/referral/commission?${qs}`),
-  });
-  const data = list.data;
+  const list = useInfiniteList(["m-ref-commission", qs], (pg, size) => api.get<any>(`/merchant/referral/commission?${qs}&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  const data: any = list.first;
   const s = data?.summary || {};
-  const items: any[] = data?.items || [];
+  const items: any[] = list.items;
 
   const cards: Kpi[] = useMemo(() => [
     { label: "Total Commission", value: s.total, money: true, primary: true, sub: `${s.transactions || 0} transactions` },
@@ -78,8 +73,9 @@ export default function MerchantCommission() {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={list.isFetching} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={list.isRefetching && !list.isFetchingNextPage} onRefresh={() => list.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
         testID="merchant-commission"
+        {...list.scrollProps}
       >
         <MModuleHeader card title="Commission" subtitle="Your actual earned referral commission — customer & partner" />
         <MReportCards cards={cards} />
@@ -134,8 +130,7 @@ export default function MerchantCommission() {
             ))
           )}
         </Card>
-
-        <MPagination page={data?.page || 1} pages={data?.pages || 1} total={data?.total || 0} pageSize={pageSize} onPage={setPage} onPageSize={setPageSize} />
+        <LoadMoreFooter list={list} testID="commission-load-more" />
       </ScrollView>
     </View>
   );

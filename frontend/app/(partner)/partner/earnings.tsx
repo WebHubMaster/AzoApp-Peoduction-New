@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme, spacing } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
 import { AppShellHeader, Surface, KitEmpty, StatusBadge } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
@@ -23,18 +24,16 @@ export default function PartnerEarnings() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
   const [range, setRange] = useState("14");
   const [detail, setDetail] = useState<any>(null);
 
-  const e = useQuery({ queryKey: ["partner-earn-ledger"], queryFn: () => api.get<any>("/wallet/partner/earnings") });
+  // Ledger: 10 rows per request from the server, next page on scroll.
+  const e = useInfiniteList(["partner-earn-ledger"], (pg, size) => api.get<any>(`/wallet/partner/earnings?page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
   const sum = useQuery({ queryKey: ["partner-earnings"], queryFn: () => api.get<any>("/partner/earnings-summary") });
-  const E = e.data || {}; const S = sum.data || {};
-  const ledger: any[] = E.ledger || [];
+  const E: any = e.first; const S = sum.data || {};
+  const ledger: any[] = e.items;
   const payouts: any[] = S.payouts || [];
-  const pages = Math.max(1, Math.ceil(ledger.length / pageSize)); const pg = Math.min(page, pages);
-  const rows = ledger.slice((pg - 1) * pageSize, pg * pageSize);
+  const rows = ledger;
   const daily = (S.daily || []).slice(-Number(range)).map((d: any) => ({ date: d.date, earning: d.amount }));
   const reload = () => ["partner-earn-ledger", "partner-earnings"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
@@ -61,8 +60,8 @@ export default function PartnerEarnings() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={e.isFetching && !e.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false} {...e.scrollProps}
+        refreshControl={<RefreshControl refreshing={e.isRefetching && !e.isFetchingNextPage} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}>
         {/* Hero */}
         <LinearGradient colors={[colors.primaryDark, colors.primaryHover, colors.secondary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 24, boxShadow: "0px 20px 45px rgba(13,71,161,0.4)", elevation: 6 }} testID="partner-earnings-header">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="trending-up" size={16} color="#BFDBFE" /><Text style={{ color: "#BFDBFE", fontSize: 14 }}>Total Earnings</Text></View>
@@ -122,7 +121,7 @@ export default function PartnerEarnings() {
         </Section>
 
         {/* Earnings Ledger */}
-        <Section title="Earnings Ledger" subtitle={ledger.length ? `${ledger.length} transactions` : undefined} icon="receipt-text-outline">
+        <Section title="Earnings Ledger" subtitle={e.total ? `${e.total} transactions` : undefined} icon="receipt-text-outline">
           {e.isLoading ? <View style={{ padding: 16 }}><View style={{ height: 56, borderRadius: 6, backgroundColor: colors.surfaceSubtle }} /></View>
             : ledger.length === 0 ? <KitEmpty icon="receipt-text-outline" title="No earnings yet" desc="Complete jobs to start earning. Every settled job will appear here with its full commission breakdown." /> : (
             <>
@@ -136,7 +135,7 @@ export default function PartnerEarnings() {
                   <Text style={{ color: "#059669", fontSize: 16, fontWeight: "800" }}>+{fmt(l.net_earning ?? l.partner_earning)}</Text>
                 </Pressable>
               ))}
-              <LedgerPagination page={pg} pageSize={pageSize} total={ledger.length} colors={colors} onPage={setPage} onPageSize={(n) => { setPageSize(n); setPage(1); }} />
+              <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}><LoadMoreFooter list={e} testID="ledger-load-more" /></View>
             </>
           )}
         </Section>
@@ -146,50 +145,6 @@ export default function PartnerEarnings() {
   );
 }
 
-/** Web kit <Pagination> — "Showing x–y of z" + page-size select + prev / page-window / next. */
-function LedgerPagination({ page, pageSize, total, colors, onPage, onPageSize }: { page: number; pageSize: number; total: number; colors: any; onPage: (n: number) => void; onPageSize: (n: number) => void }) {
-  const [menu, setMenu] = useState(false);
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  if (total === 0) return null;
-  const from = (page - 1) * pageSize + 1;
-  const to = Math.min(total, page * pageSize);
-  const win: number[] = [];
-  const s = Math.max(1, Math.min(page - 1, pages - 2));
-  for (let i = s; i <= Math.min(pages, s + 2); i += 1) win.push(i);
-  const PgBtn = ({ label, disabled, onPress }: { label: string; disabled: boolean; onPress: () => void }) => (
-    <Pressable disabled={disabled} onPress={onPress} style={{ width: 32, height: 32, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.4 : 1 }}>
-      <Text style={{ color: colors.textMuted, fontSize: 16, fontWeight: "700" }}>{label}</Text>
-    </Pressable>
-  );
-  return (
-    <View style={{ gap: 12, paddingHorizontal: 16, paddingVertical: 14, borderTopWidth: 1, borderTopColor: colors.surfaceSubtle, alignItems: "center" }}>
-      <Text style={{ color: SLATE400, fontSize: 12 }}>Showing <Text style={{ fontWeight: "700", color: colors.textSecondary }}>{from}–{to}</Text> of {total}</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Pressable testID="page-size" onPress={() => setMenu(true)} style={{ flexDirection: "row", alignItems: "center", gap: 6, height: 32, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: colors.border }}>
-          <Text style={{ color: colors.textSecondary, fontSize: 12 }}>{pageSize}/page</Text><Icon name="chevron-down" size={14} color={SLATE400} />
-        </Pressable>
-        <PgBtn label="‹" disabled={page <= 1} onPress={() => onPage(page - 1)} />
-        {win.map((p) => (
-          <Pressable key={p} onPress={() => onPage(p)} style={{ minWidth: 32, height: 32, paddingHorizontal: 8, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: p === page ? colors.primaryHover : "transparent", borderWidth: p === page ? 0 : 1, borderColor: colors.border }}>
-            <Text style={{ color: p === page ? "#fff" : colors.textMuted, fontSize: 13, fontWeight: "700" }}>{p}</Text>
-          </Pressable>
-        ))}
-        <PgBtn label="›" disabled={page >= pages} onPress={() => onPage(page + 1)} />
-      </View>
-      <Modal visible={menu} transparent animationType="fade" onRequestClose={() => setMenu(false)}>
-        <Pressable style={{ flex: 1 }} onPress={() => setMenu(false)}>
-          <View style={{ position: "absolute", alignSelf: "center", top: "40%", backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, paddingVertical: 6, minWidth: 140, boxShadow: "0px 12px 32px rgba(15,23,42,0.18)", elevation: 8 }}>
-            {PAGE_SIZES.map((n) => (
-              <Pressable key={n} onPress={() => { onPageSize(n); setMenu(false); }} style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
-                <Text style={{ color: n === pageSize ? colors.primary : colors.textSecondary, fontSize: 14, fontWeight: n === pageSize ? "800" : "500" }}>{n} / page</Text>
-              </Pressable>
-            ))}
-          </View>
-        </Pressable>
-      </Modal>
-    </View>
-  );
-}
 
 /** Web EarningsLedger <Sheet title="Earning Details"> — 1:1 */
 function EarningDetailSheet({ detail, onClose }: { detail: any; onClose: () => void }) {

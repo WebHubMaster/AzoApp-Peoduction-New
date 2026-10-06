@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
+import { useDebounced } from "@/src/components/invoice";
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { AppShellHeader } from "@/src/components/AppShell";
@@ -12,7 +14,7 @@ import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
 import { SLATE } from "@/src/components/qr/qrKit";
 import {
-  useFin, KpiCard, Surface, SegTabs, DetailDrawer, KV, Timeline, EmptyState, RowsSkeleton, Paginator, StatusBadge,
+  useFin, KpiCard, Surface, SegTabs, DetailDrawer, KV, Timeline, EmptyState, RowsSkeleton, StatusBadge,
   PremiumSelect, FBtn, Sk, LockedCard, money, shortDate, EMERALD, ROSE, AMBER, TAB,
 } from "@/src/components/merchant/FinanceKit";
 
@@ -33,7 +35,7 @@ export default function MerchantWallet() {
   const shopName = user?.shop_name || user?.name || "My Shop";
 
   const [tab, setTab] = useState<Tab>("overview");
-  const [txf, setTxf] = useState({ q: "", direction: "", page: 1, page_size: 10 });
+  const [txf, setTxf] = useState({ q: "", direction: "" });
   const [detail, setDetail] = useState<any>(null);
   const [wdDetail, setWdDetail] = useState<any>(null);
   const [flow, setFlow] = useState(false);
@@ -42,13 +44,10 @@ export default function MerchantWallet() {
   const approved = !!(accessQ.data?.approved || user?.kyc_status === "approved");
   const ovQ = useQuery({ queryKey: ["m-wallet-overview"], queryFn: () => api.get<any>(`${PANEL}/wallet/overview`), enabled: approved });
   const wdsQ = useQuery({ queryKey: ["m-wallet-withdrawals"], queryFn: () => api.get<any[]>(`${PANEL}/wallet/withdrawals`), enabled: approved });
-  const txQ = useQuery({
-    queryKey: ["m-wallet-tx", txf],
-    queryFn: () => api.get<any>(`${PANEL}/wallet/transactions?q=${encodeURIComponent(txf.q)}&direction=${txf.direction}&page=${txf.page}&page_size=${txf.page_size}`),
-    enabled: approved && tab === "transactions",
-  });
-  // web: any filter change resets to page 1
-  const patchTx = (p: Partial<typeof txf>) => setTxf((f) => ({ ...f, ...p, page: p.page ?? 1 }));
+  // Transactions: 10 per request from the server, next page on scroll.
+  const txqD = useDebounced(txf.q.trim(), 350);
+  const txQ = useInfiniteList(["m-wallet-tx", txqD, txf.direction], (pg, size) => api.get<any>(`${PANEL}/wallet/transactions?q=${encodeURIComponent(txqD)}&direction=${txf.direction}&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }), { enabled: approved && tab === "transactions" });
+  const patchTx = (p: Partial<typeof txf>) => setTxf((f) => ({ ...f, ...p }));
 
   const ov = ovQ.data;
   const s = ov?.summary || {};
@@ -56,7 +55,6 @@ export default function MerchantWallet() {
   const fin = ov?.finance || { eligible: false, blockers: [], banks: [], primary_bank: null };
   const eligible = !!fin.eligible;
   const wds: any[] = wdsQ.data || [];
-  const tx = txQ.data || { items: [], total: 0, page: 1, pages: 1 };
 
   const trend = useMemo(() => {
     const led: any[] = s.ledger || [];
@@ -97,6 +95,7 @@ export default function MerchantWallet() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={!!ov && ovQ.isFetching} onRefresh={load} tintColor={P[700]} colors={[P[700]]} />}
         testID="wallet-module"
+        {...txQ.scrollProps}
       >
         {/* Page header (MerchantDashboard.jsx) */}
         <View style={{ marginBottom: 16 }}>
@@ -211,12 +210,12 @@ export default function MerchantWallet() {
                   <PremiumSelect testID="wallet-tx-direction" value={txf.direction} onChange={(direction) => patchTx({ direction })} height={44} radius={12} placeholder="All types"
                     options={[{ value: "", label: "All types" }, { value: "credit", label: "Credit" }, { value: "debit", label: "Debit" }]} />
                 </View>
-                {txQ.isLoading || (txQ.isFetching && !txQ.data) ? <RowsSkeleton /> : (tx.items || []).length === 0 ? (
+                {txQ.isLoading ? <RowsSkeleton /> : txQ.items.length === 0 ? (
                   <EmptyState icon="receipt-text-outline" title="No transactions found" hint="Try adjusting your search or filters." testID="wallet-tx-empty" />
                 ) : (
                   <>
-                    <View style={{ gap: 8 }}>{tx.items.map((t: any) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} card />)}</View>
-                    <Paginator page={tx.page || 1} pages={tx.pages || 1} total={tx.total || 0} pageSize={txf.page_size} onPage={(p) => patchTx({ page: p })} onPageSize={(n) => patchTx({ page_size: n })} />
+                    <View style={{ gap: 8 }}>{txQ.items.map((t: any) => <TxRow key={t.id} t={t} onOpen={() => setDetail(t)} card />)}</View>
+                    <LoadMoreFooter list={txQ} testID="wallet-tx-load-more" />
                   </>
                 )}
               </Surface>
