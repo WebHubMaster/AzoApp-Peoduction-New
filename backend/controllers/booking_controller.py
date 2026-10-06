@@ -2297,7 +2297,7 @@ def _partner_view(b: dict, settings: dict) -> dict:
     return _hide_platform_fees(b)
 
 
-async def partner_jobs(partner):
+async def partner_jobs(partner, page=0, page_size=0):
     # Point 11: only show jobs matching this partner's categories/skills feed.
     # AzoApp Pro perk: premium partners get a head-start — non-Pro partners only
     # see each new job after PRO_HEADSTART_SECONDS, giving Pro members priority.
@@ -2322,6 +2322,9 @@ async def partner_jobs(partner):
             b["customer_phone"] = None
         _partner_view(b, settings)
         out.append(b)
+    if page > 0:
+        page_size = min(50, max(1, int(page_size or 10)))
+        return {"items": out[(page - 1) * page_size: page * page_size], "total": len(out), "page": page, "page_size": page_size}
     return out
 
 
@@ -2433,19 +2436,29 @@ async def partner_active_jobs(partner):
     return rows
 
 
-async def partner_history(partner, status="all"):
+async def partner_history(partner, status="all", search="", page=0, page_size=0):
     """Completed & cancelled jobs for this partner — the Job History screen.
-    Supports an optional status filter (all | completed | cancelled)."""
+    Supports an optional status filter (all | completed | cancelled); page>0 → paginated."""
     wanted = {"completed": ["completed", "paid"], "cancelled": ["cancelled"]}.get(
         status, ["completed", "paid", "cancelled"])
-    rows = await db.bookings.find(
-        {"partner_id": partner["id"], "status": {"$in": wanted}},
-        {"_id": 0, "otps": 0, "eligible_partner_ids": 0, "eligible_detail": 0,
-         "idempotency_key": 0}).sort("updated_at", -1).to_list(500)
+    q = {"partner_id": partner["id"], "status": {"$in": wanted}}
+    if search.strip():
+        rx = {"$regex": re.escape(search.strip()), "$options": "i"}
+        q["$or"] = [{"service_name": rx}, {"code": rx}, {"customer_name": rx}, {"address.city": rx}]
+    cur = db.bookings.find(q, {"_id": 0, "otps": 0, "eligible_partner_ids": 0, "eligible_detail": 0,
+                               "idempotency_key": 0}).sort("updated_at", -1)
+    if page > 0:
+        page_size = min(50, max(1, int(page_size or 10)))
+        total = await db.bookings.count_documents(q)
+        rows = await cur.skip((page - 1) * page_size).limit(page_size).to_list(page_size)
+    else:
+        rows = await cur.to_list(500)
     settings = await get_settings()
     for b in rows:
         b["schedule"] = schedule_state(b)
         _partner_view(b, settings)
+    if page > 0:
+        return {"items": rows, "total": total, "page": page, "page_size": page_size}
     return rows
 
 

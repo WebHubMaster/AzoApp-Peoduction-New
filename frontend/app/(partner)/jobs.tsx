@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, ScrollView, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle } from "react-native-svg";
 import { useTheme, spacing, palette } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRealtime } from "@/src/context/RealtimeContext";
@@ -161,6 +162,8 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
   );
 }
 
+const JOBS_KEY = ["partner-jobs", "paged"] as const;
+
 export default function PartnerJobRequest() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -177,13 +180,16 @@ export default function PartnerJobRequest() {
   }, []);
 
   const { connected, subscribe } = useRealtime();
-  const q = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 10000 });
+  // 10 requests per server call; next page loads on scroll. (["partner-jobs"] prefix → existing invalidations still refresh it.)
+  const q = useInfiniteList(JOBS_KEY, (pg, size) => api.get<any>(`/bookings/partner/jobs?page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  useEffect(() => { const t = setInterval(() => q.refetch(), connected ? 60000 : 10000); return () => clearInterval(t); }, [connected]); // eslint-disable-line react-hooks/exhaustive-deps
+  const dropJob = (id: string) => qc.setQueryData<any>(JOBS_KEY, (d: any) => d && { ...d, pages: d.pages.map((p: any) => ({ ...p, items: (p.items || []).filter((j: any) => j.id !== id), total: Math.max(0, (p.total || 0) - 1) })) });
   // Live dispatch (web PartnerDashboard): taken → drop instantly; new/accepted/update → reload.
   useEffect(() => subscribe((ev) => {
-    if (ev.type === "job_taken") { const id = ev.data?.id; qc.setQueryData<any[]>(["partner-jobs"], (prev) => (prev || []).filter((j) => j.id !== id)); }
+    if (ev.type === "job_taken") { if (ev.data?.id) dropJob(ev.data.id); qc.invalidateQueries({ queryKey: ["partner-jobs"], exact: true }); }
     else if (["job_request", "job_accepted", "booking_update", "__resync__"].includes(ev.type)) qc.invalidateQueries({ queryKey: ["partner-jobs"] });
   }), [subscribe]); // eslint-disable-line react-hooks/exhaustive-deps
-  const jobs = q.data || [];
+  const jobs = q.items;
   const online = user?.partner_status === "online";
   const lastUpdated = new Date(q.dataUpdatedAt || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const reload = () => { qc.invalidateQueries({ queryKey: ["partner-jobs"] }); qc.invalidateQueries({ queryKey: ["partner-active"] }); };
@@ -193,7 +199,7 @@ export default function PartnerJobRequest() {
     catch (e: any) { toast.error(e?.detail || "Could not accept"); }
   };
   const decline = async (id: string) => {
-    try { await api.post(`/bookings/${id}/reject`, { reason: "" }); toast.success("Job declined"); qc.setQueryData<any[]>(["partner-jobs"], (prev) => (prev || []).filter((j) => j.id !== id)); reload(); }
+    try { await api.post(`/bookings/${id}/reject`, { reason: "" }); toast.success("Job declined"); dropJob(id); reload(); }
     catch (e: any) { toast.error(e?.detail || "Could not decline"); }
   };
 
@@ -202,9 +208,10 @@ export default function PartnerJobRequest() {
       <AppShellHeader profileRoute="/(partner)/profile" />
       <ScrollView
         testID="jobs-list"
+        {...q.scrollProps}
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={q.isRefetching && !q.isFetchingNextPage} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         {/* live status bar */}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 6, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 12 }}>
@@ -240,7 +247,10 @@ export default function PartnerJobRequest() {
             </View>
           </Surface>
         ) : (
-          jobs.map((b) => <RequestCard key={b.id} b={b} partnerId={user?.id} now={now} expiryMin={expiryMin} onAccept={accept} onDecline={decline} />)
+          <>
+            {jobs.map((b: any) => <RequestCard key={b.id} b={b} partnerId={user?.id} now={now} expiryMin={expiryMin} onAccept={accept} onDecline={decline} />)}
+            <LoadMoreFooter list={q} testID="jobs-load-more" />
+          </>
         )}
       </ScrollView>
     </View>

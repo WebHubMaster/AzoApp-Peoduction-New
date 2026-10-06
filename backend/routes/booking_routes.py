@@ -46,8 +46,8 @@ async def cart_quote(data: dict, user=Depends(get_current_user_optional)):
 
 # static partner route MUST be declared before dynamic /{booking_id}
 @router.get("/partner/jobs")
-async def partner_jobs(user=Depends(require_role("partner"))):
-    return await c.partner_jobs(user)
+async def partner_jobs(page: int = 0, page_size: int = 0, user=Depends(require_role("partner"))):
+    return await c.partner_jobs(user, page, page_size)
 
 
 @router.get("/partner/ring-pending")
@@ -89,8 +89,8 @@ async def partner_active_jobs(user=Depends(require_role("partner"))):
 
 
 @router.get("/partner/history")
-async def partner_history(status: str = "all", user=Depends(require_role("partner"))):
-    return await c.partner_history(user, status)
+async def partner_history(status: str = "all", search: str = "", page: int = 0, page_size: int = 0, user=Depends(require_role("partner"))):
+    return await c.partner_history(user, status, search, page, page_size)
 
 
 @router.get("/partner/dashboard")

@@ -1,9 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, FlatList, RefreshControl, TextInput } from "react-native";
 import { useRouter } from "expo-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
+import { useDebounced } from "@/src/components/invoice";
 import { api } from "@/src/api/client";
 import { AppHeader } from "@/src/components/Screen";
 import { EmptyState, CardSkeleton } from "@/src/components/ui";
@@ -25,19 +27,10 @@ export default function PartnerJobHistory() {
   const [histStatus, setHistStatus] = useState<(typeof HIST_FILTERS)[number]["key"]>("all");
   const [search, setSearch] = useState("");
 
-  const q = useQuery({
-    queryKey: ["partner-joblist", "history", histStatus],
-    queryFn: () => api.get<any[]>(`/bookings/partner/history?status=${histStatus}`),
-  });
-
-  const list = useMemo(() => {
-    let rows = q.data || [];
-    if (search.trim()) {
-      const s = search.trim().toLowerCase();
-      rows = rows.filter((b) => `${b.service_name} ${b.code} ${b.customer_name} ${b.address?.city || ""}`.toLowerCase().includes(s));
-    }
-    return rows;
-  }, [q.data, search]);
+  // Server-side search + 10 jobs per request; next page loads on scroll.
+  const searchD = useDebounced(search.trim(), 350);
+  const q = useInfiniteList(["partner-joblist", "history-paged", histStatus, searchD], (pg, size) => api.get<any>(`/bookings/partner/history?status=${histStatus}&search=${encodeURIComponent(searchD)}&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  const list = q.items;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -73,6 +66,9 @@ export default function PartnerJobHistory() {
         <FlatList
           data={list}
           keyExtractor={(item) => item.id}
+          onEndReached={q.loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={<LoadMoreFooter list={q} testID="history-load-more" />}
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 40, gap: spacing.sm }}
           renderItem={({ item: b }) => {
             const cancelled = b.status === "cancelled";
@@ -92,7 +88,7 @@ export default function PartnerJobHistory() {
               </Pressable>
             );
           }}
-          refreshControl={<RefreshControl refreshing={q.isFetching} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-joblist"] })} tintColor={colors.primary} colors={[colors.primary]} />}
+          refreshControl={<RefreshControl refreshing={q.isRefetching && !q.isFetchingNextPage} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-joblist"] })} tintColor={colors.primary} colors={[colors.primary]} />}
           ListEmptyComponent={<EmptyState icon="history" title="No jobs found" subtitle="Your completed & cancelled jobs will appear here." />}
         />
       )}
