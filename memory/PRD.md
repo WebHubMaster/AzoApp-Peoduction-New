@@ -223,3 +223,7 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 ## 2026-06 — Job wizard Details step = same "Job & customer details" block
 - Web: new shared components/partner/JobDetailsBlock.jsx (Customer/Service/Schedule/Job value + Services to do breakdown + masked phone) used in PartnerDashboard active card AND JobWizard Details step ("Job information" card replaced).
 - App: exported JobDetailsBlock from app/(partner)/active.tsx, used in active card and wizard (partner/job/[id].tsx) Details step.
+
+## 2026-06 — Partner app live updates (no manual refresh)
+- Backend emits SSE `finance_update` to partner: on earning credit (record_earning), on every invoice insert (_emit_finance → partner/merchant/customer), and after job-complete background task.
+- App: src/lib/partnerLive.ts (refreshPartnerLive, LIVE_EVENTS, useRefreshOnFocus). Partner _layout subscribes to realtime + refreshes on app foreground; wallet/invoices/earnings refetch on focus; wizard/booking detail call refreshPartnerLive. Backend SSE verified by testing agent (tests/test_partner_realtime_finance.py).
