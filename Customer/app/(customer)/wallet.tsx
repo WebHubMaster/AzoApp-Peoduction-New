@@ -1,5 +1,5 @@
 /** Wallet — 1:1 port of WalletView + WalletTopup (CustomerDashboard.jsx) + ScratchCardsPanel. */
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TrendingUp, IndianRupee, Receipt, Wallet, Layers } from "lucide-react-native";
@@ -8,7 +8,9 @@ import { useToast } from "../../src/components/Toast";
 import { fmt, fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "../../src/theme";
-import { StatTile, StatSlider, CARD_W, EmptyState, SearchInput, OptionMenu, DateRangePicker, LoadMoreFooter, useInfiniteList, inDateRange, DateRange } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, OptionMenu, DateRangePicker, LoadMoreFooter, useOnPullRefresh, DateRange } from "../../src/components/customer/ux";
+import { api } from "../../src/api/client";
+import { useServerList } from "../../src/lib/useServerList";
 
 const TYPES = [{ value: "all", label: "All types" }, { value: "credit", label: "Credits" }, { value: "debit", label: "Debits" }];
 const ALL_RANGE: DateRange = { preset: "All", from: null, to: null };
@@ -34,18 +36,17 @@ function WalletTopup({ onDone, toast }: { onDone: () => void; toast: any }) {
 
 export default function WalletScreen() {
   const { c, isDark } = useTheme();
-  const { wallet, load: reload } = useCustomerData();
+  const { wallet, load: reloadCtx } = useCustomerData();
   const toast = useToast();
   const [type, setType] = useState("all"); const [q, setQ] = useState(""); const [range, setRange] = useState<DateRange>(ALL_RANGE);
-  const txns: any[] = wallet?.transactions || [];
-  const credits = txns.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
-  const debits = txns.filter((t) => t.type === "debit").reduce((s, t) => s + Number(t.amount || 0), 0);
-  const filtered = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return txns.filter((x) => (type === "all" || x.type === type) && inDateRange(x.created_at, range) && (!t || (x.note || "").toLowerCase().includes(t) || (x.kind || "").toLowerCase().includes(t)))
-      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  }, [txns, type, q, range]);
-  const { shown: paged, hasMore, loadMore } = useInfiniteList(filtered, PAGE_SIZE, `${type}|${q}|${range.preset}|${range.from}|${range.to}`);
+  // Server-side: 10 transactions per request, next page loads on scroll.
+  const qs = new URLSearchParams({ type, search: q.trim(), page_size: String(PAGE_SIZE), ...(range.preset !== "All" && range.from ? { date_from: range.from.toISOString() } : {}), ...(range.preset !== "All" && range.to ? { date_to: range.to.toISOString() } : {}) }).toString();
+  const list = useServerList<any>((pg) => api.get(`/wallet/transactions?${qs}&page=${pg}`, { timeoutMs: 60000 }), qs);
+  const m: any = list.meta || {};
+  const credits = Number(m.credits || 0); const debits = Number(m.debits || 0); const txCount = Number(m.count || 0);
+  const paged = list.items;
+  const reload = () => { reloadCtx(); list.refresh(true); };
+  useOnPullRefresh(() => { reloadCtx(); return list.refresh(true); });
 
   return (
     <View testID="wallet-page">
@@ -60,7 +61,7 @@ export default function WalletScreen() {
           <StatSlider testID="wallet-stats-slider">
             <View style={{ width: CARD_W }}><StatTile testID="w-credits" label="Total Added" value={fmtC(credits)} icon={TrendingUp} tone="green" /></View>
             <View style={{ width: CARD_W }}><StatTile testID="w-debits" label="Total Spent" value={fmtC(debits)} icon={IndianRupee} tone="rose" /></View>
-            <View style={{ width: CARD_W }}><StatTile testID="w-count" label="Transactions" value={txns.length} count icon={Receipt} tone="primary" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="w-count" label="Transactions" value={txCount} count icon={Receipt} tone="primary" /></View>
             <View style={{ width: CARD_W }}><StatTile testID="w-bal" label="Balance" value={fmtC(wallet?.balance || 0)} icon={Wallet} tone="amber" /></View>
           </StatSlider>
         </View>
@@ -74,9 +75,11 @@ export default function WalletScreen() {
 
       <Text style={{ fontSize: 18, fontWeight: "700", color: c.text, marginBottom: 12 }}>Transactions</Text>
       <View testID="txn-list" style={{ gap: 8 }}>
-        {txns.length === 0 ? <EmptyState icon={Wallet} title="No transactions yet" desc="Add money or make a booking to see activity here." testID="wallet-empty" /> : null}
-        {txns.length > 0 && filtered.length === 0 ? <EmptyState icon={Wallet} title="No transactions match" desc="Adjust your filters." testID="wallet-nomatch" /> : null}
-        {paged.map((t, i) => {
+        {list.loading ? <SkeletonList rows={3} /> : null}
+        {!list.loading && list.error ? <EmptyState icon={Wallet} title="Couldn't load transactions" desc="Slow connection. Please try again." actionLabel="Retry" onAction={() => list.refresh()} testID="wallet-error" /> : null}
+        {!list.loading && !list.error && txCount === 0 ? <EmptyState icon={Wallet} title="No transactions yet" desc="Add money or make a booking to see activity here." testID="wallet-empty" /> : null}
+        {!list.loading && !list.error && txCount > 0 && list.total === 0 ? <EmptyState icon={Wallet} title="No transactions match" desc="Adjust your filters." testID="wallet-nomatch" /> : null}
+        {list.loading ? null : paged.map((t: any, i: number) => {
           const credit = t.type === "credit";
           return (
             <View key={t.id || i} testID={`txn-${t.id || i}`} style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -92,7 +95,7 @@ export default function WalletScreen() {
           );
         })}
       </View>
-      <LoadMoreFooter hasMore={hasMore} onLoadMore={loadMore} total={filtered.length} testID="w-load-more" />
+      {list.loading ? null : <LoadMoreFooter hasMore={list.hasMore} loading={list.more === "loading"} error={list.more === "error"} onLoadMore={list.loadMore} total={list.items.length} testID="w-load-more" />}
     </View>
   );
 }

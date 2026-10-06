@@ -390,14 +390,13 @@ export function useOnScrollEnd(cb: () => void) {
   useEffect(() => { const fn = () => ref.current(); scrollEndSubs.add(fn); return () => { scrollEndSubs.delete(fn); }; }, []);
 }
 
-// Renders a long in-memory list in chunks as the user scrolls.
-export function useInfiniteList<T>(list: T[], size: number, resetKey: string) {
-  const [count, setCount] = useState(size);
-  useEffect(() => { setCount(size); }, [resetKey, size]);
-  const hasMore = count < list.length;
-  const loadMore = () => { if (hasMore) setCount((n) => n + size); };
-  useOnScrollEnd(loadMore);
-  return { shown: list.slice(0, count), hasMore, loadMore };
+// Pull-to-refresh: screens register a handler; the shell's RefreshControl runs them all.
+const refreshSubs = new Set<() => unknown>();
+export const runPullRefresh = () => Promise.all([...refreshSubs].map((fn) => Promise.resolve(fn()).catch(() => {})));
+export function useOnPullRefresh(cb: () => unknown) {
+  const ref = useRef(cb);
+  ref.current = cb;
+  useEffect(() => { const fn = () => ref.current(); refreshSubs.add(fn); return () => { refreshSubs.delete(fn); }; }, []);
 }
 
 export function LoadMoreFooter({ hasMore, loading, error, onLoadMore, total, testID = "load-more" }: { hasMore: boolean; loading?: boolean; error?: boolean; onLoadMore: () => void; total: number; testID?: string }) {

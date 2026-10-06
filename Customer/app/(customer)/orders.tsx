@@ -10,8 +10,9 @@ import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, useTheme, shadowBtn } from "../../src/theme";
-import { StatTile, StatSkeleton, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, LoadMoreFooter, useInfiniteList, inDateRange, DateRange } from "../../src/components/customer/ux";
-import { ACTIVE_STATES, DONE_STATES, bkDate } from "../../src/components/customer/nav";
+import { StatTile, StatSkeleton, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, LoadMoreFooter, useOnPullRefresh, DateRange } from "../../src/components/customer/ux";
+import { ACTIVE_STATES, DONE_STATES } from "../../src/components/customer/nav";
+import { useServerList } from "../../src/lib/useServerList";
 import { BookingCard, CardActions } from "../../src/components/customer/BookingCard";
 import { CancelDialog, ReviewDialog, RescheduleDialog, AdditionalPayDialog } from "../../src/components/customer/BookingDialogs";
 import { BookingDetailsDrawer, InvoiceDrawer } from "../../src/components/customer/BookingDrawers";
@@ -20,16 +21,6 @@ import { BookingChat, useChatSummary } from "../../src/components/customer/Booki
 const SORTS = [{ value: "new", label: "Newest first" }, { value: "old", label: "Oldest first" }, { value: "amt_hi", label: "Amount: High → Low" }, { value: "amt_lo", label: "Amount: Low → High" }];
 const PAYMENTS = [{ value: "all", label: "All payments" }, { value: "paid", label: "Paid" }, { value: "pending", label: "Pending" }, { value: "refunded", label: "Refunded" }];
 const ONGOING = ["assigned", "arrived_shop", "arrived_customer", "started"];
-const matchTab = (b: any, tab: string) => {
-  switch (tab) {
-    case "active": return ACTIVE_STATES.includes(b.status);
-    case "searching": return b.status === "searching";
-    case "ongoing": return ONGOING.includes(b.status);
-    case "completed": return DONE_STATES.includes(b.status);
-    case "cancelled": return b.status === "cancelled";
-    default: return true;
-  }
-};
 const ALL_RANGE: DateRange = { preset: "All", from: null, to: null };
 const PAGE_SIZE = 10;
 
@@ -37,7 +28,7 @@ export default function OrdersScreen() {
   const router = useRouter();
   const { c } = useTheme();
   const params = useLocalSearchParams<{ focus?: string }>();
-  const { bookings, wallet, loading, load: reload } = useCustomerData();
+  const { bookings, wallet, loading, load: reloadCtx } = useCustomerData();
   const { user } = useAuth();
   const toast = useToast();
   const siteCfg: any = useSiteConfig();
@@ -58,23 +49,19 @@ export default function OrdersScreen() {
   const { unreadFor, refresh: refreshChats } = useChatSummary(!!user);
   useEffect(() => { if (focusCode) setQ(focusCode); }, [focusCode]);
 
-  const filtered = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    const list = bookings.filter((b: any) => matchTab(b, tab) && (payment === "all" || b.payment_status === payment) && inDateRange(bkDate(b), range)
-      && (!t || (b.code || "").toLowerCase().includes(t) || (b.service_name || "").toLowerCase().includes(t) || (b.partner_name || "").toLowerCase().includes(t)));
-    return [...list].sort((a: any, b: any) => {
-      if (sort === "new") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      if (sort === "old") return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-      if (sort === "amt_hi") return (b.pricing?.total || 0) - (a.pricing?.total || 0);
-      if (sort === "amt_lo") return (a.pricing?.total || 0) - (b.pricing?.total || 0);
-      return 0;
-    });
-  }, [bookings, q, tab, payment, range, sort]);
-  const { shown: paged, hasMore, loadMore } = useInfiniteList(filtered, PAGE_SIZE, `${q}|${tab}|${payment}|${range.preset}|${range.from}|${range.to}|${sort}`);
+  // Server-side: 10 bookings per request, next page loads on scroll.
+  const qs = new URLSearchParams({ tab, payment, sort, search: q.trim(), page_size: String(PAGE_SIZE), ...(range.preset !== "All" && range.from ? { date_from: range.from.toISOString() } : {}), ...(range.preset !== "All" && range.to ? { date_to: range.to.toISOString() } : {}) }).toString();
+  const list = useServerList<any>((pg) => api.get(`/bookings/my/paged?${qs}&page=${pg}`, { timeoutMs: 60000 }), qs);
+  // Keep loaded cards live with the dashboard's 8s poll (status/timeline updates).
+  const live = useMemo(() => new Map(bookings.map((b: any) => [b.id, b])), [bookings]);
+  const paged = list.items.map((b: any) => live.get(b.id) || b);
+  const reload = () => { reloadCtx(); list.refresh(true); };
+  useOnPullRefresh(() => { reloadCtx(); return list.refresh(true); });
   const activeFilters = (payment !== "all" ? 1 : 0) + (range.preset !== "All" ? 1 : 0) + (sort !== "new" ? 1 : 0);
-  const counts: Record<string, number> = { all: bookings.length, active: bookings.filter((b: any) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b: any) => b.status === "searching").length, ongoing: bookings.filter((b: any) => ONGOING.includes(b.status)).length, completed: bookings.filter((b: any) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b: any) => b.status === "cancelled").length };
+  const localCounts: Record<string, number> = { all: bookings.length, active: bookings.filter((b: any) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b: any) => b.status === "searching").length, ongoing: bookings.filter((b: any) => ONGOING.includes(b.status)).length, completed: bookings.filter((b: any) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b: any) => b.status === "cancelled").length };
+  const counts: Record<string, number> = list.meta?.counts || localCounts;
   // Tab order: if there's an active job show Active first then Completed; otherwise show Completed first then Active.
-  const hasActive = counts.active > 0;
+  const hasActive = localCounts.active > 0;
   const bkTabs = useMemo(() => {
     const T: Record<string, { key: string; label: string }> = { active: { key: "active", label: "Active" }, completed: { key: "completed", label: "Completed" }, searching: { key: "searching", label: "Searching" }, ongoing: { key: "ongoing", label: "Ongoing" }, cancelled: { key: "cancelled", label: "Cancelled" }, all: { key: "all", label: "All" } };
     const order = hasActive ? ["active", "completed", "ongoing", "searching", "cancelled", "all"] : ["completed", "active", "ongoing", "searching", "cancelled", "all"];
@@ -133,10 +120,10 @@ export default function OrdersScreen() {
       <Pressable testID="book-new" onPress={goNew} style={({ pressed }) => ({ alignSelf: "stretch", width: "100%", height: 46, paddingHorizontal: 24, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20, transform: [{ scale: pressed ? 0.98 : 1 }], ...shadowBtn })}><Plus size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "700", fontSize: 15 }}>New Booking</Text></Pressable>
 
       {/* KPI slider (swipeable) */}
-      {loading && bookings.length === 0 ? <StatSkeleton /> : (
+      {list.loading && !list.meta ? <StatSkeleton /> : (
         <View style={{ marginBottom: 20 }}>
           <StatSlider testID="kpi-slider">
-            <View style={{ width: CARD_W }}><StatTile testID="kpi-total" label="Total" value={bookings.length} count icon={Package} tone="primary" /></View>
+            <View style={{ width: CARD_W }}><StatTile testID="kpi-total" label="Total" value={counts.all} count icon={Package} tone="primary" /></View>
             <View style={{ width: CARD_W }}><StatTile testID="kpi-active" label="Active" value={counts.active} count icon={Clock} tone="violet" /></View>
             <View style={{ width: CARD_W }}><StatTile testID="kpi-completed" label="Completed" value={counts.completed} count icon={CheckCircle2} tone="green" /></View>
             <View style={{ width: CARD_W }}><StatTile testID="kpi-cancelled" label="Cancelled" value={counts.cancelled} count icon={AlertTriangle} tone="rose" /></View>
@@ -155,12 +142,13 @@ export default function OrdersScreen() {
 
       {/* List */}
       <View testID="orders-list" style={{ marginTop: 16 }}>
-        {loading && bookings.length === 0 ? <SkeletonList rows={4} /> : null}
-        {!loading && bookings.length === 0 ? <EmptyState icon={Package} title="No bookings yet" desc="Book your first home service in minutes." actionLabel="Book a Service" onAction={goNew} testID="orders-empty" /> : null}
-        {!loading && bookings.length > 0 && filtered.length === 0 ? <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testID="orders-nomatch" /> : null}
-        {paged.map((b: any) => <BookingCard key={b.id} b={b} focus={!!focusCode && focusCode === b.code} a={actions} />)}
+        {list.loading ? <SkeletonList rows={4} /> : null}
+        {!list.loading && list.error ? <EmptyState icon={AlertTriangle} title="Couldn't load bookings" desc="Slow connection. Please try again." actionLabel="Retry" onAction={() => list.refresh()} testID="orders-error" /> : null}
+        {!list.loading && !list.error && counts.all === 0 ? <EmptyState icon={Package} title="No bookings yet" desc="Book your first home service in minutes." actionLabel="Book a Service" onAction={goNew} testID="orders-empty" /> : null}
+        {!list.loading && !list.error && counts.all > 0 && list.total === 0 ? <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testID="orders-nomatch" /> : null}
+        {list.loading ? null : paged.map((b: any) => <BookingCard key={b.id} b={b} focus={!!focusCode && focusCode === b.code} a={actions} />)}
       </View>
-      <LoadMoreFooter hasMore={hasMore} onLoadMore={loadMore} total={filtered.length} testID="bk-load-more" />
+      {list.loading ? null : <LoadMoreFooter hasMore={list.hasMore} loading={list.more === "loading"} error={list.more === "error"} onLoadMore={list.loadMore} total={list.items.length} testID="bk-load-more" />}
 
       {/* Mobile filter sheet */}
       <FilterSheet open={fOpen} onClose={() => setFOpen(false)} onClear={() => { clearAll(); setFOpen(false); }} onApply={() => setFOpen(false)} title="Filter bookings">

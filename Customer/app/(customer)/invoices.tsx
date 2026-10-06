@@ -9,7 +9,7 @@ import { api, API_BASE } from "../../src/api/client";
 import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
-import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, LoadMoreFooter, useOnScrollEnd, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
+import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, LoadMoreFooter, useOnScrollEnd, useOnPullRefresh, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
 import { DrawerShell, Btn } from "../../src/components/customer/BookingDialogs";
 
 const money = (n: any, cur = "INR") => (cur === "INR" ? "₹" : cur + " ") + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
@@ -87,6 +87,7 @@ export default function InvoicesScreen() {
     } catch { setMore("error"); }
   };
   useOnScrollEnd(() => { if (more !== "error") loadMore(); });
+  useOnPullRefresh(load);
 
   const publicUrl = async (inv: any, kind: "pdf" | "page" | "html", download = false) => { const s: any = await api.get(`/invoices/${inv.id}/share-link`); return kind === "pdf" ? `${API_BASE}${s.path}${download ? "&download=1" : ""}` : `${API_BASE}/invoices/pub/${inv.id}/${kind}?s=${s.sig}`; };
   const downloadById = async (inv: any) => {

@@ -8,6 +8,28 @@ async def wallet(user):
     return {"balance": u.get("wallet_balance", 0), "transactions": txns}
 
 
+async def wallet_transactions_paged(user, type_="all", search="", date_from="", date_to="", page=1, page_size=10):
+    """Wallet transactions filtered + paginated server-side, with all-time totals."""
+    import re
+    base = {"user_id": user["id"]}
+    q = dict(base)
+    if type_ in ("credit", "debit"):
+        q["type"] = type_
+    if search.strip():
+        rx = {"$regex": re.escape(search.strip()), "$options": "i"}
+        q["$or"] = [{"note": rx}, {"kind": rx}]
+    if date_from or date_to:
+        q["created_at"] = {**({"$gte": date_from} if date_from else {}), **({"$lte": date_to} if date_to else {})}
+    page = max(1, int(page)); page_size = min(50, max(1, int(page_size)))
+    total = await db.transactions.count_documents(q)
+    items = await db.transactions.find(q, {"_id": 0}).sort("created_at", -1).skip((page - 1) * page_size).limit(page_size).to_list(page_size)
+    sums = {r["_id"]: r for r in await db.transactions.aggregate([{"$match": base}, {"$group": {"_id": "$type", "amt": {"$sum": "$amount"}, "n": {"$sum": 1}}}]).to_list(10)}
+    u = await db.users.find_one({"id": user["id"]}, {"_id": 0, "wallet_balance": 1}) or {}
+    return {"items": items, "total": total, "page": page, "page_size": page_size, "balance": u.get("wallet_balance", 0),
+            "credits": (sums.get("credit") or {}).get("amt", 0), "debits": (sums.get("debit") or {}).get("amt", 0),
+            "count": sum(r["n"] for r in sums.values())}
+
+
 async def topup(user, amount):
     # DEV/MOCK top-up (Razorpay not configured for real charge).
     await db.users.update_one({"id": user["id"]}, {"$inc": {"wallet_balance": amount}})

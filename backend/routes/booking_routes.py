@@ -136,6 +136,12 @@ async def list_bookings(user=Depends(get_current_user)):
     return await c.list_bookings(user)
 
 
+@router.get("/my/paged")
+async def list_my_bookings_paged(tab: str = "all", payment: str = "all", search: str = "", date_from: str = "", date_to: str = "",
+                                 sort: str = "new", page: int = 1, page_size: int = 10, user=Depends(require_role("customer"))):
+    return await c.list_my_bookings_paged(user, tab, payment, search, date_from, date_to, sort, page, page_size)
+
+
 @router.get("/{booking_id}")
 async def get_booking(booking_id: str, user=Depends(get_current_user)):
     return await c.get_booking(user, booking_id)

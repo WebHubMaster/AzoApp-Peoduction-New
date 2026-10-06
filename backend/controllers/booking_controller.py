@@ -2169,6 +2169,43 @@ async def list_bookings(user):
     else:
         q = {}
     rows = await db.bookings.find(q, {"_id": 0}).sort("created_at", -1).to_list(200)
+    return await _enrich_rows(user, rows)
+
+
+_ACTIVE = ["pending", "pending_payment", "searching", "assigned", "arrived_shop", "arrived_customer", "started"]
+_ONGOING = ["assigned", "arrived_shop", "arrived_customer", "started"]
+_DONE = ["completed", "paid"]
+_TAB_STATUS = {"active": _ACTIVE, "searching": ["searching"], "ongoing": _ONGOING, "completed": _DONE, "cancelled": ["cancelled"]}
+_SORTS = {"new": [("created_at", -1)], "old": [("created_at", 1)], "amt_hi": [("pricing.total", -1), ("created_at", -1)], "amt_lo": [("pricing.total", 1), ("created_at", -1)]}
+
+
+async def list_my_bookings_paged(user, tab="all", payment="all", search="", date_from="", date_to="", sort="new", page=1, page_size=10):
+    """Customer bookings, filtered + paginated server-side, with per-tab counts."""
+    base = {"customer_id": user["id"]}
+    q = dict(base)
+    if tab in _TAB_STATUS:
+        q["status"] = {"$in": _TAB_STATUS[tab]}
+    if payment and payment != "all":
+        q["payment_status"] = payment
+    if search.strip():
+        rx = {"$regex": re.escape(search.strip()), "$options": "i"}
+        q["$or"] = [{"code": rx}, {"service_name": rx}, {"partner_name": rx}]
+    when = {"$ifNull": ["$scheduled_at", "$created_at"]}
+    conds = ([{"$gte": [when, date_from]}] if date_from else []) + ([{"$lte": [when, date_to]}] if date_to else [])
+    if conds:
+        q["$expr"] = {"$and": conds}
+    page = max(1, int(page)); page_size = min(50, max(1, int(page_size)))
+    total = await db.bookings.count_documents(q)
+    rows = await db.bookings.find(q, {"_id": 0}).sort(_SORTS.get(sort, _SORTS["new"])).skip((page - 1) * page_size).limit(page_size).to_list(page_size)
+    by_status = {r["_id"]: r["n"] async for r in db.bookings.aggregate([{"$match": base}, {"$group": {"_id": "$status", "n": {"$sum": 1}}}])}
+    counts = {"all": sum(by_status.values())}
+    for k, sts in _TAB_STATUS.items():
+        counts[k] = sum(by_status.get(x, 0) for x in sts)
+    return {"items": await _enrich_rows(user, rows), "total": total, "page": page, "page_size": page_size, "counts": counts}
+
+
+async def _enrich_rows(user, rows):
+    role = user["role"]
     settings = await get_settings()
     for b in rows:
         b["otps"] = _visible_otps(user, b)

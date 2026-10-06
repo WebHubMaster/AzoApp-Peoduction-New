@@ -3,7 +3,7 @@
  * sticky mobile header (avatar · deliver-to/brand · bell · theme) + 5-slot bottom nav + "More" sheet.
  */
 import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, Pressable, Modal, ScrollView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, ScrollView, Platform, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardFixedBottom } from "@/src/components/KeyboardFixedBottom";
 import { useRouter, usePathname } from "expo-router";
@@ -16,7 +16,7 @@ import { useTheme, PRIMARY, SLATE, ROSE, TC } from "@/src/theme";
 import { NAV, MOBILE_PRIMARY, NavKey, NavItem } from "@/src/components/customer/nav";
 import { mediaUrl } from "@/src/api/client";
 import { NotificationBell } from "@/src/components/customer/NotificationBell";
-import { emitScrollEnd } from "@/src/components/customer/ux";
+import { emitScrollEnd, runPullRefresh } from "@/src/components/customer/ux";
 import { useChatOpen, isChatOpen } from "@/src/lib/chatPresence";
 import { useRealtime } from "@/src/context/RealtimeContext";
 
@@ -56,6 +56,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
   const { c, isDark } = useTheme();
   const [moreOpen, setMoreOpen] = useState(false);
   const chatOpen = useChatOpen();
+  const [pulling, setPulling] = useState(false);
   const { subscribe } = useRealtime();
 
   // Pleasant chime when a support reply arrives while the user is NOT viewing the
@@ -112,6 +113,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
 
       {/* Page content */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl testID="pull-refresh" refreshing={pulling} onRefresh={async () => { setPulling(true); await runPullRefresh(); setPulling(false); }} tintColor={PRIMARY[700]} colors={[PRIMARY[700]]} />}
         scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}>
         {children}
       </ScrollView>
