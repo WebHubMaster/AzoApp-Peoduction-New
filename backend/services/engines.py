@@ -232,11 +232,12 @@ class PricingEngine:
         EXCLUDED here so they are NEVER part of the partner/merchant commissionable base
         (i.e. partner/merchant payout never includes these platform-only charges)."""
         pricing = pricing or {}
+        coupon = money.money(pricing.get("discount") or 0)
         if pricing.get("service_net") is not None:
-            return money.money(pricing.get("service_net") or 0)
+            return money.add(money.money(pricing.get("service_net") or 0), coupon)
         base = PricingEngine.paid_excl_tax(pricing)
         platform_only = PricingEngine.platform_only_fees(pricing)
-        return money.money(max(0.0, money.add(base, -platform_only)))
+        return money.add(money.money(max(0.0, money.add(base, -platform_only))), coupon)
 
     @staticmethod
     def platform_only_fees(pricing: dict) -> float:
@@ -532,6 +533,13 @@ class PricingEngine:
         add = bd.get("additional_charges") or []
         removed = money.add(*[money.money(c.get("amount") or 0) for c in add
                               if c.get("key") in ("convenience_fee", "platform_fee")]) if add else 0.0
+        # Coupon is AzoApp-funded: provider-facing totals never deduct it.
+        coupon = money.money(bd.get("coupon_discount") or 0)
+        if coupon > 0:
+            bd["discount"] = money.money(max(0.0, money.add(bd.get("discount") or 0, -coupon)))
+            bd["taxable"] = money.add(bd.get("taxable") or 0, coupon)
+            bd["total"] = money.add(bd.get("total") or 0, coupon)
+            bd["coupon_platform_funded"] = True
         if removed <= 0:
             return bd
         new_add = [c for c in add if c.get("key") not in ("convenience_fee", "platform_fee")]
@@ -627,8 +635,11 @@ class CommissionEngine:
         the partner's non-commissionable share. Legacy bookings → full base, 0 pass."""
         pricing = pricing or {}
         full = PricingEngine.commission_base_excl_tax(pricing)
-        cb = pricing.get("commissionable_base")
+        cb = pricing.get("commission_base") if pricing.get("commission_base") is not None else pricing.get("commissionable_base")
         if cb is None:
+            return full, 0.0
+        sn = pricing.get("service_net")
+        if pricing.get("commission_base") is None and (sn is None or float(cb) >= float(sn) - 0.01):
             return full, 0.0
         commissionable = money.money(max(0.0, min(float(cb), full)))
         return commissionable, money.money(max(0.0, money.add(full, -commissionable)))
@@ -689,12 +700,18 @@ class CommissionEngine:
         # We record the earning for history via the partner ledger instead. The platform
         # funds the merchant referral payouts from the token it collected online.
         if cash_mode:
-            if partner_earning > 0:
+            cash = money.money(min(partner_earning, PricingEngine.cos_split(pricing)["cash_to_collect"]))
+            topup = money.money(max(0.0, money.add(partner_earning, -cash)))
+            if cash > 0:
                 await db.partner_ledger.insert_one({
                     "id": new_id(), "partner_id": partner["id"], "kind": "cos_cash_earning",
-                    "direction": "credit", "amount": partner_earning, "ref_type": "booking",
+                    "direction": "credit", "amount": cash, "ref_type": "booking",
                     "ref_id": booking["id"], "note": f"Cash collected on service · {booking['code']}",
                     "cash": True, "status": "completed", "created_at": now_iso()})
+            if topup > 0:
+                await CommissionEngine._credit(partner["id"], topup, "earning",
+                                               f"Coupon compensation · {booking['code']}")
+                ledger["cos_wallet_topup"] = topup
         else:
             await CommissionEngine._credit(partner["id"], partner_earning, "earning",
                                            f"Job {booking['code']} earning")

@@ -1359,6 +1359,12 @@ def _strip_platform_fees_invoice(inv: dict, role: str) -> dict:
     # Drop the raw fee values so no serializer can leak them to a provider.
     inv.pop("convenience_fee", None)
     inv.pop("platform_fee", None)
+    coupon = round(float(bd.get("coupon_discount") or 0), 2)
+    if coupon > 0:
+        inv["discount"] = round(max(0.0, float(inv.get("discount") or 0) - coupon), 2)
+        inv["taxable"] = round(float(inv.get("taxable") or 0) + coupon, 2)
+        if removed <= 0 and inv.get("invoice_type") == "booking":
+            inv["total_amount"] = round(float(inv.get("total_amount") or 0) + coupon, 2)
     if removed > 0:
         nb = inv.get("breakdown") or {}
         inv["taxable"] = round(max(0.0, float(inv.get("taxable") or 0) - removed), 2)

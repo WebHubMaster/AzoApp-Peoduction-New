@@ -28,6 +28,7 @@ const earnFracOf = (b) => {
 // Commission base ADDS BACK the coupon discount (platform-absorbed) so the partner's
 // earning is never reduced by a customer coupon.
 const commBaseOf = (b) => {
+  if (b?.partner_amount != null) return Number(b.partner_amount);
   const base = Number(b?.pricing?.commissionable_base || 0);
   const coupon = b?.coupon_code ? Number(b?.pricing?.discount || 0) : 0;
   return base + coupon;

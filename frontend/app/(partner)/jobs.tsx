@@ -25,7 +25,7 @@ const ago = (iso: string | undefined, now: number) => {
   return `${Math.floor(m / 60)}h ago`;
 };
 const earnFracOf = (b: any) => { const p = b?.commission_config?.partner_pct ?? b?.partner_pct; return p == null ? null : p / 100; };
-const commBaseOf = (b: any) => Number(b?.pricing?.commissionable_base || 0) + (b?.coupon_code ? Number(b?.pricing?.discount || 0) : 0);
+const commBaseOf = (b: any) => (b?.partner_amount != null ? Number(b.partner_amount) : Number(b?.pricing?.commissionable_base || 0) + (b?.coupon_code ? Number(b?.pricing?.discount || 0) : 0));
 const estEarning = (b: any) => commBaseOf(b) * (earnFracOf(b) ?? 0.75);
 
 function CountdownRing({ createdAt, expiryMin, now, size = 46 }: { createdAt?: string; expiryMin: number; now: number; size?: number }) {

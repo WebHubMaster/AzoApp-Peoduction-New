@@ -311,7 +311,7 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
           : ""),
         // Partner-facing amount: pre-tax commissionable base (incl. visiting charge,
         // coupon added back → platform-absorbed). Source of truth from the booking.
-        partner_amount: (raw.pricing
+        partner_amount: raw.partner_amount != null ? raw.partner_amount : (raw.pricing
           ? Math.round((Number(raw.pricing.commissionable_base || 0) + Number(raw.pricing.discount || 0)) * 100) / 100
           : ""),
         visiting_charge: raw.pricing ? Number(raw.pricing.visiting_charge || 0) : 0,

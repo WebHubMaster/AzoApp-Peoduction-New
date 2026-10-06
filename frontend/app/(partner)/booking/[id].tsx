@@ -95,12 +95,11 @@ export default function PartnerBookingDetail() {
               {pricing.addons_total ? <InfoRow label="Add-ons" value={fmt(pricing.addons_total)} /> : null}
               {pricing.emergency_fee ? <InfoRow label="Emergency fee" value={fmt(pricing.emergency_fee)} /> : null}
               <InfoRow label="Subtotal" value={fmt(pricing.subtotal)} />
-              {pricing.discount ? <InfoRow label="Discount" value={`- ${fmt(pricing.discount)}`} /> : null}
-              <InfoRow label="GST" value={fmt(pricing.gst)} />
+              {b.coupon_code && pricing.discount ? <InfoRow label={`Coupon ${b.coupon_code} (AzoApp-funded)`} value={`${fmt(pricing.discount)} · not deducted`} /> : null}
               <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 6 }} />
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.md }}>Total</Text>
-                <Text style={{ color: colors.primary, fontWeight: "900", fontSize: fontSize.lg }}>{fmt(pricing.total)}</Text>
+                <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.md }}>Total Service Amount</Text>
+                <Text style={{ color: colors.primary, fontWeight: "900", fontSize: fontSize.lg }}>{fmt(b.partner_amount ?? pricing.total)}</Text>
               </View>
             </Card>
 

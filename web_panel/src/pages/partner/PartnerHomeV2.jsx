@@ -577,7 +577,7 @@ export function PartnerHome({ onNavigate, user, kit, online, onToggleOnline, con
               </div>
             )}
             {data.recent.map((b) => {
-              const amt = b.total || (b.pricing && b.pricing.total) || 0;
+              const amt = b.partner_amount ?? b.breakdown?.total ?? b.total ?? (b.pricing && b.pricing.total) ?? 0;
               return (
                 <div key={b.id} className="flex items-center justify-between gap-3 px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
                   <div className="min-w-0 flex items-center gap-3">

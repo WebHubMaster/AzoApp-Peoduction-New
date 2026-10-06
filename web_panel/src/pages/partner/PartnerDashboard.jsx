@@ -437,7 +437,7 @@ const ActiveJob = ({ b, onUpdate }) => {
             <span data-testid={`status-pill-${b.code}`} className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-white text-[12.5px] font-extrabold capitalize ${inProgress ? "bg-emerald-600" : "bg-primary-600"}`}>
               <span className="h-2 w-2 rounded-full bg-white/90" />{inProgress ? "Work in progress" : String(b.status || "").replace(/_/g, " ")}
             </span>
-            <span className={`font-extrabold text-[15px] ${inProgress ? "text-emerald-700" : "text-primary-700"}`}>{fmt(b.breakdown?.total || b.total || 0)}</span>
+            <span className={`font-extrabold text-[15px] ${inProgress ? "text-emerald-700" : "text-primary-700"}`}>{fmt(b.partner_amount ?? b.breakdown?.total ?? b.total ?? 0)}</span>
           </div>
         </button>
 
@@ -593,7 +593,7 @@ const CompletedJob = ({ b }) => {
   const earning = (b.commission && b.commission.partner_earning) != null
     ? b.commission.partner_earning
     : null;
-  const jobValue = b.total || (b.pricing && b.pricing.total) || 0;
+  const jobValue = b.partner_amount ?? b.breakdown?.total ?? b.total ?? (b.pricing && b.pricing.total) ?? 0;
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-[0_8px_30px_rgba(2,32,71,0.06)] overflow-hidden" data-testid={`completed-job-${b.code}`}>
       <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 text-white px-5 py-3 flex items-center gap-2">

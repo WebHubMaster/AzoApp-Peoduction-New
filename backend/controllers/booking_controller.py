@@ -2284,6 +2284,7 @@ def _hide_platform_fees(b: dict) -> dict:
     """Provider-facing (partner/merchant) payload must never carry the 100%-platform fees."""
     pr = b.get("pricing")
     if isinstance(pr, dict):
+        b["partner_amount"] = round(PricingEngine.commission_base_excl_tax(pr), 2)
         pr = dict(pr)
         pr.pop("convenience_fee", None)
         pr.pop("platform_fee", None)

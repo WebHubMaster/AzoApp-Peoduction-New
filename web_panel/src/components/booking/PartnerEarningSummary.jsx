@@ -34,7 +34,7 @@ export default function PartnerEarningSummary({ booking, fmt, className = "" }) 
   const earning = bd.earning || null;
   const customerOnly = Array.isArray(bd.customer_only_charges) ? bd.customer_only_charges.filter((c) => Number(c.amount || 0) > 0) : [];
   const charges = Array.isArray(bd.additional_charges) ? bd.additional_charges.filter((c) => Number(c.amount || 0) > 0) : [];
-  const discount = Number(bd.discount || 0);
+  const coupon = Number(bd.coupon_discount || 0);
   const refund = bd.refund || null;
   const cancelled = booking.status === "cancelled" || !!refund;
   const eligibleSubtotal = bd.partner_eligible_subtotal != null ? Number(bd.partner_eligible_subtotal) : null;
@@ -49,10 +49,10 @@ export default function PartnerEarningSummary({ booking, fmt, className = "" }) 
       <div className="px-3 py-2.5">
         <Row k="Service Amount" v={money(bd.services_subtotal)} />
         {charges.map((c) => <Row key={c.key || c.label} k={c.label} v={money(c.amount)} />)}
-        {discount > 0 && (
-          <Row k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`}
-            v={`- ${money(discount)}`} negative
-            sub="AzoApp-funded · does not reduce your earning" />
+        {coupon > 0 && (
+          <Row k={`Coupon${bd.coupon_code ? ` ${bd.coupon_code}` : ""} · AzoApp-funded`}
+            v={money(coupon)} muted
+            sub="Paid by AzoApp · not deducted from your earning" />
         )}
         <div className="border-t border-slate-100 dark:border-slate-800 mt-2 pt-2">
           <Row k="Partner-eligible subtotal" v={money(eligibleSubtotal != null ? eligibleSubtotal : bd.subtotal)} strong />

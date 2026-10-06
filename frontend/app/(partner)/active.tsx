@@ -105,7 +105,7 @@ export function JobDetailsBlock({ b }: { b: any }) {
     <View testID={`job-details-block-${b.code}`}>
       <View style={{ gap: 8 }}>
         <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="account-outline" label="Customer" value={b.customer_name} /><InfoItem icon="wrench-outline" label="Service" value={b.service_name} /></View>
-        <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="calendar-clock-outline" label="Schedule" value={schedLabel} /><InfoItem icon="check-circle-outline" label="Job value" value={fmt(b.breakdown?.total || b.total || b.pricing?.total || 0)} /></View>
+        <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="calendar-clock-outline" label="Schedule" value={schedLabel} /><InfoItem icon="check-circle-outline" label="Job value" value={fmt(b.partner_amount ?? b.breakdown?.total ?? b.pricing?.total ?? 0)} /></View>
       </View>
       <ServiceBreakdown booking={b} />
       {maskedPhone ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}><Icon name="phone-outline" size={14} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 12 }}>{maskedPhone} <Text style={{ color: "#CBD5E1" }}>· number protected</Text></Text></View> : null}
@@ -253,7 +253,7 @@ function PartnerEarningSummary({ booking }: { booking: any }) {
   const earning = bd.earning || null;
   const customerOnly: any[] = (Array.isArray(bd.customer_only_charges) ? bd.customer_only_charges : []).filter((c: any) => num(c.amount) > 0);
   const charges: any[] = (Array.isArray(bd.additional_charges) ? bd.additional_charges : []).filter((c: any) => num(c.amount) > 0);
-  const discount = num(bd.discount);
+  const coupon = num(bd.coupon_discount);
   const refund = bd.refund || null;
   const cancelled = booking.status === "cancelled" || !!refund;
   const eligibleSubtotal = bd.partner_eligible_subtotal != null ? num(bd.partner_eligible_subtotal) : null;
@@ -269,7 +269,7 @@ function PartnerEarningSummary({ booking }: { booking: any }) {
       <View style={{ paddingHorizontal: 12, paddingVertical: 10 }}>
         <EarnRow k="Service Amount" v={fmt(bd.services_subtotal)} />
         {charges.map((c) => <EarnRow key={c.key || c.label} k={c.label} v={fmt(c.amount)} />)}
-        {discount > 0 ? <EarnRow k={`Coupon Discount${bd.coupon_code ? ` (${bd.coupon_code})` : ""}`} v={`- ${fmt(discount)}`} negative sub="AzoApp-funded · does not reduce your earning" /> : null}
+        {coupon > 0 ? <EarnRow k={`Coupon${bd.coupon_code ? ` ${bd.coupon_code}` : ""} · AzoApp-funded`} v={fmt(coupon)} muted sub="Paid by AzoApp · not deducted from your earning" /> : null}
         <View style={{ borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 8 }}>
           <EarnRow k="Partner-eligible subtotal" v={fmt(eligibleSubtotal != null ? eligibleSubtotal : bd.subtotal)} strong />
         </View>
@@ -392,7 +392,7 @@ function CompletedJob({ b }: { b: any }) {
   const a = b.address || {};
   const completedAt = (b.timeline || []).filter((t: any) => t.status === "completed").map((t: any) => t.at).pop() || b.updated_at;
   const earning = b.commission?.partner_earning ?? null;
-  const jobValue = b.total || b.pricing?.total || 0;
+  const jobValue = b.partner_amount ?? b.breakdown?.total ?? b.total ?? b.pricing?.total ?? 0;
   return (
     <JobCardShell>
       <LinearGradient colors={["#059669", "#10B981"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 20, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -564,7 +564,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
             </View>
             <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
               <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }}>Job value</Text>
-              <Text testID={`job-price-${b.code}`} style={{ color: inProgress ? "#047857" : colors.text, fontWeight: "800", fontSize: 22, lineHeight: 28, fontVariant: ["tabular-nums"] }}>{fmt(b.breakdown?.total || b.total || 0)}</Text>
+              <Text testID={`job-price-${b.code}`} style={{ color: inProgress ? "#047857" : colors.text, fontWeight: "800", fontSize: 22, lineHeight: 28, fontVariant: ["tabular-nums"] }}>{fmt(b.partner_amount ?? b.breakdown?.total ?? b.total ?? 0)}</Text>
             </View>
           </View>
 

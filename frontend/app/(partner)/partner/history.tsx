@@ -82,7 +82,7 @@ export default function PartnerJobHistory() {
                   <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 }}>#{b.code} · {fmtDate(b.updated_at || b.created_at)}</Text>
                 </View>
                 <View style={{ alignItems: "flex-end", gap: 4 }}>
-                  <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{fmt(b.pricing?.total ?? b.total)}</Text>
+                  <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{fmt(b.partner_amount ?? b.breakdown?.total ?? b.pricing?.total ?? b.total)}</Text>
                   <StatusBadge status={b.status} />
                 </View>
               </Pressable>

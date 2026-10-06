@@ -273,7 +273,7 @@ export function RecentJobs({ recent, nav, onOpen, onViewAll }: { recent: any[]; 
           <Text style={{ color: TW.slate400, fontSize: 13, marginTop: 8 }}>No jobs yet. Complete your first job to start earning.</Text>
         </View>
       ) : recent.map((b) => {
-        const amt = b.total || b.pricing?.total || 0;
+        const amt = b.partner_amount ?? b.breakdown?.total ?? b.total ?? b.pricing?.total ?? 0;
         return (
           <Pressable key={b.id} testID={`recent-${b.id}`} onPress={() => onOpen(b.id, b.status)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 20, paddingVertical: 14, borderTopWidth: 1, borderTopColor: colors.border }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
