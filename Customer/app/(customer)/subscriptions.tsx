@@ -3,13 +3,15 @@
  * activate. Premium full-width subscription cards with progress bar, attendance calendar,
  * payment snapshot, maid details and invoice download — parity with the web panel. */
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput, Linking } from "react-native";
+import { View, Text, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, useTheme, TC } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
+import { SchedulePicker } from "../../src/components/customer/SchedulePicker";
+import { openPreparedOrder } from "../../src/lib/payments";
 
 const ROSE = "#F43F5E";
 const money = (n: any) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -52,22 +54,27 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
   const book = async () => {
     if (!plan) return toast.error("Select a plan");
     if (!addrId) return toast.error("Add a service address first");
+    if (!startDate || !time) return toast.error("Pick a start date and time");
     setBusy(true);
     try {
       const sub = await api.post<any>("/subscriptions", {
         service_id: service.id, plan_type: sel, start_date: startDate,
         preferred_time: time, address_id: addrId,
       });
-      // Upfront full payment — mock when gateway not configured, else create order.
-      try {
+      // Upfront full payment. Try to create a real gateway order and open the
+      // in-app payment WebView (same host the normal checkout uses). If no gateway
+      // is configured the backend returns 409 → fall back to the dev mock activate.
+      let order: any = null;
+      try { order = await api.post<any>(`/subscriptions/${sub.id}/pay/order`); } catch (_) { order = null; }
+      if (order && (order.order_id || order.payment_session_id || order.payment_url || order.fields)) {
+        const ok = await openPreparedOrder(order, { purpose: "subscription", subscriptionId: sub.id, toast });
+        if (!ok) { setBusy(false); return; } // user closed / payment not completed — keep sheet open
+        onDone();
+      } else {
         await api.post(`/subscriptions/${sub.id}/pay/mock`);
         toast.success("Subscription active! Full amount paid.");
-      } catch (e: any) {
-        // gateway live path: create order (kept simple — inform user)
-        await api.post(`/subscriptions/${sub.id}/pay/order`);
-        toast.info("Complete payment to activate your subscription.");
+        onDone();
       }
-      onDone();
     } catch (e: any) { toast.error(e?.detail || "Booking failed"); } finally { setBusy(false); }
   };
 
@@ -94,18 +101,15 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
         </View>
 
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Schedule</Text>
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Start date</Text>
-            <TextInput testID="sub-start-date" value={startDate} onChangeText={setStartDate} placeholder="YYYY-MM-DD" placeholderTextColor={TC.textFaint}
-              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 6, paddingHorizontal: 12, color: c.text }} />
-          </View>
-          <View style={{ width: 120 }}>
-            <Text style={{ color: c.textMuted, fontSize: 11, marginBottom: 4 }}>Time</Text>
-            <TextInput testID="sub-time" value={time} onChangeText={setTime} placeholder="09:00" placeholderTextColor={TC.textFaint}
-              style={{ height: 44, borderWidth: 1, borderColor: c.border, borderRadius: 6, paddingHorizontal: 12, color: c.text }} />
-          </View>
-        </View>
+        <SchedulePicker
+          value={startDate ? `${startDate}T${time || "09:00"}` : null}
+          onChange={(v) => {
+            if (!v) return;
+            const [d, t] = v.split("T");
+            setStartDate(d);
+            if (t) setTime(t.slice(0, 5));
+          }}
+        />
 
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Service address</Text>
         {addresses.length === 0 ? (
@@ -385,7 +389,7 @@ export default function SubscriptionsScreen() {
                         <View style={{ backgroundColor: EMERALD[50], borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 }}>
                           <Text style={{ color: EMERALD[700], fontWeight: "700", fontSize: 11 }}>{(s.subscription_plans || []).length} plans</Text>
                         </View>
-                        <Text style={{ color: TC.textFaint, fontSize: 11 }}>Daily · Weekly · Monthly</Text>
+                        <Text style={{ color: TC.textFaint, fontSize: 11 }}>{((s.subscription_plans || []).map((p: any) => p.label || p.plan_type).join(" · ")) || "Flexible plans"}</Text>
                       </View>
                     </View>
                   </View>

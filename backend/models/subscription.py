@@ -9,10 +9,10 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 # Weekday numbers follow Python's date.weekday(): Mon=0 ... Sun=6.
-PLAN_TYPES = ["daily", "weekly", "monthly", "yearly"]
+PLAN_TYPES = ["weekly", "monthly", "quarterly", "yearly"]
 
 # Sensible default calendar length per plan (admin can override per plan).
-PLAN_DEFAULT_DURATION = {"daily": 1, "weekly": 7, "monthly": 30, "yearly": 365}
+PLAN_DEFAULT_DURATION = {"daily": 1, "weekly": 7, "monthly": 30, "quarterly": 90, "yearly": 365}
 
 DAY_STATUSES = [
     "scheduled",            # upcoming working day (not yet served)

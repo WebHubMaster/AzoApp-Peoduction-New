@@ -498,11 +498,20 @@ const blankSvc = {
 
 const WEEKDAYS = [["Mon", 0], ["Tue", 1], ["Wed", 2], ["Thu", 3], ["Fri", 4], ["Sat", 5], ["Sun", 6]];
 const DEFAULT_SUB_PLANS = () => [
-  { plan_type: "daily", label: "Daily", price: 0, duration_days: 1, working_days: 0, weekly_offs: [] },
   { plan_type: "weekly", label: "Weekly", price: 0, duration_days: 7, working_days: 0, weekly_offs: [6] },
   { plan_type: "monthly", label: "Monthly", price: 0, duration_days: 30, working_days: 26, weekly_offs: [6] },
+  { plan_type: "quarterly", label: "Quarterly", price: 0, duration_days: 90, working_days: 0, weekly_offs: [6] },
   { plan_type: "yearly", label: "Yearly", price: 0, duration_days: 365, working_days: 0, weekly_offs: [6] },
 ];
+
+// Normalise a service's saved plans to the current plan set: drop the retired
+// "daily" plan and ensure weekly/monthly/quarterly/yearly all exist (preserving
+// any saved durations / working-days / weekly-offs for the plans that remain).
+const normalizeSubPlans = (plans) => {
+  const byType = {};
+  (plans || []).forEach((p) => { if (p && p.plan_type && p.plan_type !== "daily") byType[p.plan_type] = p; });
+  return DEFAULT_SUB_PLANS().map((d) => (byType[d.plan_type] ? { ...d, ...byType[d.plan_type], label: d.label } : d));
+};
 
 function SubscriptionPlanEditor({ plans, onChange }) {
   const upd = (i, patch) => onChange(plans.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
@@ -811,7 +820,7 @@ export const ServiceWizard = () => {
   const openNew = () => { setF(blankSvc); setEditId(null); setStep(0); setDone([]); setShowForm(true); };
   const openEdit = async (id) => {
     const { data } = await api.get(`/catalog/admin/services/${id}`);
-    setF({ ...blankSvc, ...data, seo: data.seo || {}, faqs: data.faqs || [], gallery: data.gallery || [], tags: data.tags || [], tiers: data.tiers || [], highlights: data.highlights || [], tax_ids: data.tax_ids || [] });
+    setF({ ...blankSvc, ...data, seo: data.seo || {}, faqs: data.faqs || [], gallery: data.gallery || [], tags: data.tags || [], tiers: data.tiers || [], highlights: data.highlights || [], tax_ids: data.tax_ids || [], subscription_plans: data.is_subscription ? normalizeSubPlans(data.subscription_plans) : (data.subscription_plans || []) });
     setEditId(id); setStep(0); setDone([0, 1, 2, 3, 4, 5, 6]); setShowForm(true);
   };
 
