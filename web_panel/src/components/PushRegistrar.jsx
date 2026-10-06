@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Bell, BellOff, BellRing, X, CheckCircle2, Settings2 } from "lucide-react";
 import api from "@/lib/api";
@@ -59,7 +60,11 @@ export function usePushDeviceState() {
 export function PushNudge() {
   const { user } = useAuth();
   const { perm } = usePushDeviceState();
+  const { pathname } = useLocation();
   const [hidden, setHidden] = useState(true);
+  // Never cover the primary CTA on the service-detail or checkout pages (the
+  // "Book Now" / "Confirm & Pay" buttons sit at the bottom on mobile).
+  const suppressed = pathname.startsWith("/service/") || pathname === "/book" || pathname === "/login";
 
   useEffect(() => {
     // Never nag once the browser permission is granted — the device is (re)subscribed
@@ -74,7 +79,7 @@ export function PushNudge() {
   }, [user, perm]);
 
   const close = () => { localStorage.setItem("azo_push_nudge_at", String(Date.now())); setHidden(true); };
-  if (hidden || !user) return null;
+  if (hidden || !user || suppressed) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-3 pointer-events-none" data-testid="push-nudge">

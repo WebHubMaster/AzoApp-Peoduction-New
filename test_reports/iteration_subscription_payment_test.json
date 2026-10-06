@@ -1,0 +1,48 @@
+{
+  "summary": "Verified end-to-end subscription booking flow for Full-time Maid (Daily plan) on the Customer Web Panel at mobile viewport 390x844 and desktop 1280x900. Confirmed: (1) custom calendar + time-slot picker is rendered on the Schedule step (NOT a native date/time input), (2) OTP login works (OTP 123456), (3) Book Now navigates to /book checkout and all 5 steps progress (Services -> Schedule -> Contact -> Summary -> Confirm), (4) Clicking 'Confirm & Pay' calls POST /api/subscriptions (200 - subscription created with status pending_payment) then POST /api/subscriptions/{id}/pay/order which correctly returns 409 'Razorpay TEST MODE (pay-in) is not fully configured.' The 409 error IS surfaced to the user via a visible toast/role=status element showing exactly that message for several seconds. User remains on the Confirm step; the subscription is NOT silently activated. In Account -> Subscriptions the new booking shows status 'pending payment' as expected. There is one older subscription (SUB41NDD3, date 2026-10-08) that currently shows status 'active' - this pre-existed before this test run (likely created when the dev pay/mock path was in effect while NO gateway was configured). Current behavior with Razorpay partially configured is correct per spec. User's original complaint of 'silent activation without payment' is NOT reproducible in the current state - the flow now cleanly blocks activation and surfaces a clear error toast.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ServiceDetail / SubscriptionPlansPanel", "issue": "The 'Book Now' subscribe button on /service/svc-maid-fulltime is NOT clickable via a real user tap on mobile because the fixed 'custom-job-fab' (floating wrench) and the 'push-nudge' banner (Turn on alerts) overlap it near the bottom of the viewport. Playwright click times out (30s) until the push-nudge is dismissed; a JS .click() works. Real users may hit the same overlay/z-index issue.", "selector": "[data-testid=\"sub-subscribe-btn\"]", "priority": "HIGH"},
+      {"component": "PushNudge (push-nudge)", "issue": "The 'Turn on alerts' bottom banner re-appears on nearly every route and overlaps CTAs (Book Now, bottom-bar). Should auto-dismiss for a while after close, or should be positioned so it never overlaps primary CTAs.", "selector": "[data-testid=\"push-nudge\"]", "priority": "MEDIUM"},
+      {"component": "Notification 'Allow / Turn on' request modal", "issue": "After tapping 'Turn on' in the push-nudge, browser blocks notifications and app shows a modal 'Notifications are blocked - I've allowed it - Retry'. This modal has no data-testid and blocks the page; needs a dismissible overlay or testid. Only cosmetic - user can press 'Not now'.", "selector": "n/a", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verified_flows": [
+    "OTP login (dev OTP 123456) -> redirects to /account",
+    "Open Full-time Maid service page -> subscription-panel renders with 3 plans (daily 400, weekly 2200, monthly 8000)",
+    "Select Daily -> Book Now -> navigates to /book (step Services)",
+    "Schedule step uses CUSTOM calendar (cal-day-YYYY-MM-DD) + custom slot grid (slot-HH:MM). No native <input type=date|time> present. VISUALLY confirmed custom picker rendering on mobile 390x844.",
+    "Contact step auto-selects saved pinned address; Summary step shows price breakdown; Confirm step shows place-order",
+    "POST /api/subscriptions -> 200 (subscription created pending_payment)",
+    "POST /api/subscriptions/{id}/pay/order -> 409 with detail 'Razorpay TEST MODE (pay-in) is not fully configured.'",
+    "Error toast with exact backend detail text is shown to user and remains visible > 4s",
+    "No silent redirect / activation; user stays on Confirm step",
+    "Account -> Subscriptions lists the new subscription with status 'pending payment'"
+  ],
+  "payment_behavior_observed": "When no payment gateway is fully configured, the current code: (a) creates the subscription on the backend with status pending_payment, (b) backend's /pay/order returns HTTP 409 with a clear detail message, (c) frontend displays that detail text in a toast and does NOT navigate forward, (d) the subscription remains in 'pending payment' state in Account -> Subscriptions. This matches the intended spec per the agent-to-agent context note.",
+  "test_report_links": [],
+  "action_items": [
+    "Fix the z-index / layout of the floating 'custom-job-fab' and 'push-nudge' banner on ServiceDetail (mobile) so the 'Book Now' subscribe button is reliably clickable without first dismissing the nudge. Reproduction: open /service/svc-maid-fulltime on 390x844, tap Daily plan, tap Book Now - the tap target is partially covered by the FAB and the Turn-on-alerts banner at the bottom.",
+    "Consider showing the current pending subscription (SUB...) with a 'Complete payment' CTA on Account -> Subscriptions since the pay flow was interrupted by a 409 - today the user only sees 'pending payment' with no retry button on the card (only View Details / View Schedule / Download Invoice).",
+    "(Optional) Suppress the push-nudge on checkout and service-detail routes to avoid overlap with primary CTAs.",
+    "Investigate the pre-existing 'active' subscription SUB41NDD3 - likely created via the dev pay/mock when no gateway was configured; confirm current admin/dev-mock gating is tight enough for production."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/src/pages/customer/Checkout.jsx:378 - POST /subscriptions/{id}/pay/order error should surface a user-friendly message distinct from the raw backend 'Razorpay TEST MODE ... not fully configured'. Current toast uses the backend detail verbatim; good for debugging but confusing for end users.",
+    "backend/controllers/subscription_controller.py pay_mock - gating only on 'no gateway configured' can be brittle; add explicit admin-only / dev-env guard so it never auto-activates in prod even if gateway toggle is accidentally cleared."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only run)", "frontend": "90% (core flow passes; HIGH-priority tap-blocking overlay on Book Now is the only functional defect)"},
+  "test_credentials": "Customer: mobile 9812345678, OTP 123456 (dev mode).",
+  "seed_data_creation": "Two new subscriptions created during testing: SUBYZ5A3Y and SUBERQQ4X (both Daily Full-time Maid, start 2026-10-10, status pending_payment).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Date/time picker is confirmed as custom (SchedulePicker). Payment correctly fails with 409 and shows a toast - user's complaint of silent activation is NOT reproducible in current state. Only functional bug found: 'Book Now' (sub-subscribe-btn) on mobile is partially covered by the custom-job-fab + push-nudge; a real tap requires dismissing the nudge first. Use JS .click() in Playwright or close push-nudge first (data-testid='push-nudge-close').",
+  "rca of the issue": "User-reported 'subscription purchased without payment' RCA: a prior build/state had Razorpay NOT configured, which caused backend pay/mock path to auto-activate. In the current build Razorpay is in TEST MODE (partial config) so /pay/order returns 409 and the mock no longer runs - subscription stays pending_payment and the error toast is shown. The old 'active' subscription SUB41NDD3 (dated 2026-10-08) visible in My Subscriptions is a leftover from that earlier state, not a reproduction of the bug today."
+}

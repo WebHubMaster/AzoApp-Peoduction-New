@@ -101,11 +101,11 @@ function App() {
           </RouteTransition>
           </Suspense>
           <CustomJobFAB />
+          <PushNudge />
         </BrowserRouter>
         </CartProvider>
         </SiteConfigProvider>
         <PushRegistrar />
-        <PushNudge />
         <InstallPrompt />
         <Toaster position="top-center" richColors />
         </ChatProvider>

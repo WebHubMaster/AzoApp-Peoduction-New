@@ -5,8 +5,9 @@ import { Wrench, Sparkles } from "lucide-react";
 import CustomJobWizard from "@/components/customer/CustomJobWizard";
 import { useCart } from "@/context/CartContext";
 
-// Only show on the PUBLIC front-website pages (never inside logged-in panels).
-const PUBLIC_PREFIXES = ["/", "/services", "/service", "/category", "/membership", "/about", "/contact"];
+// Only show on the PUBLIC front-website browse pages (never inside logged-in panels,
+// and not on a specific service page where "Book Now"/"Add to Booking" is the primary CTA).
+const PUBLIC_PREFIXES = ["/", "/services", "/category", "/membership", "/about", "/contact"];
 
 function isPublicRoute(pathname) {
   if (pathname === "/") return true;
