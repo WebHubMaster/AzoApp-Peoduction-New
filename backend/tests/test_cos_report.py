@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://reschedule-ring-fix.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://app-picker-bug.preview.emergentagent.com").rstrip("/")
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 

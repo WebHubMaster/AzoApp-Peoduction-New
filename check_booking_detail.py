@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://reschedule-ring-fix.preview.emergentagent.com/api"
+BASE_URL = "https://app-picker-bug.preview.emergentagent.com/api"
 ADMIN = "+919000000000"
 OTP = "123456"
 

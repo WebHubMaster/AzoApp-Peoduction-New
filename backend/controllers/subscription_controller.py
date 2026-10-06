@@ -45,7 +45,7 @@ async def create_subscription(user, req):
     if not service.get("is_subscription"):
         raise HTTPException(status_code=400, detail="This service is not a subscription service")
     plan_type = (req.plan_type or "monthly").lower()
-    if plan_type not in ("weekly", "monthly", "quarterly", "yearly"):
+    if plan_type not in ("daily", "weekly", "monthly", "quarterly", "yearly"):
         raise HTTPException(status_code=400, detail="Invalid plan type")
     plan = svc.resolve_plan(service, plan_type)
     price = float(plan.get("price") or 0)

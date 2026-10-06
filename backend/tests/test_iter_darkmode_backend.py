@@ -8,7 +8,7 @@ Verifies:
 import os
 import requests
 
-BASE = os.environ.get("BACKEND_URL", "https://reschedule-ring-fix.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("BACKEND_URL", "https://app-picker-bug.preview.emergentagent.com").rstrip("/")
 PHONE = "+919000000003"
 
 

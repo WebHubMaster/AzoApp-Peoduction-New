@@ -169,7 +169,7 @@ async def plan_preview(service: dict, settings: dict) -> list:
     out = []
     commission_pct = commission_pct_for(settings)
     tax_pct = float(service.get("tax_pct") or 0)
-    for plan_type in ["weekly", "monthly", "quarterly", "yearly"]:
+    for plan_type in ["daily", "weekly", "monthly", "quarterly", "yearly"]:
         # only expose plans the admin actually configured (or all if none configured)
         configured = service.get("subscription_plans") or []
         if configured and not any(str(p.get("plan_type")).lower() == plan_type for p in configured):
