@@ -206,3 +206,6 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 - Removed the extra standalone "Business Settings" sidebar tab (reverted AdminDashboard nav link + removed COS toggle from adminSections.jsx standalone page).
 - Cash on Service toggle + Partner Reminder Lead Time now live inside the Integration Center → Business Settings modal (adminTemplateIntegration.jsx BusinessModal): fields cos_enabled (default ON) + reminder_lead_minutes (default 30), saved via PUT /admin/settings business_config (deep-merge, verified). data-testid: biz-cos-enabled, biz-reminder-lead.
 - Commission (confirmed, no change needed): category_commission_service.resolve() already uses the per-category "Commission & Refund" config when set, else falls back to the global commission block. COS token (= total − partner_share) therefore automatically uses the correct category-or-global commission.
+
+## 2026-06 Update
+- Customer app main Home (app/(site)/index.tsx -> CategoriesGrid in src/components/apphome/Blocks.tsx): service categories now always 3 per row on all devices (percentage columns, max-width 640 centered on large screens).

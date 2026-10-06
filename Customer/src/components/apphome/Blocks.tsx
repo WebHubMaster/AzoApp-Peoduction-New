@@ -75,17 +75,16 @@ const Dots = ({ n, i }: { n: number; i: number }) => (
 /* ---------------- Categories grid (2 rows × 6, paged) ---------------- */
 
 export function CategoriesGrid({ cats, config, onCategory, onMore }: { cats: any[]; config: any; onCategory: (c: any) => void; onMore: () => void }) {
-  const { width } = useWindowDimensions();
   const limit = Math.max(1, Number(config?.limit || 11));
   const showMore = config?.show_more !== false;
   const tiles: any[] = cats.slice(0, limit);
   if (showMore) tiles.push({ id: "__more", name: config?.more_label || "All services", more: true });
   const gap = 10;
-  const tileW = (width - 32 - gap * 2) / 3; // always exactly 3 per row, fully responsive
+  // Percentage columns + inner padding: always exactly 3 per row on every screen, no rounding overflow
   return (
-    <View testID="app-categories" style={{ marginBottom: 20, paddingHorizontal: 16, flexDirection: "row", flexWrap: "wrap", gap }}>
+    <View testID="app-categories" style={{ marginBottom: 20, paddingHorizontal: 16 - gap / 2, flexDirection: "row", flexWrap: "wrap", rowGap: 4, width: "100%", maxWidth: 640, alignSelf: "center" }}>
       {tiles.map((c: any) => (
-        <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={({ pressed }) => ({ width: tileW, transform: [{ translateY: pressed ? -2 : 0 }] })}>
+        <Pressable key={c.id} testID={c.more ? "app-cat-more" : `app-cat-${c.id}`} onPress={() => (c.more ? onMore() : onCategory(c))} style={({ pressed }) => ({ width: "33.3333%", paddingHorizontal: gap / 2, transform: [{ translateY: pressed ? -2 : 0 }] })}>
           <View>
             <View style={{ width: "100%", aspectRatio: 1, borderRadius: 6, backgroundColor: TC.surfaceAlt, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
               {c.more ? <Grip size={30} color={TC.text} strokeWidth={2.2} />

@@ -1,5 +1,5 @@
 {
-  "base_url": "https://customer-support-fix.preview.emergentagent.com/api",
+  "base_url": "https://three-service-layout.preview.emergentagent.com/api",
   "tests": [
     {
       "name": "Test 1: Chandan Cancellation (AZO9HWVU1)",
