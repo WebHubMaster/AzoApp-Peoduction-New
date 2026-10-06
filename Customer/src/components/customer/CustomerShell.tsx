@@ -16,6 +16,7 @@ import { useTheme, PRIMARY, SLATE, ROSE, TC } from "@/src/theme";
 import { NAV, MOBILE_PRIMARY, NavKey, NavItem } from "@/src/components/customer/nav";
 import { mediaUrl } from "@/src/api/client";
 import { NotificationBell } from "@/src/components/customer/NotificationBell";
+import { emitScrollEnd } from "@/src/components/customer/ux";
 import { useChatOpen, isChatOpen } from "@/src/lib/chatPresence";
 import { useRealtime } from "@/src/context/RealtimeContext";
 
@@ -110,7 +111,8 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
       </View>
 
       {/* Page content */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+        scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}>
         {children}
       </ScrollView>
 

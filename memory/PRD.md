@@ -209,3 +209,5 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 
 ## 2026-06 Update
 - Customer app main Home (app/(site)/index.tsx -> CategoriesGrid in src/components/apphome/Blocks.tsx): service categories now always 3 per row on all devices (percentage columns, max-width 640 centered on large screens).
+- 2026-06: Customer app pagination removed (Bookings, Wallet, Invoices) -> infinite scroll. ux.tsx: emitScrollEnd/useOnScrollEnd/useInfiniteList/LoadMoreFooter; CustomerShell ScrollView emits near-end. Invoices fetch server pages of 10 (60s timeout + 1 retry, Retry button on failure).
+- Bottom navs pinned behind keyboard via src/components/KeyboardFixedBottom.tsx.

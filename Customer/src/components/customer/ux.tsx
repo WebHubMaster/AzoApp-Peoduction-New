@@ -380,25 +380,40 @@ export function FilterSheet({ open, onClose, onClear, onApply, children, title =
 }
 export const FilterLabel = ({ children }: { children: React.ReactNode }) => <Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint, marginBottom: 8 }}>{children}</Text>;
 
-/* --------------------------------------------------------- Paginator (mobile) --- */
-export function Paginator({ page, pageSize, total, onPage, testID = "paginator" }: { page: number; pageSize: number; total: number; onPage: (p: number) => void; testID?: string }) {
+/* ------------------------------------------------ Infinite scroll (mobile) --- */
+// The customer shell ScrollView calls emitScrollEnd() when the user nears the bottom.
+const scrollEndSubs = new Set<() => void>();
+export const emitScrollEnd = () => scrollEndSubs.forEach((fn) => fn());
+export function useOnScrollEnd(cb: () => void) {
+  const ref = useRef(cb);
+  ref.current = cb;
+  useEffect(() => { const fn = () => ref.current(); scrollEndSubs.add(fn); return () => { scrollEndSubs.delete(fn); }; }, []);
+}
+
+// Renders a long in-memory list in chunks as the user scrolls.
+export function useInfiniteList<T>(list: T[], size: number, resetKey: string) {
+  const [count, setCount] = useState(size);
+  useEffect(() => { setCount(size); }, [resetKey, size]);
+  const hasMore = count < list.length;
+  const loadMore = () => { if (hasMore) setCount((n) => n + size); };
+  useOnScrollEnd(loadMore);
+  return { shown: list.slice(0, count), hasMore, loadMore };
+}
+
+export function LoadMoreFooter({ hasMore, loading, error, onLoadMore, total, testID = "load-more" }: { hasMore: boolean; loading?: boolean; error?: boolean; onLoadMore: () => void; total: number; testID?: string }) {
   const { c, isDark } = useTheme();
   if (total === 0) return null;
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const from = (page - 1) * pageSize + 1; const to = Math.min(total, page * pageSize);
-  const nav = (dis: boolean, onPress: () => void, Icon: any, id: string) => (
-    <Pressable testID={id} disabled={dis} onPress={onPress} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center", opacity: dis ? 0.4 : 1 }}><Icon size={16} color={c.text} /></Pressable>
-  );
-  return (
-    <View testID={`${testID}-mobile`} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 16 }}>
-      <Text style={{ fontSize: 12, color: TC.textMuted }}>{from}–{to} of {total}</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        {nav(page <= 1, () => onPage(page - 1), ChevronLeft, `${testID}-prev`)}
-        <Text style={{ fontSize: 14, fontWeight: "600", color: c.text, paddingHorizontal: 8 }}>{page} / {pages}</Text>
-        {nav(page >= pages, () => onPage(page + 1), ChevronRight, `${testID}-next`)}
-      </View>
+  if (loading) return <View testID={`${testID}-loading`} style={{ marginTop: 16, gap: 12 }}><Shimmer style={{ height: 88, borderRadius: 6, width: "100%" }} /><Text style={{ fontSize: 12, color: TC.textMuted, textAlign: "center" }}>Loading more…</Text></View>;
+  if (error) return (
+    <View testID={`${testID}-error`} style={{ marginTop: 16, alignItems: "center", gap: 8 }}>
+      <Text style={{ fontSize: 12, color: ROSE[600] }}>Slow connection — couldn't load more.</Text>
+      <Pressable testID={`${testID}-retry`} onPress={onLoadMore} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Retry</Text></Pressable>
     </View>
   );
+  if (hasMore) return (
+    <Pressable testID={`${testID}-btn`} onPress={onLoadMore} style={{ marginTop: 16, height: 40, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Load more</Text></Pressable>
+  );
+  return <Text testID={`${testID}-end`} style={{ marginTop: 16, fontSize: 12, color: TC.textFaint, textAlign: "center" }}>You're all caught up</Text>;
 }
 
 /* ------------------------------------------------------- Primary button --- */

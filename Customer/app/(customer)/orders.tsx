@@ -1,4 +1,4 @@
-/** My Bookings — 1:1 port of BookingsView (CustomerDashboard.jsx) mobile view: KPIs, search + filters, tabs, cards, paginator, all dialogs. */
+/** My Bookings — 1:1 port of BookingsView (CustomerDashboard.jsx) mobile view: KPIs, search + filters, tabs, cards, infinite scroll, all dialogs. */
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -10,7 +10,7 @@ import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, useTheme, shadowBtn } from "../../src/theme";
-import { StatTile, StatSkeleton, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
+import { StatTile, StatSkeleton, StatSlider, CARD_W, EmptyState, SkeletonList, SearchInput, SegTabs, FilterButton, FilterSheet, FilterLabel, DateRangePicker, OptionMenu, LoadMoreFooter, useInfiniteList, inDateRange, DateRange } from "../../src/components/customer/ux";
 import { ACTIVE_STATES, DONE_STATES, bkDate } from "../../src/components/customer/nav";
 import { BookingCard, CardActions } from "../../src/components/customer/BookingCard";
 import { CancelDialog, ReviewDialog, RescheduleDialog, AdditionalPayDialog } from "../../src/components/customer/BookingDialogs";
@@ -47,7 +47,6 @@ export default function OrdersScreen() {
   const [payment, setPayment] = useState("all");
   const [range, setRange] = useState<DateRange>(ALL_RANGE);
   const [sort, setSort] = useState("new");
-  const [page, setPage] = useState(1);
   const [fOpen, setFOpen] = useState(false);
   const [cancelT, setCancelT] = useState<any>(null);
   const [rev, setRev] = useState<any>(null);
@@ -58,7 +57,6 @@ export default function OrdersScreen() {
   const [addl, setAddl] = useState<any>(null);
   const { unreadFor, refresh: refreshChats } = useChatSummary(!!user);
   useEffect(() => { if (focusCode) setQ(focusCode); }, [focusCode]);
-  useEffect(() => { setPage(1); }, [q, tab, payment, range, sort]);
 
   const filtered = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -72,7 +70,7 @@ export default function OrdersScreen() {
       return 0;
     });
   }, [bookings, q, tab, payment, range, sort]);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const { shown: paged, hasMore, loadMore } = useInfiniteList(filtered, PAGE_SIZE, `${q}|${tab}|${payment}|${range.preset}|${range.from}|${range.to}|${sort}`);
   const activeFilters = (payment !== "all" ? 1 : 0) + (range.preset !== "All" ? 1 : 0) + (sort !== "new" ? 1 : 0);
   const counts: Record<string, number> = { all: bookings.length, active: bookings.filter((b: any) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b: any) => b.status === "searching").length, ongoing: bookings.filter((b: any) => ONGOING.includes(b.status)).length, completed: bookings.filter((b: any) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b: any) => b.status === "cancelled").length };
   // Tab order: if there's an active job show Active first then Completed; otherwise show Completed first then Active.
@@ -162,7 +160,7 @@ export default function OrdersScreen() {
         {!loading && bookings.length > 0 && filtered.length === 0 ? <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testID="orders-nomatch" /> : null}
         {paged.map((b: any) => <BookingCard key={b.id} b={b} focus={!!focusCode && focusCode === b.code} a={actions} />)}
       </View>
-      <Paginator page={page} pageSize={PAGE_SIZE} total={filtered.length} onPage={setPage} testID="bk-pager" />
+      <LoadMoreFooter hasMore={hasMore} onLoadMore={loadMore} total={filtered.length} testID="bk-load-more" />
 
       {/* Mobile filter sheet */}
       <FilterSheet open={fOpen} onClose={() => setFOpen(false)} onClear={() => { clearAll(); setFOpen(false); }} onApply={() => setFOpen(false)} title="Filter bookings">

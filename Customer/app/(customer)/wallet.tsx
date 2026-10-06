@@ -1,5 +1,5 @@
 /** Wallet — 1:1 port of WalletView + WalletTopup (CustomerDashboard.jsx) + ScratchCardsPanel. */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, TextInput } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { TrendingUp, IndianRupee, Receipt, Wallet, Layers } from "lucide-react-native";
@@ -8,7 +8,7 @@ import { useToast } from "../../src/components/Toast";
 import { fmt, fmtC } from "../../src/lib/format";
 import { runPayment } from "../../src/lib/payments";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme, TC } from "../../src/theme";
-import { StatTile, StatSlider, CARD_W, EmptyState, SearchInput, OptionMenu, DateRangePicker, Paginator, inDateRange, DateRange } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, EmptyState, SearchInput, OptionMenu, DateRangePicker, LoadMoreFooter, useInfiniteList, inDateRange, DateRange } from "../../src/components/customer/ux";
 
 const TYPES = [{ value: "all", label: "All types" }, { value: "credit", label: "Credits" }, { value: "debit", label: "Debits" }];
 const ALL_RANGE: DateRange = { preset: "All", from: null, to: null };
@@ -36,9 +36,8 @@ export default function WalletScreen() {
   const { c, isDark } = useTheme();
   const { wallet, load: reload } = useCustomerData();
   const toast = useToast();
-  const [type, setType] = useState("all"); const [q, setQ] = useState(""); const [range, setRange] = useState<DateRange>(ALL_RANGE); const [page, setPage] = useState(1);
+  const [type, setType] = useState("all"); const [q, setQ] = useState(""); const [range, setRange] = useState<DateRange>(ALL_RANGE);
   const txns: any[] = wallet?.transactions || [];
-  useEffect(() => { setPage(1); }, [type, q, range]);
   const credits = txns.filter((t) => t.type === "credit").reduce((s, t) => s + Number(t.amount || 0), 0);
   const debits = txns.filter((t) => t.type === "debit").reduce((s, t) => s + Number(t.amount || 0), 0);
   const filtered = useMemo(() => {
@@ -46,7 +45,7 @@ export default function WalletScreen() {
     return txns.filter((x) => (type === "all" || x.type === type) && inDateRange(x.created_at, range) && (!t || (x.note || "").toLowerCase().includes(t) || (x.kind || "").toLowerCase().includes(t)))
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [txns, type, q, range]);
-  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const { shown: paged, hasMore, loadMore } = useInfiniteList(filtered, PAGE_SIZE, `${type}|${q}|${range.preset}|${range.from}|${range.to}`);
 
   return (
     <View testID="wallet-page">
@@ -93,7 +92,7 @@ export default function WalletScreen() {
           );
         })}
       </View>
-      <Paginator page={page} pageSize={PAGE_SIZE} total={filtered.length} onPage={setPage} testID="w-pager" />
+      <LoadMoreFooter hasMore={hasMore} onLoadMore={loadMore} total={filtered.length} testID="w-load-more" />
     </View>
   );
 }

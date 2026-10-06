@@ -9,7 +9,7 @@ import { api, API_BASE } from "../../src/api/client";
 import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
-import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, Paginator, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
+import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, LoadMoreFooter, useOnScrollEnd, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
 import { DrawerShell, Btn } from "../../src/components/customer/BookingDialogs";
 
 const money = (n: any, cur = "INR") => (cur === "INR" ? "₹" : cur + " ") + Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
@@ -51,7 +51,7 @@ export default function InvoicesScreen() {
   const toast = useToast();
   const insets = useSafeAreaInsets();
   const [data, setData] = useState<any>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState(false);
-  const [page, setPage] = useState(1); const [range, setRange] = useState("all"); const [dateFrom, setDateFrom] = useState(""); const [dateTo, setDateTo] = useState("");
+  const [items, setItems] = useState<any[]>([]); const [page, setPage] = useState(1); const [more, setMore] = useState<"idle" | "loading" | "error">("idle"); const [range, setRange] = useState("all"); const [dateFrom, setDateFrom] = useState(""); const [dateTo, setDateTo] = useState("");
   const [type, setType] = useState("all"); const [payStatus, setPayStatus] = useState("all"); const [search, setSearch] = useState(""); const [minAmount, setMinAmount] = useState(""); const [maxAmount, setMaxAmount] = useState(""); const [sort, setSort] = useState("newest");
   const [showFilters, setShowFilters] = useState(false); const [drawerInv, setDrawerInv] = useState<any>(null); const [drawerFull, setDrawerFull] = useState<any>(null);
   const [preview, setPreview] = useState<any>(null); const [emailFor, setEmailFor] = useState<any>(null); const [emailTo, setEmailTo] = useState(""); const [emailBusy, setEmailBusy] = useState(false); const [shareFor, setShareFor] = useState<any>(null);
@@ -59,15 +59,34 @@ export default function InvoicesScreen() {
   // Guard so one invoice can't fire multiple concurrent download requests to the server.
   const downloadingRef = useRef<Set<string>>(new Set());
   const [downloading, setDownloading] = useState<Record<string, boolean>>({});
-  const params = useCallback(() => {
-    const p: Record<string, string> = { page: String(page), page_size: String(PAGE_SIZE), range, invoice_type: type, payment_status: payStatus, sort };
+  const params = useCallback((pg: number) => {
+    const p: Record<string, string> = { page: String(pg), page_size: String(PAGE_SIZE), range, invoice_type: type, payment_status: payStatus, sort };
     if (search) p.search = search; if (minAmount) p.min_amount = minAmount; if (maxAmount) p.max_amount = maxAmount;
     if (range === "custom") { if (dateFrom) p.date_from = dateFrom; if (dateTo) p.date_to = dateTo; }
     return new URLSearchParams(p).toString();
-  }, [page, range, type, payStatus, sort, search, minAmount, maxAmount, dateFrom, dateTo]);
-  const load = useCallback(async () => { setLoading(true); setError(false); try { setData(await api.get(`/invoices?${params()}`)); } catch { setError(true); } finally { setLoading(false); } }, [params]);
+  }, [range, type, payStatus, sort, search, minAmount, maxAmount, dateFrom, dateTo]);
+  // Fetch one small page; retry once so slow/flaky networks still get through.
+  const fetchPage = useCallback(async (pg: number) => {
+    try { return await api.get<any>(`/invoices?${params(pg)}`, { timeoutMs: 60000 }); } catch { return await api.get<any>(`/invoices?${params(pg)}`, { timeoutMs: 60000 }); }
+  }, [params]);
+  const load = useCallback(async () => {
+    setLoading(true); setError(false); setMore("idle");
+    try { const r = await fetchPage(1); setData(r); setItems(r?.items || []); setPage(1); } catch { setError(true); } finally { setLoading(false); }
+  }, [fetchPage]);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [load]);
-  useEffect(() => { setPage(1); }, [range, type, payStatus, sort, minAmount, maxAmount, dateFrom, dateTo, search]);
+  const total = data?.total ?? items.length;
+  const hasMore = items.length < total;
+  const loadMore = async () => {
+    if (loading || more === "loading" || !hasMore) return;
+    setMore("loading");
+    try {
+      const r = await fetchPage(page + 1);
+      setItems((prev) => { const seen = new Set(prev.map((x) => x.id)); return [...prev, ...(r?.items || []).filter((x: any) => !seen.has(x.id))]; });
+      setPage(page + 1); setMore("idle");
+      if (!(r?.items || []).length) setData((d: any) => ({ ...d, total: items.length }));
+    } catch { setMore("error"); }
+  };
+  useOnScrollEnd(() => { if (more !== "error") loadMore(); });
 
   const publicUrl = async (inv: any, kind: "pdf" | "page" | "html", download = false) => { const s: any = await api.get(`/invoices/${inv.id}/share-link`); return kind === "pdf" ? `${API_BASE}${s.path}${download ? "&download=1" : ""}` : `${API_BASE}/invoices/pub/${inv.id}/${kind}?s=${s.sig}`; };
   const downloadById = async (inv: any) => {
@@ -99,7 +118,7 @@ export default function InvoicesScreen() {
     try { const r: any = await api.post(`/invoices/${emailFor.id}/email`, { to: addr }); toast.success("Invoice emailed" + (r?.sent_to ? ` → ${r.sent_to}` : "")); setEmailFor(null); } catch (e: any) { toast.error(e?.message || "Could not send email."); } finally { setEmailBusy(false); }
   };
   const resetFilters = () => { setType("all"); setPayStatus("all"); setMinAmount(""); setMaxAmount(""); };
-  const items: any[] = data?.items || []; const summary = data?.summary || {}; const cur = items[0]?.currency || "INR";
+  const summary = data?.summary || {}; const cur = items[0]?.currency || "INR";
   const activeFilterCount = useMemo(() => [type !== "all", payStatus !== "all", !!minAmount, !!maxAmount].filter(Boolean).length, [type, payStatus, minAmount, maxAmount]);
   const filteredView = !!(activeFilterCount || search || range !== "all");
   const bd = drawerFull?.breakdown; const d = drawerInv;
@@ -156,7 +175,7 @@ export default function InvoicesScreen() {
               </View>
             </Pressable>
           ))}
-          <Paginator page={data.page || page} pageSize={PAGE_SIZE} total={data.total || items.length} onPage={setPage} testID="invoice-pager" />
+          <LoadMoreFooter hasMore={hasMore} loading={more === "loading"} error={more === "error"} onLoadMore={loadMore} total={items.length} testID="invoice-load-more" />
         </View>
       )}
       {items.length > 0 ? <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8, marginTop: -8 }}><ArrowUpDown size={14} color={TC.textFaint} /><OptionMenu value={sort} options={SORTS} onChange={setSort} title="Sort by" testID="invoice-sort" /></View> : null}
