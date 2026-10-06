@@ -16,6 +16,9 @@ from services import push_dispatch
 from services import realtime as rt
 from services.gateway_resolver import GatewayConfigError
 
+# How long (hours) the customer is told their maid assignment is under admin review.
+ASSIGNMENT_SLA_HOURS = 2
+
 
 async def _service_or_404(service_id):
     s = await db.services.find_one({"id": service_id}, {"_id": 0})
@@ -96,6 +99,17 @@ async def create_subscription(user, req):
     gst_pct = float(settings.get("gst_pct") or 0)
     gst_amount = money.money(_p.get("gst") if _p.get("gst") is not None else money.pct(fin["gross"], gst_pct))
     total_payable = money.money(_p.get("total") if _p.get("total") is not None else money.add(fin["gross"], gst_amount))
+    # Guarantee a full pricing object so the invoice/cancellation engines always have
+    # the same keys a normal booking carries (Service Amount, fees, GST, commission base).
+    if not _p:
+        _p = {
+            "base": fin["gross"], "subtotal": fin["gross"], "gross_charges": fin["gross"],
+            "addons_total": 0.0, "convenience_fee": 0.0, "platform_fee": 0.0,
+            "visiting_charge": 0.0, "emergency_fee": 0.0, "surge": 0.0, "discount": 0.0,
+            "gst_pct": gst_pct, "gst": gst_amount, "tax_base": fin["gross"],
+            "commissionable_base": fin["gross"], "commission_pct": commission_pct,
+            "total": total_payable,
+        }
 
     sub = {
         "id": new_id(),
@@ -128,6 +142,9 @@ async def create_subscription(user, req):
         "tax_pct": fin["tax_pct"],
         "tax_amount": fin["tax_amount"],
         "partner_allocation": fin["partner_allocation"],
+        # Commission/cancellation config snapshot (category-wise %) — drives the invoice
+        # commission line AND the normal-booking cancellation money-math.
+        "commission_config": {"commission": settings.get("commission") or {}, "gst_pct": gst_pct},
         "working_days": fin["working_days"],
         "per_day_earning": fin["per_day_earning"],
         # ---- state ----
@@ -228,9 +245,55 @@ def _invoice_share_sig(invoice_id: str) -> str:
     return hmac.new(SECRET.encode(), f"invoice-share:{invoice_id}".encode(), hashlib.sha256).hexdigest()[:32]
 
 
+def _sub_booking_shape(sub, status="paid"):
+    """A booking-shaped dict derived from a subscription so it can flow through the
+    SAME invoice + cancellation engines a normal service booking uses (full breakdown,
+    GST block, commission split, cancellation credit-note)."""
+    pr = dict(sub.get("customer_pricing") or {})
+    if not pr:
+        gross = money.money(sub.get("price") or 0)
+        gst_amt = money.money(sub.get("gst_amount") or 0)
+        pr = {
+            "base": gross, "subtotal": gross, "gross_charges": gross, "addons_total": 0.0,
+            "convenience_fee": 0.0, "platform_fee": 0.0, "visiting_charge": 0.0,
+            "emergency_fee": 0.0, "surge": 0.0, "discount": 0.0,
+            "gst_pct": float(sub.get("gst_pct") or 0), "gst": gst_amt,
+            "tax_base": gross, "commissionable_base": money.money(sub.get("price") or 0),
+            "commission_pct": float(sub.get("commission_pct") or 0),
+            "total": money.money(sub.get("total_payable") or gross),
+        }
+    return {
+        "id": sub["id"],
+        "code": sub.get("code") or "",
+        "customer_id": sub.get("customer_id"),
+        "customer_name": sub.get("customer_name"),
+        "customer_phone": sub.get("customer_phone"),
+        "partner_id": sub.get("partner_id"),
+        "partner_name": sub.get("partner_name"),
+        "address": sub.get("address") or {},
+        "service_name": f"{sub.get('service_name')} · {sub.get('plan_label')} Subscription",
+        "category_id": sub.get("category_id") or "",
+        "category_name": sub.get("category_name") or "",
+        "pricing": pr,
+        "commission_config": sub.get("commission_config") or {},
+        "payment_status": "paid" if sub.get("payment_status") == "paid" else "pending",
+        "payment_method": "Online" if sub.get("pay_gateway") else "Wallet",
+        "status": status,
+        "notes": sub.get("notes") or "",
+        "razorpay_order_id": sub.get("razorpay_order_id"),
+        "razorpay_payment_id": sub.get("razorpay_payment_id"),
+        "pay_gateway": sub.get("pay_gateway"),
+        "pay_mode": sub.get("pay_mode"),
+        "pay_env": sub.get("pay_env"),
+        "created_at": sub.get("paid_at") or sub.get("created_at") or now_iso(),
+        "updated_at": now_iso(),
+    }
+
+
 async def _ensure_payment_invoice(sub):
     """Record the upfront subscription payment in the shared transactions ledger and
-    generate its invoice via the existing invoice pipeline (idempotent per txn)."""
+    generate a FULL booking-style Tax Invoice (same breakdown a normal service booking
+    gets: Service Amount, fees, GST block, commission, line items)."""
     txn = await db.transactions.find_one({"kind": "subscription_payment", "ref_id": sub["id"]}, {"_id": 0})
     if not txn:
         txn = {
@@ -242,7 +305,8 @@ async def _ensure_payment_invoice(sub):
         }
         await db.transactions.insert_one(dict(txn))
         txn.pop("_id", None)
-    inv = await inv_svc.ensure_transaction_invoice(txn)
+    # Full breakdown invoice (normal-booking pipeline) instead of a flat transaction doc.
+    inv = await inv_svc.ensure_booking_invoice(_sub_booking_shape(sub, status="paid"))
     if inv:
         await db.subscriptions.update_one({"id": sub["id"]}, {"$set": {"invoice_id": inv["id"]}})
     return inv
@@ -276,10 +340,12 @@ async def _activate(sub):
 async def _queue_subscription_for_admin(sub):
     """Mark a paid subscription as awaiting admin assignment and notify admins.
     Deliberately does NOT ring any partner (no full-screen job alert)."""
+    eta = (datetime.now(timezone.utc) + timedelta(hours=ASSIGNMENT_SLA_HOURS)).isoformat()
     await db.subscriptions.update_one(
         {"id": sub["id"]},
         {"$set": {"dispatch_status": "awaiting_assignment", "offered_partner_ids": [],
-                  "updated_at": now_iso()}})
+                  "assignment_status": "under_review", "assignment_eta": eta,
+                  "assignment_sla_hours": ASSIGNMENT_SLA_HOURS, "updated_at": now_iso()}})
     brief = await _sub_brief(sub)
     try:
         rt.emit_admin("subscription_new", brief)
@@ -295,6 +361,23 @@ async def _queue_subscription_for_admin(sub):
                     f"awaiting manual partner assignment.",
             "subscription_id": sub["id"], "kind": "subscription_awaiting_assignment",
             "created_at": now_iso()})
+    except Exception:  # noqa: BLE001
+        pass
+    # Tell the customer their maid assignment is under review (with the ETA).
+    try:
+        from datetime import datetime as _dt
+        _eta = _dt.fromisoformat(eta).strftime("%I:%M %p").lstrip("0")
+    except Exception:  # noqa: BLE001
+        _eta = ""
+    try:
+        rt.emit_user(sub["customer_id"], "subscription_update", {"id": sub["id"]})
+        await push_dispatch.push_to_user(
+            sub["customer_id"], "Maid assignment under review",
+            f"Payment received for {sub.get('service_name')} ({sub.get('code')}). "
+            f"We're assigning the best-fit maid"
+            + (f" — expected to be confirmed by {_eta}." if _eta else " shortly."),
+            link="/account?tab=subscriptions",
+            data={"type": "subscription_update", "subscription_id": sub["id"]})
     except Exception:  # noqa: BLE001
         pass
 
@@ -731,11 +814,62 @@ async def _rank_partners_for_sub(sub, rows):
         r["fit_score"] = round(score, 1)
         r["fit_reasons"] = reasons
         r["skill_match"] = bool(has_skill and skill)
+        r["skill_ok"] = bool(skill_ok)
+        r["nearby"] = False
         # Suggested only when BOTH the category and the customer's city match.
         r["recommended"] = bool(skill_ok and area_ok)
         ranked.append(r)
-    ranked.sort(key=lambda x: (x["recommended"], x["fit_score"], float(x.get("rating") or 0)), reverse=True)
+    # NEARBY FALLBACK: if NO maid of this category serves the customer's exact city,
+    # suggest same-category maids from nearby cities (same district > same state) and
+    # tag them "Nearby" so the admin still gets relevant suggestions.
+    if sub_city and not any(r["recommended"] for r in ranked):
+        await _apply_nearby_fallback(ranked, addr)
+    ranked.sort(key=lambda x: (x["recommended"], not x.get("nearby", False), x["fit_score"],
+                               float(x.get("rating") or 0)), reverse=True)
     return ranked
+
+
+async def _city_geo(name):
+    """(state_lower, district_lower) for a place name. Tries geo_cities first, then
+    geo_districts (partner/customer 'city' is often actually a district name)."""
+    if not name:
+        return ("", "")
+    key = name.strip().lower()
+    doc = await db.geo_cities.find_one({"name_lower": key}, {"_id": 0, "state": 1, "district": 1})
+    if doc:
+        return ((doc.get("state") or "").strip().lower(), (doc.get("district") or "").strip().lower())
+    dist = await db.geo_districts.find_one({"name_lower": key}, {"_id": 0, "state": 1, "name": 1})
+    if dist:
+        return ((dist.get("state") or "").strip().lower(), (dist.get("name") or "").strip().lower())
+    return ("", "")
+
+
+async def _apply_nearby_fallback(ranked, addr):
+    cust_state, cust_district = await _city_geo(addr.get("city"))
+    if not cust_state:
+        return
+    # Resolve each category-eligible maid's city → state/district (cached per city).
+    geo_cache = {}
+    for r in ranked:
+        if not r.get("skill_ok"):
+            continue
+        city = (r.get("city") or "").strip().lower()
+        if not city:
+            continue
+        if city not in geo_cache:
+            geo_cache[city] = await _city_geo(city)
+        p_state, p_district = geo_cache[city]
+        if cust_district and p_district == cust_district:
+            r["nearby"] = True
+            r["recommended"] = True
+            r["fit_score"] = round(r["fit_score"] + 20, 1)
+            r["fit_reasons"] = [f"Nearby · {r.get('city')}"] + r["fit_reasons"]
+        elif p_state and p_state == cust_state:
+            r["nearby"] = True
+            r["recommended"] = True
+            r["fit_score"] = round(r["fit_score"] + 10, 1)
+            r["fit_reasons"] = [f"Nearby · {r.get('city')}"] + r["fit_reasons"]
+
 
 
 async def admin_assign_partner(subscription_id, partner_id):
@@ -749,6 +883,7 @@ async def admin_assign_partner(subscription_id, partner_id):
         {"id": subscription_id},
         {"$set": {"partner_id": partner_id, "partner_name": p.get("name"),
                   "partner_phone": p.get("phone"), "dispatch_status": "assigned",
+                  "assignment_status": "assigned", "assignment_confirmed_at": now_iso(),
                   "updated_at": now_iso()},
          "$push": {"timeline": {"status": "partner_assigned", "at": now_iso(), "partner_id": partner_id}}})
     await svc.apply_accrual(subscription_id)

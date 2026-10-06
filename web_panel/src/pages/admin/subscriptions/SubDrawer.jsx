@@ -48,8 +48,11 @@ function MaidAssign({ s, partners, busy, assign }) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[13px] font-medium truncate">{p.name}</p>
-                      <p className="text-[11px] text-slate-500 truncate">{(p.skills || []).join(", ") || "no skill"}</p>
+                      <p className="text-[13px] font-medium truncate flex items-center gap-1.5">
+                        {p.name}
+                        {p.nearby && <span className="shrink-0 inline-flex items-center h-[16px] px-1 rounded bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 text-[9.5px] font-semibold uppercase tracking-wide">Nearby</span>}
+                      </p>
+                      <p className="text-[11px] text-slate-500 truncate">{(p.skills || []).join(", ") || "no skill"}{p.city ? ` · ${p.city}` : ""}</p>
                     </div>
                     <span className={`shrink-0 inline-flex items-center h-[20px] px-1.5 rounded text-[10.5px] font-semibold ring-1 ${fitTone(p.fit_score)}`}>{Math.round(p.fit_score)}% fit</span>
                   </div>

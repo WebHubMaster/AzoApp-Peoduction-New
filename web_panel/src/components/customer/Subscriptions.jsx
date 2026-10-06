@@ -5,7 +5,7 @@
  * service progress, attendance calendar, payment snapshot, maid details, invoice. */
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt } from "lucide-react";
+import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt, Clock } from "lucide-react";
 import api, { fmt, API } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -16,6 +16,20 @@ import { toast } from "sonner";
 const WD = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const WD_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const todayPlus = (d) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
+
+function etaText(iso) {
+  if (!iso) return "shortly";
+  const d = new Date(iso);
+  if (isNaN(d)) return "shortly";
+  const now = new Date();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const sameDay = d.toDateString() === now.toDateString();
+  const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+  if (d <= now) return "shortly";
+  if (sameDay) return `by ${time} today`;
+  if (d.toDateString() === tomorrow.toDateString()) return `by ${time} tomorrow`;
+  return `by ${d.toLocaleDateString([], { day: "numeric", month: "short" })}, ${time}`;
+}
 
 const DAY_META = {
   completed: { label: "Completed", chip: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
@@ -165,7 +179,7 @@ function SubCard({ s }) {
             <button onClick={copyId} data-testid={`my-sub-copy-${s.id}`} className="inline-flex items-center gap-1 text-slate-500 hover:text-primary-700 font-medium">ID: {s.code} <Copy className="h-3 w-3" /></button>
           </p>
           <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5">
-            <UserIcon className="h-3.5 w-3.5 text-slate-400" /> Maid: <span className="font-bold text-slate-800">{s.partner_name || "Assigning soon"}</span>
+            <UserIcon className="h-3.5 w-3.5 text-slate-400" /> Maid: <span className="font-bold text-slate-800">{s.partner_name || "Under review"}</span>
             {s.preferred_time ? <span className="text-slate-400">· Service time {s.preferred_time}</span> : null}
           </p>
         </div>
@@ -174,6 +188,17 @@ function SubCard({ s }) {
           <p className="font-heading font-extrabold text-2xl text-slate-900">{fmt(s.price)}</p>
         </div>
       </div>
+
+      {/* maid assignment ETA — under admin review */}
+      {s.payment_status === "paid" && !s.partner_name && (
+        <div className="mx-5 sm:mx-6 mb-1 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-3" data-testid={`my-sub-eta-${s.id}`}>
+          <span className="h-8 w-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><Clock className="h-4 w-4" /></span>
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-amber-900">Maid assignment under review</p>
+            <p className="text-[13px] text-amber-800">Our team is assigning the best-fit maid for you — expected to be confirmed <span className="font-semibold">{etaText(s.assignment_eta)}</span>. You'll get a notification once confirmed.</p>
+          </div>
+        </div>
+      )}
 
       {/* overview stat cards */}
       <div className="px-5 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid={`my-sub-overview-${s.id}`}>
@@ -277,7 +302,7 @@ function SubCard({ s }) {
                 <DetailRow k="Address" v={[addr.label, addr.line || addr.address_line, addr.city, addr.pincode].filter(Boolean).join(", ") || "—"} />
               </>
             ) : (
-              <p className="text-sm text-slate-400">A verified maid will be assigned to your subscription shortly.</p>
+              <p className="text-sm text-slate-400">Maid assignment is under review — expected to be confirmed {etaText(s.assignment_eta)}.</p>
             )}
           </div>
         </div>

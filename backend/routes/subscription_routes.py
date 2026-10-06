@@ -154,7 +154,7 @@ async def admin_resume(subscription_id: str, user=Depends(ADMIN)):
 
 @router.get("/admin/{subscription_id}/cancel-quote")
 async def admin_cancel_quote(subscription_id: str, user=Depends(ADMIN)):
-    return life.refund_quote(await life._get(subscription_id))
+    return await life.cancel_preview(await life._get(subscription_id))
 
 
 @router.post("/admin/{subscription_id}/cancel")

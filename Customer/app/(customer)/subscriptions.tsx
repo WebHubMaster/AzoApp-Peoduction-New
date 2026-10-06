@@ -15,6 +15,17 @@ import { openPreparedOrder } from "../../src/lib/payments";
 
 const ROSE = "#F43F5E";
 const money = (n: any) => "₹" + Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const etaText = (iso?: string) => {
+  if (!iso) return "shortly";
+  const d = new Date(iso); if (isNaN(d as any)) return "shortly";
+  const now = new Date();
+  const time = d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const tmr = new Date(now); tmr.setDate(now.getDate() + 1);
+  if (d <= now) return "shortly";
+  if (d.toDateString() === now.toDateString()) return `by ${time} today`;
+  if (d.toDateString() === tmr.toDateString()) return `by ${time} tomorrow`;
+  return `by ${d.toLocaleDateString([], { day: "numeric", month: "short" })}, ${time}`;
+};
 const todayPlus = (d: number) => { const t = new Date(); t.setDate(t.getDate() + d); return t.toISOString().slice(0, 10); };
 
 const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
@@ -206,6 +217,17 @@ function SubCard({ s }: { s: any }) {
         </View>
       </View>
 
+      {/* maid assignment ETA — under admin review */}
+      {s.payment_status === "paid" && !s.partner_name ? (
+        <View style={{ marginHorizontal: 14, marginBottom: 4, borderRadius: 16, borderWidth: 1, borderColor: AMBER[200], backgroundColor: AMBER[50], paddingHorizontal: 12, paddingVertical: 10, flexDirection: "row", gap: 10, alignItems: "flex-start" }}>
+          <Clock size={16} color={AMBER[700]} style={{ marginTop: 2 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: AMBER[900] ?? "#78350F", fontWeight: "800", fontSize: 13 }}>Maid assignment under review</Text>
+            <Text style={{ color: AMBER[700], fontSize: 12, marginTop: 1 }}>Our team is assigning the best-fit maid — expected to be confirmed {etaText(s.assignment_eta)}. We'll notify you once confirmed.</Text>
+          </View>
+        </View>
+      ) : null}
+
       {/* overview chips */}
       <View style={{ paddingHorizontal: 14, flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         <OverviewChip icon={IndianRupee} label="Customer Paid" value={money(s.price)} color={TC.primaryText} bg={PRIMARY[50]} />
@@ -319,7 +341,7 @@ function SubCard({ s }: { s: any }) {
                 </View>
               </>
             ) : (
-              <Text style={{ color: TC.textFaint, fontSize: 12 }}>A verified maid will be assigned to your subscription shortly.</Text>
+              <Text style={{ color: TC.textFaint, fontSize: 12 }}>Maid assignment is under review — expected to be confirmed {etaText(s.assignment_eta)}.</Text>
             )}
           </View>
         </View>

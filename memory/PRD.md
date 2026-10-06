@@ -72,3 +72,35 @@ partner offered, admin notification created; admin `/subscriptions/admin/all` sh
 admin `/assign` → assigned + partner/customer notified; partner `/accept` → 403.
 App side (Expo partner) needs no change — backend simply stops sending subscription rings.
 
+
+
+## Session (2026-06) — Subscription = normal-booking commission/tax/invoice/cancel
+User: maid subscription me bhi commission, tax, billing invoice & cancel system normal
+service booking jaisa pura breakdown ho.
+
+Changes:
+- `subscription_controller.create_subscription`: stores `commission_config`
+  `{commission: <category block>, gst_pct}` snapshot + guarantees a full `customer_pricing`
+  object (Service Amount, fees, GST, commissionable_base) even if the live quote fails.
+- New `subscription_controller._sub_booking_shape(sub, status)` → booking-shaped dict so a
+  subscription flows through the SAME invoice + cancellation engines as a normal booking.
+- `_ensure_payment_invoice` now calls `invoice_service.ensure_booking_invoice(...)` (full GST
+  Tax Invoice + Partner Receipt PDF, line items, commission, GST block) instead of a flat
+  transaction invoice.
+- `subscription_lifecycle_service`: new `_scale_pricing` (scale pricing to UNUSED fraction),
+  `_cancel_pseudo`, `cancel_preview`; `cancel()` rewritten to use the normal
+  `booking_controller._compute_cancellation` policy (partner-assigned → Customer Refund % of
+  service + proportional GST, Partner Cancellation % retained & split; no partner → full
+  refund of unused value) applied to the unused working days, then generates the normal
+  Cancellation/Adjustment credit-note via `ensure_booking_invoice` + a refund record via
+  `refund_service.initiate_refund`.
+- Route `GET /subscriptions/admin/{id}/cancel-quote` → `life.cancel_preview` (full breakdown).
+- Web admin `SubLifecycle.jsx` CancelDialog shows full normal breakdown (Service refund %,
+  Cancellation fee, GST on fee, final refund).
+
+Verified (curl + Mongo + admin UI + PDF extract): payment invoice = booking type with
+subtotal/tax/fees/commission(32%)/GST block/line items; PDF = GST TAX INVOICE + PARTNER
+RECEIPT (CGST/SGST 9%+9%, SAC codes, QR). Cancel (partner assigned, future dates) → 80%
+service refund, 20% (₹) cancellation fee to maid, GST retained, refund record processed,
+Cancellation/Adjustment credit-note invoice created. Commission stays category-wise %.
+

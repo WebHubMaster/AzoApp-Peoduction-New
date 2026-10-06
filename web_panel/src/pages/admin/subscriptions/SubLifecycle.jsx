@@ -45,11 +45,21 @@ function CancelDialog({ id, onClose, onConfirm, busy }) {
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-[420px] text-[14px]" data-testid="sub-cancel-dialog">
-        <DialogHeader><DialogTitle className="text-[17px]">Cancel subscription?</DialogTitle><DialogDescription className="text-[12.5px]">Remaining visits are cancelled. The customer is refunded pro-rata for unused working days; days already served are not refunded.</DialogDescription></DialogHeader>
+        <DialogHeader><DialogTitle className="text-[17px]">Cancel subscription?</DialogTitle><DialogDescription className="text-[12.5px]">Remaining visits are cancelled. Refund uses the same policy as a normal booking — applied to the unused working days. If a maid is assigned, a cancellation fee is retained; days already served are not refunded.</DialogDescription></DialogHeader>
         <div className="rounded-lg border border-[#E5E7EB] dark:border-slate-800 p-3 space-y-1.5" data-testid="sub-cancel-quote">
           {!q ? <p className="text-[13px] text-slate-400 flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Calculating refund…</p> : q.error ? <p className="text-[13px] text-[#B91C1C]">Could not calculate refund.</p> : (<>
             <Row l="Customer paid" v={inr(q.paid)} />
             <Row l="Working days" v={`${q.used_days} used · ${q.remaining_days} unused of ${q.working_days}`} />
+            <Row l="Refundable (unused) value" v={inr(q.original_amount)} />
+            <div className="border-t border-dashed border-slate-200 dark:border-slate-700 my-1" />
+            {q.partner_was_assigned ? (<>
+              <Row l={`Service refund (${q.refund_pct}%)`} v={inr(q.service_refund)} />
+              {Number(q.gst_refund) > 0 && <Row l="GST refund" v={inr(q.gst_refund)} />}
+              <Row l={`Cancellation fee (${q.partner_cancellation_pct}% to maid)`} v={`– ${inr(q.cancellation_fee)}`} />
+              {Number(q.cancellation_tax) > 0 && <Row l="GST on cancellation fee" v={`– ${inr(q.cancellation_tax)}`} />}
+            </>) : (
+              <Row l="No maid assigned — full refund of unused value" v={inr(q.refund_amount)} />
+            )}
             <Row l="Maid earned (settled separately)" v={inr(q.maid_earned)} />
             <div className="border-t border-dashed border-slate-200 dark:border-slate-700 my-1" />
             <Row l="Refund to customer" v={<span className="text-[#15803D]" data-testid="sub-cancel-refund">{inr(q.refund_amount)}</span>} b />

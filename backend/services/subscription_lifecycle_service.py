@@ -138,11 +138,69 @@ def refund_quote(sub: dict) -> dict:
             "maid_earned": money.money(sub.get("accrued_earning") or 0)}
 
 
+def _scale_pricing(pr: dict, frac: float) -> dict:
+    """Scale a pricing object to the UNUSED fraction of a subscription so the normal
+    cancellation engine runs on the refundable (remaining) value — already-served days
+    are never refunded. Scales every money value; leaves %/rule/label keys untouched."""
+    keep = {"gst_pct", "commission_pct", "tax_pct", "surge_rule", "membership_pct",
+            "loyalty_pct", "discount_pct", "coupon_pct"}
+    out = dict(pr or {})
+    for k, v in list(out.items()):
+        if k in keep or k.endswith("_pct") or k.endswith("_rule") or k.endswith("_code"):
+            continue
+        if isinstance(v, bool):
+            continue
+        if isinstance(v, (int, float)):
+            out[k] = money.money(float(v) * frac)
+    return out
+
+
+async def _cancel_pseudo(sub: dict):
+    """(pseudo booking scaled to unused value, remaining-days quote, fraction)."""
+    from controllers import subscription_controller as _sc
+    q = refund_quote(sub)
+    total_wd = int(q.get("working_days") or 1) or 1
+    frac = max(0.0, min(1.0, q.get("remaining_days", 0) / total_wd))
+    pseudo = _sc._sub_booking_shape(sub, status="paid")
+    pseudo["pricing"] = _scale_pricing(pseudo.get("pricing") or {}, frac)
+    return pseudo, q, frac
+
+
+async def cancel_preview(sub: dict) -> dict:
+    """Refund breakdown using the EXACT normal-booking cancellation policy applied to the
+    unused portion of the subscription (partner-assigned → Customer Refund % of service +
+    proportional GST, Partner Cancellation % retained; no partner → full refund)."""
+    from controllers.booking_controller import _compute_cancellation
+    from config.database import get_settings
+    pseudo, q, frac = await _cancel_pseudo(sub)
+    settings = await get_settings()
+    calc = _compute_cancellation(pseudo, settings, None)
+    return {
+        **q,
+        "partner_was_assigned": calc["partner_was_assigned"],
+        "refund_pct": calc["refund_pct"],
+        "refund_amount": calc["refund"],
+        "service_amount": calc["service_amount"],
+        "tax": calc["tax"],
+        "fees": calc["fees"],
+        "service_refund": calc["service_refund"],
+        "gst_refund": calc["gst_refund"],
+        "cancellation_fee": calc["cancel_charge"],
+        "cancellation_tax": calc["gst_retained"],
+        "partner_cancellation_pct": calc["partner_cancellation_pct"],
+        "retained_amount": calc["retained_amount"],
+        "original_amount": calc["original_amount"],
+        "_calc": calc,
+    }
+
+
 async def cancel(sid: str, reason: str = "") -> dict:
     sub = await _get(sid)
     if sub.get("status") not in ("active", "pending_payment"):
         raise HTTPException(status_code=400, detail=f"A {sub.get('status')} subscription cannot be cancelled")
-    q = refund_quote(sub)
+    pseudo, q, frac = await _cancel_pseudo(sub)
+    prev = await cancel_preview(sub)
+    calc = prev["_calc"]
     today = _today()
     schedule = [dict(d) for d in (sub.get("schedule") or [])]
     for d in schedule:
@@ -153,29 +211,56 @@ async def cancel(sid: str, reason: str = "") -> dict:
     await svc.apply_accrual(sid)
     sub = await _get(sid)
     refund = None
-    if q["refund_amount"] > 0:
+    refund_amt = money.money(calc.get("refund") or 0)
+    if refund_amt > 0:
         from services import refund_service
-        pseudo = {**sub, "pricing": {"total": q["paid"], "gst": sub.get("gst_amount") or 0,
-                                     "commissionable_base": sub.get("price") or 0},
-                  "service_name": f"{sub.get('service_name')} · {sub.get('plan_label')} subscription"}
-        refund = await refund_service.initiate_refund(pseudo, q["refund_amount"], reason or "Subscription cancelled by admin", {
-            "refund_pct": round(q["refund_amount"] * 100 / q["paid"], 2) if q["paid"] else 0,
-            "service_cost": sub.get("price") or 0, "tax_amount": sub.get("gst_amount") or 0})
+        refund = await refund_service.initiate_refund(
+            pseudo, refund_amt, reason or "Subscription cancelled by admin",
+            {"refund_pct": calc.get("refund_pct"),
+             "partner_cancellation_pct": calc.get("partner_cancellation_pct"),
+             "partner_cancellation_amount": calc.get("cancel_charge"),
+             "platform_commission": calc.get("cancellation_commission"),
+             "service_cost": calc.get("service_amount"),
+             "tax_amount": calc.get("tax")})
+    # Normal-booking Cancellation / Adjustment credit-note (full breakdown).
+    try:
+        from services import invoice_service as _inv
+        canc_booking = {**pseudo, "status": "cancelled",
+                        "cancellation": {**calc, "refund": refund_amt,
+                                         "original_amount": calc.get("original_amount"),
+                                         "refund_pct": calc.get("refund_pct"),
+                                         "cancel_charge": calc.get("cancel_charge"),
+                                         "partner_cancellation_pct": calc.get("partner_cancellation_pct"),
+                                         "service_refund": calc.get("service_refund"),
+                                         "gst_refund": calc.get("gst_refund"),
+                                         "partner_was_assigned": calc.get("partner_was_assigned")},
+                        "updated_at": now_iso()}
+        await _inv.ensure_booking_invoice(canc_booking)
+    except Exception as e:  # noqa: BLE001
+        print(f"[subscriptions] cancellation invoice failed for {sub.get('code')}: {e}")
     upd = {"status": "cancelled", "cancelled_at": now_iso(), "updated_at": now_iso(),
            "pause": {**(sub.get("pause") or {}), "active": False} if sub.get("pause") else None,
-           "cancellation": {"at": now_iso(), "by": "admin", "reason": reason or "", **q,
+           "cancellation": {"at": now_iso(), "by": "admin", "reason": reason or "",
+                            "paid": q.get("paid"), "working_days": q.get("working_days"),
+                            "remaining_days": q.get("remaining_days"), "used_days": q.get("used_days"),
+                            "refund_amount": refund_amt, "refund_pct": calc.get("refund_pct"),
+                            "cancellation_fee": calc.get("cancel_charge"),
+                            "partner_cancellation_pct": calc.get("partner_cancellation_pct"),
+                            "service_refund": calc.get("service_refund"), "gst_refund": calc.get("gst_refund"),
+                            "partner_was_assigned": calc.get("partner_was_assigned"),
+                            "maid_earned": q.get("maid_earned"),
                             "refund_id": (refund or {}).get("id"), "refund_status": (refund or {}).get("status")}}
-    if q["refund_amount"] > 0:
-        upd["payment_status"] = "refunded" if q["refund_amount"] >= q["paid"] else "partially_refunded"
+    if refund_amt > 0:
+        upd["payment_status"] = "refunded" if refund_amt >= money.money(q.get("paid") or 0) else "partially_refunded"
     if (sub.get("accrued_earning") or 0) > 0 and (sub.get("settlement") or {}).get("status") in (None, "none"):
         upd["settlement"] = {"status": "pending", "amount": money.money(sub.get("settlement_amount") or 0),
                              "generated_at": now_iso(), "reviewed_at": None, "approved_at": None, "paid_at": None,
                              "note": "Auto-generated on cancellation"}
     await db.subscriptions.update_one({"id": sid}, {"$set": upd, "$push": {"timeline": {"status": "cancelled", "at": now_iso()}}})
-    msg = f" ₹{q['refund_amount']} will be refunded for {q['remaining_days']} unused day(s)." if q["refund_amount"] > 0 else ""
+    msg = f" ₹{refund_amt} will be refunded." if refund_amt > 0 else ""
     await _notify(sub.get("customer_id"), "subscription_cancelled", "Subscription cancelled",
                   f"Your plan {sub.get('code')} has been cancelled.{msg}",
-                  {"name": sub.get("customer_name"), "booking_id": sub.get("code"), "amount": q["refund_amount"]})
+                  {"name": sub.get("customer_name"), "booking_id": sub.get("code"), "amount": refund_amt})
     if sub.get("partner_id"):
         await _notify(sub["partner_id"], "subscription_cancelled", "Subscription cancelled",
                       f"{sub.get('code')} has been cancelled. No further visits.", {"booking_id": sub.get("code")})
