@@ -337,12 +337,15 @@ export async function displayRescheduleRing(d: Record<string, any>, ctx: "fg" | 
   const { AndroidImportance, AndroidCategory, AndroidVisibility } = mod;
   await setupAndroidChannels();
 
-  let fsi: boolean | undefined;
-  try { fsi = (await fullScreenGranted()); } catch { /* ignore */ }
-  let did = "";
-  try { did = await deviceId(); } catch { /* ignore */ }
+  // Same delivery path as the booking ring: post the alert FIRST, diagnostics after.
   const report = (ok: boolean, m2: string, error = "") => {
-    api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi, device_id: did, src: source }).catch(() => {});
+    (async () => {
+      let fsi: boolean | undefined;
+      try { fsi = await fullScreenGranted(); } catch { /* ignore */ }
+      let did = "";
+      try { did = await deviceId(); } catch { /* ignore */ }
+      api.post("/notifications/ring-status", { ok, mode: m2, ctx, error, booking_id: d.booking_id, fsi, device_id: did, src: source }).catch(() => {});
+    })();
   };
 
   const cleanData: Record<string, string> = {};

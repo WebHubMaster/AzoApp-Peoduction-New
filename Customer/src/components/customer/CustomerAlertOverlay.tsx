@@ -80,10 +80,19 @@ export function CustomerAlertOverlay() {
     if (current) {
       startRing();
       if (current._kind === "booking") cancelBookingRing(String(current.id)).catch(() => {});
-      else cancelRescheduleRing(String(current.id)).catch(() => {});
+      // Keep the native full-screen reschedule ring while the app is not on screen.
+      else if (AppState.currentState === "active") cancelRescheduleRing(String(current.id)).catch(() => {}).finally(() => { if (ringingRef.current) playRing(); });
     } else stopAll();
     return stopAll;
   }, [current?._key, startRing, stopAll]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!current || current._kind !== "reschedule") return undefined;
+    const sub = AppState.addEventListener("change", (s) => {
+      if (s === "active") { cancelRescheduleRing(String(current.id)).catch(() => {}).finally(() => { if (ringingRef.current) playRing(); }); }
+    });
+    return () => sub.remove();
+  }, [current?._key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // SSE.
   useEffect(() => subscribe((ev) => {
