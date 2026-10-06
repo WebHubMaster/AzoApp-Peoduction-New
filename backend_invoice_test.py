@@ -9,7 +9,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://cancel-payment-issue.preview.emergentagent.com/api"
+BASE_URL = "https://reschedule-ring-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test users

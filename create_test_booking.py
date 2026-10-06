@@ -4,7 +4,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://cancel-payment-issue.preview.emergentagent.com/api"
+BASE_URL = "https://reschedule-ring-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

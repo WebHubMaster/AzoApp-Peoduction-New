@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://cancel-payment-issue.preview.emergentagent.com/api"
+BASE_URL = "https://reschedule-ring-fix.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

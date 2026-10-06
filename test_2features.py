@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://cancel-payment-issue.preview.emergentagent.com/api"
+BASE_URL = "https://reschedule-ring-fix.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

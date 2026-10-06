@@ -36,7 +36,7 @@
     "root_cause": "The Email/Push template <Modal> block (lines 898-935) is missing its conditional wrapper. Sibling modals in the same component are gated with `{modal === 'edit' && ( ... )}`, `{modal === 'suspend' && ( ... )}`, etc. — but this one was left ungated. So on the very first render, when useState(null) makes `modal === null`, the Modal is mounted anyway and its body evaluates `modal.toUpperCase()` on null, throwing synchronously during render. React unmounts the whole Person360 subtree and the app-level ErrorBoundary shows 'Something went wrong'.",
     "scope": "Affects ALL person profile views (partner, customer, merchant) — confirmed by reproducing on both a partner (Raj Kumar) and a customer row. The main agent's hypothesis that only partners crash is INCORRECT; the recently-added device-info/device-history blocks (lines 748-787) are NOT the cause — they are properly gated with `{role === 'partner' && ...}` and did not throw.",
     "reproduction_steps": [
-      "1. Open https://cancel-payment-issue.preview.emergentagent.com/login",
+      "1. Open https://reschedule-ring-fix.preview.emergentagent.com/login",
       "2. Click [data-testid=demo-admin] (one-click 'Login as Admin')",
       "3. In sidebar, expand [data-testid=navgroup-partners] then click [data-testid=nav-partners]",
       "4. Click any partner row (e.g. Raj Kumar)",
