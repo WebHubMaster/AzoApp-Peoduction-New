@@ -1,3 +1,4 @@
+/* global __dirname */
 // https://docs.expo.dev/guides/using-eslint/
 // Resilient: when this app's node_modules are absent, the requires below throw and
 // would crash the ESLint engine — fall back to a no-op config in that case.
