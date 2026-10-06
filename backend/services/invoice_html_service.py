@@ -542,14 +542,7 @@ def build_invoice_html(inv: dict) -> str:
     # (Booking Summary + Partner Earning); everything else shows the single summary.
     if partner_cancel_statement and pcs:
         totals_inner_html = (
-            f'<div class="sum-cap first">Payment Summary</div>'
-            f'<table><tbody>{_render_sum_rows(pcs["pay_rows"])}</tbody></table>'
-            f'<table class="subtotal-box"><tr><td class="tl">{_esc(pcs["booking_total"][0])}</td>'
-            f'<td class="tv">{_money(pcs["booking_total"][1], cur)}</td></tr></table>'
-            f'<table style="margin-top:8px"><tbody>{_render_sum_rows(pcs["settle_rows"])}</tbody></table>'
-            f'<table class="subtotal-box"><tr><td class="tl">{_esc(pcs["retained"][0])}</td>'
-            f'<td class="tv">{_money(pcs["retained"][1], cur)}</td></tr></table>'
-            f'<div class="sum-cap">Your Earning</div>'
+            f'<div class="sum-cap first">Your Earning</div>'
             f'<table><tbody>{_render_sum_rows(pcs["earn_rows"])}</tbody></table>'
             f'<div class="sum-cap">Earning Breakdown</div>'
             f'<table><tbody>{_render_sum_rows(pcs["brk_rows"])}</tbody></table>'

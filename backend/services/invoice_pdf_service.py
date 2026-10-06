@@ -485,10 +485,6 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
         if _re.get("platform") is not None:
             _brk.append(("AzoApp Platform Earning", _re.get("platform")))
         inner = [
-            Paragraph("PAYMENT SUMMARY", cap), _mini(_pay), Spacer(1, 4),
-            _box("Total Booking Amount", _bt, GRAYBG, blsty, bvsty), Spacer(1, 5),
-            _mini(_settle), Spacer(1, 4),
-            _box("Amount Retained", _rt, GRAYBG, blsty, bvsty), Spacer(1, 6),
             Paragraph("YOUR EARNING", cap), _mini(_earn),
             Paragraph("EARNING BREAKDOWN", cap), _mini(_brk), Spacer(1, 5),
             _box("Net Earning", _re.get("net") or 0, GREEN, nlsty, nvsty),

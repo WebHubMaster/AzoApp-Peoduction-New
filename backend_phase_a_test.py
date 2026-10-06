@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 import pytz
 
 # Configuration
-BASE_URL = "https://three-service-layout.preview.emergentagent.com/api"
+BASE_URL = "https://cancel-payment-issue.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

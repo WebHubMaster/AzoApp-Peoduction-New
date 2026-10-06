@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://three-service-layout.preview.emergentagent.com",
+  "base_url": "https://cancel-payment-issue.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

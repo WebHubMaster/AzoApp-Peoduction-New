@@ -188,6 +188,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
                 {d.payment_method ? <Row k="Payment method" v={d.payment_method} last /> : null}
               </Section>
 
+              {!(isCancel && role === "partner") && (
               <Section icon={Wallet} title="Payment Summary" testID="detail-payment">
                 {isCancel ? (
                   <>
@@ -216,6 +217,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
                   </>
                 )}
               </Section>
+              )}
 
               {d?.role_earning ? (
                 <Section icon={Percent} title={d.role_earning.role === "partner" ? "Your Earning" : "Your Commission"} testID="detail-commission">
