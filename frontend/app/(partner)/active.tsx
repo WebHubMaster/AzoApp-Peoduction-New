@@ -97,6 +97,22 @@ function JobCardShell({ children }: { children: React.ReactNode }) {
   return <View style={{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 8px 30px rgba(2,32,71,0.06)", elevation: 2 }}>{children}</View>;
 }
 
+export function JobDetailsBlock({ b }: { b: any }) {
+  const schedLabel = b.scheduled_at ? fmtDT(b.scheduled_at) : "Now";
+  const last4 = String(b.customer_phone || "").replace(/\D/g, "").slice(-4);
+  const maskedPhone = last4 ? `+91 XXXXX X${last4}` : "";
+  return (
+    <View testID={`job-details-block-${b.code}`}>
+      <View style={{ gap: 8 }}>
+        <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="account-outline" label="Customer" value={b.customer_name} /><InfoItem icon="wrench-outline" label="Service" value={b.service_name} /></View>
+        <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="calendar-clock-outline" label="Schedule" value={schedLabel} /><InfoItem icon="check-circle-outline" label="Job value" value={fmt(b.breakdown?.total || b.total || b.pricing?.total || 0)} /></View>
+      </View>
+      <ServiceBreakdown booking={b} />
+      {maskedPhone ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}><Icon name="phone-outline" size={14} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 12 }}>{maskedPhone} <Text style={{ color: "#CBD5E1" }}>· number protected</Text></Text></View> : null}
+    </View>
+  );
+}
+
 function InfoItem({ icon, label, value }: { icon: MdiName; label: string; value?: string }) {
   const { colors } = useTheme();
   return (
@@ -436,9 +452,6 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
   const inProgress = status === "started";
   const a = b.address || {};
   const det = (b.eligible_detail || {})[b.partner_id] || {};
-  const schedLabel = b.scheduled_at ? fmtDT(b.scheduled_at) : "Now";
-  const last4 = String(b.customer_phone || "").replace(/\D/g, "").slice(-4);
-  const maskedPhone = last4 ? `+91 XXXXX X${last4}` : "";
 
   // Unread chat badge — server-side read receipts (synced with web).
   const unseen = useChatUnread(b.id);
@@ -642,12 +655,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
 
         {/* Job & customer details */}
         <Collapse title="Job & customer details" icon="account-outline" testID={`details-collapse-${b.code}`}>
-          <View style={{ gap: 8 }}>
-            <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="account-outline" label="Customer" value={b.customer_name} /><InfoItem icon="wrench-outline" label="Service" value={b.service_name} /></View>
-            <View style={{ flexDirection: "row", gap: 8 }}><InfoItem icon="calendar-clock-outline" label="Schedule" value={schedLabel} /><InfoItem icon="check-circle-outline" label="Job value" value={fmt(b.breakdown?.total || b.total || b.pricing?.total || 0)} /></View>
-          </View>
-          <ServiceBreakdown booking={b} />
-          {maskedPhone ? <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}><Icon name="phone-outline" size={14} color={SLATE400} /><Text style={{ color: SLATE400, fontSize: 12 }}>{maskedPhone} <Text style={{ color: "#CBD5E1" }}>· number protected</Text></Text></View> : null}
+          <JobDetailsBlock b={b} />
         </Collapse>
 
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}

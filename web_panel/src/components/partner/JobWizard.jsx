@@ -8,6 +8,7 @@ import VideoCapture from "@/components/partner/VideoCapture";
 import { RateCardModal } from "@/components/RateCardModal";
 import { StatusBadge } from "@/components/partner/ui/kit";
 import { isVideoUrl } from "@/components/WorkProof";
+import JobDetailsBlock from "@/components/partner/JobDetailsBlock";
 
 export const MAX_PROOF_FILES = 5;
 const CHUNK = 700 * 1024;
@@ -117,35 +118,17 @@ function ProofGrid({ items, onPhoto, onVideo, onRemove, busy, progress, testid, 
 
 const Card = ({ children, className = "", testid }) => <div data-testid={testid} className={`rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 ${className}`}>{children}</div>;
 const Title = ({ icon: Icon, children }) => <p className="text-[11.5px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 mb-2.5"><Icon className="h-3.5 w-3.5" /> {children}</p>;
-const KV = ({ label, value }) => <div className="rounded-xl bg-slate-50 dark:bg-slate-800/50 p-3"><p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p><p className="text-[13.5px] font-bold text-slate-800 dark:text-slate-100 mt-0.5">{value || "—"}</p></div>;
 
 function DetailsStep({ b }) {
   const [tlOpen, setTlOpen] = useState(false);
   const a = b.address || {};
-  const items = b.breakdown?.service_items || [];
-  const bd = b.breakdown || {};
-  const pay = b.payment || {};
   const timeline = b.timeline || [];
   const dest = a.lat && a.lng ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""}`);
   return (
     <>
       <Card testid="wizard-details">
-        <Title icon={ClipboardList}>Job information</Title>
-        <div className="grid grid-cols-2 gap-2">
-          <KV label="Service" value={b.service_name} /><KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Category" value={b.category_name || b.category} /><KV label="Status" value={String(b.status || "").replace(/_/g, " ")} />
-          <KV label="Job timing" value={b.schedule?.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} /><KV label="Booked on" value={fmtDT(b.created_at)} />
-          <KV label="Job value" value={fmt(bd.total || b.total || 0)} /><KV label="Payment" value={`${String(pay.method || b.payment_method || "online").toUpperCase()} · ${pay.status || b.payment_status || "pending"}`} />
-          {b.checkin?.at && <KV label="Checked in" value={fmtDT(b.checkin.at)} />}
-          {b.checkin?.distance_km != null && <KV label="Distance at check-in" value={`~${b.checkin.distance_km} km`} />}
-        </div>
-        {items.length > 0 && (
-          <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800">
-            {items.map((it, i) => <div key={i} className="flex justify-between px-3 py-2 text-[13px]"><span className="text-slate-700 dark:text-slate-200">{it.name || it.service_name || "Service"}{Number(it.qty) > 1 ? ` × ${it.qty}` : ""}</span><b className="text-slate-900 dark:text-white">{fmt(it.amount ?? it.price ?? 0)}</b></div>)}
-            {Number(bd.additional_total || b.additional?.total) > 0 && <div className="flex justify-between px-3 py-2 text-[13px]"><span className="text-slate-700 dark:text-slate-200">Additional work</span><b className="text-slate-900 dark:text-white">{fmt(bd.additional_total || b.additional?.total)}</b></div>}
-          </div>
-        )}
-        {b.notes && <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 p-2.5 text-[12.5px] text-amber-800 dark:text-amber-200">{b.notes}</div>}
+        <Title icon={ClipboardList}>Job details</Title>
+        <JobDetailsBlock b={b} />
       </Card>
       <Card testid="wizard-customer">
         <Title icon={UserIcon}>Customer details</Title>

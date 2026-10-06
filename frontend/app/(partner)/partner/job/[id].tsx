@@ -19,6 +19,7 @@ import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@
 import { OtpBoxes, ProofGrid, captureProofPhoto, captureProofVideo, ensureCamera } from "@/src/components/partner/JobProof";
 import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
 import { SelfieCamera } from "@/src/components/partner/SelfieCamera";
+import { JobDetailsBlock } from "../../active";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -195,65 +196,17 @@ function SectionTitle({ icon, title }: { icon: MdiName; title: string }) {
   const { colors } = useTheme();
   return <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 10 }}><Icon name={icon} size={15} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11.5, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>{title}</Text></View>;
 }
-function KV({ label, value }: { label: string; value?: string }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flex: 1, minWidth: "45%", borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
-      <Text style={{ color: SLATE400, fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</Text>
-      <Text style={{ color: colors.text, fontSize: 13.5, fontWeight: "700", marginTop: 3 }}>{value || "—"}</Text>
-    </View>
-  );
-}
-
 /* ── Step 1: Details ── */
 function DetailsStep({ b }: { b: any }) {
   const { colors } = useTheme();
   const [tlOpen, setTlOpen] = useState(false);
   const a = b.address || {};
-  const items: any[] = b.breakdown?.service_items || [];
-  const bd = b.breakdown || {};
-  const pay = b.payment || {};
-  const sched = b.schedule || {};
   const timeline: any[] = b.timeline || [];
-  const statusLabel = String(b.status || "").replace(/_/g, " ");
   return (
     <>
       <Card testID="wizard-details">
-        <SectionTitle icon="clipboard-text-outline" title="Job information" />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-          <KV label="Service" value={b.service_name} />
-          <KV label="Job ID" value={`#${b.code}`} />
-          <KV label="Category" value={b.category_name || b.category || "—"} />
-          <KV label="Status" value={statusLabel} />
-          <KV label="Job timing" value={sched.scheduled_label || (b.scheduled_at ? fmtDT(b.scheduled_at) : "Now")} />
-          <KV label="Booked on" value={fmtDT(b.created_at)} />
-          <KV label="Job value" value={fmt(bd.total || b.total || 0)} />
-          <KV label="Payment" value={`${(pay.method || b.payment_method || "online").toString().toUpperCase()} · ${pay.status || b.payment_status || "pending"}`} />
-          {b.checkin?.at ? <KV label="Checked in" value={fmtDT(b.checkin.at)} /> : null}
-          {b.checkin?.distance_km != null ? <KV label="Distance at check-in" value={`~${b.checkin.distance_km} km`} /> : null}
-        </View>
-        {items.length ? (
-          <View style={{ marginTop: 12, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }}>
-            {items.map((it, i) => (
-              <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: i ? 1 : 0, borderTopColor: colors.border }}>
-                <Text style={{ color: colors.text, fontSize: 13, flex: 1 }}>{it.name || it.service_name || "Service"}{num(it.qty) > 1 ? ` × ${it.qty}` : ""}</Text>
-                <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{fmt(it.amount ?? it.price ?? 0)}</Text>
-              </View>
-            ))}
-            {num(bd.additional_total || b.additional?.total) > 0 ? (
-              <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 9, borderTopWidth: 1, borderTopColor: colors.border }}>
-                <Text style={{ color: colors.text, fontSize: 13 }}>Additional work</Text>
-                <Text style={{ color: colors.text, fontSize: 13, fontWeight: "700" }}>{fmt(bd.additional_total || b.additional?.total)}</Text>
-              </View>
-            ) : null}
-          </View>
-        ) : null}
-        {b.notes ? (
-          <View style={{ marginTop: 12, backgroundColor: "#FFFBEB", borderRadius: 6, padding: 10, flexDirection: "row", gap: 8 }}>
-            <Icon name="note-text-outline" size={16} color="#B45309" />
-            <Text style={{ color: "#92400E", fontSize: 12.5, flex: 1, lineHeight: 18 }}>{b.notes}</Text>
-          </View>
-        ) : null}
+        <SectionTitle icon="clipboard-text-outline" title="Job details" />
+        <JobDetailsBlock b={b} />
       </Card>
       <Card testID="wizard-customer">
         <SectionTitle icon="account-outline" title="Customer details" />

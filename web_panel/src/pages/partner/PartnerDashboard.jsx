@@ -15,7 +15,7 @@ import IncomingJobRing from "@/components/partner/IncomingJobRing";
 import RescheduleRing from "@/components/booking/RescheduleRing";
 import PartnerAlertsPanel from "@/components/partner/PartnerAlertsPanel";
 import MissedRingRecovery from "@/components/partner/MissedRingRecovery";
-import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
+import JobDetailsBlock from "@/components/partner/JobDetailsBlock";
 import { VerificationSection, SkillsSection, IncentivesSection, TrainingSection, AvailabilitySection } from "@/pages/partner/PartnerModule3";
 import { ChallengesRewards } from "@/pages/partner/ChallengesRewards";
 import PartnerSubscriptions from "@/pages/partner/PartnerSubscriptions";
@@ -351,11 +351,6 @@ const ActiveJob = ({ b, onUpdate }) => {
   const dest = hasGeo ? `${a.lat},${a.lng}` : encodeURIComponent(`${a.line || ""}, ${a.city || ""} ${a.pincode || ""}`);
   const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${dest}`;
   const det = (b.eligible_detail || {})[b.partner_id] || {};
-  const schedLabel = b.scheduled_at
-    ? new Date(b.scheduled_at).toLocaleString("en-IN", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
-    : "Now";
-  const last4 = String(b.customer_phone || "").replace(/\D/g, "").slice(-4);
-  const maskedPhone = last4 ? `+91 XXXXX X${last4}` : "";
   const startedAt = (b.timeline || []).filter((t) => ["started", "in_progress"].includes(t.status)).map((t) => t.at).pop();
   const elapsedMs = startedAt ? Math.max(0, nowTs - new Date(startedAt).getTime()) : 0;
   const es = Math.floor(elapsedMs / 1000);
@@ -520,17 +515,7 @@ const ActiveJob = ({ b, onUpdate }) => {
 
         {/* Job & customer details (collapsible) */}
         <Collapse title="Job & customer details" icon={UserIcon} testid={`details-collapse-${b.code}`}>
-          <div className="grid grid-cols-2 gap-2">
-            <InfoItem icon={UserIcon} label="Customer" value={b.customer_name} />
-            <InfoItem icon={Wrench} label="Service" value={b.service_name} />
-            <InfoItem icon={CalendarClock} label="Schedule" value={schedLabel} />
-            <InfoItem icon={CheckCircle2} label="Job value" value={fmt((b.breakdown && b.breakdown.total) || b.total || (b.pricing && b.pricing.total) || 0)} />
-          </div>
-          {/* Point #9 — every service + add-on in this order, itemised (excl. GST) +
-              applicable Visiting/Emergency charges + Total Service Amount (excl. GST) */}
-          <ServiceBreakdown booking={b} fmt={fmt} className="mt-3" showCharges hidePlatformFees
-            title="Services to do" compact />
-          {maskedPhone && <p className="text-[12px] text-slate-400 mt-2 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {maskedPhone} <span className="text-slate-300 dark:text-slate-600">· number protected</span></p>}
+          <JobDetailsBlock b={b} />
         </Collapse>
 
         {/* Job timeline (collapsible) */}
