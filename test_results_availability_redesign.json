@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://admin-manual-assign.preview.emergentagent.com",
+  "base_url": "https://tiered-job-alerts.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

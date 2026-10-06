@@ -1296,10 +1296,20 @@ async def _dispatch_settings():
             return max(1, int(bc.get(key, default) or default))
         except (TypeError, ValueError):
             return default
+    def _int0(key, default):
+        v = bc.get(key, default)
+        if v is None or v == "":
+            v = default
+        try:
+            return max(0, int(v))
+        except (TypeError, ValueError):
+            return default
     return {
         "wave_size": _int("dispatch_wave_size", DISPATCH_WAVE_SIZE),
         "ttl_sec": _int("dispatch_offer_ttl_sec", DISPATCH_OFFER_TTL_SEC),
         "max_waves": _int("dispatch_max_waves", DISPATCH_MAX_WAVES),
+        # Free partners are alerted this many seconds AFTER Pro partners. 0 = no delay.
+        "free_alert_delay_sec": _int0("free_partner_alert_delay_sec", 0),
         # Nearby-area fallback ring: on by default, radius shared with admin manual assign.
         "nearby_wave": bool(bc.get("dispatch_nearby_wave", True)),
         "nearby_km": float(bc.get("nearby_assign_radius_km") or bc.get("max_distance_km") or 15),
@@ -1358,6 +1368,73 @@ async def _nearby_candidates(booking, radius_km):
     return [x for x in out if x["id"] in keep]
 
 
+async def _partner_pro_rating(pids):
+    """Map partner_id -> (is_pro, rating) for the given ids. Pro = Starter-Kit
+    purchased (premium_partner)."""
+    ids = [p for p in (pids or []) if p]
+    if not ids:
+        return {}
+    docs = await db.users.find(
+        {"id": {"$in": ids}},
+        {"_id": 0, "id": 1, "premium_partner": 1, "starter_kit": 1, "rating": 1}).to_list(2000)
+    out = {}
+    for d in docs:
+        is_pro = bool(d.get("premium_partner") or (d.get("starter_kit") or {}).get("purchased"))
+        try:
+            rating = float(d.get("rating", 5) or 0)
+        except (TypeError, ValueError):
+            rating = 0.0
+        out[d["id"]] = (is_pro, rating)
+    return out
+
+
+async def _split_pro_free(pids):
+    """Split a partner-id list into (pro, free), EACH ordered by rating DESC so the
+    highest-rated partner in each group is alerted first. (Rating-Based Alert Order)"""
+    info = await _partner_pro_rating(pids)
+    pro = [p for p in pids if info.get(p, (False, 0.0))[0]]
+    free = [p for p in pids if not info.get(p, (False, 0.0))[0]]
+    pro.sort(key=lambda p: info.get(p, (False, 0.0))[1], reverse=True)
+    free.sort(key=lambda p: info.get(p, (False, 0.0))[1], reverse=True)
+    return pro, free
+
+
+async def _release_free_alerts(booking_id):
+    """Fire the delayed Free-Partner job alert once the Pro head-start has elapsed."""
+    b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+    if not b:
+        return
+    pending = b.get("free_alert_pending_ids") or []
+    if not pending:
+        return
+    if b.get("status") != "searching":
+        # Already accepted / cancelled — just drop the hold, nobody else to ring.
+        await db.bookings.update_one(
+            {"id": booking_id},
+            {"$unset": {"free_alert_pending_ids": "", "free_alert_release_at": ""}})
+        return
+    # Re-check who is still online + free right now; preserves the rating order.
+    live = await MatchingEngine.available_targets(pending, b)
+    if live:
+        await _offer_partners(b, live, "auto_broadcast_free_delayed")
+    await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"dispatch_last_wave_at": now_iso()},
+         "$unset": {"free_alert_pending_ids": "", "free_alert_release_at": ""}})
+
+
+async def _release_free_alerts_later(booking_id, delay):
+    import asyncio
+    try:
+        await asyncio.sleep(max(0, int(delay)))
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        await _release_free_alerts(booking_id)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 async def _offer_partners(booking, pids, source):
     """Send the full job alert (in-app notification + SSE ring + FCM data push +
     dispatch-feed record) to a specific set of partners, and mark them offered.
@@ -1383,17 +1460,34 @@ async def _offer_partners(booking, pids, source):
 
 async def _next_wave_targets(booking, wave_size):
     """Compute the next batch of partners to alert: still-eligible, ONLINE + FREE
-    right now, NOT already offered, NOT rejected — in nearest/best-first order."""
+    right now, NOT already offered, NOT rejected — grouped Pro-then-Free and, within
+    each group, ordered by rating (highest first)."""
     from services.engines import MatchingEngine
     ordered = booking.get("eligible_partner_ids", []) or []
     rejected = set(booking.get("rejected_partner_ids", []))
     offered = set(booking.get("offered_partner_ids", []))
     pool = [pid for pid in ordered if pid not in offered and pid not in rejected]
+    # Free-Partner alerts still inside the Pro head-start window are NOT offered yet
+    # (the delayed-release task / this booking's timer handles them).
+    pending = booking.get("free_alert_pending_ids") or []
+    if pending:
+        rel = booking.get("free_alert_release_at")
+        held = True
+        if rel:
+            try:
+                held = datetime.now(timezone.utc) < datetime.fromisoformat(str(rel).replace("Z", "+00:00"))
+            except Exception:  # noqa: BLE001
+                held = True
+        if held:
+            pend_set = set(pending)
+            pool = [pid for pid in pool if pid not in pend_set]
     if not pool:
         return []
     # available_targets re-checks online + FREE FOR THIS BOOKING'S SLOT and preserves order
     live = await MatchingEngine.available_targets(pool, booking)
-    return live[:max(1, int(wave_size))]
+    pro, free = await _split_pro_free(live)
+    ordered_live = pro + free
+    return ordered_live[:max(1, int(wave_size))]
 
 
 async def _broadcast_new_job(booking):
@@ -1413,13 +1507,27 @@ async def _broadcast_new_job(booking):
     brief = _job_brief({**booking, "status": "searching"})
     rt.emit_admin("job_new", brief)
     # WAVE 1 — nearest/best partners who are online + free right now. (spec 3,11,16,19)
+    # Pro Partners (Starter-Kit) are alerted immediately; Free Partners after the
+    # admin-configured delay. If there are no Pro Partners, Free get it immediately.
+    import asyncio
     cfg = await _dispatch_settings()
     fresh = booking.get("id") and await _next_wave_targets(booking, cfg["wave_size"])
     if fresh:
-        await _offer_partners(booking, fresh, "auto_broadcast")
-        await db.bookings.update_one(
-            {"id": booking["id"]},
-            {"$set": {"dispatch_wave": 1, "dispatch_last_wave_at": now_iso()}})
+        pro, free = await _split_pro_free(fresh)
+        delay = cfg["free_alert_delay_sec"]
+        if pro and free and delay > 0:
+            await _offer_partners(booking, pro, "auto_broadcast_pro")
+            release_at = (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat()
+            await db.bookings.update_one(
+                {"id": booking["id"]},
+                {"$set": {"dispatch_wave": 1, "dispatch_last_wave_at": now_iso(),
+                          "free_alert_pending_ids": free, "free_alert_release_at": release_at}})
+            asyncio.create_task(_release_free_alerts_later(booking["id"], delay))
+        else:
+            await _offer_partners(booking, pro + free, "auto_broadcast")
+            await db.bookings.update_one(
+                {"id": booking["id"]},
+                {"$set": {"dispatch_wave": 1, "dispatch_last_wave_at": now_iso()}})
     elif booking.get("id"):
         # Nobody free in the customer's own area right now → try the nearby ring at once.
         try:
@@ -3907,6 +4015,39 @@ async def cancel_booking(customer, booking_id, reason=""):
     return out
 
 
+async def _apply_rating_actions(partner_id, avg):
+    """Rating-risk automation. When a partner's average rating drops to 4.4 or
+    below, auto-suspend their profile for the admin-configured number of days; it
+    reactivates automatically via the suspend sweep. (The <=4.6 'Your ID is at
+    risk' warning banner is computed live in enrich_user, so needs no stored flag.)"""
+    if avg is None or avg > 4.4:
+        return
+    try:
+        s = await get_settings()
+        bc = (s or {}).get("business_config", {}) or {}
+        days = int(bc.get("rating_suspension_days") or 0)
+    except Exception:  # noqa: BLE001
+        days = 0
+    if days <= 0:
+        days = 7  # sane default when the admin hasn't configured one
+    u = await db.users.find_one({"id": partner_id}, {"_id": 0, "suspended": 1, "name": 1})
+    if not u or u.get("suspended"):
+        return  # already suspended — don't reset the clock
+    until = datetime.now(timezone.utc) + timedelta(days=days)
+    await db.users.update_one({"id": partner_id}, {"$set": {
+        "suspended": True,
+        "suspend_reason": f"Average rating dropped to {avg} (auto-suspension)",
+        "suspend_until": until.isoformat(), "suspend_days": days,
+        "suspended_at": now_iso(), "suspended_by": "system",
+        "rating_suspended": True, "partner_status": "offline"}})
+    try:
+        await _notify(partner_id, "Account suspended",
+                      f"Your average rating dropped to {avg}. Your profile is suspended "
+                      f"for {days} day(s) and will reactivate automatically.")
+    except Exception:  # noqa: BLE001
+        pass
+
+
 async def add_review(customer, booking_id, req):
     b = await _get_booking(booking_id)
     _authorize(customer, b)
@@ -3924,8 +4065,14 @@ async def add_review(customer, booking_id, req):
                                      {"_id": 0, "review": 1}).to_list(1000)
         ratings = [x["review"]["rating"] for x in agg]  # already includes this review
         if ratings:
+            avg = round(sum(ratings) / len(ratings), 1)
             await db.users.update_one({"id": b["partner_id"]},
-                                      {"$set": {"rating": round(sum(ratings) / len(ratings), 1)}})
+                                      {"$set": {"rating": avg}})
+            # Auto-suspend when the average rating drops to 4.4 or below.
+            try:
+                await _apply_rating_actions(b["partner_id"], avg)
+            except Exception:
+                pass
         # Streak Bonuses + Auto Payout: update the consecutive 5-star streak
         # (auto-credits a growing bonus at each milestone), then re-check
         # incentives since the new rating may have unlocked one.

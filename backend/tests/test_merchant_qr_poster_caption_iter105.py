@@ -14,7 +14,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://admin-manual-assign.preview.emergentagent.com",
+    "https://tiered-job-alerts.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -44,7 +44,7 @@ CAPTION_MULTILINE = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link to book now:\n"
-    "https://admin-manual-assign.preview.emergentagent.com/?ref=XZ6SV49"
+    "https://tiered-job-alerts.preview.emergentagent.com/?ref=XZ6SV49"
 )
 
 

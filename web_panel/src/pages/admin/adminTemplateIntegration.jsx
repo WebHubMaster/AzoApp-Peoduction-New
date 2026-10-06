@@ -1737,6 +1737,8 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
     min_labour_charge: biz.min_labour_charge ?? "",
     cos_enabled: biz.cos_enabled !== false,
     reminder_lead_minutes: biz.reminder_lead_minutes ?? 30,
+    free_partner_alert_delay_sec: biz.free_partner_alert_delay_sec ?? 0,
+    rating_suspension_days: biz.rating_suspension_days ?? 7,
   });
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
@@ -1757,6 +1759,8 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           min_labour_charge: Number(f.min_labour_charge) || 0,
           cos_enabled: !!f.cos_enabled,
           reminder_lead_minutes: Number(f.reminder_lead_minutes) || 30,
+          free_partner_alert_delay_sec: Math.max(0, Number(f.free_partner_alert_delay_sec) || 0),
+          rating_suspension_days: Math.max(0, Number(f.rating_suspension_days) || 0),
         },
       });
       toast.success("Business settings saved"); onSaved();
@@ -1813,6 +1817,16 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
               </PremiumSelect>
             </L>
             <p className="text-[11px] text-slate-400 mt-1">Full-screen reminder ring + Call/Chat/Navigation &amp; OTP unlock fire this many minutes before a scheduled job starts.</p>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100">
+            <L label="Free Partner Alert Delay (seconds)"><Input data-testid="biz-free-alert-delay" type="number" min="0" value={f.free_partner_alert_delay_sec} onChange={(e) => set("free_partner_alert_delay_sec", e.target.value)} placeholder="e.g. 30" /></L>
+            <p className="text-[11px] text-slate-400 mt-1">Pro Partners (Starter Kit) are alerted to a new job instantly. Free Partners receive the same alert this many seconds later. If no Pro Partner serves the area, Free Partners are alerted immediately.</p>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100">
+            <L label="Rating Suspension Duration (days)"><Input data-testid="biz-rating-suspension-days" type="number" min="0" value={f.rating_suspension_days} onChange={(e) => set("rating_suspension_days", e.target.value)} placeholder="e.g. 7" /></L>
+            <p className="text-[11px] text-slate-400 mt-1">When a partner's average rating drops to 4.4 or below, their profile is auto-suspended for this many days, then reactivates automatically.</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-3">

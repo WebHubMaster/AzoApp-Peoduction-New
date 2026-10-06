@@ -15,7 +15,7 @@ import { Skeleton } from "@/src/components/ui";
 import { MissedRingRecovery } from "@/src/components/partner/home/MissedRingRecovery";
 import { MaidTasksCard } from "@/src/components/partner/home/MaidTasksCard";
 import { PermissionBanner } from "@/src/components/PermissionBanner";
-import { ProPerks, OnboardingBanner } from "@/src/components/partner/home/HomeBanners";
+import { ProPerks, OnboardingBanner, RiskBanner } from "@/src/components/partner/home/HomeBanners";
 import { EarningsHero, RangeFilter } from "@/src/components/partner/home/EarningsHero";
 import { HeaderCard, PriorityAction, WalletCard, KpiGrid, TrendCard, PerformanceCard, GrowthCard, RecentJobs, QuickActions, NavKey } from "@/src/components/partner/home/HomeSections";
 import { TestRingCard, SnoozeCard, StreakCard, MissedRequestsCard } from "@/src/components/partner/home/AlertsPanel";
@@ -137,6 +137,7 @@ export default function PartnerHome() {
       >
         <MissedRingRecovery />
         <PermissionBanner />
+        {user?.rating_at_risk ? <RiskBanner /> : null}
         {isPro ? <ProPerks label={user?.partner_badge || kit?.badge_label || "AzoApp Pro"} /> : null}
         {showOnboarding ? <OnboardingBanner onPress={() => nav("onboarding")} /> : null}
 

@@ -330,10 +330,10 @@ async def startup():
                     {"suspended": True, "suspend_until": {"$lte": now}},
                     {"$set": {"suspended": False}, "$unset": {
                         "suspend_reason": "", "suspend_until": "", "suspend_days": "",
-                        "suspended_at": "", "suspended_by": ""}})
+                        "suspended_at": "", "suspended_by": "", "rating_suspended": ""}})
             except Exception as e:  # noqa: BLE001
                 logger.warning("suspend sweep error: %s", e)
-            await asyncio.sleep(300)  # every 5 minutes
+            await asyncio.sleep(60)  # every minute (near-exact auto-reactivation)
 
     try:
         asyncio.create_task(_suspend_sweep())

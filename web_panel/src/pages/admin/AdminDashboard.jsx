@@ -25,6 +25,7 @@ import RateCardsManager from "@/pages/admin/RateCardsManager";
 import StarterKitManager from "@/pages/admin/StarterKitManager";
 import KycApprovals from "@/pages/admin/KycApprovals";
 import PeopleList from "@/pages/admin/people/PeopleList";
+import SuspendedPartners from "@/pages/admin/SuspendedPartners";
 import Person360 from "@/pages/admin/people/Person360";
 import TransactionsHub from "@/pages/admin/TransactionsHub";
 import RegistrationFeeReport from "@/pages/admin/RegistrationFeeReport";
@@ -97,6 +98,7 @@ const NAV = [
   { group: "Partners", icon: Wrench, items: [
     { key: "partners", label: "Partners", icon: Wrench },
     { key: "kyc_approvals", label: "KYC Approvals", icon: ShieldCheck },
+    { key: "suspended_partners", label: "Suspended Partners", icon: ShieldAlert },
     { key: "pro_partners", label: "Pro Partner", icon: Crown },
     { key: "area_partners", label: "Area Partner", icon: MapPin },
     { key: "registration_fee", label: "Registration Fee", icon: IndianRupee },
@@ -226,11 +228,10 @@ const KEY_MODULE = (() => {
   });
   return m;
 })();
-const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pro_partners","merchants","customers","app_home",
+const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pro_partners","suspended_partners","merchants","customers","app_home",
   "authcfg","addresscfg","deletions","categories","subcategories","services","addons","custom_jobs","ratings","homepage","media","branding","rate_cards",
   "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","banners","blogs","testimonials","starter_kit_admin",
-  "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",
-  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
+  "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
   "service_requests","checklists","service_areas","launch_demand","coverage_map","partner_jobs","partner_performance","merchant_verification",
   "merchant_services","merchant_orders","merchant_settlements","taxes","settlements","fin_reports","offers","pages",
   "seo_dashboard","global_seo","category_seo","service_seo","sitemap","schema","redirects","channels",
@@ -320,6 +321,7 @@ export default function AdminDashboard() {
     custom_jobs: "Custom Job Requests",
     kyc_approvals: "KYC Approvals",
     pro_partners: "Pro Partners (AzoApp Pro)",
+    suspended_partners: "Suspended Partners",
     commission: "Rate Card & Commission Rules", category_commission: "Commission & Refund", price_manager: "Price Manager", customers: "Customers", ledger: "Transactions & Ledger",
     surge: "Surge Rules", launch_demand: "Launch Demand", coverage_map: "Coverage Map",
     coupons: "Promo Codes", notifications: "Notifications", tickets: "User Queries", banners: "Sliders / Banners",
@@ -371,6 +373,7 @@ export default function AdminDashboard() {
       {active === "refunds" && <RefundsHub />}
       {active === "partners" && <PeopleList role="partner" onView={setViewUser} onCountsChanged={loadDots} />}
       {active === "kyc_approvals" && <KycApprovals />}
+      {active === "suspended_partners" && <SuspendedPartners />}
       {active === "pro_partners" && <PeopleList role="partner" pro onView={setViewUser} onCountsChanged={loadDots} />}
       {active === "area_partners" && <AreaPartners onView={setViewUser} />}
       {active === "registration_fee" && <RegistrationFeeReport onView={setViewUser} />}

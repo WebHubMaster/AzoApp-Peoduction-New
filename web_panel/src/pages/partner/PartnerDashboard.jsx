@@ -166,6 +166,15 @@ export default function PartnerDashboard() {
     <PanelLayout title="Partner" nav={partnerNav} active={active} onNavigate={setActive}
       appMode primaryTabs={PARTNER_TABS} badges={{ jobs: jobs.length, active: activeJobs.length }}>
       <OnboardingTour />
+      {user?.rating_at_risk ? (
+        <div data-testid="rating-risk-banner" className="mb-4 flex items-center gap-3 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
+          <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+          <div>
+            <p className="font-bold text-sm">Your ID is at risk.</p>
+            <p className="text-xs opacity-80">Your average rating has dropped. Improve it to stay active — profiles rated 4.4 or below are suspended automatically.</p>
+          </div>
+        </div>
+      ) : null}
       <div className={`${active === "home" ? "hidden" : active === "invoices" ? "hidden" : "hidden lg:flex"} items-center justify-between mb-6`}>
         <div>
           {active === "home" ? (

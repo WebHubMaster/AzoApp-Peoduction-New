@@ -1837,11 +1837,35 @@ async def unsuspend_partner(admin, pid):
     aid, aname = _actor(admin)
     await db.users.update_one({"id": pid}, {"$set": {"suspended": False}, "$unset": {
         "suspend_reason": "", "suspend_until": "", "suspend_days": "",
-        "suspended_at": "", "suspended_by": ""}})
+        "suspended_at": "", "suspended_by": "", "rating_suspended": ""}})
     await activity_service.log("admin", aid, aname, "partner.unsuspended",
                                f"{u.get('name')} re-activated by admin",
                                target_id=pid, target_role="partner")
     return await db.users.find_one({"id": pid}, {"_id": 0})
+
+
+async def suspended_partners():
+    """All currently suspended partner profiles for the Admin 'Suspended Partners'
+    page: name, partner ID, current rating, suspension start + scheduled reactivation."""
+    rows = await db.users.find(
+        {"role": "partner", "suspended": True},
+        {"_id": 0, "id": 1, "name": 1, "partner_code": 1, "phone": 1, "rating": 1,
+         "suspend_reason": 1, "suspend_until": 1, "suspended_at": 1, "suspend_days": 1,
+         "suspended_by": 1, "rating_suspended": 1}).to_list(2000)
+    rows.sort(key=lambda r: r.get("suspended_at") or "", reverse=True)
+    return {"partners": [{
+        "id": r["id"],
+        "name": r.get("name") or "—",
+        "partner_id": r.get("partner_code") or r["id"],
+        "phone": r.get("phone") or "",
+        "rating": round(float(r.get("rating", 0) or 0), 1),
+        "reason": r.get("suspend_reason") or "",
+        "days": r.get("suspend_days"),
+        "suspended_at": r.get("suspended_at"),
+        "suspend_until": r.get("suspend_until"),
+        "suspended_by": r.get("suspended_by") or "",
+        "auto": bool(r.get("rating_suspended")),
+    } for r in rows]}
 
 
 async def update_partner(admin, pid, data: dict):

@@ -40,6 +40,21 @@ export function ProPerks({ label }: { label: string }) {
   );
 }
 
+/** Persistent "Your ID is at risk" warning — shown when avg rating <= 4.6. */
+export function RiskBanner() {
+  return (
+    <View testID="rating-risk-banner" style={{ borderRadius: 6, borderWidth: 1, borderColor: TW.rose200, backgroundColor: TW.rose50, padding: 16, flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+      <Icon name="alert-outline" size={24} color={TW.rose500} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text style={{ color: TW.rose700 || "#be123c", fontWeight: "800", fontSize: 15 }}>Your ID is at risk.</Text>
+        <Text style={{ color: TW.slate600 || "#475569", fontSize: 12, marginTop: 2, lineHeight: 17 }}>
+          Your average rating has dropped. Improve it to stay active — profiles rated 4.4 or below are suspended automatically.
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 /** "Complete your verification" banner — web onboarding-banner. */
 export function OnboardingBanner({ onPress }: { onPress: () => void }) {
   const { colors } = useTheme();

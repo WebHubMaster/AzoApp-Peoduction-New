@@ -7,7 +7,7 @@ import json
 import time
 
 # Backend base URL from frontend/.env
-BASE_URL = "https://admin-manual-assign.preview.emergentagent.com/api"
+BASE_URL = "https://tiered-job-alerts.preview.emergentagent.com/api"
 
 # Test credentials (demo_mode)
 ADMIN_PHONE = "+919000000000"

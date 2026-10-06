@@ -80,11 +80,19 @@ async def effective_permissions(user: dict):
 
 
 async def enrich_user(user: dict) -> dict:
-    """Attach `permissions` + `is_super_admin` to an admin/staff user doc."""
+    """Attach `permissions` + `is_super_admin` to an admin/staff user doc; attach
+    `rating_at_risk` (avg rating <= 4.6) for partners so the Web Panel & Partner App
+    can show the persistent 'Your ID is at risk' warning banner."""
     if user and user.get("role") in ("admin", "staff"):
         perms, sup = await effective_permissions(user)
         user = {**user, "permissions": perms, "is_super_admin": sup,
                 "rbac_modules": MODULES, "rbac_actions": ACTIONS}
+    if user and user.get("role") == "partner":
+        try:
+            r = float(user.get("rating", 5) or 0)
+        except (TypeError, ValueError):
+            r = 5.0
+        user = {**user, "rating_at_risk": r <= 4.6}
     return user
 
 

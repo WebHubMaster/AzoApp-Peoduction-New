@@ -551,6 +551,11 @@ async def update_sms_template(tid: str, data: dict, admin=Depends(ADMIN)):
 
 
 # --- Partner management (edit / suspend / notify / logs) ---
+@router.get("/partners/suspended")
+async def suspended_partners(admin=Depends(ADMIN)):
+    return await c.suspended_partners()
+
+
 @router.put("/partners/{pid}")
 async def edit_partner(pid: str, data: dict, admin=Depends(ADMIN)):
     return await c.update_partner(admin, pid, data)

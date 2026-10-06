@@ -2,7 +2,7 @@
 // Usage: node /app/scripts/pshot.js
 const puppeteer = require('/tmp/node_modules/puppeteer-core');
 
-const BASE = 'https://admin-manual-assign.preview.emergentagent.com';
+const BASE = 'https://tiered-job-alerts.preview.emergentagent.com';
 const CHROME = '/usr/bin/google-chrome';
 const OUT = '/tmp';
 
