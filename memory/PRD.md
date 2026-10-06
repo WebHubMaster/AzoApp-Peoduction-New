@@ -104,3 +104,12 @@ RECEIPT (CGST/SGST 9%+9%, SAC codes, QR). Cancel (partner assigned, future dates
 service refund, 20% (₹) cancellation fee to maid, GST retained, refund record processed,
 Cancellation/Adjustment credit-note invoice created. Commission stays category-wise %.
 
+
+## Session (2026-06) — Tiered Pro/Free job alerts + rating-risk automation
+Added ON TOP of the existing (unchanged) dispatch. All backend tests 100% (iter219).
+- **Pro/Free alert delay**: `business_config.free_partner_alert_delay_sec` (admin, Integration Center → Business Settings). Pro partners (premium_partner / starter_kit.purchased) alerted immediately in rating-desc order; Free partners held (`free_alert_pending_ids` + `free_alert_release_at`) and released after the delay via in-process asyncio task. If no Pro eligible → Free immediate. Escalation sweep re-includes Free once release_at passes (crash-safe net). Code: booking_controller.py `_broadcast_new_job`, `_split_pro_free`, `_release_free_alerts*`, `_next_wave_targets`, `_dispatch_settings`.
+- **Rating-based order**: within each group highest rating first (`_split_pro_free` sorts rating desc).
+- **Rating-risk banner** (<=4.6 'Your ID is at risk'): `rating_at_risk` added in rbac_service.enrich_user → /auth/me. Web panel PartnerDashboard.jsx banner + Partner App HomeBanners.RiskBanner.
+- **Auto-suspend** (<=4.4): booking_controller `_apply_rating_actions` (called from add_review) sets suspended+rating_suspended+suspend_until (business_config.rating_suspension_days, default 7). suspend sweep now every 60s, auto-reactivates + unsets rating_suspended.
+- **Suspended Partners admin page**: GET /api/admin/partners/suspended (all suspended, auto flag). web_panel SuspendedPartners.jsx (nav key suspended_partners under Partners) + manual reactivate via existing POST /admin/partners/{pid}/unsuspend.
+- **Env restored again** (pod reset): backend/.env, web_panel/.env, frontend/.env; web_panel `yarn install` (craco). Services up.

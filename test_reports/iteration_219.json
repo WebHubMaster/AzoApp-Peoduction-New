@@ -1,0 +1,28 @@
+{
+  "summary": "Backend-only testing for iter219 — Tiered (Pro/Free) delayed dispatch, rating-risk banner flag, auto-suspension at avg<=4.4, admin Suspended Partners list, manual reactivation. All 6 tests PASSED. Pro partners offered immediately within rating-desc order; Free partners held in free_alert_pending_ids with free_alert_release_at until the admin-configured delay elapses; when no Pro is eligible Free partners are offered immediately with no hold. Auto-suspension correctly sets suspended=rating_suspended=true + suspend_until; manual /unsuspend clears rating_suspended too. GET /admin/partners/suspended returns the documented shape (id, name, partner_id, rating, reason, days, suspended_at, suspend_until, auto). /auth/me rating_at_risk is true at 4.6 and false at 4.7. Admin settings persist free_partner_alert_delay_sec + rating_suspension_days.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter219_tiered_dispatch.py",
+    "/app/backend/tests/_iter219_dispatch_sidecar.py",
+    "/app/test_reports/pytest/iter219.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is now ~4600 lines — way past the recommended 700-line split threshold. Dispatch (_broadcast_new_job, _release_free_alerts*, _next_wave_targets, _apply_rating_actions) should be extracted into services/dispatch_service.py; rating_actions into services/rating_service.py. Keeps logic focused and simplifies unit tests (no need for subprocess trick to avoid motor's event-loop coupling).",
+    "_release_free_alerts_later is spawned with asyncio.create_task but is NOT persisted; if the backend restarts within the delay window the Free wave is lost (release_at stays set, pending IDs stay held forever). The suspend sweep runs every 60s — a similar sweep over bookings with free_alert_release_at <= now would make free-partner release crash-safe.",
+    "There is no /payments/mock HTTP endpoint even though multiple existing tests (and the review request itself) assume it exists. Either expose a dev-only /api/payments/mock in payment_routes.py or update the test corpus & docs to use /payments/order + /payments/verify in dev-mock mode. Verified via curl -X POST .../api/payments/mock → 404.",
+    "available_targets filters out partners who have ANY active-status booking even if its slot does not overlap — this already works via slot_window, but a seeded Raj (phone 3) frequently has a lingering accepted booking that silently excludes him from dispatch. Dispatch pool should ignore bookings in terminal/cancelled states — in practice they already are, but we had to run a cleanup pass before the dispatch test could consistently include Raj. Consider documenting / fixturising a 'reset partner busy state' helper for tests."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter219_tiered_dispatch.py",
+    "/app/backend/tests/_iter219_dispatch_sidecar.py"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "not tested (backend only)"},
+  "test_credentials": "Admin +919000000000, Partners +919000000003/+919000000013 (Pro), +919000000005/+919000000011/+919000000012 (Free); dev OTP 123456",
+  "seed_data_creation": "Three test bookings were inserted with customer_id='test-cust-iter219' during dispatch tests and have been cleaned up at the end of the run. Vikash (phone 12) is unsuspended after the auto-suspend test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Dispatch logic is exercised via a sidecar process (/app/backend/tests/_iter219_dispatch_sidecar.py) because motor's event loop binding leaks between pytest tests in the same process once booking_controller.db has been used. The sidecar seeds a paid booking (payment_status=paid, status=pending_payment) directly in Mongo and calls booking_controller._broadcast_new_job to drive the exact code path the real payment flow uses. If main agent later adds /api/payments/mock, the dispatch test can be refactored to use the real HTTP flow (recommended).",
+  "rca of the issue": "N/A — no bugs found. The only speed-bump was the lack of /payments/mock which the review request mentioned; worked around via a sidecar invoking the dispatch controller directly."
+}
