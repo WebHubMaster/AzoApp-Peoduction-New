@@ -14,7 +14,7 @@ import requests
 import json
 
 # Base URL from frontend/.env
-BASE_URL = "https://app-picker-bug.preview.emergentagent.com/api"
+BASE_URL = "https://admin-manual-assign.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

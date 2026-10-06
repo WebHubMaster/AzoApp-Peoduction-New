@@ -43,3 +43,32 @@ subscription purchase ho jata hai, payment pending rehta hai". User: test karo &
 
 ## Credentials
 See /app/memory/test_credentials.md. Dev OTP = 123456. Admin phone +919000000000. Customer any 10-digit.
+
+
+## Session (2026-06) — Subscription orders are admin-assigned (no partner ring)
+Problem (Hindi): Recurring Subscription Service order par partner ko full-screen job alert NAHI
+jana chahiye. Order admin me aaye aur admin manually partner assign kare. Normal (non-recurring)
+bookings ka full-screen job alert pehle jaisa hi fully working rahe (web + app dono).
+
+Root-cause of broken env: `.env` files again MISSING (pod reset) → backend KeyError MONGO_URL,
+web_panel `node_modules` wiped (craco not found). Restored:
+- `/app/backend/.env` (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL)
+- `/app/web_panel/.env`, `/app/Customer/.env`, `/app/frontend/.env` (backend URL)
+- `yarn install` in `/app/web_panel` → craco serves on :3000 (supervisor `frontend`).
+
+Code changes (`backend/controllers/subscription_controller.py`):
+- `_activate()` now calls new `_queue_subscription_for_admin()` instead of `_broadcast_subscription()`.
+  A paid subscription → `dispatch_status="awaiting_assignment"`, `offered_partner_ids=[]`, NO partner
+  ring/push. Emits admin SSE `subscription_new` + inserts admin notification
+  (`kind="subscription_awaiting_assignment"`).
+- `admin_assign_partner()` now sets `dispatch_status="assigned"` and notifies the assigned partner
+  (in-app + push, NOT a full-screen ring) and the customer.
+- `accept_subscription()` now returns 403 (partners can't self-accept; old body kept as
+  `_legacy_accept_subscription`). `_broadcast_subscription()` left in place but unused.
+- Normal booking dispatch (`booking_controller.py`) UNCHANGED → one-off bookings still ring partners.
+
+Verified (curl + DB + admin UI screenshot): create+mock-pay subscription → awaiting_assignment, no
+partner offered, admin notification created; admin `/subscriptions/admin/all` shows it Unassigned;
+admin `/assign` → assigned + partner/customer notified; partner `/accept` → 403.
+App side (Expo partner) needs no change — backend simply stops sending subscription rings.
+

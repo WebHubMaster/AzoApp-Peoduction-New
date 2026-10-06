@@ -260,15 +260,43 @@ async def _activate(sub):
         await _ensure_payment_invoice(sub)
     except Exception as e:
         print(f"[subscriptions] invoice generation failed for {sub.get('code')}: {e}")  # lazy retry via invoice endpoint
-    # NORMAL-BOOKING-STYLE DISPATCH: as soon as the customer pays, ring EVERY eligible
-    # maid of this category/skill. First maid to Accept gets the whole subscription
-    # (first-accept-wins). Admin can still assign manually as a fallback.
+    # RECURRING SUBSCRIPTION ORDERS ARE ADMIN-ASSIGNED (no partner ring).
+    # Unlike a normal booking, a paid subscription order does NOT fire a full-screen
+    # job alert to any partner. It lands in the admin panel as an order awaiting manual
+    # partner assignment (admin_assign_partner). Normal one-off bookings keep their
+    # existing partner full-screen dispatch untouched.
     if not sub.get("partner_id"):
         try:
-            await _broadcast_subscription(sub)
+            await _queue_subscription_for_admin(sub)
         except Exception as e:  # noqa: BLE001
-            print(f"[subscriptions] broadcast failed for {sub.get('code')}: {e}")
+            print(f"[subscriptions] admin queue failed for {sub.get('code')}: {e}")
     return sub
+
+
+async def _queue_subscription_for_admin(sub):
+    """Mark a paid subscription as awaiting admin assignment and notify admins.
+    Deliberately does NOT ring any partner (no full-screen job alert)."""
+    await db.subscriptions.update_one(
+        {"id": sub["id"]},
+        {"$set": {"dispatch_status": "awaiting_assignment", "offered_partner_ids": [],
+                  "updated_at": now_iso()}})
+    brief = await _sub_brief(sub)
+    try:
+        rt.emit_admin("subscription_new", brief)
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        await db.notifications.insert_one({
+            "id": new_id(), "audience": "admin", "user_id": None,
+            "title": "New subscription order — assign a partner",
+            "body": f"{sub.get('code')} ({sub.get('service_name')} · "
+                    f"{sub.get('plan_label')}) in "
+                    f"{(sub.get('address') or {}).get('city') or 'the area'} is paid and "
+                    f"awaiting manual partner assignment.",
+            "subscription_id": sub["id"], "kind": "subscription_awaiting_assignment",
+            "created_at": now_iso()})
+    except Exception:  # noqa: BLE001
+        pass
 
 
 async def _sub_brief(sub):
@@ -362,6 +390,14 @@ async def partner_ring_pending(user):
 
 
 async def accept_subscription(user, subscription_id):
+    """Recurring subscription orders are ADMIN-ASSIGNED only — partners no longer
+    self-accept them (no full-screen job ring is sent for subscriptions)."""
+    raise HTTPException(
+        status_code=403,
+        detail="Subscription orders are assigned by the admin team, not self-accepted.")
+
+
+async def _legacy_accept_subscription(user, subscription_id):
     """First-accept-wins: the first eligible maid to accept gets the whole subscription."""
     sub = await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
     if not sub:
@@ -656,9 +692,35 @@ async def admin_assign_partner(subscription_id, partner_id):
     await db.subscriptions.update_one(
         {"id": subscription_id},
         {"$set": {"partner_id": partner_id, "partner_name": p.get("name"),
-                  "partner_phone": p.get("phone"), "updated_at": now_iso()},
+                  "partner_phone": p.get("phone"), "dispatch_status": "assigned",
+                  "updated_at": now_iso()},
          "$push": {"timeline": {"status": "partner_assigned", "at": now_iso(), "partner_id": partner_id}}})
     await svc.apply_accrual(subscription_id)
+    # Notify the assigned maid (in-app + push — NOT a full-screen job ring).
+    try:
+        rt.emit_user(partner_id, "subscription_update", {"id": subscription_id})
+        await push_dispatch.push_to_user(
+            partner_id, "New subscription assigned",
+            f"You have been assigned {sub.get('service_name')} · "
+            f"{sub.get('plan_label')} subscription {sub.get('code')}.",
+            link=f"/partner/subscriptions?job={subscription_id}",
+            data={"type": "subscription_update", "subscription_id": subscription_id})
+    except Exception:  # noqa: BLE001
+        pass
+    # Notify the customer their maid is assigned.
+    try:
+        rt.emit_user(sub["customer_id"], "subscription_update", {"id": subscription_id})
+        await push_dispatch.push_to_user(
+            sub["customer_id"], "Maid assigned",
+            f"{p.get('name')} has been assigned to your {sub.get('service_name')} subscription {sub.get('code')}.",
+            link="/account?tab=subscriptions",
+            data={"type": "subscription_update", "subscription_id": subscription_id})
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        rt.emit_admin("subscription_update", {"id": subscription_id})
+    except Exception:  # noqa: BLE001
+        pass
     return await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
 
 
