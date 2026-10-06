@@ -5,7 +5,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, Pressable, Modal, ScrollView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useKeyboardState } from "react-native-keyboard-controller";
+import { KeyboardFixedBottom } from "@/src/components/KeyboardFixedBottom";
 import { useRouter, usePathname } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
@@ -55,7 +55,6 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
   const { c, isDark } = useTheme();
   const [moreOpen, setMoreOpen] = useState(false);
   const chatOpen = useChatOpen();
-  const kbOpen = useKeyboardState((k) => k.isVisible);
   const { subscribe } = useRealtime();
 
   // Pleasant chime when a support reply arrives while the user is NOT viewing the
@@ -116,8 +115,8 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
       </ScrollView>
 
       {/* Bottom nav */}
-      {!chatOpen && !kbOpen && (
-      <View testID="m-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: isDark ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.95)", borderTopWidth: 1, borderTopColor: c.border, paddingBottom: insets.bottom, flexDirection: "row" }}>
+      {!chatOpen && (
+      <KeyboardFixedBottom testID="m-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: isDark ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.95)", borderTopWidth: 1, borderTopColor: c.border, paddingBottom: insets.bottom, flexDirection: "row" }}>
         {primaryNav.map((n) => {
           const on = active === n.key;
           const badge = badges[n.key] || 0;
@@ -133,7 +132,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
           <NavIcon on={moreOpen || moreNav.some((n) => n.key === active)} icon={MoreHorizontal} />
           <Text style={{ fontSize: 10, fontWeight: "700", color: moreOpen || moreNav.some((n) => n.key === active) ? (isDark ? PRIMARY[300] : PRIMARY[700]) : TC.textFaint }}>More</Text>
         </Pressable>
-      </View>
+      </KeyboardFixedBottom>
       )}
 
       {/* More sheet */}

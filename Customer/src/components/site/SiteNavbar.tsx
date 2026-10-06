@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, TextInput, ActivityIndicator, Dimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useKeyboardState } from "react-native-keyboard-controller";
+import { KeyboardFixedBottom } from "@/src/components/KeyboardFixedBottom";
 import { useRouter, usePathname } from "expo-router";
 import { Image } from "expo-image";
 import { MapPin, ChevronDown, ShoppingBag, User, CheckCircle2, AlertTriangle, Home, LayoutGrid, Wrench } from "lucide-react-native";
@@ -148,7 +148,6 @@ export function MobileBottomNav() {
   const { user } = useAuth();
   const { count } = useCart();
   const [customOpen, setCustomOpen] = useState(false);
-  const kbOpen = useKeyboardState((k) => k.isVisible);
   const go = (t: typeof TABS[number]) => {
     if (t.key === "custom") { setCustomOpen(true); return; }
     if (["profile"].includes(t.key) && !user) { router.push("/login"); return; }
@@ -163,7 +162,7 @@ export function MobileBottomNav() {
               : false;
   return (
     <>
-    {kbOpen ? null : <View testID="mobile-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, flexDirection: "row", paddingBottom: insets.bottom }}>
+    <KeyboardFixedBottom testID="mobile-bottom-nav" style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, flexDirection: "row", paddingBottom: insets.bottom }}>
       {TABS.map((t) => {
         const act = isActive(t);
         const color = act ? PRIMARY[700] : SLATE[400];
@@ -181,7 +180,7 @@ export function MobileBottomNav() {
           </Pressable>
         );
       })}
-    </View>}
+    </KeyboardFixedBottom>
     <CustomJobWizard open={customOpen} onClose={() => setCustomOpen(false)} onSubmitted={() => {}} />
     </>
   );
