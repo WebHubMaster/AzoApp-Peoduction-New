@@ -235,3 +235,11 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 - Partner payloads carry `partner_amount`; app + web job value / ring / history / requests use it.
 - COS: cash entry capped at actual cash collected; coupon-funded remainder credited to wallet ("Coupon compensation").
 - Old completed bookings keep old ledger (no backfill yet).
+
+---
+## Update (June 2026) — Customer full-screen RESCHEDULE alert parity (verified)
+- Issue: Customer app did NOT show a full-screen call-style alert on a PARTNER-initiated reschedule (booking_confirmed worked in all states: locked/closed/background).
+- Status: Fix already present in codebase; verified end-to-end. Backend `request_reschedule` now sends a data-only Notifee ring push (push=False on tray notify, push_dispatch.push_to_user data_only=True, android_channel=azo-ring-silent-v1, tag=resched-{id}) — exact mirror of booking_confirmed. Customer app displayRescheduleRing + CustomerAlertOverlay (cancel native ring only when AppState=='active') render it identically to the booking ring.
+- Verification: 6/6 backend pytest cases pass (SSE payload shape + push dispatch via notification_delivery_logs + parity + respond permissions + customer→partner regression). Static review of Customer notifications.ts / CustomerAlertOverlay.tsx / pushBackground.ts / backgroundRing.ts — no regressions. Expo apps cannot run in pod (device-only); needs a device build to confirm visually.
+- Env note: /app/backend/.env and /app/frontend/.env were missing on arrival and were restored (MONGO_URL, DB_NAME=azoapp, REACT_APP_BACKEND_URL). DB auto-seeds on startup.
+- Tests: /app/backend/tests/test_reschedule_customer_ring_iter215.py, /app/backend/tests/test_reschedule_parity_iter216.py

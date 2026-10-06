@@ -1,0 +1,46 @@
+{
+  "summary": "Backend-only verification of customer full-screen reschedule-ring parity with booking_confirmed. 6/6 pytest cases pass (iter215 2/2 + iter216 4/4). Verified: (1) partner-initiated reschedule → customer SSE 'reschedule_request' with correct payload shape; (2) push_dispatch.push_to_user is invoked for the customer (observable notification_delivery_logs row 'Reschedule request' even with FCM 'skipped: not_configured'); (3) partner accept → push_dispatch invoked for customer (notification_delivery_logs 'Booking confirmed') — booking_confirmed path untouched/no regression; (4) permissions — requester (partner) gets 403 on /reschedule/respond, opposite party (customer) accepting returns 200 and scheduled_at is updated; (5) customer-initiated reschedule still rings the partner (regression); (6) booking_controller source parity — both reschedule_request and booking_confirmed push branches use data_only=True, android_channel='azo-ring-silent-v1', tag families 'resched-{id}' / 'booking-{id}', and include title+body+android_channel in the data payload. Static review of Customer app notifications.ts & CustomerAlertOverlay.tsx matches spec (see critical_code_review_comments).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_scenarios": {
+    "iter215_partner_reschedule_sse_payload_shape_to_customer": "PASS - SSE event 'reschedule_request' delivered with booking_id, requester_role='partner', requester_name, service_name, code, old_date/time, new_date/time; notification_delivery_logs row 'Reschedule request' created for customer_id (push_to_user invoked).",
+    "iter215_push_shape_parity_with_booking_confirmed_ring": "PASS - static source assertions on booking_controller.py",
+    "iter216_requester_cannot_respond_customer_can_accept": "PASS - partner POST /reschedule/respond → 403 'Only the other party can respond'; customer accept → 200 and booking.scheduled_at == requested new_at; reschedule_request cleared.",
+    "iter216_booking_confirmed_push_logged_for_customer": "PASS - booking_confirmed path writes delivery log row 'Booking confirmed' for customer_id on accept_job (no regression).",
+    "iter216_customer_reschedule_rings_partner": "PASS - customer POST /reschedule/request → delivery log row 'Reschedule request' appears for partner_id.",
+    "iter216_source_parity_push_shape": "PASS - booking_controller.py reschedule_request push block AND booking_confirmed push block both contain data_only=True, android_channel 'azo-ring-silent-v1', tag f'resched-{bid}' / f'booking-{bid}', title and body embedded in data."
+  },
+  "static_review_customer_app": {
+    "notifications_ts_displayRescheduleRing": "PASS - L332-401 identical structural shape to displayBookingRing L420-484: AppState=='active' guard, Notifee displayNotification posted BEFORE async diagnostics IIFE, channelId CHANNELS.ringSilent='azo-ring-silent-v1', AndroidCategory.CALL, AndroidImportance.HIGH, AndroidVisibility.PUBLIC, fullScreenAction={id:'default',launchActivity:'default'}, pressAction, 120s timeoutAfter, iOS critical+timeSensitive, data.type='reschedule_request'/'booking_confirmed'.",
+    "CustomerAlertOverlay_tsx_ring_effects": "PASS - L82 booking branch cancels native booking ring unconditionally (one-time); L84 reschedule branch cancels native ring ONLY if AppState=='active', else leaves the native full-screen ring running (so it keeps alerting on lock/closed app); L89-95 AppState listener re-runs the cancel-and-resume-playRing path only for reschedule current._kind on return to 'active'; booking_confirmed branch unchanged.",
+    "CustomerAlertOverlay_respondResched": "PASS - L156-166 calls stopAll() and cancelRescheduleRing(id) regardless of API outcome; handledRef guards against re-ring.",
+    "pushBackground_backgroundRing": "Not deeply inspected (out of scope — flagged for main agent to confirm) but conforms with the dispatched data shape (type='reschedule_request', android_channel, tag) emitted by backend."
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_reschedule_customer_ring_iter215.py",
+    "/app/backend/tests/test_reschedule_parity_iter216.py",
+    "/app/test_reports/pytest/iter216_reschedule_existing.xml",
+    "/app/test_reports/pytest/iter216_parity.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.request_reschedule L1037: target_id = partner_id if role=='customer' else customer_id — correctly rings the OPPOSITE party for both directions. Clean.",
+    "booking_controller.request_reschedule L1066 push=False intentionally suppresses the notify-tray push so BOTH parties get only the full-screen data_only call-style ring (prevents double notifications). This matches the spec comment at L1062-1065.",
+    "booking_controller.request_reschedule L1077-1091 push_to_user payload is a structural MIRROR of accept_job L2791-2804: data_only=True, android_channel='azo-ring-silent-v1', tag resched-/booking-{id}, title+body embedded in data for the web SW path. True parity achieved.",
+    "booking_controller.respond_reschedule L1109-1110 correctly 403s the requester; L1119 $sets scheduled_at + schedule_type='schedule' and clears reschedule_request atomically on accept.",
+    "fcm_service.send_to_user writes notification_delivery_logs even when FCM is skipped ('skipped: not_configured') — this gives tests a cross-process observable to confirm push_to_user was actually invoked, which is exactly how both ring paths are verified here. Good.",
+    "Customer/src/lib/notifications.ts: displayRescheduleRing and displayBookingRing are byte-for-byte parallel in Notifee options (channel, category, fullScreenAction, importance, visibility, timeouts, iOS critical/timeSensitive). Both post the native notification FIRST and defer ring-status telemetry via async callback — guarantees the ring is shown even if /api/notifications/ring-status is slow/unreachable.",
+    "Customer/src/components/customer/CustomerAlertOverlay.tsx L84: 'cancelRescheduleRing only when AppState==active' is correct — if the user is on another app / phone locked, the native full-screen ring must keep ringing until they bring the Customer app to foreground (parity with booking_confirmed being one-time and cancellable immediately).",
+    "No regressions found in the booking_confirmed accept path — _job_brief + ring payload + push_to_user shape unchanged, verified by existing partner-flow tests + the new iter216 booking_confirmed delivery-log check."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_reschedule_parity_iter216.py"
+  ],
+  "success_rate": {"backend": "100% (6/6 pytest cases)", "frontend": "N/A - Expo mobile app cannot run in this pod; static review completed and passes"},
+  "test_credentials": "Customer +919000000004, Partner +919000000005 (Amit Singh, AC/Patna 800001), Partner2 same, Admin +919000000000. Dev OTP 123456 via POST /api/auth/send-otp then verify-otp.",
+  "seed_data_creation": "Direct emergency AC bookings in Patna 800001 (notes prefix 'TEST_resched_perms_216' / 'TEST_bconf_216' / 'TEST_cust_reschedule_216'). Mongo-patched to payment_status='paid' + status='searching' + eligible_partner_ids to let partner2 accept. Partner2 set premium_partner=true to bypass 30s head-start; lingering accepted bookings cancelled between tests to avoid slot conflicts.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reschedule parity work is complete and stable. Tests at /app/backend/tests/test_reschedule_customer_ring_iter215.py and /app/backend/tests/test_reschedule_parity_iter216.py are idempotent (they cancel lingering partner2 bookings on setup). Run with REACT_APP_BACKEND_URL=http://localhost:8001 (external preview also works but is slower). FCM is 'skipped: not_configured' in this pod — do NOT treat that as a failure; the delivery-log row is the cross-process proof that push_to_user was invoked. Customer Expo app cannot be executed in the pod; code review is the only path. If pushBackground.ts / backgroundRing.ts change in future iterations, re-verify they still dispatch displayRescheduleRing with data.type='reschedule_request' and the same channel.",
+  "rca of the issue": "The customer app previously did NOT get a full-screen alert on a partner-initiated reschedule because the backend was sending a tray notification (notify(..., push=True)) and NOT a data-only Notifee ring push. Fix (already in codebase at L1066 push=False + L1075-1093 push_dispatch.push_to_user(..., data_only=True, android_channel='azo-ring-silent-v1', tag='resched-{id}')) makes the backend emit the EXACT same data shape used for booking_confirmed (L2789-2806), which the Customer app's displayRescheduleRing (notifications.ts L332) renders as a Notifee full-screen call-style notification — identical to displayBookingRing. Both backend tests (SSE + delivery-log) and static-review of Customer notifications.ts/CustomerAlertOverlay.tsx confirm parity with booking_confirmed and no regression."
+}
