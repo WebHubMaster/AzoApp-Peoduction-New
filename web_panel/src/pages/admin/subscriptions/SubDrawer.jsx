@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Copy, User, CalendarDays, Users, Wallet, TrendingUp, IndianRupee, CalendarCheck, FileText, Phone, Settings2 } from "lucide-react";
+import { Copy, User, CalendarDays, Users, Wallet, TrendingUp, IndianRupee, CalendarCheck, FileText, Phone, Settings2, Sparkles } from "lucide-react";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,16 +12,74 @@ import { Sec, R, SubTimeline, AttendanceMini, SettlementBox } from "./SubDrawerP
 import SubCalendar from "./SubCalendar";
 import SubLifecycle from "./SubLifecycle";
 
+function fitTone(score) {
+  if (score >= 80) return "text-emerald-700 bg-emerald-50 ring-emerald-600/15 dark:bg-emerald-500/10 dark:text-emerald-300";
+  if (score >= 50) return "text-blue-700 bg-blue-50 ring-blue-600/15 dark:bg-blue-500/10 dark:text-blue-300";
+  return "text-slate-600 bg-slate-100 ring-slate-500/15 dark:bg-slate-700/40 dark:text-slate-300";
+}
+
 function MaidAssign({ s, partners, busy, assign }) {
   const [pid, setPid] = useState(s.partner_id || "");
   useEffect(() => setPid(s.partner_id || ""), [s.partner_id]);
+  const recommended = partners.filter((p) => p.recommended).slice(0, 5);
+  const others = partners.filter((p) => !p.recommended);
+  const cityLabel = s?.address?.city ? ` in ${s.address.city}` : "";
   return (
-    <div className="flex gap-2 pt-1">
-      <select data-testid="sub-assign-select" aria-label="Select maid" value={pid} onChange={(e) => setPid(e.target.value)} className="flex-1 min-w-0 h-9 rounded-md border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
-        <option value="">Select maid…</option>
-        {partners.map((p) => <option key={p.id} value={p.id}>{p.name} · {(p.skills || []).join(", ") || "no skill"}</option>)}
-      </select>
-      <Button data-testid="sub-assign-btn" disabled={!pid || busy || pid === s.partner_id} onClick={() => assign(pid)} className="h-9 text-[13px] bg-[#0D47A1] hover:bg-[#0B3C8A] text-white shadow-none">{s.partner_id ? "Reassign" : "Assign"}</Button>
+    <div className="space-y-2.5 pt-1" data-testid="sub-assign-panel">
+      <div className="space-y-1.5">
+        <p className="text-[10.5px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+          <Sparkles className="h-3 w-3" /> Suggested maids ({s.category_name || "this category"}{cityLabel})
+        </p>
+        {recommended.length === 0 ? (
+          <p className="text-[12px] text-[#B45309] bg-amber-50 dark:bg-amber-500/10 rounded-md px-2.5 py-2" data-testid="sub-assign-empty">
+            No registered {s.category_name || "service"} maid found{cityLabel}. Pick any available maid below.
+          </p>
+        ) : (
+          <div className="space-y-1.5" data-testid="sub-assign-recommended">
+            {recommended.map((p) => {
+              const sel = pid === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  data-testid={`sub-assign-rec-${p.id}`}
+                  onClick={() => setPid(p.id)}
+                  className={`w-full text-left rounded-lg border px-3 py-2 transition-colors ${sel ? "border-[#0D47A1] ring-2 ring-blue-200 bg-blue-50/60 dark:bg-blue-500/10" : "border-[#E5E7EB] dark:border-slate-700 hover:border-[#0D47A1]/50 bg-white dark:bg-slate-900"}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[13px] font-medium truncate">{p.name}</p>
+                      <p className="text-[11px] text-slate-500 truncate">{(p.skills || []).join(", ") || "no skill"}</p>
+                    </div>
+                    <span className={`shrink-0 inline-flex items-center h-[20px] px-1.5 rounded text-[10.5px] font-semibold ring-1 ${fitTone(p.fit_score)}`}>{Math.round(p.fit_score)}% fit</span>
+                  </div>
+                  {(p.fit_reasons || []).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {p.fit_reasons.map((r, i) => (
+                        <span key={i} className="inline-flex items-center h-[18px] px-1.5 rounded bg-slate-100 dark:bg-slate-700/50 text-[10px] text-slate-600 dark:text-slate-300">{r}</span>
+                      ))}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <select data-testid="sub-assign-select" aria-label="Select maid" value={pid} onChange={(e) => setPid(e.target.value)} className="flex-1 min-w-0 h-9 rounded-md border border-[#E5E7EB] dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-[13px] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-200">
+          <option value="">{recommended.length ? "Choose another maid…" : "Select maid…"}</option>
+          {recommended.length > 0 && (
+            <optgroup label={`Suggested (${s.category_name || "category"}${cityLabel})`}>
+              {recommended.map((p) => <option key={p.id} value={p.id}>{p.name} · {Math.round(p.fit_score)}% fit</option>)}
+            </optgroup>
+          )}
+          <optgroup label={recommended.length ? "Other maids" : "All maids"}>
+            {others.map((p) => <option key={p.id} value={p.id}>{p.name} · {(p.skills || []).join(", ") || "no skill"}{p.city ? ` · ${p.city}` : ""}</option>)}
+          </optgroup>
+        </select>
+        <Button data-testid="sub-assign-btn" disabled={!pid || busy || pid === s.partner_id} onClick={() => assign(pid)} className="h-9 text-[13px] bg-[#0D47A1] hover:bg-[#0B3C8A] text-white shadow-none">{s.partner_id ? "Reassign" : "Assign"}</Button>
+      </div>
     </div>
   );
 }

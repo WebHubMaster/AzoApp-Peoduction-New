@@ -675,11 +675,67 @@ async def admin_eligible_partners(subscription_id):
     rows = await db.users.find(
         {"role": "partner", "status": "active"},
         {"_id": 0, "id": 1, "name": 1, "phone": 1, "skills": 1, "city": 1,
-         "rating": 1, "kyc_status": 1}).to_list(500)
+         "service_pincodes": 1, "rating": 1, "kyc_status": 1}).to_list(500)
     # Maid notifications rule: a maid already booked in this time slot must NOT get a
     # new job alert / assignment for the same slot — hide her from the eligible list.
     busy = await svc.busy_partner_ids_for(sub)
-    return [r for r in rows if r.get("id") not in busy]
+    rows = [r for r in rows if r.get("id") not in busy]
+    # SMART SUGGESTIONS: rank by best-fit = skill match + area (pincode/city) + rating,
+    # so the admin sees the most suitable maids highlighted at the top.
+    return await _rank_partners_for_sub(sub, rows)
+
+
+async def _rank_partners_for_sub(sub, rows):
+    """Smart suggestions: a maid is 'recommended' ONLY when she is registered for the
+    subscription's category (skill) AND serves the customer's location city (same city
+    or same pincode). Everyone else stays available as a fallback (via the dropdown)."""
+    addr = sub.get("address") or {}
+    sub_pin = str(addr.get("pincode") or "").strip()
+    sub_city = (addr.get("city") or "").strip().lower()
+    skill = (sub.get("required_skill") or "").lower()
+    try:
+        from services.partner_sync import skill_alias_map, skill_matches
+        amap = await skill_alias_map()
+    except Exception:  # noqa: BLE001
+        amap, skill_matches = {}, None
+    ranked = []
+    for r in rows:
+        score = 0.0
+        reasons = []
+        # Category / skill match
+        has_skill = True
+        if skill and skill_matches:
+            has_skill = skill_matches(r.get("skills"), skill, amap)
+        skill_ok = (not skill) or has_skill
+        if has_skill and skill:
+            score += 50
+            reasons.append("Skill match")
+        # Location city / pincode match
+        pins = [str(p).strip() for p in (r.get("service_pincodes") or [])]
+        pin_match = bool(sub_pin and sub_pin in pins)
+        city_match = bool(sub_city and (r.get("city") or "").strip().lower() == sub_city)
+        if pin_match:
+            score += 30
+            reasons.append("Same pincode")
+        elif city_match:
+            score += 15
+            reasons.append("Same city")
+        area_ok = (not sub_city and not sub_pin) or pin_match or city_match
+        try:
+            rating = float(r.get("rating") or 0)
+        except (TypeError, ValueError):
+            rating = 0.0
+        score += min(rating, 5.0) / 5.0 * 20
+        if rating:
+            reasons.append(f"{rating:g}\u2605")
+        r["fit_score"] = round(score, 1)
+        r["fit_reasons"] = reasons
+        r["skill_match"] = bool(has_skill and skill)
+        # Suggested only when BOTH the category and the customer's city match.
+        r["recommended"] = bool(skill_ok and area_ok)
+        ranked.append(r)
+    ranked.sort(key=lambda x: (x["recommended"], x["fit_score"], float(x.get("rating") or 0)), reverse=True)
+    return ranked
 
 
 async def admin_assign_partner(subscription_id, partner_id):
