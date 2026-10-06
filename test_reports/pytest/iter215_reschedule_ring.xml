@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="2.188" timestamp="2026-10-06T11:22:05.223615+00:00" hostname="agent-env-c4e313f1-d16a-4f40-b763-e0f1dbacb436"><testcase classname="tests.test_reschedule_customer_ring_iter215" name="test_partner_reschedule_sse_payload_shape_to_customer" time="1.497"><failure message="AssertionError: push_dispatch.push_to_user NOT called for customer with type=reschedule_request. All captured: []&#10;assert []">tests/test_reschedule_customer_ring_iter215.py:266: in test_partner_reschedule_sse_payload_shape_to_customer
+    assert cust_push_calls, (
+E   AssertionError: push_dispatch.push_to_user NOT called for customer with type=reschedule_request. All captured: []
+E   assert []</failure></testcase></testsuite></testsuites>
