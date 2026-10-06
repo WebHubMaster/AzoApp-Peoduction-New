@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { AppState } from "react-native";
 import { Tabs, useRouter, usePathname } from "expo-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { refreshPartnerLive, LIVE_EVENTS } from "@/src/lib/partnerLive";
 import { AppTabBar, MoreItem } from "@/src/components/AppTabBar";
 import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/api/client";
@@ -15,7 +17,10 @@ export default function PartnerLayout() {
   // Maid partners get a work-focused menu — Rewards & Challenges is hidden for them.
   const isMaid = (user?.skills || []).includes("maid");
 
-  const { connected } = useRealtime();
+  const { connected, subscribe } = useRealtime();
+  const qc = useQueryClient();
+  useEffect(() => subscribe((ev) => { if (LIVE_EVENTS.includes(ev.type)) refreshPartnerLive(qc); }), [subscribe, qc]);
+  useEffect(() => { const sub = AppState.addEventListener("change", (s) => { if (s === "active") refreshPartnerLive(qc); }); return () => sub.remove(); }, [qc]);
   const jobs = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 15000 });
   const active = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active") });
   const badges = { jobs: jobs.data?.length || 0, active: active.data?.length || 0 };

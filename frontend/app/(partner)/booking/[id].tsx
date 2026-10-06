@@ -10,6 +10,7 @@ import { Card, Badge, Button, InfoRow, SectionTitle, CardSkeleton, statusTone } 
 import { Icon } from "@/src/components/Icon";
 import { fmt, fmtDate } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
+import { refreshPartnerLive } from "@/src/lib/partnerLive";
 
 const REQUEST_STATES = ["searching", "assigned", "pending"];
 
@@ -28,7 +29,7 @@ export default function PartnerBookingDetail() {
   });
 
   const invalidateLists = () => {
-    ["partner-joblist", "partner-active", "partner-jobs", "partner-wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
+    refreshPartnerLive(qc);
   };
 
   const accept = useMutation({

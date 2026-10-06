@@ -6,6 +6,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme, spacing } from "@/src/theme";
 import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { api } from "@/src/api/client";
+import { useRefreshOnFocus } from "@/src/lib/partnerLive";
 import { AppShellHeader, Surface, KitEmpty, StatusBadge } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { LineChart } from "@/src/components/LineChart";
@@ -35,6 +36,7 @@ export default function PartnerEarnings() {
   const payouts: any[] = S.payouts || [];
   const rows = ledger;
   const daily = (S.daily || []).slice(-Number(range)).map((d: any) => ({ date: d.date, earning: d.amount }));
+  useRefreshOnFocus(["partner-earn-ledger", "partner-earnings"]);
   const reload = () => ["partner-earn-ledger", "partner-earnings"].forEach((k) => qc.invalidateQueries({ queryKey: [k] }));
 
   const stats: { label: string; value: any; icon: MdiName; bg: string; fg: string }[] = [

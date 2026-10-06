@@ -20,6 +20,7 @@ import { OtpBoxes, ProofGrid, captureProofPhoto, captureProofVideo, ensureCamera
 import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
 import { SelfieCamera } from "@/src/components/partner/SelfieCamera";
 import { JobDetailsBlock } from "../../active";
+import { refreshPartnerLive } from "@/src/lib/partnerLive";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -67,7 +68,7 @@ export default function PartnerJobWizard() {
   // Server moved forward (OTP verified / completed) → wizard follows.
   useEffect(() => { if (step > 0 && phase > step) setStep(phase); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const refresh = () => { q.refetch(); ["partner-active", "partner-joblist", "partner-wallet"].forEach((k) => qc.invalidateQueries({ queryKey: [k] })); };
+  const refresh = () => { q.refetch(); refreshPartnerLive(qc); };
   const goBack = () => router.replace("/(partner)/active" as any);
 
   // NEVER render a booking whose id doesn't match the route id (guards against a

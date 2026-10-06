@@ -3469,6 +3469,7 @@ async def complete_job(partner, booking_id, otp):
             await _inv.ensure_booking_invoice(fresh, settings)
         except Exception:
             pass
+        rt.emit_user(partner["id"], "finance_update", {"kind": "job_completed", "booking_id": booking_id})
         await _notify(
             b["customer_id"], "Service completed",
             f"Invoice for {b['code']} is ready: ₹{b['pricing']['total']}. Please rate your experience.",

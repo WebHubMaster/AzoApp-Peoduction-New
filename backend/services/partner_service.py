@@ -452,6 +452,8 @@ async def record_earning(partner_id, amount, booking_code, booking_id):
         "id": new_id(), "partner_id": partner_id, "kind": "earning", "direction": "credit",
         "amount": money.money(amount), "ref_type": "booking", "ref_id": booking_id,
         "note": f"Job earning · {booking_code}", "status": "completed", "created_at": now_iso()})
+    from services import realtime as rt
+    rt.emit_user(partner_id, "finance_update", {"kind": "earning", "booking_id": booking_id})
 
 
 async def _ledger_entries(partner_id):

@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import { SlidersHorizontal, RefreshCw, ArrowUpDown, Search } from "lucide-react-native";
 import { api, ApiError } from "@/src/api/client";
+import { useRefreshOnFocus } from "@/src/lib/partnerLive";
 import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { AppShellHeader, Surface } from "@/src/components/AppShell";
@@ -32,6 +33,7 @@ export default function PartnerInvoices() {
   const toast = useToast();
   const { user } = useAuth();
   const { invoice: deepLinkId } = useLocalSearchParams<{ invoice?: string }>();
+  useRefreshOnFocus(["partner-invoices"]);
   const role = "partner"; const shopName = user?.name || "Partner";
 
   /* ── list state ── */

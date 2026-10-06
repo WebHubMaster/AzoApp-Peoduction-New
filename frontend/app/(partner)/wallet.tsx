@@ -9,6 +9,7 @@ import { useTheme, spacing } from "@/src/theme";
 import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { useDebounced } from "@/src/components/invoice";
 import { api } from "@/src/api/client";
+import { useRefreshOnFocus } from "@/src/lib/partnerLive";
 import { AppShellHeader, Surface, KitEmpty, SegTabs, KV, StatusBadge, money, shortDate } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
@@ -123,6 +124,7 @@ export default function PartnerWallet() {
   const [wdDetail, setWdDetail] = useState<any>(null);
   const [flow, setFlow] = useState(false);
 
+  useRefreshOnFocus(["partner-wallet", "partner-wallet-ledger", "partner-withdrawals"]);
   const wallet = useQuery({ queryKey: ["partner-wallet"], queryFn: () => api.get<any>("/partner/wallet?lite=1") });
   // Transactions: 10 per request from the server, next page on scroll.
   const txqD = useDebounced(txq.trim(), 350);

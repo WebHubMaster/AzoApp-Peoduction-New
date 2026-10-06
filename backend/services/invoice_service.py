@@ -116,6 +116,12 @@ def _addr_str(a: dict) -> str:
     return ", ".join([p for p in parts if p])
 
 
+def _emit_finance(inv: dict):
+    from services import realtime as rt
+    for k in ("partner_id", "merchant_id", "customer_id"):
+        rt.emit_user(inv.get(k), "finance_update", {"kind": "invoice", "invoice_id": inv.get("id")})
+
+
 async def _user(uid):
     if not uid:
         return {}
@@ -322,6 +328,7 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
         inv["gst_invoice"] = _gb
     try:
         await db.invoices.insert_one(dict(inv))
+        _emit_finance(inv)
     except DuplicateKeyError:
         # A concurrent request / retry already created it — return the existing one
         # (idempotent; no duplicate invoice is ever produced).
@@ -575,6 +582,7 @@ async def ensure_transaction_invoice(txn: dict, role_hint: str = None, settings:
     }
     try:
         await db.invoices.insert_one(dict(inv))
+        _emit_finance(inv)
     except DuplicateKeyError:
         return await db.invoices.find_one(
             {"transaction_id": txn["id"], "invoice_type": "transaction"}, {"_id": 0})
@@ -671,6 +679,7 @@ async def ensure_refund_invoice(refund: dict, settings: dict = None):
     }
     try:
         await db.invoices.insert_one(dict(inv))
+        _emit_finance(inv)
     except DuplicateKeyError:
         return await db.invoices.find_one(
             {"refund_id": rid, "invoice_type": "refund"}, {"_id": 0})
@@ -734,6 +743,7 @@ async def ensure_withdrawal_invoice(wd: dict, role: str, settings: dict = None):
     }
     try:
         await db.invoices.insert_one(dict(inv))
+        _emit_finance(inv)
     except DuplicateKeyError:
         return await db.invoices.find_one(
             {"withdrawal_id": wd["id"], "invoice_type": "withdrawal"}, {"_id": 0})
