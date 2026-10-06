@@ -37,6 +37,7 @@ import { Switch } from "@/components/ui/switch";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Wrench, AlertTriangle, Trash2, Package } from "lucide-react";
 import PartnerStarterKit from "@/pages/partner/PartnerStarterKit";
+import StarterKitUpsellPopup from "@/components/partner/StarterKitUpsellPopup";
 import JobRequest from "@/pages/partner/modules/JobRequest";
 import PartnerWalletV2 from "@/pages/partner/modules/PartnerWalletV2";
 import BankKyc from "@/pages/partner/modules/BankKyc";
@@ -166,6 +167,7 @@ export default function PartnerDashboard() {
     <PanelLayout title="Partner" nav={partnerNav} active={active} onNavigate={setActive}
       appMode primaryTabs={PARTNER_TABS} badges={{ jobs: jobs.length, active: activeJobs.length }}>
       <OnboardingTour />
+      <StarterKitUpsellPopup onUpgrade={() => setActive("starterkit")} />
       {user?.rating_at_risk ? (
         <div data-testid="rating-risk-banner" className="mb-4 flex items-center gap-3 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-200">
           <AlertTriangle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />

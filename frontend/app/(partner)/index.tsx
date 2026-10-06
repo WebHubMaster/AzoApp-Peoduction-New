@@ -19,6 +19,7 @@ import { ProPerks, OnboardingBanner, RiskBanner } from "@/src/components/partner
 import { EarningsHero, RangeFilter } from "@/src/components/partner/home/EarningsHero";
 import { HeaderCard, PriorityAction, WalletCard, KpiGrid, TrendCard, PerformanceCard, GrowthCard, RecentJobs, QuickActions, NavKey } from "@/src/components/partner/home/HomeSections";
 import { TestRingCard, SnoozeCard, StreakCard, MissedRequestsCard } from "@/src/components/partner/home/AlertsPanel";
+import { StarterKitUpsell } from "@/src/components/partner/home/StarterKitUpsell";
 import { requestNotificationPermission, registerPushToken } from "@/src/lib/notifications";
 import { TW } from "@/src/components/partner/home/tw";
 
@@ -128,6 +129,7 @@ export default function PartnerHome() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
+      <StarterKitUpsell />
       <ScrollView
         testID="partner-home"
         style={{ flex: 1 }}

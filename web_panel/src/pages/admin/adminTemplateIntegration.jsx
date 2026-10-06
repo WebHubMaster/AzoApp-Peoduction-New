@@ -1739,6 +1739,7 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
     reminder_lead_minutes: biz.reminder_lead_minutes ?? 30,
     free_partner_alert_delay_sec: biz.free_partner_alert_delay_sec ?? 0,
     rating_suspension_days: biz.rating_suspension_days ?? 7,
+    starter_kit_offer_reminder_days: biz.starter_kit_offer_reminder_days ?? 7,
   });
   const [busy, setBusy] = useState(false);
   const set = (k, v) => setF((o) => ({ ...o, [k]: v }));
@@ -1761,6 +1762,7 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           reminder_lead_minutes: Number(f.reminder_lead_minutes) || 30,
           free_partner_alert_delay_sec: Math.max(0, Number(f.free_partner_alert_delay_sec) || 0),
           rating_suspension_days: Math.max(0, Number(f.rating_suspension_days) || 0),
+          starter_kit_offer_reminder_days: Math.max(1, Number(f.starter_kit_offer_reminder_days) || 7),
         },
       });
       toast.success("Business settings saved"); onSaved();
@@ -1827,6 +1829,11 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           <div className="pt-3 border-t border-slate-100">
             <L label="Rating Suspension Duration (days)"><Input data-testid="biz-rating-suspension-days" type="number" min="0" value={f.rating_suspension_days} onChange={(e) => set("rating_suspension_days", e.target.value)} placeholder="e.g. 7" /></L>
             <p className="text-[11px] text-slate-400 mt-1">When a partner's average rating drops to 4.4 or below, their profile is auto-suspended for this many days, then reactivates automatically.</p>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100">
+            <L label="Starter Kit Offer Reminder (days)"><Input data-testid="biz-starter-kit-reminder-days" type="number" min="1" value={f.starter_kit_offer_reminder_days} onChange={(e) => set("starter_kit_offer_reminder_days", e.target.value)} placeholder="e.g. 7" /></L>
+            <p className="text-[11px] text-slate-400 mt-1">Free partners who haven't bought the Starter Kit see the upgrade popup again every this many days after dismissing it. It stops appearing once they purchase.</p>
           </div>
         </div>
         <div className="flex justify-end gap-2 pt-3">

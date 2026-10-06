@@ -110,6 +110,17 @@ async def eligibility(user=Depends(PARTNER)):
     return await ps.partner_eligibility(user)
 
 
+# ---- Starter Kit upsell popup (Free partners) ----
+@router.get("/starter-kit-upsell")
+async def starter_kit_upsell(user=Depends(PARTNER)):
+    return await ps.starter_kit_upsell_state(user)
+
+
+@router.post("/starter-kit-upsell/dismiss")
+async def dismiss_starter_kit_upsell(user=Depends(PARTNER)):
+    return await ps.dismiss_starter_kit_upsell(user)
+
+
 # ---- wallet / withdrawals ----
 @router.get("/wallet")
 async def wallet(lite: int = 0, user=Depends(PARTNER)):

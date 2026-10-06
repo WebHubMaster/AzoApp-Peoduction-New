@@ -113,3 +113,11 @@ Added ON TOP of the existing (unchanged) dispatch. All backend tests 100% (iter2
 - **Auto-suspend** (<=4.4): booking_controller `_apply_rating_actions` (called from add_review) sets suspended+rating_suspended+suspend_until (business_config.rating_suspension_days, default 7). suspend sweep now every 60s, auto-reactivates + unsets rating_suspended.
 - **Suspended Partners admin page**: GET /api/admin/partners/suspended (all suspended, auto flag). web_panel SuspendedPartners.jsx (nav key suspended_partners under Partners) + manual reactivate via existing POST /admin/partners/{pid}/unsuspend.
 - **Env restored again** (pod reset): backend/.env, web_panel/.env, frontend/.env; web_panel `yarn install` (craco). Services up.
+
+## Session (2026-06) — Starter Kit Upsell Popup for Free partners
+Additive, no existing behaviour changed.
+- Backend: `GET /api/partner/starter-kit-upsell` → {show, reminder_days, offer}; `POST /api/partner/starter-kit-upsell/dismiss`. Logic in services/partner_service.py (`starter_kit_upsell_state`, `dismiss_starter_kit_upsell`): show when partner KYC-approved + NOT Pro (premium_partner/starter_kit.purchased) + (never dismissed OR now >= dismissed_at + reminder_days). Stores `starter_kit_upsell_dismissed_at`. reminder_days = business_config.starter_kit_offer_reminder_days (default 7).
+- Admin field "Starter Kit Offer Reminder (days)" added to Integration Center → Business Settings (adminTemplateIntegration.jsx, testid biz-starter-kit-reminder-days).
+- Web panel popup: components/partner/StarterKitUpsellPopup.jsx (premium dark + amber, headline "Get Jobs Before Others", benefit bullets, "Upgrade to Pro" CTA → starterkit tab, dismiss → /dismiss). Rendered in PartnerDashboard.jsx. Verified via screenshot (free partner +919000000005).
+- Partner App popup: src/components/partner/home/StarterKitUpsell.tsx (RN Modal), rendered in app/(partner)/index.tsx; CTA → /partner/starter-kit. (Expo app not served in preview.)
+- Verified via curl: free+approved → show:true, Pro → show:false, dismiss → false, after interval → true again, admin field saves + drives reminder_days.

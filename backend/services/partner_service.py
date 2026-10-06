@@ -2022,3 +2022,62 @@ async def partner_challenges(partner):
         },
         "penalties": pens,
     }
+
+
+# ── Starter Kit upsell popup (Free partners) ─────────────────────────────────
+_UPSELL_OFFER = {
+    "headline": "Get Jobs Before Others",
+    "subheadline": "Upgrade to Pro with our Starter Kit and receive job alerts instantly, with no delay.",
+    "body": ("Free partners receive alerts after a waiting period. Pro Partners get priority "
+             "access the moment a job is created in their area."),
+    "benefits": [
+        "Instant job alerts — zero waiting delay",
+        "Priority access the moment a job is posted in your area",
+        "Gold Pro badge on your profile that wins customer trust",
+        "Priority support whenever you need help",
+    ],
+    "cta_label": "Upgrade to Pro",
+}
+
+
+def _upsell_reminder_days(settings) -> int:
+    bc = (settings or {}).get("business_config", {}) or {}
+    try:
+        d = int(bc.get("starter_kit_offer_reminder_days") or 0)
+    except (TypeError, ValueError):
+        d = 0
+    return d if d > 0 else 7
+
+
+async def starter_kit_upsell_state(user):
+    """Should the Free-partner Starter-Kit upsell popup show? True when the partner
+    is KYC-approved, has NOT purchased the Starter Kit, and either never dismissed
+    the popup or the admin-configured reminder interval has elapsed since dismissal."""
+    from config.database import get_settings
+    fresh = await db.users.find_one(
+        {"id": user["id"]},
+        {"_id": 0, "kyc_status": 1, "verified_partner": 1, "premium_partner": 1,
+         "starter_kit": 1, "starter_kit_upsell_dismissed_at": 1}) or {}
+    kit = fresh.get("starter_kit") or {}
+    is_pro = bool(fresh.get("premium_partner") or kit.get("purchased"))
+    approved = fresh.get("kyc_status") == "approved" or bool(fresh.get("verified_partner"))
+    settings = await get_settings()
+    days = _upsell_reminder_days(settings)
+    if is_pro or not approved:
+        return {"show": False, "reminder_days": days, "offer": _UPSELL_OFFER}
+    show = True
+    dismissed_at = fresh.get("starter_kit_upsell_dismissed_at")
+    if dismissed_at:
+        try:
+            nxt = datetime.fromisoformat(str(dismissed_at).replace("Z", "+00:00")) + timedelta(days=days)
+            show = datetime.now(timezone.utc) >= nxt
+        except Exception:  # noqa: BLE001
+            show = True
+    return {"show": show, "reminder_days": days, "offer": _UPSELL_OFFER}
+
+
+async def dismiss_starter_kit_upsell(user):
+    await db.users.update_one(
+        {"id": user["id"]},
+        {"$set": {"starter_kit_upsell_dismissed_at": now_iso()}})
+    return {"ok": True}
