@@ -19,7 +19,7 @@ const SAF_DIR_KEY = "azo_saf_download_dir";
 /** Android-only: save the already-downloaded PDF into a real, user-visible folder
     (Downloads) via SAF. Returns the created file's content URI on success (so the
     caller can offer an "Open" action), or null when it wasn't written. */
-async function saveToAndroidDownloads(fileUri: string, filename: string): Promise<string | null> {
+async function saveToAndroidDownloads(fileUri: string, filename: string, ask = true): Promise<string | null> {
   const SAF: any = (LegacyFS as any).StorageAccessFramework;
   if (!SAF) return null;
   let base64: string;
@@ -36,6 +36,7 @@ async function saveToAndroidDownloads(fileUri: string, filename: string): Promis
     try { return await writeInto(cached); }
     catch { await storage.removeItem(SAF_DIR_KEY); /* grant stale/revoked → re-request */ }
   }
+  if (!ask) return null;
   try {
     const perm = await SAF.requestDirectoryPermissionsAsync();
     if (!perm?.granted) return null;
@@ -157,9 +158,16 @@ export async function downloadInvoicePdf(inv: any, opts?: FetchOpts): Promise<{ 
   const file = await fetchInvoicePdfFile(inv, opts);
   const filename = `${safeName(inv.invoice_number)}.pdf`;
   if (Platform.OS === "android") {
-    opts?.onProgress?.(null); // indeterminate while writing into the chosen folder
-    const savedUri = await saveToAndroidDownloads(file.uri, filename);
-    if (savedUri) return { status: "saved", openUri: savedUri };
+    // Direct download: keep a permanent copy in the app's documents, also drop it into the
+    // Downloads folder silently when that folder was already granted — no picker, then open it.
+    opts?.onProgress?.(null);
+    const dir = `${LegacyFS.documentDirectory}invoices/`;
+    try { await LegacyFS.makeDirectoryAsync(dir, { intermediates: true }); } catch { /* exists */ }
+    const keep = `${dir}${filename}`;
+    try { await LegacyFS.deleteAsync(keep, { idempotent: true }); await LegacyFS.copyAsync({ from: file.uri, to: keep }); } catch { /* fall back to cache file */ }
+    const savedUri = await saveToAndroidDownloads(file.uri, filename, false);
+    const exists = await LegacyFS.getInfoAsync(keep).then((i: any) => i.exists).catch(() => false);
+    return { status: savedUri ? "saved" : "downloaded", openUri: savedUri || (exists ? keep : file.uri) };
   }
   if (await Sharing.isAvailableAsync()) {
     await Sharing.shareAsync(file.uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: `${inv.invoice_number || "Invoice"}.pdf` });

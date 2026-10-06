@@ -168,14 +168,15 @@ async def email_invoice_ep(invoice_id: str, body: dict = Body(default=None), use
     to = ((body or {}).get("to") or "").strip() or None
     if to and "@" not in to:
         raise HTTPException(400, "Please enter a valid email address.")
-    r = await inv_svc.email_invoice(inv, to_email=to)
+    audience = user["role"] if user["role"] in ("partner", "merchant") else "customer"
+    r = await inv_svc.email_invoice(inv, to_email=to, audience=audience)
     if not r.get("ok"):
         if r.get("skipped") == "email_not_configured":
             raise HTTPException(400, "Email abhi configured nahi hai — Admin → Integrations me SendGrid/SMTP add karein.")
         if r.get("skipped") == "no_email":
             raise HTTPException(400, "Koi email address nahi mila — apna email daal kar bhejein.")
         raise HTTPException(400, r.get("error") or "Email bhejne me dikkat aayi.")
-    return {"ok": True, "sent_to": to or (inv.get("customer_snapshot") or {}).get("email")}
+    return {"ok": True, "sent_to": r.get("sent_to") or to}
 
 
 @router.get("/{invoice_id}/share-link")

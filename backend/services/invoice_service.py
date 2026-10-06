@@ -391,17 +391,21 @@ async def email_invoice(inv: dict, to_email: str = None, audience: str = "custom
     sent to the WRONG party. Returns the email_service result dict. Never throws."""
     from services.email_service import send_email
     from services.invoice_pdf_service import build_invoice_pdf
-    snap = (inv.get("partner_snapshot") if audience == "partner"
-            else inv.get("merchant_snapshot") if audience == "merchant"
-            else inv.get("customer_snapshot")) or {}
+    raw = await db.invoices.find_one({"id": inv.get("id")}, {"_id": 0}) or inv
+    snap = (raw.get("partner_snapshot") if audience == "partner"
+            else raw.get("merchant_snapshot") if audience == "merchant"
+            else raw.get("customer_snapshot")) or {}
     to = to_email or snap.get("email")
+    if not _valid_email(to) and audience in ("partner", "merchant"):
+        uid = raw.get(f"{audience}_id")
+        u = await db.users.find_one({"id": uid}, {"_id": 0, "email": 1}) if uid else None
+        to = (u or {}).get("email")
     if not _valid_email(to):
         return {"ok": False, "skipped": "no_email"}
-    biz = inv.get("business_snapshot") or {}
+    biz = raw.get("business_snapshot") or {}
     who = snap.get("name") or audience.title()
-    doc = _partner_facing_invoice(inv) if audience in ("partner", "merchant") else inv
-    # BILL TO on the emailed PDF must match the recipient (partner/merchant/customer).
-    doc = await _attach_bill_to(doc, audience)
+    # Same document the recipient sees/downloads in their app — identical PDF.
+    doc = await prepare_for_role(dict(raw), audience)
     pdf = build_invoice_pdf(doc)
     intro = ("Aapki service ka invoice is email ke saath PDF me attach kiya gaya hai."
              if audience == "customer"
@@ -415,7 +419,8 @@ async def email_invoice(inv: dict, to_email: str = None, audience: str = "custom
         f"Status: {doc.get('payment_status', '')}</p>"
         f"<p>Dhanyavaad,<br/>{biz.get('name', 'AzoApp')}</p>"
     )
-    return await send_email(to, subject, html, attachments=[(f"{inv.get('invoice_number')}.pdf", pdf, "pdf")])
+    r = await send_email(to, subject, html, attachments=[(f"{inv.get('invoice_number')}.pdf", pdf, "pdf")])
+    return {**r, "sent_to": to} if isinstance(r, dict) else r
 
 
 async def email_invoice_parties(inv: dict) -> dict:
@@ -1367,6 +1372,11 @@ async def get_invoice(user: dict, invoice_id: str):
         return "forbidden"
     if role == "partner" and inv.get("partner_id") != user["id"]:
         return "forbidden"
+    return await prepare_for_role(inv, role)
+
+
+async def prepare_for_role(inv: dict, role: str) -> dict:
+    """Exact document a given role sees in the app (view / download / print / email)."""
     inv = await fill_live_branding(inv)
     inv = await _attach_role_earning(inv, role)
     inv = await _attach_bill_to(inv, role)
