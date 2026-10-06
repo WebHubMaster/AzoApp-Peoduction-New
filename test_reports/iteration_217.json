@@ -1,0 +1,22 @@
+{
+  "summary": "Frontend-only test of customer home hero search dropdown fix on web panel + static review of Customer Expo HomeView.tsx. All acceptance criteria pass: dropdown renders ON TOP of stat cards (z-index 40, elementFromPoint at dropdown bottom returns a search result item even though a stat tile sits beneath); maxHeight computed as 228px with overflow-y:auto; for 'repair' 9 matches rendered with scrollHeight 620 > clientHeight 228 confirming internal scroll; for 'ac' 4 matches, scrollable; for 'clean' 3 matches fit; each row renders an <img> thumbnail (3 imgs, 0 Zap SVG fallbacks visible for the matched clean set); clicking a result navigates to /service/{id}; clearing the query hides the dropdown; Book Now CTA remains visible and clickable; hero still shows rounded corners and gradient after removing overflow-hidden (visually confirmed via screenshot).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "static_review_expo": "HomeView.tsx structure correct: outer View zIndex 30; absolute background layer with overflow:hidden for gradient+circles (pointerEvents none); search layer un-clipped so absolute results dropdown (top:56, zIndex 40) can overflow; ScrollView maxHeight 204 with nestedScrollEnabled and keyboardShouldPersistTaps='handled' showing ~3 rows + scroll; each row has 44x44 image container with Image uri={mediaUrl(s.image)} + Zap fallback; svcMatches sliced to 20. No JSX/logic regressions spotted.",
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CustomerDashboard.jsx is 1874 lines - consider splitting into smaller feature-focused modules (file size >700 line guideline)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "Web demo button 'Login as Customer' (Priya Verma +919000000004) via /login",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Hero search dropdown bug fixed and verified on web panel. Expo HomeView.tsx reviewed statically only (no device). Observed console 403s on some unrelated resource fetches - not related to this fix."
+}

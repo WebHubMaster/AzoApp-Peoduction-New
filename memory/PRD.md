@@ -243,3 +243,9 @@ Customer can pay a NON-REFUNDABLE token online and the rest as cash to the partn
 - Verification: 6/6 backend pytest cases pass (SSE payload shape + push dispatch via notification_delivery_logs + parity + respond permissions + customer→partner regression). Static review of Customer notifications.ts / CustomerAlertOverlay.tsx / pushBackground.ts / backgroundRing.ts — no regressions. Expo apps cannot run in pod (device-only); needs a device build to confirm visually.
 - Env note: /app/backend/.env and /app/frontend/.env were missing on arrival and were restored (MONGO_URL, DB_NAME=azoapp, REACT_APP_BACKEND_URL). DB auto-seeds on startup.
 - Tests: /app/backend/tests/test_reschedule_customer_ring_iter215.py, /app/backend/tests/test_reschedule_parity_iter216.py
+
+---
+## Update (June 2026) — Customer home search dropdown fix (verified)
+- Issue: On the logged-in customer HOME, the hero search RESULTS dropdown opened BEHIND the stat cards (clipped by the hero's overflow:hidden) and was not visible.
+- Fix (both surfaces): Web panel (web_panel/src/pages/customer/CustomerDashboard.jsx) — removed overflow-hidden from hero <section>, added z-30 to hero + z-40 to dropdown; dropdown now max-h ~228px overflow-y-auto (3 visible + scroll); rows show service <img> thumbnail. Customer Expo app (Customer/src/components/customer/HomeView.tsx) — moved gradient+decorative circles into an absolute overflow-hidden background layer so the search/content layer is un-clipped; hero zIndex 30, dropdown zIndex 40 in a ScrollView maxHeight 204 (3 visible + scroll) with 44x44 service image thumbnails; svcMatches slice raised to 20.
+- Verified: testing agent iteration_217 — web panel 100% (dropdown on top, image thumbnails, 3-visible+internal scroll, book CTA + result nav + clear all OK, hero gradient/rounded intact). Expo HomeView.tsx static review clean (device run not possible in pod).
