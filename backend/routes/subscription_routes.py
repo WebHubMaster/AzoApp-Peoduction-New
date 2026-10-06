@@ -51,6 +51,11 @@ async def pay_order(subscription_id: str, user=Depends(CUSTOMER)):
     return await c.pay_order(user, subscription_id)
 
 
+@router.post("/{subscription_id}/pay/mock")
+async def pay_mock(subscription_id: str, data: dict = None, user=Depends(CUSTOMER)):
+    return await c.pay_mock(user, subscription_id)
+
+
 @router.post("/{subscription_id}/pay/verify")
 async def pay_verify(subscription_id: str, data: SubscriptionPayVerify, user=Depends(CUSTOMER)):
     return await c.pay_verify(user, subscription_id, data)

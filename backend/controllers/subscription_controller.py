@@ -45,7 +45,7 @@ async def create_subscription(user, req):
     if not service.get("is_subscription"):
         raise HTTPException(status_code=400, detail="This service is not a subscription service")
     plan_type = (req.plan_type or "monthly").lower()
-    if plan_type not in ("daily", "weekly", "monthly", "yearly"):
+    if plan_type not in ("weekly", "monthly", "quarterly", "yearly"):
         raise HTTPException(status_code=400, detail="Invalid plan type")
     plan = svc.resolve_plan(service, plan_type)
     price = float(plan.get("price") or 0)
@@ -209,6 +209,19 @@ async def pay_order(user, subscription_id):
         {"$set": {"pay_order_id": order.get("order_id"), "pay_gateway": order.get("gateway"),
                   "pay_mode": order.get("mode"), "pay_env": order.get("env")}})
     return {**order}
+
+
+async def pay_mock(user, subscription_id):
+    """Dev-only mock payment — activates the subscription WITHOUT a live gateway.
+    Only allowed when no pay-in gateway is configured (the Customer app falls back
+    here after /pay/order returns 409, and seed/demo scripts use it). When a real
+    gateway IS configured this refuses so live payments can never be bypassed."""
+    sub = await _sub_for_customer(user, subscription_id)
+    if sub.get("payment_status") == "paid":
+        return await db.subscriptions.find_one({"id": subscription_id}, {"_id": 0})
+    if await payment_service.is_configured():
+        raise HTTPException(status_code=409, detail="A live payment gateway is configured — complete payment on the gateway.")
+    return await _activate(sub)
 
 
 def _invoice_share_sig(invoice_id: str) -> str:

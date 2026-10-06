@@ -29,7 +29,7 @@ SETTLEMENT_STATUSES = ["none", "pending", "review", "approved", "paid"]
 
 class SubscriptionCreate(BaseModel):
     service_id: str
-    plan_type: str = "monthly"           # daily | weekly | monthly | yearly
+    plan_type: str = "monthly"           # weekly | monthly | quarterly | yearly
     start_date: str                      # ISO yyyy-mm-dd
     preferred_time: str = ""             # e.g. "09:00"
     address_id: Optional[str] = None

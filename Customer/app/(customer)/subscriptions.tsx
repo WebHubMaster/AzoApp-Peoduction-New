@@ -1,7 +1,7 @@
-/** Customer Subscriptions — browse recurring (Maid) services, pick a plan (Daily/Weekly/
- * Monthly/Yearly), choose start date + time + address, pay the full amount upfront and
- * activate. Premium full-width subscription cards with progress bar, attendance calendar,
- * payment snapshot, maid details and invoice download — parity with the web panel. */
+/** Customer Subscriptions — browse recurring (Maid) services, pick a plan (Weekly/
+ * Monthly/Quarterly/Yearly), choose start date + time + address, pay the full amount
+ * upfront and activate. Premium full-width subscription cards with progress bar, attendance
+ * calendar, payment snapshot, maid details and invoice download — parity with the web panel. */
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
