@@ -241,13 +241,13 @@ function HomeView({ user, bookings, wallet, refunds, categories, services, refer
   const svcMatches = useMemo(() => {
     if (!q.trim()) return [];
     const t = q.toLowerCase();
-    return services.filter((s) => s.name.toLowerCase().includes(t) || (s.category_name || "").toLowerCase().includes(t)).slice(0, 6);
+    return services.filter((s) => s.name.toLowerCase().includes(t) || (s.category_name || "").toLowerCase().includes(t)).slice(0, 20);
   }, [q, services]);
 
   return (
     <div className="space-y-6 lg:space-y-7">
       {/* HERO */}
-      <section className="relative overflow-hidden rounded-3xl azo-mesh text-white p-5 sm:p-7 lg:p-9 azo-fade-up">
+      <section className="relative z-30 rounded-3xl azo-mesh text-white p-5 sm:p-7 lg:p-9 azo-fade-up">
         <div className="relative z-10 max-w-3xl">
           <p className="text-white/80 text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4" /> {location}</p>
           <h1 className="font-heading font-black text-2xl sm:text-3xl lg:text-4xl mt-1.5">{greet}, {firstName} <span className="inline-block">👋</span></h1>
@@ -259,11 +259,16 @@ function HomeView({ user, bookings, wallet, refunds, categories, services, refer
               Book Now
             </Button>
             {svcMatches.length > 0 && (
-              <div className="absolute z-20 top-14 lg:top-16 left-0 right-0 rounded-2xl bg-white text-slate-800 shadow-2xl overflow-hidden azo-scale-in">
+              <div data-testid="home-search-results" className="absolute z-40 top-14 lg:top-16 left-0 right-0 rounded-2xl bg-white text-slate-800 shadow-2xl ring-1 ring-slate-200 overflow-y-auto azo-scale-in" style={{ maxHeight: "228px" }}>
                 {svcMatches.map((s) => (
-                  <button key={s.id} onClick={() => onService(s.id)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 text-left">
-                    <span className="flex items-center gap-2.5"><span className="h-8 w-8 rounded-lg bg-primary-100 grid place-items-center text-primary-700"><Zap className="h-4 w-4" /></span><span className="text-sm font-medium">{s.name}<span className="block text-xs text-slate-400">{s.category_name}</span></span></span>
-                    <span className="text-sm font-bold text-primary-700">{fmt(s.base_price)}</span>
+                  <button key={s.id} data-testid={`home-search-${s.id}`} onClick={() => onService(s.id)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-50 text-left border-b border-slate-100 last:border-b-0">
+                    <span className="flex items-center gap-2.5 min-w-0">
+                      <span className="h-11 w-11 rounded-lg overflow-hidden bg-primary-100 grid place-items-center text-primary-700 shrink-0">
+                        {s.image ? <img src={s.image} alt="" className="h-full w-full object-cover" /> : <Zap className="h-5 w-5" />}
+                      </span>
+                      <span className="min-w-0 text-sm font-medium truncate">{s.name}<span className="block text-xs text-slate-400 truncate">{s.category_name}</span></span>
+                    </span>
+                    <span className="text-sm font-bold text-primary-700 shrink-0 ml-2">{fmt(s.base_price)}</span>
                   </button>
                 ))}
               </div>

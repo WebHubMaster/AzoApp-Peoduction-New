@@ -1,6 +1,6 @@
 /** 1:1 port of HomeView + LiveBookingCard from web_panel/src/pages/customer/CustomerDashboard.jsx (mobile breakpoint). */
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, Pressable, TextInput, ScrollView } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import { MapPin, Plus, Package, Wallet, CheckCircle2, Clock, Receipt, ChevronRight, Zap, Star, Gift, Navigation } from "lucide-react-native";
@@ -41,7 +41,7 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
   const svcMatches = useMemo(() => {
     if (!q.trim()) return [];
     const t = q.toLowerCase();
-    return services.filter((s) => s.name.toLowerCase().includes(t) || (s.category_name || "").toLowerCase().includes(t)).slice(0, 6);
+    return services.filter((s) => s.name.toLowerCase().includes(t) || (s.category_name || "").toLowerCase().includes(t)).slice(0, 20);
   }, [q, services]);
 
   const card = { borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, ...shadowElev } as const;
@@ -49,37 +49,48 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
   return (
     <View testID="customer-home" style={{ gap: 16 }}>
       {/* HERO (azo-mesh) */}
-      <View style={{ borderRadius: 6, overflow: "hidden", zIndex: 20 }}>
-        <LinearGradient colors={[PRIMARY[800], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ padding: 20 }}>
-          <View pointerEvents="none" style={{ position: "absolute", left: -120, top: -220, width: 460, height: 420, borderRadius: 230, backgroundColor: "rgba(255,255,255,0.12)" }} />
-          <View pointerEvents="none" style={{ position: "absolute", right: -160, top: -190, width: 360, height: 380, borderRadius: 190, backgroundColor: "rgba(13,71,161,0.55)" }} />
+      <View style={{ borderRadius: 6, zIndex: 30 }}>
+        {/* Background + decorative circles are clipped to the rounded card; the search
+            dropdown lives in the (un-clipped) content layer so it can overflow on top. */}
+        <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: 6, overflow: "hidden" }}>
+          <LinearGradient colors={[PRIMARY[800], PRIMARY[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ flex: 1 }}>
+            <View style={{ position: "absolute", left: -120, top: -220, width: 460, height: 420, borderRadius: 230, backgroundColor: "rgba(255,255,255,0.12)" }} />
+            <View style={{ position: "absolute", right: -160, top: -190, width: 360, height: 380, borderRadius: 190, backgroundColor: "rgba(13,71,161,0.55)" }} />
+          </LinearGradient>
+        </View>
+        <View style={{ padding: 20 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <MapPin size={16} color="rgba(255,255,255,0.8)" /><Text testID="home-location" style={{ color: "rgba(255,255,255,0.8)", fontSize: 14 }}>{location}</Text>
           </View>
           <Text testID="home-greeting" style={{ color: "#fff", fontWeight: "900", fontSize: 24, lineHeight: 32, marginTop: 6 }}>{greet}, {firstName} 👋</Text>
           <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 4, fontSize: 14 }}>What service do you need today?</Text>
 
-          <View style={{ marginTop: 16, position: "relative", zIndex: 20 }}>
+          <View style={{ marginTop: 16, position: "relative", zIndex: 30 }}>
             <TextInput testID="home-search" value={q} onChangeText={setQ} numberOfLines={1} multiline={false} placeholder="Search services…" placeholderTextColor={TC.textFaint}
               style={{ height: 48, paddingLeft: 20, paddingRight: 128, borderRadius: 6, backgroundColor: TC.surface, color: TC.text, fontSize: 14, boxShadow: "0px 20px 25px -5px rgba(0,0,0,0.1)" }} />
             <Pressable testID="home-book-cta" onPress={onBook} style={({ pressed }) => ({ position: "absolute", right: 6, top: 6, height: 36, paddingHorizontal: 16, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 4 })}>
               <Plus size={16} color="#fff" /><Text style={{ color: "#fff", fontSize: 14, fontWeight: "500" }}>Book</Text>
             </Pressable>
             {svcMatches.length > 0 ? (
-              <View testID="home-search-results" style={{ position: "absolute", top: 56, left: 0, right: 0, borderRadius: 6, backgroundColor: TC.surface, overflow: "hidden", boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", zIndex: 30 }}>
-                {svcMatches.map((s) => (
-                  <Pressable key={s.id} testID={`home-search-${s.id}`} onPress={() => onService(s.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingVertical: 12, backgroundColor: pressed ? SLATE[50] : TC.surface })}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
-                      <View style={{ width: 32, height: 32, borderRadius: 6, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Zap size={16} color={TC.primaryText} /></View>
-                      <View style={{ flex: 1 }}><Text style={{ fontSize: 14, fontWeight: "500", color: TC.text }}>{s.name}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{s.category_name}</Text></View>
-                    </View>
-                    <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{fmt(s.base_price)}</Text>
-                  </Pressable>
-                ))}
+              <View testID="home-search-results" style={{ position: "absolute", top: 56, left: 0, right: 0, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, overflow: "hidden", boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)", zIndex: 40 }}>
+                {/* Shows ~3 matches; the rest scroll inside the box. */}
+                <ScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator style={{ maxHeight: 204 }}>
+                  {svcMatches.map((s) => (
+                    <Pressable key={s.id} testID={`home-search-${s.id}`} onPress={() => onService(s.id)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 14, paddingVertical: 12, backgroundColor: pressed ? SLATE[50] : TC.surface })}>
+                      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1 }}>
+                        <View style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}>
+                          {s.image ? <Image source={{ uri: mediaUrl(s.image) }} style={{ width: 44, height: 44 }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={s.id} /> : <Zap size={18} color={TC.primaryText} />}
+                        </View>
+                        <View style={{ flex: 1 }}><Text numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: TC.text }}>{s.name}</Text><Text numberOfLines={1} style={{ fontSize: 12, color: TC.textFaint }}>{s.category_name}</Text></View>
+                      </View>
+                      <Text style={{ fontSize: 14, fontWeight: "700", color: TC.primaryText }}>{fmt(s.base_price)}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
               </View>
             ) : null}
           </View>
-        </LinearGradient>
+        </View>
       </View>
 
       {/* QUICK STATS (swipeable slider) */}
