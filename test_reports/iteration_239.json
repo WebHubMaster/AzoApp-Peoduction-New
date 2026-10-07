@@ -1,0 +1,21 @@
+{
+  "summary": "Verified Customer app splash matches Partner app splash via code review & JSON validation. /app/Customer/app/index.tsx is a near-identical port of /app/frontend/app/index.tsx: same LinearGradient #1565C0->#08306E, same animated logo+text sequence, same ActivityIndicator at bottom, same 1.5s min delay, same testIDs (login-auth-loader, splash-brand, splash-logo, splash-brand-text, splash-caption). Only intentional diffs: uses useSiteConfig (correct for Customer BrandContext), caption reads 'Trusted Home Services', routes to /(site). All imports resolve (AuthContext.booting, BrandContext.useSiteConfig/useSiteConfigQuery, branding.logo_dark/logo_light/site_name/tagline). /app/Customer/app.json is valid JSON; expo-splash-screen plugin now includes a dark-mode block with backgroundColor #0D47A1 matching light-mode, and android.backgroundColor #0D47A1 is set — directly fixing user-reported dark-grey splash on dark-mode phones. No runtime render test performed because Customer/dist is not built and node_modules not installed (building expo web for a splash-config change is heavier than warranted).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Customer splash now has a dark-mode splash block that Partner app.json lacks. Consider mirroring the same dark block into frontend/app.json so Partner app doesn't exhibit the same dark-grey fallback the user reported.",
+    "Customer splash uses useSiteConfig while Partner uses useBrand (merged brand). Behaviour is equivalent given current BrandContext, but keep in mind for future brand-merge features (loyalty/theme overrides) you'd want useBrand for both to stay in sync."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "code-review only (no runtime render)"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "To runtime-verify the Customer splash in a browser: cd /app/Customer && yarn install && export EXPO_PUBLIC_BACKEND_URL=<REACT_APP_BACKEND_URL from frontend/.env> && npx expo export -p web. Backend already serves /api/customer -> Customer/dist (server.py line 114 _CUSTOMER_DIR). Then hit <REACT_APP_BACKEND_URL>/api/customer in a browser and screenshot — expect blue diagonal gradient + logo/site-name + 'Trusted Home Services' caption + white spinner, then redirect to /api/customer/(site)."
+}

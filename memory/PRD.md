@@ -98,3 +98,7 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - app.json (frontend + Customer): android.permission.REQUEST_INSTALL_PACKAGES.
 - Backend: upload always sets version_code/latest_version (+apk_version_code) from the APK; public config uses APK code + absolute apk_url; /api/media/file serves .apk with HTTP Range (206) for resume.
 - Needs ONE manual install of a new build (old installs carry the broken updater).
+
+## 2026-06 — Customer app splash = Partner splash
+- Customer/app/index.tsx: branded animated splash (blue gradient, admin logo / site name+tagline, caption, spinner, 1.5s) → /(site).
+- Customer/app.json: expo-splash-screen dark block (#0D47A1) + android.backgroundColor — fixes dark-grey native splash in phone dark mode. Needs new APK build. Verified by code review only (iteration_239).
