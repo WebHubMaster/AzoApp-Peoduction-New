@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
-BASE_URL = "https://geo-category-matcher.preview.emergentagent.com/api"
+BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
 
 # Test credentials
 CUSTOMER_PHONE = "+919000000004"

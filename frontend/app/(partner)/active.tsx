@@ -666,10 +666,10 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
         {/* Secondary actions */}
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
           {status === "assigned" ? (
-            <Pressable testID={`reject-${b.code}`} onPress={reject} style={[outlineBtn({ border: "#FECACA" }), { flex: 1, minWidth: 140 }]}><Icon name="close-circle-outline" size={16} color="#DC2626" /><Text style={{ color: "#DC2626", fontWeight: "700", fontSize: 13 }}>Reject Job</Text></Pressable>
+            <Pressable testID={`reject-${b.code}`} onPress={reject} style={[outlineBtn({ border: "#FECACA" }), { flex: 1, minWidth: 130, paddingHorizontal: 8 }]}><Icon name="close-circle-outline" size={15} color="#DC2626" /><Text numberOfLines={1} style={{ color: "#DC2626", fontWeight: "700", fontSize: 12, flexShrink: 1 }}>Reject Job</Text></Pressable>
           ) : null}
           {canRequestResched ? (
-            <Pressable testID={`reschedule-${b.code}`} onPress={() => setReschedOpen(true)} style={[outlineBtn({ border: colors.border }), { flex: 1, minWidth: 140 }]}><Icon name="clock-outline" size={16} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontWeight: "700", fontSize: 13 }}>Request Reschedule</Text></Pressable>
+            <Pressable testID={`reschedule-${b.code}`} onPress={() => setReschedOpen(true)} style={[outlineBtn({ border: colors.border }), { flex: 1, minWidth: 130, paddingHorizontal: 8 }]}><Icon name="clock-outline" size={15} color={colors.textSecondary} /><Text numberOfLines={1} style={{ color: colors.textSecondary, fontWeight: "700", fontSize: 12, flexShrink: 1 }}>Request Reschedule</Text></Pressable>
           ) : null}
         </View>
 

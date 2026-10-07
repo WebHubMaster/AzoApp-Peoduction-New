@@ -15,7 +15,7 @@ import requests
 from datetime import datetime
 
 # Base URL from frontend/.env
-BASE_URL = "https://geo-category-matcher.preview.emergentagent.com/api"
+BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

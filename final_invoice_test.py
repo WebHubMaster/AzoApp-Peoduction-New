@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://geo-category-matcher.preview.emergentagent.com/api"
+BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

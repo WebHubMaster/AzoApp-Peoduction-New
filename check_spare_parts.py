@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://geo-category-matcher.preview.emergentagent.com/api"
+BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 
