@@ -8,7 +8,7 @@ import hashlib
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://cb98f685-8ce1-4c45-84be-16713566ee7f.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://finance-console-3.preview.emergentagent.com").rstrip("/")
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 APK_PATH = "/tmp/tiny.apk"

@@ -8,7 +8,7 @@ import json
 from decimal import Decimal
 
 # Configuration
-BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
+BASE_URL = "https://finance-console-3.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

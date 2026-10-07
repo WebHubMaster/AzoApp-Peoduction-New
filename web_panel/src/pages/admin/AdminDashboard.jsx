@@ -28,7 +28,8 @@ import KycApprovals from "@/pages/admin/KycApprovals";
 import PeopleList from "@/pages/admin/people/PeopleList";
 import SuspendedPartners from "@/pages/admin/SuspendedPartners";
 import Person360 from "@/pages/admin/people/Person360";
-import TransactionsHub from "@/pages/admin/TransactionsHub";
+import TransactionsLedger from "@/pages/admin/finance/TransactionsLedger";
+import FinanceWithdrawals from "@/pages/admin/finance/FinanceWithdrawals";
 import RegistrationFeeReport from "@/pages/admin/RegistrationFeeReport";
 import RefundsHub from "@/pages/admin/RefundsHub";
 import SupportInbox, { SosAlertListener } from "@/pages/admin/SupportInbox";
@@ -424,7 +425,7 @@ export default function AdminDashboard() {
       {active === "surge" && <SurgeRulesManager />}
       {active === "app_mgmt" && <AppManagement />}
       {active === "logs_monitor" && <LogsMonitor />}
-      {active === "ledger" && <TransactionsHub />}
+      {active === "ledger" && <TransactionsLedger />}
       {active === "invoices" && <InvoiceManagement />}
       {active === "invoice_config" && <BusinessConfigSettings />}
       {active === "coupons" && <CouponsManager />}
@@ -460,7 +461,7 @@ export default function AdminDashboard() {
       {active === "pm_verify" && <PM.PartnerVerificationReview />}
       {active === "pm_skills" && <PM.SkillsCatalogManager />}
       {active === "pm_certs" && <PM.CertificatesReview />}
-      {active === "pm_withdrawals" && <PM.WithdrawalsQueue />}
+      {active === "pm_withdrawals" && <FinanceWithdrawals />}
       {active === "payout_config" && <PM.WalletRewardConfig />}
       {active === "pm_incentives" && <IncentivesManagerPro />}
       {active === "pm_penalties" && <PenaltiesManagerPro />}

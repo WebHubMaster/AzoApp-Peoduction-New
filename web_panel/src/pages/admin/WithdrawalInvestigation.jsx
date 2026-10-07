@@ -70,7 +70,7 @@ function RiskGauge({ score, level }) {
   );
 }
 
-export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
+export default function WithdrawalInvestigation({ wid, accountType = "partner", onBack, onDone }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
@@ -80,17 +80,17 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
 
   const load = useCallback(() => {
     setErr("");
-    api.get(`/admin/partner/withdrawals/${wid}/investigation`)
+    api.get(`/admin/finance/withdrawals/${accountType}/${wid}`)
       .then((r) => setD(r.data)).catch((e) => setErr(e?.response?.data?.detail || "Unable to load withdrawal data."));
-  }, [wid]);
+  }, [wid, accountType]);
   useEffect(() => { load(); }, [load]);
 
   const doAction = async (action, rsn = "") => {
     if (busy) return;
     setBusy(true);
     try {
-      if (action === "retry") await api.post(`/admin/partner/withdrawals/${wid}/retry`);
-      else await api.post(`/admin/partner/withdrawals/${wid}/action`, { action, reason: rsn });
+      if (action === "retry") await api.post(`/admin/finance/withdrawals/${accountType}/${wid}/retry`);
+      else await api.post(`/admin/finance/withdrawals/${accountType}/${wid}/action`, { action, reason: rsn });
       toast.success(action === "approve" ? "Approved — payout initiated" : action === "retry" ? "Retry triggered" : "Rejected");
       setConfirmPay(false); setRejectOpen(false); setReason("");
       onDone?.();
@@ -122,7 +122,9 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
     );
   }
 
-  const { withdrawal: w, owner, wallet, wallet_ledger: ledger, destination: dest, risk, checklist, history, history_summary: hs, transactions, audit, timeline } = d;
+  const { withdrawal: w, owner, wallet, wallet_ledger: ledger, destination: dest, risk, checklist, history, history_summary: hs, transactions, audit, timeline, account_type: atype } = d;
+  const isMerchant = atype === "merchant";
+  const acctLabel = isMerchant ? "Merchant" : "Partner";
   const statusBadge = w.status === "completed" ? "bg-emerald-100 text-emerald-700"
     : w.status === "failed" ? "bg-red-100 text-red-700"
       : w.status === "rejected" ? "bg-red-100 text-red-700"
@@ -138,8 +140,11 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <p className="text-[11px] text-slate-400">Withdrawal request · {w.code}</p>
-            <h1 className="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">{owner.name}</h1>
-            <p className="text-sm text-slate-500 mt-0.5">{owner.code} · Partner · requested {dt(w.requested_at)}</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-heading font-extrabold text-2xl text-slate-900 dark:text-white">{owner.name}</h1>
+              <span data-testid="inv-acct-badge" className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${isMerchant ? "bg-violet-50 text-violet-700 border-violet-200" : "bg-blue-50 text-blue-700 border-blue-200"}`}>{acctLabel}</span>
+            </div>
+            <p className="text-sm text-slate-500 mt-0.5">{owner.code} · {acctLabel} · requested {dt(w.requested_at)}</p>
           </div>
           <div className="text-right">
             <p className="font-heading font-extrabold text-3xl text-slate-900 dark:text-white">{fmt(w.amount)}</p>
@@ -154,7 +159,7 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700" data-testid="inv-approve-pay" disabled={busy} onClick={() => setConfirmPay(true)}><Banknote className="h-4 w-4 mr-1" /> Approve &amp; Pay {fmt(w.net_amount)}</Button>
             <Button size="sm" variant="outline" className="text-red-600 border-red-200" data-testid="inv-reject" disabled={busy} onClick={() => setRejectOpen(true)}><XCircle className="h-4 w-4 mr-1" /> Reject</Button>
           </>}
-          {w.status === "failed" && <Button size="sm" className="bg-primary-700 hover:bg-primary-800" data-testid="inv-retry" disabled={busy} onClick={() => doAction("retry")}><RotateCcw className="h-4 w-4 mr-1" /> Retry Payout</Button>}
+          {w.status === "failed" && !isMerchant && <Button size="sm" className="bg-primary-700 hover:bg-primary-800" data-testid="inv-retry" disabled={busy} onClick={() => doAction("retry")}><RotateCcw className="h-4 w-4 mr-1" /> Retry Payout</Button>}
         </div>
       </div>
 
@@ -195,8 +200,8 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
 
       {/* PROFILE + WALLET + DESTINATION */}
       <div className="grid lg:grid-cols-3 gap-5">
-        <Panel title="Partner Profile" icon={User} testid="inv-profile">
-          <KV k="Partner ID" v={owner.code} />
+        <Panel title={`${acctLabel} Profile`} icon={User} testid="inv-profile">
+          <KV k={`${acctLabel} ID`} v={owner.code} />
           <KV k="Phone" v={owner.phone} />
           <KV k="Email" v={owner.email || "—"} />
           <KV k="Joined" v={dt(owner.joined)} />
@@ -335,12 +340,14 @@ export default function WithdrawalInvestigation({ wid, onBack, onDone }) {
           <DialogHeader><DialogTitle>Approve Withdrawal?</DialogTitle>
             <DialogDescription>You are about to send money to this payout destination.</DialogDescription></DialogHeader>
           <div className="space-y-1.5 rounded-xl border border-slate-200 dark:border-slate-800 p-3 text-[13px]">
-            <KV k="Partner" v={owner.name} />
+            <KV k="Recipient" v={owner.name} />
+            <KV k="Account type" v={acctLabel} />
             <KV k="Requested" v={fmt(w.amount)} />
             <KV k="Processing Fee" v={fmt(w.fee)} />
             <KV k="Net Payable" v={fmt(w.net_amount)} cls="text-emerald-600" />
-            <KV k="Wallet Withdrawable" v={fmt(wallet.withdrawable_balance)} />
             <KV k="Destination" v={dest.method === "upi" ? dest.upi_masked : `${dest.bank?.bank_name || ""} ${dest.bank?.account_masked || ""}`} />
+            <KV k="Wallet balance now" v={fmt(wallet.withdrawable_balance)} />
+            <KV k="Balance after payout" v={fmt(Math.max((Number(wallet.withdrawable_balance) || 0) - (Number(w.amount) || 0), 0))} cls="font-semibold" />
             <KV k="Risk" v={<span className={riskTone(risk.level).split(" ")[0]}>{risk.level} · {risk.score}</span>} />
           </div>
           {risk.level !== "LOW" && <p className="text-[12px] text-amber-600 flex items-center gap-1"><AlertTriangle className="h-3.5 w-3.5" /> Elevated risk — review signals before paying.</p>}

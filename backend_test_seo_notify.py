@@ -9,7 +9,7 @@ import json
 from typing import Dict, Any, Optional
 
 # Backend URL from frontend/.env
-BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
+BASE_URL = "https://finance-console-3.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 ADMIN_PHONE = "+919000000000"

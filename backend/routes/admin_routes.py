@@ -459,6 +459,46 @@ async def finance_report(date_from: str = "", date_to: str = "", admin=Depends(A
     return await c.finance_report(date_from, date_to)
 
 
+# ============================================================================
+# UNIFIED FINANCE OPS — premium console (partner + merchant withdrawals + ledger)
+# ============================================================================
+from controllers import finance_ops_controller as fo  # noqa: E402
+
+
+@router.get("/finance/withdrawals")
+async def finance_withdrawals(account_type: str = "", status: str = "", method: str = "",
+                              q: str = "", date_from: str = "", date_to: str = "",
+                              page: int = 1, page_size: int = 25, admin=Depends(ADMIN)):
+    return await fo.list_withdrawals(account_type, status, method, q, date_from, date_to, page, page_size)
+
+
+@router.get("/finance/withdrawals/{account_type}/{wid}")
+async def finance_withdrawal_detail(account_type: str, wid: str, admin=Depends(ADMIN)):
+    return await fo.withdrawal_investigation(account_type, wid)
+
+
+@router.post("/finance/withdrawals/{account_type}/{wid}/action")
+async def finance_withdrawal_action(account_type: str, wid: str, data: dict = Body(...), admin=Depends(ADMIN)):
+    return await fo.withdrawal_action(admin, account_type, wid, data.get("action"), data.get("reason", ""))
+
+
+@router.post("/finance/withdrawals/{account_type}/{wid}/retry")
+async def finance_withdrawal_retry(account_type: str, wid: str, admin=Depends(ADMIN)):
+    return await fo.withdrawal_retry(admin, account_type, wid)
+
+
+@router.get("/finance/ledger")
+async def finance_ledger(category: str = "all", account_type: str = "", q: str = "",
+                         date_from: str = "", date_to: str = "", method: str = "",
+                         page: int = 1, page_size: int = 25, admin=Depends(ADMIN)):
+    return await fo.list_ledger(category, account_type, q, date_from, date_to, method, page, page_size)
+
+
+@router.get("/finance/ledger/{source}/{tid}")
+async def finance_ledger_detail(source: str, tid: str, admin=Depends(ADMIN)):
+    return await fo.ledger_detail(source, tid)
+
+
 # ── Advanced Reports & Analytics ──
 @router.get("/reports/overview")
 async def reports_overview(date_from: str = "", date_to: str = "", admin=Depends(ADMIN)):

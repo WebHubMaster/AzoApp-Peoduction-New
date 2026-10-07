@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://customer-booking-ui.preview.emergentagent.com/api"
+BASE_URL = "https://finance-console-3.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

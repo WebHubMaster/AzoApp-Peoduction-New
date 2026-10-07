@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://customer-booking-ui.preview.emergentagent.com  
+**App URL:** https://finance-console-3.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary
