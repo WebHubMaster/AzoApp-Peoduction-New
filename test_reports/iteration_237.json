@@ -1,0 +1,36 @@
+{
+  "summary": "Verified new Admin > App Management features: (1) Resumable chunked APK uploads with persistent pending state across page reloads and network drops, (2) Storage status badge indicating S3-vs-local mode. Backend: 8/8 new pytest cases pass in test_app_mgmt_resume_iter237.py covering GET /admin/storage (admin-only, mode=local in preview), GET /admin/apk/{platform}/received/{upload_id} (empty, sorted indexes, invalid upload_id → 400, invalid platform → 400) and full resume semantics (upload partial → /finish 400 incomplete → upload missing → /finish → poll → done). Frontend (web_panel rebuilt via `PUBLIC_URL=/api/panel yarn build`): (a) storage-status-badge visible with text 'Local Server Storage' (S3 not configured), (b) initial resume banner absent, (c) seeded localStorage pending → apk-resume-banner-customer shows filename + ~30% + Resume/Discard buttons, (d) Discard button clears both banner and localStorage key azo_apk_pending_customer, (e) Full E2E: 30 MB test APK uploaded via apk-input-customer, interrupted at ~49% by page reload (26/41 chunks sent) → banner appears post-reload → re-select same file → 'Resuming upload from 63%' toast → only 15 missing chunks re-sent (vs 41 total) → 'APK uploaded · v1.6.0 (code 16)' success toast → UI shows 30.0 MB uploaded, (f) Internet drop simulation: context.set_offline(True) during upload → apk-stage-customer shows 'Waiting for internet — upload will continue automatically' → set_offline(False) → upload resumes and completes with success toast.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard first visit", "issues": ["'Turn on alerts' notification prompt and tour overlay still appear and can obscure the save button at bottom — pre-existing, cosmetic"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_app_mgmt_resume_iter237.py",
+    "/app/test_reports/pytest/app_mgmt_resume_iter237.xml"
+  ],
+  "action_items": [
+    "web_panel/build was stale — did NOT include the new StorageBadge / resume-banner code until I rebuilt via `cd /app/web_panel && PUBLIC_URL=/api/panel yarn build`. Main agent should ensure a fresh build is produced after any admin-panel source change (same note as iter_236). Otherwise /api/panel serves outdated assets and new data-testid elements are not present."
+  ],
+  "critical_code_review_comments": [
+    "AppManagement.jsx: fileUploadId derives upload_id from file name + size + lastModified → stable across reloads on same disk file. Good. Note: picking a renamed-but-identical copy of the same bytes will start a NEW upload — acceptable trade-off, documented in UI copy.",
+    "pollJob swallows transient network errors and shows 'Waiting for internet' when navigator.onLine is false → the automatic online→retry worked as designed.",
+    "receive_chunks + partial-finish response (`Upload incomplete ({got}/{total})`) gives both the client and the admin a clear number for debugging interrupted sessions.",
+    "Backend _check_upload_id enforces [a-zA-Z0-9_-] and ≤80 chars — prevents path-injection on received/{upload_id}. Nice.",
+    "StorageBadge gracefully no-ops when /admin/storage fails (api.get.catch(() => {})) — won't block the page from rendering if S3 config service is down. Consider surfacing an error toast once so an admin notices storage-status fetch failure.",
+    "Resume banner is only shown when pending && !uploading && !pending.jobId. Reload during 'Processing' stage auto-resumes polling via the useEffect that reads pending.jobId — verified indirectly (success toast after reload mid-upload + /finish succeeded)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_app_mgmt_resume_iter237.py (new regression tests)",
+    "/app/web_panel/build/* (rebuilt via yarn build to pick up StorageBadge + resume banner source)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% on tested flows (badge, no-initial-banner, seeded banner, discard, E2E 30MB resume-after-reload, offline-drop resume)"},
+  "test_credentials": "Admin: nodewaptechnology@gmail.com (role admin, DB from backend/.env). JWT minted via middleware.auth.create_token(user_id, 'admin') and set as localStorage key `azo_token`.",
+  "seed_data_creation": "Built /tmp/test30.apk (30 MB padded) via `python /app/backend/tests/make_test_apk.py /tmp/test30.apk 30`. Uploaded to platform=customer, replacing the previous APK; file persisted at /app/backend/uploads/app-mgmt/customer/*.apk via local storage service.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "web_panel admin URL: https://e5147e3c-cf48-48bc-8ab9-490650dc553b.preview.emergentagent.com/api/panel/admin?tab=app_mgmt (uses `?tab=` deep-link via useTabParam → opens App Management without needing to expand the collapsed System sidebar group). Pending resume state stored in localStorage key `azo_apk_pending_{platform}` with shape {uploadId, name, size, total, done, jobId?}. Server computes upload_id client-side from file.name+size+lastModified so same file on disk resumes deterministically. If running fresh, ensure web_panel is rebuilt: `cd /app/web_panel && PUBLIC_URL=/api/panel yarn build`. For offline test use playwright `page.context.set_offline(True/False)`."
+}

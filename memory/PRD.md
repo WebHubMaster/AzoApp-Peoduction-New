@@ -83,3 +83,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Root cause: 4MB chunks > Nginx default client_max_body_size 1MB (413 w/o CORS → "Failed to fetch"); sync /finish on big APK hit proxy timeout; chunks in container /tmp.
 - Fix: 768KB chunks, 4 parallel, auto-retry w/ backoff; chunks stored in Mongo `apk_upload_chunks` (idempotent, TTL 6h); /finish starts background job (`apk_upload_jobs`), UI polls /status/{job_id}; APK parsed from disk; S3 multipart upload_file; .apk via /api/media/s3 → 302 presigned URL; unique apk name per upload.
 - Verified: 160MB APK e2e byte-identical; iteration_236 13/13 backend + UI pass. Test APK generator: backend/tests/make_test_apk.py
+
+## 2026-06 — Resumable APK upload + Storage badge
+- Resume: upload_id = fingerprint(platform,size,lastModified,name); pending state in localStorage `azo_apk_pending_{platform}`; GET /api/app-mgmt/admin/apk/{platform}/received/{upload_id} → skip sent chunks; offline → waits for `online` event; reload during Processing auto-resumes polling; resume banner (Resume/Discard). Chunks kept 6h (TTL).
+- Storage badge: GET /api/app-mgmt/admin/storage → {mode: s3|local, bucket, region}; badge in App Management header.
+- Verified iteration_237 (8/8 backend, UI resume after reload + offline drop).
