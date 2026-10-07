@@ -96,7 +96,7 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
     (async () => {
       try {
         const p = await api.get<any>(`/subscriptions/plans/${service.id}`);
-        setPlans(p.plans || []); setSel((p.plans || [])[0]?.plan_type || "");
+        const ps = p.plans || []; setPlans(ps); setSel((ps.find((x: any) => x.plan_type === "monthly") || ps[0])?.plan_type || "");
       } catch (e: any) { toast.error(e?.detail || "Could not load plans"); }
       try { const a = await api.get<any[]>("/auth/addresses"); setAddresses(a || []); setAddrId((a || [])[0]?.id || ""); } catch (_) {}
     })();
