@@ -297,3 +297,7 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 ### [2026-06] Booking flow: saved addresses now 2-column grid
 - Request: normal service booking (StepContact) me multiple saved addresses ek column me stack ho rahe the; 2 columns me dikhne chahiye.
 - Change: Customer/src/components/site/CheckoutSteps.tsx — saved-address tiles (incl. "New address") ab flex grid me (flexDirection row + flexWrap, flexBasis 47%, flexGrow 1, minWidth 140, gap 8), is se multiple addresses 2 columns me aate hain; lone/odd item poori row le leta hai. Labels/line numberOfLines={1} se truncate hote hain. Native-only UI change — device par verify.
+
+### [2026-06] Customer login inputs — bigger, bold, no scroll
+- Request: login screen ke input fields me font bada + bold ho, aur input me scroll na ho (OTP + Name bhi).
+- Change: Customer/app/login.tsx — phone input F(27)->F(31) + fontWeight 700 + scrollEnabled:false; inputStyle (name/email) F(26)->F(30) + fontWeight 700; name input numberOfLines=1 + multiline=false + scrollEnabled:false; OTP digit text F(36)->F(42). Single-line inputs so text fit rehta hai, horizontal scroll nahi. Native-only UI change — device par verify.

@@ -129,7 +129,7 @@ export default function Login() {
   const g = makeGeom(width, height - insets.top - insets.bottom);
   const { X, Y, F, u } = g;
   const inputH = Y(88);
-  const inputStyle = { height: inputH, borderRadius: 7 * u, borderWidth: 1, borderColor: C.border, backgroundColor: "#fff", paddingHorizontal: 12 * u, fontSize: F(26), color: C.navy, outlineStyle: "none" } as any;
+  const inputStyle = { height: inputH, borderRadius: 7 * u, borderWidth: 1, borderColor: C.border, backgroundColor: "#fff", paddingHorizontal: 12 * u, fontSize: F(30), fontWeight: "700", color: C.navy, outlineStyle: "none" } as any;
   const h1 = { fontWeight: "600", fontSize: F(33), color: C.navy, letterSpacing: -0.3 } as const;
   const sub = { fontSize: F(22), color: C.body, marginTop: Y(10) } as const;
   const link = { fontSize: F(22), color: C.body, fontWeight: "600" } as const;
@@ -185,9 +185,9 @@ export default function Login() {
                       <Text style={{ marginLeft: X(22), fontSize: F(28), fontWeight: "700", color: C.navy }}>+91</Text>
                       <ChevronDown size={F(30)} color={C.navy} style={{ marginLeft: X(14) }} />
                       <View style={{ width: 1, height: Y(56), backgroundColor: C.border, marginLeft: X(34), marginRight: X(30) }} />
-                      <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={C.faint} numberOfLines={1} multiline={false}
+                      <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={C.faint} numberOfLines={1} multiline={false} scrollEnabled={false}
                         keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
-                        style={{ flex: 1, minWidth: 0, height: inputH - 2, fontSize: F(27), color: C.navy, paddingRight: 8, outlineStyle: "none" } as any} />
+                        style={{ flex: 1, minWidth: 0, height: inputH - 2, fontSize: F(31), fontWeight: "700", color: C.navy, paddingRight: 8, outlineStyle: "none" } as any} />
                     </View>
                     <View style={{ marginTop: gap }}><PrimaryBtn g={g} testID="send-otp-button" label="Send OTP" onPress={send} busy={busy === "send"} /></View>
                     <View style={{ marginTop: Y(24), flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 * u }}>
@@ -210,7 +210,7 @@ export default function Login() {
                           const focused = i === Math.min(otp.length, OTP_LEN - 1);
                           return (
                             <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: inputH, borderRadius: 7 * u, borderWidth: 1.5, borderColor: focused ? C.bright : C.border, backgroundColor: focused ? "#F5F9FF" : "#fff", alignItems: "center", justifyContent: "center" }}>
-                              <Text style={{ fontSize: F(36), fontWeight: "800", color: C.navy }}>{otp[i] || ""}</Text>
+                              <Text style={{ fontSize: F(42), fontWeight: "800", color: C.navy }}>{otp[i] || ""}</Text>
                             </View>
                           );
                         })}
@@ -243,7 +243,7 @@ export default function Login() {
                       <Text style={h1}>Your Name</Text>
                       <Text style={sub}>Welcome! Please tell us your name to continue.</Text>
                     </View>
-                    <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={C.faint} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
+                    <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={C.faint} numberOfLines={1} multiline={false} scrollEnabled={false} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
                     <LegalConsent checked={accepted} onChange={setAccepted} testID="signup-legal" />
                     <PrimaryBtn g={g} testID="continue-signup-button" label="Continue" onPress={continueSignup} busy={busy === "signup"} disabled={!accepted} />
                     <Pressable testID="name-change-number" onPress={() => setStep(1)}><Text style={link}>← Change number</Text></Pressable>
