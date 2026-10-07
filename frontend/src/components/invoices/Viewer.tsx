@@ -89,7 +89,6 @@ export default function InvoiceViewer({ inv, loading, onClose, onDownload, onPri
         {/* mobile sticky actions */}
         <View testID="viewer-mobile-actions" style={{ flexDirection: "row", gap: 8, borderTopWidth: 1, borderTopColor: t.border2, backgroundColor: t.dark ? "rgba(15,23,42,0.95)" : "rgba(255,255,255,0.95)", paddingHorizontal: 12, paddingTop: 10, paddingBottom: insets.bottom + 10 }}>
           <OutlineBtn testID="viewer-m-download" primary onPress={() => onDownload(inv)} disabled={!ready} busy={downloading} height={48} icon={<Download size={16} color="#fff" />} label="Download" />
-          <OutlineBtn testID="viewer-m-share" onPress={() => setShareOpen(true)} disabled={!ready} height={48} icon={<Share2 size={16} color={t.t700} />} label="Share" />
           <OutlineBtn testID="viewer-m-print" onPress={() => onPrint(inv)} disabled={!ready} busy={printing} height={48} icon={<Printer size={16} color={t.t700} />} label="Print" />
         </View>
 
