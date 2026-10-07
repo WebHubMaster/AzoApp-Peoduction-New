@@ -1,0 +1,38 @@
+{
+  "summary": "Code review (frontend-only, Android-only component — returns null on web, so no browser UI to render). Verified AlertPermissionWalkthrough.tsx meets every requirement in the review request, and confirmed the web customer app still loads without page errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "code_review_findings": {
+    "safe_area_bottom_padding": "PASS — line 101: paddingBottom: 20 + Math.max(insets.bottom, 16). Uses useSafeAreaInsets (line 40). SafeAreaProvider wraps the app in app/_layout.tsx (line 97). Modal has statusBarTranslucent set.",
+    "auto_permissions_silent": "PASS — AUTO_KEYS=['notifications','battery'] (line 17). Loop at lines 58-63 invokes runRequest silently BEFORE opening the modal. Skips when st.available===false, st.granted, or (notifications && canAskAgain===false). Neither 'notifications' nor 'battery' appear in STEPS (lines 20-24).",
+    "steps_only_force_permissions": "PASS — STEPS contains only fullscreen, overlay, oem (lines 21-23).",
+    "modal_opens_only_if_missing": "PASS — lines 64-69: re-reads states after auto-requests, computes `missing = STEPS.some(available && !granted)`. If none missing, sets DONE_KEY and returns without opening. Otherwise snapshots todo = STEPS filtered to the missing ones.",
+    "progress_counter_correct": "PASS — `steps = STEPS.filter(st => todo.includes(st.key))` (line 82). Counter uses `safeIdx + 1 / steps.length` (line 106) so e.g. 1/2 when oem is unavailable or fullscreen already granted. todo is a one-time snapshot (set once in the effect) so numerator/denominator do not shift mid-walkthrough.",
+    "hooks_order_valid": "PASS — All hooks (useTheme, useSafeAreaInsets, useState×4, useCallback, useEffect×2, useMemo, useCallback) are declared before the early return on line 85. No conditional hook calls.",
+    "no_ts_errors_in_component": "PASS — `tsc --noEmit` reports only one unrelated error in app/(customer)/subscriptions.tsx (PRIMARY[900] indexing). AlertPermissionWalkthrough.tsx compiles cleanly.",
+    "web_regression": "PASS — https://c83a2d10-8f95-4cb4-bf0f-d10eac1cba8c.preview.emergentagent.com/api/customer/ returns 200, home renders, no pageerror. Only console noise is the expected 401 on unauthenticated /api/customer/me. Component Platform.OS!=='android' guard (line 54) prevents any work on web; `open` stays false so the component returns null — safe for web.",
+    "misc_observations": [
+      "finish() correctly persists DONE_KEY on dismiss (line 83) so the walkthrough never reopens after being seen.",
+      "AppState re-check on 'active' refreshes states when the user returns from a system settings screen (lines 75-79) — only subscribed while open, cleaned up on unmount.",
+      "runRequest('notifications') contains a fallback that opens Settings when canAskAgain===false, but that path is unreachable from the AUTO loop because the loop skips it (line 61). Still safely handled for the FORCE path.",
+      "requestBatteryExemption() may launch the system ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS dialog on first run; this is a native system dialog and matches the 'silent' AUTO intent in the spec."
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Unrelated: app/(customer)/subscriptions.tsx line 307 — `PRIMARY[900]` indexing fails because PRIMARY palette only defines keys 50..700. Not part of this change but will emit a TS error."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend only)", "frontend": "100% (code review)"},
+  "test_credentials": "Customer: any 10-digit mobile, dev OTP 123456 (not exercised — component is Android-only and does not render on web).",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "AlertPermissionWalkthrough is Android-only; verifying its actual on-screen behaviour (safe-area padding over the nav bar, silent system dialogs for notifications+battery, 1/2 progress when oem is unavailable) requires a real Android device build. Code review confirms the implementation is correct per spec. Web export at /api/customer/ loads fine; the component renders null on web by design.",
+  "rca_of_the_issue": "n/a — review request, not a bug fix."
+}
