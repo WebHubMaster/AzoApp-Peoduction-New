@@ -1736,6 +1736,7 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
     platform_fee: biz.platform_fee ?? 10,
     min_labour_charge: biz.min_labour_charge ?? "",
     cos_enabled: biz.cos_enabled !== false,
+    membership_enabled: biz.membership_enabled !== false,
     reminder_lead_minutes: biz.reminder_lead_minutes ?? 30,
     free_partner_alert_delay_sec: biz.free_partner_alert_delay_sec ?? 0,
     rating_suspension_days: biz.rating_suspension_days ?? 7,
@@ -1759,6 +1760,7 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
           platform_fee: f.platform_fee === "" ? 10 : Math.max(0, Number(f.platform_fee) || 0),
           min_labour_charge: Number(f.min_labour_charge) || 0,
           cos_enabled: !!f.cos_enabled,
+          membership_enabled: !!f.membership_enabled,
           reminder_lead_minutes: Number(f.reminder_lead_minutes) || 30,
           free_partner_alert_delay_sec: Math.max(0, Number(f.free_partner_alert_delay_sec) || 0),
           rating_suspension_days: Math.max(0, Number(f.rating_suspension_days) || 0),
@@ -1808,6 +1810,17 @@ function BusinessModal({ biz, defaultEmergencyFee, onClose, onSaved }) {
             <button type="button" data-testid="biz-cos-enabled" onClick={() => set("cos_enabled", !f.cos_enabled)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${f.cos_enabled ? "bg-emerald-500" : "bg-slate-300"}`}>
               <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${f.cos_enabled ? "left-[22px]" : "left-0.5"}`} />
+            </button>
+          </div>
+
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Membership</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Show the Membership option across the website &amp; customer app. Turn off to hide Membership everywhere for customers.</p>
+            </div>
+            <button type="button" data-testid="biz-membership-enabled" onClick={() => set("membership_enabled", !f.membership_enabled)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition ${f.membership_enabled ? "bg-emerald-500" : "bg-slate-300"}`}>
+              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${f.membership_enabled ? "left-[22px]" : "left-0.5"}`} />
             </button>
           </div>
 

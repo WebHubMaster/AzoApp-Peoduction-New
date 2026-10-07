@@ -4,6 +4,7 @@ import api, { fmt } from "@/lib/api";
 import { toast } from "sonner";
 import { Crown, Ticket, ArrowRight, Copy, Check, Sparkles, Tag, CalendarClock, ShieldCheck } from "lucide-react";
 import { Container, SectionHead, Scroller, Sk, ErrorState } from "@/pages/customer/home/ui";
+import { useSiteConfig } from "@/context/SiteConfigContext";
 
 // Persist the chosen code so Checkout can auto-fill it, copy to clipboard, and
 // nudge the user toward services — this is the "one-tap apply" behaviour.
@@ -22,6 +23,7 @@ export default function Promotions() {
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(null);
   const navigate = useNavigate();
+  const { membership_enabled } = useSiteConfig();
 
   const load = () => { setError(false); api.get("/site/promotions").then((r) => setPromo(r.data)).catch(() => setError(true)); };
   useEffect(load, []);
@@ -75,7 +77,7 @@ export default function Promotions() {
         </section>
       )}
 
-      {topPlan && (
+      {topPlan && membership_enabled !== false && (
         <section className="py-4 sm:py-6" data-testid="home-membership-banner">
           <Container>
             <div className="relative rounded-[28px] overflow-hidden bg-slate-900 text-white ring-1 ring-slate-800">

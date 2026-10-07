@@ -119,7 +119,7 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuth();
-  const { branding } = useSiteConfig();
+  const { branding, membership_enabled } = useSiteConfig();
   const { count: cartCount } = useCart();
   const { isDark } = useTheme();
   const logo = (isDark ? branding.logo_dark || branding.logo_light : branding.logo_light || branding.logo_dark) || "";
@@ -135,7 +135,9 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
           )}
         </Pressable>
         <View style={{ flex: 1 }} />
-        <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: "#FDE68A", alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 24, height: 24 }} contentFit="contain" /></Pressable>
+        {membership_enabled !== false ? (
+          <Pressable testID="nav-membership-mobile" onPress={membership} style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: "#FDE68A", alignItems: "center", justifyContent: "center" }}><Image source={CROWN} style={{ width: 24, height: 24 }} contentFit="contain" /></Pressable>
+        ) : null}
         <LocationButton testID="nav-location" iconOnly />
         <Pressable testID="nav-cart" onPress={() => router.push("/(site)/book")} style={{ width: 40, height: 40, borderRadius: 6, borderWidth: 1, borderColor: TC.border, alignItems: "center", justifyContent: "center" }}>
           <ShoppingBag size={20} color={TC.text2} />

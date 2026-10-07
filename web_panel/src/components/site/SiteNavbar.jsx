@@ -190,7 +190,7 @@ const prefetchDash = (role) => {
 export default function SiteNavbar({ showSearch = true }) {
   const { user } = useAuth();
   const { count } = useCart();
-  const { branding } = useSiteConfig();
+  const { branding, membership_enabled } = useSiteConfig();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -210,12 +210,16 @@ export default function SiteNavbar({ showSearch = true }) {
         )}
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <button onClick={() => navigate("/services")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-md text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">All Services</button>
-          <button data-testid="nav-membership" onClick={() => navigate("/membership")} className="text-sm font-semibold text-amber-600 hover:text-amber-700 hidden lg:flex items-center gap-2"><MembershipBadge size={44} /> Membership</button>
+          {membership_enabled !== false && (
+            <button data-testid="nav-membership" onClick={() => navigate("/membership")} className="text-sm font-semibold text-amber-600 hover:text-amber-700 hidden lg:flex items-center gap-2"><MembershipBadge size={44} /> Membership</button>
+          )}
           {/* Premium animated gold Membership badge (mobile/tablet) */}
-          <button data-testid="nav-membership-mobile" onClick={() => navigate("/membership")} aria-label="Membership"
-            className="relative lg:hidden h-10 w-10 flex items-center justify-center shrink-0 transition-transform hover:scale-105 active:scale-95">
-            <MembershipBadge size={40} />
-          </button>
+          {membership_enabled !== false && (
+            <button data-testid="nav-membership-mobile" onClick={() => navigate("/membership")} aria-label="Membership"
+              className="relative lg:hidden h-10 w-10 flex items-center justify-center shrink-0 transition-transform hover:scale-105 active:scale-95">
+              <MembershipBadge size={40} />
+            </button>
+          )}
           {/* Mobile search icon → opens popup */}
           <button data-testid="nav-search-mobile" onClick={() => setSearchOpen(true)} className="md:hidden h-10 w-10 rounded-full border border-slate-200 hover:border-primary-300 flex items-center justify-center text-slate-700">
             <Search className="h-5 w-5" />
@@ -263,7 +267,9 @@ export default function SiteNavbar({ showSearch = true }) {
         <div className="md:hidden border-t border-slate-200 px-4 py-3 space-y-3 bg-white">
           <LocationButton />
           <button onClick={() => { navigate("/services"); setMobileOpen(false); }} className="block text-sm font-semibold text-slate-700">All Services</button>
-          <button onClick={() => { navigate("/membership"); setMobileOpen(false); }} className="flex items-center gap-1.5 text-sm font-semibold text-amber-600"><MembershipBadge size={22} /> Membership</button>
+          {membership_enabled !== false && (
+            <button onClick={() => { navigate("/membership"); setMobileOpen(false); }} className="flex items-center gap-1.5 text-sm font-semibold text-amber-600"><MembershipBadge size={22} /> Membership</button>
+          )}
         </div>
       )}
     </header>

@@ -66,12 +66,12 @@ export const applyFavicon = (href) => {
 };
 
 export const SiteConfigProvider = ({ children }) => {
-  const [cfg, setCfg] = useState({ branding: {}, theme: {}, maintenance: { enabled: false }, loaded: false });
+  const [cfg, setCfg] = useState({ branding: {}, theme: {}, maintenance: { enabled: false }, membership_enabled: true, loaded: false });
   const load = useCallback(async (doApply, firstLoad) => {
     try {
       const r = await api.get("/site/config");
       const data = r.data || {};
-      setCfg({ branding: data.branding || {}, theme: data.theme || {}, stats: data.stats || {}, apps: data.apps || {}, currency: data.currency, maps_api_key: data.maps_api_key || "", cancellation_reasons: data.cancellation_reasons || [], seo: data.seo || {}, fee_info: data.fee_info || {}, maintenance: data.maintenance || { enabled: false }, loaded: true });
+      setCfg({ branding: data.branding || {}, theme: data.theme || {}, stats: data.stats || {}, apps: data.apps || {}, currency: data.currency, maps_api_key: data.maps_api_key || "", cancellation_reasons: data.cancellation_reasons || [], seo: data.seo || {}, fee_info: data.fee_info || {}, maintenance: data.maintenance || { enabled: false }, membership_enabled: data.membership_enabled !== false, loaded: true });
       if (doApply) {
         applySiteTheme(data.theme || {});
         const b = data.branding || {};

@@ -120,6 +120,8 @@ async def _public_site_config():
         },
         # Cash On Service master switch (admin → Business Settings). Default ON.
         "cos_enabled": bool((s.get("business_config") or {}).get("cos_enabled", True)),
+        # Membership master switch (admin → Integration Center → Business Settings). Default ON.
+        "membership_enabled": bool((s.get("business_config") or {}).get("membership_enabled", True)),
     }
 
 

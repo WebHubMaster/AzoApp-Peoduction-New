@@ -16,6 +16,7 @@ export interface SiteConfig {
   seo?: Record<string, any>;
   cancellation_reasons?: string[];
   fee_info?: { tax?: string; platform_fee?: string };
+  membership_enabled?: boolean;
 }
 
 const DEFAULTS: SiteConfig = {
@@ -23,6 +24,7 @@ const DEFAULTS: SiteConfig = {
   theme: { primary: "#0659B2", secondary: "#1E7AD6", accent: "#F59E0B", default_mode: "light" },
   stats: {},
   fee_info: {},
+  membership_enabled: true,
 };
 
 const Ctx = createContext<SiteConfig>(DEFAULTS);
@@ -46,6 +48,7 @@ export function useSiteConfigQuery() {
         stats: raw.stats || {}, apps: raw.apps || {}, seo: raw.seo || {},
         cancellation_reasons: raw.cancellation_reasons || [],
         fee_info: raw.fee_info || {},
+        membership_enabled: raw.membership_enabled !== false,
       } as SiteConfig;
     },
     staleTime: 5 * 60 * 1000,

@@ -3,9 +3,10 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { usePathname, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Home, ClipboardList, Plus, Crown, User } from "lucide-react-native";
+import { Home, ClipboardList, Plus, Crown, User, Ticket } from "lucide-react-native";
 import { PRIMARY, SLATE, useTheme, TC } from "../../theme";
 import { useAuth } from "../../context/AuthContext";
+import { useSiteConfig } from "../../context/BrandContext";
 
 const Tab = ({ testID, Icon, label, active, onPress }: any) => (
   <Pressable testID={testID} onPress={onPress} style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12 }}>
@@ -20,6 +21,7 @@ export function AppBottomNav() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { c } = useTheme();
+  const { membership_enabled } = useSiteConfig();
   const go = (target: string, auth?: boolean) => {
     if (auth && !user) { router.push("/login"); return; }
     router.push(target as any);
@@ -36,7 +38,9 @@ export function AppBottomNav() {
           </Pressable>
           <Text style={{ fontSize: 11, fontWeight: "700", color: TC.primaryText, marginTop: 4 }}>Book Now</Text>
         </View>
-        <Tab testID="bn-membership" Icon={Crown} label="Membership" active={path.includes("/membership")} onPress={() => router.push("/(site)/membership" as any)} />
+        {membership_enabled !== false
+          ? <Tab testID="bn-membership" Icon={Crown} label="Membership" active={path.includes("/membership")} onPress={() => router.push("/(site)/membership" as any)} />
+          : <Tab testID="bn-offers" Icon={Ticket} label="Offers" active={path.includes("/offers")} onPress={() => router.push("/(site)/offers" as any)} />}
         <Tab testID="bn-account" Icon={User} label="Account" active={path.startsWith("/(customer)") && !path.includes("/orders")} onPress={() => go("/(customer)", true)} />
       </View>
     </View>

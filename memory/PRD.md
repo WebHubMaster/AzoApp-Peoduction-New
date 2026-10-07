@@ -332,3 +332,10 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
   - components/site/SiteNavbar.tsx: placeholder -> "Enter city name"; save() resolves pincode->city, inline error (testid `${testID}-error`), serviceable badge shows "We serve {city}".
 - Verified: curl /geo/serviceability?pincode=800001 -> city Patna, 834001 -> Ranchi, 999999 -> not serviceable (no city). Web screenshots: 800001 resolves label to "Patna"; 999999 shows block error and keeps previous city.
 - Seeded service areas: Patna [800001,800002], Ranchi [834001].
+
+## 2026-06 — Membership visibility master toggle (admin → Integration Center → Business Settings)
+- Admin toggle "Membership" added in Business Settings modal (web_panel/src/pages/admin/adminTemplateIntegration.jsx, data-testid=biz-membership-enabled). Saves to business_config.membership_enabled via PUT /admin/settings (partial-merge; busts site: cache). Default ON.
+- Backend: controllers/site_controller.py _public_site_config exposes `membership_enabled` (default True) in GET /site/config.
+- Web (web_panel): SiteConfigContext stores membership_enabled; SiteNavbar.jsx hides desktop+mobile Membership buttons when false; Promotions.jsx hides home membership banner.
+- Customer app: BrandContext.tsx SiteConfig gets membership_enabled; AppBottomNav.tsx swaps Membership tab → Offers tab when off; site/SiteNavbar.tsx hides crown button; HomeBlocks.tsx hides membership banner.
+- Verified: /site/config default true; OFF→false, ON→true (reflects DB, cache busts on save/restart). Web screenshots confirm navbar Membership hidden when OFF and visible when ON.

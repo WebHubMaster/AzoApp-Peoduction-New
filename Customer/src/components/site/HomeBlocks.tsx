@@ -20,6 +20,7 @@ const fmtDate = (d?: string) => { try { return new Date(d as string).toLocaleDat
 export function Promotions() {
   const router = useRouter();
   const toast = useToast();
+  const { membership_enabled } = useSiteConfig();
   const [promo, setPromo] = useState<any>(null);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -69,7 +70,7 @@ export function Promotions() {
         </View>
       ) : null}
 
-      {topPlan ? (
+      {topPlan && membership_enabled !== false ? (
         <View testID="home-membership-banner" style={{ paddingVertical: 16 }}>
           <Container>
             <View style={{ borderRadius: 6, overflow: "hidden", backgroundColor: SLATE[900], padding: 24, borderWidth: 1, borderColor: SLATE[800] }}>
