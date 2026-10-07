@@ -156,14 +156,14 @@ export default function Login() {
               <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ width: X(340), height: Y(135) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
             ) : (
               <View>
-                <Text style={{ fontWeight: "900", fontSize: F(70), letterSpacing: -1 }}><Text style={{ color: C.bright }}>{siteName.slice(0, 3)}</Text><Text style={{ color: C.orange }}>{siteName.slice(3)}</Text></Text>
+                <Text style={{ fontWeight: "900", fontSize: F(70), letterSpacing: -1 }}><Text style={{ color: C.bright, fontWeight: "900" }}>{siteName.slice(0, 3)}</Text><Text style={{ color: C.orange, fontWeight: "900" }}>{siteName.slice(3)}</Text></Text>
                 <Text style={{ fontSize: F(20), color: C.body }}>— {tagline} —</Text>
               </View>
             )}
           </View>
 
           <Text testID="login-title" style={{ position: "absolute", left: X(48), top: Y(252), fontWeight: "600", fontSize: X(56), lineHeight: Y(66), color: C.navy, letterSpacing: -0.6 * u, zIndex: 5 }}>
-            Home Services{"\n"}You Can <Text testID="login-title-trust" style={{ color: C.bright }}>Trust</Text>
+            Home Services{"\n"}You Can <Text testID="login-title-trust" style={{ color: C.bright, fontWeight: "600" }}>Trust</Text>
           </Text>
           <Swoosh g={g} />
           <Text testID="login-subtitle" style={{ position: "absolute", left: X(52), top: Y(410), width: X(420), fontSize: X(22), lineHeight: Y(32), color: C.body }}>
