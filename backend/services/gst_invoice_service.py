@@ -180,7 +180,6 @@ def build_html(inv: dict) -> str:
         <div class="words"><b>Amount in words:</b> {_esc(amount_in_words(p.get("subtotal")))}</div>"""
 
     tax_rows = f"""
-          <tr><td>Taxable Amount</td><td>{m(p1.get("taxable"))}</td></tr>
           <tr><td>CGST @{p1.get("cgst_pct", 9):g}%</td><td>{m(p1.get("cgst"))}</td></tr>
           <tr><td>SGST @{p1.get("sgst_pct", 9):g}%</td><td>{m(p1.get("sgst"))}</td></tr>
           <tr><td>Total Tax</td><td>{m(p1.get("total_tax"))}</td></tr>"""

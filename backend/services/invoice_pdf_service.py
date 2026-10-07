@@ -365,7 +365,6 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
             if _bd.get("discount"):
                 rows.append(("Coupon Discount", "- " + _rs(_bd.get("discount"))))
             if _bd.get("tax"):
-                rows.append(("Taxable Amount", _rs(_bd.get("taxable"))))
                 rows.append((TAX_LABEL, _rs(_bd.get("tax"))))
             if inv.get("invoice_type") == "cancellation":
                 _ref = round(abs(float(inv.get("refund") or 0)), 2)
@@ -385,11 +384,6 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
             if inv.get("discount"):
                 rows.append(("Discount", "- " + _rs(inv.get("discount"))))
             if inv.get("tax"):
-                # Taxable Amount (audit spec #3): GST base excluding the untaxed visiting charge.
-                _tx = inv.get("taxable")
-                if _tx is None:
-                    _tx = round(float(inv.get("subtotal") or 0) + max(0.0, round(float(inv.get("fees") or 0) - float(inv.get("visiting_charge") or 0), 2)), 2)
-                rows.append(("Taxable Amount", _rs(_tx)))
                 rows.append((TAX_LABEL, _rs(inv.get("tax"))))
             if inv.get("fees"):
                 _vc = float(inv.get("visiting_charge") or 0)

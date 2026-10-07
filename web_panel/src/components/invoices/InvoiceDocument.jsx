@@ -84,11 +84,6 @@ const InvoiceDocument = forwardRef(function InvoiceDocument({ inv }, ref) {
 
   const _vc = Number(inv.visiting_charge || 0);
   const _otherFees = Math.round((Number(inv.fees || 0) - _vc) * 100) / 100;
-  // Taxable Amount (audit spec #3): the portion GST is charged on (excludes the
-  // untaxed visiting charge). Informational row — not added to the total again.
-  const _taxable = inv.taxable != null
-    ? Number(inv.taxable)
-    : Math.round((Number(inv.subtotal || 0) + _otherFees) * 100) / 100;
   const _isCancel = inv.invoice_type === "cancellation";
   const rows = [
     ["Subtotal", inv.subtotal, false],
@@ -97,8 +92,6 @@ const InvoiceDocument = forwardRef(function InvoiceDocument({ inv }, ref) {
     _otherFees > 0.001 ? ["Platform / Service Fees", _otherFees, false] : null,
     inv.discount ? ["Discount", -Math.abs(inv.discount), false] : null,
     inv.commission ? ["Platform Fee", inv.commission, "muted"] : null,
-    // tax (GST) LAST — computed on the taxable amount shown just above it
-    _taxable > 0 && inv.tax ? ["Taxable Amount", _taxable, "muted"] : null,
     inv.tax ? ["Est. Govt. Taxes", inv.tax, false] : null,
     // Cancellation breakdown — headline is the ORIGINAL order value; the refund is on
     // the separate Refund Receipt, shown here only as muted info.

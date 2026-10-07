@@ -394,7 +394,6 @@ def build_invoice_html(inv: dict) -> str:
             if _bd.get("discount"):
                 sum_rows.append(("Coupon Discount", -abs(float(_bd.get("discount"))), False))
             if _bd.get("tax"):
-                sum_rows.append(("Taxable Amount", _bd.get("taxable"), True))
                 sum_rows.append((TAX_LABEL, _bd.get("tax"), False))
             if inv_type == "cancellation":
                 _orig = float(_bd.get("total") if _bd.get("total") is not None else inv.get("original_amount") or 0)
@@ -424,13 +423,7 @@ def build_invoice_html(inv: dict) -> str:
                 sum_rows.append(("Discount", -abs(inv["discount"]), False))
             if inv.get("commission"):
                 sum_rows.append(("Commission (platform)", inv["commission"], True))
-            # Taxable Amount (audit spec #3): the GST base — service + charges EXCLUDING the
-            # untaxed visiting charge. Informational (muted); the GST line follows it LAST.
             if inv.get("tax"):
-                _tx = inv.get("taxable")
-                if _tx is None:
-                    _tx = round(float(inv.get("subtotal") or 0) + max(0.0, round(float(inv.get("fees") or 0) - float(inv.get("visiting_charge") or 0), 2)), 2)
-                sum_rows.append(("Taxable Amount", _tx, True))
                 sum_rows.append((TAX_LABEL, inv["tax"], False))
             # For a cancellation the headline is the ORIGINAL ORDER VALUE (the refund is on the
             # separate Refund Receipt). Show the % refunded + the refund issued as muted info.
