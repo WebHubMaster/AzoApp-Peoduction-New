@@ -101,10 +101,14 @@ async def finish_upload(platform: str, body: dict, user=Depends(ADMIN)):
     if not upload_id or not os.path.exists(path):
         raise HTTPException(status_code=400, detail="No uploaded file found — please re-upload.")
     try:
-        raw = open(path, "rb").read()
+        import anyio
+        # Reading a multi-MB APK + parsing its manifest is blocking/CPU-bound — run it
+        # off the event loop so the single worker stays responsive on large uploads
+        # (a stalled worker is what surfaces as a cryptic "Failed to fetch" in the admin).
+        raw = await anyio.to_thread.run_sync(lambda: open(path, "rb").read())
         if len(raw) < 1024:
             raise HTTPException(status_code=400, detail="File is empty or too small to be an APK.")
-        pkg, vcode, vname = _parse_apk(raw)
+        pkg, vcode, vname = await anyio.to_thread.run_sync(_parse_apk, raw)
         expected = EXPECTED_PACKAGE[platform]
         if pkg != expected:
             raise HTTPException(
