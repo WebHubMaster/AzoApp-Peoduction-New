@@ -26,6 +26,7 @@ const RING_PREFS_KEY = "azo_ring_prefs";
 const RING_FALLBACK = require("../../assets/sounds/job-ring.wav");
 const FSI_ASKED_KEY = "azo_fsi_asked";
 const BATTERY_ASKED_KEY = "azo_battery_asked";
+const OVERLAY_ASKED_KEY = "azo_overlay_asked";
 
 export const CHANNELS = {
   // Silent high-importance channel for the call-style ring: NO channel sound so the
@@ -206,7 +207,7 @@ export async function requestBatteryExemption() {
 }
 
 /* ------------------------- alert health-check states ------------------------- */
-export type PermKey = "notifications" | "fullscreen" | "battery";
+export type PermKey = "notifications" | "fullscreen" | "overlay" | "battery";
 export type PermState = { key: PermKey; granted: boolean; canAskAgain: boolean; available: boolean };
 
 /** Notification OS permission — via Notifee (build) or expo-notifications (Expo Go / web). */
@@ -233,10 +234,33 @@ export async function batteryState(): Promise<PermState> {
   return { key: "battery", granted: asked, canAskAgain: true, available: true };
 }
 
+/* Display over other apps (SYSTEM_ALERT_WINDOW) — lets the app launch the full-screen
+ * ring OVER other apps / on an UNLOCKED screen (call-style). Can't be introspected from
+ * JS, so we treat it as satisfied once the user has been sent to the setting. */
+export async function overlayState(): Promise<PermState> {
+  if (Platform.OS !== "android") return { key: "overlay", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(OVERLAY_ASKED_KEY)) === "1";
+  return { key: "overlay", granted: asked, canAskAgain: true, available: true };
+}
+export async function requestOverlayPermission() {
+  if (Platform.OS !== "android") return;
+  try { await storage.setItem(OVERLAY_ASKED_KEY, "1"); } catch { /* ignore */ }
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
+  try {
+    const IntentLauncher = require("expo-intent-launcher");
+    await IntentLauncher.startActivityAsync(
+      "android.settings.action.MANAGE_OVERLAY_PERMISSION",
+      { data: `package:${pkg}` },
+    );
+  } catch {
+    try { await Linking.openSettings(); } catch { /* ignore */ }
+  }
+}
+
 /** Snapshot of every alert permission the customer full-screen ring relies on. */
 export async function allAlertStates(): Promise<Record<PermKey, PermState>> {
-  const [notif, fullscreen, battery] = await Promise.all([notifState(), fullScreenState(), batteryState()]);
-  return { notifications: notif, fullscreen, battery };
+  const [notif, fullscreen, overlay, battery] = await Promise.all([notifState(), fullScreenState(), overlayState(), batteryState()]);
+  return { notifications: notif, fullscreen, overlay, battery };
 }
 
 /* ------------------------- FCM device token ------------------------- */

@@ -182,3 +182,12 @@ ROOT CAUSES FOUND (by comparing /app/frontend partner vs /app/Customer):
 FILES CHANGED: Customer/src/lib/backgroundRing.ts, Customer/src/components/customer/CustomerAlertOverlay.tsx, frontend/src/components/JobRingOverlay.tsx. All typecheck clean (tsc --noEmit) in both apps.
 
 VERIFIED (backend contract via curl, Expo apps not runnable in preview): customer→partner reschedule request HTTP200 (reschedule_request stored, requested_by_role=customer); partner SSE /realtime/stream received `reschedule_request` live; GET /bookings/partner/reschedule-pending returns it; partner accept HTTP200 → scheduled_at moved + timeline reschedule_accepted + reschedule_request cleared. backend emits reschedule_resolved to requester (code + iter215/216 tests). Env (.env x4) restored after pod reset.
+
+## Session (2026-06) — Permission Nudge card (Customer app, lock-screen alerts)
+Customer app only. Added the missing "Display over other apps" (SYSTEM_ALERT_WINDOW) permission helpers to Customer/src/lib/notifications.ts (`overlayState`, `requestOverlayPermission`, OVERLAY_ASKED_KEY), extended PermKey + allAlertStates to include "overlay" (was notifications/fullscreen/battery only — the partner app already had overlay). This perm is what lets the background ring launch the full-screen alert when the phone is UNLOCKED/in another app.
+
+New component Customer/src/components/customer/AlertSetupNudge.tsx: compact Android-only card shown on the customer Home (mounted top of HomeView). Shows only when Full-Screen Alert OR Display-Over-Other-Apps is not yet allowed; hides once both granted; dismiss snoozes 3 days (storage key azo_alert_nudge_dismissed_at). Two one-tap "Allow" chips (alert-nudge-fullscreen → openFullScreenIntentSettings, alert-nudge-overlay → requestOverlayPermission) that flip to a green check once allowed; re-checks on AppState active. Link (alert-nudge-open) → /(customer)/alerts full setup + ring test. testids: alert-nudge, alert-nudge-fullscreen, alert-nudge-overlay, alert-nudge-open, alert-nudge-dismiss.
+
+Also added the "Display Over Other Apps" card to the full Alert Health Check screen (app/(customer)/alerts.tsx) so it's covered there too.
+
+No backend changes. tsc --noEmit clean for notifications.ts, alerts.tsx, HomeView.tsx, AlertSetupNudge.tsx. Expo app not runnable in preview → verified by TypeScript compile + code review.

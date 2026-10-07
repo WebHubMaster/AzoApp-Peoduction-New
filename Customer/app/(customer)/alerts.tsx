@@ -4,13 +4,13 @@
  *  notification permission, full-screen intent, battery-optimisation exemption. */
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, AppState, Platform, Linking, ActivityIndicator } from "react-native";
-import { BellRing, MonitorSmartphone, BatteryCharging, Radio, CheckCircle2, AlertCircle, Check, ShieldCheck, Bell } from "lucide-react-native";
+import { BellRing, MonitorSmartphone, BatteryCharging, Radio, CheckCircle2, AlertCircle, Check, ShieldCheck, Bell, Layers } from "lucide-react-native";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
 import { PRIMARY, useTheme } from "../../src/theme";
 import {
   PermKey, PermState, allAlertStates, requestNotificationPermission,
-  openFullScreenIntentSettings, requestBatteryExemption, getPermissionStatus,
+  openFullScreenIntentSettings, requestBatteryExemption, requestOverlayPermission, getPermissionStatus,
 } from "../../src/lib/notifications";
 
 type Card = { key: PermKey; icon: any; title: string; why: string; affected: string; tint: string; critical?: boolean };
@@ -18,6 +18,7 @@ type Card = { key: PermKey; icon: any; title: string; why: string; affected: str
 const CARDS: Card[] = [
   { key: "notifications", icon: BellRing, title: "Notifications", why: "Ring loudly and show booking, reschedule & chat alerts — even when the app is closed.", affected: "Without this you will NOT get any alert about your bookings.", tint: "#F59E0B", critical: true },
   { key: "fullscreen", icon: MonitorSmartphone, title: "Full-Screen Alert", why: "Show a call-style screen over your lock screen when a partner confirms or wants to reschedule.", affected: "Alerts won't pop up like an incoming call on a locked phone.", tint: "#22C55E" },
+  { key: "overlay", icon: Layers, title: "Display Over Other Apps", why: "Let the alert pop up over whatever you're doing, even when the phone is unlocked and in another app.", affected: "Alerts may show only as a quiet banner instead of a full-screen call.", tint: "#A855F7" },
   { key: "battery", icon: BatteryCharging, title: "Run in Background", why: "Keep the app allowed to ring even when the phone tries to sleep it to save battery.", affected: "The ring may not fire reliably when the app is closed for a while.", tint: "#38BDF8", critical: true },
 ];
 
@@ -69,6 +70,8 @@ export default function AlertHealthCheck() {
         }
       } else if (card.key === "fullscreen") {
         await openFullScreenIntentSettings();
+      } else if (card.key === "overlay") {
+        await requestOverlayPermission();
       } else if (card.key === "battery") {
         await requestBatteryExemption();
       }
