@@ -16,7 +16,7 @@ const PLATFORM = "customer";
 const EXPECTED_PACKAGE = "app.azoapp.homeservice";
 
 function expoApplication(): any { try { return require("expo-application"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
-function expoFileSystem(): any { try { return require("expo-file-system"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoFileSystem(): any { try { return require("expo-file-system/legacy"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
 function expoIntentLauncher(): any { try { return require("expo-intent-launcher"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
 
 function installedVersionCode(): number {
@@ -35,6 +35,7 @@ export default function AppUpdateGate() {
   const [pct, setPct] = useState(0);
   const [got, setGot] = useState(0);
   const [err, setErr] = useState("");
+  const [note, setNote] = useState("");
   const resumableRef = useRef<any>(null);
 
   const evaluate = useCallback((data: any) => {
@@ -54,39 +55,57 @@ export default function AppUpdateGate() {
 
   const startUpdate = useCallback(async () => {
     setErr("");
-    if (!cfg?.apk_url) { setErr("Update file is not available yet. Please try again later."); return; }
+    const url = mediaUrl(cfg?.apk_url || "");
+    if (!url) { setErr("Update file is not available yet. Please try again later."); return; }
     const FS = expoFileSystem();
     const IL = expoIntentLauncher();
-    if (!FS || Platform.OS !== "android") {
-      // Fallback: open the APK URL directly so the browser downloads it.
-      Linking.openURL(cfg.apk_url).catch(() => setErr("Could not start the download."));
+    if (!FS?.createDownloadResumable || !IL || Platform.OS !== "android") {
+      Linking.openURL(url).catch(() => setErr("Could not start the download."));
       return;
     }
     setDownloading(true); setPct(0); setGot(0);
-    const dest = `${FS.cacheDirectory}azoapp-${PLATFORM}-${cfg.version_code}.apk`;
+    const expected = Number(cfg.apk_size || 0);
+    const dest = `${FS.documentDirectory}azoapp-${PLATFORM}-${cfg.version_code}.apk`;
     const onProgress = (p: any) => {
-      const total = p.totalBytesExpectedToWrite || Number(cfg.apk_size || 0) || 1;
+      const total = p.totalBytesExpectedToWrite > 0 ? p.totalBytesExpectedToWrite : expected || 1;
       const written = p.totalBytesWritten || 0;
       setGot(written);
       setPct(Math.min(100, Math.round((written / total) * 100)));
     };
     try {
-      // Resumable download → survives transient network drops (resume from partial).
-      const resumable = FS.createDownloadResumable(cfg.apk_url, dest, {}, onProgress);
-      resumableRef.current = resumable;
-      let result = null;
-      try { result = await resumable.downloadAsync(); }
-      catch { result = await resumable.resumeAsync().catch(() => null); }
-      if (!result?.uri) throw new Error("download-failed");
-      // Hand the file to the Android package installer via a content:// URI.
-      const contentUri = await FS.getContentUriAsync(result.uri);
-      await IL.startActivityAsync("android.intent.action.INSTALL_PACKAGE", {
-        data: contentUri, flags: 1, type: "application/vnd.android.package-archive",
+      // Already downloaded earlier (e.g. user cancelled the installer) → install straight away.
+      const info = await FS.getInfoAsync(dest).catch(() => null);
+      let uri: string | null = info?.exists && expected && info.size === expected ? dest : null;
+      if (!uri) {
+        if (info?.exists) await FS.deleteAsync(dest, { idempotent: true }).catch(() => {});
+        const resumable = FS.createDownloadResumable(url, dest, { headers: { "Cache-Control": "no-cache" } }, onProgress);
+        resumableRef.current = resumable;
+        let result: any = null;
+        for (let attempt = 0; attempt < 5 && !result?.uri; attempt++) {
+          try { result = attempt === 0 ? await resumable.downloadAsync() : await resumable.resumeAsync(); }
+          catch { await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
+        }
+        if (!result?.uri) throw new Error("Download failed. Please check your internet and try again.");
+        if (result.status && (result.status < 200 || result.status >= 300)) throw new Error(`Download failed (server error ${result.status}).`);
+        const done = await FS.getInfoAsync(result.uri).catch(() => null);
+        if (!done?.exists || (expected && done.size !== expected)) {
+          await FS.deleteAsync(result.uri, { idempotent: true }).catch(() => {});
+          throw new Error("Downloaded file is incomplete. Please try again.");
+        }
+        uri = result.uri;
+      }
+      setPct(100);
+      const contentUri = await FS.getContentUriAsync(uri);
+      // FLAG_GRANT_READ_URI_PERMISSION | FLAG_ACTIVITY_NEW_TASK → system package installer.
+      await IL.startActivityAsync("android.intent.action.VIEW", {
+        data: contentUri, flags: 0x1 | 0x10000000, type: "application/vnd.android.package-archive",
       });
       setDownloading(false);
-    } catch {
+      setErr("");
+      setNote("If Android asks, allow \"Install unknown apps\" for this app, then tap Update Now again to finish installing.");
+    } catch (e: any) {
       setDownloading(false);
-      setErr("Unable to download the update. Please check your connection and try again.");
+      setErr(e?.message && !/^download-failed$/.test(e.message) ? e.message : "Unable to download the update. Please check your connection and try again.");
     }
   }, [cfg]);
 
@@ -135,6 +154,7 @@ export default function AppUpdateGate() {
                 <DownloadCloud size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>Update Now</Text>
               </Pressable>
             )}
+            {note && !err && !downloading ? <Text testID="update-note" style={{ color: c.textMuted, fontSize: 12.5, textAlign: "center", marginTop: 12 }}>{note}</Text> : null}
             {err ? <Text style={{ color: "#EF4444", fontSize: 12.5, textAlign: "center", marginTop: 12 }}>{err}</Text> : null}
             {!cfg?.force_update && !downloading ? (
               <Pressable testID="update-later" onPress={() => setMode("none")} style={{ marginTop: 14 }}><Text style={{ color: c.textMuted, fontWeight: "700" }}>Later</Text></Pressable>

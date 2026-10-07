@@ -92,3 +92,9 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 ## 2026-06 — Single active session (all roles) + Partner in-app proof camera
 - Login anywhere (OTP/email/google) → `issue_token` sets users.current_sid + JWT `sid`; older tokens get 401 {code:"device_revoked"}. Web panel: interceptor event + 20s /auth/me poll → toast + logout. Partner apps already handle device_revoked. (iteration_238 pass)
 - Partner before/after proof: new `frontend/src/components/partner/ProofCamera.tsx` (expo-camera CameraView photo + video ≤30s, 720p/4Mbps, mute if mic denied); fallback to system camera with getPendingResultAsync recovery; "Uploading…" only after capture. expo-camera plugin recordAudioAndroid=true. Needs NEW APK build (native config). /app/PartnerApp is an older copy — not updated.
+
+## 2026-06 — In-app APK update fix (Customer + Partner)
+- Root cause: AppUpdateGate used legacy APIs (createDownloadResumable/cacheDirectory/getContentUriAsync) from `expo-file-system` main export — throws on SDK 54+ → "Unable to download the update". Fixed: require("expo-file-system/legacy"), documentDirectory, 5x resume retry, size verification, reuse already-downloaded APK, ACTION_VIEW installer intent with GRANT_READ|NEW_TASK, mediaUrl() for apk_url, "Install unknown apps" hint.
+- app.json (frontend + Customer): android.permission.REQUEST_INSTALL_PACKAGES.
+- Backend: upload always sets version_code/latest_version (+apk_version_code) from the APK; public config uses APK code + absolute apk_url; /api/media/file serves .apk with HTTP Range (206) for resume.
+- Needs ONE manual install of a new build (old installs carry the broken updater).

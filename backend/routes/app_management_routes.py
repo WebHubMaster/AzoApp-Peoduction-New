@@ -32,7 +32,7 @@ async def _get(platform: str) -> dict:
     if not doc:
         doc = {
             "platform": platform, "latest_version": "", "version_code": 0,
-            "apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "", "apk_key": "",
+            "apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "", "apk_version_code": 0, "apk_key": "",
             "playstore_url": "", "update_enabled": False, "force_update": False,
             "release_notes": "", "maintenance_enabled": False, "maintenance_title": "",
             "maintenance_image": "", "maintenance_icon": "", "maintenance_description": "",
@@ -204,12 +204,11 @@ async def _process_upload(job_id: str, platform: str, upload_id: str, size: int)
         old = await _get(platform)
         apk_name = f"app-mgmt/{platform}/{expected}-{vcode}-{upload_id[-8:]}.apk"
         url = await storage_service.put_file(apk_name, path, "application/vnd.android.package-archive")
+        # The APK itself is the source of truth for the version the apps compare against —
+        # a mismatched manual value would cause an endless "update available" loop.
         upd = {"apk_url": url, "apk_size": written, "apk_package": pkg,
-               "apk_version_name": vname, "apk_key": apk_name, "updated_at": now_iso()}
-        if not old.get("version_code"):
-            upd["version_code"] = vcode
-        if not old.get("latest_version"):
-            upd["latest_version"] = vname
+               "apk_version_name": vname, "apk_version_code": vcode, "apk_key": apk_name,
+               "version_code": vcode, "latest_version": vname, "updated_at": now_iso()}
         await db.app_config.update_one({"platform": platform}, {"$set": upd}, upsert=True)
         old_ref = old.get("apk_key") or ""
         if old_ref and old_ref != apk_name:
@@ -248,7 +247,7 @@ async def delete_apk(platform: str, user=Depends(ADMIN)):
             deleted = False
     await db.app_config.update_one(
         {"platform": platform},
-        {"$set": {"apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "",
+        {"$set": {"apk_url": "", "apk_size": 0, "apk_package": "", "apk_version_name": "", "apk_version_code": 0,
                   "apk_key": "", "update_enabled": False, "updated_at": now_iso()}},
         upsert=True)
     return {"ok": True, "file_deleted": deleted, **(await _get(platform))}
@@ -280,16 +279,20 @@ def _parse_apk(path: str):
 
 # ---------------------------------------------------------------- PUBLIC (app-facing)
 @router.get("/config/{platform}")
-async def public_config(platform: str):
+async def public_config(platform: str, request: Request):
     """The mobile app calls this on launch to gate maintenance + mandatory update.
     Maintenance takes priority over update (handled client-side per spec §18)."""
     _valid_platform(platform)
     c = await _get(platform)
+    apk_url = c.get("apk_url") or ""
+    if apk_url.startswith("/"):
+        apk_url = storage_service.request_base(request) + apk_url
+    vcode = int(c.get("apk_version_code") or 0) if apk_url else 0
     return {
         "platform": platform,
-        "version_code": int(c.get("version_code") or 0),
+        "version_code": vcode or int(c.get("version_code") or 0),
         "latest_version": c.get("latest_version") or "",
-        "apk_url": c.get("apk_url") or "",
+        "apk_url": apk_url,
         "apk_size": c.get("apk_size") or 0,
         "apk_package": c.get("apk_package") or EXPECTED_PACKAGE[platform],
         "playstore_url": c.get("playstore_url") or "",

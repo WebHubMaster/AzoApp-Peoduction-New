@@ -111,8 +111,37 @@ async def delete_media(media_id: str, admin=Depends(ADMIN)):
     return {"deleted": True}
 
 
+def _range_response(full, rng: str):
+    """206 partial content so interrupted APK downloads resume instead of restarting."""
+    from fastapi.responses import StreamingResponse
+    size = full.stat().st_size
+    a, _, b = rng[6:].split(",")[0].partition("-")
+    try:
+        start = int(a) if a else max(0, size - int(b))
+        end = int(b) if (a and b) else size - 1
+    except ValueError:
+        start, end = 0, size - 1
+    if start >= size:
+        return Response(status_code=416, headers={"Content-Range": f"bytes */{size}"})
+    end = min(end, size - 1)
+
+    def _iter():
+        with open(full, "rb") as fh:
+            fh.seek(start)
+            left = end - start + 1
+            while left > 0:
+                buf = fh.read(min(1024 * 1024, left))
+                if not buf:
+                    break
+                left -= len(buf)
+                yield buf
+    return StreamingResponse(_iter(), status_code=206, media_type="application/vnd.android.package-archive",
+                             headers={"Content-Range": f"bytes {start}-{end}/{size}", "Accept-Ranges": "bytes",
+                                      "Content-Length": str(end - start + 1)})
+
+
 @router.get("/file/{path:path}")
-async def serve_file(path: str):
+async def serve_file(path: str, request: Request):
     # Serve any locally-stored upload, including nested structured folders
     # (e.g. partners/<id>-<name>/kyc/<uuid>.webp). Guard against path traversal.
     rel = (path or "").lstrip("/")
@@ -123,6 +152,9 @@ async def serve_file(path: str):
         raise HTTPException(status_code=400, detail="Invalid path")
     if not full.is_file():
         raise HTTPException(status_code=404, detail="File not found")
+    rng = request.headers.get("range", "")
+    if rel.lower().endswith(".apk") and rng.startswith("bytes="):
+        return _range_response(full, rng)
     media_type = "image/svg+xml" if rel.lower().endswith(".svg") else None
     # Uploaded files are content-addressed (uuid names) → safe to cache hard.
     return FileResponse(str(full), media_type=media_type,

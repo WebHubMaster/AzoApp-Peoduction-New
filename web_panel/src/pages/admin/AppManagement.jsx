@@ -249,7 +249,7 @@ function AppForm({ platform, cfg, onSaved }) {
         <div className="flex items-center gap-2"><Rocket className="h-5 w-5 text-primary-600" /><h3 className="font-heading font-bold text-slate-900 dark:text-white">Update Settings</h3></div>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Latest Version (name)" hint="Display only, e.g. 1.5.0"><Input data-testid={`ver-name-${platform.key}`} value={f.latest_version || ""} onChange={(e) => set("latest_version", e.target.value)} placeholder="1.5.0" /></Field>
-          <Field label="Version Code" hint="Primary compare, e.g. 15"><Input data-testid={`ver-code-${platform.key}`} type="number" value={f.version_code || ""} onChange={(e) => set("version_code", e.target.value)} placeholder="15" /></Field>
+          <Field label="Version Code" hint="Auto-set from the uploaded APK"><Input data-testid={`ver-code-${platform.key}`} type="number" value={f.version_code || ""} onChange={(e) => set("version_code", e.target.value)} placeholder="15" /></Field>
         </div>
         <Field label="Play Store Link (reference only)"><Input data-testid={`playstore-${platform.key}`} value={f.playstore_url || ""} onChange={(e) => set("playstore_url", e.target.value)} placeholder="https://play.google.com/..." /></Field>
 

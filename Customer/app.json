@@ -28,6 +28,7 @@
         "backgroundColor": "#0D47A1"
       },
       "permissions": [
+        "android.permission.REQUEST_INSTALL_PACKAGES",
         "VIBRATE",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
