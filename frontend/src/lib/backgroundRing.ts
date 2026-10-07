@@ -149,7 +149,7 @@ export async function startBackgroundJobListener(): Promise<void> {
         asForegroundService: true,
         ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
         ongoing: true,
-        smallIcon: "ic_notification",
+        smallIcon: "ic_fgs_transparent",
         color: "#0D47A1",
         importance: mod.AndroidImportance.MIN,
         visibility: mod.AndroidVisibility.SECRET,

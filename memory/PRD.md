@@ -275,3 +275,7 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial â
 
 ### Verification
 - Static/logic verified against the working Partner reference. Full-screen lock-screen/FCM/OEM behavior must be verified on a real Android device (per user). Partner app full-screen DISPLAY mechanism was intentionally left unchanged.
+
+### [2026-06] Hide the always-on background-service status-bar icon (both apps)
+- Issue: the persistent foreground-service notification showed a small status-bar icon (irritating; user may uninstall).
+- Fix: FGS notification now uses a fully TRANSPARENT small icon (`ic_fgs_transparent`) + MIN importance + SECRET visibility, so no visible glyph is drawn while the service keeps running 100%. Android legally requires an FGS notification, so it can't be removed entirely â€” but it's now invisible on stock Android and most OEMs. Transparent PNG added to `assets/fgs-transparent.png` and copied to `res/drawable/ic_fgs_transparent.png` by `plugins/withJobRingAndroid.js` in both apps. Requires a fresh native build. (Note: some MIUI/ColorOS builds may still force-show FGS notifications at OS level.)

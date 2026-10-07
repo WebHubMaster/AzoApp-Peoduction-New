@@ -145,7 +145,7 @@ export async function startBackgroundAlertListener(): Promise<void> {
         asForegroundService: true,
         ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
         ongoing: true,
-        smallIcon: "ic_notification",
+        smallIcon: "ic_fgs_transparent",
         color: "#0D47A1",
         importance: mod2.AndroidImportance.MIN,
         visibility: mod2.AndroidVisibility.SECRET,

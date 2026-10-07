@@ -109,6 +109,7 @@ function withResources(config) {
     const copies = [
       [path.join(cfg.modRequest.projectRoot, "assets", "sounds", "job-ring.wav"), path.join(res, "raw", "job_ring.wav")],
       [path.join(cfg.modRequest.projectRoot, "assets", "notification-icon.png"), path.join(res, "drawable", "ic_notification.png")],
+      [path.join(cfg.modRequest.projectRoot, "assets", "fgs-transparent.png"), path.join(res, "drawable", "ic_fgs_transparent.png")],
     ];
     for (const [src, dst] of copies) {
       if (fs.existsSync(src)) { fs.mkdirSync(path.dirname(dst), { recursive: true }); fs.copyFileSync(src, dst); }
