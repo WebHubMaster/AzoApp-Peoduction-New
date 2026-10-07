@@ -182,32 +182,29 @@ export async function shareInvoicePdf(inv: any, channel: "whatsapp" | "system" =
     return "downloaded";
   }
   const file = await fetchInvoicePdfFile(inv);
-  const sendTo = async (pkg: string) => {
-    const contentUri = await LegacyFS.getContentUriAsync(file.uri);
-    await IntentLauncher.startActivityAsync("android.intent.action.SEND", {
-      type: "application/pdf",
-      extra: { "android.intent.extra.STREAM": contentUri },
-      packageName: pkg,
-      flags: 1, // FLAG_GRANT_READ_URI_PERMISSION
+  // Reliable on EVERY device: hand the real PDF file to the Android system share
+  // sheet via expo-sharing (proper FileProvider content:// URI + read grant to the
+  // chosen app). WhatsApp appears in the sheet and attaches the PDF correctly. The
+  // old direct ACTION_SEND intent passed the STREAM as a plain string, so WhatsApp
+  // often couldn't read the file and showed "sharing failed" — that was the bug.
+  const available = await Sharing.isAvailableAsync().catch(() => false);
+  if (available) {
+    await Sharing.shareAsync(file.uri, {
+      mimeType: "application/pdf",
+      UTI: "com.adobe.pdf",
+      dialogTitle: channel === "whatsapp" ? "Share invoice on WhatsApp" : "Share invoice",
     });
-  };
-  if (channel === "whatsapp" && Platform.OS === "android") {
-    for (const pkg of ["com.whatsapp", "com.whatsapp.w4b"]) {
-      try { await sendTo(pkg); return "shared"; } catch { /* try next flavour */ }
-    }
-  }
-  try {
-    await Sharing.shareAsync(file.uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: channel === "whatsapp" ? "Share on WhatsApp" : "Share invoice" });
     return "shared";
-  } catch {
-    if (channel === "whatsapp") {
-      const wa = `whatsapp://send?text=${encodeURIComponent(text)}`;
-      if (await Linking.canOpenURL(wa).catch(() => false)) await Linking.openURL(wa);
-      else await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`);
-      return "fallback";
-    }
-    throw new Error("share failed");
   }
+  // Last resort (sharing unavailable): open WhatsApp with the text caption only.
+  if (channel === "whatsapp") {
+    const wa = `whatsapp://send?text=${encodeURIComponent(text)}`;
+    try {
+      if (await Linking.canOpenURL(wa).catch(() => false)) { await Linking.openURL(wa); return "fallback"; }
+    } catch { /* ignore */ }
+    try { await Linking.openURL(`https://wa.me/?text=${encodeURIComponent(text)}`); return "fallback"; } catch { /* ignore */ }
+  }
+  throw new Error("share failed");
 }
 
 /** Email the invoice PDF to the customer. The backend generates + sends the PDF
