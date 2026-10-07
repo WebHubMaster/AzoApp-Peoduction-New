@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api from "@/lib/api";
+import { mediaSrc } from "@/lib/api";
 
 const SiteConfigContext = createContext({ branding: {}, theme: {}, loaded: false });
 
@@ -60,9 +61,18 @@ export const applySiteTheme = (theme = {}) => {
 
 export const applyFavicon = (href) => {
   if (!href) return;
-  let link = document.querySelector("link[rel~='icon']");
-  if (!link) { link = document.createElement("link"); link.rel = "icon"; document.head.appendChild(link); }
-  if (link.href !== href) link.href = href;
+  // Resolve relative ("/api/media/...") favicons to an absolute backend URL so the
+  // browser fetches from the right origin, and cache-bust so a replaced favicon
+  // (same slot) refreshes live instead of showing the cached old icon.
+  const abs = mediaSrc(href);
+  const bust = abs + (abs.includes("?") ? "&" : "?") + "v=" + Date.now();
+  // Keep favicon + apple-touch-icon in sync; create the <link> if the page lacks one.
+  const rels = ["icon", "shortcut icon", "apple-touch-icon"];
+  rels.forEach((rel) => {
+    let link = document.querySelector(`link[rel='${rel}']`);
+    if (!link) { link = document.createElement("link"); link.rel = rel; document.head.appendChild(link); }
+    link.href = bust;
+  });
 };
 
 export const SiteConfigProvider = ({ children }) => {

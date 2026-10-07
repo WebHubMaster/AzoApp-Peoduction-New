@@ -7,6 +7,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
+import { useSiteConfig } from "@/context/SiteConfigContext";
 import { PanelLayout } from "@/components/PanelLayout";
 import OnboardingTour from "@/components/tour/OnboardingTour";
 import { AiChat } from "@/components/AiChat";
@@ -283,6 +284,8 @@ export default function AdminDashboard() {
   }, [visibleNav]);
 
   const [active, setActive] = useTabParam("dashboard");
+  const { branding: siteBranding } = useSiteConfig();
+  const siteName = siteBranding?.site_name || "AzoApp";
   useEffect(() => {
     // if the current section is not permitted, jump to the first allowed one
     const mod = KEY_MODULE[active];
@@ -353,6 +356,14 @@ export default function AdminDashboard() {
     tickets: d.open_tickets || 0,
     deletions: d.pending_deletions || 0,
   };
+
+  // Tab title reflects the open admin section, e.g. "Bookings · AzoApp". A detail
+  // view (booking / user profile) gets its own label. Depends on siteName so it
+  // re-applies instantly after an admin renames the brand.
+  useEffect(() => {
+    const label = viewUser ? "User Profile" : bookingDetailId ? "Booking Details" : (TITLES[active] || "Admin");
+    document.title = `${label} · ${siteName}`;
+  }, [active, siteName, viewUser, bookingDetailId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <PanelLayout title={isSuper ? "Super Admin" : "Admin"} nav={visibleNav} active={active} badges={badges} dots={peopleDots} onNavigate={(k) => guardNav(() => { setViewUser(null); setBookingDetailId(null); setActive(k); })}>

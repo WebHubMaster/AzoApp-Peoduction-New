@@ -379,3 +379,15 @@ Fix: web_panel/src/context/SiteConfigContext.jsx L80 — hata diya `!document.ti
 save ke baad refresh) par document.title = "<Site Name> — <Tagline>" set hota hai; 60s silent poll
 (doApply=false) ise skip karta hai taaki public pages ke page-level SEO <title> (react-helmet) na toote.
 Verified via Playwright: /admin tab title = "AzoApp — Service at Your Door Steps".
+
+## Session (2026-06) — Per-page admin tab titles + live favicon sync
+1) Per-page titles: AdminDashboard.jsx — naya useEffect jo active section ke hisaab se
+   document.title = "<Section> · <Site Name>" set karta hai (e.g. "Bookings · AzoApp",
+   "Providers · AzoApp", "Transactions & Ledger · AzoApp"). Detail views → "Booking Details" /
+   "User Profile". siteName SiteConfig branding se (rename par live). Uses existing TITLES map.
+2) Live favicon: SiteConfigContext.jsx applyFavicon() enhance — relative URL ko mediaSrc se absolute,
+   cache-bust (?v=timestamp) taaki same slot replace par browser naya icon fetch kare, aur icon +
+   shortcut icon + apple-touch-icon teeno sync + link na ho to create. Branding save refresh() call
+   karta hai → favicon bina reload live update.
+Verified via Playwright: 5 section titles PASS; favicon paste+Save par link[rel=icon] & apple-touch-icon
+live update (cache-bust ke saath), no reload.
