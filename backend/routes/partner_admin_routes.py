@@ -129,6 +129,12 @@ async def withdrawals(status: str = None, admin=Depends(ADMIN)):
     return await ps.list_withdrawals(status=status)
 
 
+@router.get("/withdrawals/{wid}/investigation")
+async def withdrawal_investigation(wid: str, admin=Depends(ADMIN)):
+    from services import finance_intel_service as fis
+    return await fis.withdrawal_investigation(wid)
+
+
 @router.post("/withdrawals/{wid}/action")
 async def withdrawal_action(wid: str, req: WithdrawalAction, admin=Depends(ADMIN)):
     return await ps.process_withdrawal(admin, wid, req.action, req.reason)

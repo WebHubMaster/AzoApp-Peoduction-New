@@ -391,3 +391,26 @@ Verified via Playwright: /admin tab title = "AzoApp — Service at Your Door Ste
    karta hai → favicon bina reload live update.
 Verified via Playwright: 5 section titles PASS; favicon paste+Save par link[rel=icon] & apple-touch-icon
 live update (cache-bust ke saath), no reload.
+
+## Session (2026-06) — Finance Ops: Withdrawal Investigation (Phase 1a)
+Big spec (50 parts). Phased. Delivered Phase 1a (partner withdrawals, highest value = "investigate before approve"):
+- NEW backend: services/finance_intel_service.py + route GET /api/admin/partner/withdrawals/{wid}/investigation
+  (admin). Aggregates REAL data: owner profile, ledger-derived wallet overview, immutable wallet ledger,
+  payout destination (masked acct/UPI + success count), rule-based RISK engine (overall + 6 sub-scores +
+  reasons on real signals: new account, amount>withdrawable, 24h velocity, failed payouts, manual
+  adjustments, same bank/UPI linked to other accounts), verification checklist, withdrawal history+summary,
+  recent transactions, audit trail, unified financial timeline.
+- NEW frontend: web_panel/src/pages/admin/WithdrawalInvestigation.jsx — full investigation page in AzoApp
+  style (white cards, thin borders, blue primary). Wired into existing WithdrawalsQueue "View"
+  (partnerAdminSections.jsx). Approve&Pay confirmation modal (risk warning), Reject-with-reason, Retry.
+- Reused existing payout engine (Cashfree/PayU/RazorpayX, simulated in preview). Idempotency VERIFIED:
+  double-approve → 2nd returns 400 "Already processed"; Approve button disabled while busy.
+- Existing list already had tabs+counts+KPIs+search+export (preserved).
+Verified: backend endpoint (curl, all sections real), frontend render (all data-testid panels present),
+idempotency, list regression. NOT yet run through full testing_agent.
+### Remaining phases (backlog)
+P1b: Transactions upgrade (KPIs/tabs/enterprise table) + Transaction Details page + payment journey.
+P2: immutable ledger WRITE-path for every credit/debit + manual wallet adjust (2FA) + accounting
+consistency enforcement; merchant withdrawal parity; bulk ops w/ idempotency; RBAC finance.* perms;
+real-time payout status (webhook+poll); exports CSV/Excel/PDF; aging analysis; strict state machines;
+payout attempt history UI.

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { StatusTabs } from "@/pages/admin/adminSections";
+import WithdrawalInvestigation from "@/pages/admin/WithdrawalInvestigation";
 
 const Card = ({ children, className = "" }) => (
   <div className={`bg-white rounded-xl border border-slate-200 p-4 ${className}`}>{children}</div>
@@ -317,7 +318,10 @@ export function WithdrawalsQueue() {
 
   // Full-page detail view (sidebar stays visible) — opens like a Transaction.
   const viewObj = viewId ? items.find((x) => x.id === viewId) : null;
-  if (viewObj) {
+  if (viewId) {
+    return <WithdrawalInvestigation wid={viewId} onBack={() => setViewId(null)} onDone={() => { setViewId(null); load(); }} />;
+  }
+  if (viewObj && false) {
     const x = viewObj;
     const badge = x.status === "completed" ? "bg-emerald-100 text-emerald-700"
       : x.status === "failed" ? "bg-red-100 text-red-700"
