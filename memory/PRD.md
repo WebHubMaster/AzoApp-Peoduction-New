@@ -63,3 +63,18 @@ WITHOUT touching invoice generation/numbering/GST/relationships/APIs:
 - Removable active-filter chips row (Date/Type/Status/Min/Max/Search) + "Clear all" (§41).
 Verified: list, date presets, chips add/remove, debounce, KPIs, server-side pagination/sort,
 detail drawer, full server-rendered preview (Print/Share/Email/PDF), empty/error/skeleton states — all intact.
+
+## Financial Reports redesign (2026-10-07)
+Rewrote `pages/admin/FinancialReports.jsx` — premium analytics, consuming ONLY existing
+`/admin/finance/report` fields (no backend/calc changes):
+- Real recharts AreaChart (gradient fills) replacing broken CSS bars; custom tooltip
+  (Collected/Refunds/Net), series toggle, auto granularity (Daily≤62 / Weekly≤186 / Monthly),
+  ₹k Y-axis, responsive.
+- Data-driven Insights strip: Top Category / Top Service / Top Method / Best Revenue Day /
+  Largest Refund Day (computed from real rows, no fabrication).
+- 12 KPI cards + per-section skeleton loaders; request cancellation (AbortController);
+  removable date-range chip; full preset set incl. Yesterday / Last Month / All Time;
+  custom range via shared DateRangeControl; Top-3 ranking emphasis in Top Services;
+  sticky-header daily table with rows-per-page (10/25/50/100) + first/prev/next/last;
+  localized error + Retry preserving filters; refunds shown as negative.
+Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
