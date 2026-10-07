@@ -17,7 +17,7 @@ import { DrawerShell, Btn } from "./BookingDialogs";
 import { ServiceBreakdown } from "./ServiceBreakdown";
 import { LiveTrackCard } from "./LiveTrackCard";
 import { InlineVideo, isVideoUrl } from "../InlineVideo";
-import { PlayCircle, Navigation as NavIcon } from "lucide-react-native";
+import { PlayCircle, Navigation as NavIcon, Smile, GlassWater, Bath, HeartHandshake } from "lucide-react-native";
 
 export const DRow = ({ k, v, strong }: { k: string; v: any; strong?: boolean }) => {
   const { c, isDark } = useTheme();
@@ -137,6 +137,34 @@ function PaymentSummary({ b }: { b: any }) {
   </>;
 }
 
+const GESTURE_STATUSES = ["assigned", "arrived_shop", "arrived_customer", "started"];
+const GESTURES = [
+  { icon: Smile, text: "Welcome them with a smile" },
+  { icon: GlassWater, text: "Offer them a glass of water" },
+  { icon: Bath, text: "Provide washroom access if needed" },
+];
+/** Polite "small gestures" card shown once a partner has accepted the booking. */
+export function PartnerGestures({ b }: { b: any }) {
+  const { c, isDark } = useTheme();
+  if (!b?.partner_id || !GESTURE_STATUSES.includes(b.status)) return null;
+  const first = String(b.partner_name || "").split(" ")[0];
+  return (
+    <View testID="partner-gestures-card" style={{ overflow: "hidden", borderRadius: 6, borderWidth: 1, borderColor: isDark ? "rgba(146,64,14,0.5)" : "#FDE68A", backgroundColor: isDark ? "rgba(69,26,3,0.35)" : "#FFFBEB", padding: 14 }}>
+      <View style={{ position: "absolute", right: -10, bottom: -10 }} pointerEvents="none"><HeartHandshake size={76} color={isDark ? "rgba(146,64,14,0.35)" : "#FDE68A"} /></View>
+      <Text style={{ fontSize: 15, fontWeight: "800", color: c.text }}>Our professionals work hard</Text>
+      <Text style={{ fontSize: 12, color: c.textMuted, marginTop: 2 }}>{first ? `${first} is serving you today — your` : "Your"} small gestures make a difference</Text>
+      <View style={{ marginTop: 12, gap: 10 }}>
+        {GESTURES.map(({ icon: I, text }, i) => (
+          <View key={text} testID={`partner-gesture-${i}`} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+            <View style={{ height: 28, width: 28, borderRadius: 14, backgroundColor: isDark ? SLATE[800] : "#fff", borderWidth: 1, borderColor: isDark ? "rgba(146,64,14,0.5)" : "#FEF3C7", alignItems: "center", justifyContent: "center" }}><I size={14} color="#D97706" /></View>
+            <Text style={{ fontSize: 14, color: isDark ? SLATE[200] : SLATE[700], flexShrink: 1 }}>{text}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booking: any; onClose: () => void; onInvoice: (b: any) => void }) {
   const { c, isDark } = useTheme();
   if (!b) return null;
@@ -169,6 +197,7 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
           </View>
         </DBlock>
       ) : null}
+      <PartnerGestures b={b} />
       <DBlock icon={CreditCard} title="Payment Summary"><PaymentSummary b={b} /></DBlock>
       {addr.line || addr.city ? <DBlock icon={MapPin} title="Service Address"><Text style={{ fontSize: 14, color: isDark ? SLATE[200] : TC.text2 }}>{addr.line}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{[addr.city, addr.state, addr.pincode].filter(Boolean).join(", ")}</Text></DBlock> : null}
       {b.status === "cancelled" ? (

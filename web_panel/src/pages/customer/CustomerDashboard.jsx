@@ -7,6 +7,7 @@ import {
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
   Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
+  Smile, GlassWater, Bath, HeartHandshake,
 } from "lucide-react";
 import api, { fmt, fmtC, mediaSrc } from "@/lib/api";
 import { shareInvoicePdf, shareFilePdf } from "@/lib/invoiceShare";
@@ -1433,6 +1434,33 @@ function PaymentSummary({ b }) {
   );
 }
 
+const GESTURE_STATUSES = ["assigned", "arrived_shop", "arrived_customer", "started"];
+const GESTURES = [
+  { icon: Smile, text: "Welcome them with a smile" },
+  { icon: GlassWater, text: "Offer them a glass of water" },
+  { icon: Bath, text: "Provide washroom access if needed" },
+];
+function PartnerGestures({ b }) {
+  if (!b.partner_id || !GESTURE_STATUSES.includes(b.status)) return null;
+  return (
+    <div data-testid="partner-gestures-card" className="relative overflow-hidden rounded-xl border border-amber-200/70 dark:border-amber-900/50 bg-gradient-to-br from-amber-50 to-orange-50/40 dark:from-amber-950/30 dark:to-slate-900 p-4">
+      <HeartHandshake className="absolute -right-3 -bottom-3 h-20 w-20 text-amber-200/60 dark:text-amber-900/40" aria-hidden />
+      <p className="font-heading font-bold text-[15px] text-slate-900 dark:text-white">Our professionals work hard</p>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+        {b.partner_name ? `${b.partner_name.split(" ")[0]} is serving you today — your` : "Your"} small gestures make a difference
+      </p>
+      <ul className="mt-3 space-y-2.5 relative">
+        {GESTURES.map(({ icon: I, text }, i) => (
+          <li key={text} data-testid={`partner-gesture-${i}`} className="flex items-center gap-2.5 text-sm text-slate-700 dark:text-slate-200">
+            <span className="h-7 w-7 rounded-full bg-white dark:bg-slate-800 border border-amber-100 dark:border-amber-900/50 grid place-items-center shrink-0"><I className="h-3.5 w-3.5 text-amber-600" /></span>
+            {text}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
   const p = b.pricing || {};
   const bd = b.breakdown || null;
@@ -1487,6 +1515,7 @@ function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
           </div>
         </DBlock>
       )}
+      <PartnerGestures b={b} />
       <DBlock icon={CreditCard} title="Payment Summary">
         <PaymentSummary b={b} />
       </DBlock>
