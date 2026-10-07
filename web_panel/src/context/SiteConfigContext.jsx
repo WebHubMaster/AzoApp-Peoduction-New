@@ -77,7 +77,10 @@ export const SiteConfigProvider = ({ children }) => {
         const b = data.branding || {};
         // Favicon updates live (on first load + after an admin saves branding)
         applyFavicon(b.favicon);
-        if (b.site_name && firstLoad && !document.title) document.title = `${b.site_name} — ${b.tagline || "Home Services"}`;
+        // Tab title reflects live branding: "<Site Name> — <Tagline>". Runs on first
+        // load + after an admin saves branding (doApply=true); the silent poll
+        // (doApply=false) skips this so page-level SEO <title>s aren't clobbered.
+        if (b.site_name) document.title = b.tagline ? `${b.site_name} — ${b.tagline}` : b.site_name;
       }
     } catch {
       setCfg((p) => ({ ...p, loaded: true }));

@@ -370,3 +370,12 @@ FIX:
 Verified by testing_agent iteration_234 — 6/6 backend pass, admin UI no error banner.
 NOTE for deploy: Deployed env me ye .env values deployment settings/secrets me honi chahiye warna
 pod restart par dobara down ho sakta hai.
+
+## Session (2026-06) — Browser tab title ab tagline se dynamic
+Problem: Admin/site tab title static tha ("AzoApp — Advanced Home Service Platform" from index.html).
+User: tagline (Branding → Tagline) title me dynamic dikhe.
+Fix: web_panel/src/context/SiteConfigContext.jsx L80 — hata diya `!document.title && firstLoad` guard
+(jo kabhi true nahi hota kyunki index.html hamesha title bhejti hai). Ab doApply (first load + admin
+save ke baad refresh) par document.title = "<Site Name> — <Tagline>" set hota hai; 60s silent poll
+(doApply=false) ise skip karta hai taaki public pages ke page-level SEO <title> (react-helmet) na toote.
+Verified via Playwright: /admin tab title = "AzoApp — Service at Your Door Steps".
