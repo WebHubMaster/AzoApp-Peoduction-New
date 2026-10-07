@@ -1,0 +1,22 @@
+{
+  "summary": "Backend-only verification of the Customer address de-dupe fix in controllers/auth_controller.py add_address(). Logged in as +919000000004 via OTP 123456, exercised POST /api/auth/address and GET /api/auth/addresses with 7 pytest cases covering: JWT login, list, add-new (+1), 3x identical re-post idempotency, near-equal coord duplicate (<1e-4 delta), normalized line+city+pincode duplicate (different coords), and a genuinely different address still being added. All 7 passed on the live local backend.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_address_dedupe_iter231.py",
+    "/app/test_reports/pytest/iter231_address_dedupe.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "add_address() de-dupe uses OR between coord-match and text-match which is correct and covers the subscription-screen 'Use current location' double-tap case. Behaviour verified end-to-end.",
+    "Minor: the matched address is reused as-is and moved to the end; new label/line/pincode in the POST body are silently discarded. This is intentional per the fix spec (idempotent reuse) but worth documenting so callers don't expect field updates via POST — they must use PUT /api/auth/address/{id}.",
+    "pa.record is only called when a NEW address is appended, not on dedupe-reuse. Good — avoids noisy audit entries from repeated 'Use current location' taps."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "Customer +919000000004 / OTP 123456",
+  "seed_data_creation": "Test adds TEST_-prefixed addresses to the +919000000004 user via unique UUID-derived line/coords. Not cleaned up (user already had pre-existing addresses from prior manual check). Can be removed later via DELETE /api/auth/address/{id}.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Address de-dupe backend behaviour fully verified in iter231. Test file test_address_dedupe_iter231.py is deterministic (uses UUIDs so repeated runs don't collide). Frontend client-side pre-check in Customer/app/(customer)/subscriptions.tsx was NOT tested here (RN/Expo, not automatable via Playwright) — user must verify on-device."
+}

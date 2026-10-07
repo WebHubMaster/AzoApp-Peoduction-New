@@ -285,3 +285,11 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 - Root cause (client-side, not backend): `Customer/src/lib/invoiceActions.ts` `shareInvoicePdf()` used a direct `IntentLauncher.startActivityAsync(ACTION_SEND)` with `android.intent.extra.STREAM` passed as a plain string — WhatsApp didn't get a FileProvider read grant, so the attach failed.
 - Fix: route the real PDF file through `expo-sharing` `Sharing.shareAsync(fileUri, {mimeType:"application/pdf"})` (proper content:// URI + read grant). WhatsApp appears in the system share sheet and attaches the PDF reliably on all devices; wa.me text fallback only if sharing is unavailable.
 - Verification: testing_agent backend run 100% pass — OTP login, GET /api/invoices, GET /api/invoices/{id}/pdf returns valid %PDF for owner and 403 for non-owner. Native WhatsApp attach to be confirmed on-device. (Local backend/.env restored: MONGO_URL, DB_NAME; invoices seeded via backend/seed_pro_and_invoices.py.)
+
+### [2026-06] Maid subscription "Use current location" created duplicate addresses — fixed
+- Symptom: in the subscription Plan sheet, each tap of "Use current location" created a brand-new "Current location" address (duplicates).
+- Root cause: client `Customer/app/(customer)/subscriptions.tsx` useCurrentLocation() always POSTed /auth/address, and backend controllers/auth_controller.py add_address() appended unconditionally (no de-dupe). (The booking flow book.tsx only fills a form, so it was unaffected.)
+- Fix (2 layers):
+  - Client: useCurrentLocation() now checks already-loaded addresses first; if the same address exists (near-equal coords ~11m, or same normalized line+city+pincode) it just selects it — no POST.
+  - Backend: add_address() de-dupes server-side — identical address (close coords OR same normalized line+city+pincode) is reused (moved to end + returned) instead of appended. Guards against rapid double-taps/stale state and fixes it for every caller.
+- Verification: testing_agent backend run 100% (7/7) — JWT login, add-new (+1), 3x identical idempotent, near-equal-coord dup, line+city+pincode dup, and a different address still adds. Client UX guard verified on-device by user.
