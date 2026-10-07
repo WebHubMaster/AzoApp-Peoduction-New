@@ -252,3 +252,4 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
   Trust stats now from site config `stats` (Admin → Website/CMS → Homepage Builder → Homepage Trust Stats):
   LIVE = DB counts (customers, verified_partners, rating), MANUAL = admin values. Verified both modes.
 - (2026-06) Subscriptions: check icon inline next to price (overlap fix); Monthly plan shows BEST VALUE pill + 'Save ₹X (Y%) vs Daily' (monthlySaving in subscriptions.tsx).
+- (2026-06) Subscription plan sheet pre-selects Monthly (fallback first plan).

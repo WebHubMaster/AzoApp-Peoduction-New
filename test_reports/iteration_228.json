@@ -1,0 +1,30 @@
+{
+  "summary": "Verified Monthly-plan default selection in the Customer subscription plan sheet (Full-time Maid) at 390x844. Logged in via OTP (dev auto-fill), navigated Browse Plans → Full-time Maid → plan sheet. On open the Monthly card is pre-selected (sub-plan-check-monthly visible, Daily/Weekly checks hidden), BEST VALUE pill and saving line present, and Pay button reads 'Pay ₹8,000.00 & Activate'. Switching to Daily/Weekly updates Pay text (₹400.00 / ₹2,200.00) and the check indicator moves correctly. After closing (sub-plan-sheet-close) and reopening the sheet, Monthly is selected again and Pay reverts to ₹8,000.00. All acceptance criteria pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_results": {
+    "monthly_preselected_on_open": true,
+    "pay_button_on_open": "Pay \u20b98,000.00 & Activate",
+    "best_value_visible_on_monthly": true,
+    "saving_line_on_monthly": "Save \u20b92,400.00 (23%) vs Daily",
+    "switch_daily_pay": "Pay \u20b9400.00 & Activate",
+    "switch_weekly_pay": "Pay \u20b92,200.00 & Activate",
+    "check_moves_on_select": true,
+    "reopen_monthly_preselected": true,
+    "reopen_pay_button": "Pay \u20b98,000.00 & Activate"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "setSel default correctly picks the monthly plan and falls back to the first plan when none exists",
+    "Sheet close testid is 'sub-plan-sheet-close' (not sub-plan-close as hinted in prior iteration context) \u2014 both work consistently"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Any 10-digit mobile; dev OTP 123456 (auto-filled). Signup uses testids login-name-input, signup-legal-box, continue-signup-button.",
+  "seed_data_creation": "None; used existing svc-maid-fulltime seed plans (Daily \u20b9400, Weekly \u20b92200, Monthly \u20b98000).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login flow: nav-login-mobile → login-phone-input → send-otp-button → (OTP auto-filled on dev) verify-otp-button → login-name-input + signup-legal-box + continue-signup-button. Plan sheet testids: sub-plan-sheet, sub-plan-sheet-close, sub-plan-{daily|weekly|monthly}, sub-plan-check-{plan}, sub-plan-best-value, sub-plan-saving, sub-book-pay.",
+  "rca of the issue": "N/A - feature already implemented and verified"
+}
