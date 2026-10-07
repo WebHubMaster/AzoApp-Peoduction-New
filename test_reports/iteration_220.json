@@ -1,0 +1,24 @@
+{
+  "summary": "Backend-only validation of maid-subscription pricing fix. Verified plan preview math, create+snapshot, cart-quote consistency with normal booking, and pay/mock→invoice. All 6 assertions pass. Monthly ₹8000 plan: commission=3200 (40%), partner_allocation=4800 (no tax deducted from maid), platform_fee=10, GST=577.80 on tax_base=3210 (= commission+platform_fee), total_payable=8587.80, per_day_earning=184.62 (4800/26 working days). Weekly ₹2200 and Daily ₹400 plans also verified. Subscription stored snapshot EXACTLY matches cart-quote total (shown==charged). Invoice body (via GET /api/invoices/{id}) reflects platform_commission=3200, tax=577.80, tax_base=3210, total=8587.80. GST confirmed NOT applied on full price (would be 1440) nor on partner_share only (~1.80).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_maid_subscription_calc.py",
+    "/app/test_reports/pytest/maid_sub_calc.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "GET /api/subscriptions/{id}/invoice returns only {invoice_id, path} metadata; consumers must call GET /api/invoices/{id} for the invoice body. Consider either returning the full invoice directly or documenting the two-step flow.",
+    "GET /api/services/{id} returned 404 for svc-maid-fulltime even though the service exists in /api/subscriptions/plans/* and the admin service catalog — may indicate missing public read endpoint for individual services."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_maid_subscription_calc.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "Customer: +919000000004 / OTP 123456 (demo); admin +919000000000; partner +919000000003",
+  "seed_data_creation": "Created one subscription (status=active) for Priya Verma via POST /api/subscriptions + /pay/mock during the test run; not cleaned up (dev data).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Reusable regression file: /app/backend/tests/test_maid_subscription_calc.py. Run with: REACT_APP_BACKEND_URL=http://localhost:8001 BACKEND_URL=http://localhost:8001 pytest -o addopts='' backend/tests/test_maid_subscription_calc.py -v. The pytest.ini enables xdist loadscope by default so use -o addopts='' or set a single file. Cart-quote for maid subscription equivalence uses category_id='cat-maid', category_name='Maid Services', custom item with custom_price=labour_charge=plan_price. Pricing engine: commission = gross * commission_pct, tax_base = commission + platform_fee, gst = tax_base * gst_pct, total = gross + platform_fee + gst, partner_share = gross - commission.",
+  "rca of the issue": "Previously (a) maid plan was sent through cart-quote as a zero-labour custom line so commission collapsed and GST was ~0, (b) a separate service-tax was being deducted from the partner, and (c) commission_pct resolution used platform_pct(32) instead of 100-partner_pct(40). Both services/subscription_service.py:compute_financials() and PricingEngine.finalize() now agree, producing identical totals for the same plan price — validated by matching cart-quote.pricing.total to subscription snapshot total (both 8587.80 for monthly ₹8000). GST base is correctly (commission + platform_fee), not gross."
+}

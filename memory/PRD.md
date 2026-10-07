@@ -121,3 +121,21 @@ Additive, no existing behaviour changed.
 - Web panel popup: components/partner/StarterKitUpsellPopup.jsx (premium dark + amber, headline "Get Jobs Before Others", benefit bullets, "Upgrade to Pro" CTA → starterkit tab, dismiss → /dismiss). Rendered in PartnerDashboard.jsx. Verified via screenshot (free partner +919000000005).
 - Partner App popup: src/components/partner/home/StarterKitUpsell.tsx (RN Modal), rendered in app/(partner)/index.tsx; CTA → /partner/starter-kit. (Expo app not served in preview.)
 - Verified via curl: free+approved → show:true, Pro → show:false, dismiss → false, after interval → true again, admin field saves + drives reminder_days.
+
+---
+## Update — Maid Subscription Calculation Fix (2026-06)
+**Problem:** Maid subscription pricing was wrong — tax & platform share did not match a normal service booking.
+
+**Root causes found & fixed:**
+1. Customer checkout sent the subscription plan to `/bookings/cart-quote` as a *zero-labour custom line* (`labour_charge: 0`), so platform commission collapsed to ~0 and GST became ~₹0 — while a separate (wrong) service-tax was deducted from the maid's allocation.
+2. Backend resolved subscription commission from `platform_pct` (32%) while a normal booking uses `100 − partner_pct` (40%) → the total shown at checkout ≠ the amount charged.
+
+**Fix (now identical to a normal booking):**
+- `compute_financials()` reuses `PricingEngine.finalize()`: commission on the FULL plan amount, maid earns `gross − commission` (never taxed), Platform Fee (₹10) + GST (only on `commission + platform fee`) collected on top; `total_payable = gross + platform_fee + GST`.
+- `commission_pct_for()` now returns `100 − partner_pct` (same as normal booking; still honors `subscription_commission_pct` override).
+- `create_subscription` stores a full normal-booking pricing object (`customer_pricing`) + `platform_fee`; invoice & cancellation reuse it.
+- Frontend: web_panel `Checkout.jsx` + Customer RN `CartContext.tsx` `toReqItem` send `labour_charge = plan_price` (fully commissionable). Admin `SubDrawer.jsx` & customer `Subscriptions.jsx` now show Platform Fee + GST + Total Payable.
+
+**Verified (testing agent, backend 100%):** Monthly ₹8000 → commission 3200 (40%), maid 4800, platform fee 10, GST 577.80 (on 3210), total 8587.80. Backend snapshot == checkout cart-quote (shown == charged). Invoice reflects same.
+
+**Env note:** `.env` files were missing from the upload; recreated `backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp). Ran `seed_maid_subscription.py`.
