@@ -352,3 +352,21 @@ code review (iteration_233) — tsc clean, no regression. (Expo partner app prev
 ## PENDING (carried over from earlier in this session)
 - Customer App + Customer Web: "Booking" bottom-tab par logged-in user ko ACTIVE bookings dikhni chahiye
   (abhi empty-cart screen "Your booking is empty" dikhta hai — book.tsx / Checkout.jsx). Not yet done.
+
+## Session (2026-06) — Admin App Management "Failed to fetch" on APK upload
+Symptom: Admin → System → App Management me red "Failed to fetch" banner + empty version fields.
+ROOT CAUSE: Pod reset ne saare .env files wipe kar diye the → backend DOWN → admin page ka
+config GET fail → axios interceptor "Failed to fetch" toast dikhata hai aur fields khaali reh jaate
+hain (exactly screenshot jaisa). Ye "recurring" isi wajah se hai (pod restarts).
+FIX:
+- Restored /app/backend/.env, /app/web_panel/.env, /app/Customer/.env + `yarn install` in web_panel
+  + restarted backend/frontend. Backend ab 200.
+- storage_service already correct: AWS S3 configured ho to S3 par upload, warna local
+  (/app/backend/uploads) + download URL /api/media/file/<name>. App apk_url se download karta hai —
+  dono cases me sahi. (Verified: local store/download byte-identical, content-type
+  application/vnd.android.package-archive.)
+- Hardened finish_upload() (app_management_routes.py): bada APK read + manifest parse ab anyio
+  worker thread me (single worker stall na ho → bade uploads par cryptic "Failed to fetch" na aaye).
+Verified by testing_agent iteration_234 — 6/6 backend pass, admin UI no error banner.
+NOTE for deploy: Deployed env me ye .env values deployment settings/secrets me honi chahiye warna
+pod restart par dobara down ho sakta hai.

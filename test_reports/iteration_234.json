@@ -1,0 +1,33 @@
+{
+  "summary": "Validated the post-pod-reset fix for Admin → System → App Management. Backend health/config APIs are 200, the admin APK upload chunk+finish flow correctly rejects a non-matching APK (fdroid) with HTTP 400 and the exact 'does not belong to the Customer App' message, and the local storage fallback writes an APK that is byte-identical when downloaded via /api/media/file/<name> with the correct application/vnd.android.package-archive content-type. In the admin web_panel UI (built fresh with PUBLIC_URL=/api/panel/ because /app/web_panel/build was absent), the App Management page under System loads with NO 'Failed to fetch' toast; all required data-testids are present on both Customer App and Partner App tabs, and tab switching works. 6/6 backend tests passing.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard", "issues": ["Recharts console warnings: 'The width(-1) and height(-1) of chart should be greater than 0' repeated multiple times — cosmetic, no functional impact"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_app_management.py",
+    "/app/test_reports/pytest/app_mgmt.xml"
+  ],
+  "action_items": [
+    "The web_panel build output (/app/web_panel/build) was missing on this preview — I ran `PUBLIC_URL=/api/panel yarn build` to make /api/panel/ reachable. Main agent should ensure the build is produced (or served from a dev server) as part of the recurring post-pod-reset recovery, otherwise /api/panel/* returns 404 and no admin UI is reachable."
+  ],
+  "critical_code_review_comments": [
+    "app_management_routes.finish_upload now correctly runs file-read and _parse_apk via anyio.to_thread.run_sync — good; no regression observed in the chunk+finish rejection path.",
+    "storage_service._put local-fallback URL (/api/media/file/<name>) returns byte-identical content with the correct APK content-type; good.",
+    "Minor: finish_upload opens the chunk file with a lambda inside to_thread.run_sync — fine, but consider streaming reads for very large APKs to avoid loading entire file into memory twice (raw bytes + S3 put)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_app_management.py (new)",
+    "/app/web_panel/build/* (rebuilt)"
+  ],
+  "success_rate": { "backend": "100% (6/6)", "frontend": "100% on tested flows" },
+  "test_credentials": "Super Admin phone +919000000000 OTP 123456 (also one-click 'Login as Admin' on /api/panel/login works)",
+  "seed_data_creation": "None persisted beyond test. A tiny random 2KB payload was written via storage_service._put to /app/backend/uploads under app-mgmt/customer/TEST-*.apk for the download-verification test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin panel lives at /api/panel/ served by FastAPI from /app/web_panel/build (built with PUBLIC_URL=/api/panel). Login URL: /api/panel/login — the easiest admin path is the 'Login as Admin' demo button. App Management is under left sidebar → System → App Management. Backend tests live at /app/backend/tests/test_app_management.py and cover: public config GET, admin config auth, chunk+finish rejection with /tmp/tiny.apk (fdroid), and local-storage put+media download. Auth endpoints are /api/auth/send-otp and /api/auth/verify-otp (not /api/auth/otp/request)."
+}
