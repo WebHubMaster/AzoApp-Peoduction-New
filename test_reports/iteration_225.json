@@ -1,0 +1,28 @@
+{
+  "summary": "Frontend-only retest of customer /api/customer/login after no-scroll layout rewrite. Rebuilt Expo web (npx expo export -p web) and tested at 390x844, 360x740, 412x915. All 13 required data-testid elements render. CRITICAL FIX FROM iteration_224 VERIFIED: no vertical scroll (documentElement.scrollHeight == clientHeight at all 3 viewports) AND no horizontal scroll (body.scrollWidth == viewport width at all 3 viewports). Full OTP flow verified: invalid phone shows 'Enter a valid 10-digit mobile number' toast; valid 10-digit 9876543210 -> Send OTP -> step 2 OTP boxes auto-filled with dev OTP 123456 -> Verify OTP -> step 3 otp-name-step appears for new user -> entering name + accepting Terms + Continue successfully logs in and redirects to /api/customer/. No overlap/clipping observed between login-card, trust-stats and security-strip at any step. login-need-help navigates to /api/customer/contact. login-back-home navigates to /api/customer/. brand-logo-dynamic loads from /api/media/file/branding/azo_wordmark.png (dynamic from /api/site/config branding.logo_light).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/login_390x844.png",
+    "/app/test_reports/login_360x740.png",
+    "/app/test_reports/login_412x915.png",
+    "/app/test_reports/login_step3.png"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "login.tsx now uses a fixed non-scrolling canvas (width: g.CW, height: g.H, overflow: hidden) with scrollEnabled={false} on KeyboardAwareScrollView plus overflow:hidden on root View — this cleanly fixes horizontal and vertical overflow from iteration_224.",
+    "Note: Need Help resolves to /api/customer/contact (customer-group contact page) rather than the public /(site)/contact — expo-router group stripping. Confirm this is the intended route; if a dedicated public contact page is desired, use an absolute href bypassing the group."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (all required checks pass across 3 viewports)"},
+  "test_credentials": "Any 10-digit mobile; dev OTP auto-filled 123456 by backend",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Login canvas layout stable across 360/390/412 widths. If any further changes are made, rebuild with: cd /app/Customer && npx expo export -p web, then verify at those 3 viewports that scrollHeight==clientHeight and bodyScrollW==innerW.",
+  "rca of the issue": "iteration_224 horizontal overflow was caused by absolutely-positioned hero decorations extending past the viewport. Fix in iteration_225: root <View> now has overflow:'hidden', KeyboardAwareScrollView has scrollEnabled={false}, and the inner login-canvas View is sized exactly to width g.CW and height g.H with overflow:'hidden'. HeroImage repositioned to right:0 with gradient edges. Verified: body.scrollWidth matches viewport width and scrollHeight equals clientHeight at 360/390/412."
+}

@@ -244,3 +244,7 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial â
 - Restored missing .env files (backend, Customer, frontend). Set branding.logo_light to /api/media/file/branding/azo_logo_light.png.
 ## Next
 - Optional horizontal wordmark logo variant for login; dark-mode variant of new login.
+- (v2) Login rebuilt as a SAME-TO-SAME clone of the reference on a fixed, NON-SCROLL canvas (reference px â†’ pt geometry in
+  `makeGeom`, overflow hidden). Hero + room photos cropped from reference (`Customer/assets/login/hero.webp`, `room.webp`).
+  Preview logo set to reference wordmark `/api/media/file/branding/azo_wordmark.png` (admin can change any time).
+  Stats hidden on name/email steps so the taller card never overlaps. Tested 100% at 390x844, 360x740, 412x915.
