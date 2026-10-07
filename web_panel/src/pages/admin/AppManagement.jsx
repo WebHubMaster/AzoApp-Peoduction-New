@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Smartphone, Upload, CheckCircle2, Loader2, Wrench, Rocket, Image as ImageIcon, Trash2 } from "lucide-react";
+import { Smartphone, Upload, CheckCircle2, Loader2, Wrench, Rocket, Image as ImageIcon, Trash2, RotateCcw, Cloud, HardDrive } from "lucide-react";
 import api, { API, mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,12 +21,18 @@ async function httpError(res, fallback) {
   return err;
 }
 
-async function withRetry(fn, tries = 6) {
+const waitOnline = () => new Promise((r) => {
+  if (navigator.onLine) { r(); return; }
+  window.addEventListener("online", () => r(), { once: true });
+});
+
+async function withRetry(fn, tries = 6, onOffline) {
   let last;
   for (let a = 0; a < tries; a += 1) {
     try { return await fn(); } catch (err) {
       last = err;
       if (err.fatal) throw err;
+      if (!navigator.onLine) { onOffline?.(); await waitOnline(); a -= 1; continue; }
       await sleep(Math.min(1000 * 2 ** a, 10000));
     }
   }
@@ -36,6 +42,15 @@ const PLATFORMS = [
   { key: "customer", label: "Customer App", pkg: "app.azoapp.homeservice" },
   { key: "partner", label: "Partner App", pkg: "app.azoapp.partner" },
 ];
+
+const pendingKey = (p) => `azo_apk_pending_${p}`;
+const readPending = (p) => { try { return JSON.parse(localStorage.getItem(pendingKey(p)) || "null"); } catch { return null; } };
+const writePending = (p, v) => (v ? localStorage.setItem(pendingKey(p), JSON.stringify(v)) : localStorage.removeItem(pendingKey(p)));
+const fileUploadId = (p, file) => {
+  let h = 0;
+  for (const c of file.name) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return `${p}-${file.size}-${file.lastModified}-${h.toString(36)}`;
+};
 
 function Field({ label, children, hint }) {
   return (
@@ -102,66 +117,119 @@ function AppForm({ platform, cfg, onSaved }) {
     reader.readAsDataURL(file);
   };
 
-  const uploadApk = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".apk")) { toast.error("Only .apk files are allowed"); return; }
-    setUploading(true); setPct(0); setStage("Uploading");
-    const uploadId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    const token = localStorage.getItem("azo_token");
-    const auth = { Authorization: `Bearer ${token}` };
-    try {
-      const total = Math.ceil(file.size / CHUNK);
-      let done = 0;
-      let next = 0;
-      const sendOne = async (i) => {
-        const blob = file.slice(i * CHUNK, (i + 1) * CHUNK);
-        await withRetry(async () => {
-          const res = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/chunk`, {
-            method: "POST",
-            headers: { ...auth, "X-Upload-Id": uploadId, "X-Chunk-Index": String(i), "Content-Type": "application/octet-stream" },
-            body: blob,
-          });
-          if (!res.ok) throw await httpError(res, `Part ${i + 1}/${total} failed`);
-        });
-        done += 1;
-        setPct(Math.round((done / total) * 100));
-      };
-      const worker = async () => { while (next < total) { const i = next; next += 1; await sendOne(i); } };
-      await Promise.all(Array.from({ length: Math.min(PARALLEL, total) }, worker));
-      setStage("Processing");
-      const job = await withRetry(async () => {
-        const fin = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/finish`, {
-          method: "POST",
-          headers: { ...auth, "Content-Type": "application/json" },
-          body: JSON.stringify({ upload_id: uploadId, total_chunks: total, size: file.size }),
-        });
-        if (!fin.ok) throw await httpError(fin, "APK validation failed");
-        return fin.json();
-      }, 2);
-      const started = Date.now();
-      for (;;) {
-        await sleep(2000);
-        if (Date.now() - started > 30 * 60 * 1000) throw new Error("Processing timed out — please try again.");
-        let st;
-        try {
-          const r = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/status/${job.job_id}`, { headers: auth });
-          if (!r.ok) throw await httpError(r, "Status check failed");
-          st = await r.json();
-        } catch (err) { if (err.fatal) throw err; continue; }
-        if (st.stage) setStage(st.stage);
-        if (st.status === "error") throw new Error(st.error || "APK upload failed");
-        if (st.status === "done") {
-          const data = st.result || {};
-          toast.success(`APK uploaded · v${data.version_name} (code ${data.version_code})`);
-          onSaved(data);
-          break;
-        }
+  const [pending, setPending] = useState(() => readPending(platform.key));
+  const auth = () => ({ Authorization: `Bearer ${localStorage.getItem("azo_token")}` });
+  const base = `${API}/app-mgmt/admin/apk/${platform.key}`;
+  const savePending = (v) => { writePending(platform.key, v); setPending(v); };
+
+  useEffect(() => {
+    if (!uploading) return undefined;
+    const warn = (ev) => { ev.preventDefault(); ev.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [uploading]);
+
+  const pollJob = async (jobId) => {
+    setStage("Processing");
+    const started = Date.now();
+    for (;;) {
+      await sleep(2000);
+      if (Date.now() - started > 30 * 60 * 1000) throw Object.assign(new Error("Processing timed out — please try again."), { fatal: true });
+      let st;
+      try {
+        const r = await fetch(`${base}/status/${jobId}`, { headers: auth() });
+        if (!r.ok) throw await httpError(r, "Status check failed");
+        st = await r.json();
+      } catch (err) {
+        if (err.fatal) throw err;
+        if (!navigator.onLine) { setStage("Waiting for internet"); await waitOnline(); }
+        continue;
       }
-    } catch (err) { toast.error(String(err.message || err)); }
+      if (st.stage) setStage(st.stage);
+      if (st.status === "error") throw Object.assign(new Error(st.error || "APK upload failed"), { fatal: true });
+      if (st.status === "done") return st.result || {};
+    }
+  };
+
+  const finishUi = (data) => {
+    toast.success(`APK uploaded · v${data.version_name} (code ${data.version_code})`);
+    onSaved(data);
+  };
+
+  const run = async (task) => {
+    setUploading(true); setPct(0);
+    try { finishUi(await task()); savePending(null); } catch (err) {
+      if (err.fatal) savePending(null);
+      toast.error(String(err.message || err));
+    }
     setUploading(false); setPct(0); setStage("");
     if (fileRef.current) fileRef.current.value = "";
   };
+
+  const uploadFile = async (file) => {
+    const uploadId = fileUploadId(platform.key, file);
+    const total = Math.ceil(file.size / CHUNK);
+    const meta = { uploadId, name: file.name, size: file.size, total, done: 0 };
+    savePending(meta);
+    setStage("Checking previous progress");
+    const have = await withRetry(async () => {
+      const r = await fetch(`${base}/received/${uploadId}`, { headers: auth() });
+      if (!r.ok) throw await httpError(r, "Could not check upload progress");
+      return new Set((await r.json()).received || []);
+    });
+    const todo = [];
+    for (let i = 0; i < total; i += 1) if (!have.has(i)) todo.push(i);
+    let done = total - todo.length;
+    if (done) toast.info(`Resuming upload from ${Math.round((done / total) * 100)}%`);
+    setPct(Math.round((done / total) * 100));
+    setStage("Uploading");
+    let next = 0;
+    const sendOne = async (i) => {
+      const blob = file.slice(i * CHUNK, (i + 1) * CHUNK);
+      await withRetry(async () => {
+        const res = await fetch(`${base}/chunk`, {
+          method: "POST",
+          headers: { ...auth(), "X-Upload-Id": uploadId, "X-Chunk-Index": String(i), "Content-Type": "application/octet-stream" },
+          body: blob,
+        });
+        if (!res.ok) throw await httpError(res, `Part ${i + 1}/${total} failed`);
+      }, 6, () => setStage("Waiting for internet"));
+      done += 1;
+      setStage("Uploading");
+      setPct(Math.round((done / total) * 100));
+      if (done % 10 === 0) writePending(platform.key, { ...meta, done });
+    };
+    const worker = async () => { while (next < todo.length) { const i = todo[next]; next += 1; await sendOne(i); } };
+    await Promise.all(Array.from({ length: Math.min(PARALLEL, todo.length) }, worker));
+    setStage("Processing");
+    const job = await withRetry(async () => {
+      const fin = await fetch(`${base}/finish`, {
+        method: "POST",
+        headers: { ...auth(), "Content-Type": "application/json" },
+        body: JSON.stringify({ upload_id: uploadId, total_chunks: total, size: file.size }),
+      });
+      if (!fin.ok) throw await httpError(fin, "APK validation failed");
+      return fin.json();
+    }, 2);
+    savePending({ ...meta, done: total, jobId: job.job_id });
+    return pollJob(job.job_id);
+  };
+
+  const uploadApk = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".apk")) { toast.error("Only .apk files are allowed"); return; }
+    if (pending && !pending.jobId && (pending.name !== file.name || pending.size !== file.size)) {
+      toast.info("Different file selected — starting a fresh upload");
+    }
+    run(() => uploadFile(file));
+  };
+
+  useEffect(() => {
+    const p = readPending(platform.key);
+    if (p?.jobId) run(() => pollJob(p.jobId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [platform.key]);
 
   const deleteApk = async () => {
     if (!window.confirm(`Delete the uploaded ${platform.label} APK from the server? This removes the file and disables in-app updates until you upload a new APK.`)) return;
@@ -189,7 +257,7 @@ function AppForm({ platform, cfg, onSaved }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-1.5"><Upload className="h-4 w-4" /> {platform.label} APK</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">Stored on your server (S3). App downloads from here — never Play Store. Package must be <code>{platform.pkg}</code>.</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">App downloads from here — never Play Store. Package must be <code>{platform.pkg}</code>.</p>
             </div>
           </div>
           {f.apk_url ? (
@@ -208,8 +276,18 @@ function AppForm({ platform, cfg, onSaved }) {
               </Button>
             ) : null}
           </div>
+          {pending && !uploading && !pending.jobId ? (
+            <div data-testid={`apk-resume-banner-${platform.key}`} className="mt-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-950/40 dark:border-amber-800 p-3 text-[12px] text-amber-800 dark:text-amber-300">
+              <p className="font-semibold flex items-center gap-1.5"><RotateCcw className="h-3.5 w-3.5" /> Interrupted upload: {pending.name} ({fmtSize(pending.size)}) · ~{Math.round(((pending.done || 0) / (pending.total || 1)) * 100)}% sent</p>
+              <p className="mt-0.5">Select the same file again to continue from where it stopped.</p>
+              <div className="mt-2 flex gap-2">
+                <Button size="sm" data-testid={`apk-resume-btn-${platform.key}`} onClick={() => fileRef.current?.click()} className="h-7 bg-amber-600 hover:bg-amber-700 text-white">Resume upload</Button>
+                <Button size="sm" variant="outline" data-testid={`apk-discard-btn-${platform.key}`} onClick={() => savePending(null)} className="h-7">Discard</Button>
+              </div>
+            </div>
+          ) : null}
           {uploading ? <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-primary-600 transition-all" style={{ width: `${pct}%` }} /></div> : null}
-          {uploading && stage ? <p data-testid={`apk-stage-${platform.key}`} className="mt-1 text-[11px] text-slate-500">{stage}{stage === "Uploading" ? ` · ${pct}%` : " — please keep this tab open"}</p> : null}
+          {uploading && stage ? <p data-testid={`apk-stage-${platform.key}`} className="mt-1 text-[11px] text-slate-500">{stage}{stage === "Uploading" ? ` · ${pct}% — safe to resume if interrupted` : stage === "Waiting for internet" ? " — upload will continue automatically" : " — please keep this tab open"}</p> : null}
         </div>
 
         <ToggleRow testId={`update-enabled-${platform.key}`} label="Update Enabled" desc="Turn the in-app update check on/off" value={f.update_enabled} onChange={(v) => set("update_enabled", v)} />
@@ -249,7 +327,21 @@ function AppForm({ platform, cfg, onSaved }) {
   );
 }
 
+function StorageBadge({ info }) {
+  if (!info) return null;
+  const s3 = info.mode === "s3";
+  return (
+    <div data-testid="storage-status-badge" title={s3 ? `Bucket: ${info.bucket}${info.folder ? `/${info.folder}` : ""}` : "Files are saved on this server's disk"}
+      className={`ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-semibold ${s3 ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300" : "border-amber-300 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300"}`}>
+      {s3 ? <Cloud className="h-3.5 w-3.5" /> : <HardDrive className="h-3.5 w-3.5" />}
+      <span data-testid="storage-status-mode">{s3 ? `AWS S3 · ${info.bucket} (${info.region})` : "Local Server Storage"}</span>
+    </div>
+  );
+}
+
 export default function AppManagement() {
+  const [storage, setStorage] = useState(null);
+  useEffect(() => { api.get("/app-mgmt/admin/storage").then((r) => setStorage(r.data)).catch(() => {}); }, []);
   const [tab, setTab] = useState("customer");
   const [all, setAll] = useState(null);
   const load = () => api.get("/app-mgmt/admin/config").then((r) => setAll(r.data)).catch(() => setAll({}));
@@ -263,6 +355,7 @@ export default function AppManagement() {
           <h2 className="font-heading font-bold text-lg text-slate-900 dark:text-white">App Management</h2>
           <p className="text-sm text-slate-500 dark:text-slate-400">Manage APK, version, force-update & maintenance for each app independently.</p>
         </div>
+        <StorageBadge info={storage} />
       </div>
       <div className="flex gap-2">
         {PLATFORMS.map((p) => (

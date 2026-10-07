@@ -118,6 +118,24 @@ async def upload_chunk(platform: str, request: Request, user=Depends(ADMIN)):
     return {"ok": True, "index": idx, "size": len(body)}
 
 
+@router.get("/admin/apk/{platform}/received/{upload_id}")
+async def received_chunks(platform: str, upload_id: str, user=Depends(ADMIN)):
+    """Chunk indexes already stored for an upload — lets the admin resume after a drop/reload."""
+    _valid_platform(platform)
+    _check_upload_id(upload_id)
+    rows = await db.apk_upload_chunks.find(
+        {"upload_id": upload_id, "platform": platform}, {"_id": 0, "index": 1}).to_list(None)
+    return {"upload_id": upload_id, "received": sorted(r["index"] for r in rows)}
+
+
+@router.get("/admin/storage")
+async def storage_status(user=Depends(ADMIN)):
+    conf = await storage_service._s3_conf()
+    if conf:
+        return {"mode": "s3", "bucket": conf["bucket"], "region": conf["region"], "folder": conf["folder"]}
+    return {"mode": "local", "bucket": "", "region": "", "folder": ""}
+
+
 @router.post("/admin/apk/{platform}/finish")
 async def finish_upload(platform: str, body: dict, user=Depends(ADMIN)):
     """Kick off background assembly + validation + storage; returns a job id to poll.
