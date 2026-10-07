@@ -1,10 +1,10 @@
-/** First-booking alert walkthrough — a one-time guided stepper that walks a NEW
- *  customer through every permission the call-style booking/reschedule alert needs,
- *  shown once after their first booking. Android only; auto-skips anything already
- *  granted or not applicable; remembers completion so it never nags again. */
+/** First-booking alert walkthrough. Android only, shown once after the first booking.
+ *  AUTO permissions (system dialog: notifications, battery) are requested silently — no step shown.
+ *  Only FORCE permissions (need a settings screen: full-screen, overlay, OEM autostart) are walked through. */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, Pressable, Modal, AppState, Platform, Linking, ScrollView } from "react-native";
-import { BellRing, MonitorSmartphone, Layers, BatteryCharging, Rocket, Check, ShieldCheck, ChevronRight } from "lucide-react-native";
+import { MonitorSmartphone, Layers, Rocket, Check, ShieldCheck, ChevronRight } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, PRIMARY } from "@/src/theme";
 import { storage } from "@/src/utils/storage";
 import {
@@ -14,13 +14,12 @@ import {
 } from "@/src/lib/notifications";
 
 const DONE_KEY = "azo_alert_walkthrough_done";
+const AUTO_KEYS: PermKey[] = ["notifications", "battery"];
 
 type Step = { key: PermKey; icon: any; title: string; why: string; tint: string };
 const STEPS: Step[] = [
-  { key: "notifications", icon: BellRing, title: "Turn on notifications", why: "So booking, reschedule & chat alerts can reach you — even when the app is closed.", tint: "#F59E0B" },
   { key: "fullscreen", icon: MonitorSmartphone, title: "Allow full-screen alerts", why: "Shows a call-style screen over your lock screen when a partner confirms or wants to reschedule.", tint: "#22C55E" },
   { key: "overlay", icon: Layers, title: "Display over other apps", why: "Lets the alert pop up over whatever you're doing, even when the phone is unlocked.", tint: "#A855F7" },
-  { key: "battery", icon: BatteryCharging, title: "Allow running in background", why: "Keeps the app able to ring even when the phone tries to sleep it to save battery.", tint: "#38BDF8" },
   { key: "oem", icon: Rocket, title: "Autostart & pop-ups", why: "", tint: "#EF4444" },
 ];
 
@@ -38,10 +37,12 @@ async function runRequest(key: PermKey) {
 
 export function AlertPermissionWalkthrough({ bookingCount }: { bookingCount: number }) {
   const { c, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [states, setStates] = useState<Record<PermKey, PermState> | null>(null);
   const [idx, setIdx] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [todo, setTodo] = useState<PermKey[]>([]);
 
   const load = useCallback(async () => setStates(await allAlertStates()), []);
 
@@ -52,10 +53,19 @@ export function AlertPermissionWalkthrough({ bookingCount }: { bookingCount: num
     (async () => {
       if (Platform.OS !== "android" || bookingCount <= 0) return;
       if ((await storage.getItem(DONE_KEY)) === "1") return;
-      const s = await allAlertStates();
+      let s = await allAlertStates();
+      // AUTO: fire the system dialogs directly, one after another.
+      for (const k of AUTO_KEYS) {
+        if (cancelled) return;
+        const st = s[k];
+        if (st?.available === false || st?.granted || (k === "notifications" && st?.canAskAgain === false)) continue;
+        try { await runRequest(k); } catch { /* ignore */ }
+      }
+      s = await allAlertStates();
       if (cancelled) return;
       const missing = STEPS.some((st) => s[st.key]?.available && !s[st.key]?.granted);
       if (!missing) { try { await storage.setItem(DONE_KEY, "1"); } catch { /* ignore */ } return; }
+      setTodo(STEPS.filter((st) => s[st.key]?.available && !s[st.key]?.granted).map((st) => st.key));
       setStates(s); setOpen(true);
     })();
     return () => { cancelled = true; };
@@ -68,8 +78,8 @@ export function AlertPermissionWalkthrough({ bookingCount }: { bookingCount: num
     return () => sub.remove();
   }, [open, load]);
 
-  // Only the applicable steps (available on this device), in order.
-  const steps = useMemo(() => STEPS.filter((st) => states?.[st.key]?.available !== false), [states]);
+  // Only the FORCE steps that were missing when the walkthrough opened (snapshot so progress stays stable).
+  const steps = useMemo(() => STEPS.filter((st) => todo.includes(st.key)), [todo]);
   const finish = useCallback(async () => { try { await storage.setItem(DONE_KEY, "1"); } catch { /* ignore */ } setOpen(false); }, []);
 
   if (!open || !states || steps.length === 0) return null;
@@ -88,7 +98,7 @@ export function AlertPermissionWalkthrough({ bookingCount }: { bookingCount: num
   return (
     <Modal visible transparent animationType="fade" statusBarTranslucent onRequestClose={finish}>
       <View style={{ flex: 1, backgroundColor: "rgba(2,6,23,0.6)", justifyContent: "flex-end" }}>
-        <View testID="alert-walkthrough" style={{ backgroundColor: c.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 28, gap: 16 }}>
+        <View testID="alert-walkthrough" style={{ backgroundColor: c.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 20 + Math.max(insets.bottom, 16), gap: 16 }}>
           {/* header */}
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <ShieldCheck size={18} color={c.primaryText} />
