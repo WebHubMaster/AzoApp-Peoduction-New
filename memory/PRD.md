@@ -293,3 +293,7 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
   - Client: useCurrentLocation() now checks already-loaded addresses first; if the same address exists (near-equal coords ~11m, or same normalized line+city+pincode) it just selects it — no POST.
   - Backend: add_address() de-dupes server-side — identical address (close coords OR same normalized line+city+pincode) is reused (moved to end + returned) instead of appended. Guards against rapid double-taps/stale state and fixes it for every caller.
 - Verification: testing_agent backend run 100% (7/7) — JWT login, add-new (+1), 3x identical idempotent, near-equal-coord dup, line+city+pincode dup, and a different address still adds. Client UX guard verified on-device by user.
+
+### [2026-06] Booking flow: saved addresses now 2-column grid
+- Request: normal service booking (StepContact) me multiple saved addresses ek column me stack ho rahe the; 2 columns me dikhne chahiye.
+- Change: Customer/src/components/site/CheckoutSteps.tsx — saved-address tiles (incl. "New address") ab flex grid me (flexDirection row + flexWrap, flexBasis 47%, flexGrow 1, minWidth 140, gap 8), is se multiple addresses 2 columns me aate hain; lone/odd item poori row le leta hai. Labels/line numberOfLines={1} se truncate hote hain. Native-only UI change — device par verify.
