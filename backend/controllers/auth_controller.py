@@ -4,7 +4,7 @@ from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 from config.database import db, get_settings, now_iso
 from services import auth_service
-from middleware.auth import create_token
+from middleware.auth import create_token, issue_token
 from models.user import AddressModel, new_id, build_user
 from services import profile_audit_service as pa
 
@@ -64,7 +64,7 @@ async def email_login(email, password, name, create_if_new=True):
         await db.users.insert_one(dict(u))
         u.pop("_id", None)
         created = True
-    token = create_token(u["id"], u["role"])
+    token = await issue_token(u["id"], u["role"])
     u.pop("password_hash", None)
     return {"token": token, "user": u, "created": created}
 
@@ -90,7 +90,7 @@ async def google_login(credential):
         u["photo"] = info.get("picture", "")
         await db.users.insert_one(dict(u))
         u.pop("_id", None)
-    token = create_token(u["id"], u["role"])
+    token = await issue_token(u["id"], u["role"])
     u.pop("password_hash", None)
     return {"token": token, "user": u, "created": False}
 
@@ -149,7 +149,7 @@ async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, devic
     if res.get("new_user"):
         return {"new_user": True}
     user = res["user"]
-    token = create_token(user["id"], user["role"], did=device_id)
+    token = await issue_token(user["id"], user["role"], did=device_id)
     if user.get("role") in ("admin", "staff"):
         from services.rbac_service import enrich_user
         user = await enrich_user(user)

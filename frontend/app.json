@@ -86,7 +86,7 @@
         {
           "cameraPermission": "Take your live check-in selfie and job photos",
           "microphonePermission": "Record short work-proof videos for your jobs",
-          "recordAudioAndroid": false
+          "recordAudioAndroid": true
         }
       ],
       "expo-audio",

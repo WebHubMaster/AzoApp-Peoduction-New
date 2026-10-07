@@ -10,11 +10,30 @@ SECRET = os.environ.get("JWT_SECRET", "dev-secret")
 ALGO = "HS256"
 
 
-def create_token(uid: str, role: str, did: str = None) -> str:
+def create_token(uid: str, role: str, did: str = None, sid: str = None) -> str:
     payload = {"uid": uid, "role": role}
     if did:
-        payload["did"] = did  # bound device id — enables single-device enforcement
+        payload["did"] = did
+    if sid:
+        payload["sid"] = sid
     return jwt.encode(payload, SECRET, algorithm=ALGO)
+
+
+async def issue_token(uid: str, role: str, did: str = None) -> str:
+    """Login on any device/web starts a NEW session and revokes every other one."""
+    import uuid
+    sid = uuid.uuid4().hex
+    await db.users.update_one({"id": uid}, {"$set": {"current_sid": sid}})
+    return create_token(uid, role, did=did, sid=sid)
+
+
+def _session_ok(user: dict, data: dict) -> bool:
+    cur = user.get("current_sid")
+    return not cur or data.get("sid") == cur
+
+
+REVOKED = {"code": "device_revoked",
+           "message": "You've been logged out because this account was logged in on another device."}
 
 
 async def user_from_token(token: str):
@@ -25,7 +44,8 @@ async def user_from_token(token: str):
         data = jwt.decode(token, SECRET, algorithms=[ALGO])
     except Exception:
         return None
-    return await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
+    user = await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
+    return user if user and _session_ok(user, data) else None
 
 
 async def get_current_user(authorization: str = Header(None)) -> dict:
@@ -39,14 +59,13 @@ async def get_current_user(authorization: str = Header(None)) -> dict:
     user = await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    # Single-device lock (Partner): the token's bound device must still match the
-    # partner's registered device. When a NEW device logs in it rebinds, so the old
-    # device's token no longer matches → it is auto-logged-out on its next request.
-    if user.get("role") == "partner" and user.get("registered_device_id"):
+    # Single active session (all roles): a newer login anywhere revokes this token.
+    if not _session_ok(user, data):
+        raise HTTPException(status_code=401, detail=REVOKED)
+    # Legacy partner device lock for tokens issued before session ids existed.
+    if not data.get("sid") and user.get("role") == "partner" and user.get("registered_device_id"):
         if data.get("did") != user.get("registered_device_id"):
-            raise HTTPException(status_code=401, detail={
-                "code": "device_revoked",
-                "message": "You've been logged out because this account was opened on another device."})
+            raise HTTPException(status_code=401, detail=REVOKED)
     return user
 
 
@@ -61,7 +80,8 @@ async def get_current_user_optional(authorization: str = Header(None)):
         data = jwt.decode(token, SECRET, algorithms=[ALGO])
     except Exception:
         return None
-    return await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
+    user = await db.users.find_one({"id": data.get("uid")}, {"_id": 0})
+    return user if user and _session_ok(user, data) else None
 
 
 def require_role(*roles):

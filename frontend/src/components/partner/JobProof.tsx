@@ -46,13 +46,33 @@ export async function ensureVideoPermissions(toast: { error: (m: string) => void
   return true;
 }
 
-/** LIVE camera photo → multipart upload to /bookings/{id}/evidence/upload */
-export async function captureProofPhoto(bookingId: string, stage: "before" | "after", toast: any, front = false) {
-  if (!(await ensureCamera(toast))) return false;
-  await new Promise((r) => setTimeout(r, 250));
-  const res = await ImagePicker.launchCameraAsync({ quality: 0.7, base64: false, exif: false, cameraType: front ? ImagePicker.CameraType.front : ImagePicker.CameraType.back });
-  if (res.canceled || !res.assets?.[0]?.uri) return false;
-  const asset = res.assets[0];
+/** Fallback: system camera app. Recovers the result if Android killed our app meanwhile. */
+export async function systemCameraCapture(kind: "photo" | "video"): Promise<ImagePicker.ImagePickerAsset | null> {
+  const opts: ImagePicker.ImagePickerOptions = kind === "photo"
+    ? { mediaTypes: ["images"], quality: 0.7, base64: false, exif: false }
+    : { mediaTypes: ["videos"], videoMaxDuration: MAX_VIDEO_SEC, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium };
+  let res: ImagePicker.ImagePickerResult | null = null;
+  try { res = await ImagePicker.launchCameraAsync(opts); } catch { res = null; }
+  if (res && !res.canceled && res.assets?.[0]?.uri) return res.assets[0];
+  const pending: any = await ImagePicker.getPendingResultAsync().catch(() => null);
+  const a = Array.isArray(pending) ? pending[0]?.assets?.[0] : pending?.assets?.[0];
+  return a?.uri ? a : null;
+}
+
+/** Recover a proof captured via the system camera before Android restarted the app. */
+export async function pendingSystemCapture(): Promise<ImagePicker.ImagePickerAsset | null> {
+  if (Platform.OS !== "android") return null;
+  const pending: any = await ImagePicker.getPendingResultAsync().catch(() => null);
+  const a = Array.isArray(pending) ? pending[0]?.assets?.[0] : pending?.assets?.[0];
+  return a?.uri ? a : null;
+}
+
+const isVideoAsset = (a: any) => a?.type === "video" || /^video\//.test(a?.mimeType || "") || isVideoUrl(a?.uri || "");
+export const uploadProofAsset = (bookingId: string, stage: "before" | "after", asset: any, toast: any, onProgress?: (p: number) => void) =>
+  isVideoAsset(asset) ? uploadProofVideo(bookingId, stage, asset, toast, onProgress) : uploadProofPhoto(bookingId, stage, asset, toast);
+
+/** Photo → multipart upload to /bookings/{id}/evidence/upload */
+export async function uploadProofPhoto(bookingId: string, stage: "before" | "after", asset: any, toast: any) {
   const sizeMsg = oversizeMessage(assetSizeBytes(asset), "camera");
   if (sizeMsg) { toast.error(sizeMsg); return false; }
   const small = await shrinkForUpload(asset, 1600, 0.75);
@@ -73,18 +93,11 @@ async function assetToBase64(asset: ImagePicker.ImagePickerAsset): Promise<strin
   return await new FsFile(asset.uri).base64();
 }
 
-/** LIVE camera video (≤30s) → chunked base64 upload to /bookings/{id}/evidence/chunk.
- *  Native streams the file from disk one chunk at a time (flat memory → works on low-RAM
- *  devices, and the first chunk starts uploading immediately). Web reads the whole file. */
-export async function captureProofVideo(bookingId: string, stage: "before" | "after", toast: any, onProgress?: (p: number) => void) {
-  if (!(await ensureVideoPermissions(toast))) return false;
-  await new Promise((r) => setTimeout(r, 250));
-  const res = await ImagePicker.launchCameraAsync({ mediaTypes: ["videos"], videoMaxDuration: MAX_VIDEO_SEC, videoQuality: ImagePicker.UIImagePickerControllerQualityType.Medium, cameraType: ImagePicker.CameraType.back });
-  if (res.canceled || !res.assets?.[0]?.uri) return false;
-  const asset = res.assets[0];
+/** Video (≤30s) → chunked base64 upload to /bookings/{id}/evidence/chunk (streamed from disk). */
+export async function uploadProofVideo(bookingId: string, stage: "before" | "after", asset: any, toast: any, onProgress?: (p: number) => void) {
   if (asset.duration && asset.duration > (MAX_VIDEO_SEC + 2) * 1000) { toast.error(`Video must be ${MAX_VIDEO_SEC} seconds or shorter`); return false; }
   const uploadId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-  const mime = asset.mimeType || (asset.uri.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4");
+  const mime = /^video\//.test(asset.mimeType || "") ? asset.mimeType : (asset.uri.toLowerCase().endsWith(".mov") ? "video/quicktime" : "video/mp4");
 
   // Send one base64 part, retrying transient failures (timeout/502/503/504/413, or a
   // dropped connection) up to 3 times so a flaky mobile network doesn't lose the upload.

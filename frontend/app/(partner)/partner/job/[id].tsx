@@ -16,7 +16,8 @@ import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
 import { oversizeMessage, assetSizeBytes, shrinkForUpload, uploadAsset } from "@/src/components/reg/Photo";
-import { OtpBoxes, ProofGrid, captureProofPhoto, captureProofVideo, ensureCamera } from "@/src/components/partner/JobProof";
+import { OtpBoxes, ProofGrid, uploadProofAsset, systemCameraCapture, pendingSystemCapture, ensureCamera, ensureVideoPermissions, MAX_VIDEO_SEC } from "@/src/components/partner/JobProof";
+import { ProofCamera, ProofShot } from "@/src/components/partner/ProofCamera";
 import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
 import { SelfieCamera } from "@/src/components/partner/SelfieCamera";
 import { JobDetailsBlock } from "../../active";
@@ -59,6 +60,20 @@ export default function PartnerJobWizard() {
   const [otp, setOtp] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
+  const [cam, setCam] = useState<{ stage: "before" | "after"; kind: "photo" | "video" } | null>(null);
+  const [pendingAsset, setPendingAsset] = useState<any>(null);
+  useEffect(() => { pendingSystemCapture().then((a) => { if (a) setPendingAsset(a); }); }, []);
+  // Android restarted the app while the phone camera was open → upload the recovered capture.
+  useEffect(() => {
+    if (!pendingAsset || !b || String(b.id) !== String(id)) return;
+    const a = pendingAsset; setPendingAsset(null);
+    const stage = phaseOf(b) >= 3 ? "after" : "before";
+    setBusy(`${stage}-recovered`);
+    uploadProofAsset(b.id, stage, a, toast, setProgress)
+      .then((ok) => { if (ok) { toast.success("Recovered capture added ✓"); q.refetch(); } })
+      .catch((e: any) => toast.error(e?.detail || e?.message || "Upload failed, please retry"))
+      .finally(() => { setBusy(null); setProgress(0); });
+  }, [pendingAsset, b?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const [footerH, setFooterH] = useState(120); // measured sticky-footer height → keyboard offset
 
   // Opening a DIFFERENT job (id change) must never carry over the previous job's
@@ -85,13 +100,29 @@ export default function PartnerJobWizard() {
   const addlPending = !!addl && num(addl.total) > 0 && addl.status !== "paid";
   const demoOtp = (b.demo_otps || {}) as { start?: string; completion?: string };
 
-  const proof = async (stage: "before" | "after", kind: "photo" | "video") => {
+  const upload = async (stage: "before" | "after", kind: "photo" | "video", asset: any) => {
     setBusy(`${stage}-${kind}`); setProgress(0);
     try {
-      const ok = kind === "photo" ? await captureProofPhoto(b.id, stage, toast) : await captureProofVideo(b.id, stage, toast, setProgress);
+      const ok = await uploadProofAsset(b.id, stage, asset, toast, setProgress);
       if (ok) { toast.success(`${kind === "photo" ? "Photo" : "Video"} added ✓`); refresh(); }
     } catch (e: any) { toast.error(e?.detail || e?.message || "Upload failed, please retry"); }
     finally { setBusy(null); setProgress(0); }
+  };
+  const proof = async (stage: "before" | "after", kind: "photo" | "video") => {
+    const ok = kind === "video" ? await ensureVideoPermissions(toast) : await ensureCamera(toast);
+    if (ok) setCam({ stage, kind });
+  };
+  const onShot = (shot: ProofShot) => {
+    const c = cam; setCam(null);
+    if (c) upload(c.stage, c.kind, { ...shot, type: shot.kind === "video" ? "video" : "image" });
+  };
+  const onCamFail = async (msg: string) => {
+    const c = cam; setCam(null);
+    if (!c) return;
+    toast.info(`${msg} — opening phone camera`);
+    await new Promise((r) => setTimeout(r, 400));
+    const asset = await systemCameraCapture(c.kind);
+    if (asset) upload(c.stage, c.kind, asset);
   };
   const removeProof = async (stage: "before" | "after", url: string) => {
     try { await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url }); toast.success("Removed"); refresh(); }
@@ -160,6 +191,7 @@ export default function PartnerJobWizard() {
             <WorkStep b={b} after={after} addlPending={addlPending} demoOtp={demoOtp.completion} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("after", "photo")} onVideo={() => proof("after", "video")} onRemove={(u) => removeProof("after", u)} onUpdate={refresh} />
           )}
       </KeyboardAwareScrollView>
+      <ProofCamera visible={!!cam} kind={cam?.kind || "photo"} maxSec={MAX_VIDEO_SEC} onClose={() => setCam(null)} onCapture={onShot} onFail={onCamFail} />
 
       {/* Bottom CTA bar (replaces the hidden tab bar) — sticks right above the keyboard */}
       <KeyboardStickyView offset={{ opened: insets.bottom }} style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>

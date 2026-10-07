@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import api from "@/lib/api";
 
@@ -25,6 +26,24 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => { loadMe(); }, [loadMe]);
+
+  useEffect(() => {
+    const onRevoked = (ev) => {
+      localStorage.removeItem("azo_token");
+      setUser(null);
+      toast.error(ev.detail || "You've been logged out because this account was logged in on another device.", { duration: 8000 });
+    };
+    window.addEventListener("azo:session-revoked", onRevoked);
+    return () => window.removeEventListener("azo:session-revoked", onRevoked);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    const check = () => { if (localStorage.getItem("azo_token")) api.get("/auth/me").catch(() => {}); };
+    const id = setInterval(check, 20000);
+    window.addEventListener("focus", check);
+    return () => { clearInterval(id); window.removeEventListener("focus", check); };
+  }, [user]);
 
   const login = (token, u) => {
     localStorage.setItem("azo_token", token);

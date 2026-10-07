@@ -99,7 +99,9 @@ api.interceptors.response.use(
     const status = error?.response?.status;
     const code = error?.code;
     if (status === 401) {
-      // let auth flow handle silently (no scary toast)
+      if (error?.response?.data?.detail?.code === "device_revoked" && localStorage.getItem("azo_token")) {
+        window.dispatchEvent(new CustomEvent("azo:session-revoked", { detail: error.response.data.detail.message }));
+      }
     } else if (!error.response || code === "ECONNABORTED" || code === "ERR_NETWORK") {
       notifyError("Connection issue. Reconnecting — please try again in a moment.");
     } else if (status >= 500) {
