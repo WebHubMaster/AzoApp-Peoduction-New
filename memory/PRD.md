@@ -112,3 +112,9 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Expo app: `Customer/src/components/customer/RateService.tsx` — provider in root layout, button in (site) home layout + CustomerShell home; pinned via KeyboardFixedBottom.
 - Seed: `backend/seed_rate_service_demo.py`. Tested iteration_241 (backend 6/6, web 14/14). Expo app code-reviewed only.
 - Backlog: show partner photo in popup; quick-tag chips; rating reminder push after 24h.
+
+## In-app APK Update fix + Auto version (2026-10-07)
+- Root cause: older installed builds used `require("expo-file-system")` (new API) whose legacy `createDownloadResumable` throws → generic "Unable to download" error. Current gate uses `expo-file-system/legacy`, retry+resume, size check, real error messages, installer fallback (VIEW → INSTALL_PACKAGE). Both apps.
+- Backend: `GET /api/app-mgmt/download/{platform}` (stable direct install link, shown in Admin → App Management with Copy). S3 presign now regional endpoint + SigV4.
+- Auto version: `plugins/withAutoVersionName.js` (Partner=frontend, Customer) → versionName = `<major>.<minor>.<versionCode>`; EAS remote autoIncrement bumps versionCode every build. CI/eas.json untouched.
+- Tested iteration_242 (backend 10/10, admin UI pass; native install code-reviewed only).
