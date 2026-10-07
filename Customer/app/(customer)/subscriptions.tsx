@@ -42,6 +42,16 @@ const DAY_META: Record<string, { label: string; color: string; bg: string }> = {
   cancelled: { label: "Plan cancelled", color: ROSE, bg: "#FFF1F2" },
 };
 
+// Monthly vs paying the Daily plan for the same number of working days.
+function monthlySaving(plans: any[]) {
+  const d = plans.find((x) => x.plan_type === "daily");
+  const m = plans.find((x) => x.plan_type === "monthly");
+  if (!d || !m || !d.working_days || !m.working_days) return null;
+  const full = (Number(d.price) / Number(d.working_days)) * Number(m.working_days);
+  const amount = Math.round(full - Number(m.price));
+  return amount > 0 ? { amount, pct: Math.round((amount / full) * 100) } : null;
+}
+
 function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => void; onDone: () => void }) {
   const { c } = useTheme();
   const toast = useToast();
@@ -135,17 +145,26 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
         <View style={{ gap: 8 }}>
           {plans.map((p) => {
             const on = p.plan_type === sel;
+            const save = p.plan_type === "monthly" ? monthlySaving(plans) : null;
             return (
               <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
                 style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                  <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 }}>
+                    <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
+                    {save ? (
+                      <View testID="sub-plan-best-value" style={{ backgroundColor: "#16A34A", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                        <Text style={{ color: "#fff", fontSize: 10, fontWeight: "800", letterSpacing: 0.4 }}>BEST VALUE</Text>
+                      </View>
+                    ) : null}
+                  </View>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                     <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
                     {on ? <CheckCircle2 testID={`sub-plan-check-${p.plan_type}`} size={18} color={TC.primaryText} /> : null}
                   </View>
                 </View>
                 <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 4 }}>{p.working_days} working days · {p.duration_days}-day period</Text>
+                {save ? <Text testID="sub-plan-saving" style={{ color: "#15803D", fontSize: 12, fontWeight: "700", marginTop: 4 }}>Save {money(save.amount)} ({save.pct}%) vs Daily</Text> : null}
               </Pressable>
             );
           })}
