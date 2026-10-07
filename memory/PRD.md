@@ -139,3 +139,14 @@ Additive, no existing behaviour changed.
 **Verified (testing agent, backend 100%):** Monthly ₹8000 → commission 3200 (40%), maid 4800, platform fee 10, GST 577.80 (on 3210), total 8587.80. Backend snapshot == checkout cart-quote (shown == charged). Invoice reflects same.
 
 **Env note:** `.env` files were missing from the upload; recreated `backend/.env` (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp). Ran `seed_maid_subscription.py`.
+
+## Update — Subscription Invoice PDF Download Fix (2026-06)
+**Bug:** Customer app/web subscription invoice "download" opened the raw backend public URL in the browser (inline), exposing the backend URL instead of downloading the PDF.
+**Fix (web & app):** All subscription invoice downloads now fetch the PDF from the AUTHORISED `GET /api/invoices/{invoice_id}/pdf` endpoint (ownership-checked) as a blob/file and trigger a real download (web) or open it in the native PDF viewer / Save sheet (Customer RN app) — the backend URL is never navigated to.
+- web_panel: new `downloadInvoicePdf()` in `lib/invoiceShare.js`; wired into customer `components/customer/Subscriptions.jsx` and admin `pages/admin/SubscriptionsAdmin.jsx`.
+- Customer RN: `app/(customer)/subscriptions.tsx` now uses `downloadInvoicePdf()` from `src/lib/invoiceActions.ts` (replaced `Linking.openURL(backendUrl)`).
+**Verified:** testing agent iteration_221 — 5/5 pass (valid %PDF, owner-only 403 for others, no-auth rejected, pricing regression intact). Invoice PDF visually checked: platform Tax Invoice (taxable ₹3210 = commission 3200 + fee 10, GST ₹577.80) + Partner Receipt ₹4800 = total ₹8587.80 — identical to a normal booking.
+
+### Backlog (user-requested, next)
+- P1 Cancellation Refund Preview: polish proportional (remaining-days) refund breakdown UI on subscription cancel.
+- P2 Plan Savings Badge: comparison badge across daily/weekly/monthly plans to nudge longer subscriptions.

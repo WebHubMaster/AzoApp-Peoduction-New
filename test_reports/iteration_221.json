@@ -1,0 +1,25 @@
+{
+  "summary": "Backend-only verification of the customer subscription invoice-PDF download fix. Created a maid subscription (svc-maid-fulltime, monthly) for Priya Verma (+919000000004), activated via /pay/mock, fetched invoice_id, then validated the authorised PDF endpoint contract. 5/5 pytest tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_invoice_pdf_download.py",
+    "/app/test_reports/pytest/pytest_invoice_pdf.xml"
+  ],
+  "verified_behaviour": [
+    "GET /api/invoices/{invoice_id}/pdf as owner → 200, Content-Type application/pdf, Content-Disposition attachment; filename=*.pdf, body starts with %PDF magic bytes, size > 500 bytes",
+    "GET /api/invoices/{invoice_id}/pdf with another customer's token (+919000000099) → 403 (no PDF body)",
+    "GET /api/invoices/{invoice_id}/pdf with partner token (+919000000003) → 403 (no PDF body)",
+    "GET /api/invoices/{invoice_id}/pdf with NO auth header → 401/403 (no PDF body)",
+    "Regression: GET /api/invoices/{invoice_id} as owner returns commission=3200, platform_fee=10, gst≈577.80, total≈8587.80 for monthly ₹8000 maid subscription"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_invoice_pdf_download.py"],
+  "success_rate": {"backend": "100%", "frontend": "not tested (per request)"},
+  "test_credentials": "Owner: +919000000004 (Priya Verma); Other customer: +919000000099 (auto-created via create_if_new); Partner: +919000000003 (Raj Kumar); OTP 123456",
+  "seed_data_creation": "Created 1 maid subscription + 1 activated transaction + 1 subscription invoice for +919000000004. Not cleaned up (invoice_id persists for retest convenience).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test file at /app/backend/tests/test_invoice_pdf_download.py; invoked with BACKEND_BASE_URL and REACT_APP_BACKEND_URL env vars (conftest requires REACT_APP_BACKEND_URL). The fix at GET /api/invoices/{invoice_id}/pdf is correctly ownership-gated and returns a valid %PDF payload; the public backend URL is no longer required by the customer download path."
+}
