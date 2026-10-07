@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
+BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()

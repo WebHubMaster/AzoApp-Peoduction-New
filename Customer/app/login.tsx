@@ -1,7 +1,7 @@
 /**
  * Login — customer-only mobile sign-in (Partner / Merchant / Admin / Agent accounts are rejected).
- * Layout follows the approved reference: back chip → dynamic brand logo (admin light/dark) → "Sign In to {Brand}"
- * hero with feature chips + illustration → white card (Mobile Number · +91 · Send OTP → OTP boxes → name).
+ * Layout: back + Need Help → dynamic brand logo (admin) → "Home Services You Can Trust" hero (customer + verified service
+ * snapshots) → white OTP card → trust stats → security strip → bottom trust area.
  */
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, ActivityIndicator, useWindowDimensions } from "react-native";
@@ -11,55 +11,18 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Zap, ShieldCheck, ArrowRight, RotateCw, Users, Lock, ChevronDown } from "lucide-react-native";
+import { ArrowLeft, ShieldCheck, RotateCw, Lock, ChevronDown, Headphones } from "lucide-react-native";
 import { api } from "@/src/api/client";
 import { useAuth, isCustomer, AppUser } from "@/src/context/AuthContext";
 import { useSiteConfig } from "@/src/context/BrandContext";
 import { useToast } from "@/src/components/Toast";
-import { PRIMARY, SLATE, EMERALD, useTheme, TC } from "@/src/theme";
+import { useTheme } from "@/src/theme";
+import { C, PrimaryBtn, IndiaFlag, HeroVisual, HeroFeatures, TrustStats, SecurityStrip, BottomTrust } from "@/src/components/login/LoginParts";
 import { onlyDigits, onlyAlpha, isPhone10 } from "@/src/lib/format";
 import { LegalConsent } from "@/src/components/site/LegalConsent";
 
 const OTP_LEN = 6;
 const ROLE_BLOCKED = "Account already exists";
-const HERO = require("../assets/login-hero.webp");
-const HERO_RATIO = 449 / 596; // reference crop (girl + blue disc), sits flush to the right edge
-const NAVY = "#000A35";
-const BLUE = "#0572EE";
-const BTN = "#1160C2";
-const CHIP_BG = "#E6F3FE";
-
-function PrimaryBtn({ label, onPress, busy, disabled, icon, testID }: { label: string; onPress: () => void; busy?: boolean; disabled?: boolean; icon?: boolean; testID: string }) {
-  return (
-    <Pressable testID={testID} onPress={onPress} disabled={busy || disabled}
-      style={({ pressed }) => ({ height: 54, borderRadius: 6, backgroundColor: pressed ? "#0D4E9F" : BTN, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 10, opacity: disabled && !busy ? 0.5 : 1 } as any)}>
-      {busy ? <ActivityIndicator color="#fff" size="small" /> : <><Text style={{ color: "#fff", fontSize: 16, fontWeight: "700" }}>{label}</Text>{icon ? <ArrowRight size={18} color="#fff" strokeWidth={2.4} /> : null}</>}
-    </Pressable>
-  );
-}
-
-function IndiaFlag() {
-  return (
-    <View style={{ width: 22, height: 15, borderRadius: 2, overflow: "hidden", borderWidth: 0.5, borderColor: "rgba(0,0,0,0.08)" }}>
-      <View style={{ flex: 1, backgroundColor: "#FF9933" }} />
-      <View style={{ flex: 1, backgroundColor: TC.surface, alignItems: "center", justifyContent: "center" }}><View style={{ width: 4, height: 4, borderRadius: 2, borderWidth: 1, borderColor: "#000080" }} /></View>
-      <View style={{ flex: 1, backgroundColor: "#138808" }} />
-    </View>
-  );
-}
-
-function Chip({ icon, title, sub, dark }: { icon: React.ReactNode; title: string; sub: string; dark: boolean }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
-      <View style={{ width: 26, height: 26, borderRadius: 6, backgroundColor: dark ? "rgba(30,64,175,0.30)" : CHIP_BG, alignItems: "center", justifyContent: "center" }}>{icon}</View>
-      <View>
-        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{title}</Text>
-        <Text style={{ fontSize: 10.5, lineHeight: 13, color: dark ? "#F8FAFC" : TC.textMuted, fontWeight: "600" }}>{sub}</Text>
-      </View>
-    </View>
-  );
-}
-
 export default function Login() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -163,105 +126,102 @@ export default function Login() {
   // Dynamic brand logo from Admin → Site settings; picks the variant for the active theme.
   const logo = isDark ? (branding.logo_dark || branding.logo_light) : (branding.logo_light || branding.logo_dark);
 
-  const bg = isDark ? "#0B1220" : "#F5F8FD";
-  const cardBg = isDark ? "#111A2E" : "#fff";
-  const heading = isDark ? "#F8FAFC" : NAVY;
-  const muted = isDark ? SLATE[400] : SLATE[500];
-  const inputBorder = isDark ? "#243350" : SLATE[200];
-  const inputBg = isDark ? "#0F172A" : "#fff";
-  const inputText = isDark ? "#F1F5F9" : SLATE[900];
-  const S = Math.min(width, 430) / 390;
-  const heroW = Math.round(171 * S);
-  const heroH = Math.round(heroW / HERO_RATIO);
-  const inputStyle = { height: 50, borderRadius: 6, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingHorizontal: 14, fontSize: 15, color: inputText } as const;
+  const W = Math.min(width, 480);
+  const S = W / 390;
+  const leftW = W * 0.56;
+  const inputStyle = { height: 54, borderRadius: 14, borderWidth: 1, borderColor: C.border, backgroundColor: "#fff", paddingHorizontal: 16, fontSize: 15, color: C.navy, outlineStyle: "none" } as any;
+  const link = { fontSize: 13, color: C.body, fontWeight: "600" } as const;
 
   return (
-    <View style={{ flex: 1, backgroundColor: bg }}>
-      <StatusBar style={isDark ? "light" : "dark"} />
-      {/* soft bottom waves (reference) */}
-      <View pointerEvents="none" style={{ position: "absolute", left: -width * 0.35, bottom: -width * 0.55, width: width * 1.1, height: width * 0.9, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.14)" : "#E9F3FE" }} />
-      <View pointerEvents="none" style={{ position: "absolute", right: -width * 0.4, bottom: -width * 0.6, width: width * 1.1, height: width * 0.85, borderRadius: width, backgroundColor: isDark ? "rgba(30,64,175,0.10)" : "#EEF6FE" }} />
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar style="dark" />
+      <View pointerEvents="none" style={{ position: "absolute", left: -W * 0.5, top: -W * 0.35, width: W * 1.3, height: W * 1.1, borderRadius: W, backgroundColor: "#EDF4FF" }} />
+      <View pointerEvents="none" style={{ position: "absolute", right: -W * 0.6, top: W * 1.1, width: W * 1.4, height: W * 1.2, borderRadius: W, backgroundColor: "#F0F6FF" }} />
 
       <KeyboardAwareScrollView bottomOffset={80} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32, paddingHorizontal: 18 }}>
-        {/* Back */}
-        <Pressable testID="login-back-home" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(site)"))} hitSlop={8}
-          style={({ pressed }) => ({ width: 40, height: 40, borderRadius: 6, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E6EDF7", alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: "0px 2px 8px rgba(15,23,42,0.06)" } as any)}>
-          <ArrowLeft size={18} color={heading} strokeWidth={2.4} />
-        </Pressable>
+        contentContainerStyle={{ paddingTop: insets.top + 10, paddingBottom: insets.bottom, paddingHorizontal: 18, width: "100%", maxWidth: 480, alignSelf: "center" }}>
+        <View style={{ minHeight: Math.round(462 * S) }}>
+          <HeroVisual S={S} W={W} />
 
-        {/* Hero: brand · title · subtitle · chips (left) — reference girl + disc flush right */}
-        <View style={{ marginTop: 10, minHeight: heroH + Math.round(34 * S) }}>
-          <Image testID="login-hero" source={HERO} style={{ position: "absolute", right: -18, top: Math.round(34 * S), width: heroW + 18, height: heroH, zIndex: 0 }} contentFit="contain" contentPosition="top right" transition={0} priority="high" />
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", zIndex: 10 }}>
+            <Pressable testID="login-back-home" onPress={() => (router.canGoBack() ? router.back() : router.replace("/(site)"))} hitSlop={8}
+              style={({ pressed }) => ({ width: 46, height: 46, borderRadius: 14, backgroundColor: "#fff", borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }], boxShadow: "0px 4px 14px rgba(13,40,90,0.08)" } as any)}>
+              <ArrowLeft size={20} color={C.navy} strokeWidth={2.4} />
+            </Pressable>
+            <Pressable testID="login-need-help" onPress={() => router.push("/(site)/contact" as any)} hitSlop={8}
+              style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 999, backgroundColor: "rgba(255,255,255,0.92)", opacity: pressed ? 0.7 : 1 } as any)}>
+              <Headphones size={18} color={C.bright} strokeWidth={2.3} />
+              <Text style={{ fontSize: 14, fontWeight: "600", color: C.bright }}>Need Help?</Text>
+            </Pressable>
+          </View>
 
-          {/* Brand (dynamic from admin) */}
-          <View testID="brand-logo" style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <View testID="brand-logo" style={{ marginTop: 18, zIndex: 5 }}>
             {logo ? (
-              <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ height: 42, width: Math.min(200, width * 0.5) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
+              <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ height: Math.round(72 * S), width: Math.min(200, leftW) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
             ) : (
-              <>
-                <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: BLUE, alignItems: "center", justifyContent: "center" }}><Zap size={22} color="#fff" strokeWidth={2.4} /></View>
-                <View>
-                  <Text style={{ fontWeight: "800", fontSize: 24, color: "#0B3A8F", letterSpacing: -0.4 }}>{siteName}</Text>
-                  <Text style={{ fontSize: 11.5, color: TC.textMuted, marginTop: -2 }}>{tagline}</Text>
-                </View>
-              </>
+              <View>
+                <Text style={{ fontWeight: "900", fontSize: 30, letterSpacing: -0.8 }}><Text style={{ color: C.bright }}>{siteName.slice(0, 3)}</Text><Text style={{ color: C.orange }}>{siteName.slice(3)}</Text></Text>
+                <Text style={{ fontSize: 12, color: C.body, marginTop: -2 }}>— {tagline} —</Text>
+              </View>
             )}
           </View>
 
-          <View style={{ width: width - 36 - heroW + 14, marginTop: 30 }}>
-            <Text testID="login-title" style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: heading, letterSpacing: -1 }}>Sign In to</Text>
-            <Text style={{ fontWeight: "900", fontSize: 32, lineHeight: 36, color: BLUE, letterSpacing: -1 }}>{siteName}</Text>
-            <Text style={{ color: isDark ? SLATE[400] : "#66748F", marginTop: 12, fontSize: 13.5, lineHeight: 19 }}>Login with your mobile number and get quick access to all services.</Text>
+          <View style={{ width: leftW + 14, marginTop: 22, zIndex: 5 }}>
+            <Text testID="login-title" style={{ fontWeight: "900", fontSize: Math.round(31 * S), lineHeight: Math.round(36 * S), color: C.navy, letterSpacing: -1.1 }}>
+              Home Services{"\n"}You Can <Text testID="login-title-trust" style={{ color: C.bright }}>Trust</Text>
+            </Text>
+            <View style={{ width: Math.round(84 * S), height: 4, borderRadius: 4, backgroundColor: C.bright, marginTop: 4, marginLeft: Math.round(118 * S), opacity: 0.9 }} />
+            <Text testID="login-subtitle" style={{ color: C.body, marginTop: 14, fontSize: 13.5, lineHeight: 20, width: W * 0.48 }}>
+              Book verified professionals for all your home needs. Fast, safe and reliable service at your doorstep.
+            </Text>
           </View>
-
-          <View testID="login-features" style={{ flexDirection: "row", gap: 10, marginTop: 22, zIndex: 5, position: "relative", width: Math.min(width - 36, width - heroW + 30), justifyContent: "space-between" }}>
-            <Chip dark={isDark} icon={<ShieldCheck size={14} color={BLUE} strokeWidth={2.4} />} title="Safe &" sub="Secure" />
-            <Chip dark={isDark} icon={<Zap size={14} color={BLUE} strokeWidth={2.4} fill={BLUE} />} title="Fast" sub="Login" />
-            <Chip dark={isDark} icon={<Users size={14} color={BLUE} strokeWidth={2.4} />} title="Trusted" sub="Platform" />
-          </View>
+          <HeroFeatures />
         </View>
 
-        {/* Card */}
-        <View testID="login-card" style={{ marginTop: 8, padding: 18, paddingTop: 22, borderRadius: 6, backgroundColor: cardBg, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", boxShadow: "0px 14px 36px rgba(15,23,42,0.10)" } as any}>
+        <View testID="login-card" style={{ marginTop: 6, padding: 22, paddingTop: 24, borderRadius: 26, backgroundColor: "#fff", borderWidth: 1, borderColor: C.border, boxShadow: "0px 18px 44px rgba(13,40,90,0.10)" } as any}>
           {cfg?.auth_config?.mobile_otp === false ? (
-            <Text testID="otp-disabled-note" style={{ fontSize: 14, color: muted, textAlign: "center", paddingVertical: 8 }}>Mobile OTP login is currently disabled. Please use another method below.</Text>
+            <Text testID="otp-disabled-note" style={{ fontSize: 14, color: C.body, textAlign: "center", paddingVertical: 8 }}>Mobile OTP login is currently disabled. Please use another method below.</Text>
           ) : (
             <View testID="otp-login">
               {step === 1 ? (
-                <View style={{ gap: 14 }}>
-                  <Text style={{ fontSize: 16, fontWeight: "800", color: heading }}>Mobile Number</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", height: 54, borderRadius: 6, borderWidth: 1, borderColor: inputBorder, backgroundColor: inputBg, paddingLeft: 14 }}>
-                    <IndiaFlag />
-                    <Text style={{ marginLeft: 8, fontSize: 15, fontWeight: "700", color: inputText }}>+91</Text>
-                    <ChevronDown size={16} color={heading} style={{ marginLeft: 6 }} />
-                    <View style={{ width: 1, height: 26, backgroundColor: inputBorder, marginHorizontal: 12 }} />
-                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={TC.textFaint} numberOfLines={1} multiline={false}
-                      keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
-                      style={{ flex: 1, height: 52, fontSize: 14.5, color: inputText, paddingRight: 10, outlineStyle: "none" } as any} />
+                <View style={{ gap: 16 }}>
+                  <View>
+                    <Text testID="login-card-title" style={{ fontSize: 20, fontWeight: "800", color: C.navy, letterSpacing: -0.4 }}>Enter Your Mobile Number</Text>
+                    <Text style={{ fontSize: 13, color: C.body, marginTop: 5, lineHeight: 18 }}>We&apos;ll send you an OTP to login or create your account.</Text>
                   </View>
-                  <PrimaryBtn testID="send-otp-button" label="Send OTP" icon onPress={send} busy={busy === "send"} />
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <Lock size={14} color={TC.textMuted} />
-                    <Text numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: 11.5, color: TC.textMuted, flexShrink: 1 }}>We&apos;ll take you to the right panel based on your number.</Text>
+                  <View testID="phone-field" style={{ flexDirection: "row", alignItems: "center", height: 58, borderRadius: 14, borderWidth: 1, borderColor: phone ? C.bright : C.border, backgroundColor: "#fff", paddingLeft: 14 }}>
+                    <IndiaFlag />
+                    <Text style={{ marginLeft: 10, fontSize: 16, fontWeight: "700", color: C.navy }}>+91</Text>
+                    <ChevronDown size={16} color={C.navy} style={{ marginLeft: 6 }} />
+                    <View style={{ width: 1, height: 28, backgroundColor: C.border, marginHorizontal: 14 }} />
+                    <TextInput testID="login-phone-input" value={phone} onChangeText={(v) => setPhone(onlyDigits(v, 10))} placeholder="Enter mobile number" placeholderTextColor={C.faint} numberOfLines={1} multiline={false}
+                      keyboardType="number-pad" maxLength={10} autoComplete="tel" textContentType="telephoneNumber" onSubmitEditing={send}
+                      style={{ flex: 1, minWidth: 0, height: 56, fontSize: 16, color: C.navy, paddingRight: 10, letterSpacing: phone ? 1 : 0, outlineStyle: "none" } as any} />
+                  </View>
+                  <PrimaryBtn testID="send-otp-button" label="Send OTP" onPress={send} busy={busy === "send"} />
+                  <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingHorizontal: 4 }}>
+                    <Lock size={15} color={C.body} style={{ marginTop: 1 }} />
+                    <Text testID="login-route-note" style={{ fontSize: 11.5, lineHeight: 16, color: C.body, flex: 1 }}>We&apos;ll take you to the right panel (Customer or Partner) based on your number.</Text>
                   </View>
                 </View>
               ) : null}
 
               {step === 2 ? (
-                <View style={{ gap: 14 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "800", color: heading }}>Enter OTP</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <ShieldCheck size={16} color={EMERALD[500]} />
-                    <Text style={{ fontSize: 12.5, color: muted }}>6-digit code sent to <Text style={{ fontWeight: "700", color: heading }}>{normalized()}</Text></Text>
+                <View style={{ gap: 16 }}>
+                  <View>
+                    <Text style={{ fontSize: 20, fontWeight: "800", color: C.navy, letterSpacing: -0.4 }}>Verify OTP</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 5 }}>
+                      <ShieldCheck size={16} color={C.green} />
+                      <Text style={{ fontSize: 13, color: C.body }}>6-digit code sent to <Text style={{ fontWeight: "700", color: C.navy }}>{normalized()}</Text></Text>
+                    </View>
                   </View>
                   <Pressable onPress={() => otpRef.current?.focus()} testID="otp-boxes">
                     <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
                       {Array.from({ length: OTP_LEN }).map((_, i) => {
                         const focused = i === Math.min(otp.length, OTP_LEN - 1);
                         return (
-                          <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 52, borderRadius: 6, borderWidth: 2, borderColor: focused ? PRIMARY[600] : inputBorder, backgroundColor: inputBg, alignItems: "center", justifyContent: "center" }}>
-                            <Text style={{ fontSize: 20, fontWeight: "800", color: inputText }}>{otp[i] || ""}</Text>
+                          <View key={i} testID={`otp-box-${i}`} style={{ flex: 1, minWidth: 0, height: 56, borderRadius: 14, borderWidth: 1.5, borderColor: focused ? C.bright : C.border, backgroundColor: focused ? "#F5F9FF" : "#fff", alignItems: "center", justifyContent: "center" }}>
+                            <Text style={{ fontSize: 21, fontWeight: "800", color: C.navy }}>{otp[i] || ""}</Text>
                           </View>
                         );
                       })}
@@ -270,18 +230,18 @@ export default function Login() {
                       autoFocus caretHidden autoComplete="sms-otp" textContentType="oneTimeCode" onSubmitEditing={verify}
                       style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0 }} />
                   </Pressable>
-                  <PrimaryBtn testID="verify-otp-button" label="Verify OTP" icon onPress={verify} busy={busy === "verify"} disabled={otp.length < OTP_LEN} />
-                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 2 }}>
-                    <Pressable testID="change-number" onPress={() => { setOtp(""); setStep(1); }}><Text style={{ fontSize: 12.5, color: muted }}>← Change number</Text></Pressable>
+                  <PrimaryBtn testID="verify-otp-button" label="Verify OTP" onPress={verify} busy={busy === "verify"} disabled={otp.length < OTP_LEN} />
+                  <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                    <Pressable testID="change-number" onPress={() => { setOtp(""); setStep(1); }}><Text style={link}>← Change number</Text></Pressable>
                     {cooldown > 0 ? (
                       <View testID="resend-countdown" style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <RotateCw size={14} color={TC.textFaint} />
-                        <Text style={{ fontSize: 12.5, color: TC.textFaint }}>Resend in <Text style={{ fontWeight: "700", color: muted }}>{fmtTime(cooldown)}</Text></Text>
+                        <RotateCw size={14} color={C.faint} />
+                        <Text style={{ fontSize: 13, color: C.faint }}>Resend in <Text style={{ fontWeight: "700", color: C.body }}>{fmtTime(cooldown)}</Text></Text>
                       </View>
                     ) : (
                       <Pressable testID="resend-otp-button" disabled={!!busy} onPress={send} style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-                        <RotateCw size={14} color={busy ? SLATE[400] : PRIMARY[600]} />
-                        <Text style={{ fontSize: 12.5, fontWeight: "700", color: busy ? SLATE[400] : PRIMARY[600] }}>Resend OTP</Text>
+                        <RotateCw size={14} color={C.bright} />
+                        <Text style={{ fontSize: 13, fontWeight: "700", color: C.bright }}>Resend OTP</Text>
                       </Pressable>
                     )}
                   </View>
@@ -290,12 +250,14 @@ export default function Login() {
 
               {step === 3 ? (
                 <View testID="otp-name-step" style={{ gap: 14 }}>
-                  <Text style={{ fontSize: 14, fontWeight: "800", color: heading }}>Your Name</Text>
-                  <Text style={{ fontSize: 13, color: muted }}>Welcome! Please tell us your name to continue.</Text>
-                  <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={TC.textFaint} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
+                  <View>
+                    <Text style={{ fontSize: 20, fontWeight: "800", color: C.navy, letterSpacing: -0.4 }}>Your Name</Text>
+                    <Text style={{ fontSize: 13, color: C.body, marginTop: 5 }}>Welcome! Please tell us your name to continue.</Text>
+                  </View>
+                  <TextInput testID="login-name-input" value={name} onChangeText={(v) => setName(onlyAlpha(v))} placeholder="Your full name" placeholderTextColor={C.faint} autoFocus onSubmitEditing={continueSignup} style={inputStyle} />
                   <LegalConsent checked={accepted} onChange={setAccepted} testID="signup-legal" />
-                  <PrimaryBtn testID="continue-signup-button" label="Continue" icon onPress={continueSignup} busy={busy === "signup"} disabled={!accepted} />
-                  <Pressable testID="name-change-number" onPress={() => setStep(1)}><Text style={{ fontSize: 12.5, color: muted }}>← Change number</Text></Pressable>
+                  <PrimaryBtn testID="continue-signup-button" label="Continue" onPress={continueSignup} busy={busy === "signup"} disabled={!accepted} />
+                  <Pressable testID="name-change-number" onPress={() => setStep(1)}><Text style={link}>← Change number</Text></Pressable>
                 </View>
               ) : null}
             </View>
@@ -303,20 +265,23 @@ export default function Login() {
         </View>
 
         {cfg?.auth_config?.email_login ? (
-          <View testID="email-login" style={{ marginTop: 14, padding: 18, borderRadius: 6, borderWidth: 1, borderColor: isDark ? "#1E293B" : "#E9EFF8", backgroundColor: cardBg, gap: 10 }}>
-            <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, fontWeight: "800", color: PRIMARY[600] }}>Email Login</Text>
-            <TextInput testID="email-input" style={inputStyle} placeholder="Email" placeholderTextColor={TC.textFaint} autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
-            <TextInput testID="email-name" style={inputStyle} placeholder="Name (new users)" placeholderTextColor={TC.textFaint} value={em.name} onChangeText={(v) => setEm({ ...em, name: v })} />
-            <TextInput testID="email-pass" style={inputStyle} placeholder="Password" placeholderTextColor={TC.textFaint} secureTextEntry value={em.password} onChangeText={(v) => setEm({ ...em, password: v })} />
+          <View testID="email-login" style={{ marginTop: 14, padding: 20, borderRadius: 22, borderWidth: 1, borderColor: C.border, backgroundColor: "#fff", gap: 10 }}>
+            <Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 2, fontWeight: "800", color: C.bright }}>Email Login</Text>
+            <TextInput testID="email-input" style={inputStyle} placeholder="Email" placeholderTextColor={C.faint} autoCapitalize="none" keyboardType="email-address" value={em.email} onChangeText={(v) => setEm({ ...em, email: v })} />
+            <TextInput testID="email-name" style={inputStyle} placeholder="Name (new users)" placeholderTextColor={C.faint} value={em.name} onChangeText={(v) => setEm({ ...em, name: v })} />
+            <TextInput testID="email-pass" style={inputStyle} placeholder="Password" placeholderTextColor={C.faint} secureTextEntry value={em.password} onChangeText={(v) => setEm({ ...em, password: v })} />
             <PrimaryBtn testID="email-login-btn" label="Continue with Email" onPress={emailLogin} busy={busy === "email"} />
           </View>
         ) : null}
 
+        <TrustStats />
+        <SecurityStrip />
+        <BottomTrust bg={C.bg} />
       </KeyboardAwareScrollView>
 
       {showLoader ? (
-        <View testID="login-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: bg, alignItems: "center", justifyContent: "center", zIndex: 200 }}>
-          <ActivityIndicator size="large" color={PRIMARY[600]} />
+        <View testID="login-auth-loader" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: C.bg, alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+          <ActivityIndicator size="large" color={C.bright} />
         </View>
       ) : null}
     </View>

@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
+BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

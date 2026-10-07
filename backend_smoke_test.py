@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 # Base URL
-BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
+BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
 
 # Test credentials (OTP = 123456 for all)
 CREDENTIALS = {

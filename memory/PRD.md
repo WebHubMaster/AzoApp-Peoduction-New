@@ -159,7 +159,7 @@ Additive, no existing behaviour changed.
 Note: web_panel & Customer RN are not run under supervisor here (only PartnerApp Expo is), so their UI was verified by code review against existing patterns; all backend contracts were verified by the testing agent.
 
 ## Session (2026-06) — Customer app: real-time status + invoice PDF open/share (pdf-share-safe)
-Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://invoice-mailer-9.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
+Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://home-services-hub-134.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
 
 Scope: Customer app ONLY (/app/Customer). Partner app (/app/frontend) UNCHANGED.
 

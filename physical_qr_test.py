@@ -10,7 +10,7 @@ import requests
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
+BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo accounts

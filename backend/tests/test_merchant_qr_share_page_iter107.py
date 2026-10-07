@@ -5,7 +5,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://invoice-mailer-9.preview.emergentagent.com",
+    "https://home-services-hub-134.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 VALID_CODE = "XZ6SV49"

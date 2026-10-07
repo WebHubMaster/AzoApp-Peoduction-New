@@ -8,7 +8,7 @@ Verifies:
 import os
 import requests
 
-BASE = os.environ.get("BACKEND_URL", "https://invoice-mailer-9.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("BACKEND_URL", "https://home-services-hub-134.preview.emergentagent.com").rstrip("/")
 PHONE = "+919000000003"
 
 
