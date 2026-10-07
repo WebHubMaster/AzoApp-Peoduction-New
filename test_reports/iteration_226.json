@@ -1,0 +1,34 @@
+{
+  "summary": "Frontend-only verification of subscription plan selection UI bug fix in Customer app. Logged in via mobile OTP (dev auto-fill 123456), navigated to /api/customer/subscriptions, opened Full-time Maid > Choose a plan sheet. Verified for Daily/Weekly/Monthly selection at viewports 390x844 and 360x740. Fix verified: check icon (data-testid sub-plan-check-<plan>) is inline flex child next to the price text, NOT absolutely positioned, and renders only for the currently selected plan.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_results": {
+    "viewport_390x844": {
+      "horizontal_overflow": false,
+      "daily":   {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹400.00 & Activate"},
+      "weekly":  {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹2,200.00 & Activate"},
+      "monthly": {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹8,000.00 & Activate"}
+    },
+    "viewport_360x740": {
+      "horizontal_overflow": false,
+      "daily":   {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹400.00 & Activate"},
+      "weekly":  {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹2,200.00 & Activate"},
+      "monthly": {"check_visible_only_for_selected": true, "overlap_price_and_check": false, "check_right_of_price": true, "pay_text": "Pay ₹8,000.00 & Activate"}
+    },
+    "code_review_subscriptions_tsx_136_152": "Pressable renders a flex row with price Text and conditional CheckCircle2 inside a nested row with gap:6, no absolute positioning. Check icon rendered ONLY when p.plan_type === sel. Confirmed matches intended fix."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "Customer: mobile 9876543210 / dev OTP 123456 auto-filled; new user enters name + legal consent",
+  "seed_data_creation": "Created a new test customer via OTP signup (Test User, 9876543210) and (Test User2, 9876543211) for the two viewport runs.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Subscription plan sheet is at /api/customer/subscriptions > Browse Plans > Full-time Maid > Choose a plan. TestIDs: sub-plan-{daily|weekly|monthly}, sub-plan-check-{daily|weekly|monthly}, sub-book-pay. Check icon appears inline-right of price only for selected plan. Verified on 390x844 and 360x740, no horizontal overflow, no bbox overlap."
+}
