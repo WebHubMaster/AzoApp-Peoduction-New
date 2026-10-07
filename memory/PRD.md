@@ -414,3 +414,18 @@ P2: immutable ledger WRITE-path for every credit/debit + manual wallet adjust (2
 consistency enforcement; merchant withdrawal parity; bulk ops w/ idempotency; RBAC finance.* perms;
 real-time payout status (webhook+poll); exports CSV/Excel/PDF; aging analysis; strict state machines;
 payout attempt history UI.
+
+## Session (2026-06) — Finance Phase 1b: Transactions upgrade
+- Backend admin_controller.list_payments: summary ab richer KPIs deta hai — collected, net_revenue,
+  commission_earned, platform_fees, pending_amount, failed, refunded, tax_collected, success_rate
+  (commission/platform ledger se derive, booking_code join).
+- Backend admin_controller.payment_detail: enrich — breakdown{base,visiting,discount,coupon,gst,tds,
+  gateway_fee,platform_fee,partner_commission,merchant_referral,gross,refund,net}, commission{}, 
+  wallet_impact{}, + gateway ids passthrough (gateway_reference,utr,settlement_id).
+- Frontend TransactionsHub.jsx: 8 KPI cards; detail me "Financial Breakdown" card (invoice ki jagah,
+  math-consistent), Payment Method card me Gateway Ref/UTR/Settlement ID, naya "Commission & Wallet
+  Impact" card. Payment Journey timeline + tabs (Pending/Success/Failed/Refunded/All) preserved.
+Verified: backend (breakdown 1016.1+182.9=1199 ✓, summary counts), frontend render (8 KPIs,
+txn-breakdown/txn-commission/txn-timeline present).
+Deferred (P2): extra type-tabs (Wallet/Withdrawals/Commission/Kit/Registration/Adjustments) — needs
+unifying multiple collections into one txn feed; TDS/gateway_fee tracking at capture time.

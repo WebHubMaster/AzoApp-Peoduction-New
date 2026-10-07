@@ -154,20 +154,41 @@ export default function TransactionsHub() {
                     <p>Gateway: <span className="text-slate-600 dark:text-slate-300">{p.gateway}</span></p>
                     {p.gateway_payment_id && <p>Payment ID: <span className="font-mono text-slate-600 dark:text-slate-300">{p.gateway_payment_id}</span></p>}
                     {p.gateway_order_id && <p>Order ID: <span className="font-mono text-slate-600 dark:text-slate-300">{p.gateway_order_id}</span></p>}
+                    {p.gateway_reference && <p>Gateway Ref: <span className="font-mono text-slate-600 dark:text-slate-300">{p.gateway_reference}</span></p>}
+                    <p>UTR: <span className="font-mono text-slate-600 dark:text-slate-300">{p.utr || "—"}</span></p>
+                    <p>Settlement ID: <span className="font-mono text-slate-600 dark:text-slate-300">{p.settlement_id || "—"}</span></p>
                   </div>
+                </div>
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5" data-testid="txn-commission">
+                  <h2 className="font-heading font-bold mb-3 text-slate-900 dark:text-white">Commission &amp; Wallet Impact</h2>
+                  {[["Gross", p.commission?.gross], ["Platform earning", p.commission?.platform_earning], ["Partner earning", p.commission?.partner_earning], ["Merchant referral", p.commission?.merchant_referral]].map(([k, v], i) => (
+                    <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b border-slate-50 dark:border-slate-800 last:border-0"><span className="text-slate-600 dark:text-slate-300">{k}</span><span className="text-slate-700 dark:text-slate-200">{fmt(v || 0)}</span></div>
+                  ))}
+                  <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm">
+                    <span className="text-slate-500">Partner wallet credited</span>
+                    <span className="font-semibold text-emerald-600">{fmt(p.wallet_impact?.partner_credited || 0)}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">{p.wallet_impact?.note}</p>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
-                <h2 className="font-heading font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white"><FileText className="h-5 w-5 text-primary-700" /> Invoice</h2>
-                {(p.invoice?.lines || []).map((l, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
-                    <span className="text-slate-600 dark:text-slate-300">{l.label}</span>
-                    <span className={l.amount < 0 ? "text-emerald-600" : "text-slate-700 dark:text-slate-200"}>{fmt(l.amount)}</span>
-                  </div>
-                ))}
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2"><span>Incl. tax (GST)</span><span>{fmt(p.invoice?.tax || 0)}</span></div>
-                <div className="flex items-center justify-between font-heading font-bold text-lg mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white"><span>Total</span><span>{fmt(p.invoice?.total ?? p.amount)}</span></div>
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5" data-testid="txn-breakdown">
+                <h2 className="font-heading font-bold mb-3 flex items-center gap-2 text-slate-900 dark:text-white"><FileText className="h-5 w-5 text-primary-700" /> Financial Breakdown</h2>
+                {(() => { const b = p.breakdown || {}; const rows = [
+                  ["Base amount", b.base_amount], ["Visiting charge", b.visiting], ["Discount", b.discount ? -b.discount : 0],
+                  ["Coupon", b.coupon ? -b.coupon : 0], ["GST", b.gst], ["Gateway fee", b.gateway_fee],
+                  ["Platform fee", b.platform_fee], ["Partner commission", b.partner_commission],
+                  ["Merchant referral", b.merchant_referral], ["TDS", b.tds], ["Refund", b.refund ? -b.refund : 0],
+                ].filter((r) => (r[1] || 0) !== 0); return (<>
+                  {rows.map(([k, v], i) => (
+                    <div key={i} className="flex items-center justify-between text-sm py-1.5 border-b border-slate-50 dark:border-slate-800 last:border-0">
+                      <span className="text-slate-600 dark:text-slate-300">{k}</span>
+                      <span className={v < 0 ? "text-emerald-600" : "text-slate-700 dark:text-slate-200"}>{fmt(v)}</span>
+                    </div>
+                  ))}
+                  <div className="flex items-center justify-between text-xs text-slate-400 pt-2"><span>Gross (incl. GST)</span><span>{fmt(b.gross ?? p.amount)}</span></div>
+                  <div className="flex items-center justify-between font-heading font-bold text-lg mt-1 pt-2 border-t border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white"><span>Net Amount</span><span>{fmt(b.net ?? p.amount)}</span></div>
+                </>); })()}
               </div>
 
               <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
@@ -217,6 +238,10 @@ export default function TransactionsHub() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid="txn-summary">
         <SummaryCard label="Collected" value={fmt(summary.collected || 0)} sub={`${counts.success || 0} successful`} tone="text-emerald-600" />
+        <SummaryCard label="Net Revenue" value={fmt(summary.net_revenue || 0)} sub="after refunds" tone="text-slate-800 dark:text-white" />
+        <SummaryCard label="Commission Earned" value={fmt(summary.commission_earned || 0)} sub="platform + referral" tone="text-primary-700" />
+        <SummaryCard label="Platform Fees" value={fmt(summary.platform_fees || 0)} sub="platform share" tone="text-indigo-600" />
+        <SummaryCard label="Pending" value={fmt(summary.pending_amount || 0)} sub={`${counts.pending || 0} pending`} tone="text-amber-600" />
         <SummaryCard label="Failed" value={fmt(summary.failed_amount || 0)} sub={`${counts.failed || 0} failed`} tone="text-red-500" />
         <SummaryCard label="Refunded" value={fmt(summary.refunded_amount || 0)} sub={`${counts.refunded || 0} refunds`} tone="text-sky-600" />
         <SummaryCard label="Success Rate" value={`${summary.success_rate ?? 0}%`} sub={`${summary.total || 0} attempts`} tone="text-primary-700" />

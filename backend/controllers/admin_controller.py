@@ -2437,10 +2437,23 @@ async def list_payments(tab="all", q="", date_from="", date_to="", method=""):
     collected = sum(r.get("amount", 0) for r in rows if r.get("status") == "success")
     failed_amt = sum(r.get("amount", 0) for r in rows if r.get("status") == "failed")
     refunded_amt = sum(r.get("amount", 0) for r in rows if r.get("status") == "refunded")
+    pending_amt = sum(r.get("amount", 0) for r in rows if r.get("status") == "pending")
+    tax_amt = sum((r.get("invoice") or {}).get("tax", 0) for r in rows if r.get("status") == "success")
     attempted = counts["success"] + counts["failed"]
+    # Commission / platform earnings for the successful orders in view (from ledger)
+    succ_codes = [r.get("booking_code") for r in rows if r.get("status") == "success" and r.get("booking_code")]
+    platform_fees = commission_earned = 0.0
+    if succ_codes:
+        async for cl in db.commission_ledger.find({"booking_code": {"$in": succ_codes}},
+                                                  {"_id": 0, "platform_earning": 1, "merchant_referral": 1}):
+            platform_fees += float(cl.get("platform_earning", 0) or 0)
+            commission_earned += float(cl.get("platform_earning", 0) or 0) + float(cl.get("merchant_referral", 0) or 0)
     summary = {
         "collected": round(collected, 2), "failed_amount": round(failed_amt, 2),
-        "refunded_amount": round(refunded_amt, 2), "total": len(rows),
+        "refunded_amount": round(refunded_amt, 2), "pending_amount": round(pending_amt, 2),
+        "total": len(rows), "tax_collected": round(tax_amt, 2),
+        "platform_fees": round(platform_fees, 2), "commission_earned": round(commission_earned, 2),
+        "net_revenue": round(collected - refunded_amt, 2),
         "success_rate": round(counts["success"] / attempted * 100, 1) if attempted else 0,
     }
     filtered = [r for r in rows if _match(r, tab)]
@@ -2457,6 +2470,48 @@ async def payment_detail(pid):
         if b:
             p["booking"] = {"id": b.get("id"), "code": b.get("code"), "status": b.get("status"),
                             "scheduled_at": b.get("scheduled_at"), "address": b.get("address")}
+    # ---- Financial breakdown (derived from invoice + commission ledger + refunds) ----
+    inv = p.get("invoice") or {}
+    total = float(inv.get("total", p.get("amount", 0)) or 0)
+    tax = float(inv.get("tax", 0) or 0)
+    base = float(inv.get("subtotal", round(total - tax, 2)) or 0)
+    cl = {}
+    refunded = 0.0
+    if p.get("booking_code"):
+        cl = await db.commission_ledger.find_one({"booking_code": p["booking_code"]}, {"_id": 0}) or {}
+        async for r in db.refunds.find({"booking_code": p["booking_code"]}, {"_id": 0}):
+            if r.get("status") == "processed":
+                refunded += float(r.get("refund_amount", r.get("amount", 0)) or 0)
+    platform_fee = float(cl.get("platform_earning", 0) or 0)
+    partner_commission = float(cl.get("partner_earning", 0) or 0)
+    merchant_referral = float(cl.get("merchant_referral", 0) or 0)
+    p["breakdown"] = {
+        "base_amount": round(base, 2),
+        "visiting": round(float(inv.get("visiting", 0) or 0), 2),
+        "discount": round(float(inv.get("discount", 0) or 0), 2),
+        "coupon": round(float(inv.get("coupon_discount", inv.get("coupon", 0)) or 0), 2),
+        "gst": round(tax, 2),
+        "tds": round(float(cl.get("tds", 0) or 0), 2),
+        "gateway_fee": round(float(p.get("gateway_fee", 0) or 0), 2),
+        "platform_fee": round(platform_fee, 2),
+        "partner_commission": round(partner_commission, 2),
+        "merchant_referral": round(merchant_referral, 2),
+        "gross": round(total, 2),
+        "refund": round(refunded, 2),
+        "net": round(total - refunded, 2),
+    }
+    p["commission"] = {"gross": round(float(cl.get("gross", total) or 0), 2),
+                       "platform_earning": round(platform_fee, 2),
+                       "partner_earning": round(partner_commission, 2),
+                       "merchant_referral": round(merchant_referral, 2)}
+    p["wallet_impact"] = {
+        "partner_credited": round(partner_commission, 2) if p.get("status") == "success" else 0.0,
+        "note": ("Partner wallet credited on job completion" if p.get("status") == "success"
+                 else "No wallet credit — payment not successful"),
+    }
+    # gateway identifiers passthrough (ensure keys always present for the UI)
+    for k in ("gateway_reference", "utr", "settlement_id", "gateway_payment_id", "gateway_order_id"):
+        p.setdefault(k, None)
     return p
 
 
