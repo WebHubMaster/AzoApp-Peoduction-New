@@ -137,7 +137,10 @@ export function JobRingOverlay() {
   const removeFromQueue = useCallback((id: string) => setQueue((q) => q.filter((j) => j.id !== id)), []);
   const enqueue = useCallback((job: RingJob, force = false) => {
     if (!job || !job.id) return;
-    if (handledRef.current.has(job.id)) return;
+    // A reschedule request rings on an ALREADY-accepted booking, whose id is already
+    // in handledRef (added on accept) — so skip the dedup for reschedules, otherwise
+    // the full-screen reschedule alert never shows while the app is open.
+    if (handledRef.current.has(job.id) && !job._resched) return;
     // Scheduled 30-min reminder: only show once per cooldown window — never on every
     // app re-open. (Backend keeps offering it while the job hasn't been started.)
     if (job._reminder && wasReminderShownRecently(job.id)) return;
@@ -170,7 +173,7 @@ export function JobRingOverlay() {
   useEffect(() => subscribe((ev) => {
     if (ev.type === "job_request") { enqueue(ev.data || {}); refetch(); }
     else if (ev.type === "job_taken") { const id = ev.data?.id; if (id) { handledRef.current.add(id); removeFromQueue(id); cancelJobRing(id).catch(() => {}); } refetch(); }
-    else if (["job_accepted", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
+    else if (["job_accepted", "booking_update", "reschedule_resolved", "__resync__", "job_cancelled"].includes(ev.type)) { refetch(); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); }
     else if (ev.type === "reschedule_request") { const d = ev.data || {}; if (d.booking_id) enqueue({ ...d, id: String(d.booking_id), _resched: true }, true); refetch(); }
     else if (ev.type === "scheduled_reminder") { const d = ev.data || {}; const id = d.booking_id || d.id; if (id) enqueue({ ...d, id: String(id), _reminder: true }, true); refetch(); }
   }), [subscribe, enqueue, removeFromQueue]); // eslint-disable-line react-hooks/exhaustive-deps

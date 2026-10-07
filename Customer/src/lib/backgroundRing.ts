@@ -124,12 +124,36 @@ export async function startBackgroundAlertListener(): Promise<void> {
   setBgListenerActive(true);
   try {
     await setupAndroidChannels();
-    // Persistent "Waiting for booking updates" foreground-service notification has
-    // been REMOVED per product decision — it must never be shown to the user. Booking
-    // alerts still arrive via server-side FCM push (works even with the app closed /
-    // uninstalled-independent), and the SSE stream below keeps the in-app realtime
-    // updates flowing while the app is active. No ongoing/visible notification.
-  } catch { /* channel setup best-effort */ }
+    // Start an Android FOREGROUND SERVICE to keep the JS process + SSE stream alive
+    // while the app is backgrounded / the screen is locked / the app is swiped away
+    // (aggressive OEMs like MIUI/Xiaomi kill plain background JS otherwise — which is
+    // exactly why the full-screen alert previously only worked with the app OPEN).
+    // Android LEGALLY requires a notification for an FGS, so we post the MINIMAL
+    // possible one on the MIN-importance "online" channel with SECRET visibility
+    // (no status-bar icon, hidden from the lock screen, collapsed at the bottom of the
+    // shade) — the customer is NOT disturbed, yet the ring works in every state.
+    // Mirrors the Partner app's startBackgroundJobListener exactly.
+    const n2 = NotifeeApi();
+    const mod2 = notifee();
+    const fgsType = mod2?.AndroidForegroundServiceType?.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
+    await n2.displayNotification({
+      id: ONLINE_FGS_ID,
+      title: "AzoApp",
+      body: "Keeping you updated",
+      android: {
+        channelId: CHANNELS.online,
+        asForegroundService: true,
+        ...(fgsType != null ? { foregroundServiceTypes: [fgsType] } : {}),
+        ongoing: true,
+        smallIcon: "ic_notification",
+        color: "#0D47A1",
+        importance: mod2.AndroidImportance.MIN,
+        visibility: mod2.AndroidVisibility.SECRET,
+        showTimestamp: false,
+        pressAction: { id: "default", launchActivity: "default" },
+      },
+    } as any);
+  } catch { /* FGS may be rejected on some OEMs — SSE below still tries */ }
   _connect();
 }
 

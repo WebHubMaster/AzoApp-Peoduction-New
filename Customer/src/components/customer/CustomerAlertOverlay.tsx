@@ -46,12 +46,15 @@ export function CustomerAlertOverlay() {
   const refetch = () => { qc.invalidateQueries({ queryKey: ["bookings"] }); qc.invalidateQueries({ queryKey: ["customer-bookings"] }); };
 
   const removeFromQueue = useCallback((key: string) => setQueue((q) => q.filter((j) => j._key !== key)), []);
-  const enqueueReschedule = useCallback((d: Item) => {
+  const enqueueReschedule = useCallback((d: Item, fresh = false) => {
     const id = String(d?.booking_id || d?.id || "");
     if (!id) return;
     const role = d?.requester_role || d?.requested_by_role;
     if (role && role !== "partner") return; // only a partner-initiated reschedule rings the customer
     const key = `resched-${id}`;
+    // A brand-new request pushed over SSE/FCM should ring even if an earlier request
+    // for this booking was already handled (so a second reschedule shows properly).
+    if (fresh) handledRef.current.delete(key);
     if (handledRef.current.has(key)) return;
     setQueue((q) => (q.find((x) => x._key === key) ? q : [...q, { ...d, id, _kind: "reschedule", _key: key, _at: Date.now() }]));
   }, []);
@@ -96,7 +99,7 @@ export function CustomerAlertOverlay() {
 
   // SSE.
   useEffect(() => subscribe((ev) => {
-    if (ev.type === "reschedule_request") { enqueueReschedule(ev.data || {}); }
+    if (ev.type === "reschedule_request") { enqueueReschedule(ev.data || {}, true); }
     else if (ev.type === "booking_confirmed") { enqueueBooking(ev.data || {}); refetch(); }
     else if (["reschedule_resolved", "booking_update", "__resync__", "job_cancelled"].includes(ev.type)) {
       const d = ev.data || {}; const id = String(d.booking_id || d.id || "");
@@ -108,14 +111,14 @@ export function CustomerAlertOverlay() {
   // FCM foreground push (SSE may be reconnecting).
   useEffect(() => {
     const off = onForegroundPush((d) => {
-      if (d?.type === "reschedule_request") enqueueReschedule(d);
+      if (d?.type === "reschedule_request") enqueueReschedule(d, true);
       else if (d?.type === "booking_confirmed") enqueueBooking(d);
       else if (["reschedule_accepted", "reschedule_rejected", "reschedule_cancelled", "reschedule_resolved"].includes(d?.type) && d?.booking_id) {
         const id = String(d.booking_id); handledRef.current.add(`resched-${id}`); removeFromQueue(`resched-${id}`); cancelRescheduleRing(id).catch(() => {});
       }
     });
     const offTap = onFcmNotificationOpen((d) => {
-      if (d?.type === "reschedule_request") enqueueReschedule(d);
+      if (d?.type === "reschedule_request") enqueueReschedule(d, true);
       else if (d?.type === "booking_confirmed") enqueueBooking(d);
     });
     return () => { off(); offTap(); };
