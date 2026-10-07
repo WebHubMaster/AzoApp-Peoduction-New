@@ -310,3 +310,15 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
   - routes/ratecard_routes.py `/ratecards/search`: skips rows whose category_id is not enabled in the active city.
 - Both clients (web_panel lib/api.js, Customer api/client.ts) already send X-City header and handle null rate card (hide). Verified via curl: Patna (carpentry OFF) hides category/services/by-category/by-service/search; Ranchi (ON) shows all.
 - Env note: pod had been reset — recreated backend/.env (MONGO_URL, DB_NAME, CORS_ORIGINS), web_panel/.env, frontend/.env, Customer/.env; reinstalled web_panel node_modules.
+
+## 2026-06 — City Availability Banner + Add-ons/Fees gating (follow-up)
+- Backend:
+  - routes/catalog_routes.py `/catalog/category/{slug_or_id}`: adds `city_available` (bool) + `city` based on active city's enabled categories (subcategory gated by parent). No-city => true.
+  - routes/catalog_routes.py `/catalog/addons`: filters add-on library by city-enabled categories (disabled category's add-ons hidden). Service-embedded add-ons already gated via apply_service.
+  - Service direct link already 404s (`/catalog/services/{id}`) when category/service not sold in city.
+- Frontend (web_panel):
+  - pages/customer/Services.jsx (route /category/:slug): shows "Not available in your city" banner (data-testid=category-city-unavailable) with city name when catMeta.city_available===false; hides service grid/empty state.
+  - pages/customer/ServiceDetail.jsx: catches 404 -> shows service-city-unavailable banner (data-testid=service-city-unavailable) instead of infinite skeleton.
+  - Fixed pre-existing build-breaker lib/invoiceShare.js (missing `export async function shareInvoicePdf(inv, channel)` declaration) that crashed ServiceDetail route.
+- Customer (expo) app: covered by backend gating (categories/services/ratecards already filtered; add-ons embedded in services). No separate direct-link service-detail screen hits these endpoints.
+- Verified: backend testing agent 22/22 passed (iteration_232); web screenshots for category banner (Patna), normal list (Ranchi), and service-detail banner (Patna).

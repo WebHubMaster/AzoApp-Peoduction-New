@@ -1,0 +1,31 @@
+{
+  "summary": "Backend-only testing of Iter 232 city-level category disable gating. Created pytest suite with 22 tests covering: baseline (both cities enabled), Carpentry disabled in Patna + enabled in Ranchi (via live mutation of db.city_pricing with backend restart), and no-city legacy behavior. All 22 tests PASSED. State restored - both Patna and Ranchi have all 7 categories enabled.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_iter232_city_category_gating.py",
+    "/app/test_reports/pytest/iter232_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "city_pricing_service caches city docs in-process, requiring a backend restart after direct DB edits for cache to clear. Consider adding a short TTL or admin cache-invalidation hook so operators toggling categories via Price Manager UI (which already invalidates) and ops editing DB directly see consistent behavior.",
+    "/api/catalog/category/{slug_or_id} returns 200 with city_available=false when disabled - good for banner UX. Verified city name is also returned so the UI can render 'Not available in Patna' correctly."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iter232_city_category_gating.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A"},
+  "test_credentials": "none required - all catalog endpoints public",
+  "seed_data_creation": "No seed data created. Test fixture temporarily removes Carpentry id from db.city_pricing (patna) and restarts backend; teardown restores it and restarts backend. Verified post-run: Patna=7 categories, Ranchi=7 categories.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Re-run with: cd /app && REACT_APP_BACKEND_URL=https://22f741f3-7c36-4160-9943-0a9312895fa6.preview.emergentagent.com MONGO_URL=mongodb://localhost:27017 DB_NAME=test_database python -m pytest backend/tests/test_iter232_city_category_gating.py -v. The fixture mutates db.city_pricing and restarts backend; takes ~15s. Both Patna and Ranchi should have 7 categories including Carpentry (eab6dbbb-8af1-457e-a9d9-ce0bf5abc36d) before test. Carpentry service id used: 121b87c7-7820-4af1-807c-58b04ae44fd3.",
+  "rca of the issue": "N/A - all gating behavior worked as specified in the review request. Endpoints correctly honor the per-city categories whitelist for: /catalog/categories, /catalog/services (list+detail), /catalog/category/{slug}, /catalog/addons, /ratecards/by-category, /ratecards/by-service, /ratecards/search; and legacy no-city requests remain unaffected."
+}
