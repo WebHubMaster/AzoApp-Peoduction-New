@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Wrench, Sparkles } from "lucide-react";
@@ -19,6 +19,12 @@ export default function CustomJobFAB() {
   const { count } = useCart();
   const [open, setOpen] = useState(false);
   const [showTip, setShowTip] = useState(true);
+  const [rateBar, setRateBar] = useState(() => !!window.__azoRateBar);
+  useEffect(() => {
+    const on = () => setRateBar(!!window.__azoRateBar);
+    window.addEventListener("azo:ratebar", on);
+    return () => window.removeEventListener("azo:ratebar", on);
+  }, []);
 
   if (!isPublicRoute(pathname)) return null;
 
@@ -32,7 +38,7 @@ export default function CustomJobFAB() {
       <div
         className={`fixed z-[190] right-4 lg:right-6 lg:bottom-6 ${cartActive
           ? "bottom-[calc(9rem_+_env(safe-area-inset-bottom))]"
-          : "bottom-[calc(5rem_+_env(safe-area-inset-bottom))]"}`}
+          : rateBar ? "bottom-[calc(8.75rem_+_env(safe-area-inset-bottom))]" : "bottom-[calc(5rem_+_env(safe-area-inset-bottom))]"}`}
         data-testid="custom-job-fab-wrap">
         <div className="flex items-center gap-2 justify-end">
           <AnimatePresence>

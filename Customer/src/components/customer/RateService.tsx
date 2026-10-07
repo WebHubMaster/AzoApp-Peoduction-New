@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useRef, useSt
 import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState } from "react-native";
 import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Star, CheckCircle2, X } from "lucide-react-native";
+import { Star, Check, X } from "lucide-react-native";
 import { api } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useRealtime } from "../../context/RealtimeContext";
@@ -65,24 +65,35 @@ export function RateServiceProvider({ children }: { children: React.ReactNode })
   );
 }
 
-/** Docked strip pinned just above the bottom nav. Stays pinned behind the keyboard. */
+function completedLabel(iso?: string) {
+  if (!iso) return "Completed";
+  const d = new Date(iso);
+  const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 86400000);
+  if (days <= 0) return "Completed today";
+  if (days === 1) return "Completed yesterday";
+  return `Completed ${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
+}
+
+/** Full-width strip docked on top of the bottom nav. Stays pinned behind the keyboard. */
 export function RateServiceButton({ bottom }: { bottom: number }) {
   const { items, openLatest } = useRateService();
   const { c, isDark } = useTheme();
   if (!items.length) return null;
   const b = items[0];
   return (
-    <KeyboardFixedBottom testID="rate-service-bar" style={{ position: "absolute", left: 12, right: 12, bottom: bottom + 8, zIndex: 50 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, boxShadow: "0px 6px 20px rgba(15,23,42,0.14)" } as any}>
-        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: isDark ? "rgba(16,185,129,0.12)" : "#ECFDF5", alignItems: "center", justifyContent: "center" }}>
-          <CheckCircle2 size={20} color="#059669" />
+    <KeyboardFixedBottom testID="rate-service-bar" style={{ position: "absolute", left: 0, right: 0, bottom, zIndex: 50 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 10, backgroundColor: c.surface, borderTopWidth: 1, borderTopColor: c.border, boxShadow: "0px -8px 20px -12px rgba(15,23,42,0.18)" } as any}>
+        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
+          <Check size={20} color={isDark ? "#F1F5F9" : "#1E293B"} strokeWidth={2.4} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>
-          <Text testID="rate-service-name" numberOfLines={1} style={{ fontSize: 13.5, fontWeight: "600", color: isDark ? "#fff" : TC.text }}>{b.service_name}</Text>
-          <Text numberOfLines={1} style={{ fontSize: 11.5, color: c.textMuted, marginTop: 2 }}>Completed{items.length > 1 ? ` \u00b7 ${items.length - 1} more to rate` : ""}</Text>
+          <Text testID="rate-service-name" numberOfLines={1} style={{ fontSize: 14, fontWeight: "600", color: isDark ? "#fff" : TC.text }}>{b.service_name}</Text>
+          <Text numberOfLines={1} style={{ fontSize: 12, color: c.textMuted, marginTop: 1 }}>
+            {completedLabel(b.completed_at)}{items.length > 1 ? <Text style={{ color: c.textFaint }}>{`  \u00b7 ${items.length - 1} more`}</Text> : null}
+          </Text>
         </View>
-        <Pressable testID="rate-service-btn" onPress={openLatest} style={({ pressed }) => ({ backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 14, height: 36, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
-          <Text style={{ color: "#fff", fontSize: 12.5, fontWeight: "600" }}>Rate service</Text>
+        <Pressable testID="rate-service-btn" onPress={openLatest} style={({ pressed }) => ({ backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 18, height: 40, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Text style={{ color: "#fff", fontSize: 13.5, fontWeight: "600" }}>Rate service</Text>
         </Pressable>
       </View>
     </KeyboardFixedBottom>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, CheckCircle2, X, Loader2 } from "lucide-react";
+import { Star, Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
@@ -77,12 +77,13 @@ export default function RateService() {
 
   const tab = new URLSearchParams(search).get("tab");
   const onHome = pathname === "/" || (pathname === "/account" && (!tab || tab === "home"));
-  const showBtn = isCustomer && onHome && items.length > 0 && !current && !kbOpen;
+  const showBtn = isCustomer && onHome && items.length > 0 && !current && !kbOpen && !(pathname === "/" && cartCount > 0);
 
   return (
     <>
       <AnimatePresence>
-        {showBtn && <RateButton key="rb" item={items[0]} total={items.length} onLanding={pathname === "/"} cartActive={cartCount > 0}
+        {showBtn && <div key="rb-space" aria-hidden className="lg:hidden h-[3.75rem]" />}
+        {showBtn && <RateButton key="rb" item={items[0]} total={items.length} onLanding={pathname === "/"}
           onClick={() => { handled.current.add(items[0].id); setCurrent(items[0]); }} />}
       </AnimatePresence>
       <RateModal booking={current} onClose={close} />
@@ -90,28 +91,38 @@ export default function RateService() {
   );
 }
 
-function RateButton({ item, total, onLanding, cartActive, onClick }) {
+function completedLabel(iso) {
+  if (!iso) return "Completed";
+  const d = new Date(iso);
+  const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(d).setHours(0, 0, 0, 0)) / 86400000);
+  if (days <= 0) return "Completed today";
+  if (days === 1) return "Completed yesterday";
+  return `Completed ${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
+}
+
+function RateButton({ item, total, onLanding, onClick }) {
   useEffect(() => {
     window.__azoRateBar = true; window.dispatchEvent(new Event("azo:ratebar"));
     return () => { window.__azoRateBar = false; window.dispatchEvent(new Event("azo:ratebar")); };
   }, []);
-  // On "/" the Custom-Job FAB sits bottom-right, so the bar stops just left of it.
-  const pos = onLanding
-    ? `left-3 right-[5.25rem] lg:left-auto lg:right-[6.5rem] lg:bottom-[1.75rem] ${cartActive ? "bottom-[calc(9.25rem_+_env(safe-area-inset-bottom))]" : "bottom-[calc(5.25rem_+_env(safe-area-inset-bottom))]"}`
-    : "left-3 right-3 lg:left-auto lg:right-6 lg:bottom-6 bottom-[calc(4.6rem_+_env(safe-area-inset-bottom))]";
   return (
-    <motion.div data-testid="rate-service-bar" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 14 }} transition={{ duration: 0.22, ease: "easeOut" }}
-      className={`fixed z-[75] ${pos} sm:max-w-[400px] sm:mx-auto lg:mx-0 lg:w-[360px]`}>
-      <div className="flex items-center gap-3 h-14 pl-2 pr-2 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/80 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.18)]">
-        <span className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 grid place-items-center">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
+    <motion.div data-testid="rate-service-bar" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      className={`fixed z-[39] inset-x-0 bottom-[calc(4rem_+_env(safe-area-inset-bottom))] lg:inset-x-auto lg:right-6 lg:w-[380px] ${onLanding ? "lg:bottom-[6.25rem]" : "lg:bottom-6"}
+        bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-8px_20px_-12px_rgba(15,23,42,0.18)]
+        lg:rounded-2xl lg:border lg:shadow-[0_12px_32px_-12px_rgba(15,23,42,0.25)]`}>
+      <div className="flex items-center gap-3 px-4 py-2.5 lg:px-3">
+        <span className="h-10 w-10 shrink-0 rounded-xl bg-slate-100 dark:bg-slate-800 grid place-items-center">
+          <Check className="h-5 w-5 text-slate-800 dark:text-slate-100" strokeWidth={2.4} />
         </span>
-        <div className="min-w-0 flex-1 leading-tight">
-          <p data-testid="rate-service-name" className="truncate text-[13.5px] font-semibold text-slate-900 dark:text-white">{item.service_name}</p>
-          <p className="truncate text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Completed{total > 1 ? ` \u00b7 ${total - 1} more to rate` : ""}</p>
+        <div className="min-w-0 flex-1">
+          <p data-testid="rate-service-name" className="truncate text-[14px] font-semibold text-slate-900 dark:text-white leading-5">{item.service_name}</p>
+          <p className="truncate text-[12px] text-slate-500 dark:text-slate-400 leading-4">
+            {completedLabel(item.completed_at)}
+            {total > 1 && <span data-testid="rate-service-more" className="ml-1.5 text-slate-400">· {total - 1} more</span>}
+          </p>
         </div>
         <button data-testid="rate-service-btn" onClick={onClick}
-          className="shrink-0 h-9 px-3.5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white text-[12.5px] font-semibold tracking-tight active:scale-[0.97] transition-[transform,background-color] duration-150">
+          className="shrink-0 h-10 px-5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white text-[13.5px] font-semibold active:scale-[0.97] transition-[transform,background-color] duration-150">
           Rate service
         </button>
       </div>
