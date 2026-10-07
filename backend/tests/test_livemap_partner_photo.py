@@ -2,7 +2,7 @@
 import os
 import requests
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://upload-handler-patch.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://customer-review-flow-1.preview.emergentagent.com").rstrip("/")
 
 
 def _admin_token():

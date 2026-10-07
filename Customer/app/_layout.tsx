@@ -9,6 +9,7 @@ import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
 import { setupAndroidChannels, requestNotificationPermission } from "../src/lib/notifications";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { CustomerAlertOverlay } from "@/src/components/customer/CustomerAlertOverlay";
+import { RateServiceProvider } from "@/src/components/customer/RateService";
 import { useNavigate } from "../src/lib/navigate";
 setupNotificationHandler();
 import { useFonts } from "expo-font";
@@ -69,12 +70,12 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <PushTapBridge />
               <CustomerAlertOverlay />
               <AppUpdateGate />
-              <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
+              <RateServiceProvider><KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}><Stack screenOptions={{ headerShown: false, animation: "fade" }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(site)" />
                 <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
                 <Stack.Screen name="(customer)" />
-              </Stack></KeyboardAvoidingView>
+              </Stack></KeyboardAvoidingView></RateServiceProvider>
             </ToastProvider>
           </RealtimeProvider>
         </CartProvider></AuthProvider>

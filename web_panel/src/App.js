@@ -14,6 +14,7 @@ import PushRegistrar, { PushNudge } from "@/components/PushRegistrar";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
 import MerchantRefCatcher from "@/components/MerchantRefCatcher";
 import CustomJobFAB from "@/components/customer/CustomJobFAB";
+import RateService from "@/components/customer/RateService";
 // Landing stays eager — it is the primary public entry (fast first paint, no flash).
 import Landing from "@/pages/customer/Landing";
 import PosterDevTest from "@/pages/PosterDevTest";
@@ -101,6 +102,7 @@ function App() {
           </RouteTransition>
           </Suspense>
           <CustomJobFAB />
+          <RateService />
           <PushNudge />
         </BrowserRouter>
         </CartProvider>

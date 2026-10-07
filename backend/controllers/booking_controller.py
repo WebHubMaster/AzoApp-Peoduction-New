@@ -4065,6 +4065,7 @@ async def add_review(customer, booking_id, req):
               "service_name": b.get("service_name", ""),
               "booking_code": b.get("code", "")}
     await db.bookings.update_one({"id": booking_id}, {"$set": {"review": review}})
+    await _silence_review_prompts(b["customer_id"])
     if b.get("partner_id"):
         agg = await db.bookings.find({"partner_id": b["partner_id"], "review": {"$ne": None}},
                                      {"_id": 0, "review": 1}).to_list(1000)
@@ -4597,3 +4598,44 @@ async def admin_ring_partner(booking_id, partner_id, admin=None):
     row = await db.booking_dispatches.find_one({"booking_id": booking_id, "partner_id": partner_id}, {"_id": 0}, sort=[("dispatched_at", -1)])
     return {"ok": bool(sent), "booking": {"id": b["id"], "code": b.get("code"), "service_name": b.get("service_name"), "status": b.get("status")},
             "partner": p, "push": {k: row.get(k) for k in ("push_success", "push_failure", "push_skipped")} if row else {}}
+
+
+# ---- Rate Service: pending (unrated) completed bookings, latest first ----
+def _completed_at(b):
+    for t in reversed(b.get("timeline") or []):
+        if t.get("status") == "completed":
+            return t.get("at")
+    return b.get("updated_at") or b.get("created_at")
+
+
+async def pending_reviews(customer):
+    docs = await db.bookings.find(
+        {"customer_id": customer["id"], "status": {"$in": ["completed", "paid"]},
+         "$or": [{"review": None}, {"review": {"$exists": False}}]},
+        {"_id": 0, "id": 1, "code": 1, "service_name": 1, "partner_name": 1, "partner_id": 1,
+         "timeline": 1, "updated_at": 1, "created_at": 1, "review_prompt_dismissed": 1,
+         "service_image": 1, "items": 1}).to_list(500)
+    items = []
+    for b in docs:
+        name = b.get("service_name") or ", ".join(
+            i.get("service_name", "") for i in (b.get("items") or []) if i.get("service_name")) or "Service"
+        items.append({"id": b["id"], "code": b.get("code"), "service_name": name,
+                      "partner_name": b.get("partner_name") or "",
+                      "service_image": b.get("service_image") or "",
+                      "completed_at": _completed_at(b),
+                      "auto_prompt": not b.get("review_prompt_dismissed")})
+    items.sort(key=lambda x: x["completed_at"] or "", reverse=True)
+    return {"count": len(items), "items": items}
+
+
+async def dismiss_review_prompt(customer, booking_id):
+    b = await _get_booking(booking_id)
+    _authorize(customer, b)
+    await _silence_review_prompts(b["customer_id"])
+    return {"ok": True}
+
+
+async def _silence_review_prompts(customer_id):
+    # Once the customer has seen a rating popup, older unrated jobs never auto-pop (Rate Service button only).
+    await db.bookings.update_many({"customer_id": customer_id, "status": {"$in": ["completed", "paid"]}},
+                                  {"$set": {"review_prompt_dismissed": True}})

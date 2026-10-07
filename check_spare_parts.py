@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://upload-handler-patch.preview.emergentagent.com/api"
+BASE_URL = "https://customer-review-flow-1.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

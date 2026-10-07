@@ -2,6 +2,7 @@
  * CustomerShell — mobile view of web_panel/src/components/customer/CustomerShell.jsx:
  * sticky mobile header (avatar · deliver-to/brand · bell · theme) + 5-slot bottom nav + "More" sheet.
  */
+import { RateServiceButton } from "./RateService";
 import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, Pressable, Modal, ScrollView, Platform, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -117,6 +118,8 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
         scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}>
         {children}
       </ScrollView>
+
+      {active === "home" && !chatOpen ? <RateServiceButton bottom={64 + insets.bottom} /> : null}
 
       {/* Bottom nav */}
       {!chatOpen && (

@@ -142,6 +142,16 @@ async def list_my_bookings_paged(tab: str = "all", payment: str = "all", search:
     return await c.list_my_bookings_paged(user, tab, payment, search, date_from, date_to, sort, page, page_size)
 
 
+@router.get("/my/pending-reviews")
+async def pending_reviews(user=Depends(require_role("customer"))):
+    return await c.pending_reviews(user)
+
+
+@router.post("/{booking_id}/review-prompt-dismiss")
+async def dismiss_review_prompt(booking_id: str, user=Depends(require_role("customer"))):
+    return await c.dismiss_review_prompt(user, booking_id)
+
+
 @router.get("/{booking_id}")
 async def get_booking(booking_id: str, user=Depends(get_current_user)):
     return await c.get_booking(user, booking_id)
