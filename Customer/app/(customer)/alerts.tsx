@@ -4,13 +4,13 @@
  *  notification permission, full-screen intent, battery-optimisation exemption. */
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, AppState, Platform, Linking, ActivityIndicator } from "react-native";
-import { BellRing, MonitorSmartphone, BatteryCharging, Radio, CheckCircle2, AlertCircle, Check, ShieldCheck, Bell, Layers } from "lucide-react-native";
+import { BellRing, MonitorSmartphone, BatteryCharging, Radio, CheckCircle2, AlertCircle, Check, ShieldCheck, Bell, Layers, Rocket } from "lucide-react-native";
 import { useToast } from "../../src/components/Toast";
 import { api } from "../../src/api/client";
 import { PRIMARY, useTheme } from "../../src/theme";
 import {
   PermKey, PermState, allAlertStates, requestNotificationPermission,
-  openFullScreenIntentSettings, requestBatteryExemption, requestOverlayPermission, getPermissionStatus,
+  openFullScreenIntentSettings, requestBatteryExemption, requestOverlayPermission, requestOemSettings, getPermissionStatus,
 } from "../../src/lib/notifications";
 
 type Card = { key: PermKey; icon: any; title: string; why: string; affected: string; tint: string; critical?: boolean };
@@ -20,6 +20,7 @@ const CARDS: Card[] = [
   { key: "fullscreen", icon: MonitorSmartphone, title: "Full-Screen Alert", why: "Show a call-style screen over your lock screen when a partner confirms or wants to reschedule.", affected: "Alerts won't pop up like an incoming call on a locked phone.", tint: "#22C55E" },
   { key: "overlay", icon: Layers, title: "Display Over Other Apps", why: "Let the alert pop up over whatever you're doing, even when the phone is unlocked and in another app.", affected: "Alerts may show only as a quiet banner instead of a full-screen call.", tint: "#A855F7" },
   { key: "battery", icon: BatteryCharging, title: "Run in Background", why: "Keep the app allowed to ring even when the phone tries to sleep it to save battery.", affected: "The ring may not fire reliably when the app is closed for a while.", tint: "#38BDF8", critical: true },
+  { key: "oem", icon: Rocket, title: "Autostart & Background Pop-ups", why: "On Xiaomi/Redmi/Poco (MIUI), Oppo/Realme (ColorOS) and Vivo/iQOO phones, turn on Autostart and 'show pop-up / display on lock screen' in the phone's security app so the alert isn't downgraded to a silent notification.", affected: "Your phone may block the alert from opening in the background.", tint: "#EF4444", critical: true },
 ];
 
 export default function AlertHealthCheck() {
@@ -72,6 +73,8 @@ export default function AlertHealthCheck() {
         await openFullScreenIntentSettings();
       } else if (card.key === "overlay") {
         await requestOverlayPermission();
+      } else if (card.key === "oem") {
+        await requestOemSettings();
       } else if (card.key === "battery") {
         await requestBatteryExemption();
       }

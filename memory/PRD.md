@@ -191,3 +191,12 @@ New component Customer/src/components/customer/AlertSetupNudge.tsx: compact Andr
 Also added the "Display Over Other Apps" card to the full Alert Health Check screen (app/(customer)/alerts.tsx) so it's covered there too.
 
 No backend changes. tsc --noEmit clean for notifications.ts, alerts.tsx, HomeView.tsx, AlertSetupNudge.tsx. Expo app not runnable in preview → verified by TypeScript compile + code review.
+
+## Session (2026-06) — OEM Autostart guide + First-booking alert walkthrough (Customer app)
+Customer app only. No backend changes.
+
+1) OEM Autostart guide: added aggressive-OEM helpers to Customer/src/lib/notifications.ts (ported from partner): `isAggressiveOem()`, `oemLabel()`, `oemState()`, `requestOemSettings()` (deep-links MIUI/ColorOS/FuntouchOS/EMUI Autostart+pop-up activities with app-settings fallback), OEM_ASKED_KEY, expo-device import. Extended PermKey → +"oem" and allAlertStates to include it. Added the "Autostart & Background Pop-ups" card to app/(customer)/alerts.tsx (only renders when available=true i.e. on Xiaomi/Redmi/Poco/Oppo/Realme/Vivo/iQOO/Huawei/Honor) with a requestOemSettings handler.
+
+2) First-booking walkthrough: new Customer/src/components/customer/AlertPermissionWalkthrough.tsx — a one-time guided stepper (bottom-sheet Modal) that walks a NEW customer through notifications → full-screen → display-over-apps → run-in-background → OEM autostart. Android only; shown once when bookingCount>0 and not previously completed (storage key azo_alert_walkthrough_done); auto-skips steps already granted / not applicable; per-step Allow (+Open Settings when permanently denied) / Skip, progress bar, re-checks on AppState active, Finish on last step. Mounted at top of HomeView with bookingCount={bookings.length} so it triggers after the first booking (on the Home tab). testids: alert-walkthrough, alert-walkthrough-progress, alert-walkthrough-allow-<key>, alert-walkthrough-next, alert-walkthrough-skip, walkthrough-granted-<key>.
+
+Verified: source files tsc-clean (only 2 pre-existing tsconfig.json toolchain warnings remain, unrelated). Expo app not runnable in preview → verified by TypeScript compile + code review.

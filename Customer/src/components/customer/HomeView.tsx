@@ -10,6 +10,7 @@ import { useTheme, PRIMARY, SLATE, AMBER, ORANGE, shadowElev, shadowBtn, TC } fr
 import { StatTile, StatusChip, StatSlider, CARD_W, EmptyState, SkeletonList, StatSkeleton } from "@/src/components/customer/ux";
 import { ACTIVE_STATES, DONE_STATES, statusText, statusTone, bkDate, NavKey } from "@/src/components/customer/nav";
 import { AlertSetupNudge } from "@/src/components/customer/AlertSetupNudge";
+import { AlertPermissionWalkthrough } from "@/src/components/customer/AlertPermissionWalkthrough";
 
 interface Props {
   user: any; bookings: any[]; wallet: any; refunds: any[]; categories: any[]; services: any[]; referral: any; loading: boolean;
@@ -49,6 +50,8 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
 
   return (
     <View testID="customer-home" style={{ gap: 16 }}>
+      {/* One-time guided permission walkthrough, shown once after the first booking. */}
+      <AlertPermissionWalkthrough bookingCount={bookings.length} />
       {/* Permission nudge — ensures lock-screen alerts aren't blocked (Android only). */}
       <AlertSetupNudge />
       {/* HERO (azo-mesh) */}

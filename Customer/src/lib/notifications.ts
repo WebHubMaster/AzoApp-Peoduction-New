@@ -16,6 +16,7 @@
  */
 import { Platform, Linking, AppState } from "react-native";
 import Constants, { ExecutionEnvironment } from "expo-constants";
+import * as Device from "expo-device";
 import { storage } from "@/src/utils/storage";
 import { api, mediaUrl } from "@/src/api/client";
 
@@ -27,6 +28,7 @@ const RING_FALLBACK = require("../../assets/sounds/job-ring.wav");
 const FSI_ASKED_KEY = "azo_fsi_asked";
 const BATTERY_ASKED_KEY = "azo_battery_asked";
 const OVERLAY_ASKED_KEY = "azo_overlay_asked";
+const OEM_ASKED_KEY = "azo_oem_asked";
 
 export const CHANNELS = {
   // Silent high-importance channel for the call-style ring: NO channel sound so the
@@ -207,7 +209,7 @@ export async function requestBatteryExemption() {
 }
 
 /* ------------------------- alert health-check states ------------------------- */
-export type PermKey = "notifications" | "fullscreen" | "overlay" | "battery";
+export type PermKey = "notifications" | "fullscreen" | "overlay" | "battery" | "oem";
 export type PermState = { key: PermKey; granted: boolean; canAskAgain: boolean; available: boolean };
 
 /** Notification OS permission — via Notifee (build) or expo-notifications (Expo Go / web). */
@@ -259,8 +261,79 @@ export async function requestOverlayPermission() {
 
 /** Snapshot of every alert permission the customer full-screen ring relies on. */
 export async function allAlertStates(): Promise<Record<PermKey, PermState>> {
-  const [notif, fullscreen, overlay, battery] = await Promise.all([notifState(), fullScreenState(), overlayState(), batteryState()]);
-  return { notifications: notif, fullscreen, overlay, battery };
+  const [notif, fullscreen, overlay, battery, oem] = await Promise.all([notifState(), fullScreenState(), overlayState(), batteryState(), oemState()]);
+  return { notifications: notif, fullscreen, overlay, battery, oem };
+}
+
+/* --- Aggressive-OEM background launch (MIUI / ColorOS / FuntouchOS / EMUI) ---
+ * Xiaomi/Redmi/Poco (MIUI), Oppo/Realme (ColorOS), Vivo/iQOO (FuntouchOS) and
+ * Huawei/Honor BLOCK background activity starts and DOWNGRADE full-screen intents
+ * to a plain heads-up UNLESS the user enables the OEM-specific "Autostart" +
+ * "Display pop-up windows while running in background" / "Show on lock screen".
+ * These live in the OEM security app, NOT standard Android settings — the #1 reason
+ * an alert shows only as a notification on Poco/Redmi/Oppo/Vivo even when push works.
+ * We deep-link straight to them; best-effort, falling back to app settings. */
+const _mfg = (): string => String(Device.manufacturer || Device.brand || "").toLowerCase();
+export function isAggressiveOem(): boolean {
+  return /(xiaomi|redmi|poco|oppo|realme|vivo|iqoo|huawei|honor)/.test(_mfg());
+}
+/** Short label for the current phone's OEM security app (for the setup card copy). */
+export function oemLabel(): string {
+  const m = _mfg();
+  if (/xiaomi|redmi|poco/.test(m)) return "Xiaomi / Redmi / Poco (MIUI)";
+  if (/oppo|realme/.test(m)) return "Oppo / Realme (ColorOS)";
+  if (/vivo|iqoo/.test(m)) return "Vivo / iQOO (FuntouchOS)";
+  if (/huawei|honor/.test(m)) return "Huawei / Honor";
+  return "your phone";
+}
+export async function oemState(): Promise<PermState> {
+  if (Platform.OS !== "android" || !isAggressiveOem())
+    return { key: "oem", granted: Platform.OS === "ios", canAskAgain: false, available: false };
+  const asked = (await storage.getItem(OEM_ASKED_KEY)) === "1";
+  return { key: "oem", granted: asked, canAskAgain: true, available: true };
+}
+export async function requestOemSettings() {
+  if (Platform.OS !== "android") return;
+  try { await storage.setItem(OEM_ASKED_KEY, "1"); } catch { /* ignore */ }
+  const pkg = Constants.expoConfig?.android?.package || "app.azoapp.homeservice";
+  const m = _mfg();
+  const targets: { packageName: string; className: string }[] = [];
+  if (/xiaomi|redmi|poco/.test(m)) {
+    targets.push(
+      { packageName: "com.miui.securitycenter", className: "com.miui.permcenter.autostart.AutoStartManagementActivity" },
+      { packageName: "com.miui.securitycenter", className: "com.miui.permcenter.permissions.PermissionsEditorActivity" },
+    );
+  } else if (/oppo|realme/.test(m)) {
+    targets.push(
+      { packageName: "com.coloros.safecenter", className: "com.coloros.safecenter.permission.startup.StartupAppListActivity" },
+      { packageName: "com.coloros.safecenter", className: "com.coloros.safecenter.startupapp.StartupAppListActivity" },
+      { packageName: "com.oppo.safe", className: "com.oppo.safe.permission.startup.StartupAppListActivity" },
+    );
+  } else if (/vivo|iqoo/.test(m)) {
+    targets.push(
+      { packageName: "com.vivo.permissionmanager", className: "com.vivo.permissionmanager.activity.BgStartUpManagerActivity" },
+      { packageName: "com.iqoo.secure", className: "com.iqoo.secure.ui.phoneoptimize.BgStartUpManager" },
+    );
+  } else if (/huawei|honor/.test(m)) {
+    targets.push(
+      { packageName: "com.huawei.systemmanager", className: "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity" },
+      { packageName: "com.huawei.systemmanager", className: "com.huawei.systemmanager.optimize.process.ProtectActivity" },
+    );
+  }
+  try {
+    const IntentLauncher = require("expo-intent-launcher");
+    for (const t of targets) {
+      try {
+        await IntentLauncher.startActivityAsync("android.intent.action.MAIN", { packageName: t.packageName, className: t.className });
+        return; // opened the OEM autostart / pop-up-permission screen
+      } catch { /* activity not present on this ROM — try the next candidate */ }
+    }
+    try {
+      await IntentLauncher.startActivityAsync("android.settings.APPLICATION_DETAILS_SETTINGS", { data: `package:${pkg}` });
+      return;
+    } catch { /* ignore */ }
+  } catch { /* expo-intent-launcher unavailable */ }
+  try { await Linking.openSettings(); } catch { /* ignore */ }
 }
 
 /* ------------------------- FCM device token ------------------------- */
