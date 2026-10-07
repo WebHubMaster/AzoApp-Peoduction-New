@@ -1,0 +1,31 @@
+{
+  "summary": "Tested the new Unified Finance Ops (Withdrawals + Ledger) module end-to-end. Backend: 16/16 pytest cases pass covering list + KPIs + filters + pagination for /api/admin/finance/withdrawals, 360 investigation shape, approve/reject idempotency (second POST returns 400 'Already processed'), merchant retry rejected, partner failed-retry works, /api/admin/finance/ledger list/summary/counts/category filter/pagination, and payment + refund detail endpoints. Frontend: Admin login via 'Login as Admin' demo button lands on /admin. Finance -> Withdraw Requests renders with wd-kpis, status tabs, search, filter-toggle, export, refresh, pagination, and per-row wd-view/wd-approve/wd-reject buttons (6 pending rows). Clicking wd-view opens WithdrawalInvestigation with inv-acct-badge + inv-verification/risk/wallet/destination panels; wd-inv-back returns to list. Finance -> Transactions renders transactions-ledger with txn-summary cards, dynamic category tabs (all/credits/debits/commission/earnings/withdrawals/bookings/refunds/adjustments) each with counts, search/filters/export/pagination all present. No console errors beyond one React DOM nesting warning (span inside option) from the page-size select on FinanceWithdrawals.jsx.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "FinanceWithdrawals.jsx (page-size select)", "issue": "React hydration warning: '<span> cannot be a child of <option>'. The <option> value={10..} renders a nested span (from static-import instrumentation on PAGE_SIZES). Harmless at runtime but logs a hydration error on every mount.", "selector": "[data-testid=\"wd-page-size\"] > option", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_finance_ops_iter235.py",
+    "/app/test_reports/pytest/finance_ops_iter235.xml"
+  ],
+  "action_items": [
+    "(Optional, low) Clean up the <option> children in FinanceWithdrawals.jsx page-size select so no nested <span> is injected — plain text child only."
+  ],
+  "critical_code_review_comments": [
+    "Idempotency on withdrawal_action works correctly (returns HTTP 400 on repeat).",
+    "Merchant retry correctly short-circuits to 400 (not supported) — matches spec.",
+    "Ledger summary + category counts shape matches frontend assumptions; account_type and direction fields present on every row.",
+    "Masked destinations (UPI: 'su••@okhdfc', Bank: 'HDFC Bank · •••• 0009') correctly rendered on list and investigation screens."
+  ],
+  "updated_files": ["/app/backend/tests/test_finance_ops_iter235.py"],
+  "success_rate": {"backend": "100%", "frontend": "100% (all data-testids resolve, flows work)"},
+  "test_credentials": "Admin: +919000000000 / OTP 123456 (or Login as Admin button).",
+  "seed_data_creation": "None — tests mutate real seeded pending partner withdrawals as expected by spec (approve + reject). Status counts after run: ~2 pending consumed (1 approved -> failed by simulated gateway, 1 rejected). Remaining data still exercisable for retest.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Partner retry failed-path was exercised and refreshes gateway state. Pending partner pool is finite — after each run some rows transition. No merchant withdrawals are seeded; merchant retry path is only validated via 400 contract. React option-nesting warning is cosmetic and not a functional blocker."
+}

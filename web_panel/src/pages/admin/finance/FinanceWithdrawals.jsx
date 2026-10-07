@@ -367,7 +367,7 @@ function Pager({ page, pageCount, pageSize, setPage, setPageSize, total }) {
         <span data-testid="wd-page-info">{from}–{to} of {total}</span>
         <select data-testid="wd-page-size" value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}
           className="h-8 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-[12px]">
-          {PAGE_SIZES.map((s) => <option key={s} value={s}>{s} / page</option>)}
+          {PAGE_SIZES.map((s) => <option key={s} value={s}>{`${s} / page`}</option>)}
         </select>
       </div>
       <div className="flex items-center gap-1">
