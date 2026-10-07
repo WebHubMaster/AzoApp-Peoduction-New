@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Star, Clock, Check, ChevronRight, Sparkles, Search, X, ArrowRight, SearchX,
-  LayoutGrid, AirVent, Zap, Droplet, Droplets, WashingMachine, Hammer, Wrench,
+  LayoutGrid, AirVent, Zap, Droplet, Droplets, WashingMachine, Hammer, Wrench, MapPinOff,
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
@@ -198,6 +198,10 @@ export default function Services() {
 
   const noResults = !loading && Object.keys(grouped).length === 0 && rcItems.length === 0;
 
+  // Direct link to a category that is turned OFF in the customer's city.
+  const cityUnavailable = !!slug && !loading && catMeta && catMeta.city_available === false;
+  const cityName = (catMeta?.city) || (typeof window !== "undefined" ? (localStorage.getItem("azo_location") || "") : "");
+
   return (
     <div className="min-h-screen bg-[#F7F9FC] dark:bg-slate-950 flex flex-col">
       <Seo
@@ -213,7 +217,7 @@ export default function Services() {
         <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-8 pb-7 sm:pt-10 sm:pb-9">
           <motion.h1 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
             className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-[34px] leading-tight text-slate-900 dark:text-white">
-            {activeCatName || (q ? `Results for "${q}"` : "All Services")}
+            {activeCatName || (slug && catMeta?.name) || (q ? `Results for "${q}"` : "All Services")}
           </motion.h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm sm:text-base max-w-xl">
             {catMeta?.description || "Book trusted professionals for every service at your doorstep."}
@@ -246,8 +250,28 @@ export default function Services() {
           )}
         </div>
 
+        {/* Category not available in this city (direct link) */}
+        {cityUnavailable && (
+          <div data-testid="category-city-unavailable" className="flex flex-col items-center justify-center text-center py-20 px-4">
+            <div className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-5">
+              <MapPinOff className="h-8 w-8 text-amber-500" strokeWidth={1.75} />
+            </div>
+            <h3 className="font-heading font-bold text-xl text-slate-900 dark:text-white">
+              {catMeta?.name || "This service"} is not available in your city
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-1.5 max-w-sm">
+              {cityName ? <>We're not serving <span className="font-semibold">{cityName}</span> for this category yet. </> : null}
+              Explore other services available near you.
+            </p>
+            <button data-testid="category-unavailable-browse" onClick={() => navigate("/services")}
+              className="mt-6 h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm shadow-[0_2px_8px_rgba(13,71,161,0.25)] transition active:scale-[0.98]">
+              Browse all services
+            </button>
+          </div>
+        )}
+
         {/* Rate-card search results */}
-        {q.trim().length >= 2 && rcItems.length > 0 && (
+        {!cityUnavailable && q.trim().length >= 2 && rcItems.length > 0 && (
           <div className="mb-12" data-testid="ratecard-search-results">
             <div className="flex items-center gap-2 mb-4">
               <h2 className="font-heading font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">Rate card items</h2>
@@ -294,7 +318,7 @@ export default function Services() {
         )}
 
         {/* Empty state */}
-        {noResults && (
+        {noResults && !cityUnavailable && (
           <div data-testid="services-empty" className="flex flex-col items-center justify-center text-center py-20 px-4">
             <div className="h-16 w-16 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center mb-5">
               <SearchX className="h-8 w-8 text-primary-500" strokeWidth={1.75} />
@@ -311,7 +335,7 @@ export default function Services() {
         )}
 
         {/* Category sections */}
-        {!loading && Object.entries(grouped).map(([cat, list]) => {
+        {!loading && !cityUnavailable && Object.entries(grouped).map(([cat, list]) => {
           const meta = catByName[cat];
           const list2 = list.map((s) => ({ ...s, category_icon: meta?.icon }));
           const Ic = catIcon(meta?.icon);

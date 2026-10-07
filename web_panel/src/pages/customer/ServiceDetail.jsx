@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Star, Clock, ArrowLeft, CheckCircle2, Tag, Plus, Minus, ShieldCheck, ShoppingBag, Check } from "lucide-react";
+import { Zap, Star, Clock, ArrowLeft, CheckCircle2, Tag, Plus, Minus, ShieldCheck, ShoppingBag, Check, MapPinOff } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import BrandLogo from "@/components/site/BrandLogo";
@@ -22,15 +22,19 @@ export default function ServiceDetail() {
   const { addService, count } = useCart();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const [svc, setSvc] = useState(null);
+  const [unavailable, setUnavailable] = useState(false);
   const [tier, setTier] = useState(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
+    setUnavailable(false);
     api.get(`/catalog/services/${id}`).then((r) => {
       setSvc(r.data);
       const ts = r.data.tiers || [];
       if (ts.length) { const bi = ts.findIndex((t) => t.badge); setTier(bi >= 0 ? bi : 0); }
+    }).catch((e) => {
+      if (e?.response?.status === 404) { setUnavailable(true); setSvc(null); }
     });
     setQty(1); setAdded(false);
   }, [id]);
@@ -49,6 +53,26 @@ export default function ServiceDetail() {
     if (goCheckout) navigate("/book");
     else toast.success(`${svc.name} added to your booking`);
   };
+
+  if (unavailable) return (
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-slate-950">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16 flex flex-col items-center text-center">
+        <div className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-5">
+          <MapPinOff className="h-8 w-8 text-amber-500" strokeWidth={1.75} />
+        </div>
+        <h1 data-testid="service-city-unavailable" className="font-heading font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+          This service is not available in your city
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm">
+          We're not serving this service in your selected location yet. Explore other services available near you.
+        </p>
+        <Button data-testid="service-unavailable-browse" onClick={() => navigate("/services")} className="mt-6">
+          Browse all services
+        </Button>
+      </div>
+      <MobileBottomNav />
+    </div>
+  );
 
   if (!svc) return (
     <div className="min-h-screen bg-[#FAFAFA]">

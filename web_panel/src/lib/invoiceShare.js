@@ -106,6 +106,10 @@ export async function emailInvoicePdf(invoiceId, to) {
     toast.error(e?.response?.data?.detail || "Could not email the invoice", { id: t });
   }
 }
+
+// Share an invoice PDF via the Web Share API (WhatsApp/system sheet), with a
+// WhatsApp text fallback when file sharing isn't available.
+export async function shareInvoicePdf(inv, channel = "whatsapp") {
   if (!inv?.id) {
     toast.error("Invoice is not ready to share yet");
     return;

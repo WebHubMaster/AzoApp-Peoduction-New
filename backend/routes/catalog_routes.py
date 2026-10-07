@@ -16,7 +16,17 @@ async def categories():
 
 @router.get("/category/{slug_or_id}")
 async def category(slug_or_id: str):
-    return await c.get_category(slug_or_id)
+    from services.city_pricing_service import active_doc
+    cat = await c.get_category(slug_or_id)
+    doc = await active_doc()
+    if doc and cat:
+        allowed = set(doc.get("categories") or [])
+        check_id = cat.get("category_id") or cat.get("id")
+        cat["city_available"] = check_id in allowed
+        cat["city"] = doc.get("city")
+    else:
+        cat["city_available"] = True
+    return cat
 
 
 @router.get("/subcategories")
@@ -125,8 +135,15 @@ async def delete_service(service_id: str, admin=Depends(ADMIN)):
 # ---------- ADD-ON LIBRARY (category-wise) ----------
 @router.get("/addons")
 async def public_addons(category_id: str = None, q: str = None):
-    """Active add-ons (used by admin service form to pick from & public if needed)."""
-    return await c.list_addons(category_id, q, admin=False)
+    """Active add-ons (used by admin service form to pick from & public if needed).
+    City-gated: add-ons of a category that is disabled in the active city are hidden."""
+    from services.city_pricing_service import active_doc
+    addons = await c.list_addons(category_id, q, admin=False)
+    doc = await active_doc()
+    if not doc:
+        return addons
+    allowed = set(doc.get("categories") or [])
+    return [a for a in addons if a.get("category_id") in allowed]
 
 
 @router.get("/admin/addons")
