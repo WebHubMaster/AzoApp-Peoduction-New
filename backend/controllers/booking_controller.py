@@ -1267,8 +1267,6 @@ async def _advance_accept_streak(partner_id):
         streak = int((u or {}).get("accept_streak", 0)) + 1
         best = max(int((u or {}).get("best_streak", 0)), streak)
         await db.users.update_one({"id": partner_id}, {"$set": {"accept_streak": streak, "best_streak": best}})
-        from services.partner_service import award_accept_streak_bonus
-        await award_accept_streak_bonus(partner_id, streak)
     except Exception:
         pass
 

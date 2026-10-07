@@ -165,31 +165,6 @@ export default function PartnerAlertsPanel() {
                 </div>
               </div>
             </div>
-
-            {/* Reward Payouts — accept-streak milestone → cashable wallet bonus */}
-            {stats.reward?.enabled && (() => {
-              const rw = stats.reward;
-              return (
-                <div className="mt-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-900/20 p-3.5" data-testid="reward-payout">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-1.5">
-                      <Gift className="h-4 w-4" /> Streak reward · {fmt(rw.bonus)} every {rw.threshold} in a row
-                    </p>
-                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-white/70 dark:bg-emerald-900/40 rounded-md px-2 py-0.5" data-testid="reward-earned">
-                      Earned {fmt(rw.total_earned || 0)}
-                    </span>
-                  </div>
-                  <div className="mt-2 h-2 w-full rounded-full bg-emerald-100 dark:bg-emerald-950 overflow-hidden">
-                    <div className="h-full bg-emerald-500 transition-all" style={{ width: `${rw.progress_pct || 0}%` }} data-testid="reward-progress" />
-                  </div>
-                  <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-1.5">
-                    {rw.remaining > 0
-                      ? <>Accept <b>{rw.remaining}</b> more in a row to earn <b>{fmt(rw.bonus)}</b> — added straight to your withdrawable wallet.</>
-                      : <>Milestone reached! Keep the streak alive for the next {fmt(rw.bonus)}.</>}
-                  </p>
-                </div>
-              );
-            })()}
           </div>
         );
       })()}

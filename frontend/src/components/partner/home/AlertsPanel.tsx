@@ -280,27 +280,6 @@ export function StreakCard({ stats }: { stats: any }) {
           <Text testID="week-missed" style={{ color: TW.amber600, fontSize: 12, fontWeight: "600" }}>✗ {stats.missed_week || 0} missed</Text>
         </View>
       </View>
-      {rw?.enabled ? (
-        <View testID="reward-payout" style={{ marginTop: 16, borderRadius: 6, borderWidth: 1, borderColor: dark ? TW.emerald800 : TW.emerald200, backgroundColor: dark ? "rgba(6,78,59,0.25)" : "rgba(236,253,245,0.7)", padding: 14 }}>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
-              <Icon name="gift-outline" size={16} color={dark ? TW.emerald200 : TW.emerald800} />
-              <Text style={{ color: dark ? TW.emerald200 : TW.emerald800, fontSize: 13, fontWeight: "600", flexShrink: 1 }}>Streak reward · {fmt(rw.bonus)} every {rw.threshold} in a row</Text>
-            </View>
-            <View style={{ backgroundColor: dark ? "rgba(6,78,59,0.4)" : "rgba(255,255,255,0.7)", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
-              <Text testID="reward-earned" style={{ color: TW.emerald700, fontSize: 11, fontWeight: "700" }}>Earned {fmt(rw.total_earned || 0)}</Text>
-            </View>
-          </View>
-          <View style={{ marginTop: 8, height: 8, borderRadius: 4, backgroundColor: dark ? "#022C22" : TW.emerald100, overflow: "hidden" }}>
-            <View testID="reward-progress" style={{ width: `${rw.progress_pct || 0}%`, height: 8, backgroundColor: TW.emerald500 }} />
-          </View>
-          <Text style={{ color: dark ? TW.emerald300 : TW.emerald700, fontSize: 11, marginTop: 6, lineHeight: 16 }}>
-            {rw.remaining > 0
-              ? <>Accept <Text style={{ fontWeight: "700" }}>{rw.remaining}</Text> more in a row to earn <Text style={{ fontWeight: "700" }}>{fmt(rw.bonus)}</Text> — added straight to your withdrawable wallet.</>
-              : <>Milestone reached! Keep the streak alive for the next {fmt(rw.bonus)}.</>}
-          </Text>
-        </View>
-      ) : null}
     </Surface>
   );
 }

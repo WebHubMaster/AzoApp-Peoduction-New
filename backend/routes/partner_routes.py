@@ -317,7 +317,7 @@ async def partner_response_stats(user=Depends(PARTNER)):
             "best_streak": int(u.get("best_streak", 0) or 0),
             "accepted_week": accepted, "missed_week": missed,
             "reward": {
-                "enabled": bool(cfg.get("accept_streak_enabled", True)),
+                "enabled": False,
                 "threshold": threshold,
                 "bonus": bonus,
                 "into_milestone": into,
