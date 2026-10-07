@@ -233,3 +233,14 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
    - Validation errors now show as an inline red banner at the TOP of the sheet (was a toast hidden behind the modal).
    - Added "Use current location" button in Service Address → requests GPS, reverse-geocodes (/geo/reverse), saves it as an address (/auth/address) and auto-selects it; address rows now show city · pincode and lat/lng.
    - Removed the green "verified maid… attendance captured by location" note.
+
+## Session (2026-06) — Customer App login screen redesign (premium trust UI)
+- Rewrote `Customer/app/login.tsx` UI (OTP logic unchanged) + new `Customer/src/components/login/LoginParts.tsx`.
+- Sections: back + Need Help (→ /contact), DYNAMIC admin logo (branding.logo_light/dark, text fallback),
+  "Home Services You Can Trust" hero, customer photo in blue disc, 3 verified service snapshots (AC/plumber/cleaner,
+  AzoApp logo on uniforms), "100% Verified Professionals" badge, OTP card, trust stats, security strip, living-room trust area.
+- AI images in `Customer/assets/login/*.webp`.
+- Preview: Customer web export served at `/api/customer/login` (cd Customer && npx expo export -p web).
+- Restored missing .env files (backend, Customer, frontend). Set branding.logo_light to /api/media/file/branding/azo_logo_light.png.
+## Next
+- Optional horizontal wordmark logo variant for login; dark-mode variant of new login.

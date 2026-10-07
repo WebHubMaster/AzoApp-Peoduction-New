@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only test of redesigned customer /api/customer/login screen (Expo web export) at 390x844 and 1920x800. All 17 required data-testid elements render. Dynamic brand logo loads from /api/site/config branding.logo_light. Phone input restricts to 10 digits; invalid number shows 'Enter a valid 10-digit mobile number' toast. Valid 10-digit -> Send OTP transitions to step 2, otp-boxes populated with dev OTP 123456 auto-filled -> Verify OTP transitions to otp-name-step (new user). login-need-help navigates to /(site)/contact and login-back-home navigates to /(site). Desktop 1920 renders login-card at width 444, centered (left=738, right=1182) within max-width 480 column. One critical layout bug found: horizontal overflow at mobile viewport (body scrollWidth=624 at clientWidth=390).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "HeroVisual / Login outer scroll container",
+        "issue": "Horizontal overflow at 390x844: document.body.scrollWidth=624 vs clientWidth=390. The login-hero disc is absolutely positioned with right:-72*S inside a wrapper also at right:-18, width: W*0.62. The disc's own bounding box measures left=200, right=462 (right edge 72px past the 390 viewport). The outer page/ScrollView has no overflow:hidden so the body becomes horizontally scrollable. Visually content appears OK because off-screen portion is clipped by the hero circle shape, but technically fails the 'no horizontal overflow' requirement.",
+        "selector": "[data-testid=\"login-hero\"] / KeyboardAwareScrollView contentContainer",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/login_mobile_top.png", "/app/test_reports/login_mobile_bot.png", "/app/test_reports/login_desktop.png"],
+  "action_items": [
+    "Fix horizontal overflow at 390 mobile: either add overflow:'hidden' to the hero min-height container (the <View style={{minHeight: Math.round(462*S)}}> wrapping HeroVisual in Customer/app/login.tsx) OR clamp the HeroVisual wrapper so its content (disc + service cards) cannot extend past the 390 right edge. Also consider setting overflow:'hidden' on the root <View style={{flex:1, backgroundColor:C.bg}}> to prevent background decorative circles from contributing to overflow if any."
+  ],
+  "critical_code_review_comments": [
+    "Customer/app/login.tsx line 143: minHeight container holds absolutely-positioned HeroVisual which overflows right edge; add overflow:'hidden' to clip.",
+    "LoginParts.tsx HeroVisual: hero disc uses right:-72*S inside a wrapper already at right:-18 — effective positioning pushes disc ~90px beyond viewport right. Reduce disc negative offset or clamp parent.",
+    "Decorative circles at login.tsx lines 138-139 use large left/right negative offsets (W*0.5, W*0.6) — pointerEvents:none but still can grow document width if root lacks overflow:hidden."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "95% (16/17 checks pass; horizontal overflow fails)"},
+  "test_credentials": "Any 10-digit mobile; dev OTP auto-filled 123456 by backend",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes horizontal overflow, re-verify at 390x844 that document.body.scrollWidth === 390 (or <=390). All functional flows (send OTP, verify, name step, Need Help, back) already pass. Remember to rebuild Expo web after code changes: cd /app/Customer && npx expo export -p web.",
+  "rca of the issue": "HeroVisual uses position:absolute with right:-72*S for the hero disc inside a wrapper placed at right:-18, width W*0.62. In Expo web these transform into DOM elements that extend past the viewport. The outer page container (<View flex:1>) and the KeyboardAwareScrollView contentContainer do not set overflow:hidden, so the body becomes horizontally scrollable (scrollWidth=624 at 390 viewport). Fix: add overflow:'hidden' to the hero section wrapper (and/or to the root View) so decorative/absolute positioned art is clipped to the viewport."
+}
