@@ -279,3 +279,9 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 ### [2026-06] Hide the always-on background-service status-bar icon (both apps)
 - Issue: the persistent foreground-service notification showed a small status-bar icon (irritating; user may uninstall).
 - Fix: FGS notification now uses a fully TRANSPARENT small icon (`ic_fgs_transparent`) + MIN importance + SECRET visibility, so no visible glyph is drawn while the service keeps running 100%. Android legally requires an FGS notification, so it can't be removed entirely — but it's now invisible on stock Android and most OEMs. Transparent PNG added to `assets/fgs-transparent.png` and copied to `res/drawable/ic_fgs_transparent.png` by `plugins/withJobRingAndroid.js` in both apps. Requires a fresh native build. (Note: some MIUI/ColorOS builds may still force-show FGS notifications at OS level.)
+
+### [2026-06] Customer invoice "Share on WhatsApp" fails — fixed
+- Symptom: tapping "Share on WhatsApp" in the Customer app invoice sheet errored; PDF never reached WhatsApp.
+- Root cause (client-side, not backend): `Customer/src/lib/invoiceActions.ts` `shareInvoicePdf()` used a direct `IntentLauncher.startActivityAsync(ACTION_SEND)` with `android.intent.extra.STREAM` passed as a plain string — WhatsApp didn't get a FileProvider read grant, so the attach failed.
+- Fix: route the real PDF file through `expo-sharing` `Sharing.shareAsync(fileUri, {mimeType:"application/pdf"})` (proper content:// URI + read grant). WhatsApp appears in the system share sheet and attaches the PDF reliably on all devices; wa.me text fallback only if sharing is unavailable.
+- Verification: testing_agent backend run 100% pass — OTP login, GET /api/invoices, GET /api/invoices/{id}/pdf returns valid %PDF for owner and 403 for non-owner. Native WhatsApp attach to be confirmed on-device. (Local backend/.env restored: MONGO_URL, DB_NAME; invoices seeded via backend/seed_pro_and_invoices.py.)

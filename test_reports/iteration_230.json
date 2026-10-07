@@ -1,0 +1,19 @@
+{
+  "summary": "Backend data-path verification for Customer app shareInvoicePdf() flow. All 4 pytest tests passed: (1) OTP login returns JWT, (2) GET /api/invoices lists owned invoice 21f39c67..., (3) GET /api/invoices/{id}/pdf for owner returns 200 with Content-Type application/pdf and valid %PDF magic bytes, (4) GET /api/invoices/{id}/pdf for a non-owned invoice returns 403. Confirms the server-side PDF endpoint is functioning correctly; any WhatsApp share failure on-device is a native mobile concern, not a backend issue.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_invoice_pdf_share.py",
+    "/app/test_reports/pytest/invoice_pdf_share.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": ["/app/backend/tests/test_invoice_pdf_share.py"],
+  "success_rate": {"backend": "100%", "frontend": "N/A (skipped per request - React Native app)"},
+  "test_credentials": "Customer: +919000000004 / OTP 123456; additional seeded phones +919000000001-5 all accept OTP 123456",
+  "seed_data_creation": "None; used existing seeded invoices from backend/seed_pro_and_invoices.py",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend PDF endpoint GET /api/invoices/{id}/pdf is verified working: returns application/pdf with %PDF magic bytes for owner, 403 for non-owner. Pytest run requires REACT_APP_BACKEND_URL env var (set to http://localhost:8001) due to conftest.py check.",
+  "rca of the issue": "Not a backend bug. The share-on-WhatsApp failure was a client-side Android IntentLauncher ACTION_SEND issue (passing EXTRA_STREAM as a string URI without FileProvider grants), which does not reliably give WhatsApp read permission on the attached file. The fix (switch to expo-sharing Sharing.shareAsync which uses a FileProvider content:// URI with proper FLAG_GRANT_READ_URI_PERMISSION) is a native-side change and must be verified on a real Android device. Backend data path is confirmed healthy."
+}
