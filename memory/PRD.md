@@ -150,3 +150,10 @@ Additive, no existing behaviour changed.
 ### Backlog (user-requested, next)
 - P1 Cancellation Refund Preview: polish proportional (remaining-days) refund breakdown UI on subscription cancel.
 - P2 Plan Savings Badge: comparison badge across daily/weekly/monthly plans to nudge longer subscriptions.
+
+## Update — Subscription UX: Savings Badge, Invoice Email, Download Toast (2026-06)
+1. **Plan Savings Badge** (web + app): plan picker shows "Save X%" (and "Best value" on the cheapest per-day plan), computed client-side from price ÷ duration_days vs the costliest per-day plan. Files: web_panel `components/customer/Subscriptions.jsx` (SubscriptionPlansPanel), Customer RN `app/(site)/service/[id].tsx`.
+2. **Invoice Email** (web + app): one-tap "Email Invoice" button on each subscription card → resolves invoice_id → POST /api/invoices/{id}/email. Backend verified 100% (iteration_222): clean 400s (no-email / invalid / not-configured), 403 ownership. ⚠️ NEEDS CONFIG: actual delivery requires SMTP/SendGrid in Admin → Integrations (not set in this env); button surfaces the backend's guidance message until then. Files: web_panel `lib/invoiceShare.js` (emailInvoicePdf), `components/customer/Subscriptions.jsx`, `pages/admin/SubscriptionsAdmin.jsx`; Customer RN `src/lib/invoiceActions.ts` (emailInvoice), `app/(customer)/subscriptions.tsx`.
+3. **Download Toast + Open** (web + app): after invoice download, a toast "Invoice saved" with an "Open" action opens the PDF (new tab on web; native share/viewer on app). Added action support to Customer RN `src/components/Toast.tsx`; web uses sonner action in `lib/invoiceShare.js` downloadInvoicePdf; Customer RN `invoiceActions.ts` gained saveInvoicePdf/openInvoicePdf.
+
+Note: web_panel & Customer RN are not run under supervisor here (only PartnerApp Expo is), so their UI was verified by code review against existing patterns; all backend contracts were verified by the testing agent.

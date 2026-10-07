@@ -1,0 +1,28 @@
+{
+  "summary": "Backend-only verification of POST /api/invoices/{invoice_id}/email (new one-tap 'Email Invoice' button for maid subscriptions). Created a weekly svc-maid-fulltime subscription for Priya Verma (+919000000004), activated via /pay/mock, fetched invoice_id, then validated all 4 required endpoint contracts + PDF regression. 5/5 pytest tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_invoice_email_endpoint.py",
+    "/app/test_reports/pytest/iter222_invoice_email.xml"
+  ],
+  "verified_behaviour": [
+    "POST /api/invoices/{invoice_id}/email body {} as owner (no email on file) → HTTP 400, detail mentions email (Hinglish: 'Koi email address nahi mila'). Clean 400, not 500.",
+    "POST /api/invoices/{invoice_id}/email body {\"to\":\"notanemail\"} as owner → HTTP 400, detail contains 'valid email'.",
+    "POST /api/invoices/{invoice_id}/email body {\"to\":\"test@example.com\"} as owner, SMTP not configured → HTTP 400, detail mentions configured/Integrations/SendGrid/SMTP. Never a 500.",
+    "POST /api/invoices/{invoice_id}/email as partner (+919000000003, different user) → HTTP 403 Not allowed.",
+    "Regression: GET /api/invoices/{invoice_id}/pdf as owner → 200 application/pdf, %PDF magic bytes, >500 bytes (iteration_221 fix intact)."
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "invoice_routes.py line 168-170: valid-email check only ensures '@' is present; a value like 'a@' would pass this guard and reach send_email. Not a blocker because send_email itself handles failures gracefully, but could be tightened with the service's _EMAIL_RE regex for consistent user-facing error messaging.",
+    "invoice_service.email_invoice() looks up partner/merchant email from the users table as a fallback, but for 'customer' audience it does NOT — matches the spec here (owner-less-email returns no_email), just worth noting."
+  ],
+  "updated_files": ["/app/backend/tests/test_invoice_email_endpoint.py"],
+  "success_rate": {"backend": "100%", "frontend": "not tested (per request)"},
+  "test_credentials": "Owner: +919000000004 (Priya Verma, email scrubbed via Mongo in fixture to satisfy 'no email on file' precondition); Partner: +919000000003 (Raj Kumar); OTP 123456.",
+  "seed_data_creation": "Created 1 weekly maid subscription + mock payment transaction + subscription invoice for +919000000004 (invoice_id persists for retest convenience; not cleaned up).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Test file at /app/backend/tests/test_invoice_email_endpoint.py. Must be run with REACT_APP_BACKEND_URL env (or localhost:8001). Fixture scrubs Priya's email from the users collection via direct Mongo to guarantee the 'no_email' 400 path; seed re-adds it on next startup if applicable. SMTP is intentionally not configured in this env — expect email_not_configured 400s for any valid 'to'. All iteration_222 contract requirements verified."
+}
