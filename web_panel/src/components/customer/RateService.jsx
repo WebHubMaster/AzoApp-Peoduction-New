@@ -91,22 +91,30 @@ export default function RateService() {
 }
 
 function RateButton({ item, total, onLanding, cartActive, onClick }) {
-  // On "/" the Custom-Job FAB sits bottom-right, so the pill sits just left of it.
+  useEffect(() => {
+    window.__azoRateBar = true; window.dispatchEvent(new Event("azo:ratebar"));
+    return () => { window.__azoRateBar = false; window.dispatchEvent(new Event("azo:ratebar")); };
+  }, []);
+  // On "/" the Custom-Job FAB sits bottom-right, so the bar stops just left of it.
   const pos = onLanding
-    ? `right-[5.25rem] lg:right-[6.25rem] lg:bottom-[2.25rem] ${cartActive ? "bottom-[calc(9.5rem_+_env(safe-area-inset-bottom))]" : "bottom-[calc(5.5rem_+_env(safe-area-inset-bottom))]"}`
-    : "right-3 lg:right-6 lg:bottom-6 bottom-[calc(4.75rem_+_env(safe-area-inset-bottom))]";
+    ? `left-3 right-[5.25rem] lg:left-auto lg:right-[6.5rem] lg:bottom-[1.75rem] ${cartActive ? "bottom-[calc(9.25rem_+_env(safe-area-inset-bottom))]" : "bottom-[calc(5.25rem_+_env(safe-area-inset-bottom))]"}`
+    : "left-3 right-3 lg:left-auto lg:right-6 lg:bottom-6 bottom-[calc(4.6rem_+_env(safe-area-inset-bottom))]";
   return (
-    <motion.div data-testid="rate-service-bar" initial={{ opacity: 0, y: 12, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.95 }}
-      className={`fixed z-[185] ${pos} flex items-center gap-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-[0_8px_24px_rgba(15,23,42,0.16)] pl-2.5 pr-1 py-1`}>
-      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-      <div className="min-w-0 max-w-[110px] leading-tight">
-        <p data-testid="rate-service-name" className="truncate text-[11px] font-bold text-slate-800 dark:text-white">{item.service_name}</p>
-        <p className="text-[9px] text-slate-400">Completed{total > 1 ? ` · ${total} to rate` : ""}</p>
+    <motion.div data-testid="rate-service-bar" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 14 }} transition={{ duration: 0.22, ease: "easeOut" }}
+      className={`fixed z-[75] ${pos} sm:max-w-[400px] sm:mx-auto lg:mx-0 lg:w-[360px]`}>
+      <div className="flex items-center gap-3 h-14 pl-2 pr-2 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/80 shadow-[0_6px_20px_-6px_rgba(15,23,42,0.18)]">
+        <span className="h-10 w-10 shrink-0 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 grid place-items-center">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600" strokeWidth={2.2} />
+        </span>
+        <div className="min-w-0 flex-1 leading-tight">
+          <p data-testid="rate-service-name" className="truncate text-[13.5px] font-semibold text-slate-900 dark:text-white">{item.service_name}</p>
+          <p className="truncate text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Completed{total > 1 ? ` \u00b7 ${total - 1} more to rate` : ""}</p>
+        </div>
+        <button data-testid="rate-service-btn" onClick={onClick}
+          className="shrink-0 h-9 px-3.5 rounded-xl bg-primary-700 hover:bg-primary-800 text-white text-[12.5px] font-semibold tracking-tight active:scale-[0.97] transition-[transform,background-color] duration-150">
+          Rate service
+        </button>
       </div>
-      <button data-testid="rate-service-btn" onClick={onClick}
-        className="flex items-center gap-1 h-8 px-3 rounded-full bg-primary-700 hover:bg-primary-800 text-white text-xs font-extrabold active:scale-95 transition-transform">
-        <Star className="h-3 w-3 fill-amber-200 text-amber-200" /> Rate service
-      </button>
     </motion.div>
   );
 }

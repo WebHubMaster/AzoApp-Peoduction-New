@@ -62,6 +62,12 @@ export function PushNudge() {
   const { perm } = usePushDeviceState();
   const { pathname } = useLocation();
   const [hidden, setHidden] = useState(true);
+  const [rateBar, setRateBar] = useState(() => !!window.__azoRateBar);
+  useEffect(() => {
+    const on = () => setRateBar(!!window.__azoRateBar);
+    window.addEventListener("azo:ratebar", on);
+    return () => window.removeEventListener("azo:ratebar", on);
+  }, []);
   // Never cover the primary CTA on the service-detail or checkout pages (the
   // "Book Now" / "Confirm & Pay" buttons sit at the bottom on mobile).
   const suppressed = pathname.startsWith("/service/") || pathname === "/book" || pathname === "/login";
@@ -83,7 +89,7 @@ export function PushNudge() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-3 pointer-events-none" data-testid="push-nudge">
-      <div className="mx-auto max-w-md pointer-events-auto flex items-center gap-3 rounded-2xl bg-slate-900 text-white shadow-2xl ring-1 ring-white/10 px-4 py-3 azo-scale-in mb-16 sm:mb-3">
+      <div className={`mx-auto max-w-md pointer-events-auto flex items-center gap-3 rounded-2xl bg-slate-900 text-white shadow-2xl ring-1 ring-white/10 px-4 py-3 azo-scale-in ${rateBar ? "mb-[8.25rem] lg:mb-24" : "mb-16 sm:mb-3"}`}>
         <span className="h-9 w-9 rounded-xl bg-primary-600/25 grid place-items-center shrink-0"><BellRing className="h-4.5 w-4.5 text-primary-300" /></span>
         <div className="min-w-0 flex-1">
           <p className="text-[13px] font-semibold leading-tight">Turn on alerts</p>

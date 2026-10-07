@@ -65,23 +65,24 @@ export function RateServiceProvider({ children }: { children: React.ReactNode })
   );
 }
 
-/** Small pill pinned just above the bottom nav (right side). Pinned behind the keyboard. */
+/** Docked strip pinned just above the bottom nav. Stays pinned behind the keyboard. */
 export function RateServiceButton({ bottom }: { bottom: number }) {
   const { items, openLatest } = useRateService();
   const { c, isDark } = useTheme();
   if (!items.length) return null;
   const b = items[0];
   return (
-    <KeyboardFixedBottom testID="rate-service-bar" style={{ position: "absolute", right: 12, bottom: bottom + 10, zIndex: 50 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: c.surface, borderRadius: 999, paddingLeft: 10, paddingRight: 4, paddingVertical: 4, borderWidth: 1, borderColor: c.border, boxShadow: "0px 6px 18px rgba(15,23,42,0.16)" } as any}>
-        <CheckCircle2 size={16} color="#16A34A" />
-        <View style={{ maxWidth: 110 }}>
-          <Text testID="rate-service-name" numberOfLines={1} style={{ fontSize: 11, fontWeight: "700", color: isDark ? "#fff" : TC.text }}>{b.service_name}</Text>
-          <Text style={{ fontSize: 9, color: c.textFaint }}>Completed{items.length > 1 ? ` · ${items.length} to rate` : ""}</Text>
+    <KeyboardFixedBottom testID="rate-service-bar" style={{ position: "absolute", left: 12, right: 12, bottom: bottom + 8, zIndex: 50 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, height: 56, paddingHorizontal: 8, borderRadius: 16, backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, boxShadow: "0px 6px 20px rgba(15,23,42,0.14)" } as any}>
+        <View style={{ height: 40, width: 40, borderRadius: 12, backgroundColor: isDark ? "rgba(16,185,129,0.12)" : "#ECFDF5", alignItems: "center", justifyContent: "center" }}>
+          <CheckCircle2 size={20} color="#059669" />
         </View>
-        <Pressable testID="rate-service-btn" onPress={openLatest} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: PRIMARY[700], borderRadius: 999, paddingHorizontal: 12, height: 32, transform: [{ scale: pressed ? 0.95 : 1 }] })}>
-          <Star size={12} color="#FDE68A" fill="#FDE68A" />
-          <Text style={{ color: "#fff", fontSize: 12, fontWeight: "800" }}>Rate service</Text>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text testID="rate-service-name" numberOfLines={1} style={{ fontSize: 13.5, fontWeight: "600", color: isDark ? "#fff" : TC.text }}>{b.service_name}</Text>
+          <Text numberOfLines={1} style={{ fontSize: 11.5, color: c.textMuted, marginTop: 2 }}>Completed{items.length > 1 ? ` \u00b7 ${items.length - 1} more to rate` : ""}</Text>
+        </View>
+        <Pressable testID="rate-service-btn" onPress={openLatest} style={({ pressed }) => ({ backgroundColor: PRIMARY[700], borderRadius: 12, paddingHorizontal: 14, height: 36, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.97 : 1 }] })}>
+          <Text style={{ color: "#fff", fontSize: 12.5, fontWeight: "600" }}>Rate service</Text>
         </Pressable>
       </View>
     </KeyboardFixedBottom>
