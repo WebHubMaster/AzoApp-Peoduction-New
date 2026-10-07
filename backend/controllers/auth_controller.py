@@ -334,6 +334,30 @@ async def add_address(user, addr: AddressModel):
     u = await db.users.find_one({"id": user["id"]}, {"_id": 0})
     addresses = (u or {}).get("addresses", [])
     doc = addr.model_dump()
+    # De-dupe: if the SAME address already exists, reuse it instead of appending a
+    # duplicate (e.g. tapping "Use current location" repeatedly). Match on near-equal
+    # coordinates (~11m) OR identical normalized line + city + pincode. The matched
+    # address is moved to the end so callers that select the "latest" address resolve
+    # to it, and no new row is created.
+    def _n(s):
+        return " ".join(str(s or "").strip().lower().split())
+    def _close(a, b):
+        try:
+            return a is not None and b is not None and abs(float(a) - float(b)) < 1e-4
+        except (TypeError, ValueError):
+            return False
+    match = None
+    for a in addresses:
+        same_coords = _close(a.get("lat"), doc.get("lat")) and _close(a.get("lng"), doc.get("lng"))
+        same_text = (_n(a.get("line")) == _n(doc.get("line")) and _n(a.get("city")) == _n(doc.get("city"))
+                     and str(a.get("pincode") or "") == str(doc.get("pincode") or ""))
+        if same_coords or same_text:
+            match = a
+            break
+    if match:
+        addresses = [a for a in addresses if a.get("id") != match.get("id")] + [match]
+        await db.users.update_one({"id": user["id"]}, {"$set": {"addresses": addresses}})
+        return await db.users.find_one({"id": user["id"]}, {"_id": 0})
     doc["id"] = new_id()
     if doc.get("is_default") or not any(a.get("is_default") for a in addresses):
         doc["is_default"] = True

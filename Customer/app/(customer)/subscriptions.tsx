@@ -74,12 +74,27 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
       const lat = pos.coords.latitude, lng = pos.coords.longitude;
       let rev: any = {};
       try { rev = await api.get(`/geo/reverse?lat=${lat}&lng=${lng}`, { auth: false }); } catch (_) {}
+      const line = rev.line || rev.formatted || "Current location";
+      const city = rev.city || rev.town || rev.state || "";
+      const pincode = String(rev.pincode || rev.postcode || "");
+
+      // De-dupe: if the SAME address already exists, just SELECT it instead of
+      // creating another "Current location" copy on every tap. Match on the
+      // resolved line+pincode, or on near-identical coordinates (~11m).
+      const norm = (s: any) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const close = (a: any, b: any) => a != null && b != null && Math.abs(Number(a) - Number(b)) < 1e-4;
+      const existing = addresses.find((a) =>
+        (close(a.lat, lat) && close(a.lng, lng)) ||
+        (norm(a.line) === norm(line) && String(a.pincode || "") === pincode && norm(a.city) === norm(city)),
+      );
+      if (existing) { setAddrId(existing.id); toast.success("Using your current location"); return; }
+
       const u = await api.post<any>("/auth/address", {
         label: "Current location",
-        line: rev.line || rev.formatted || "Current location",
-        city: rev.city || rev.town || rev.state || "",
+        line,
+        city,
         state: rev.state || "",
-        pincode: String(rev.pincode || rev.postcode || ""),
+        pincode,
         lat, lng, is_default: false,
       });
       const list = (u?.addresses || []) as any[];
