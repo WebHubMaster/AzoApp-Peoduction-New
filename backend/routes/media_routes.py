@@ -133,6 +133,12 @@ async def serve_file(path: str):
 async def serve_s3(key: str, request: Request):
     """Stream a private-bucket S3 object through the backend so it displays on the site."""
     # Keys are uuid-named (immutable) → a revalidation can be answered without S3.
+    if key.lower().endswith(".apk"):
+        from fastapi.responses import RedirectResponse
+        signed = await storage_service.presign_s3(key)
+        if not signed:
+            raise HTTPException(status_code=404, detail="File not found")
+        return RedirectResponse(signed, status_code=302, headers={"Cache-Control": "no-store"})
     etag = f'"{key.rsplit("/", 1)[-1]}"'
     if request.headers.get("if-none-match") == etag:
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=31536000, immutable"})

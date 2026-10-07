@@ -6,7 +6,32 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
-const CHUNK = 4 * 1024 * 1024; // 4MB
+// 768KB stays under Nginx's default 1MB client_max_body_size on self-hosted proxies
+const CHUNK = 768 * 1024;
+const PARALLEL = 4;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function httpError(res, fallback) {
+  let msg = fallback;
+  try { const j = await res.json(); if (j?.detail) msg = j.detail; } catch { /* non-JSON proxy page */ }
+  if (res.status === 413) msg = "Server rejected the upload size (413) — proxy body limit too low.";
+  if (res.status === 401 || res.status === 403) msg = "Session expired — please log in again.";
+  const err = new Error(`${msg} [HTTP ${res.status}]`);
+  err.fatal = res.status === 400 || res.status === 401 || res.status === 403 || res.status === 413 || res.status === 404;
+  return err;
+}
+
+async function withRetry(fn, tries = 6) {
+  let last;
+  for (let a = 0; a < tries; a += 1) {
+    try { return await fn(); } catch (err) {
+      last = err;
+      if (err.fatal) throw err;
+      await sleep(Math.min(1000 * 2 ** a, 10000));
+    }
+  }
+  throw new Error(last?.message === "Failed to fetch" ? "Network error — could not reach the server. Check your connection and try again." : String(last?.message || last));
+}
 const PLATFORMS = [
   { key: "customer", label: "Customer App", pkg: "app.azoapp.homeservice" },
   { key: "partner", label: "Partner App", pkg: "app.azoapp.partner" },
@@ -47,6 +72,7 @@ function AppForm({ platform, cfg, onSaved }) {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [pct, setPct] = useState(0);
+  const [stage, setStage] = useState("");
   const fileRef = useRef(null);
   useEffect(() => { setF(cfg); }, [cfg]);
   const set = (k, v) => setF((p) => ({ ...p, [k]: v }));
@@ -80,32 +106,60 @@ function AppForm({ platform, cfg, onSaved }) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.name.toLowerCase().endsWith(".apk")) { toast.error("Only .apk files are allowed"); return; }
-    setUploading(true); setPct(0);
+    setUploading(true); setPct(0); setStage("Uploading");
     const uploadId = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
     const token = localStorage.getItem("azo_token");
+    const auth = { Authorization: `Bearer ${token}` };
     try {
       const total = Math.ceil(file.size / CHUNK);
-      for (let i = 0; i < total; i += 1) {
+      let done = 0;
+      let next = 0;
+      const sendOne = async (i) => {
         const blob = file.slice(i * CHUNK, (i + 1) * CHUNK);
-        const res = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/chunk`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "X-Upload-Id": uploadId, "X-Chunk-Index": String(i), "Content-Type": "application/octet-stream" },
-          body: blob,
+        await withRetry(async () => {
+          const res = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/chunk`, {
+            method: "POST",
+            headers: { ...auth, "X-Upload-Id": uploadId, "X-Chunk-Index": String(i), "Content-Type": "application/octet-stream" },
+            body: blob,
+          });
+          if (!res.ok) throw await httpError(res, `Part ${i + 1}/${total} failed`);
         });
-        if (!res.ok) throw new Error("Chunk upload failed");
-        setPct(Math.round(((i + 1) / total) * 100));
+        done += 1;
+        setPct(Math.round((done / total) * 100));
+      };
+      const worker = async () => { while (next < total) { const i = next; next += 1; await sendOne(i); } };
+      await Promise.all(Array.from({ length: Math.min(PARALLEL, total) }, worker));
+      setStage("Processing");
+      const job = await withRetry(async () => {
+        const fin = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/finish`, {
+          method: "POST",
+          headers: { ...auth, "Content-Type": "application/json" },
+          body: JSON.stringify({ upload_id: uploadId, total_chunks: total, size: file.size }),
+        });
+        if (!fin.ok) throw await httpError(fin, "APK validation failed");
+        return fin.json();
+      }, 2);
+      const started = Date.now();
+      for (;;) {
+        await sleep(2000);
+        if (Date.now() - started > 30 * 60 * 1000) throw new Error("Processing timed out — please try again.");
+        let st;
+        try {
+          const r = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/status/${job.job_id}`, { headers: auth });
+          if (!r.ok) throw await httpError(r, "Status check failed");
+          st = await r.json();
+        } catch (err) { if (err.fatal) throw err; continue; }
+        if (st.stage) setStage(st.stage);
+        if (st.status === "error") throw new Error(st.error || "APK upload failed");
+        if (st.status === "done") {
+          const data = st.result || {};
+          toast.success(`APK uploaded · v${data.version_name} (code ${data.version_code})`);
+          onSaved(data);
+          break;
+        }
       }
-      const fin = await fetch(`${API}/app-mgmt/admin/apk/${platform.key}/finish`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ upload_id: uploadId }),
-      });
-      const data = await fin.json();
-      if (!fin.ok) throw new Error(data?.detail || "APK validation failed");
-      toast.success(`APK uploaded · v${data.version_name} (code ${data.version_code})`);
-      onSaved(data);
     } catch (err) { toast.error(String(err.message || err)); }
-    setUploading(false); setPct(0);
+    setUploading(false); setPct(0); setStage("");
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -146,7 +200,7 @@ function AppForm({ platform, cfg, onSaved }) {
           <input ref={fileRef} data-testid={`apk-input-${platform.key}`} type="file" accept=".apk,application/vnd.android.package-archive" className="hidden" onChange={uploadApk} />
           <div className="mt-3 flex gap-2">
             <Button data-testid={`apk-upload-btn-${platform.key}`} disabled={uploading || deleting} onClick={() => fileRef.current?.click()} className="flex-1 bg-slate-800 hover:bg-slate-900 text-white">
-              {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Uploading… {pct}%</> : <>Upload / Replace APK</>}
+              {uploading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" /> {stage === "Uploading" || !stage ? `Uploading… ${pct}%` : `${stage}…`}</> : <>Upload / Replace APK</>}
             </Button>
             {f.apk_url ? (
               <Button data-testid={`apk-delete-btn-${platform.key}`} disabled={uploading || deleting} onClick={deleteApk} variant="outline" className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950" title="Delete uploaded APK">
@@ -155,6 +209,7 @@ function AppForm({ platform, cfg, onSaved }) {
             ) : null}
           </div>
           {uploading ? <div className="mt-2 h-2 w-full rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden"><div className="h-full bg-primary-600 transition-all" style={{ width: `${pct}%` }} /></div> : null}
+          {uploading && stage ? <p data-testid={`apk-stage-${platform.key}`} className="mt-1 text-[11px] text-slate-500">{stage}{stage === "Uploading" ? ` · ${pct}%` : " — please keep this tab open"}</p> : null}
         </div>
 
         <ToggleRow testId={`update-enabled-${platform.key}`} label="Update Enabled" desc="Turn the in-app update check on/off" value={f.update_enabled} onChange={(v) => set("update_enabled", v)} />

@@ -256,6 +256,45 @@ async def _put(name: str, data: bytes, mime: str, base_hint: str = "") -> str:
     return f"{base}/{name}"
 
 
+async def put_file(name: str, path: str, mime: str, base_hint: str = "") -> str:
+    """Store a large file from disk (streamed multipart to S3, or copied locally)."""
+    import anyio
+    conf = await _s3_conf()
+    if conf:
+        from boto3.s3.transfer import TransferConfig
+        from botocore.exceptions import ClientError, BotoCoreError
+        key = _s3_key(conf, name)
+        client = _client(conf)
+        cfg = TransferConfig(multipart_threshold=16 * 1024 * 1024, multipart_chunksize=16 * 1024 * 1024,
+                             max_concurrency=4)
+
+        def _do():
+            client.upload_file(path, conf["bucket"], key, Config=cfg,
+                               ExtraArgs={"ContentType": mime, "CacheControl": "public, max-age=31536000, immutable"})
+        try:
+            await anyio.to_thread.run_sync(_do)
+        except (ClientError, BotoCoreError) as e:
+            raise ValueError(f"AWS S3 upload failed: {_s3_error_msg(e)}. Open Integration Center → AWS S3 → Test Connection to diagnose.")
+        return _public_url(conf, key, base_hint)
+    import shutil
+    dest = UPLOAD_DIR / name
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    await anyio.to_thread.run_sync(shutil.copyfile, path, str(dest))
+    backend_url = (os.environ.get("REACT_APP_BACKEND_URL", "") or base_hint or "").rstrip("/")
+    base = f"{backend_url}/api/media/file" if backend_url else "/api/media/file"
+    return f"{base}/{name}"
+
+
+async def presign_s3(key: str, expires: int = 3600) -> Optional[str]:
+    """Short-lived direct S3 download URL (large files skip the backend proxy)."""
+    s = await get_settings()
+    conf = _conf_from_integ(s.get("integrations", {}) or {})
+    if not conf:
+        return None
+    return _client(conf).generate_presigned_url(
+        "get_object", Params={"Bucket": conf["bucket"], "Key": key}, ExpiresIn=expires)
+
+
 async def delete_stored(ref: str) -> bool:
     """Delete a previously-stored object given its stored URL or storage name.
     Handles: local media URL (/api/media/file/<name>), S3 proxy URL

@@ -8,7 +8,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 # Configuration
-BASE_URL = "https://finance-console-3.preview.emergentagent.com/api"
+BASE_URL = "https://upload-handler-patch.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

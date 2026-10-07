@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timedelta
 
 # Backend URL
-API = "https://finance-console-3.preview.emergentagent.com/api"
+API = "https://upload-handler-patch.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

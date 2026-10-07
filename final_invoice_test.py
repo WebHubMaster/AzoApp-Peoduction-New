@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://finance-console-3.preview.emergentagent.com/api"
+BASE_URL = "https://upload-handler-patch.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

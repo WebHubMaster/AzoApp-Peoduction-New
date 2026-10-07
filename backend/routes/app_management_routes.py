@@ -14,8 +14,6 @@ ADMIN = require_role("admin")
 
 PLATFORMS = ("customer", "partner")
 EXPECTED_PACKAGE = {"customer": "app.azoapp.homeservice", "partner": "app.azoapp.partner"}
-_CHUNK_DIR = os.path.join(tempfile.gettempdir(), "azo_apk_uploads")
-os.makedirs(_CHUNK_DIR, exist_ok=True)
 
 # editable text/flag fields the admin controls per platform
 _CONFIG_FIELDS = {
@@ -77,62 +75,143 @@ async def admin_save(platform: str, body: dict, user=Depends(ADMIN)):
     return await _get(platform)
 
 
+_MAX_CHUNK = 8 * 1024 * 1024
+_TASKS: set = set()
+_IDX_READY = False
+
+
+async def _ensure_indexes():
+    global _IDX_READY
+    if not _IDX_READY:
+        await db.apk_upload_chunks.create_index([("upload_id", 1), ("index", 1)], unique=True)
+        await db.apk_upload_chunks.create_index("created_at_dt", expireAfterSeconds=6 * 3600)
+        _IDX_READY = True
+
+
+def _check_upload_id(upload_id: str):
+    if not upload_id or len(upload_id) > 80 or not all(c.isalnum() or c in "-_" for c in upload_id):
+        raise HTTPException(status_code=400, detail="Missing/invalid upload id")
+
+
 @router.post("/admin/apk/{platform}/chunk")
 async def upload_chunk(platform: str, request: Request, user=Depends(ADMIN)):
-    """Append one raw binary chunk. Headers: X-Upload-Id, X-Chunk-Index (0-based)."""
+    """Store one small binary chunk in MongoDB (idempotent per index → retry-safe and
+    works across multiple containers/workers). Headers: X-Upload-Id, X-Chunk-Index."""
+    from datetime import datetime, timezone
+    from bson import Binary
     _valid_platform(platform)
     upload_id = request.headers.get("x-upload-id", "")
-    if not upload_id or any(c in upload_id for c in "/\\.."):
-        raise HTTPException(status_code=400, detail="Missing/invalid X-Upload-Id")
-    idx = request.headers.get("x-chunk-index", "0")
-    path = os.path.join(_CHUNK_DIR, f"{platform}__{upload_id}.part")
+    _check_upload_id(upload_id)
+    try:
+        idx = int(request.headers.get("x-chunk-index", ""))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Missing/invalid X-Chunk-Index")
     body = await request.body()
-    with open(path, "ab") as fh:
-        fh.write(body)
-    return {"ok": True, "index": idx, "received": os.path.getsize(path)}
+    if not body or len(body) > _MAX_CHUNK:
+        raise HTTPException(status_code=400, detail="Empty or oversized chunk")
+    await _ensure_indexes()
+    await db.apk_upload_chunks.update_one(
+        {"upload_id": upload_id, "index": idx},
+        {"$set": {"platform": platform, "data": Binary(body), "size": len(body),
+                  "created_at_dt": datetime.now(timezone.utc)}},
+        upsert=True)
+    return {"ok": True, "index": idx, "size": len(body)}
 
 
 @router.post("/admin/apk/{platform}/finish")
 async def finish_upload(platform: str, body: dict, user=Depends(ADMIN)):
-    """Assemble the uploaded chunks, validate it's the RIGHT app's APK, store in S3."""
+    """Kick off background assembly + validation + storage; returns a job id to poll.
+    Never blocks the request (big APKs would otherwise hit proxy timeouts)."""
+    import asyncio
+    import uuid
     _valid_platform(platform)
-    upload_id = (body or {}).get("upload_id", "")
-    path = os.path.join(_CHUNK_DIR, f"{platform}__{upload_id}.part")
-    if not upload_id or not os.path.exists(path):
-        raise HTTPException(status_code=400, detail="No uploaded file found — please re-upload.")
+    body = body or {}
+    upload_id = body.get("upload_id", "")
+    _check_upload_id(upload_id)
+    total = int(body.get("total_chunks") or 0)
+    size = int(body.get("size") or 0)
+    got = await db.apk_upload_chunks.count_documents({"upload_id": upload_id, "platform": platform})
+    if not got or (total and got != total):
+        raise HTTPException(status_code=400, detail=f"Upload incomplete ({got}/{total} parts received) — please re-upload.")
+    job_id = uuid.uuid4().hex
+    await db.apk_upload_jobs.insert_one({"id": job_id, "platform": platform, "upload_id": upload_id,
+                                         "status": "processing", "stage": "Assembling file",
+                                         "error": "", "result": None, "created_at": now_iso()})
+    t = asyncio.create_task(_process_upload(job_id, platform, upload_id, size))
+    _TASKS.add(t)
+    t.add_done_callback(_TASKS.discard)
+    return {"ok": True, "job_id": job_id, "status": "processing"}
+
+
+@router.get("/admin/apk/{platform}/status/{job_id}")
+async def upload_status(platform: str, job_id: str, user=Depends(ADMIN)):
+    job = await db.apk_upload_jobs.find_one({"id": job_id, "platform": platform}, {"_id": 0})
+    if not job:
+        raise HTTPException(status_code=404, detail="Upload job not found")
+    return job
+
+
+async def _job(job_id: str, **upd):
+    await db.apk_upload_jobs.update_one({"id": job_id}, {"$set": upd})
+
+
+async def _process_upload(job_id: str, platform: str, upload_id: str, size: int):
+    import anyio
+    fd, path = tempfile.mkstemp(suffix=".apk")
+    os.close(fd)
     try:
-        import anyio
-        # Reading a multi-MB APK + parsing its manifest is blocking/CPU-bound — run it
-        # off the event loop so the single worker stays responsive on large uploads
-        # (a stalled worker is what surfaces as a cryptic "Failed to fetch" in the admin).
-        raw = await anyio.to_thread.run_sync(lambda: open(path, "rb").read())
-        if len(raw) < 1024:
+        written = 0
+        with open(path, "wb") as fh:
+            cur = db.apk_upload_chunks.find({"upload_id": upload_id}, {"data": 1, "index": 1}).sort("index", 1)
+            expected_idx = 0
+            async for ch in cur:
+                if ch["index"] != expected_idx:
+                    raise HTTPException(status_code=400, detail="Upload has missing parts — please re-upload.")
+                fh.write(bytes(ch["data"]))
+                written += len(ch["data"])
+                expected_idx += 1
+        if size and written != size:
+            raise HTTPException(status_code=400, detail=f"Upload size mismatch ({written} of {size} bytes) — please re-upload.")
+        if written < 1024:
             raise HTTPException(status_code=400, detail="File is empty or too small to be an APK.")
-        pkg, vcode, vname = await anyio.to_thread.run_sync(_parse_apk, raw)
+        await _job(job_id, stage="Validating APK")
+        pkg, vcode, vname = await anyio.to_thread.run_sync(_parse_apk, path)
         expected = EXPECTED_PACKAGE[platform]
         if pkg != expected:
             raise HTTPException(
                 status_code=400,
                 detail=f"This APK does not belong to the {platform.title()} App "
                        f"(found package '{pkg}', expected '{expected}').")
-        apk_name = f"app-mgmt/{platform}/{expected}-{vcode}.apk"
-        url = await storage_service._put(apk_name, raw, "application/vnd.android.package-archive")
-        upd = {"apk_url": url, "apk_size": len(raw), "apk_package": pkg,
+        await _job(job_id, stage="Saving to storage")
+        old = await _get(platform)
+        apk_name = f"app-mgmt/{platform}/{expected}-{vcode}-{upload_id[-8:]}.apk"
+        url = await storage_service.put_file(apk_name, path, "application/vnd.android.package-archive")
+        upd = {"apk_url": url, "apk_size": written, "apk_package": pkg,
                "apk_version_name": vname, "apk_key": apk_name, "updated_at": now_iso()}
-        # auto-fill the version fields from the APK if the admin left them blank
-        cur = await _get(platform)
-        if not cur.get("version_code"):
+        if not old.get("version_code"):
             upd["version_code"] = vcode
-        if not cur.get("latest_version"):
+        if not old.get("latest_version"):
             upd["latest_version"] = vname
         await db.app_config.update_one({"platform": platform}, {"$set": upd}, upsert=True)
-        return {"ok": True, "package": pkg, "version_code": vcode, "version_name": vname,
-                "size": len(raw), "apk_url": url, **(await _get(platform))}
+        old_ref = old.get("apk_key") or ""
+        if old_ref and old_ref != apk_name:
+            try:
+                await storage_service.delete_stored(old_ref)
+            except Exception:  # noqa: BLE001
+                pass
+        result = {"package": pkg, "version_code": vcode, "version_name": vname,
+                  "size": written, "apk_url": url, **(await _get(platform))}
+        await _job(job_id, status="done", stage="Done", result=result)
+    except HTTPException as e:
+        await _job(job_id, status="error", error=str(e.detail))
+    except Exception as e:  # noqa: BLE001
+        await _job(job_id, status="error", error=f"Upload failed: {e}")
     finally:
         try:
             os.remove(path)
         except OSError:
             pass
+        await db.apk_upload_chunks.delete_many({"upload_id": upload_id})
 
 
 @router.delete("/admin/apk/{platform}")
@@ -157,20 +236,18 @@ async def delete_apk(platform: str, user=Depends(ADMIN)):
     return {"ok": True, "file_deleted": deleted, **(await _get(platform))}
 
 
-def _parse_apk(raw: bytes):
-    """Return (package, version_code, version_name). Rejects anything that isn't a
-    real Android APK (must be a ZIP with a parseable AndroidManifest)."""
-    import io
+def _parse_apk(path: str):
+    """Return (package, version_code, version_name) from an APK file on disk."""
     import zipfile
-    if not zipfile.is_zipfile(io.BytesIO(raw)):
+    if not zipfile.is_zipfile(path):
         raise HTTPException(status_code=400, detail="Invalid file — not a valid APK (must be a signed .apk).")
-    with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+    with zipfile.ZipFile(path) as zf:
         names = set(zf.namelist())
     if "AndroidManifest.xml" not in names:
         raise HTTPException(status_code=400, detail="Invalid APK — AndroidManifest.xml missing.")
     try:
         from pyaxmlparser import APK as _APK
-        apk = _APK(raw, raw=True)
+        apk = _APK(path)
         pkg = apk.package or ""
         vcode = int(apk.version_code or 0)
         vname = apk.version_name or ""
