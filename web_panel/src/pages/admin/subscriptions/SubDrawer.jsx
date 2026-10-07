@@ -144,6 +144,7 @@ export default function SubDrawer({ id, focus, onClose, onChanged, onCopy, onInv
             </Sec>
             <Sec icon={Wallet} title="Payment" id="sub-sec-payment" right={s.payment_status === "paid" && <button type="button" onClick={() => onInvoice(s)} className="inline-flex items-center gap-1 text-[12px] font-medium text-[#0D47A1] hover:underline" data-testid="sub-drawer-invoice"><FileText className="h-3.5 w-3.5" />Invoice</button>}>
               <R l="Plan Amount" v={inr(s.price)} />
+              {(s.platform_fee || 0) > 0 && <R l="Platform Fee" v={inr(s.platform_fee)} />}
               {(s.gst_amount || 0) > 0 && <R l={`GST${s.gst_pct ? ` (${s.gst_pct}%)` : ""}`} v={inr(s.gst_amount)} />}
               {s.total_payable != null && <R l="Total Payable" v={inr(s.total_payable)} strong />}
               <R l="Paid" v={s.payment_status === "paid" ? inr(s.total_payable ?? s.price) : inr(0)} tone="text-[#15803D] font-semibold" />
@@ -154,7 +155,8 @@ export default function SubDrawer({ id, focus, onClose, onChanged, onCopy, onInv
             <Sec icon={TrendingUp} title="Earnings" id="sub-sec-earnings">
               <R l="Gross Amount" v={inr(s.price)} />
               <R l={`Commission (${s.commission_pct ?? 0}%)`} v={inr(s.commission_amount)} />
-              {(s.tax_amount || 0) > 0 && <R l={`Tax (${s.tax_pct}%)`} v={inr(s.tax_amount)} />}
+              {(s.platform_fee || 0) > 0 && <R l="Platform Fee" v={inr(s.platform_fee)} />}
+              {(s.tax_amount || 0) > 0 && <R l={`GST (${s.tax_pct}%) · on commission`} v={inr(s.tax_amount)} />}
               <R l="Maid Allocation (max)" v={inr(s.partner_allocation)} />
               <R l="Per-day Earning" v={inr(s.per_day_earning)} />
               <R l="Absent Adjustment → Platform" v={inr(s.absent_adjustment)} tone="text-[#B91C1C]" />

@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://tiered-job-alerts.preview.emergentagent.com  
+**App URL:** https://maid-billing-correct.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary

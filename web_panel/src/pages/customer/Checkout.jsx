@@ -140,10 +140,11 @@ const MemberSavingsBadge = ({ totals }) => {
 
 // Cart item → API request line (shared by cart-quote preview, coupon validation and booking).
 // A subscription line is priced through the SAME engine as a normal booking by sending it
-// as a "custom" line whose price is the chosen plan price — so GST, service charge and every
-// other charge are computed identically. The only difference is placement (see placeSubscription).
+// as a "custom" line whose price is the chosen plan price, with the WHOLE plan amount
+// marked as commissionable labour — so platform commission, platform fee and GST (on
+// commission + platform fee) are computed identically to a normal service booking.
 const toReqItem = (it) => (it.subscription
-  ? { custom: true, custom_name: `${it.name} — ${it.plan_label || it.plan_type} plan`, custom_price: Number(it.plan_price) || 0, labour_charge: 0, category_id: it.category_id, category_name: it.category_name, qty: 1 }
+  ? { custom: true, custom_name: `${it.name} — ${it.plan_label || it.plan_type} plan`, custom_price: Number(it.plan_price) || 0, labour_charge: Number(it.plan_price) || 0, category_id: it.category_id, category_name: it.category_name, qty: 1 }
   : it.custom
   ? { custom: true, custom_name: it.custom_name, custom_price: it.custom_price, labour_charge: it.labour_charge || 0, category_id: it.category_id, category_name: it.category_name, qty: it.qty }
   : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id, category_name: it.category_name });

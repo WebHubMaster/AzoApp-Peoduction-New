@@ -185,7 +185,7 @@ function SubCard({ s }) {
         </div>
         <div className="text-right shrink-0">
           <p className="text-[10px] uppercase tracking-wide text-slate-400 font-semibold">Total</p>
-          <p className="font-heading font-extrabold text-2xl text-slate-900">{fmt(s.price)}</p>
+          <p className="font-heading font-extrabold text-2xl text-slate-900">{fmt(s.total_payable ?? s.price)}</p>
         </div>
       </div>
 
@@ -202,7 +202,7 @@ function SubCard({ s }) {
 
       {/* overview stat cards */}
       <div className="px-5 sm:px-6 grid grid-cols-2 lg:grid-cols-4 gap-3" data-testid={`my-sub-overview-${s.id}`}>
-        <OverviewCard icon={IndianRupee} label="Customer Paid" value={fmt(s.price)} tone={{ bg: "bg-primary-50", fg: "text-primary-700" }} />
+        <OverviewCard icon={IndianRupee} label="Customer Paid" value={fmt(s.total_payable ?? s.price)} tone={{ bg: "bg-primary-50", fg: "text-primary-700" }} />
         <OverviewCard icon={Calendar} label="Working Days" value={wd} tone={{ bg: "bg-blue-50", fg: "text-blue-600" }} />
         <OverviewCard icon={CheckCircle2} label="Completed" value={done} tone={{ bg: "bg-emerald-50", fg: "text-emerald-600", val: "text-emerald-700" }} />
         <OverviewCard icon={XCircle} label="Absent" value={absent} tone={{ bg: "bg-rose-50", fg: "text-rose-500", val: absent ? "text-rose-600" : "text-slate-900" }} />
@@ -285,7 +285,10 @@ function SubCard({ s }) {
               <p className="text-sm text-slate-400">No arrivals recorded yet. Your maid's arrival time will show here each day.</p>
             )}
             <div className="mt-3 pt-3 border-t border-slate-50 space-y-0">
-              <DetailRow k="Amount paid" v={fmt(s.price)} strong />
+              <DetailRow k="Plan amount" v={fmt(s.price)} />
+              {(s.platform_fee || 0) > 0 && <DetailRow k="Platform fee" v={fmt(s.platform_fee)} />}
+              {(s.gst_amount || 0) > 0 && <DetailRow k={`GST${s.gst_pct ? ` (${s.gst_pct}%)` : ""}`} v={fmt(s.gst_amount)} />}
+              <DetailRow k="Amount paid" v={fmt(s.total_payable ?? s.price)} strong />
               <DetailRow k="Weekly off" v={(s.weekly_offs || []).length ? s.weekly_offs.map((d) => WD[d]).join(", ") : "None"} />
               <DetailRow k="Subscription status" v={<StatusChip label={status.replace(/_/g, " ")} tone={tone} />} />
             </div>

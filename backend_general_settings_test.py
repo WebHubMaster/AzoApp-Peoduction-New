@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://tiered-job-alerts.preview.emergentagent.com/api"
+BASE_URL = "https://maid-billing-correct.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

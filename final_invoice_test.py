@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://tiered-job-alerts.preview.emergentagent.com/api"
+BASE_URL = "https://maid-billing-correct.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

@@ -29,7 +29,7 @@ export const lineFromService = (svc: any, { tier_index = null, addons = [], qty 
 
 /** Cart item → API request line (cart-quote / validate-coupon / bookings). */
 export const toReqItem = (it: any) => (it.subscription
-  ? { custom: true, custom_name: `${it.name} — ${it.plan_label || it.plan_type} plan`, custom_price: Number(it.plan_price) || 0, labour_charge: 0, category_id: it.category_id, category_name: it.category_name, qty: 1 }
+  ? { custom: true, custom_name: `${it.name} — ${it.plan_label || it.plan_type} plan`, custom_price: Number(it.plan_price) || 0, labour_charge: Number(it.plan_price) || 0, category_id: it.category_id, category_name: it.category_name, qty: 1 }
   : it.custom
   ? { custom: true, custom_name: it.custom_name, custom_price: it.custom_price, labour_charge: it.labour_charge || 0, category_id: it.category_id, category_name: it.category_name, qty: it.qty }
   : { service_id: it.service_id, tier_index: it.tier_index, addons: (it.addons || []).map((n: string) => ({ name: n, qty: Math.max(1, (it.addonQty || {})[n] || 1) })), qty: it.qty, category_id: it.category_id, category_name: it.category_name });

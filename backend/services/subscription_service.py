@@ -1,15 +1,18 @@
 """Core engine for recurring subscription bookings (Maid & future recurring
 categories: Cook, Nanny, Babysitter, Caretaker, Driver, Housekeeping...).
 
-Financial model (all amounts decimal-safe via services.money):
-  gross              = plan price the customer pays UPFRONT
-  commission_amount  = gross × commission_pct          (platform base commission)
-  tax_amount         = gross × tax_pct                 (platform-collected tax)
-  partner_allocation = gross − commission_amount − tax_amount   (MAX maid earning)
+Financial model — IDENTICAL to a normal service booking (services.engines.PricingEngine):
+  gross              = plan price (the service amount, commissionable in full)
+  commission_amount  = gross × commission_pct          (platform commission)
+  partner_allocation = gross − commission_amount        (MAX maid earning; NEVER taxed)
+  platform_fee       = fixed platform fee, charged to the customer ON TOP
+  tax_amount (GST)   = (commission_amount + platform_fee) × gst_pct   (collected from
+                       the customer on top; remitted to govt, NOT platform income)
+  total_payable      = gross + platform_fee + GST       (what the customer pays upfront)
   per_day_earning    = partner_allocation / working_days
 
-Commission %, tax %, allocation, working_days and per-day earning are SNAPSHOTTED
-on the subscription at booking time — later admin changes never affect it.
+Commission %, GST, allocation, platform fee, working_days and per-day earning are
+SNAPSHOTTED on the subscription at booking time — later admin changes never affect it.
 
 Daily accrual on the generated schedule:
   completed (original)      -> +per_day to the assigned maid
@@ -61,13 +64,20 @@ ATTENDANCE_RADIUS_M = 200
 
 
 def commission_pct_for(settings: dict) -> float:
-    """Resolve the platform commission % applied to subscriptions. Admin-configurable:
-    settings.commission.subscription_commission_pct wins, else the platform base %."""
+    """Resolve the platform commission % applied to subscriptions — IDENTICAL to a
+    normal service booking (services.engines.PricingEngine.commission_pct):
+      • an explicit admin override (commission.subscription_commission_pct) wins, else
+      • 100 − partner share %  (the SAME category-wise rule a normal booking uses).
+    We deliberately do NOT fall back to platform_pct, which can diverge from partner_pct
+    and would make the subscription total differ from the normal-booking quote."""
     cm = settings.get("commission", {}) or {}
     val = cm.get("subscription_commission_pct")
-    if val in (None, ""):
-        val = cm.get("platform_pct", settings.get("platform_commission_pct", 20))
-    return float(val or 0)
+    if val not in (None, ""):
+        return float(val or 0)
+    partner_pct = cm.get("partner_pct")
+    if partner_pct not in (None, ""):
+        return round(max(0.0, 100.0 - float(partner_pct)), 4)
+    return float(cm.get("platform_pct", settings.get("platform_commission_pct", 20)) or 0)
 
 
 def resolve_plan(service: dict, plan_type: str) -> dict:
@@ -142,33 +152,55 @@ def strip_otps_for_partner(sub: dict) -> dict:
     return s
 
 
-def compute_financials(gross: float, commission_pct: float, tax_pct: float, working_days: int) -> dict:
+def compute_financials(gross: float, commission_pct: float, gst_pct: float,
+                       working_days: int, platform_fee: float = 0.0) -> dict:
+    """Price a subscription plan EXACTLY like a normal service booking
+    (services.engines.PricingEngine.finalize):
+      • platform commission is levied on the FULL plan amount (service_net),
+      • the maid earns  gross − commission  (tax is NEVER deducted from her share),
+      • GST is levied ONLY on (commission + platform fee), collected from the customer
+        ON TOP of the plan price — just like a normal booking,
+      • total the customer pays = plan price + platform fee + GST.
+    The returned `pricing` is a full normal-booking pricing object so the invoice and
+    cancellation engines get every key they expect."""
+    from services.engines import PricingEngine
     gross = money.money(gross)
-    commission_amount = money.pct(gross, commission_pct)
-    tax_amount = money.pct(gross, tax_pct)
-    partner_allocation = money.add(gross, -commission_amount, -tax_amount)
+    platform_fee = money.money(platform_fee or 0)
+    pricing = PricingEngine.finalize({
+        "base": gross, "addons_total": 0.0, "emergency_fee": 0.0, "surge": 0.0,
+        "visiting_charge": 0.0, "convenience_fee": 0.0, "platform_fee": platform_fee,
+        "discount": 0.0, "subtotal": gross,
+        "commission_pct": float(commission_pct or 0),
+    }, gst_pct)
+    wd = max(1, int(working_days or 1))
+    partner_allocation = money.money(pricing.get("partner_share") or 0)
     if partner_allocation < 0:
         partner_allocation = 0.0
-    wd = max(1, int(working_days or 1))
     per_day = money.money(partner_allocation / wd)
     return {
         "gross": gross,
-        "commission_pct": float(commission_pct or 0),
-        "commission_amount": commission_amount,
-        "tax_pct": float(tax_pct or 0),
-        "tax_amount": tax_amount,
+        "commission_pct": float(pricing.get("commission_pct") or 0),
+        "commission_amount": money.money(pricing.get("platform_commission") or 0),
+        "platform_fee": money.money(pricing.get("platform_fee") or 0),
+        "tax_pct": float(pricing.get("gst_pct") or 0),
+        "tax_amount": money.money(pricing.get("gst") or 0),
         "partner_allocation": partner_allocation,
         "working_days": wd,
         "per_day_earning": per_day,
+        "total_payable": money.money(pricing.get("total") or 0),
+        "pricing": pricing,
     }
 
 
 async def plan_preview(service: dict, settings: dict) -> list:
     """For a subscription service, return each plan with a full financial preview so
-    the customer app can show commission-aware allocation + per-day earning."""
+    the customer app can show the SAME charge structure a normal booking uses
+    (plan price + platform fee + GST on commission)."""
     out = []
     commission_pct = commission_pct_for(settings)
-    tax_pct = float(service.get("tax_pct") or 0)
+    gst_pct = float(settings.get("gst_pct") or 0)
+    from services.engines import PricingEngine
+    platform_fee = PricingEngine.platform_fee_amount(settings.get("business_config", {}) or {})
     for plan_type in ["daily", "weekly", "monthly", "quarterly", "yearly"]:
         # only expose plans the admin actually configured (or all if none configured)
         configured = service.get("subscription_plans") or []
@@ -184,14 +216,19 @@ async def plan_preview(service: dict, settings: dict) -> list:
         else:
             working_days = sum(1 for i in range(duration) if ((_parse_ref() + timedelta(days=i)).weekday() not in offs))
             working_days = max(1, working_days)
-        fin = compute_financials(float(plan.get("price") or 0), commission_pct, tax_pct, working_days)
+        fin = compute_financials(float(plan.get("price") or 0), commission_pct, gst_pct,
+                                 working_days, platform_fee)
         out.append({
             "plan_type": plan_type,
             "label": plan.get("label") or plan_type.title(),
             "price": money.money(plan.get("price") or 0),
             "duration_days": duration,
             "weekly_offs": offs,
-            **fin,
+            "gst": fin["tax_amount"],
+            "gst_pct": fin["tax_pct"],
+            "platform_fee": fin["platform_fee"],
+            "total_payable": fin["total_payable"],
+            **{k: v for k, v in fin.items() if k != "pricing"},
         })
     return out
 
@@ -257,7 +294,9 @@ def recompute_accrual(sub: dict) -> dict:
 
     working_days = int(sub.get("working_days") or 1)
     settled_days = completed  # completed (incl. replacement) count
-    platform_total = money.add(sub.get("commission_amount") or 0, sub.get("tax_amount") or 0,
+    # Platform revenue = base commission + platform fee (GST is collected for the govt,
+    # NOT platform income) + any absent / customer-cancel days it retains.
+    platform_total = money.add(sub.get("commission_amount") or 0, sub.get("platform_fee") or 0,
                                absent_adjustment, customer_cancel_retained)
     return {
         "schedule": new_schedule,
