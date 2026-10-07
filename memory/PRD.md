@@ -102,3 +102,6 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 ## 2026-06 — Customer app splash = Partner splash
 - Customer/app/index.tsx: branded animated splash (blue gradient, admin logo / site name+tagline, caption, spinner, 1.5s) → /(site).
 - Customer/app.json: expo-splash-screen dark block (#0D47A1) + android.backgroundColor — fixes dark-grey native splash in phone dark mode. Needs new APK build. Verified by code review only (iteration_239).
+
+## 2026-06 — Partner "small gestures" card (customer booking details)
+- PartnerGestures card (web CustomerDashboard BookingDetailsDrawer + Customer app BookingDrawers) after Partner Information; only when partner_id & status in assigned/arrived_shop/arrived_customer/started. iteration_240 pass (web); RN by code review.

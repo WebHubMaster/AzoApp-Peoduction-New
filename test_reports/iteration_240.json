@@ -1,0 +1,31 @@
+{
+  "summary": "Tested the new 'small gestures' card (data-testid='partner-gestures-card') in Customer Dashboard Booking Details drawer on web_panel. Verified placement, visibility conditions across 5 booking statuses, dark/light modes, and mobile viewport. Also did code review of Customer (React Native) BookingDrawers.tsx PartnerGestures component.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Booking Details drawer @ 390px (mobile)", "issues": ["partner-gestures-card scrollWidth (360px) is 12px wider than clientWidth (348px) due to decorative HeartHandshake icon positioned at -right-3 -bottom-3 (h-20 w-20). The parent has overflow-hidden so it is visually clipped and screenshot looks fine — purely cosmetic/measurement, no visible layout bug."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PartnerGestures logic is identical and correct in both web_panel/src/pages/customer/CustomerDashboard.jsx and Customer/src/components/customer/BookingDrawers.tsx — gating by partner_id + GESTURE_STATUSES=['assigned','arrived_shop','arrived_customer','started'], placement directly after Partner Information and before Payment Summary.",
+    "No functional issues found. The copy, iconography, dark-mode colours and testIDs match requirements."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Customer: Priya Verma (uid e362f4c6-fab1-486e-b6fc-34ef30e5ffdb). Token minted via middleware.auth.issue_token and set in localStorage.azo_token. Bookings used (existing, unmodified): AZOC2D923 (assigned, partner Raj Kumar), AZO1B0139 (started), AZOE1290A (searching, no partner), AZO46E4DF (cancelled), AZOFE1841 (completed).",
+  "seed_data_creation": "No DB modifications performed; relied on existing seeded bookings covering all required statuses.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web gestures card validated end-to-end. If retesting, use /account route (not /customer). Dark-mode toggle has two matching data-testid elements (sidebar + mobile header); use .first or ensure one is visible. React Native Customer app was only code-reviewed (no Expo runtime testing available).",
+  "evidence": {
+    "assigned_AZOC2D923": {"present": true, "rows": 3, "order_px": {"partner_info": 1036.5, "gestures": 1151, "payment": 1361.5}, "subtitle": "Raj is serving you today — your small gestures make a difference"},
+    "started_AZO1B0139": {"present": true, "rows": 3, "order_px": {"partner_info": 1135, "gestures": 1249.5, "payment": 1460}},
+    "searching_AZOE1290A": {"present": false},
+    "cancelled_AZO46E4DF": {"present": false},
+    "completed_AZOFE1841": {"present": false}
+  }
+}
