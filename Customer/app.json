@@ -108,7 +108,8 @@
           }
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      "./plugins/withAutoVersionName.js"
     ],
     "experiments": {
       "typedRoutes": false,

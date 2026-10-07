@@ -16,7 +16,7 @@ const PLATFORM = "customer";
 const EXPECTED_PACKAGE = "app.azoapp.homeservice";
 
 function expoApplication(): any { try { return require("expo-application"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
-function expoFileSystem(): any { try { return require("expo-file-system/legacy"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
+function expoFileSystem(): any { try { return require("expo-file-system/legacy"); } catch { try { return require("expo-file-system"); } catch { return null; } } } // eslint-disable-line @typescript-eslint/no-require-imports
 function expoIntentLauncher(): any { try { return require("expo-intent-launcher"); } catch { return null; } } // eslint-disable-line @typescript-eslint/no-require-imports
 
 function installedVersionCode(): number {
@@ -54,58 +54,74 @@ export default function AppUpdateGate() {
   useEffect(() => { load(); }, [load]);
 
   const startUpdate = useCallback(async () => {
-    setErr("");
+    setErr(""); setNote("");
     const url = mediaUrl(cfg?.apk_url || "");
     if (!url) { setErr("Update file is not available yet. Please try again later."); return; }
     const FS = expoFileSystem();
     const IL = expoIntentLauncher();
-    if (!FS?.createDownloadResumable || !IL || Platform.OS !== "android") {
+    if (!FS?.createDownloadResumable || !IL?.startActivityAsync || Platform.OS !== "android") {
       Linking.openURL(url).catch(() => setErr("Could not start the download."));
       return;
     }
     setDownloading(true); setPct(0); setGot(0);
     const expected = Number(cfg.apk_size || 0);
-    const dest = `${FS.documentDirectory}azoapp-${PLATFORM}-${cfg.version_code}.apk`;
+    const dest = `${FS.cacheDirectory || FS.documentDirectory}azoapp-${PLATFORM}-${cfg.version_code}.apk`;
     const onProgress = (p: any) => {
       const total = p.totalBytesExpectedToWrite > 0 ? p.totalBytesExpectedToWrite : expected || 1;
       const written = p.totalBytesWritten || 0;
       setGot(written);
-      setPct(Math.min(100, Math.round((written / total) * 100)));
+      setPct(Math.min(99, Math.round((written / total) * 100)));
     };
+    let stage = "download";
     try {
       // Already downloaded earlier (e.g. user cancelled the installer) → install straight away.
       const info = await FS.getInfoAsync(dest).catch(() => null);
-      let uri: string | null = info?.exists && expected && info.size === expected ? dest : null;
+      let uri: string | null = info?.exists && expected > 0 && info.size === expected ? dest : null;
       if (!uri) {
         if (info?.exists) await FS.deleteAsync(dest, { idempotent: true }).catch(() => {});
-        const resumable = FS.createDownloadResumable(url, dest, { headers: { "Cache-Control": "no-cache" } }, onProgress);
+        let resumable = FS.createDownloadResumable(url, dest, {}, onProgress);
         resumableRef.current = resumable;
         let result: any = null;
+        let lastErr: any = null;
         for (let attempt = 0; attempt < 5 && !result?.uri; attempt++) {
-          try { result = attempt === 0 ? await resumable.downloadAsync() : await resumable.resumeAsync(); }
-          catch { await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
+          try {
+            const saved = attempt > 0 ? resumable.savable?.() : null;
+            if (attempt > 0 && !saved?.resumeData) {
+              await FS.deleteAsync(dest, { idempotent: true }).catch(() => {});
+              resumable = FS.createDownloadResumable(url, dest, {}, onProgress);
+              resumableRef.current = resumable;
+              result = await resumable.downloadAsync();
+            } else {
+              result = attempt === 0 ? await resumable.downloadAsync() : await resumable.resumeAsync();
+            }
+          } catch (e) { lastErr = e; await new Promise((r) => setTimeout(r, 1500 * (attempt + 1))); }
         }
-        if (!result?.uri) throw new Error("Download failed. Please check your internet and try again.");
-        if (result.status && (result.status < 200 || result.status >= 300)) throw new Error(`Download failed (server error ${result.status}).`);
+        if (!result?.uri) throw new Error(`Download failed${lastErr?.message ? ` (${lastErr.message})` : ""}. Please check your internet and try again.`);
+        if (result.status && (result.status < 200 || result.status >= 300)) {
+          await FS.deleteAsync(result.uri, { idempotent: true }).catch(() => {});
+          throw new Error(`Download failed (server error ${result.status}). Please try again in a moment.`);
+        }
         const done = await FS.getInfoAsync(result.uri).catch(() => null);
-        if (!done?.exists || (expected && done.size !== expected)) {
+        if (!done?.exists || done.size < 1024 * 100 || (expected > 0 && done.size !== expected)) {
           await FS.deleteAsync(result.uri, { idempotent: true }).catch(() => {});
           throw new Error("Downloaded file is incomplete. Please try again.");
         }
         uri = result.uri;
       }
       setPct(100);
+      stage = "install";
       const contentUri = await FS.getContentUriAsync(uri);
       // FLAG_GRANT_READ_URI_PERMISSION | FLAG_ACTIVITY_NEW_TASK → system package installer.
-      await IL.startActivityAsync("android.intent.action.VIEW", {
-        data: contentUri, flags: 0x1 | 0x10000000, type: "application/vnd.android.package-archive",
-      });
+      const opts = { data: contentUri, flags: 0x1 | 0x10000000, type: "application/vnd.android.package-archive" };
+      try { await IL.startActivityAsync("android.intent.action.VIEW", opts); }
+      catch { await IL.startActivityAsync("android.intent.action.INSTALL_PACKAGE", opts); }
       setDownloading(false);
-      setErr("");
       setNote("If Android asks, allow \"Install unknown apps\" for this app, then tap Update Now again to finish installing.");
     } catch (e: any) {
       setDownloading(false);
-      setErr(e?.message && !/^download-failed$/.test(e.message) ? e.message : "Unable to download the update. Please check your connection and try again.");
+      const msg = String(e?.message || "");
+      if (stage === "install") setErr(`Could not open the installer${msg ? ` (${msg})` : ""}. Allow "Install unknown apps" for this app in Settings and tap Update Now again.`);
+      else setErr(msg || "Unable to download the update. Please check your connection and try again.");
     }
   }, [cfg]);
 

@@ -99,8 +99,13 @@
       [
         "react-native-share",
         {
-          "ios": ["whatsapp"],
-          "android": ["com.whatsapp", "com.whatsapp.w4b"]
+          "ios": [
+            "whatsapp"
+          ],
+          "android": [
+            "com.whatsapp",
+            "com.whatsapp.w4b"
+          ]
         }
       ],
       [
@@ -127,7 +132,8 @@
       "expo-asset",
       "@react-native-community/datetimepicker",
       "expo-sharing",
-      "expo-mail-composer"
+      "expo-mail-composer",
+      "./plugins/withAutoVersionName.js"
     ],
     "experiments": {
       "typedRoutes": true

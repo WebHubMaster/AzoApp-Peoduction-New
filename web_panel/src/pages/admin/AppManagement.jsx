@@ -264,6 +264,13 @@ function AppForm({ platform, cfg, onSaved }) {
             <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-600 dark:text-emerald-400" data-testid={`apk-current-${platform.key}`}>
               <CheckCircle2 className="h-4 w-4" /> Uploaded · {f.apk_package} · v{f.apk_version_name} · {fmtSize(f.apk_size)}
             </div>
+          ) : null}
+          {f.apk_url ? (
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-slate-500" data-testid={`apk-direct-link-${platform.key}`}>
+              <span className="shrink-0">Direct install link:</span>
+              <code className="truncate text-slate-700 dark:text-slate-300">{`${API}/app-mgmt/download/${platform.key}`}</code>
+              <button type="button" data-testid={`apk-copy-link-${platform.key}`} onClick={() => { navigator.clipboard?.writeText(`${API}/app-mgmt/download/${platform.key}`); toast.success("Link copied"); }} className="shrink-0 font-semibold text-primary-700 hover:underline">Copy</button>
+            </div>
           ) : <p className="mt-3 text-[12px] text-amber-600">No APK uploaded yet.</p>}
           <input ref={fileRef} data-testid={`apk-input-${platform.key}`} type="file" accept=".apk,application/vnd.android.package-archive" className="hidden" onChange={uploadApk} />
           <div className="mt-3 flex gap-2">

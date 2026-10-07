@@ -278,6 +278,21 @@ def _parse_apk(path: str):
 
 
 # ---------------------------------------------------------------- PUBLIC (app-facing)
+@router.get("/download/{platform}")
+async def download_latest(platform: str, request: Request):
+    """Stable public link to the latest uploaded APK (one-time manual install for
+    devices running an old build whose in-app updater cannot self-update)."""
+    from fastapi.responses import RedirectResponse
+    _valid_platform(platform)
+    c = await _get(platform)
+    url = c.get("apk_url") or ""
+    if not url:
+        raise HTTPException(status_code=404, detail="No APK uploaded yet")
+    if url.startswith("/"):
+        url = storage_service.request_base(request) + url
+    return RedirectResponse(url, status_code=302, headers={"Cache-Control": "no-store"})
+
+
 @router.get("/config/{platform}")
 async def public_config(platform: str, request: Request):
     """The mobile app calls this on launch to gate maintenance + mandatory update.

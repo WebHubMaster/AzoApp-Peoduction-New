@@ -291,8 +291,17 @@ async def presign_s3(key: str, expires: int = 3600) -> Optional[str]:
     conf = _conf_from_integ(s.get("integrations", {}) or {})
     if not conf:
         return None
-    return _client(conf).generate_presigned_url(
-        "get_object", Params={"Bucket": conf["bucket"], "Key": key}, ExpiresIn=expires)
+    import boto3
+    from botocore.config import Config as BotoConfig
+    # Regional endpoint + SigV4: global-endpoint presigned URLs fail (redirect / signature
+    # mismatch) for buckets outside us-east-1, which breaks in-app APK downloads.
+    region = conf["region"] or "us-east-1"
+    signer = boto3.client("s3", region_name=region, endpoint_url=f"https://s3.{region}.amazonaws.com",
+                          aws_access_key_id=conf["key"], aws_secret_access_key=conf["secret"],
+                          config=BotoConfig(signature_version="s3v4", s3={"addressing_style": "virtual"}))
+    return signer.generate_presigned_url(
+        "get_object", Params={"Bucket": conf["bucket"], "Key": key,
+                              "ResponseContentType": "application/vnd.android.package-archive"}, ExpiresIn=expires)
 
 
 async def delete_stored(ref: str) -> bool:
