@@ -41,10 +41,10 @@ export const CHANNELS = {
   // Low-importance channel for the background "waiting for updates" foreground
   // service that keeps the process alive so the full-screen alert can ring while
   // the app is closed / the phone is locked (mirrors the Partner app).
-  online: "azo-cust-online-v1",
+  online: "azo-cust-online-v2",
 } as const;
 
-const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat"];
+const LEGACY_CHANNELS = ["job-ring", "job-ring-v2", "chat", "azo-cust-online-v1"];
 
 /** Bundled AzoApp logo used as the ring's largeIcon fallback. */
 const APP_LOGO_ICON = require("../../assets/brand-logo.png");
@@ -121,7 +121,7 @@ export async function setupAndroidChannels() {
   await n.createChannel({ id: CHANNELS.chat, name: "Chat Messages", importance: AndroidImportance.HIGH, sound: "default", vibration: true, visibility: AndroidVisibility.PUBLIC });
   await n.createChannel({ id: CHANNELS.bookings, name: "Booking Updates", importance: AndroidImportance.HIGH, vibration: true });
   await n.createChannel({ id: CHANNELS.default, name: "General", importance: AndroidImportance.DEFAULT });
-  await n.createChannel({ id: CHANNELS.online, name: "Waiting for updates", importance: AndroidImportance.LOW, visibility: AndroidVisibility.PUBLIC });
+  await n.createChannel({ id: CHANNELS.online, name: "Waiting for updates", description: "Keeps AzoApp ready to receive booking alerts", importance: AndroidImportance.MIN, visibility: AndroidVisibility.SECRET, badge: false, vibration: false });
 }
 
 async function setupExpoChannels() {

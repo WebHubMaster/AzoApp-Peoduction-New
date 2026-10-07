@@ -2,7 +2,7 @@
 // Usage: node /app/scripts/pshot.js
 const puppeteer = require('/tmp/node_modules/puppeteer-core');
 
-const BASE = 'https://home-services-hub-134.preview.emergentagent.com';
+const BASE = 'https://alert-lock-screen.preview.emergentagent.com';
 const CHROME = '/usr/bin/google-chrome';
 const OUT = '/tmp';
 

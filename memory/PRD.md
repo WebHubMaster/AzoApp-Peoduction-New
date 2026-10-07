@@ -159,7 +159,7 @@ Additive, no existing behaviour changed.
 Note: web_panel & Customer RN are not run under supervisor here (only PartnerApp Expo is), so their UI was verified by code review against existing patterns; all backend contracts were verified by the testing agent.
 
 ## Session (2026-06) — Customer app: real-time status + invoice PDF open/share (pdf-share-safe)
-Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://home-services-hub-134.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
+Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://alert-lock-screen.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
 
 Scope: Customer app ONLY (/app/Customer). Partner app (/app/frontend) UNCHANGED.
 
@@ -254,3 +254,24 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 - (2026-06) Subscriptions: check icon inline next to price (overlap fix); Monthly plan shows BEST VALUE pill + 'Save ₹X (Y%) vs Daily' (monthlySaving in subscriptions.tsx).
 - (2026-06) Subscription plan sheet pre-selects Monthly (fallback first plan).
 - (2026-06) Customer AlertPermissionWalkthrough: bottom safe-area padding; notifications+battery auto-requested via system dialogs (no step); walkthrough shows only force/settings permissions (full-screen, overlay, OEM autostart) still missing.
+
+---
+
+## [2026-06] Full-screen alert reliability fix (Customer app) + Partner ring-sound fix
+
+### Problem
+- CUSTOMER app: full-screen call-style alert did NOT fire when the phone was locked / app closed / backgrounded (only worked with app OPEN). Partner app worked in all states.
+- PARTNER app: on a new booking the full-screen job alert's ring SOUND played only intermittently ("sometimes sound, sometimes not") across devices.
+
+### Root cause
+- CUSTOMER: `Customer/src/context/RealtimeContext.tsx` started the Notifee foreground-service background listener (`startBackgroundAlertListener`) only AFTER the app transitioned to `background`. Android 12+ blocks starting a foreground service from the background (`ForegroundServiceStartNotAllowedException`), so the process/SSE died and no alert rang when locked/closed. The Partner app starts its listener while still in the FOREGROUND (the moment the partner is online) — the correct pattern.
+- PARTNER sound: background path posted the ring on a SILENT channel and relied on the app force-opening to the foreground so the overlay's separate `useAudioPlayer` could play — flaky on many OEMs. Foreground player also used `shouldPlayInBackground:false`.
+
+### Fix
+- CUSTOMER `RealtimeContext.tsx`: start `startBackgroundAlertListener()` the moment the user is signed in (while foreground); keep it running; only stop on logout. On background just drop the foreground SSE (listener already alive). 1:1 with Partner.
+- CUSTOMER `notifications.ts`: `online` FGS channel bumped `azo-cust-online-v1`→`v2` with MIN importance + SECRET visibility (unobtrusive persistent notification), old id deleted via LEGACY_CHANNELS.
+- PARTNER `RealtimeContext.tsx`: `playRing/stopRing` now use the SINGLE shared `startRingSound/stopRingSound` player (expo-audio, `shouldPlayInBackground:true`, admin tone from `azo_ring_prefs`) instead of a separate `useAudioPlayer` — reliable in every state, never doubles.
+- PARTNER `backgroundRing.ts` + `pushBackground.ts`: play the ring tone directly in the background handlers (DND-aware via `isDndActive`, emergency bypasses DND) so sound is audible even if Android keeps the app backgrounded.
+
+### Verification
+- Static/logic verified against the working Partner reference. Full-screen lock-screen/FCM/OEM behavior must be verified on a real Android device (per user). Partner app full-screen DISPLAY mechanism was intentionally left unchanged.

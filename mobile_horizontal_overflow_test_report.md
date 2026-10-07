@@ -1,7 +1,7 @@
 # Mobile Horizontal Overflow Test Report - AzoApp
 
 **Test Date:** 2026-09-10  
-**App URL:** https://home-services-hub-134.preview.emergentagent.com  
+**App URL:** https://alert-lock-screen.preview.emergentagent.com  
 **Tester:** Testing Agent (E2)
 
 ## Executive Summary

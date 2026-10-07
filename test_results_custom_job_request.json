@@ -1,6 +1,6 @@
 {
   "timestamp": "2026-09-10T11:15:11.313607",
-  "base_url": "https://home-services-hub-134.preview.emergentagent.com/api",
+  "base_url": "https://alert-lock-screen.preview.emergentagent.com/api",
   "scenarios": [
     {
       "scenario": 1,

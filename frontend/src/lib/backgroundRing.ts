@@ -18,8 +18,9 @@ import { Platform } from "react-native";
 import { API_BASE, getToken } from "@/src/api/client";
 import {
   pushSupported, notifee, NotifeeApi, CHANNELS,
-  setupAndroidChannels, displayJobRing, cancelJobRing,
+  setupAndroidChannels, displayJobRing, cancelJobRing, startRingSound,
 } from "@/src/lib/notifications";
+import { isDndActive, getRingPrefs, loadLocal } from "@/src/lib/ringPrefs";
 import { setBgListenerActive } from "@/src/lib/ringState";
 
 const ONLINE_FGS_ID = "azo-online-fgs";
@@ -56,11 +57,26 @@ function _handle(ev: any) {
     const bid = String(d.booking_id || d.id || "");
     if (bid) {
       displayJobRing({ ...d, type, booking_id: bid }, "bg", "sse").catch(() => {});
+      // Play the admin ring tone DIRECTLY (shared player, shouldPlayInBackground)
+      // so the sound is audible even if Android blocks the app from coming to the
+      // foreground — this is what makes the job-alert sound reliable on EVERY
+      // device/state (previously it only played if the overlay managed to mount).
+      _maybeRingSound({ ...d, type });
       _forceOpenApp();
     }
   } else if (type === "job_taken" || type === "job_cancelled") {
     cancelJobRing(String(d.booking_id || d.id || "")).catch(() => {});
   }
+}
+
+/** Start the shared ring tone unless the partner's quiet-hours (DND) are active
+ *  and the job isn't an emergency — mirrors the in-app overlay's DND rule. */
+async function _maybeRingSound(d: any) {
+  try {
+    await loadLocal();
+    const emergency = d?.schedule_type === "emergency";
+    if (emergency || !isDndActive(getRingPrefs())) startRingSound().catch(() => {});
+  } catch { startRingSound().catch(() => {}); }
 }
 
 function _clearRetry() { if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; } }

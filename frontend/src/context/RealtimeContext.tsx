@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AppState, Platform } from "react-native";
 import EventSource from "react-native-sse";
-import { useAudioPlayer, setAudioModeAsync } from "expo-audio";
+import { setAudioModeAsync } from "expo-audio";
 import * as Haptics from "expo-haptics";
-import { API_BASE, getToken, mediaUrl } from "@/src/api/client";
+import { API_BASE, getToken } from "@/src/api/client";
 import { useAuth } from "@/src/context/AuthContext";
-import { getRingPrefs } from "@/src/lib/ringPrefs";
+import { startRingSound, stopRingSound } from "@/src/lib/notifications";
 import { startBackgroundJobListener, stopBackgroundJobListener } from "@/src/lib/backgroundRing";
 
 /**
@@ -28,9 +28,6 @@ type RtCtx = {
 
 const Ctx = createContext<RtCtx>({ connected: false, bgListening: false, subscribe: () => () => {}, playRing: () => {}, stopRing: () => {} });
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const RING = require("../../assets/sounds/job-ring.wav");
-
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [connected, setConnected] = useState(false);
@@ -38,11 +35,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const esRef = useRef<EventSource | null>(null);
   const retryRef = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const player = useAudioPlayer(RING);
-  const srcRef = useRef<string>("__default__");
 
   useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: false }).catch(() => {});
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true }).catch(() => {});
   }, []);
 
   const emit = useCallback((ev: RtEvent) => { listeners.current.forEach((cb) => { try { cb(ev); } catch { /* ignore */ } }); }, []);
@@ -114,19 +109,18 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
   const subscribe = useCallback((cb: Listener) => { listeners.current.add(cb); return () => { listeners.current.delete(cb); }; }, []);
 
-  // Admin ring config (web ringPrefs): custom uploaded tone + volume, looped until stopped.
+  // Single SHARED ring player (notifications.ts `_ringPlayer`) for BOTH the
+  // foreground overlay AND the background/locked alert, loaded with the admin's
+  // uploaded tone + volume (azo_ring_prefs). Using ONE player with
+  // shouldPlayInBackground:true is what makes the tone play reliably in EVERY
+  // state and can never double up — the previous foreground-only useAudioPlayer
+  // only played if the app came to the foreground, which is why the ring sound
+  // was intermittent on a locked / backgrounded phone. Mirrors the Customer app.
   const playRing = useCallback(() => {
-    try {
-      const prefs = getRingPrefs();
-      const src = prefs.customSoundUrl ? { uri: mediaUrl(prefs.customSoundUrl) || prefs.customSoundUrl } : RING;
-      const key = typeof src === "object" && src && "uri" in src ? src.uri : "__default__";
-      if (srcRef.current !== key) { player.replace(src); srcRef.current = key; }
-      player.volume = Math.max(0.05, Math.min(1, prefs.volume != null ? prefs.volume : 0.7));
-      player.loop = true; player.seekTo(0); player.play();
-    } catch { /* ignore */ }
+    startRingSound().catch(() => {});
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-  }, [player]);
-  const stopRing = useCallback(() => { try { player.pause(); player.seekTo(0); } catch { /* ignore */ } }, [player]);
+  }, []);
+  const stopRing = useCallback(() => { stopRingSound(); }, []);
 
   const value = useMemo(() => ({ connected, bgListening, subscribe, playRing, stopRing }), [connected, bgListening, subscribe, playRing, stopRing]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

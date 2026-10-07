@@ -10,7 +10,7 @@ from typing import Dict, Any
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
+BASE_URL = "https://alert-lock-screen.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"
 PARTNER2_PHONE = "+919000000005"

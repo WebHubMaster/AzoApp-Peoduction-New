@@ -10,7 +10,8 @@
  *    API directly (token from secure storage) and stop the ring.
  */
 import { api } from "@/src/api/client";
-import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification, setupAndroidChannels } from "@/src/lib/notifications";
+import { pushSupported, notifee, NotifeeApi, messaging, displayJobRing, cancelJobRing, scheduleChatNotification, setupAndroidChannels, startRingSound } from "@/src/lib/notifications";
+import { isDndActive, getRingPrefs, loadLocal } from "@/src/lib/ringPrefs";
 import { backgroundRingServiceTask } from "@/src/lib/backgroundRing";
 
 /** expo-notifications background task — this is the PRIMARY background path now
@@ -53,6 +54,14 @@ export async function handleRemoteData(d: Record<string, any> | undefined, isBac
   if (!d || !d.type) return;
   if (d.type === "job_request" || d.type === "reschedule_request" || d.type === "scheduled_reminder") {
     await displayJobRing(d, "bg", "fcm");
+    // Play the admin ring tone directly (shared player, shouldPlayInBackground) so
+    // the job alert is audible even when Android keeps the app in the background —
+    // the overlay-only path made the sound intermittent across devices.
+    try {
+      await loadLocal();
+      const emergency = d?.schedule_type === "emergency";
+      if (emergency || !isDndActive(getRingPrefs())) startRingSound().catch(() => {});
+    } catch { startRingSound().catch(() => {}); }
     // Bring the app to the FOREGROUND so the in-app full-screen JobRingOverlay shows
     // even when the phone is UNLOCKED / in another app (notifee's fullScreenAction
     // only auto-launches over the LOCK screen). Needs the "Display over other apps"

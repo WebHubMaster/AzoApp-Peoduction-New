@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://home-services-hub-134.preview.emergentagent.com/api"
+BASE_URL = "https://alert-lock-screen.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

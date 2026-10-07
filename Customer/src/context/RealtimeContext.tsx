@@ -77,18 +77,33 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return close;
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // On background/locked the foreground SSE can't reliably survive, so drop it and
-  // start the FCM-independent foreground-service alert listener (backgroundRing.ts)
-  // so a partner reschedule / assignment still rings on a locked/closed phone.
-  // Resume the in-app stream (and stop the service) on return to foreground.
+  // FCM-INDEPENDENT background alert listener (the reliable "other method", 1:1 with
+  // the Partner app). START it the MOMENT the customer is signed in — while the app
+  // is STILL in the FOREGROUND — so we NEVER hit Android 12+'s "can't start a
+  // foreground service from the background" restriction. That silent failure (the
+  // customer only ever started the service AFTER going to background) was exactly
+  // why the full-screen alert fired only with the app OPEN and never on a locked /
+  // closed / backgrounded phone. Once running, the Notifee foreground service
+  // (stopWithTask=false) keeps the process + SSE stream alive through screen-lock,
+  // app-close and swipe-away, so a partner reschedule / booking-confirmed rings
+  // locally via Notifee with NO FCM push required. Stop it only on logout.
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+    if (user) startBackgroundAlertListener().catch(() => {});
+    else stopBackgroundAlertListener().catch(() => {});
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // App backgrounded/locked: the foreground SSE can't reliably survive, so drop it
+  // and let the always-on background listener (started above while in the foreground)
+  // keep receiving alerts. Resume the in-app stream on return to foreground. We NO
+  // LONGER start the foreground service here — it is already running whenever the
+  // customer is signed in, which is what makes the locked/closed alert reliable.
   useEffect(() => {
     const sub = AppState.addEventListener("change", (s) => {
       if (s === "active") {
-        stopBackgroundAlertListener().catch(() => {});
         if (user && !esRef.current) { retryRef.current = 1; connect(); }
       } else if (s === "background" && Platform.OS !== "web") {
         close();
-        if (user) startBackgroundAlertListener().catch(() => {});
       }
     });
     return () => sub.remove();
