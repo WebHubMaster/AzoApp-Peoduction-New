@@ -157,3 +157,16 @@ Additive, no existing behaviour changed.
 3. **Download Toast + Open** (web + app): after invoice download, a toast "Invoice saved" with an "Open" action opens the PDF (new tab on web; native share/viewer on app). Added action support to Customer RN `src/components/Toast.tsx`; web uses sonner action in `lib/invoiceShare.js` downloadInvoicePdf; Customer RN `invoiceActions.ts` gained saveInvoicePdf/openInvoicePdf.
 
 Note: web_panel & Customer RN are not run under supervisor here (only PartnerApp Expo is), so their UI was verified by code review against existing patterns; all backend contracts were verified by the testing agent.
+
+## Session (2026-06) — Customer app: real-time status + invoice PDF open/share (pdf-share-safe)
+Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://pdf-share-safe.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
+
+Scope: Customer app ONLY (/app/Customer). Partner app (/app/frontend) UNCHANGED.
+
+1) Near-real-time job status (polling chosen): `src/context/CustomerDataContext.tsx` rewritten — adaptive /bookings poll (3s while a job is active, 6s idle; was fixed 8s), wallet/refunds slow-poll (20s), AND instant refresh via existing SSE (`useRealtime().subscribe` → reloads bookings on booking_update/booking_confirmed/booking_completed/reschedule_resolved/__resync__). Backend `booking_controller.py` complete-job now also emits `rt.emit_user(customer_id, "booking_update", _job_brief(out))` (shared backend; partner app untouched). Backend 6/6 tests pass, no completion regression.
+
+2) Invoice auto-open after download (replicate partner): `src/lib/invoiceActions.ts` — `downloadInvoicePdf` now returns {status, openUri}; added `openLocalFile` (Android IntentLauncher VIEW / iOS Sharing). Callers `app/(customer)/invoices.tsx` (downloadById) and `components/customer/BookingDrawers.tsx` (InvoiceDrawer.downloadInvoice) open the PDF right after download — same UX as partner `invoices.tsx`.
+
+3) Secure invoice share (no raw backend URL): added `shareInvoicePdf(inv, channel)` to invoiceActions — fetches the authorised backend PDF internally and shares the ACTUAL PDF file via WhatsApp/native intent (web: downloads + wa.me text only, no URL). Replaced URL-sharing in `invoices.tsx` shareInvoice() and `BookingDrawers.tsx` shareOnWhatsApp() (removed publicUrl('pdf')/publicPdf backend-URL builders). Preview-modal "print" button no longer Linking.openURL(backend page) — opens the downloaded PDF instead. Email still uses backend POST /invoices/{id}/email (server sends PDF, no URL). Backend PDF endpoint verified owner-only: 200 application/pdf %PDF for owner, 403 non-owner, 401 no-auth.
+
+Verification: Customer Expo app can't run in preview → verified by `tsc --noEmit` (clean on all edited files) + backend contract tests (iteration_223, 6/6). Live on-device WhatsApp/native-share + Android PDF viewer open not exercisable here.

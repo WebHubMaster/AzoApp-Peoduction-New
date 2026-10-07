@@ -1,0 +1,30 @@
+{
+  "summary": "Iter222 backend-only verification: authorized invoice PDF endpoint owner-only security + regression smoke on job-completion controller (newly added rt.emit_user customer 'booking_update' broadcast). 6/6 pytest tests passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_iter222_invoice_pdf_and_completion.py",
+    "/app/test_reports/pytest/iter222.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is 4600 lines — recommend splitting into focused modules (completion, dispatch, ring, lifecycle).",
+    "invoice PDF endpoint correctly returns 403 for non-owner and 401 without token — matches contract.",
+    "Added rt.emit_user(customer_id, 'booking_update', ...) at line 3552 sits before the post-complete background task — safe placement; no regression in completion flow."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "N/A (not tested per request)"},
+  "test_credentials": "Dev OTP 123456 for all phones; Priya +919000000004 (invoice owner), Krishna +919100000000 (non-owner), Partner +919000000003.",
+  "seed_data_creation": "None — used existing seeded Priya invoices.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_iter222_invoice_pdf_and_completion.py covers OTP login + invoice list + PDF owner/non-owner/no-auth + bookings list. Env var REACT_APP_BACKEND_URL required by conftest. Full job-completion lifecycle (search->accept->arrive->start->complete) not exercised end-to-end here due to complexity, but completion handler import-level smoke + customer bookings list fetch both pass; curl pre-check already validated owner PDF 200/non-owner 403/no-auth 401 for invoice 21eacdd0-8faf-43f6-89af-b94e8c90f5f1.",
+  "verified_tests": [
+    "test_invoice_list_owner_regression — 200, items with ids",
+    "test_pdf_owner_200 — 200, application/pdf, starts with %PDF",
+    "test_pdf_non_owner_403 — 403 for Krishna",
+    "test_pdf_no_auth_401 — 401 without Bearer",
+    "test_booking_controller_import_smoke — import clean (no syntax regression from added emit)",
+    "test_customer_bookings_list_endpoint — 200 list structure"
+  ]
+}
