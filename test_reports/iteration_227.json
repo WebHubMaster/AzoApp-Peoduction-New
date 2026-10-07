@@ -1,0 +1,35 @@
+{
+  "summary": "Verified the new 'BEST VALUE' badge and savings line on the Monthly subscription plan in the Customer app plan sheet. Logged in as a new customer via OTP (dev OTP 123456), opened Full-time Maid plan sheet, and validated all requested criteria at 390x844 and 360x740. All assertions passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "best_value_pill_visible_on_monthly": true,
+    "best_value_pill_hidden_on_daily_weekly": true,
+    "saving_line_text": "Save \u20b92,400.00 (23%) vs Daily",
+    "saving_hidden_on_daily_weekly": true,
+    "check_icon_updates_on_select": {"daily": true, "weekly": true, "monthly": true},
+    "pay_button_price_updates": {"daily": "Pay \u20b9400.00 & Activate", "weekly": "Pay \u20b92,200.00 & Activate", "monthly": "Pay \u20b98,000.00 & Activate"},
+    "no_horizontal_overflow_390": true,
+    "no_horizontal_overflow_360": true,
+    "card_widths_390": {"daily": 356, "weekly": 356, "monthly": 354},
+    "card_widths_360": {"daily": 326, "weekly": 326, "monthly": 324}
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "monthlySaving() correctly guards against missing plans/working_days and only returns a positive savings amount",
+    "Badge rendering wrapped in flexShrink:1 container with gap, no overlap observed with price/check at tested widths"
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Any 10-digit mobile; dev OTP 123456 (auto-filled)",
+  "seed_data_creation": "None; used existing svc-maid-fulltime seed plans (Daily \u20b9400/1wd, Weekly \u20b92200/6wd, Monthly \u20b98000/26wd)",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "To reach plan sheet: login via OTP (dev OTP auto-filled 123456), fill name + accept legal consent (testid signup-legal), submit (testid continue-signup-button), goto /api/customer/subscriptions, click sub-service-svc-maid-fulltime. Plan testids: sub-plan-{daily|weekly|monthly}, sub-plan-check-{plan}, sub-plan-best-value, sub-plan-saving, sub-book-pay.",
+  "rca of the issue": "N/A - feature implemented correctly"
+}
