@@ -52,6 +52,7 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
   const [type, setType] = useState("all");
   const [payStatus, setPayStatus] = useState("all");
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [minAmount, setMinAmount] = useState("");
   const [maxAmount, setMaxAmount] = useState("");
   const [sort, setSort] = useState("newest");
@@ -74,12 +75,26 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
     date_to: range === "custom" ? dateTo || undefined : undefined,
   }), [range, type, payStatus, sort, search, minAmount, maxAmount, dateFrom, dateTo]);
 
+  const abortRef = useRef(null);
   const load = useCallback(async () => {
     setLoading(true); setError(false);
-    try { const r = await api.get("/invoices", { params: { page, page_size: pageSize, ...buildParams() } }); setData(r.data); }
-    catch { setError(true); } finally { setLoading(false); }
+    // Cancel any in-flight request so only the latest one updates the UI (no request storms / stale data).
+    if (abortRef.current) abortRef.current.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    try {
+      const r = await api.get("/invoices", { params: { page, page_size: pageSize, ...buildParams() }, signal: controller.signal });
+      setData(r.data);
+    } catch (e) {
+      if (e?.name === "CanceledError" || e?.code === "ERR_CANCELED") return; // superseded by a newer request
+      setError(true);
+    } finally {
+      if (abortRef.current === controller) { setLoading(false); abortRef.current = null; }
+    }
   }, [page, pageSize, buildParams]);
   useEffect(() => { load(); }, [load]);
+  // Debounced search — update the query param 350ms after the admin stops typing (no API call per keystroke).
+  useEffect(() => { const t = setTimeout(() => setSearch(searchInput), 350); return () => clearTimeout(t); }, [searchInput]);
   useEffect(() => { setPage(1); }, [range, type, payStatus, sort, minAmount, maxAmount, dateFrom, dateTo, pageSize, search]);
 
   const fetchFull = async (id) => { const r = await api.get(`/invoices/${id}`); return r.data; };
@@ -170,8 +185,8 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
         <div className="flex items-center gap-2">
           <div className="relative flex-1 lg:flex-none lg:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search invoice #, booking, customer…" className="pl-9 h-11" data-testid="invoice-search" />
-            {search && <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" data-testid="invoice-search-clear"><X className="h-4 w-4" /></button>}
+            <Input value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="Search invoice #, booking, customer…" className="pl-9 h-11" data-testid="invoice-search" />
+            {searchInput && <button onClick={() => { setSearchInput(""); setSearch(""); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" data-testid="invoice-search-clear"><X className="h-4 w-4" /></button>}
           </div>
           <Button variant="outline" className="h-11 relative" onClick={() => setShowFilters(true)} data-testid="invoice-filters-btn">
             <SlidersHorizontal className="h-4 w-4 mr-1.5" /> Filters
@@ -202,6 +217,30 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
         </div>
       )}
 
+      {/* Active filter chips — remove individually (§41) */}
+      {(() => {
+        const chips = [];
+        if (range !== "all") chips.push({ k: "range", label: `Date: ${(DATE_PRESETS.find(([v]) => v === range) || [, range])[1]}`, clear: () => { setRange("all"); setDateFrom(""); setDateTo(""); } });
+        if (type !== "all") chips.push({ k: "type", label: `Type: ${(TYPES.find(([v]) => v === type) || [, type])[1]}`, clear: () => setType("all") });
+        if (payStatus !== "all") chips.push({ k: "pay", label: `Status: ${payStatus}`, clear: () => setPayStatus("all") });
+        if (minAmount) chips.push({ k: "min", label: `Min ₹${minAmount}`, clear: () => setMinAmount("") });
+        if (maxAmount) chips.push({ k: "max", label: `Max ₹${maxAmount}`, clear: () => setMaxAmount("") });
+        if (search) chips.push({ k: "search", label: `“${search}”`, clear: () => { setSearchInput(""); setSearch(""); } });
+        if (!chips.length) return null;
+        return (
+          <div className="flex flex-wrap items-center gap-1.5" data-testid="invoice-active-filters">
+            {chips.map((c) => (
+              <button key={c.k} onClick={c.clear} data-testid={`invoice-chip-${c.k}`}
+                className="inline-flex items-center gap-1 h-7 pl-2.5 pr-1.5 rounded-full bg-primary-50 dark:bg-primary-950/40 text-primary-700 dark:text-primary-300 ring-1 ring-primary-200 dark:ring-primary-800 text-xs font-semibold capitalize hover:bg-primary-100 transition-colors">
+                {c.label} <X className="h-3.5 w-3.5" />
+              </button>
+            ))}
+            <button onClick={() => { applyFiltersReset(); setSearchInput(""); setSearch(""); setRange("all"); setDateFrom(""); setDateTo(""); }}
+              data-testid="invoice-chip-clear-all" className="h-7 px-2.5 rounded-full text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors">Clear all</button>
+          </div>
+        );
+      })()}
+
       {/* KPI cards */}
       {loading && !data ? <KpiSkeletonRow n={5} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" /> : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -226,7 +265,7 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
           <Surface className="p-4">
             <EmptyState icon={FileText} title={activeFilterCount || search || range !== "all" ? "No invoices match your filters" : "No invoices yet"}
               hint={activeFilterCount || search || range !== "all" ? "Try clearing filters or changing the date range." : "Your commission & booking invoices will appear here."}
-              action={(activeFilterCount || search || range !== "all") ? <Button variant="outline" onClick={() => { applyFiltersReset(); setSearch(""); setRange("all"); }} data-testid="invoice-clear-filters">Clear Filters</Button> : null}
+              action={(activeFilterCount || search || range !== "all") ? <Button variant="outline" onClick={() => { applyFiltersReset(); setSearchInput(""); setSearch(""); setRange("all"); }} data-testid="invoice-clear-filters">Clear Filters</Button> : null}
               testid="invoice-empty" />
           </Surface>
         ) : (

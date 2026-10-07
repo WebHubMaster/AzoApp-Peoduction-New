@@ -53,3 +53,13 @@ financial-operations console — without breaking existing business/gateway rule
 - P1: Reveal-masked-details action gated by permission; bulk export/review selection.
 - P2: Registration-fee / starter-kit ledger categories when those payment records exist.
 - P2: Real-time websocket refresh of withdrawal/payout status.
+
+## Invoice Management polish (2026-10-07)
+Enhanced existing `components/invoices/InvoiceCenter.jsx` (shared by admin/merchant/customer)
+WITHOUT touching invoice generation/numbering/GST/relationships/APIs:
+- Debounced global search (350ms) via `searchInput` → `search`; no API call per keystroke.
+- Request cancellation (AbortController) so only the latest invoices fetch updates the UI (no stale data / request storms).
+- Guarded global axios interceptor (`lib/api.js`) to stay silent on intentional `ERR_CANCELED` (no false "Connection issue" toast).
+- Removable active-filter chips row (Date/Type/Status/Min/Max/Search) + "Clear all" (§41).
+Verified: list, date presets, chips add/remove, debounce, KPIs, server-side pagination/sort,
+detail drawer, full server-rendered preview (Print/Share/Email/PDF), empty/error/skeleton states — all intact.

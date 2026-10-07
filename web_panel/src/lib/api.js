@@ -79,6 +79,11 @@ api.interceptors.response.use(
   async (error) => {
     const cfg = error?.config;
 
+    // Request was intentionally cancelled (e.g. a superseded search/filter fetch) → stay silent.
+    if (error?.code === "ERR_CANCELED" || error?.name === "CanceledError" || axios.isCancel?.(error)) {
+      return Promise.reject(error);
+    }
+
     // --- Retry with exponential backoff (slow network / transient 5xx) ---
     if (cfg && isRetriable(error)) {
       cfg.__retryCount = cfg.__retryCount || 0;
