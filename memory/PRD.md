@@ -78,3 +78,8 @@ Rewrote `pages/admin/FinancialReports.jsx` — premium analytics, consuming ONLY
   sticky-header daily table with rows-per-page (10/25/50/100) + first/prev/next/last;
   localized error + Retry preserving filters; refunds shown as negative.
 Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
+
+## 2026-06 — APK upload "Failed to fetch" on self-hosted live (VPS/Nginx/Cloudflare), APK >150MB
+- Root cause: 4MB chunks > Nginx default client_max_body_size 1MB (413 w/o CORS → "Failed to fetch"); sync /finish on big APK hit proxy timeout; chunks in container /tmp.
+- Fix: 768KB chunks, 4 parallel, auto-retry w/ backoff; chunks stored in Mongo `apk_upload_chunks` (idempotent, TTL 6h); /finish starts background job (`apk_upload_jobs`), UI polls /status/{job_id}; APK parsed from disk; S3 multipart upload_file; .apk via /api/media/s3 → 302 presigned URL; unique apk name per upload.
+- Verified: 160MB APK e2e byte-identical; iteration_236 13/13 backend + UI pass. Test APK generator: backend/tests/make_test_apk.py

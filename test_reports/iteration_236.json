@@ -1,0 +1,38 @@
+{
+  "summary": "Comprehensive E2E testing of Admin > App Management APK upload fix (chunked POST + async job + polling). Backend: 13/13 pytest cases pass covering public config, admin config auth, full chunk→finish→poll flow for both platforms, wrong-package rejection, garbage-zip rejection, /finish 400 on missing/partial chunks, chunk idempotency (double-send same index), mongo apk_upload_chunks cleanup after processing, and APK delete. Frontend (web_panel built with PUBLIC_URL=/api/panel): App Management page under System > App Management loads with NO 'Failed to fetch' toast, chunked customer APK upload shows apk-stage-customer stage text ('Processing — please keep this tab open'), success toast exactly 'APK uploaded · v1.6.0 (code 16)', apk-current-customer shows 'Uploaded · app.azoapp.homeservice · v1.6.0 · 2.0 MB'. Wrong-package upload (partner apk on customer tab) shows clear error 'This APK does not belong to the Customer App (found package app.azoapp.partner, expected app.azoapp.homeservice).' Delete button triggers confirm → 'Customer App APK deleted' toast, apk-current-customer cleared. Tab switch to Partner App works and renders appmgmt-form-partner.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard (unrelated to App Management)", "issues": ["Recharts console warnings: 'The width(-1) and height(-1) of chart should be greater than 0' — cosmetic, pre-existing"]},
+      {"screen": "Admin dashboard first visit", "issues": ["Onboarding tour modal (role=dialog) covers the sidebar on first login and blocks keyboard/pointer events on sidebar links until Skip tour is clicked — consider auto-dismissing or lowering z-index for sidebar navigation"]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_app_management.py",
+    "/app/test_reports/pytest/app_mgmt_236.xml"
+  ],
+  "action_items": [
+    "web_panel/build directory was absent on this preview — I rebuilt with `PUBLIC_URL=/api/panel yarn build`. Main agent should ensure the build is produced as part of the pod-reset recovery flow (or served from a dev server), otherwise /api/panel/* returns 404 and admin UI is unreachable."
+  ],
+  "critical_code_review_comments": [
+    "app_management_routes.finish_upload cleanly separates fast enqueue vs. background _process_upload — prevents proxy timeouts on 150MB+ APKs. Good.",
+    "Chunk upsert on (upload_id,index) with unique index makes retries idempotent → re-sending same index does not corrupt the final file (verified by TestChunkIdempotency).",
+    "apk_upload_chunks TTL index expireAfterSeconds=6h guards against leaked chunks when the user abandons the upload.",
+    "_process_upload deletes chunks in a `finally` block → verified they are gone from mongo after both success and error paths.",
+    "Frontend uses 768KB chunks (under default Nginx client_max_body_size 1MB) + 4 parallel workers → fits typical VPS/Cloudflare proxies without special tuning. Nice.",
+    "withRetry correctly treats 400/401/403/413/404 as fatal → upload bail-out is fast on package mismatch rather than retry-looping for 6×.",
+    "Minor: _process_upload writes the full APK to a temp file then reads full bytes into memory for storage_service.put_file — for very large APKs (>500MB) consider streaming. Not blocking for the 150-200MB target."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_app_management.py (rewritten for new async job contract + idempotency + cleanup tests)",
+    "/app/web_panel/build/* (rebuilt via yarn build)"
+  ],
+  "success_rate": { "backend": "100% (13/13)", "frontend": "100% on tested flows (upload success, wrong-pkg error, delete, tab switch, stage indicator)" },
+  "test_credentials": "Admin: nodewaptechnology@gmail.com (role=admin). Password unknown — tests mint JWT directly via middleware.auth.create_token from DB user (see /app/backend/tests/test_app_management.py::_mint_admin_token).",
+  "seed_data_creation": "During tests, APKs built with tests.make_test_apk.build are uploaded and stored at /app/backend/uploads/app-mgmt/{customer,partner}/*.apk via local storage fallback (S3 not configured). Each upload supersedes/clears the previous via /admin/apk/{platform} DELETE at test teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin panel URL: https://e5147e3c-cf48-48bc-8ab9-490650dc553b.preview.emergentagent.com/api/panel/ (served from /app/web_panel/build via backend StaticFiles). To bypass OTP in tests, mint a JWT with middleware.auth.create_token(user_id, 'admin'); the token goes in localStorage key 'azo_token'. The App Management page lives under sidebar System > App Management. Tests at /app/backend/tests/test_app_management.py cover the full new async job contract: /chunk (idempotent per index), /finish returns {job_id, status:'processing'}, GET /status/{job_id} returns {status: 'processing'|'done'|'error', stage, error, result}. Use tests/make_test_apk.build(path, pkg=..., vcode=..., vname=..., pad_mb=N) to generate APKs — pad_mb must be ≥1 (anything <1024 bytes fails 'File is empty or too small to be an APK')."
+}
