@@ -240,7 +240,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
 
       {/* ============ MOBILE BOTTOM NAV ============ */}
       {!chatOpen && (
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]">
+      <nav data-bottom-nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t border-slate-200 dark:border-slate-800 pb-[env(safe-area-inset-bottom)]">
         <div className="grid grid-cols-5">
           {primaryNav.map((n) => {
             const on = active === n.key;

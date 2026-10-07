@@ -100,13 +100,30 @@ function completedLabel(iso) {
   return `Completed ${d.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}`;
 }
 
+function useBottomNavHeight() {
+  const [h, setH] = useState(null);
+  useEffect(() => {
+    let ro; let raf;
+    const attach = () => {
+      const nav = document.querySelector("[data-bottom-nav]");
+      if (!nav) { raf = requestAnimationFrame(attach); return; }
+      const on = () => setH(nav.getBoundingClientRect().height);
+      on(); ro = new ResizeObserver(on); ro.observe(nav);
+    };
+    attach();
+    return () => { cancelAnimationFrame(raf); ro?.disconnect(); };
+  }, []);
+  return h;
+}
+
 function RateButton({ item, total, onLanding, onClick }) {
+  const navH = useBottomNavHeight();
   useEffect(() => {
     window.__azoRateBar = true; window.dispatchEvent(new Event("azo:ratebar"));
     return () => { window.__azoRateBar = false; window.dispatchEvent(new Event("azo:ratebar")); };
   }, []);
   return (
-    <motion.div data-testid="rate-service-bar" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+    <motion.div data-testid="rate-service-bar" style={navH != null && window.innerWidth < 1024 ? { bottom: navH } : undefined} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 16 }} transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
       className={`fixed z-[39] inset-x-0 bottom-[calc(4rem_+_env(safe-area-inset-bottom))] lg:inset-x-auto lg:right-6 lg:w-[380px] ${onLanding ? "lg:bottom-[6.25rem]" : "lg:bottom-6"}
         bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800 shadow-[0_-8px_20px_-12px_rgba(15,23,42,0.18)]
         lg:rounded-2xl lg:border lg:shadow-[0_12px_32px_-12px_rgba(15,23,42,0.25)]`}>

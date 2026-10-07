@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
   return (
     <>
       <div className="lg:hidden" aria-hidden style={{ height: "calc(4rem + env(safe-area-inset-bottom))" }} />
-      <nav data-testid="mobile-bottom-nav" className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav data-bottom-nav data-testid="mobile-bottom-nav" className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-slate-200 flex items-stretch" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         {TABS.map((t) => {
           const Icon = t.icon;
           const act = isActive(t);
