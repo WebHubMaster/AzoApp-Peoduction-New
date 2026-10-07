@@ -6,7 +6,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt, Clock } from "lucide-react";
-import api, { fmt, API } from "@/lib/api";
+import api, { fmt } from "@/lib/api";
+import { downloadInvoicePdf } from "@/lib/invoiceShare";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
@@ -153,12 +154,14 @@ function SubCard({ s }) {
   const copyId = () => { navigator.clipboard?.writeText(s.code || ""); toast.success("Subscription ID copied"); };
   const downloadInvoice = async () => {
     setInvBusy(true);
-    // Pre-open the tab so popup blockers don't kill window.open after the await.
-    const win = window.open("about:blank", "_blank");
     try {
+      // Resolve the invoice id, then download the PDF directly (fetched with auth as a
+      // blob) so it opens in the browser's PDF viewer / downloads — the backend URL is
+      // never opened in a new tab or exposed.
       const { data } = await api.get(`/subscriptions/${s.id}/invoice`);
-      if (win) win.location.href = `${API}${data.path}`;
-    } catch (e) { win?.close(); toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
+      if (!data?.invoice_id) throw new Error("no invoice");
+      await downloadInvoicePdf({ id: data.invoice_id, invoice_number: `AzoApp-${s.code}` });
+    } catch (e) { toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
   };
   const viewSchedule = () => { setOpen(true); setTimeout(() => calRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120); };
 

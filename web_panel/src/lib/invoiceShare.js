@@ -65,8 +65,26 @@ export async function shareFilePdf(file, { title = "Invoice", text = "", channel
   done("Invoice PDF downloaded \u2014 attach it in WhatsApp");
 }
 
-// Fetch the server-rendered PDF for an invoice record, then share it.
-export async function shareInvoicePdf(inv, channel = "whatsapp") {
+// Download the server-rendered PDF for an invoice record DIRECTLY. The PDF is fetched
+// with the auth token as a blob and saved via an object URL, so the browser downloads
+// the file (and opens it in its PDF viewer) — the raw backend URL is NEVER navigated
+// to or exposed to the user.
+export async function downloadInvoicePdf(inv) {
+  if (!inv?.id) {
+    toast.error("Invoice is not ready yet");
+    return;
+  }
+  const t = toast.loading("Preparing invoice\u2026");
+  try {
+    const r = await api.get(`/invoices/${inv.id}/pdf`, { responseType: "blob" });
+    const blob = r.data instanceof Blob ? r.data : new Blob([r.data], { type: "application/pdf" });
+    const file = new File([blob], `${inv.invoice_number || inv.number || "invoice"}.pdf`, { type: "application/pdf" });
+    saveFile(file);
+    toast.success("Invoice downloaded", { id: t });
+  } catch {
+    toast.error("Could not download the invoice PDF", { id: t });
+  }
+}
   if (!inv?.id) {
     toast.error("Invoice is not ready to share yet");
     return;

@@ -6,7 +6,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
 import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
-import { api, API_BASE } from "../../src/api/client";
+import { api } from "../../src/api/client";
+import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, useTheme, TC } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
@@ -185,8 +186,12 @@ function SubCard({ s }: { s: any }) {
   const downloadInvoice = async () => {
     setInvBusy(true);
     try {
+      // Resolve the invoice id, then download the PDF INSIDE the app (authorised
+      // /invoices/{id}/pdf) so it opens in the native PDF viewer / Save sheet — the
+      // raw backend URL is never opened in a browser.
       const r = await api.get<any>(`/subscriptions/${s.id}/invoice`);
-      Linking.openURL(`${API_BASE}${r.path}`).catch(() => toast.error("Could not open invoice"));
+      if (!r?.invoice_id) throw new Error("no invoice");
+      await downloadInvoicePdf({ id: r.invoice_id, invoice_number: `AzoApp-${s.code}` });
     } catch (e: any) { toast.error(e?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
   };
 

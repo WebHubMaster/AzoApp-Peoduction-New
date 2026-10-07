@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Search, SlidersHorizontal, Download, ChevronDown, X, AlertTriangle, RefreshCcw, Inbox, CalendarDays, CheckCircle2, Clock, ClipboardCheck, BadgeCheck } from "lucide-react";
-import api, { API } from "@/lib/api";
+import api from "@/lib/api";
+import { downloadInvoicePdf } from "@/lib/invoiceShare";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,8 +123,11 @@ export default function SubscriptionsAdmin({ onOpenCustomer }) {
 
   const copy = (code) => { navigator.clipboard?.writeText(code).then(() => toast.success("Subscription code copied."), () => toast.error("Could not copy")); };
   const invoice = async (s) => {
-    const win = window.open("about:blank", "_blank");
-    try { const { data } = await api.get(`/subscriptions/${s.id}/invoice`); if (win) win.location.href = `${API}${data.path}`; } catch (e) { win?.close(); toast.error(e?.response?.data?.detail || "Invoice not available"); }
+    try {
+      const { data } = await api.get(`/subscriptions/${s.id}/invoice`);
+      if (!data?.invoice_id) throw new Error("no invoice");
+      await downloadInvoicePdf({ id: data.invoice_id, invoice_number: `AzoApp-${s.code}` });
+    } catch (e) { toast.error(e?.response?.data?.detail || "Invoice not available"); }
   };
   const closeView = useCallback(() => setView(null), []);
   const a = { view: (s, focus) => setView({ id: s.id, focus }), customer: (s) => s.customer_id && onOpenCustomer?.(s.customer_id), canCustomer: !!onOpenCustomer, copy, invoice };
