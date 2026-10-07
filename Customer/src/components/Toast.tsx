@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckCircle2, AlertCircle, Info } from "lucide-react-native";
 
 type ToastKind = "success" | "error" | "info";
-interface ToastItem { id: number; kind: ToastKind; message: string }
+interface ToastAction { label: string; onPress: () => void }
+interface ToastItem { id: number; kind: ToastKind; message: string; action?: ToastAction }
 interface ToastCtx {
   success: (m: string) => void;
   error: (m: string) => void;
   info: (m: string) => void;
+  action: (m: string, action: ToastAction, kind?: ToastKind) => void;
 }
 
 const Ctx = createContext<ToastCtx | null>(null);
@@ -49,17 +51,18 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
     onPanResponderTerminate: () => Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(),
   }), [anim, drag]);
 
-  const show = useCallback((message: string, kind: ToastKind) => {
+  const show = useCallback((message: string, kind: ToastKind, action?: ToastAction) => {
     if (timer.current) clearTimeout(timer.current);
-    setToast({ id: Date.now(), kind, message });
+    setToast({ id: Date.now(), kind, message, action });
     Animated.spring(anim, { toValue: 1, useNativeDriver: true, friction: 8 }).start();
-    timer.current = setTimeout(hide, kind === "error" ? 2500 : 1800);
+    timer.current = setTimeout(hide, action ? 6000 : (kind === "error" ? 2500 : 1800));
   }, [anim, hide, drag]);
 
   const value: ToastCtx = {
     success: (m) => show(m, "success"),
     error: (m) => show(m, "error"),
     info: (m) => show(m, "info"),
+    action: (m, action, kind = "success") => show(m, kind, action),
   };
 
   const m = toast ? META[toast.kind] : null;
@@ -79,6 +82,12 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
               borderWidth: 1, borderColor: m.border, paddingHorizontal: 16, paddingVertical: 14, boxShadow: "0px 4px 12px rgba(0,0,0,0.10)", elevation: 6 }}>
             <View style={{ width: 20, alignItems: "center" }}><m.Icon size={18} color={m.fg} /></View>
             <Text testID="toast-message" style={{ flex: 1, color: m.fg, fontSize: 13, fontWeight: "500", lineHeight: 18 }}>{toast.message}</Text>
+            {toast.action ? (
+              <Pressable testID="toast-action" onPress={() => { toast.action!.onPress(); hide(); }}
+                style={{ paddingHorizontal: 12, paddingVertical: 7, borderRadius: 6, backgroundColor: m.fg }}>
+                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 12 }}>{toast.action.label}</Text>
+              </Pressable>
+            ) : null}
           </Pressable>
         </Animated.View>
       ) : null}

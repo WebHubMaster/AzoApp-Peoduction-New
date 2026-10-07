@@ -34,6 +34,12 @@ function SubscriptionPanel({ svc }: { svc: any }) {
   }, [svc.id]);
 
   const plan = plans.find((p) => p.plan_type === sel);
+  // Longer-plan savings: compare each plan's per-day price to the costliest per-day
+  // (usually the daily plan). Encourages picking a longer plan.
+  const perDay = (p: any) => (Number(p.price) || 0) / Math.max(1, Number(p.duration_days) || 1);
+  const baseDay = Math.max(0, ...plans.map(perDay));
+  const savingsPct = (p: any) => (baseDay > 0 ? Math.round((1 - perDay(p) / baseDay) * 100) : 0);
+  const bestType = plans.reduce((b: any, p: any) => (savingsPct(p) > savingsPct(b || {}) ? p : b), plans[0])?.plan_type;
   // Book like a normal service: drop the chosen plan into the cart, continue to /book.
   const book = () => {
     if (!user) { toast.info("Please log in to book"); router.push("/login" as any); return; }
@@ -54,7 +60,16 @@ function SubscriptionPanel({ svc }: { svc: any }) {
             <Pressable key={p.plan_type} testID={`sub-plan-${p.plan_type}`} onPress={() => setSel(p.plan_type)}
               style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : TC.border, borderRadius: 6, padding: 14, backgroundColor: on ? PRIMARY[50] : TC.surface }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={{ color: TC.text, fontWeight: "800", fontSize: 16 }}>{p.label}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 }}>
+                  <Text style={{ color: TC.text, fontWeight: "800", fontSize: 16 }}>{p.label}</Text>
+                  {savingsPct(p) >= 1 ? (
+                    <View testID={`sub-plan-savings-${p.plan_type}`} style={{ backgroundColor: p.plan_type === bestType ? "#059669" : EMERALD[50], borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 }}>
+                      <Text style={{ color: p.plan_type === bestType ? "#fff" : "#047857", fontWeight: "800", fontSize: 10.5 }}>
+                        {p.plan_type === bestType ? `BEST VALUE · SAVE ${savingsPct(p)}%` : `SAVE ${savingsPct(p)}%`}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 17 }}>{fmt(p.price)}</Text>
                   {on ? <CheckCircle2 size={18} color={TC.primaryText} /> : null}

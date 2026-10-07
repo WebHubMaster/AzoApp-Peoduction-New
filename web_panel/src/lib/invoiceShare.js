@@ -78,11 +78,32 @@ export async function downloadInvoicePdf(inv) {
   try {
     const r = await api.get(`/invoices/${inv.id}/pdf`, { responseType: "blob" });
     const blob = r.data instanceof Blob ? r.data : new Blob([r.data], { type: "application/pdf" });
-    const file = new File([blob], `${inv.invoice_number || inv.number || "invoice"}.pdf`, { type: "application/pdf" });
-    saveFile(file);
-    toast.success("Invoice downloaded", { id: t });
+    const name = `${inv.invoice_number || inv.number || "invoice"}.pdf`;
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = href; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    // Keep the object URL alive briefly so the toast "Open" action can preview it.
+    toast.success("Invoice saved", {
+      id: t,
+      action: { label: "Open", onClick: () => window.open(href, "_blank", "noopener") },
+    });
+    setTimeout(() => URL.revokeObjectURL(href), 60000);
   } catch {
     toast.error("Could not download the invoice PDF", { id: t });
+  }
+}
+
+// One-tap email of an invoice PDF to the customer (backend sends to the on-file email,
+// or `to` when provided). Surfaces the backend's message (e.g. email not configured).
+export async function emailInvoicePdf(invoiceId, to) {
+  if (!invoiceId) { toast.error("Invoice is not ready yet"); return; }
+  const t = toast.loading("Emailing invoice\u2026");
+  try {
+    const { data } = await api.post(`/invoices/${invoiceId}/email`, to ? { to } : {});
+    toast.success(data?.sent_to ? `Invoice emailed to ${data.sent_to}` : "Invoice emailed", { id: t });
+  } catch (e) {
+    toast.error(e?.response?.data?.detail || "Could not email the invoice", { id: t });
   }
 }
   if (!inv?.id) {

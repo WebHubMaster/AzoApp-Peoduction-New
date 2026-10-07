@@ -5,9 +5,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
-import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle } from "lucide-react-native";
+import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle, Mail } from "lucide-react-native";
 import { api } from "../../src/api/client";
-import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
+import { saveInvoicePdf, openInvoicePdf, emailInvoice } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, useTheme, TC } from "../../src/theme";
 import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
@@ -171,6 +171,7 @@ function SubCard({ s }: { s: any }) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
   const [invBusy, setInvBusy] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
   const set = s.settlement || {};
   const status = (set.status && set.status !== "none") ? set.status : (s.status || "");
   const active = status === "active";
@@ -187,12 +188,24 @@ function SubCard({ s }: { s: any }) {
     setInvBusy(true);
     try {
       // Resolve the invoice id, then download the PDF INSIDE the app (authorised
-      // /invoices/{id}/pdf) so it opens in the native PDF viewer / Save sheet — the
-      // raw backend URL is never opened in a browser.
+      // /invoices/{id}/pdf) — the raw backend URL is never opened in a browser. After
+      // it lands, offer a one-tap "Open" so the PDF opens in the native viewer.
       const r = await api.get<any>(`/subscriptions/${s.id}/invoice`);
       if (!r?.invoice_id) throw new Error("no invoice");
-      await downloadInvoicePdf({ id: r.invoice_id, invoice_number: `AzoApp-${s.code}` });
+      const inv = { id: r.invoice_id, invoice_number: `AzoApp-${s.code}` };
+      const saved = await saveInvoicePdf(inv);
+      toast.action("Invoice saved", { label: "Open", onPress: () => openInvoicePdf(saved.openUri, saved.platform) });
     } catch (e: any) { toast.error(e?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
+  };
+
+  const emailInvoiceNow = async () => {
+    setEmailBusy(true);
+    try {
+      const r = await api.get<any>(`/subscriptions/${s.id}/invoice`);
+      if (!r?.invoice_id) throw new Error("no invoice");
+      const res = await emailInvoice(r.invoice_id);
+      toast.success(res?.sent_to ? `Invoice emailed to ${res.sent_to}` : "Invoice emailed to you");
+    } catch (e: any) { toast.error(e?.detail || "Could not email the invoice"); } finally { setEmailBusy(false); }
   };
 
   return (
@@ -264,6 +277,11 @@ function SubCard({ s }: { s: any }) {
           style={{ flex: 1, height: 40, borderRadius: 6, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
           <Download size={15} color={c.textMuted} />
           <Text style={{ color: c.textMuted, fontWeight: "700", fontSize: 13 }}>{invBusy ? "Preparing…" : "Invoice"}</Text>
+        </Pressable>
+        <Pressable testID={`my-sub-email-btn-${s.id}`} disabled={emailBusy} onPress={emailInvoiceNow}
+          style={{ height: 40, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1.5, borderColor: c.border, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4 }}>
+          <Mail size={15} color={c.textMuted} />
+          <Text style={{ color: c.textMuted, fontWeight: "700", fontSize: 13 }}>{emailBusy ? "Sending…" : "Email"}</Text>
         </Pressable>
       </View>
 

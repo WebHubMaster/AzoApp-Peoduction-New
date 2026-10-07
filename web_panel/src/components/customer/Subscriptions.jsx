@@ -5,9 +5,9 @@
  * service progress, attendance calendar, payment snapshot, maid details, invoice. */
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt, Clock } from "lucide-react";
+import { CalendarHeart, CheckCircle2, Plus, IndianRupee, XCircle, Calendar, ChevronDown, Download, Copy, Phone, User as UserIcon, Receipt, Clock, Mail } from "lucide-react";
 import api, { fmt } from "@/lib/api";
-import { downloadInvoicePdf } from "@/lib/invoiceShare";
+import { downloadInvoicePdf, emailInvoicePdf } from "@/lib/invoiceShare";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,12 @@ export function SubscriptionPlansPanel({ svc }) {
 
   const plan = plans.find((p) => p.plan_type === sel);
 
+  // Longer-plan savings: each plan's per-day price vs the costliest per-day (daily).
+  const perDay = (p) => (Number(p.price) || 0) / Math.max(1, Number(p.duration_days) || 1);
+  const baseDay = plans.length ? Math.max(...plans.map(perDay)) : 0;
+  const savingsPct = (p) => (baseDay > 0 ? Math.round((1 - perDay(p) / baseDay) * 100) : 0);
+  const bestType = plans.reduce((b, p) => (savingsPct(p) > savingsPct(b || {}) ? p : b), plans[0])?.plan_type;
+
   // Book like a normal service: drop the chosen plan into the Booking cart and
   // continue to the same /book checkout (backend keeps full subscription logic).
   const book = () => {
@@ -87,11 +93,20 @@ export function SubscriptionPlansPanel({ svc }) {
       <div className="space-y-2.5 mt-4">
         {plans.map((p) => {
           const on = p.plan_type === sel;
+          const sv = savingsPct(p);
           return (
             <button key={p.plan_type} data-testid={`sub-plan-${p.plan_type}`} onClick={() => setSel(p.plan_type)}
               className={`relative w-full text-left rounded-2xl border-2 p-3.5 transition-all ${on ? "border-primary-700 bg-primary-50/60" : "border-slate-200 bg-white hover:border-primary-300"}`}>
               <div className="flex items-center justify-between pr-6">
-                <span className="font-bold text-slate-900">{p.label || p.plan_type}</span>
+                <span className="font-bold text-slate-900 flex items-center gap-2">
+                  {p.label || p.plan_type}
+                  {sv >= 1 && (
+                    <span data-testid={`sub-plan-savings-${p.plan_type}`}
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide ${p.plan_type === bestType ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700"}`}>
+                      {p.plan_type === bestType ? `Best value · Save ${sv}%` : `Save ${sv}%`}
+                    </span>
+                  )}
+                </span>
                 <span className="font-heading font-extrabold text-lg text-primary-700">{fmt(p.price)}</span>
               </div>
               <p className="text-xs text-slate-500 mt-1">
@@ -138,6 +153,7 @@ function DetailRow({ k, v, strong }) {
 function SubCard({ s }) {
   const [open, setOpen] = useState(false);
   const [invBusy, setInvBusy] = useState(false);
+  const [emailBusy, setEmailBusy] = useState(false);
   const calRef = React.useRef(null);
   const set = s.settlement || {};
   const status = (set.status && set.status !== "none") ? set.status : (s.status || "");
@@ -164,6 +180,15 @@ function SubCard({ s }) {
     } catch (e) { toast.error(e?.response?.data?.detail || "Invoice not available yet"); } finally { setInvBusy(false); }
   };
   const viewSchedule = () => { setOpen(true); setTimeout(() => calRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120); };
+
+  const emailInvoice = async () => {
+    setEmailBusy(true);
+    try {
+      const { data } = await api.get(`/subscriptions/${s.id}/invoice`);
+      if (!data?.invoice_id) throw new Error("no invoice");
+      await emailInvoicePdf(data.invoice_id);
+    } catch (e) { toast.error(e?.response?.data?.detail || "Could not email invoice"); } finally { setEmailBusy(false); }
+  };
 
   return (
     <div data-testid={`my-sub-${s.id}`} className="w-full bg-white border border-slate-200/80 rounded-3xl shadow-[0_1px_3px_rgba(13,71,161,0.07)] overflow-hidden">
@@ -232,6 +257,9 @@ function SubCard({ s }) {
         </Button>
         <Button variant="outline" size="sm" data-testid={`my-sub-invoice-btn-${s.id}`} disabled={invBusy} onClick={downloadInvoice} className="border-slate-200 text-slate-600 hover:bg-slate-50">
           <Download className="h-4 w-4 mr-1" /> {invBusy ? "Preparing…" : "Download Invoice"}
+        </Button>
+        <Button variant="outline" size="sm" data-testid={`my-sub-email-btn-${s.id}`} disabled={emailBusy} onClick={emailInvoice} className="border-slate-200 text-slate-600 hover:bg-slate-50">
+          <Mail className="h-4 w-4 mr-1" /> {emailBusy ? "Sending…" : "Email Invoice"}
         </Button>
       </div>
 

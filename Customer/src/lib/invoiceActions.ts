@@ -7,7 +7,7 @@ import { Platform } from "react-native";
 import { File, Directory, Paths } from "expo-file-system";
 import * as LegacyFS from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { API_BASE, getToken } from "../api/client";
+import { API_BASE, getToken, api } from "../api/client";
 
 const safeName = (s: any) => String(s || "invoice").replace(/[^\w.-]+/g, "_");
 
@@ -63,4 +63,37 @@ export async function downloadInvoicePdf(inv: any): Promise<"shared" | "download
     await Sharing.shareAsync(file.uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: `${inv.invoice_number || "Invoice"}.pdf` });
   }
   return "shared";
+}
+
+/** Download the invoice PDF WITHOUT auto-opening it, returning a handle the caller can
+    open later (used by the "Invoice saved · Open" toast). web → triggers a blob download
+    and returns its object-url; native → saves to a cache file and returns its uri. */
+export async function saveInvoicePdf(inv: any): Promise<{ openUri: string; platform: "web" | "native" }> {
+  if (Platform.OS === "web") {
+    const token = await getToken();
+    const r = await fetch(`${API_BASE}/invoices/${inv.id}/pdf`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (!r.ok) throw new Error("pdf failed");
+    const blob = await r.blob();
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = href; a.download = `${inv.invoice_number || "invoice"}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    return { openUri: href, platform: "web" };
+  }
+  const file = await fetchInvoicePdfFile(inv);
+  return { openUri: file.uri, platform: "native" };
+}
+
+/** Open an already-saved invoice PDF — native share/preview sheet, or a new browser tab. */
+export async function openInvoicePdf(openUri: string, platform: "web" | "native") {
+  if (platform === "web") { try { window.open(openUri, "_blank", "noopener"); } catch { /* ignore */ } return; }
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(openUri, { mimeType: "application/pdf", UTI: "com.adobe.pdf", dialogTitle: "Open invoice" });
+  }
+}
+
+/** Email the invoice PDF to the customer (backend sends to their on-file email, or `to`
+    when provided). Throws ApiError on failure so the caller can surface the message. */
+export async function emailInvoice(invoiceId: string, to?: string) {
+  return api.post<any>(`/invoices/${invoiceId}/email`, to ? { to } : {});
 }
