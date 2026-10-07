@@ -1707,7 +1707,7 @@ function AlertSoundModal({ cfg, onClose, onSaved }) {
             <span className="flex items-center gap-2 font-semibold text-sm text-slate-800"><Moon className="h-4 w-4 text-indigo-500" /> Do Not Disturb (quiet hours)</span>
             <Switch data-testid="alert-dnd" checked={f.dnd_enabled} onCheckedChange={(v) => set("dnd_enabled", v)} />
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Ring stays silent in this window — emergency bookings still ring.</p>
+          <p className="text-[11px] text-slate-400 mt-1">Ring stays silent in this window — quick service bookings still ring.</p>
           {f.dnd_enabled && (
             <div className="mt-3 grid grid-cols-2 gap-3">
               <L label="From"><PremiumSelect data-testid="alert-dnd-start" value={f.dnd_start} onChange={(e) => set("dnd_start", e.target.value)} options={DND_TIME_OPTS} placeholder="Select time" className="rounded-md" /></L>

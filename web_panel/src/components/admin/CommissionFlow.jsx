@@ -37,7 +37,7 @@ function BillSteps({ bill, couponCode }) {
       <Step n={1} title="Charges (before tax)" testId="flow-charges">
         <Line l="Service amount" v={fmt(bill.service_amount)} />
         {bill.addons_total > 0 && <Line l="Add-ons" v={fmt(bill.addons_total)} />}
-        {bill.emergency_fee > 0 && <Line l="Emergency / Instant fee" v={fmt(bill.emergency_fee)} />}
+        {bill.emergency_fee > 0 && <Line l="Quick Service Fee" v={fmt(bill.emergency_fee)} />}
         {bill.surge > 0 && <Line l="Surge" v={fmt(bill.surge)} />}
         {bill.visiting_charge > 0 && <Line l="Visiting charge" v={fmt(bill.visiting_charge)} />}
         {bill.convenience_fee > 0 && <Line l="Convenience fee" v={fmt(bill.convenience_fee)} />}

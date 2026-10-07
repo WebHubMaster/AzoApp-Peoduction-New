@@ -324,7 +324,7 @@ class PricingEngine:
     # Labels for every possible non-service charge. Kept in one place so Customer,
     # Partner, Merchant, Admin panels AND invoices all use identical wording/order.
     CHARGE_LABELS = [
-        ("emergency_fee", "Emergency Fee"),
+        ("emergency_fee", "Quick Service Fee"),
         ("visiting_charge", "Visiting Charge"),
         ("convenience_fee", "Convenience Fee"),
         ("platform_fee", "Platform Fee"),

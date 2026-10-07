@@ -161,7 +161,7 @@ export function AdminJobRequests({ onOpen }) {
                   <td className="px-4 py-3 text-slate-700 dark:text-slate-300">{r.service_name}</td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.customer_name}<br /><span className="text-xs text-slate-400">{r.customer_phone}</span></td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{r.city || "—"}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.schedule_type === "emergency" ? <span className="text-red-600 font-semibold">Emergency</span> : "Scheduled"}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400 whitespace-nowrap">{r.schedule_type === "emergency" ? <span className="text-red-600 font-semibold">Quick Service</span> : "Scheduled"}</td>
                   <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{r.partner_name || <span className="text-slate-300">—</span>}</td>
                   <td className="px-4 py-3 text-center text-slate-600 dark:text-slate-400">{r.eligible_count}</td>
                   <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">{fmt(r.total)}</td>

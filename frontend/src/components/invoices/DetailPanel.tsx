@@ -87,7 +87,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
 
   const bd0 = d?.breakdown || null;
   const acList: any[] = Array.isArray(bd0?.additional_charges) ? bd0.additional_charges : [];
-  const CHARGE_LABEL: Record<string, string> = { emergency_fee: "Emergency Charge", visiting_charge: "Visiting Charge", surge: "Surge Charge", convenience_fee: "Convenience Fee", platform_fee: "Platform Fee" };
+  const CHARGE_LABEL: Record<string, string> = { emergency_fee: "Quick Service Fee", visiting_charge: "Visiting Charge", surge: "Surge Charge", convenience_fee: "Convenience Fee", platform_fee: "Platform Fee" };
   const chargeLines = acList.map((c) => ({ key: c.key, label: CHARGE_LABEL[c.key] || c.label || c.key, amount: Number(c.amount || 0), note: c.note })).filter((c) => c.amount > 0);
   const svcFromLines = serviceLines.reduce((s, it) => s + Number(it.amount || 0), 0);
   const emergencySurgeFromLines = lineItems.filter((it) => /surge|emergency|urgent/i.test(it.desc)).reduce((s, it) => s + Number(it.amount || 0), 0);

@@ -36,7 +36,7 @@ function deriveCharges(booking: any) {
   const bd = booking?.breakdown || {};
   if (Array.isArray(bd.additional_charges)) return bd.additional_charges.map((c: any) => ({ label: c.label, amount: Number(c.amount || 0) })).filter((c: any) => c.amount > 0);
   const p = booking?.pricing || {};
-  return [["emergency_fee", "Emergency Fee"], ["surge", "Surge Charge"], ["visiting_charge", "Visiting Charge"], ["convenience_fee", "Convenience Fee"], ["platform_fee", "Platform Fee"]]
+  return [["emergency_fee", "Quick Service Fee"], ["surge", "Surge Charge"], ["visiting_charge", "Visiting Charge"], ["convenience_fee", "Convenience Fee"], ["platform_fee", "Platform Fee"]]
     .map(([k, label]) => ({ label, amount: Number(p[k] || 0) })).filter((c) => c.amount > 0);
 }
 

@@ -124,7 +124,7 @@ export default function PartnerAlertsPanel() {
           )}
         </div>
         {snoozeMs > 0 && (
-          <p className="text-[11px] text-amber-600 dark:text-amber-300/80 mt-2">Emergency bookings will still ring through.</p>
+          <p className="text-[11px] text-amber-600 dark:text-amber-300/80 mt-2">Quick Service bookings will still ring through.</p>
         )}
       </div>
 

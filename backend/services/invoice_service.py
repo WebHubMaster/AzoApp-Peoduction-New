@@ -216,7 +216,7 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
                           "rate": _ar, "amount": _ar})
     if pr.get("emergency_fee"):
         _e = round(float(pr.get("emergency_fee")), 2)
-        items.append({"desc": "Emergency / Urgent service", "detail": "", "qty": 1,
+        items.append({"desc": "Quick Service", "detail": "", "qty": 1,
                       "rate": _e, "amount": _e})
     if pr.get("surge"):
         _s = round(float(pr.get("surge")), 2)

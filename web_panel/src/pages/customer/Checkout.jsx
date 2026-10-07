@@ -977,7 +977,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
                 <th className="py-1 pr-2 font-medium">Category</th>
                 <th className="py-1 px-1 font-medium text-right">Service</th>
                 <th className="py-1 px-1 font-medium text-right">Visiting</th>
-                <th className="py-1 px-1 font-medium text-right">Emergency</th>
+                <th className="py-1 px-1 font-medium text-right">Quick</th>
                 <th className="py-1 pl-1 font-medium text-right">Total</th>
               </tr>
             </thead>
@@ -994,7 +994,7 @@ const StepSummary = ({ items, quotes, totals, lineTotal, estimateTotal, coupon, 
             </tbody>
           </table>
         </div>
-        <p className="text-[11px] text-slate-400 mt-2">Each category is booked separately and paid to its own partner. Visiting &amp; emergency charges apply per category.</p>
+        <p className="text-[11px] text-slate-400 mt-2">Each category is booked separately and paid to its own partner. Visiting &amp; quick service charges apply per category.</p>
       </SectionCard>
     )}
 
@@ -1199,7 +1199,7 @@ const OrderSidebar = ({ items, lineTotal, totals, displayTotal, navigate, showFu
           {totals.ready && totals.membership_discount > 0 && <Row l="Member discount" v={"- " + fmt(totals.membership_discount)} green />}
           {totals.ready && totals.membership_visit_waiver > 0 && <Row l="Free visiting charge" v={"- " + fmt(totals.membership_visit_waiver)} green />}
           {totals.ready && totals.visiting_charge > 0 && <Row l="Visiting Charge" v={fmt(totals.visiting_charge)} />}
-          {totals.ready && totals.emergency_fee > 0 && <Row l="Emergency Charge" v={fmt(totals.emergency_fee)} />}
+          {totals.ready && totals.emergency_fee > 0 && <Row l="Quick Service Fee" v={fmt(totals.emergency_fee)} />}
           {totals.ready && totals.convenience_fee > 0 && <Row l="Convenience Fee" v={fmt(totals.convenience_fee)} />}
           {totals.ready && totals.platform_fee > 0 && <Row l={<>Platform Fee <FeeInfoTip kind="platform_fee" /></>} v={fmt(totals.platform_fee)} />}
           {totals.ready && totals.gst > 0 && <Row l={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(totals.gst)} />}

@@ -66,7 +66,7 @@ export function MissedRingRecovery() {
             <View style={{ flex: 1, minWidth: 0 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                 <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14, flexShrink: 1 }} numberOfLines={1}>{j.service_name}</Text>
-                {j.schedule_type === "emergency" ? <View style={{ backgroundColor: TW.red100, borderRadius: 999, paddingHorizontal: 6 }}><Text style={{ color: TW.red700, fontSize: 10, fontWeight: "700" }}>Emergency</Text></View> : null}
+                {j.schedule_type === "emergency" ? <View style={{ backgroundColor: TW.red100, borderRadius: 999, paddingHorizontal: 6 }}><Text style={{ color: TW.red700, fontSize: 10, fontWeight: "700" }}>Quick Service</Text></View> : null}
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                 <Icon name="map-marker-outline" size={12} color={TW.slate500} />

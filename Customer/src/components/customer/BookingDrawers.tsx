@@ -117,7 +117,7 @@ function PaymentSummary({ b }: { b: any }) {
     const svc = Number(p.subtotal ?? p.base ?? 0) - visiting - Number(p.emergency_fee || 0) - Number(p.surge || 0);
     return <>
       <DRow k="Service Amount" v={fmt(Math.max(svc, 0))} />
-      {Number(p.emergency_fee || 0) > 0 ? <DRow k="Emergency Fee" v={fmt(p.emergency_fee)} /> : null}
+      {Number(p.emergency_fee || 0) > 0 ? <DRow k="Quick Service Fee" v={fmt(p.emergency_fee)} /> : null}
       {visiting > 0 ? <DRow k="Visiting Charge" v={fmt(visiting)} /> : null}
       {Number(p.discount || 0) > 0 ? <DRow k="Discount" v={`- ${fmt(p.discount)}`} /> : null}
       {Number(p.gst || 0) > 0 ? <DRow k="Est. Govt. Taxes" v={fmt(p.gst)} /> : null}

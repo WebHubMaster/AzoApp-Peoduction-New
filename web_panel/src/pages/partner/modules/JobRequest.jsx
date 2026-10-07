@@ -81,7 +81,7 @@ function JobCard({ b, partnerId, onAccept, onDecline, now, expiryMin }) {
             <div className="flex items-start gap-2 flex-wrap">
               <p className="font-heading font-bold text-slate-900 dark:text-white leading-snug break-words">{b.service_name}</p>
               {b.schedule_type === "emergency" && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 rounded-md px-2 py-0.5 mt-0.5"><Zap className="h-3 w-3" /> Emergency</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 rounded-md px-2 py-0.5 mt-0.5"><Zap className="h-3 w-3" /> Quick Service</span>
               )}
               {b.booking_type === "merchant" && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-md px-2 py-0.5 mt-0.5"><Store className="h-3 w-3" /> {b.merchant_name || "Shop"}</span>

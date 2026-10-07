@@ -5,7 +5,7 @@ const FEES = [
   ["platform_fee", "Platform Fee", "Charged once per booking (tax & commission apply on this)"],
   ["global_visiting_charge", "Visiting Charge", "Applied on orders below the minimum service amount"],
   ["min_service_amount_for_visiting", "Min Service Amount", "Below this amount the visiting charge applies"],
-  ["emergency_fee", "Quick / Emergency Fee", "Per-category quick/emergency booking fee (commission + tax apply)"],
+  ["emergency_fee", "Quick Service Fee", "Per-category quick service booking fee (commission + tax apply)"],
   ["min_labour_charge", "Minimum Labour Charge", "Used on rate-card items that have no labour value"],
 ];
 

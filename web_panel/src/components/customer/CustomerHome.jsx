@@ -84,7 +84,7 @@ export default function CustomerHome({ user, bookings, wallet, loading, onNaviga
               <Wallet className="h-3.5 w-3.5 text-amber-300" /> Wallet {fmtC(wallet?.balance || 0)}
             </button>
             <button type="button" data-testid="home-emergency" onClick={onBook} className="inline-flex items-center gap-1.5 rounded-md bg-rose-500/90 px-3 py-1.5 text-[12px] font-semibold active:scale-95 transition-transform">
-              <Zap className="h-3.5 w-3.5" /> Emergency
+              <Zap className="h-3.5 w-3.5" /> Quick Service
             </button>
           </div>
         </div>

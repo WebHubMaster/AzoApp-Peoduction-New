@@ -88,7 +88,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
               <Text style={{ color: colors.text, fontWeight: "700", fontSize: 16, lineHeight: 22, flexShrink: 1 }}>{b.service_name}</Text>
               {b.schedule_type === "emergency" ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#FFE4E6", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, marginTop: 2 }}>
-                  <Icon name="flash" size={12} color="#BE123C" /><Text style={{ color: "#BE123C", fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 }}>Emergency</Text>
+                  <Icon name="flash" size={12} color="#BE123C" /><Text style={{ color: "#BE123C", fontSize: 10, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5 }}>Quick Service</Text>
                 </View>
               ) : null}
               {b.booking_type === "merchant" ? (

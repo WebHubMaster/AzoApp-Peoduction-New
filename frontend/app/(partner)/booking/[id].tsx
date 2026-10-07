@@ -93,7 +93,7 @@ export default function PartnerBookingDetail() {
                 <InfoRow key={i} label={`${it.name}${it.qty > 1 ? ` ×${it.qty}` : ""}`} value={fmt(it.amount)} />
               ))}
               {pricing.addons_total ? <InfoRow label="Add-ons" value={fmt(pricing.addons_total)} /> : null}
-              {pricing.emergency_fee ? <InfoRow label="Emergency fee" value={fmt(pricing.emergency_fee)} /> : null}
+              {pricing.emergency_fee ? <InfoRow label="Quick Service Fee" value={fmt(pricing.emergency_fee)} /> : null}
               <InfoRow label="Subtotal" value={fmt(pricing.subtotal)} />
               {b.coupon_code && pricing.discount ? <InfoRow label={`Coupon ${b.coupon_code} (AzoApp-funded)`} value={`${fmt(pricing.discount)} · not deducted`} /> : null}
               <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 6 }} />

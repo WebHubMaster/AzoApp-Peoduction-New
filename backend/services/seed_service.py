@@ -722,7 +722,7 @@ async def seed():
     # --- FAQ categories (idempotent seed) ---
     if await db.faq_categories.count_documents({}) == 0:
         for i, name in enumerate(["General", "Booking", "Pricing", "Payment", "Partner", "Customer",
-                                  "Cancellation", "Refund", "Emergency Service", "Visiting Charge", "Account", "Other"]):
+                                  "Cancellation", "Refund", "Quick Service", "Visiting Charge", "Account", "Other"]):
             import re as _re
             await db.faq_categories.insert_one({
                 "id": new_id(), "created_at": now_iso(), "name": name,

@@ -70,7 +70,7 @@ function deriveCharges(booking, hidePlatformFees) {
       .filter((c) => c.amount > 0);
   }
   const p = (booking && booking.pricing) || {};
-  const map = [["emergency_fee", "Emergency Fee"], ["surge", "Surge Charge"],
+  const map = [["emergency_fee", "Quick Service Fee"], ["surge", "Surge Charge"],
     ["visiting_charge", "Visiting Charge"], ["convenience_fee", "Convenience Fee"],
     ["platform_fee", "Platform Fee"]];
   return map

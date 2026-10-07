@@ -1398,7 +1398,7 @@ function PaymentSummary({ b }) {
     return (
       <>
         <DRow k="Service Amount" v={fmt(Math.max(svc, 0))} />
-        {Number(p.emergency_fee || 0) > 0 && <DRow k="Emergency Fee" v={fmt(p.emergency_fee)} />}
+        {Number(p.emergency_fee || 0) > 0 && <DRow k="Quick Service Fee" v={fmt(p.emergency_fee)} />}
         {visiting > 0 && <DRow k="Visiting Charge" v={fmt(visiting)} />}
         {Number(p.discount || 0) > 0 && <DRow k="Discount" v={`- ${fmt(p.discount)}`} />}
         {Number(p.gst || 0) > 0 && <DRow k={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(p.gst)} />}
@@ -1555,7 +1555,7 @@ function InvoiceDrawer({ b, open, onClose }) {
       ].filter(Boolean)
     : [
         ["Service Amount", Math.max(Number(p.subtotal ?? p.base ?? 0) - visiting - Number(p.emergency_fee || 0) - Number(p.surge || 0), 0), false],
-        Number(p.emergency_fee || 0) > 0 ? ["Emergency Fee", Number(p.emergency_fee), false] : null,
+        Number(p.emergency_fee || 0) > 0 ? ["Quick Service Fee", Number(p.emergency_fee), false] : null,
         visiting > 0 ? ["Visiting Charge", visiting, false] : null,
         Number(p.platform_fee || 0) > 0 ? ["Platform Fee", Number(p.platform_fee), false] : null,
         Number(p.convenience_fee || 0) > 0 ? ["Convenience Fee", Number(p.convenience_fee), false] : null,

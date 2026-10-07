@@ -954,7 +954,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
             <div className="text-sm space-y-1.5">
               <Row l="Service Amount" v={fmt(p.base ?? p.subtotal ?? 0)} />
               {p.addons_total > 0 && <Row l="Add-ons" v={fmt(p.addons_total)} />}
-              {(p.emergency_fee || 0) > 0 && <Row l="Emergency Fee" v={fmt(p.emergency_fee)} />}
+              {(p.emergency_fee || 0) > 0 && <Row l="Quick Service Fee" v={fmt(p.emergency_fee)} />}
               {(p.surge || 0) > 0 && <Row l="Surge Charge" v={fmt(p.surge)} />}
               {(p.visiting_charge || 0) > 0 && <Row l="Visiting Charge" v={fmt(p.visiting_charge)} />}
               {(p.platform_fee || 0) > 0 && <Row l="Platform Fee" v={fmt(p.platform_fee)} />}
@@ -2347,7 +2347,7 @@ export const CommissionSettings = () => {
   const [f, setF] = useState(null);
   useEffect(() => { api.get("/admin/settings").then((r) => setF(r.data)); }, []);
   if (!f) return null;
-  const fields = [["platform_commission_pct", "Platform Commission %"], ["partner_commission_pct", "Partner Commission %"], ["merchant_referral_pct", "Merchant Lifetime Referral %"], ["merchant_booking_pct", "Merchant Booking Commission %"], ["gst_pct", "GST %"], ["convenience_fee_pct", "Convenience Fee %"], ["platform_fee", "Platform Fee (₹)"], ["emergency_fee", "Emergency Fee (₹)"], ["slot_capacity", "Bookings per time slot"]];
+  const fields = [["platform_commission_pct", "Platform Commission %"], ["partner_commission_pct", "Partner Commission %"], ["merchant_referral_pct", "Merchant Lifetime Referral %"], ["merchant_booking_pct", "Merchant Booking Commission %"], ["gst_pct", "GST %"], ["convenience_fee_pct", "Convenience Fee %"], ["platform_fee", "Platform Fee (₹)"], ["emergency_fee", "Quick Service Fee (₹)"], ["slot_capacity", "Bookings per time slot"]];
   const save = async () => { const payload = Object.fromEntries(fields.map(([k]) => [k, Number(f[k])])); const { data } = await api.put("/admin/settings", payload); setF(data); toast.success("Settings saved — applies to new bookings"); };
   const toggleDemo = async (v) => { setF({ ...f, demo_mode: v }); await api.put("/admin/settings", { demo_mode: v }); toast.success(`Demo login ${v ? "enabled" : "disabled"}`); };
   return (

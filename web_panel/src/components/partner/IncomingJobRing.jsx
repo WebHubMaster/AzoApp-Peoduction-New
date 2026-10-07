@@ -365,7 +365,7 @@ export default function IncomingJobRing({ onAccepted, onChanged }) {
         )}
         <div className="flex items-center gap-2 mb-3 flex-wrap justify-center">
           {current.schedule_type === "emergency" && (
-            <span className="inline-flex items-center gap-1 rounded-md bg-red-500/90 px-3 py-1 text-[11px] font-bold"><Zap className="h-3.5 w-3.5" /> Emergency</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-red-500/90 px-3 py-1 text-[11px] font-bold"><Zap className="h-3.5 w-3.5" /> Quick Service</span>
           )}
           {silent && (
             <span data-testid="ring-dnd-badge" className="inline-flex items-center gap-1 rounded-md bg-white/15 px-3 py-1 text-[11px] font-semibold"><BellOff className="h-3.5 w-3.5" /> Silent · Do Not Disturb</span>

@@ -224,7 +224,7 @@ export function SnoozeCard() {
           </>
         )}
       </View>
-      {on ? <Text style={{ color: TW.amber600, fontSize: 11, marginTop: 8 }}>Emergency bookings will still ring through.</Text> : null}
+      {on ? <Text style={{ color: TW.amber600, fontSize: 11, marginTop: 8 }}>Quick Service bookings will still ring through.</Text> : null}
     </Surface>
   );
 }

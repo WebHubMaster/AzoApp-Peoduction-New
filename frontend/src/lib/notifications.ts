@@ -622,7 +622,7 @@ export async function displayJobRing(d: Record<string, any>, ctx: "fg" | "bg" = 
   // the ring must NOT be a foreground service or its full-screen intent won't fire.
   const build = (asFgs: boolean) => ({
     id: `job-${d.booking_id}`,
-    title: isReminder ? "\u{1F514} Work starting soon" : isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Emergency job request" : "\u{1F514} New job request"),
+    title: isReminder ? "\u{1F514} Work starting soon" : isResched ? "\u{1F504} Reschedule request" : (isEmergency ? "\u{1F6A8} Quick Service job request" : "\u{1F514} New job request"),
     subtitle: isReminder ? (d.scheduled_time ? `Starts at ${d.scheduled_time}` : undefined) : isResched ? (d.new_date ? `New: ${d.new_date} · ${d.new_time || ""}` : undefined) : (d.partner_amount ? `You earn ${inr(d.partner_amount)}` : d.service_name || undefined),
     body: ringBody,
     data: cleanData,

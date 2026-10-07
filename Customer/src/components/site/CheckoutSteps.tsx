@@ -83,9 +83,9 @@ export function StepSummary({ items, totals, lineTotal, estimateTotal, coupon, s
       ) : null}
       {totals.ready && (totals.category_charges || []).length > 1 ? (
         <SectionCard title="Category-wise charges" icon={Layers} testID="category-charges-table">
-          <View style={{ flexDirection: "row", paddingBottom: 4 }}>{["Category", "Service", "Visiting", "Emerg.", "Total"].map((h, i) => <Text key={h} style={{ flex: i === 0 ? 1.6 : 1, fontSize: 11, color: TC.textFaint, textAlign: i === 0 ? "left" : "right" }}>{h}</Text>)}</View>
+          <View style={{ flexDirection: "row", paddingBottom: 4 }}>{["Category", "Service", "Visiting", "Quick", "Total"].map((h, i) => <Text key={h} style={{ flex: i === 0 ? 1.6 : 1, fontSize: 11, color: TC.textFaint, textAlign: i === 0 ? "left" : "right" }}>{h}</Text>)}</View>
           {(totals.category_charges || []).map((c: any) => <View key={c.category_id || c.category_name} style={{ flexDirection: "row", paddingVertical: 6, borderTopWidth: 1, borderTopColor: TC.borderSoft }}><Text numberOfLines={1} style={{ flex: 1.6, fontSize: 12, fontWeight: "500", color: TC.text2 }}>{c.category_name}</Text><Text style={{ flex: 1, fontSize: 12, color: TC.textMuted, textAlign: "right" }}>{fmt(c.service_total)}</Text><Text style={{ flex: 1, fontSize: 12, color: TC.textMuted, textAlign: "right" }}>{fmt(c.visiting_charge)}</Text><Text style={{ flex: 1, fontSize: 12, color: TC.textMuted, textAlign: "right" }}>{fmt(c.emergency_charge)}</Text><Text style={{ flex: 1, fontSize: 12, fontWeight: "600", color: TC.text, textAlign: "right" }}>{fmt(c.category_total)}</Text></View>)}
-          <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 8 }}>Each category is booked separately and paid to its own partner. Visiting & emergency charges apply per category.</Text>
+          <Text style={{ fontSize: 11, color: TC.textFaint, marginTop: 8 }}>Each category is booked separately and paid to its own partner. Visiting & quick service charges apply per category.</Text>
         </SectionCard>
       ) : null}
       <SectionCard title="Price details" icon={MapPin} testID="summary-price"><PriceRows totals={totals} items={items} lineTotal={lineTotal} estimate={estimateTotal} /></SectionCard>
