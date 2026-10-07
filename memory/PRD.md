@@ -339,3 +339,16 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 - Web (web_panel): SiteConfigContext stores membership_enabled; SiteNavbar.jsx hides desktop+mobile Membership buttons when false; Promotions.jsx hides home membership banner.
 - Customer app: BrandContext.tsx SiteConfig gets membership_enabled; AppBottomNav.tsx swaps Membership tab → Offers tab when off; site/SiteNavbar.tsx hides crown button; HomeBlocks.tsx hides membership banner.
 - Verified: /site/config default true; OFF→false, ON→true (reflects DB, cache busts on save/restart). Web screenshots confirm navbar Membership hidden when OFF and visible when ON.
+
+## Session (2026-06) — Partner App: Request Reschedule button text overflow
+Problem (Hindi): Partner App Active Job screen par "Request Reschedule" button ka text button
+se bahar ja raha tha.
+Fix: /app/frontend/app/(partner)/active.tsx (secondary actions row ~L667-674) — Reject Job &
+Request Reschedule buttons: fontSize 13->12, icon 16->15, Text ko numberOfLines={1} + flexShrink:1,
+Pressable ko paddingHorizontal:8, minWidth 140->130. Container already flexWrap:'wrap' hai to
+narrow phones par buttons agli line me wrap honge instead of text overflow. Verified via testing_agent
+code review (iteration_233) — tsc clean, no regression. (Expo partner app preview me serve nahi hota.)
+
+## PENDING (carried over from earlier in this session)
+- Customer App + Customer Web: "Booking" bottom-tab par logged-in user ko ACTIVE bookings dikhni chahiye
+  (abhi empty-cart screen "Your booking is empty" dikhta hai — book.tsx / Checkout.jsx). Not yet done.

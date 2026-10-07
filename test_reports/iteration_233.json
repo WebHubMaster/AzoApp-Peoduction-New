@@ -1,0 +1,29 @@
+{
+  "summary": "Code-review verification of the Partner Expo app (active.tsx) secondary-action buttons overflow fix. Expo native-only screen, not served on preview, so verified via source inspection + TypeScript compile check.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "code_review_findings": {
+    "file": "/app/frontend/app/(partner)/active.tsx",
+    "container_line_667": "View uses flexDirection:row, gap:10, flexWrap:'wrap' — allows buttons to wrap to next line on narrow widths instead of overflowing.",
+    "reject_button_line_669": "Pressable testID=reject-<code> uses outlineBtn + flex:1, minWidth:130, paddingHorizontal:8. Icon size=15. Text has numberOfLines={1}, fontSize:12, fontWeight:700, flexShrink:1. Label 'Reject Job' is short — fits comfortably.",
+    "reschedule_button_line_672": "Pressable testID=reschedule-<code> same styles: flex:1, minWidth:130, paddingHorizontal:8, icon=15. Text 'Request Reschedule' has numberOfLines={1} + flexShrink:1 + fontSize:12 — will be truncated with ellipsis if space insufficient instead of spilling outside border.",
+    "outlineBtn_line_523": "height:44, borderRadius:6, borderWidth:1, alignItems:center, justifyContent:center, flexDirection:row, gap:6. Border contains children because text has flexShrink:1 + numberOfLines:1.",
+    "verdict": "Overflow fix is correctly implemented. On narrow phones (<~340dp usable row width), the two buttons wrap to two rows (flexWrap:'wrap' + minWidth:130) rather than squeezing text out. On medium widths, flexShrink:1 + numberOfLines:1 forces ellipsis truncation within the border. No regression — the change is purely style/props on existing Pressable/Text."
+  },
+  "compile_check": "npx tsc --noEmit returned no errors for active.tsx.",
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix looks correct and minimal. Optional enhancement: consider ellipsizeMode='tail' explicitly on the Text (defaults to tail, so not strictly needed), and shortening label to 'Reschedule' on very narrow devices to avoid ellipsis — purely nice-to-have."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% (code review)"},
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Partner app (Expo) is not served on preview port 3000 (CRA web_panel is). Native-only Expo screens are verified via code review + tsc, as done in previous iterations (e.g. 229). active.tsx lines 667-674 contain the Reject + Reschedule outline buttons with overflow-safe styling."
+}
