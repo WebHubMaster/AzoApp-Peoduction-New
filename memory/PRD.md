@@ -88,3 +88,7 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Resume: upload_id = fingerprint(platform,size,lastModified,name); pending state in localStorage `azo_apk_pending_{platform}`; GET /api/app-mgmt/admin/apk/{platform}/received/{upload_id} → skip sent chunks; offline → waits for `online` event; reload during Processing auto-resumes polling; resume banner (Resume/Discard). Chunks kept 6h (TTL).
 - Storage badge: GET /api/app-mgmt/admin/storage → {mode: s3|local, bucket, region}; badge in App Management header.
 - Verified iteration_237 (8/8 backend, UI resume after reload + offline drop).
+
+## 2026-06 — Single active session (all roles) + Partner in-app proof camera
+- Login anywhere (OTP/email/google) → `issue_token` sets users.current_sid + JWT `sid`; older tokens get 401 {code:"device_revoked"}. Web panel: interceptor event + 20s /auth/me poll → toast + logout. Partner apps already handle device_revoked. (iteration_238 pass)
+- Partner before/after proof: new `frontend/src/components/partner/ProofCamera.tsx` (expo-camera CameraView photo + video ≤30s, 720p/4Mbps, mute if mic denied); fallback to system camera with getPendingResultAsync recovery; "Uploading…" only after capture. expo-camera plugin recordAudioAndroid=true. Needs NEW APK build (native config). /app/PartnerApp is an older copy — not updated.

@@ -1,0 +1,30 @@
+{
+  "summary": "Verified single-active-session (all roles) + partner in-app camera code review. Backend: 6/6 pytest cases pass covering admin/customer/partner second-login-revokes-first, legacy no-sid tokens, optional_auth graceful handling, and partner web-login revokes phone + records registered_device_id. Frontend: validated end-to-end that after a second issue_token() on the same admin user, the first browser session (with t1 in localStorage) receives 401 {detail:{code:'device_revoked',...}} on next /auth/me poll/focus, api.js dispatches 'azo:session-revoked', AuthContext clears azo_token and shows the toast 'You've been logged out because this account was logged in on another device.' Partner mobile code (ProofCamera.tsx, JobProof.tsx, [id].tsx): `cd /app/frontend && npx tsc --noEmit` is clean (only a non-code TS 5101 deprecation warning for tsconfig baseUrl, unrelated). ProofCamera implementation (expo-camera CameraView) looks correct: 6s onCameraReady fallback→onFail, onMountError wired, flip/mute/timer handled, stopRecording guard present.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_single_session_all_roles.py",
+    "/app/test_reports/pytest/single_session_iter238.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ProofCamera does NOT explicitly request Camera permission (useCameraPermissions). Relies on JobProof.tsx caller to request it. If parent omits that step, onMountError path will be taken on first launch. Verify JobProof.tsx or [id].tsx requests camera permission before opening the modal (not blocking — expo CameraView auto-prompts on some platforms, but relying on it is fragile).",
+    "ProofCamera 6s ready-timeout branch currently calls onFail only when cam.current is still null. If CameraView mounts (ref set) but onCameraReady never fires, timer forcibly sets ready=true — user may tap shutter before hardware is actually ready. Consider a slightly longer fallback or wrapping takePictureAsync with a specific error toast.",
+    "middleware/auth.get_current_user raises HTTPException(detail=REVOKED dict). FastAPI serializes this fine, but ensure no middleware wraps it to str. Verified via live test: /auth/me returns 401 and api.js reads detail.code correctly.",
+    "On successful admin OTP login, auth_controller.verify_otp enriches user with rbac (enrich_user) but email_login + google_login do NOT. If an admin ever logs in via email, their /me after login (loadMe) will do the enrichment, but the login response won't include permissions. Minor consistency gap — not a blocker."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_single_session_all_roles.py (new)"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (session-revoked flow verified)"},
+  "test_credentials": "Admin phone +919000000000, OTP 123456 (demo mode). Partner +919000000003 uid 7777d8d6-ecec-4c83-bd4d-a951c2b50335. Customer +919000000004 uid e362f4c6-fab1-486e-b6fc-34ef30e5ffdb.",
+  "seed_data_creation": "None (used existing demo accounts).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "test_single_device_login.py (old iter) still exercises partner device-binding (DEV-A/DEV-B). It passes alongside the new single-session semantics because partner retains registered_device_id behaviour. The new test file test_single_session_all_roles.py covers the global 'any new login logs out all other devices' feature across admin/customer/partner. Uses sync pymongo for DB assertions to avoid motor loop issues under pytest.",
+  "rca of the issue": "N/A — feature verification task, no bug."
+}
