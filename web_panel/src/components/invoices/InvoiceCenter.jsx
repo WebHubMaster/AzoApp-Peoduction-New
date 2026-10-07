@@ -8,7 +8,7 @@ import {
   MoreHorizontal, Printer, Share2, Copy, CheckCircle2, Clock, RotateCcw, ArrowUpDown,
   User, CalendarDays, Wallet, MessageCircle,
 } from "lucide-react";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 import { shareInvoicePdf } from "@/lib/invoiceShare";
 import InvoiceA4Frame from "@/components/invoices/InvoiceA4Frame";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -326,6 +326,11 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
         footer={drawerInv && <div className="flex gap-2"><Button variant="outline" className="h-11 flex-1" onClick={() => downloadById(drawerInv)} data-testid="drawer-download"><Download className="h-4 w-4 mr-1" /> Download</Button><Button className="h-11 flex-1 bg-primary-700 hover:bg-primary-800" onClick={() => openPreview(drawerInv.id)} data-testid="drawer-view-full"><Eye className="h-4 w-4 mr-1" /> View Invoice</Button></div>}>
         {drawerInv && (
           <div className="space-y-5">
+            {(drawerFull || drawerInv)?.business_snapshot?.logo && (
+              <div className="flex justify-center pb-1" data-testid="drawer-brand-logo">
+                <img src={mediaSrc((drawerFull || drawerInv).business_snapshot.logo)} alt="logo" className="h-12 max-w-[220px] object-contain" />
+              </div>
+            )}
             <div className="rounded-2xl p-4 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
               <div><p className="text-[11px] uppercase tracking-wide text-slate-400">{drawerInv.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</p><p className="font-heading font-extrabold text-2xl text-slate-900 dark:text-white tabular-nums">{money(drawerInv.invoice_type === "cancellation" ? (Number(drawerInv.original_amount != null ? drawerInv.original_amount : drawerInv.total_amount) || 0) : drawerInv.total_amount, drawerInv.currency)}</p></div>
               <StatusBadge status={drawerInv.payment_status} />

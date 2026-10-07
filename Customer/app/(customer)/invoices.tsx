@@ -1,11 +1,12 @@
 /** My Invoices — port of web_panel/src/components/invoices/InvoiceCenter.jsx (customer role, mobile view). */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, Modal, Linking } from "react-native";
+import { Image } from "expo-image";
 import * as Clipboard from "expo-clipboard";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard, Printer } from "lucide-react-native";
-import { api, API_BASE } from "../../src/api/client";
+import { api, API_BASE, mediaUrl } from "../../src/api/client";
 import { downloadInvoicePdf, openLocalFile, shareInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
@@ -199,6 +200,7 @@ export default function InvoicesScreen() {
       <DrawerShell open={!!d} onClose={() => { setDrawerInv(null); setDrawerFull(null); }} title={d?.invoice_number || "Invoice"} testID="invoice-detail-drawer"
         footer={d ? <View style={{ flexDirection: "row", gap: 8 }}><Btn tone="outline" icon={Download} label={downloading[d.id] ? "Downloading…" : "Download"} disabled={!!downloading[d.id]} onPress={() => downloadById(d)} testID="drawer-download" style={{ flex: 1, height: 44, borderRadius: 6 }} /><Btn icon={Eye} label="View Invoice" onPress={() => openPreview(d)} testID="drawer-view-full" style={{ flex: 1, height: 44, borderRadius: 6 }} /></View> : null}>
         {d ? <>
+          {drawerFull?.business_snapshot?.logo ? <View testID="drawer-brand-logo" style={{ alignItems: "center", paddingBottom: 12 }}><Image source={{ uri: mediaUrl(drawerFull.business_snapshot.logo) }} style={{ height: 46, width: 200 }} contentFit="contain" /></View> : null}
           <View style={{ borderRadius: 6, padding: 16, backgroundColor: isDark ? "rgba(30,41,59,0.5)" : TC.bg, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
             <View><Text style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: TC.textFaint }}>{d.invoice_type === "cancellation" ? "Total order value" : "Total amount"}</Text><Text style={{ fontSize: 24, fontWeight: "800", color: c.text }}>{money(d.invoice_type === "cancellation" ? (d.original_amount ?? d.total_amount) : d.total_amount, d.currency)}</Text></View>
             <StatusBadge status={d.payment_status} />

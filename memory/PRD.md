@@ -213,3 +213,14 @@ Changed:
 - Merchant web: finance InvoiceDetailPanel.jsx, referral MerchantCommission/MerchantPartners/MerchantReferralCustomers.
 - Shared: InvoiceCenter.jsx, InvoiceDocument.jsx.
 Kept (intentional): GST/CGST/SGST tax rates (legal), promotional "% off"/"SAVE %" discounts, progress/completion/performance stats, and admin config screens (admins still set rates).
+
+## Update (Jun 2026) — Invoice logo + Profile avatars
+1. Invoice logo now shows on ALL invoice surfaces, pulled from admin Branding & Theme "Email & Invoice Logo" (email_logo):
+   - Backend PDF/HTML/email already embedded it.
+   - Added logo to in-app invoice detail drawers: Customer app (invoices.tsx) & web (InvoiceCenter.jsx).
+   - Hardened web logo <img> to use mediaSrc() (InvoiceDocument.jsx, merchant InvoiceDetailPanel.jsx) so relative media paths resolve cross-host.
+2. Profile picture (user.photo) now renders wherever own-profile shows:
+   - Customer checkout contact chip (CheckoutSteps.tsx) — was initials only.
+   - Partner home header (HomeSections.tsx) — was initials only.
+   - Other shells/headers/chat already rendered photo.
+Known gap: partner's "Customer details" avatar on job/[id] still shows initial — backend job payload does not include customer photo (needs API field to add).

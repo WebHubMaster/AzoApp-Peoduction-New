@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { mediaSrc } from "@/lib/api";
 
 const money = (n, cur = "INR") => {
   const sym = cur === "INR" ? "₹" : cur + " ";
@@ -112,7 +113,7 @@ const InvoiceDocument = forwardRef(function InvoiceDocument({ inv }, ref) {
       <div className="flex items-start justify-between pb-6" style={{ borderBottom: "2px solid #0D47A1" }}>
         <div className="flex items-start gap-3">
           {biz.logo ? (
-            <img src={biz.logo} alt="logo" style={{ height: 52, maxWidth: 230, width: "auto", objectFit: "contain" }} crossOrigin="anonymous" />
+            <img src={mediaSrc(biz.logo)} alt="logo" style={{ height: 52, maxWidth: 230, width: "auto", objectFit: "contain" }} crossOrigin="anonymous" />
           ) : (
             <>
               <div style={{ height: 48, width: 48, borderRadius: 10, background: "#0D47A1" }}

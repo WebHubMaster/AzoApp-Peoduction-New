@@ -1,5 +1,7 @@
 import React from "react";
 import { View, Text, Pressable, Switch } from "react-native";
+import { Image } from "expo-image";
+import { mediaUrl } from "@/src/api/client";
 import { LinearGradient } from "expo-linear-gradient";
 import dayjs from "dayjs";
 import { useTheme } from "@/src/theme";
@@ -43,9 +45,13 @@ export function HeaderCard({ user, kit, online, connected, onToggle }: { user: a
     <Card style={{ padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
         <View>
-          <LinearGradient colors={[colors.primaryHover, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 48, height: 48, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1)" }}>
-            <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{initials(user?.name || "P")}</Text>
-          </LinearGradient>
+          {user?.photo ? (
+            <Image testID="partner-home-avatar" source={{ uri: mediaUrl(user.photo) }} style={{ width: 48, height: 48, borderRadius: 6 }} contentFit="cover" cachePolicy="memory-disk" />
+          ) : (
+            <LinearGradient colors={[colors.primaryHover, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: 48, height: 48, borderRadius: 6, alignItems: "center", justifyContent: "center", boxShadow: "0px 4px 6px -1px rgba(0,0,0,0.1)" }}>
+              <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>{initials(user?.name || "P")}</Text>
+            </LinearGradient>
+          )}
           <View style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: 8, backgroundColor: online ? TW.emerald500 : TW.slate300, borderWidth: 2, borderColor: colors.card }} />
         </View>
         <View style={{ flex: 1, minWidth: 0 }}>

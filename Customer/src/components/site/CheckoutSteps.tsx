@@ -3,6 +3,7 @@ import { TC } from "@/src/theme";
 import React from "react";
 import { View, Text, Pressable, TextInput, Platform } from "react-native";
 import { Image } from "expo-image";
+import { mediaUrl } from "../../api/client";
 import { WebView } from "react-native-webview";
 import { MapPin, Plus, LocateFixed, ShoppingBag, Tag, Layers, CalendarClock, User, Zap, Wallet, CreditCard, Banknote, ShieldCheck, PartyPopper, ArrowRight } from "lucide-react-native";
 import { fmt } from "../../lib/format";
@@ -30,7 +31,7 @@ export function StepContact({ user, refresh, savedAddresses, selectedId, pickAdd
     <View style={{ gap: 16 }}>
       <H2 t="Your details & address" s="Where should our professional reach you?" />
       <View testID="contact-user" style={{ ...card, padding: 16, flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Text style={{ fontWeight: "700", color: TC.primaryText }}>{(user.name || "U")[0]}</Text></View>
+        {user.photo ? <Image testID="contact-user-photo" source={{ uri: mediaUrl(user.photo) }} style={{ height: 40, width: 40, borderRadius: 20 }} contentFit="cover" cachePolicy="memory-disk" /> : <View style={{ height: 40, width: 40, borderRadius: 20, backgroundColor: PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Text style={{ fontWeight: "700", color: TC.primaryText }}>{(user.name || "U")[0]}</Text></View>}
         <View><Text style={{ fontSize: 15, fontWeight: "600", color: TC.text }}>{user.name}</Text><Text style={{ fontSize: 12, color: TC.textMuted }}>{user.phone}</Text></View>
       </View>
       {savedAddresses.length > 0 ? (

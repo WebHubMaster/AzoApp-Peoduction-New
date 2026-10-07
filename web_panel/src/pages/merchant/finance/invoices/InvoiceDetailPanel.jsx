@@ -1,4 +1,5 @@
 import React from "react";
+import { mediaSrc } from "@/lib/api";
 import { User, CalendarDays, Wallet, Percent, History, Download, Share2, FileText, MoreHorizontal, Printer, Copy, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -138,7 +139,7 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
           <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 p-4" data-testid="detail-header-card">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                {biz.logo ? <img src={biz.logo} alt="AzoApp" className="h-10 w-10 rounded-xl object-contain bg-white border border-slate-200 dark:border-slate-700 p-1" />
+                {biz.logo ? <img src={mediaSrc(biz.logo)} alt="logo" className="h-10 w-10 rounded-xl object-contain bg-white border border-slate-200 dark:border-slate-700 p-1" />
                   : <span className="h-10 w-10 rounded-xl bg-[#0D47A1] text-white font-heading font-black grid place-items-center shadow-md shadow-primary-500/30">A</span>}
                 <div className="min-w-0">
                   <p className="text-[10.5px] font-bold uppercase tracking-widest text-slate-400">AzoApp · {role === "partner" ? "Partner" : "Merchant"}</p>
