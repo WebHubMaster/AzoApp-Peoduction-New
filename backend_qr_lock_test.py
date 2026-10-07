@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Base URL from frontend/.env
-BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

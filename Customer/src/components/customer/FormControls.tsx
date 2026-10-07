@@ -9,7 +9,7 @@ import { BottomSheet, MiniCalendar } from "./ux";
 export const onlyDigits = (v: string, max?: number) => { const d = String(v ?? "").replace(/\D/g, ""); return max ? d.slice(0, max) : d; };
 export const onlyAlpha = (v: string) => String(v ?? "").replace(/[^A-Za-z\s]/g, "").replace(/\s{2,}/g, " ");
 
-export const PField = ({ label, children }: { label: string; children: React.ReactNode }) => (
+export const PField = ({ label, children }: { label: React.ReactNode; children: React.ReactNode }) => (
   <View><Text style={{ fontSize: 12, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: TC.textFaint }}>{label}</Text><View style={{ marginTop: 4 }}>{children}</View></View>
 );
 

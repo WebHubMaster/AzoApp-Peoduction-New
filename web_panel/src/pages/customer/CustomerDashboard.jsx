@@ -1778,7 +1778,7 @@ const ProfileEditor = ({ user, fields, onSaved }) => {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <PField label="Full Name"><Input data-testid="pf-name" value={f.name} onChange={(e) => set("name", e.target.value)} /></PField>
-          {fields.email && <PField label="Email"><Input data-testid="pf-email" value={f.email} onChange={(e) => set("email", e.target.value)} /></PField>}
+          {fields.email && <PField label={<>Email <span className="normal-case font-normal tracking-normal text-[10px] text-slate-400">— add to get invoices on mail</span></>}><Input data-testid="pf-email" value={f.email} onChange={(e) => set("email", e.target.value)} /></PField>}
           {fields.gender && <PField label="Gender"><PremiumSelect data-testid="pf-gender" value={f.gender} onChange={(e) => set("gender", e.target.value)} className="w-full h-10 px-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm"><option value="">Select</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></PremiumSelect></PField>}
           {fields.dob && <PField label="Date of Birth"><DatePicker testId="pf-dob" value={f.dob} onChange={(v) => set("dob", v)} placeholder="Select date of birth" fromYear={1940} toYear={new Date().getFullYear()} maxDate={new Date()} /></PField>}
           {fields.alternate_mobile && <PField label="Alternate Mobile"><Input data-testid="pf-altmobile" inputMode="numeric" maxLength={10} value={f.alternate_mobile} onChange={(e) => set("alternate_mobile", onlyDigits(e.target.value, 10))} /></PField>}

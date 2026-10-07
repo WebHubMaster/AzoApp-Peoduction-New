@@ -21,7 +21,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

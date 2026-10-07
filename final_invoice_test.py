@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

@@ -97,7 +97,7 @@ export default function ProfileScreen() {
         </View>
         <View style={{ gap: 16 }}>
           <PField label="Full Name"><FInput testID="pf-name" value={f.name} onChange={(v) => set("name", v)} /></PField>
-          {fields.email ? <PField label="Email"><FInput testID="pf-email" value={f.email} onChange={(v) => set("email", v)} keyboardType="email-address" /></PField> : null}
+          {fields.email ? <PField label={<Text>Email <Text style={{ textTransform: "none", fontWeight: "400", letterSpacing: 0, color: TC.textFaint }}>— add to get invoices on mail</Text></Text>}><FInput testID="pf-email" value={f.email} onChange={(v) => set("email", v)} keyboardType="email-address" /></PField> : null}
           {fields.gender ? <PField label="Gender"><FSelect testID="pf-gender" title="Gender" value={f.gender} options={GENDERS} onChange={(v) => set("gender", v)} /></PField> : null}
           {fields.dob ? <PField label="Date of Birth"><DateField testID="pf-dob" value={f.dob} onChange={(v) => set("dob", v)} placeholder="Select date of birth" fromYear={1940} toYear={new Date().getFullYear()} maxDate={new Date()} /></PField> : null}
           {fields.alternate_mobile ? <PField label="Alternate Mobile"><FInput testID="pf-altmobile" keyboardType="number-pad" maxLength={10} value={f.alternate_mobile} onChange={(v) => set("alternate_mobile", onlyDigits(v, 10))} /></PField> : null}

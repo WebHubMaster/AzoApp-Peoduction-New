@@ -7,7 +7,7 @@ import json
 import time
 from datetime import datetime, timedelta
 
-BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
+BASE_URL = "https://invoice-mailer-9.preview.emergentagent.com/api"
 OTP = "123456"
 
 CUSTOMER_PHONE = "+919000000004"
