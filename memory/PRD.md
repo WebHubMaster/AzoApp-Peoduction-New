@@ -224,3 +224,12 @@ Kept (intentional): GST/CGST/SGST tax rates (legal), promotional "% off"/"SAVE %
    - Partner home header (HomeSections.tsx) — was initials only.
    - Other shells/headers/chat already rendered photo.
 Known gap: partner's "Customer details" avatar on job/[id] still shows initial — backend job payload does not include customer photo (needs API field to add).
+
+## Update (Jun 2026) — Customer photo to partner + Maid subscription sheet
+1. Partner "Customer details" (job screen) now shows the customer's profile photo:
+   - Backend: partner_job_detail() adds b["customer_photo"] from users.photo.
+   - Partner app job/[id].tsx renders customer_photo (fallback to initial).
+2. Maid subscription sheet (Customer app subscriptions.tsx):
+   - Validation errors now show as an inline red banner at the TOP of the sheet (was a toast hidden behind the modal).
+   - Added "Use current location" button in Service Address → requests GPS, reverse-geocodes (/geo/reverse), saves it as an address (/auth/address) and auto-selects it; address rows now show city · pincode and lat/lng.
+   - Removed the green "verified maid… attendance captured by location" note.

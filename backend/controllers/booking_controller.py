@@ -2584,6 +2584,8 @@ async def partner_job_detail(partner, booking_id):
             b["customer_phone"] = None
         b["still_available"] = b.get("status") == "searching"
         _partner_view(b, await get_settings())
+        _cust = await db.users.find_one({"id": b.get("customer_id")}, {"_id": 0, "photo": 1}) if b.get("customer_id") else None
+        b["customer_photo"] = (_cust or {}).get("photo") or ""
         return b
     raise HTTPException(status_code=403, detail="This job is not available to you")
 

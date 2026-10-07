@@ -5,7 +5,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, Linking } from "react-native";
 import { useRouter } from "expo-router";
-import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle, Mail } from "lucide-react-native";
+import { CalendarHeart, CheckCircle2, MapPin, Clock, ChevronDown, Download, Phone, User, IndianRupee, Calendar, XCircle, Mail, LocateFixed, AlertCircle } from "lucide-react-native";
+import * as Location from "expo-location";
 import { api } from "../../src/api/client";
 import { saveInvoicePdf, openInvoicePdf, emailInvoice } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
@@ -51,6 +52,35 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
   const [startDate, setStartDate] = useState<string>(todayPlus(1));
   const [time, setTime] = useState<string>("09:00");
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string>("");
+  const [locating, setLocating] = useState(false);
+
+  const useCurrentLocation = async () => {
+    setErr(""); setLocating(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") { setErr("Location permission denied. Enable it in settings or add an address from My Addresses."); return; }
+      const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const lat = pos.coords.latitude, lng = pos.coords.longitude;
+      let rev: any = {};
+      try { rev = await api.get(`/geo/reverse?lat=${lat}&lng=${lng}`, { auth: false }); } catch (_) {}
+      const u = await api.post<any>("/auth/address", {
+        label: "Current location",
+        line: rev.line || rev.formatted || "Current location",
+        city: rev.city || rev.town || rev.state || "",
+        state: rev.state || "",
+        pincode: String(rev.pincode || rev.postcode || ""),
+        lat, lng, is_default: false,
+      });
+      const list = (u?.addresses || []) as any[];
+      setAddresses(list);
+      const latest = list[list.length - 1];
+      if (latest) setAddrId(latest.id);
+      toast.success("Current location added as service address");
+    } catch (e: any) {
+      setErr(e?.detail || "Couldn't fetch your current location. Please try again.");
+    } finally { setLocating(false); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -64,9 +94,10 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
 
   const plan = plans.find((p) => p.plan_type === sel);
   const book = async () => {
-    if (!plan) return toast.error("Select a plan");
-    if (!addrId) return toast.error("Add a service address first");
-    if (!startDate || !time) return toast.error("Pick a start date and time");
+    setErr("");
+    if (!plan) { setErr("Please select a plan to continue."); return; }
+    if (!addrId) { setErr("Add a service address first — pick one below or use your current location."); return; }
+    if (!startDate || !time) { setErr("Pick a start date and time."); return; }
     setBusy(true);
     try {
       const sub = await api.post<any>("/subscriptions", {
@@ -94,6 +125,12 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
     <BottomSheet open onClose={onClose} title={service.name} testID="sub-plan-sheet"
       footer={<PrimaryButton label={busy ? "Processing…" : `Pay ${money(plan?.price)} & Activate`} disabled={busy || !plan} onPress={book} testID="sub-book-pay" />}>
       <View>
+        {err ? (
+          <View testID="sub-error-banner" style={{ flexDirection: "row", alignItems: "center", gap: 8, borderRadius: 6, backgroundColor: "#FFF0F0", borderWidth: 1, borderColor: "#FFE0E1", paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 }}>
+            <AlertCircle size={16} color="#E60000" />
+            <Text style={{ flex: 1, color: "#E60000", fontSize: 12.5, fontWeight: "600" }}>{err}</Text>
+          </View>
+        ) : null}
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginBottom: 8 }}>Choose a plan</Text>
         <View style={{ gap: 8 }}>
           {plans.map((p) => {
@@ -124,27 +161,33 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
         />
 
         <Text style={{ color: c.textMuted, fontSize: 12, fontWeight: "700", textTransform: "uppercase", marginTop: 16, marginBottom: 8 }}>Service address</Text>
+        <Pressable testID="sub-use-current-location" onPress={useCurrentLocation} disabled={locating}
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 44, borderRadius: 6, borderWidth: 1, borderColor: PRIMARY[300], backgroundColor: PRIMARY[50], opacity: locating ? 0.6 : 1, marginBottom: 10 }}>
+          <LocateFixed size={16} color={TC.primaryText} />
+          <Text style={{ color: TC.primaryText, fontWeight: "700", fontSize: 13 }}>{locating ? "Fetching your location…" : "Use current location"}</Text>
+        </Pressable>
         {addresses.length === 0 ? (
-          <Text style={{ color: TC.textFaint, fontSize: 13 }}>No saved address. Please add one from My Addresses.</Text>
+          <Text style={{ color: TC.textFaint, fontSize: 13 }}>No saved address. Use your current location above, or add one from My Addresses.</Text>
         ) : (
           <View style={{ gap: 8 }}>
             {addresses.map((a) => {
               const on = a.id === addrId;
+              const meta = [a.city, a.pincode].filter(Boolean).join(" · ");
+              const coords = (a.lat != null && a.lng != null && a.lat !== "" && a.lng !== "") ? `${Number(a.lat).toFixed(5)}, ${Number(a.lng).toFixed(5)}` : "";
               return (
-                <Pressable key={a.id} onPress={() => setAddrId(a.id)} style={{ flexDirection: "row", gap: 10, borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 10 }}>
+                <Pressable key={a.id} testID={`sub-addr-${a.id}`} onPress={() => { setAddrId(a.id); setErr(""); }} style={{ flexDirection: "row", gap: 10, borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 10 }}>
                   <MapPin size={16} color={TC.primaryText} />
-                  <Text style={{ color: c.text, fontSize: 13, flex: 1 }}>{a.line || a.address_line || `${a.city || ""} ${a.pincode || ""}`}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: c.text, fontSize: 13, fontWeight: "600" }}>{a.label ? `${a.label} · ` : ""}{a.line || a.address_line || "Saved address"}</Text>
+                    {meta ? <Text style={{ color: TC.textFaint, fontSize: 11, marginTop: 2 }}>{meta}</Text> : null}
+                    {coords ? <Text style={{ color: TC.textFaint, fontSize: 11, marginTop: 1 }}>Location: {coords}</Text> : null}
+                  </View>
+                  {on ? <CheckCircle2 size={16} color={TC.primaryText} /> : null}
                 </Pressable>
               );
             })}
           </View>
         )}
-
-        {plan ? (
-          <View style={{ marginTop: 16, borderRadius: 6, backgroundColor: EMERALD[50], padding: 12 }}>
-            <Text style={{ color: EMERALD[700], fontSize: 12 }}>Your {plan.label.toLowerCase()} plan covers a verified maid who visits every working day. Attendance is captured by location.</Text>
-          </View>
-        ) : null}
       </View>
     </BottomSheet>
   );

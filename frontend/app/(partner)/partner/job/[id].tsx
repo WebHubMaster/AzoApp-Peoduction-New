@@ -212,7 +212,7 @@ function DetailsStep({ b }: { b: any }) {
       <Card testID="wizard-customer">
         <SectionTitle icon="account-outline" title="Customer details" />
         <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "900", fontSize: 17 }}>{String(b.customer_name || "C").trim().charAt(0).toUpperCase()}</Text></View>
+          {b.customer_photo ? <Image source={{ uri: mediaUrl(b.customer_photo) }} style={{ width: 44, height: 44, borderRadius: 22 }} contentFit="cover" cachePolicy="memory-disk" /> : <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primarySubtle, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.primary, fontWeight: "900", fontSize: 17 }}>{String(b.customer_name || "C").trim().charAt(0).toUpperCase()}</Text></View>}
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.text, fontSize: 16, fontWeight: "800" }}>{b.customer_name || "Customer"}</Text>
             {b.customer_phone ? <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 2 }}>{b.customer_phone}</Text> : null}
