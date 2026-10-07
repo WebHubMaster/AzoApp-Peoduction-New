@@ -2,7 +2,7 @@
 
 ## Test Overview
 **Date**: 2026-09-14  
-**Environment**: https://alert-lock-screen.preview.emergentagent.com/api  
+**Environment**: https://geo-category-matcher.preview.emergentagent.com/api  
 **Test Coverage**: All 4 toggle combinations + Historical immutability + Regression  
 **Result**: ✅ **90.5% PASS** (38/42 tests passed)
 

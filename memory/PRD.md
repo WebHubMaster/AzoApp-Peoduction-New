@@ -159,7 +159,7 @@ Additive, no existing behaviour changed.
 Note: web_panel & Customer RN are not run under supervisor here (only PartnerApp Expo is), so their UI was verified by code review against existing patterns; all backend contracts were verified by the testing agent.
 
 ## Session (2026-06) — Customer app: real-time status + invoice PDF open/share (pdf-share-safe)
-Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://alert-lock-screen.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
+Env restored again (pod reset): backend/.env (MONGO_URL, DB_NAME=test_database, JWT_SECRET, PUBLIC_APP_URL, REACT_APP_BACKEND_URL=https://geo-category-matcher.preview.emergentagent.com), web_panel/.env, Customer/.env, frontend/.env. Only web_panel runs on :3000; Customer & Partner Expo apps are source-only (not served) → Customer verified via tsc + backend contract tests.
 
 Scope: Customer app ONLY (/app/Customer). Partner app (/app/frontend) UNCHANGED.
 
@@ -301,3 +301,12 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
 ### [2026-06] Customer login inputs — bigger, bold, no scroll
 - Request: login screen ke input fields me font bada + bold ho, aur input me scroll na ho (OTP + Name bhi).
 - Change: Customer/app/login.tsx — phone input F(27)->F(31) + fontWeight 700 + scrollEnabled:false; inputStyle (name/email) F(26)->F(30) + fontWeight 700; name input numberOfLines=1 + multiline=false + scrollEnabled:false; OTP digit text F(36)->F(42). Single-line inputs so text fit rehta hai, horizontal scroll nahi. Native-only UI change — device par verify.
+
+## 2026-06 — City-wise category gating for rate cards (bug fix)
+- Requirement: In a city where a category is disabled (Price Manager → Categories toggle), that category's services AND rate cards must not appear — web + customer app.
+- Services/categories were already gated by city (city_pricing_service.apply_service / filter_categories). Rate cards were NOT.
+- Fix (backend only):
+  - services/city_pricing_service.py `apply_ratecard`: returns None when card.category_id not in the city's enabled categories.
+  - routes/ratecard_routes.py `/ratecards/search`: skips rows whose category_id is not enabled in the active city.
+- Both clients (web_panel lib/api.js, Customer api/client.ts) already send X-City header and handle null rate card (hide). Verified via curl: Patna (carpentry OFF) hides category/services/by-category/by-service/search; Ranchi (ON) shows all.
+- Env note: pod had been reset — recreated backend/.env (MONGO_URL, DB_NAME, CORS_ORIGINS), web_panel/.env, frontend/.env, Customer/.env; reinstalled web_panel node_modules.

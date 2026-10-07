@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://alert-lock-screen.preview.emergentagent.com/api"
+BASE = "https://geo-category-matcher.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

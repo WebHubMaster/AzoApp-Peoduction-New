@@ -9,7 +9,7 @@ import time
 import sys
 
 # Configuration - read from frontend/.env
-BASE_URL = "https://alert-lock-screen.preview.emergentagent.com/api"
+BASE_URL = "https://geo-category-matcher.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

@@ -138,6 +138,8 @@ async def apply_ratecard(card: dict, city=None) -> dict:
     doc = await active_doc(city)
     if not doc or not card:
         return card
+    if card.get("category_id") not in set(doc.get("categories") or []):
+        return None
     rp = doc.get("ratecards") or {}
     card = copy.deepcopy(card)
     for g in card.get("groups") or []:

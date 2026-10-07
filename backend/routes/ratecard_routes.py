@@ -28,8 +28,11 @@ async def search(q: str = ""):
     if not doc:
         return rows
     rp = doc.get("ratecards") or {}
+    allowed = set(doc.get("categories") or [])
     out = []
     for r in rows:
+        if r.get("category_id") not in allowed:
+            continue
         o = rp.get(r.get("row_id")) or {}
         if o.get("service_charge"):
             out.append({**r, **{k: str(o.get(k) or "") for k in ("service_charge", "labour_charge", "original_charge")}})
