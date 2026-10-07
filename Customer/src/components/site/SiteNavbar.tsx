@@ -31,6 +31,7 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
   const [oos, setOos] = useState<any>(null);
   const [pinCov, setPinCov] = useState<any>(null);
   const [pinChecking, setPinChecking] = useState(false);
+  const [inputErr, setInputErr] = useState("");
   const isPin = /^\d{6}$/.test(val.trim());
   const hasLoc = !!(loc && loc !== "Your area");
   useEffect(() => {
@@ -39,7 +40,19 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
     api.get(`/geo/serviceability?pincode=${val.trim()}`, { auth: false }).then((r) => alive && setPinCov(r)).catch(() => alive && setPinCov(null)).finally(() => alive && setPinChecking(false));
     return () => { alive = false; };
   }, [val, isPin]);
-  const save = () => { if (!val.trim()) return; setLocationName(val.trim()); setOpen(false); };
+  const save = () => {
+    const raw = val.trim();
+    if (!raw) return;
+    setInputErr("");
+    // Pincode entry → resolve to its serviced city; never store the pincode itself.
+    if (/^\d+$/.test(raw)) {
+      if (!/^\d{6}$/.test(raw)) { setInputErr("Enter a valid 6-digit pincode or a city name."); return; }
+      if (pinCov?.serviceable && pinCov?.city) { setLocationName(pinCov.city); setOpen(false); setVal(""); return; }
+      setInputErr("This pincode is not in our service area yet. Try a city name.");
+      return;
+    }
+    setLocationName(raw); setOpen(false); setVal("");
+  };
   const detect = async () => {
     setStatus("locating"); setErr(""); setOos(null);
     const r = await detectLocation();
@@ -78,16 +91,17 @@ export function LocationButton({ testID = "nav-location", iconOnly = false }: { 
               ) : null}
               <Text style={{ fontSize: 14, fontWeight: "600", color: TC.text, marginBottom: 8 }}>Where do you need service?</Text>
               <View style={{ flexDirection: "row", gap: 8 }}>
-                <TextInput testID={`${testID}-input`} value={val} onChangeText={setVal} onSubmitEditing={save} placeholder="City or pincode" placeholderTextColor={TC.textFaint} numberOfLines={1} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 6, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
+                <TextInput testID={`${testID}-input`} value={val} onChangeText={(t) => { setVal(t); setInputErr(""); }} onSubmitEditing={save} placeholder="Enter city name" placeholderTextColor={TC.textFaint} numberOfLines={1} style={{ height: 40, paddingHorizontal: 12, flex: 1, borderRadius: 6, borderWidth: 1, borderColor: TC.border, fontSize: 14, color: TC.text }} />
                 <Pressable testID={`${testID}-set`} onPress={save} style={{ height: 40, paddingHorizontal: 16, borderRadius: 6, backgroundColor: PRIMARY[700], justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "500", fontSize: 14 }}>Set</Text></Pressable>
               </View>
               {isPin ? (
                 <View testID={`${testID}-pincode-badge`} style={{ marginTop: 8, flexDirection: "row" }}>
                   {pinChecking ? <Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted, backgroundColor: TC.surfaceAlt, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}>Checking availability…</Text>
-                    : pinCov?.serviceable === true ? <View testID={`${testID}-pincode-serviceable`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>We serve your area</Text></View>
+                    : pinCov?.serviceable === true ? <View testID={`${testID}-pincode-serviceable`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: EMERALD[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}><CheckCircle2 size={14} color={EMERALD[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: EMERALD[700] }}>{pinCov?.city ? `We serve ${pinCov.city}` : "We serve your area"}</Text></View>
                     : pinCov?.serviceable === false ? <View testID={`${testID}-pincode-blocked`} style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: ROSE[100], borderRadius: 6, paddingHorizontal: 12, paddingVertical: 4 }}><AlertTriangle size={14} color={ROSE[700]} /><Text style={{ fontSize: 12, fontWeight: "600", color: ROSE[700] }}>Not in service area yet</Text></View> : null}
                 </View>
               ) : null}
+              {inputErr ? <Text testID={`${testID}-error`} style={{ marginTop: 8, fontSize: 12, color: ROSE[600], lineHeight: 18 }}>{inputErr}</Text> : null}
               <Pressable testID={`${testID}-detect`} onPress={detect} disabled={status === "locating"} style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6, opacity: status === "locating" ? 0.7 : 1 }}>
                 {status === "locating" ? <ActivityIndicator size="small" color={TC.primaryText} /> : <MapPin size={16} color={TC.primaryText} />}
                 <Text style={{ fontSize: 14, color: TC.primaryText, fontWeight: "500" }}>{status === "locating" ? "Detecting your location…" : "Use my current location"}</Text>

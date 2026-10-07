@@ -322,3 +322,13 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial â
   - Fixed pre-existing build-breaker lib/invoiceShare.js (missing `export async function shareInvoicePdf(inv, channel)` declaration) that crashed ServiceDetail route.
 - Customer (expo) app: covered by backend gating (categories/services/ratecards already filtered; add-ons embedded in services). No separate direct-link service-detail screen hits these endpoints.
 - Verified: backend testing agent 22/22 passed (iteration_232); web screenshots for category banner (Patna), normal list (Ranchi), and service-detail banner (Patna).
+
+## 2026-06 â€” Location input: city-only, pincode auto-resolves to city (web + app)
+- Requirement: Location box should take a city name only. If a user types a pincode that exists in Service Areas, resolve & store that area's CITY name (never the pincode). Non-serviceable pincode is blocked.
+- Backend: services/geo_service.py check_serviceable() now also returns `city` (from the matched service area) in /api/geo/serviceability response.
+- Web (web_panel/src/components/site/SiteNavbar.jsx LocationButton): placeholder -> "Enter city name"; save() resolves 6-digit pincode via /geo/serviceability and stores cov.city (blocks + inline error when not serviceable / invalid); serviceable badge shows "We serve {city}". New inputErr state (data-testid=nav-location-error).
+- Customer app:
+  - components/apphome/LocationSheet.tsx: placeholder -> "Enter city name"; save() stores pinCov.city for pincodes (blocked badge stays if not serviceable).
+  - components/site/SiteNavbar.tsx: placeholder -> "Enter city name"; save() resolves pincode->city, inline error (testid `${testID}-error`), serviceable badge shows "We serve {city}".
+- Verified: curl /geo/serviceability?pincode=800001 -> city Patna, 834001 -> Ranchi, 999999 -> not serviceable (no city). Web screenshots: 800001 resolves label to "Patna"; 999999 shows block error and keeps previous city.
+- Seeded service areas: Patna [800001,800002], Ranchi [834001].

@@ -231,7 +231,7 @@ async def check_serviceable(pincode: str = "", address: dict = None) -> dict:
               "radius": "in_area", "city": "in_area", "none": "not_serviceable"}.get(
                   cov.get("match"), "checked")
     return {"serviceable": bool(cov.get("serviceable")), "reason": reason,
-            "area": cov.get("area"), "match": cov.get("match"),
+            "area": cov.get("area"), "match": cov.get("match"), "city": cov.get("city"),
             "serviced_cities": cov.get("serviced_cities") or []}
 
 

@@ -41,6 +41,7 @@ const LocationButton = () => {
   // Live serviceability badge when the user types a 6-digit pincode
   const [pinCov, setPinCov] = useState(null); // {serviceable, serviced_cities}
   const [pinChecking, setPinChecking] = useState(false);
+  const [inputErr, setInputErr] = useState("");
   const box = useRef();
   useEffect(() => {
     const pin = String(val || "").trim();
@@ -60,7 +61,26 @@ const LocationButton = () => {
     window.addEventListener("azo-location-changed", sync);
     return () => { document.removeEventListener("mousedown", h); window.removeEventListener("azo-location-changed", sync); };
   }, []);
-  const save = () => { if (!val.trim()) return; localStorage.setItem("azo_location", val.trim()); setLoc(val.trim()); window.dispatchEvent(new Event("azo-location-changed")); setOpen(false); };
+  const commit = (name) => {
+    localStorage.setItem("azo_location", name); setLoc(name);
+    window.dispatchEvent(new Event("azo-location-changed"));
+    setOpen(false); setVal(""); setErr(""); setInputErr(""); setStatus("idle");
+  };
+  const save = async () => {
+    const raw = String(val || "").trim();
+    if (!raw) return;
+    setInputErr("");
+    // Pincode entry → resolve to its serviced city (we never store the pincode itself).
+    if (/^\d+$/.test(raw)) {
+      if (!/^\d{6}$/.test(raw)) { setInputErr("Enter a valid 6-digit pincode or a city name."); return; }
+      const cov = (pinCov && pinCov.serviceable != null) ? pinCov
+        : await api.get(`/geo/serviceability?pincode=${raw}`).then((r) => r.data).catch(() => null);
+      if (cov && cov.serviceable && cov.city) { commit(cov.city); return; }
+      setInputErr("This pincode is not in our service area yet. Try a city name.");
+      return;
+    }
+    commit(raw);
+  };
   const detect = () => {
     if (!navigator.geolocation) { setStatus("error"); setErr("Location is not supported on this device."); return; }
     setStatus("locating"); setErr(""); setOos(null);
@@ -110,7 +130,7 @@ const LocationButton = () => {
             <>
               <p className="text-sm font-semibold text-slate-800 mb-2">Where do you need service?</p>
               <div className="flex gap-2">
-                <input data-testid="nav-location-input" value={val} onChange={(e) => setVal(e.target.value)} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="City or pincode" className="h-10 px-3 flex-1 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
+                <input data-testid="nav-location-input" value={val} onChange={(e) => { setVal(e.target.value); setInputErr(""); }} onKeyDown={(e) => e.key === "Enter" && save()} placeholder="Enter city name" className="h-10 px-3 flex-1 rounded-md border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary-200" />
                 <Button data-testid="nav-location-set" onClick={save} className="bg-primary-700 hover:bg-primary-800 h-10">Set</Button>
               </div>
               {/^\d{6}$/.test(String(val || "").trim()) && (
@@ -121,7 +141,7 @@ const LocationButton = () => {
                     </span>
                   ) : pinCov && pinCov.serviceable === true ? (
                     <span data-testid="nav-pincode-serviceable" className="inline-flex items-center gap-1.5 rounded-md bg-emerald-100 text-emerald-700 text-xs font-semibold px-3 py-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> We serve your area
+                      <CheckCircle2 className="h-3.5 w-3.5" /> {pinCov.city ? `We serve ${pinCov.city}` : "We serve your area"}
                     </span>
                   ) : pinCov && pinCov.serviceable === false ? (
                     <span data-testid="nav-pincode-blocked" className="inline-flex items-center gap-1.5 rounded-md bg-rose-100 text-rose-700 text-xs font-semibold px-3 py-1">
@@ -129,6 +149,9 @@ const LocationButton = () => {
                     </span>
                   ) : null}
                 </div>
+              )}
+              {inputErr && (
+                <div data-testid="nav-location-error" className="mt-2 text-xs text-rose-600 leading-relaxed">{inputErr}</div>
               )}
               <button data-testid="nav-detect-location" onClick={detect} disabled={status === "locating"} className="mt-3 text-sm text-primary-700 font-medium flex items-center gap-1.5 disabled:opacity-70">
                 {status === "locating"

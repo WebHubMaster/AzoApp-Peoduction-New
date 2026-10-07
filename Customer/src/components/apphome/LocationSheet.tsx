@@ -29,7 +29,16 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
     return () => { alive = false; };
   }, [val, isPin]);
 
-  const save = (v?: string) => { let name = (v ?? val).trim(); if (!name) return; if (isPin && (pinCov?.city || pinCov?.area)) name = pinCov.city || pinCov.area; setLocationName(name); onClose(); };
+  const save = (v?: string) => {
+    const name = (v ?? val).trim();
+    if (!name) return;
+    // Pincode entry → resolve to its serviced city; never store the pincode itself.
+    if (/^\d{6}$/.test(name)) {
+      if (pinCov?.serviceable && pinCov?.city) { setLocationName(pinCov.city); onClose(); }
+      return; // not serviceable (or unresolved) → blocked badge stays, nothing stored
+    }
+    setLocationName(name); onClose();
+  };
   const detect = async () => {
     setStatus("locating"); setErr(""); setOos(null);
     const r = await detectLocation();
@@ -61,7 +70,7 @@ export function LocationSheet({ open, onClose }: { open: boolean; onClose: () =>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 16 }}>
             <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 8, height: 50, borderRadius: 6, borderWidth: 1.5, borderColor: TC.border, backgroundColor: TC.bg, paddingHorizontal: 14 }}>
               <Search size={18} color={TC.textFaint} />
-              <TextInput testID="app-location-input" value={val} onChangeText={setVal} onSubmitEditing={() => save()} placeholder="Enter city or pincode" placeholderTextColor={TC.textFaint} autoFocus style={{ flex: 1, fontSize: 14, color: TC.text, height: 48, paddingVertical: 0, outlineStyle: "none" } as any} />
+              <TextInput testID="app-location-input" value={val} onChangeText={setVal} onSubmitEditing={() => save()} placeholder="Enter city name" placeholderTextColor={TC.textFaint} autoFocus style={{ flex: 1, fontSize: 14, color: TC.text, height: 48, paddingVertical: 0, outlineStyle: "none" } as any} />
               {pinChecking ? <ActivityIndicator size="small" color={TC.primaryText} /> : null}
             </View>
             <Pressable testID="app-location-set" onPress={() => save()} disabled={!val.trim()} style={{ height: 50, paddingHorizontal: 20, borderRadius: 6, backgroundColor: val.trim() ? PRIMARY[700] : TC.border, justifyContent: "center", ...shadowBtn }}><Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Set</Text></Pressable>
