@@ -140,10 +140,12 @@ function PlanSheet({ service, onClose, onDone }: { service: any; onClose: () => 
                 style={{ borderWidth: on ? 2 : 1, borderColor: on ? PRIMARY[700] : c.border, borderRadius: 6, padding: 12, backgroundColor: on ? PRIMARY[50] : c.surface }}>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                   <Text style={{ color: c.text, fontWeight: "800", fontSize: 15 }}>{p.label}</Text>
-                  <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                    <Text style={{ color: TC.primaryText, fontWeight: "800", fontSize: 16 }}>{money(p.price)}</Text>
+                    {on ? <CheckCircle2 testID={`sub-plan-check-${p.plan_type}`} size={18} color={TC.primaryText} /> : null}
+                  </View>
                 </View>
                 <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 4 }}>{p.working_days} working days · {p.duration_days}-day period</Text>
-                {on ? <CheckCircle2 size={16} color={TC.primaryText} style={{ position: "absolute", top: 12, right: 12 }} /> : null}
               </Pressable>
             );
           })}
