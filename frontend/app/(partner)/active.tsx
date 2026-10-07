@@ -291,9 +291,7 @@ function PartnerEarningSummary({ booking }: { booking: any }) {
           {secHdr("#ECFDF5", "#047857", "Your earning")}
           <View style={{ paddingHorizontal: 12, paddingVertical: 10 }} testID="partner-earning-block">
             <EarnRow k="Eligible amount" v={fmt(earning.base)} />
-            <EarnRow k="Partner share" v={`${earning.partner_share_pct}%`} muted />
             <EarnRow k="Partner Earning" v={fmt(earning.partner_earning)} strong />
-            <EarnRow k="AzoApp Platform share" v={`${earning.platform_share_pct}%`} muted />
             <EarnRow k="AzoApp Platform Earning" v={fmt(earning.platform_earning)} />
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingVertical: 10, backgroundColor: EMERALD }}>
@@ -308,7 +306,7 @@ function PartnerEarningSummary({ booking }: { booking: any }) {
           <View style={{ paddingHorizontal: 12, paddingVertical: 10 }} testID="partner-refund-block">
             <EarnRow k="Original booking amount" v={fmt(refund.original_amount)} strong />
             <EarnRow k="Paid amount" v={fmt(bd.paid)} />
-            <EarnRow k={`Customer Refund${refund.refund_pct != null ? ` (${refund.refund_pct}%)` : ""}`} v={`- ${fmt(refund.refund_amount)}`} negative />
+            <EarnRow k="Customer Refund" v={`- ${fmt(refund.refund_amount)}`} negative />
             <View style={{ borderTopWidth: 1, borderTopColor: colors.border, marginTop: 8, paddingTop: 8 }}>
               <EarnRow k="Amount retained" v={fmt(refund.retained)} strong />
             </View>

@@ -203,8 +203,8 @@ function EarningDetailSheet({ detail, onClose }: { detail: any; onClose: () => v
             ) : null}
             <Row k="Job" v={`#${detail.booking_code}`} mono />
             <Row k={costLabel} v={fmt(serviceCost)} />
-            <Row k={`${earnLabel}${partnerPct != null ? ` (${partnerPct}%)` : ""}`} v={`+${fmt(net)}`} />
-            <Row k={`${platLabel}${platformPct != null ? ` (${platformPct}%)` : ""}`} v={`-${fmt(platformComm)}`} />
+            <Row k={earnLabel} v={`+${fmt(net)}`} />
+            <Row k={platLabel} v={`-${fmt(platformComm)}`} />
             {tax ? <Row k="Est. Govt. Taxes (customer-borne)" v={fmt(tax)} /> : null}
             {detail.bonus ? <Row k="Bonus" v={`+${fmt(detail.bonus)}`} /> : null}
             {detail.penalty ? <Row k="Penalty" v={`-${fmt(detail.penalty)}`} /> : null}

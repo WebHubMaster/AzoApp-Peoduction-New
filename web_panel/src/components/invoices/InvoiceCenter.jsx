@@ -398,7 +398,6 @@ export default function InvoiceCenter({ role = "customer", title = "My Invoices"
               )}
               {drawerInv.invoice_type !== "cancellation" && <KV k="Total amount" v={money(drawerInv.total_amount, drawerInv.currency)} strong />}
               {drawerInv.invoice_type === "cancellation" && drawerInv.original_amount != null && <KV k="Total Order Value" v={money(drawerInv.original_amount, drawerInv.currency)} strong />}
-              {drawerInv.invoice_type === "cancellation" && drawerInv.cancellation_pct != null && <KV k="Customer Refund" v={`${drawerInv.cancellation_pct}%`} />}
               {drawerInv.invoice_type === "cancellation" && drawerInv.refund ? <KV k="Refund Issued (see Refund Receipt)" v={money(drawerInv.refund, drawerInv.currency)} /> : null}
               {drawerInv.refund && drawerInv.invoice_type !== "cancellation" ? <KV k="Refunded" v={money(drawerInv.refund, drawerInv.currency)} /> : null}
               {drawerInv.commission ? <>

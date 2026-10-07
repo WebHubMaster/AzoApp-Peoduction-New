@@ -95,7 +95,7 @@ const InvoiceDocument = forwardRef(function InvoiceDocument({ inv }, ref) {
     inv.tax ? ["Est. Govt. Taxes", inv.tax, false] : null,
     // Cancellation breakdown — headline is the ORIGINAL order value; the refund is on
     // the separate Refund Receipt, shown here only as muted info.
-    _isCancel && inv.cancellation_pct != null ? [`Customer Refund ${Math.round(inv.cancellation_pct * 100) / 100}%`, null, "pct"] : null,
+    null,
     _isCancel && inv.refund ? ["Refund Issued (see Refund Receipt)", -Math.abs(inv.refund), "muted"] : null,
     inv.refund && !_isCancel ? ["Total Customer Refund", -Math.abs(inv.refund), false] : null,
   ].filter(Boolean);

@@ -214,7 +214,6 @@ export default function InvoicesScreen() {
               : <>{d.subtotal != null ? <KV k="Subtotal" v={money(d.subtotal, d.currency)} /> : null}{Number(d.visiting_charge) > 0 ? <KV k="Visiting Charge" v={money(d.visiting_charge, d.currency)} /> : null}{Number(d.fees) - Number(d.visiting_charge || 0) > 0.001 ? <KV k="Platform / Service Fees" v={money(Number(d.fees) - Number(d.visiting_charge || 0), d.currency)} /> : null}{d.discount ? <KV k="Discount" v={"−" + money(d.discount, d.currency)} /> : null}{d.tax ? <KV k="Est. Govt. Taxes" v={money(d.tax, d.currency)} /> : null}</>}
             {d.invoice_type !== "cancellation" ? <KV k="Total amount" v={money(d.total_amount, d.currency)} strong /> : null}
             {d.invoice_type === "cancellation" && d.original_amount != null ? <KV k="Total Order Value" v={money(d.original_amount, d.currency)} strong /> : null}
-            {d.invoice_type === "cancellation" && d.cancellation_pct != null ? <KV k="Customer Refund" v={`${d.cancellation_pct}%`} /> : null}
             {d.invoice_type === "cancellation" && d.refund ? <KV k="Refund Issued (see Refund Receipt)" v={money(d.refund, d.currency)} /> : null}
             {d.refund && d.invoice_type !== "cancellation" ? <KV k="Refunded" v={money(d.refund, d.currency)} /> : null}
           </Section>

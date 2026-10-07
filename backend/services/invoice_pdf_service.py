@@ -345,7 +345,7 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
         if _re.get("role") == "partner" and _re.get("visiting_charge"):
             rows.append(("Visiting Charge", "+ " + _rs(_re.get("visiting_charge"))))
         if _re.get("commission") is not None and not (_re_cancel and _re.get("role") == "partner"):
-            _clabel = f'{_re.get("commission_label")} ({_re.get("rate"):g}%)' if isinstance(_re.get("rate"), (int, float)) else _re.get("commission_label")
+            _clabel = _re.get("commission_label")
             rows.append((_clabel, _rs(_re.get("commission"))))
         if _re.get("platform") is not None:
             rows.append((_re.get("platform_label") or "Platform Share", _rs(_re.get("platform"))))
@@ -370,9 +370,7 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
                 _ref = round(abs(float(inv.get("refund") or 0)), 2)
                 _gross = float(_bd.get("total") or inv.get("original_amount") or 0)
                 rows.append(("Gross Total", _rs(_gross)))
-                _rpct = inv.get("cancellation_pct")
-                rows.append((f"Customer Refund ({float(_rpct):g}%)" if _rpct is not None else "Customer Refund",
-                             "- " + _rs(_ref)))
+                rows.append(("Customer Refund", "- " + _rs(_ref)))
                 rows.append(("Amount Retained", _rs(round(_gross - _ref, 2))))
                 total_label = "TOTAL CUSTOMER REFUND"
                 total_value = _ref
@@ -398,8 +396,6 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
             if inv.get("invoice_type") == "cancellation":
                 if inv.get("original_amount"):
                     rows.append(("Original Booking Amount", _rs(inv.get("original_amount"))))
-                if inv.get("cancellation_pct") is not None:
-                    rows.append((f"Customer Refund ({float(inv.get('cancellation_pct')):g}%)", ""))
                 if inv.get("service_refund"):
                     rows.append(("Refundable Service Amount", _rs(inv.get("service_refund"))))
                 if inv.get("gst_refund"):
@@ -473,9 +469,8 @@ def _build_invoice_pdf_reportlab(inv: dict) -> bytes:
             if inv.get("tax"):
                 _pay.append((TAX_LABEL, inv.get("tax")))
         _settle = [("Paid Amount", _bt), ("Customer Refund", _rf)]
-        _earn = [("Eligible Earning Amount", _re.get("base") or 0), ("Your Share Rate", _rate_txt)]
-        _brk = [("Partner Share", _rate_txt), ("Partner Earning", _re.get("net") or 0),
-                ("Platform Share", _plat_txt)]
+        _earn = [("Eligible Earning Amount", _re.get("base") or 0)]
+        _brk = [("Partner Earning", _re.get("net") or 0)]
         if _re.get("platform") is not None:
             _brk.append(("AzoApp Platform Earning", _re.get("platform")))
         inner = [

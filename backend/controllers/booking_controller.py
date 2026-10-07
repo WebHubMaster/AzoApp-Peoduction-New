@@ -3796,7 +3796,7 @@ async def cancellation_preview(customer, booking_id):
         "item_refunds": calc["item_refunds"],
         "reason": ("Full refund — no professional was assigned yet."
                    if not calc["partner_was_assigned"]
-                   else f"A professional was already assigned, so a {calc['partner_cancellation_pct']:g}% cancellation fee (+ tax on its commission) is charged. The rest is refunded."),
+                   else "A professional was already assigned, so a cancellation fee (+ tax on its commission) is charged. The rest is refunded."),
     }
 
 

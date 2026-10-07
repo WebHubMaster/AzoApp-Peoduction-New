@@ -92,7 +92,7 @@ export function CancelDialog({ booking, reasons, onClose, onConfirm }: { booking
               <Text style={{ fontSize: 12, fontWeight: "500", color: assigned ? (isDark ? AMBER[300] : AMBER[700]) : (isDark ? EMERALD[300] : EMERALD[700]) }}>{preview.reason}</Text>
             </View>
             <Row k="Original amount" v={fmt(preview.original_amount)} />
-            {assigned ? <><Row k={`Cancellation fee (${preview.partner_cancellation_pct || 0}% of service)`} v={`- ${fmt(preview.cancellation_fee)}`} muted /><Row k="Est. Govt. Taxes on fee" v={`- ${fmt(preview.cancellation_tax)}`} muted /></> : null}
+            {assigned ? <><Row k="Cancellation fee" v={`- ${fmt(preview.cancellation_fee)}`} muted /><Row k="Est. Govt. Taxes on fee" v={`- ${fmt(preview.cancellation_tax)}`} muted /></> : null}
             {Number(preview.retained_from_you) > 0 ? <Row k="Total cancellation charge" v={`- ${fmt(preview.retained_from_you)}`} muted /> : null}
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 8, marginTop: 4, borderTopWidth: 1, borderTopColor: c.border }}>
               <Text style={{ fontSize: 14, fontWeight: "600", color: isDark ? SLATE[200] : TC.text2 }}>You'll get back</Text>

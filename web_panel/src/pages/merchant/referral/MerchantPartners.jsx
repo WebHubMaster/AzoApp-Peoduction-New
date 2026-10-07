@@ -57,7 +57,7 @@ function PartnerDetail({ id, onBack }) {
           <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 border-t first:border-t-0 border-slate-100 dark:border-slate-800">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{s.service_name}</p>
-              <p className="text-[11px] text-slate-400">{fmtDate(s.date)} · {s.booking_code || ""} · eligible {fmt(s.eligible_amount)} · {s.commission_pct}%</p>
+              <p className="text-[11px] text-slate-400">{fmtDate(s.date)} · {s.booking_code || ""} · eligible {fmt(s.eligible_amount)}</p>
             </div>
             <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{fmt(s.earned)}</span>
           </div>

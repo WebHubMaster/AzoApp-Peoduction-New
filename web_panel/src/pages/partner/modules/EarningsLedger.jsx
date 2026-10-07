@@ -188,8 +188,8 @@ export default function EarningsLedger() {
             )}
             <DetailRow label="Job" value={`#${detail.booking_code}`} mono />
             <DetailRow label={costLabel} value={fmt(serviceCost)} />
-            <DetailRow label={`${earnLabel}${partnerPct != null ? ` (${partnerPct}%)` : ""}`} value={`+${fmt(net)}`} />
-            <DetailRow label={`${platLabel}${platformPct != null ? ` (${platformPct}%)` : ""}`} value={`-${fmt(platformComm)}`} />
+            <DetailRow label={earnLabel} value={`+${fmt(net)}`} />
+            <DetailRow label={platLabel} value={`-${fmt(platformComm)}`} />
             {tax ? <DetailRow label="Est. Govt. Taxes (customer-borne)" value={fmt(tax)} /> : null}
             {detail.bonus ? <DetailRow label="Bonus" value={`+${fmt(detail.bonus)}`} /> : null}
             {detail.penalty ? <DetailRow label="Penalty" value={`-${fmt(detail.penalty)}`} /> : null}

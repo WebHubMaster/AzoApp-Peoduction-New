@@ -829,12 +829,10 @@ function RefundsView({ refunds, loading }) {
               </div>
               <div className="text-right">
                 <p className="font-heading font-black text-lg text-emerald-600">{fmt(r.refund_amount)}</p>
-                <p className="text-xs text-slate-400">{r.refund_pct}% of {fmt(r.original_amount)}</p>
               </div>
             </div>
             <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
               <Info label="Original" value={fmt(r.original_amount)} />
-              <Info label="Refund %" value={`${r.refund_pct}%`} />
               <Info label="Refund amount" value={fmt(r.refund_amount)} />
               <Info label="Status" value={(r.status || "").replace("_", " ")} cap />
             </div>
@@ -1166,7 +1164,7 @@ const CancelDialog = ({ booking, onClose, onConfirm }) => {
                 <Row k="Original amount" v={fmt(preview.original_amount)} />
                 {preview.partner_was_assigned && (
                   <>
-                    <Row k={`Cancellation fee (${(preview.partner_cancellation_pct || 0)}% of service)`} v={`- ${fmt(preview.cancellation_fee)}`} muted />
+                    <Row k="Cancellation fee" v={`- ${fmt(preview.cancellation_fee)}`} muted />
                     <Row k="Est. Govt. Taxes on fee" v={`- ${fmt(preview.cancellation_tax)}`} muted />
                   </>
                 )}
@@ -1521,7 +1519,7 @@ function BookingDetailsDrawer({ b, open, onClose, onInvoice, canInvoice }) {
               <>
                 <DRow k="Original Booking Amount" v={fmt(orderValue)} />
                 <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
-                  <DRow k={`Customer Refund${refundPct != null ? ` (${refundPct}%)` : ""}`}
+                  <DRow k="Customer Refund"
                     v={`${fmt(refundAmt)}${b.payment_status === "refunded" ? " · Processing" : ""}`} strong />
                 </div>
                 {retained > 0 && <DRow k="Amount Retained" v={fmt(retained)} />}
@@ -1692,7 +1690,7 @@ function InvoiceDrawer({ b, open, onClose }) {
           <div className="mt-2 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3 space-y-2" data-testid="invoice-cancel-card">
             <p className="text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Cancellation &amp; Refund</p>
             <DRow k="Original Booking Amount" v={fmt(bd.refund.original_amount ?? bd?.total ?? p.total)} strong />
-            <DRow k={`Customer Refund${bd.refund.refund_pct != null ? ` (${bd.refund.refund_pct}%)` : ""}`} v={`- ${fmt(bd.refund.refund_amount)}`} />
+            <DRow k="Customer Refund" v={`- ${fmt(bd.refund.refund_amount)}`} />
             <div className="border-t border-rose-200/70 dark:border-rose-900/40 pt-2"><DRow k="Amount Retained" v={fmt(bd.refund.retained)} strong /></div>
           </div>
         ) : null}

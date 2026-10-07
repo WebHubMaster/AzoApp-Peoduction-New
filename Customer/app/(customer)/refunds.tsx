@@ -68,10 +68,10 @@ export default function RefundsScreen() {
                 <Text style={{ fontSize: 12, color: TC.textFaint, marginTop: 4 }}>#{r.booking_code} · Cancelled {new Date(r.cancelled_at).toLocaleString("en-IN")}</Text>
                 {r.cancellation_reason ? <Text style={{ fontSize: 13, color: TC.textMuted, marginTop: 4 }}>Reason: {r.cancellation_reason}</Text> : null}
               </View>
-              <View style={{ alignItems: "flex-end" }}><Text style={{ fontSize: 18, fontWeight: "900", color: "#059669" }}>{fmt(r.refund_amount)}</Text><Text style={{ fontSize: 11, color: TC.textFaint }}>{r.refund_pct}% of {fmt(r.original_amount)}</Text></View>
+              <View style={{ alignItems: "flex-end" }}><Text style={{ fontSize: 18, fontWeight: "900", color: "#059669" }}>{fmt(r.refund_amount)}</Text></View>
             </View>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
-              <Info label="Original" value={fmt(r.original_amount)} /><Info label="Refund %" value={`${r.refund_pct}%`} /><Info label="Refund amount" value={fmt(r.refund_amount)} /><Info label="Status" value={(r.status || "").replace("_", " ")} cap />
+              <Info label="Original" value={fmt(r.original_amount)} /><Info label="Refund amount" value={fmt(r.refund_amount)} /><Info label="Status" value={(r.status || "").replace("_", " ")} cap />
             </View>
             {(r.status_history || []).length ? (
               <View style={{ marginTop: 12, borderTopWidth: 1, borderTopColor: TC.borderSoft, paddingTop: 12 }}>

@@ -81,7 +81,7 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                     <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                       <View style={{ flex: 1 }}>
                         <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14 }} numberOfLines={1}>{s.service_name}</Text>
-                        <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={2}>{[fmtDate(s.date), s.booking_code, `eligible ${fmt(s.eligible_amount)}`, `${s.commission_pct}%`].filter(Boolean).join(" · ")}</Text>
+                        <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={2}>{[fmtDate(s.date), s.booking_code, `eligible ${fmt(s.eligible_amount)}`].filter(Boolean).join(" · ")}</Text>
                       </View>
                       <Text style={{ color: colors.success, fontWeight: "800", fontSize: 14, ...TAB }}>{fmt(s.earned)}</Text>
                     </View>

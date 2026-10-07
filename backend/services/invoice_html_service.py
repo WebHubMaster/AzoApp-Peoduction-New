@@ -315,14 +315,8 @@ def build_invoice_html(inv: dict) -> str:
                 _pay_rows.append((TAX_LABEL, inv.get("tax"), False))
         _settle_rows = [("Paid Amount", _booking_total, False), ("Customer Refund", _refund, False)]
         _earn_rows = [("Eligible Earning Amount", _re.get("base"), False)]
-        if _rate_txt:
-            _earn_rows.append(("Your Share Rate", _rate_txt, "text"))
         _brk_rows = []
-        if _rate_txt:
-            _brk_rows.append(("Partner Share", _rate_txt, "text"))
         _brk_rows.append(("Partner Earning", _re.get("net"), False))
-        if _plat_rate_txt:
-            _brk_rows.append(("Platform Share", _plat_rate_txt, "text"))
         if _re.get("platform") is not None:
             _brk_rows.append(("AzoApp Platform Earning", _re.get("platform"), False))
         pcs = {
@@ -354,8 +348,6 @@ def build_invoice_html(inv: dict) -> str:
         booking_total = ("Customer Total Paid", inv.get("total_amount"))
         # PARTNER EARNING — tax-excluded; commission computed on the commissionable amount.
         earning_rows = [("Commissionable Amount", _base, False)]
-        if isinstance(_re.get("rate"), (int, float)):
-            earning_rows.append(("Commission Rate", f'{_re.get("rate"):g}%', "text"))
         earning_rows.append((_re.get("commission_label") or "Partner Commission", _re.get("commission"), False))
         earning_total = ("Total Partner Earning", _re.get("net"))
         sum_rows = []
@@ -372,7 +364,7 @@ def build_invoice_html(inv: dict) -> str:
         # Commission earned (skip for a cancellation partner statement — the net IS the
         # earning there, so we avoid a duplicate row).
         if _re.get("commission") is not None and not (_re_cancel and _re.get("role") == "partner"):
-            _clabel = f'{_re.get("commission_label")} ({_re.get("rate"):g}%)' if isinstance(_re.get("rate"), (int, float)) else _re.get("commission_label")
+            _clabel = _re.get("commission_label")
             sum_rows.append((_clabel, _re.get("commission"), True))
         # Platform's share of the cancellation charge (spec: show both to the partner).
         if _re.get("platform") is not None:
@@ -401,7 +393,7 @@ def build_invoice_html(inv: dict) -> str:
                 _retained = round(_orig - _refund, 2)
                 _pct = inv.get("cancellation_pct")
                 sum_rows.append(("Gross Total", _orig, False))
-                sum_rows.append((f"Customer Refund ({float(_pct):g}%)" if _pct is not None else "Customer Refund", -_refund, False))
+                sum_rows.append(("Customer Refund", -_refund, False))
                 sum_rows.append(("Amount Retained", _retained, False))
                 total_label = "Total Customer Refund"
                 total_value = _refund
@@ -432,7 +424,7 @@ def build_invoice_html(inv: dict) -> str:
                 _refund = round(abs(float(inv.get("refund") or 0)), 2)
                 _retained = round(_orig - _refund, 2)
                 _pct = inv.get("cancellation_pct")
-                _refund_label = f"Customer Refund ({float(_pct):g}%)" if _pct is not None else "Customer Refund"
+                _refund_label = "Customer Refund"
                 sum_rows.append((_refund_label, _refund, False))
                 sum_rows.append(("Amount Retained", _retained, False))
                 total_label = "Total Order Value"

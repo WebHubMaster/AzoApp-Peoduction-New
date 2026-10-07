@@ -176,7 +176,7 @@ export function BookingDetailsDrawer({ booking: b, onClose, onInvoice }: { booki
           <DRow k="Status" v="Cancelled" />
           {refundAmt == null ? (b.payment_status === "refunded" ? <DRow k="Refund" v={`${fmt(orderValue)} · Processing`} /> : null) : <>
             <DRow k="Original Booking Amount" v={fmt(orderValue)} />
-            <Sep /><DRow k={`Customer Refund${refundPct != null ? ` (${refundPct}%)` : ""}`} v={`${fmt(refundAmt)}${b.payment_status === "refunded" ? " · Processing" : ""}`} strong />
+            <Sep /><DRow k="Customer Refund" v={`${fmt(refundAmt)}${b.payment_status === "refunded" ? " · Processing" : ""}`} strong />
             {retained > 0 ? <DRow k="Amount Retained" v={fmt(retained)} /> : null}
           </>}
         </DBlock>
@@ -240,7 +240,7 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
           <View testID="invoice-cancel-card" style={{ marginTop: 8, borderRadius: 6, borderWidth: 1, borderColor: isDark ? "rgba(136,19,55,0.4)" : ROSE[200], backgroundColor: isDark ? "rgba(136,19,55,0.1)" : "rgba(255,241,242,0.6)", padding: 12, gap: 8 }}>
             <Text style={{ fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.8, color: isDark ? "#FB7185" : ROSE[700] }}>Cancellation & Refund</Text>
             <DRow k="Original Booking Amount" v={fmt(bd.refund.original_amount ?? bd?.total ?? p.total)} strong />
-            <DRow k={`Customer Refund${bd.refund.refund_pct != null ? ` (${bd.refund.refund_pct}%)` : ""}`} v={`- ${fmt(bd.refund.refund_amount)}`} />
+            <DRow k="Customer Refund" v={`- ${fmt(bd.refund.refund_amount)}`} />
             <View style={{ borderTopWidth: 1, borderTopColor: ROSE[200], paddingTop: 8 }}><DRow k="Amount Retained" v={fmt(bd.refund.retained)} strong /></View>
           </View>
         ) : null}

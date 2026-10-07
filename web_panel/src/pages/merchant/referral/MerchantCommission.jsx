@@ -68,8 +68,7 @@ export default function MerchantCommission() {
           <div className="col-span-3">Referral / Service</div>
           <div className="col-span-2">Type</div>
           <div className="col-span-2 text-right">Eligible</div>
-          <div className="col-span-1 text-right">%</div>
-          <div className="col-span-2 text-right">Earned</div>
+          <div className="col-span-3 text-right">Earned</div>
         </div>
         {loading ? (
           <div className="p-8 text-center text-slate-400 text-sm">Loading…</div>
@@ -93,10 +92,7 @@ export default function MerchantCommission() {
               <span className="md:hidden text-[11px] text-slate-400 mr-1">Eligible</span>
               <span className="text-sm text-slate-600 dark:text-slate-300 tabular-nums">{fmt(it.eligible_amount)}</span>
             </div>
-            <div className="md:col-span-1 order-5 text-right">
-              <span className="text-sm text-slate-500 tabular-nums">{it.commission_pct}%</span>
-            </div>
-            <div className="md:col-span-2 order-6 text-right">
+            <div className="md:col-span-3 order-6 text-right">
               <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">{fmt(it.earned)}</span>
             </div>
           </div>

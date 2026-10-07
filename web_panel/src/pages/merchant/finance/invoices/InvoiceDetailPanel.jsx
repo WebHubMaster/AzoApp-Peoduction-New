@@ -259,7 +259,6 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
                             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Commissionable Amount</span>
                             <span className="text-sm font-semibold text-slate-900 dark:text-white tabular-nums" data-testid="detail-commissionable">{money(base, cur, 2)}</span>
                           </div>
-                          {re.rate != null ? <Row k="Commission Rate" v={`${re.rate}%`} testid="detail-commission-rate" /> : null}
                           <Row k="Partner Earning" v={money(re.commission, cur, 2)} testid="detail-partner-earning" />
                           {vc > 0 && !vcInBase ? <Row k="Visiting Charge (paid to you)" v={"+ " + money(vc, cur, 2)} /> : null}
                           <Row k="Est. Govt. Taxes" v={<span className="text-slate-400">Excluded</span>} />
@@ -292,11 +291,8 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
                       return (
                         <>
                           <Row k="Eligible Earning Amount" v={<span>{money(re.base, cur, 2)} <span className="text-[11px] text-slate-400">(excl. tax)</span></span>} testid="detail-earn-base" />
-                          {shareRate != null ? <Row k="Your Share Rate" v={`${shareRate}%`} testid="detail-commission-rate" /> : null}
                           <SubCap>Earning Breakdown</SubCap>
-                          {shareRate != null ? <Row k="Partner Share" v={`${shareRate}%`} /> : null}
                           <Row k="Partner Earning" v={money(re.net, cur, 2)} testid="detail-partner-earning" />
-                          {platformRate != null ? <Row k="Platform Share" v={`${platformRate}%`} /> : null}
                           {re.platform != null ? <Row k="AzoApp Platform Earning" v={money(re.platform, cur, 2)} testid="detail-platform-share" /> : null}
                           <TotalRow k="Net Earning" v={money(re.net, cur, 2)} green testid="detail-net" />
                           {re.coupon_code ? (
@@ -320,13 +316,12 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
                       {d.role_earning.base != null && <Row k={d.role_earning.service_label || "Total Service Amount"} v={<span>{money(d.role_earning.base, cur, 2)} <span className="text-[11px] text-slate-400">(excl. tax)</span></span>} testid="detail-earn-base" />}
                       {d.role_earning.role === "merchant" ? (
                         <>
-                          <Row k={`Commission Referred By Partner${d.role_earning.referral_pct != null ? ` (${d.role_earning.referral_pct}%)` : ""}`} v={money(d.role_earning.referral || 0, cur, 2)} muted={!d.role_earning.referral} />
-                          <Row k={`Commission By Referred Customer${d.role_earning.customer_pct != null ? ` (${d.role_earning.customer_pct}%)` : ""}`} v={money(d.role_earning.customer || 0, cur, 2)} muted={!d.role_earning.customer} />
+                          <Row k="Commission Referred By Partner" v={money(d.role_earning.referral || 0, cur, 2)} muted={!d.role_earning.referral} />
+                          <Row k="Commission By Referred Customer" v={money(d.role_earning.customer || 0, cur, 2)} muted={!d.role_earning.customer} />
                           <Row k={d.role_earning.commission_label} v={money(d.role_earning.commission, cur, 2)} />
                         </>
                       ) : (
                         <>
-                          {d.role_earning.rate != null && <Row k="Your Share Rate" v={`${d.role_earning.rate}%`} testid="detail-commission-rate" />}
                           {d.role_earning.platform != null && <Row k={d.role_earning.platform_label || "Platform Share"} v={money(d.role_earning.platform, cur, 2)} testid="detail-platform-share" />}
                         </>
                       )}
@@ -340,7 +335,6 @@ export default function InvoiceDetailPanel({ inv, full, loading, onClose, onDown
               ) : commission ? (
                 <Section icon={Percent} title="Commission Details" testid="detail-commission">
                   <Row k="Commission" v={money(commission, cur, 2)} />
-                  {rate != null && <Row k="Commission Rate" v={`${rate}%`} testid="detail-commission-rate" />}
                   <Row k="Net Amount" v={money((d.total_amount || 0) - commission, cur, 2)} strong />
                 </Section>
               ) : null}

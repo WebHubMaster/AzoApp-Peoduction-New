@@ -122,9 +122,6 @@ export default function MerchantCommission() {
                     </Text>
                     <Text style={{ color: colors.success, fontSize: fontSize.sm, fontWeight: "800", ...TAB }} numberOfLines={1}>{fmt(it.earned)}</Text>
                   </View>
-                  <View style={{ flex: 1, alignItems: "flex-end" }}>
-                    <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, ...TAB }} numberOfLines={1}>{it.commission_pct}%</Text>
-                  </View>
                 </View>
               </View>
             ))

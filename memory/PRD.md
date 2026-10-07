@@ -200,3 +200,16 @@ Customer app only. No backend changes.
 2) First-booking walkthrough: new Customer/src/components/customer/AlertPermissionWalkthrough.tsx — a one-time guided stepper (bottom-sheet Modal) that walks a NEW customer through notifications → full-screen → display-over-apps → run-in-background → OEM autostart. Android only; shown once when bookingCount>0 and not previously completed (storage key azo_alert_walkthrough_done); auto-skips steps already granted / not applicable; per-step Allow (+Open Settings when permanently denied) / Skip, progress bar, re-checks on AppState active, Finish on last step. Mounted at top of HomeView with bookingCount={bookings.length} so it triggers after the first booking (on the Home tab). testids: alert-walkthrough, alert-walkthrough-progress, alert-walkthrough-allow-<key>, alert-walkthrough-next, alert-walkthrough-skip, walkthrough-granted-<key>.
 
 Verified: source files tsc-clean (only 2 pre-existing tsconfig.json toolchain warnings remain, unrelated). Expo app not runnable in preview → verified by TypeScript compile + code review.
+
+## Update (Jun 2026) — Hide commission/fee split percentages
+Removed all "how much %" split indicators shown to customers, partners & merchants (apps + web) and in generated invoices. Amounts (₹) retained; only the % annotations/rows removed.
+Changed:
+- Backend: invoice_html_service.py, invoice_pdf_service.py (Commission Rate / Share rows, Customer Refund (x%)), booking_controller.py (cancellation preview message "20% cancellation fee" → "cancellation fee").
+- Customer app: BookingDialogs, BookingDrawers, invoices, refunds.
+- Customer web: CustomerDashboard (cancel preview, refunds, refund rows).
+- Partner app: earnings.tsx, active.tsx, DetailPanel.tsx.
+- Partner web: EarningsLedger.jsx.
+- Merchant app: commission.tsx, partners.tsx, (merchant)/customers.tsx.
+- Merchant web: finance InvoiceDetailPanel.jsx, referral MerchantCommission/MerchantPartners/MerchantReferralCustomers.
+- Shared: InvoiceCenter.jsx, InvoiceDocument.jsx.
+Kept (intentional): GST/CGST/SGST tax rates (legal), promotional "% off"/"SAVE %" discounts, progress/completion/performance stats, and admin config screens (admins still set rates).
