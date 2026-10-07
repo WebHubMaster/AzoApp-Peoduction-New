@@ -37,7 +37,7 @@ export default function Login() {
     router.replace("/(customer)");
   };
   const toast = useToast();
-  const { branding } = useSiteConfig();
+  const { branding, stats } = useSiteConfig();
   const { isDark } = useTheme();
   const { user, login, loading, booting } = useAuth();
 
@@ -130,7 +130,7 @@ export default function Login() {
   const { X, Y, F, u } = g;
   const inputH = Y(88);
   const inputStyle = { height: inputH, borderRadius: 7 * u, borderWidth: 1, borderColor: C.border, backgroundColor: "#fff", paddingHorizontal: 12 * u, fontSize: F(26), color: C.navy, outlineStyle: "none" } as any;
-  const h1 = { fontWeight: "800", fontSize: F(33), color: C.navy, letterSpacing: -0.3 } as const;
+  const h1 = { fontWeight: "600", fontSize: F(33), color: C.navy, letterSpacing: -0.3 } as const;
   const sub = { fontSize: F(22), color: C.body, marginTop: Y(10) } as const;
   const link = { fontSize: F(22), color: C.body, fontWeight: "600" } as const;
   const gap = Y(24);
@@ -151,9 +151,9 @@ export default function Login() {
           </Pressable>
           <NeedHelp g={g} onPress={() => router.push("/(site)/contact" as any)} />
 
-          <View testID="brand-logo" style={{ position: "absolute", left: X(48), top: Y(118) }}>
+          <View testID="brand-logo" style={{ position: "absolute", left: X(48), top: Y(108), height: Y(135), justifyContent: "center" }}>
             {logo ? (
-              <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ width: X(328), height: X(104) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
+              <Image testID="brand-logo-dynamic" source={{ uri: logo }} style={{ width: X(340), height: Y(135) }} contentFit="contain" contentPosition="left" cachePolicy="memory-disk" transition={0} />
             ) : (
               <View>
                 <Text style={{ fontWeight: "900", fontSize: F(70), letterSpacing: -1 }}><Text style={{ color: C.bright }}>{siteName.slice(0, 3)}</Text><Text style={{ color: C.orange }}>{siteName.slice(3)}</Text></Text>
@@ -162,7 +162,7 @@ export default function Login() {
             )}
           </View>
 
-          <Text testID="login-title" style={{ position: "absolute", left: X(48), top: Y(252), fontWeight: "900", fontSize: X(56), lineHeight: Y(66), color: C.navy, letterSpacing: -0.6 * u, zIndex: 5 }}>
+          <Text testID="login-title" style={{ position: "absolute", left: X(48), top: Y(252), fontWeight: "600", fontSize: X(56), lineHeight: Y(66), color: C.navy, letterSpacing: -0.6 * u, zIndex: 5 }}>
             Home Services{"\n"}You Can <Text testID="login-title-trust" style={{ color: C.bright }}>Trust</Text>
           </Text>
           <Swoosh g={g} />
@@ -270,7 +270,7 @@ export default function Login() {
             )}
           </View>
 
-          {step <= 2 ? <TrustStats g={g} /> : null}
+          {step <= 2 ? <TrustStats g={g} stats={stats} /> : null}
           {step !== 4 ? <SecurityStrip g={g} /> : null}
         </View>
       </KeyboardAwareScrollView>

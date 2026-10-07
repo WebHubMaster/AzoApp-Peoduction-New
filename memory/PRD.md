@@ -248,3 +248,6 @@ Known gap: partner's "Customer details" avatar on job/[id] still shows initial �
   `makeGeom`, overflow hidden). Hero + room photos cropped from reference (`Customer/assets/login/hero.webp`, `room.webp`).
   Preview logo set to reference wordmark `/api/media/file/branding/azo_wordmark.png` (admin can change any time).
   Stats hidden on name/email steps so the taller card never overlaps. Tested 100% at 390x844, 360x740, 412x915.
+- (v3) Logo back to admin dynamic logo (azo_logo_light.png), larger slot. Headline/card title weight → 600 (medium).
+  Trust stats now from site config `stats` (Admin → Website/CMS → Homepage Builder → Homepage Trust Stats):
+  LIVE = DB counts (customers, verified_partners, rating), MANUAL = admin values. Verified both modes.

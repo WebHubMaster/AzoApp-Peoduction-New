@@ -3,6 +3,7 @@ import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Path } from "react-native-svg";
+import { compactNum } from "@/src/components/site/ui";
 import { ArrowRight, ShieldCheck, Zap, IndianRupee, Users, Star, CreditCard, Headphones, Clock } from "lucide-react-native";
 
 export const C = {
@@ -89,23 +90,28 @@ function Stat({ g, ix, tx, icon, value, label, testID }: { g: G; ix: number; tx:
     <>
       <View style={{ position: "absolute", left: g.X(ix), top: g.Y(28) }}>{icon}</View>
       <View testID={testID} style={{ position: "absolute", left: g.X(tx), top: g.Y(10) }}>
-        <Text style={{ fontSize: g.F(27), fontWeight: "700", color: C.navy }}>{value}</Text>
+        <Text testID={`${testID}-value`} style={{ fontSize: g.F(27), fontWeight: "700", color: C.navy }}>{value}</Text>
         <Text style={{ fontSize: g.F(18), color: C.body, marginTop: g.Y(2) }}>{label}</Text>
       </View>
     </>
   );
 }
 
-export function TrustStats({ g }: { g: G }) {
+// Same source as Admin → Website/CMS → Homepage Builder → Homepage Trust Stats (LIVE = DB numbers, MANUAL = admin values).
+export function TrustStats({ g, stats = {} }: { g: G; stats?: Record<string, any> }) {
   const s = g.F(44);
+  const customers = compactNum(stats.customers) || "0";
+  const pros = compactNum(stats.verified_partners) || "0";
+  const r = typeof stats.rating === "number" ? stats.rating.toFixed(1) : compactNum(stats.rating) || "0";
+  const rating = r.includes("/") ? r : `${r}/5`;
   const sep = (x: number) => <View style={{ position: "absolute", left: g.X(x), top: g.Y(5), width: 1, height: g.Y(68), backgroundColor: C.border }} />;
   return (
     <View testID="trust-stats" style={{ position: "absolute", left: 0, right: 0, top: g.Y(1165), height: g.Y(80) }}>
-      <Stat g={g} ix={73} tx={143} testID="stat-customers" icon={<Users size={s} color={C.bright} fill={C.bright} />} value="50,000+" label="Happy Customers" />
+      <Stat g={g} ix={73} tx={143} testID="stat-customers" icon={<Users size={s} color={C.bright} fill={C.bright} />} value={customers} label="Happy Customers" />
       {sep(332)}
-      <Stat g={g} ix={373} tx={440} testID="stat-professionals" icon={<ShieldCheck size={s} color="#fff" fill={C.bright} strokeWidth={2} />} value="10,000+" label="Verified Professionals" />
+      <Stat g={g} ix={373} tx={440} testID="stat-professionals" icon={<ShieldCheck size={s} color="#fff" fill={C.bright} strokeWidth={2} />} value={pros} label="Verified Professionals" />
       {sep(636)}
-      <Stat g={g} ix={680} tx={755} testID="stat-rating" icon={<Star size={s} color={C.orange} fill={C.orange} />} value="4.8/5" label="Average Rating" />
+      <Stat g={g} ix={680} tx={755} testID="stat-rating" icon={<Star size={s} color={C.orange} fill={C.orange} />} value={rating} label="Average Rating" />
     </View>
   );
 }
