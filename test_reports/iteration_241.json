@@ -1,0 +1,23 @@
+{
+  "summary": "Rate Service feature validated end-to-end. Backend 6/6 pytest cases pass covering GET /bookings/my/pending-reviews shape+sort, auto_prompt=true after reset, POST /{id}/review-prompt-dismiss silences ALL (count unchanged, auto_prompt all false), POST /{id}/review removes item from pending and silences the rest, auth/role gating, double-submit rejection. Frontend web (web_panel) 14/14 UI assertions pass on mobile 390x844 and desktop 1920x900: auto popup appears on '/' for latest unrated (Plumbing Repair) with auto_prompt=true, 'Not now' closes and no chain popup appears, rate-service-bar visible right-side above bottom nav, bar visible on '/' and /account (home) but hidden on /services, /account?tab=orders and /book. Submitting a rating closes modal, no new auto popup opens, bar remains with next unrated service. Desktop bar (x=1568) does not overlap custom-job-fab (x=1840). Logged-out users see neither bar nor popup.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_rate_service_iter241.py",
+    "/app/test_reports/pytest/rate_service_iter241.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "RateService.jsx line 44: useEffect returns subscribe?.(cb) directly — if subscribe() does not return an unsubscribe function this becomes a no-op cleanup; low risk because RealtimeContext.subscribe returns an unsubscribe, but worth asserting.",
+    "pending_reviews controller: review_prompt_dismissed is reset by _silence_review_prompts globally for all completed bookings of the customer; this is consistent with spec ('older ones don't chain-pop') but means a brand-new completion will NOT auto-pop if a previous one was ever dismissed until the backend explicitly clears the flag on that new booking. Confirm this is intentional for the 'partner completes a job -> auto popup opens' requirement — new completions coming in with status completed will have review_prompt_dismissed unset so auto_prompt will be true, so this is actually fine.",
+    "pending_reviews uses to_list(500) — if a prolific customer has >500 completed-unrated bookings they would be silently truncated; add a hard cap or ordering in Mongo query."
+  ],
+  "updated_files": ["/app/backend/tests/test_rate_service_iter241.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% (14/14)"},
+  "test_credentials": "Customer +919000000004 OTP 123456; Partner +919000000003 OTP 123456",
+  "seed_data_creation": "Reseeded via /app/backend/seed_rate_service_demo.py (AZORATE1-3) and unset review_prompt_dismissed on customer c336c969-da1e-4d46-aaad-9bcdb875bb15 bookings before UI run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend endpoints: GET /api/bookings/my/pending-reviews, POST /api/bookings/{id}/review-prompt-dismiss, POST /api/bookings/{id}/review. Note _silence_review_prompts sets review_prompt_dismissed=true for ALL customer's completed/paid bookings on both submit and dismiss. To re-run UI tests, reseed and `db.bookings.updateMany({customer_id:'c336c969-...'}, {$unset:{review_prompt_dismissed:''}})` to re-enable auto popup. Expo Customer/src/components/customer/RateService.tsx was not executed (Expo cannot run in this env) — code review only was in scope.",
+  "rca of the issue": "No issue. All assertions matched the spec."
+}

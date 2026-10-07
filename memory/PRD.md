@@ -105,3 +105,10 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 
 ## 2026-06 — Partner "small gestures" card (customer booking details)
 - PartnerGestures card (web CustomerDashboard BookingDetailsDrawer + Customer app BookingDrawers) after Partner Information; only when partner_id & status in assigned/arrived_shop/arrived_customer/started. iteration_240 pass (web); RN by code review.
+
+## Rate Service (2026-10-07)
+- Backend: `GET /api/bookings/my/pending-reviews` (latest completed first), `POST /api/bookings/{id}/review-prompt-dismiss`; rating/dismiss silences auto-popup for older unrated jobs (no chain popups).
+- Web: `web_panel/src/components/customer/RateService.jsx` (mounted in App.js) — small pill above bottom nav (right) only on `/` and `/account` home; auto popup on new completion (SSE + 20s poll + tab focus); hides while keyboard open.
+- Expo app: `Customer/src/components/customer/RateService.tsx` — provider in root layout, button in (site) home layout + CustomerShell home; pinned via KeyboardFixedBottom.
+- Seed: `backend/seed_rate_service_demo.py`. Tested iteration_241 (backend 6/6, web 14/14). Expo app code-reviewed only.
+- Backlog: show partner photo in popup; quick-tag chips; rating reminder push after 24h.
