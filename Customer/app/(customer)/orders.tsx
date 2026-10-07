@@ -52,7 +52,7 @@ export default function OrdersScreen() {
   // Server-side: 10 bookings per request, next page loads on scroll.
   const qs = new URLSearchParams({ tab, payment, sort, search: q.trim(), page_size: String(PAGE_SIZE), ...(range.preset !== "All" && range.from ? { date_from: range.from.toISOString() } : {}), ...(range.preset !== "All" && range.to ? { date_to: range.to.toISOString() } : {}) }).toString();
   const list = useServerList<any>((pg) => api.get(`/bookings/my/paged?${qs}&page=${pg}`, { timeoutMs: 60000 }), qs);
-  // Keep loaded cards live with the dashboard's 8s poll (status/timeline updates).
+  // Keep loaded cards live with the dashboard's adaptive poll + SSE (status/timeline updates).
   const live = useMemo(() => new Map(bookings.map((b: any) => [b.id, b])), [bookings]);
   const paged = list.items.map((b: any) => live.get(b.id) || b);
   const reload = () => { reloadCtx(); list.refresh(true); };

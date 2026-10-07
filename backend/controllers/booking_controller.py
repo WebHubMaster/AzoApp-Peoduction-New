@@ -3546,7 +3546,12 @@ async def complete_job(partner, booking_id, otp):
             {"$inc": {"total_jobs": 1, "total_commission": ledger["merchant_referral"]}})
     out = await _get_booking(booking_id)
     rt.emit_admin("job_update", _job_brief(out))
-
+    # Near-real-time customer update: push the completed status to the customer's
+    # live stream so their app reflects it within a second (no wait for the poll).
+    try:
+        rt.emit_user(b.get("customer_id"), "booking_update", _job_brief(out))
+    except Exception:
+        pass
     # Everything below is a side-effect the partner does NOT need to wait for
     # (loyalty points, referral credit, cashback, incentives, invoice, customer
     # notification). Run it in ONE background task so the "Complete Job" tap returns

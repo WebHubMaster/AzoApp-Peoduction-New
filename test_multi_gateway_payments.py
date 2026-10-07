@@ -10,7 +10,7 @@ import time
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://maid-billing-correct.preview.emergentagent.com/api"
+BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

@@ -6,7 +6,7 @@ import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FileText, IndianRupee, CheckCircle2, Clock, RotateCcw, ReceiptText, RefreshCw, ArrowUpDown, User, CalendarDays, Wallet, Download, Eye, AlertTriangle, X, Share2, Mail, MessageCircle, Copy, Layers, CreditCard, Printer } from "lucide-react-native";
 import { api, API_BASE } from "../../src/api/client";
-import { downloadInvoicePdf } from "../../src/lib/invoiceActions";
+import { downloadInvoicePdf, openLocalFile, shareInvoicePdf } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, VIOLET, ROSE, BLUE, useTheme, shadowBtn, TC } from "../../src/theme";
 import { SearchInput, FilterButton, FilterSheet, FilterLabel, OptionMenu, LoadMoreFooter, useOnScrollEnd, useOnPullRefresh, EmptyState, SkeletonList, Shimmer, BottomSheet, MiniCalendar, PillTrigger, StatSlider, CARD_W } from "../../src/components/customer/ux";
@@ -97,8 +97,9 @@ export default function InvoicesScreen() {
     setDownloading((m) => ({ ...m, [inv.id]: true }));
     toast.info("Downloading invoice PDF… please wait a moment.");
     try {
-      await downloadInvoicePdf(inv);
-      toast.success("Invoice ready — choose a PDF app to view or save.");
+      const r = await downloadInvoicePdf(inv);
+      toast.success(r.status === "saved" ? "Invoice saved to Downloads — opening PDF" : r.status === "downloaded" ? "Invoice downloaded — opening PDF" : "Invoice ready — choose a PDF app to view or save.");
+      if (r.openUri) { try { await openLocalFile(r.openUri); } catch { toast.error("Downloaded, but no PDF viewer was found to open it"); } }
     } catch {
       toast.error("Invoice could not be downloaded");
     } finally {
@@ -111,7 +112,12 @@ export default function InvoicesScreen() {
   const shareInvoice = async (inv: any, channel: "whatsapp" | "copy") => {
     const text = `Invoice ${inv.invoice_number} · ${money(inv.total_amount, inv.currency)} · ${(inv.payment_status || "").toUpperCase()} — AzoApp`;
     if (channel === "copy") { await Clipboard.setStringAsync(text); toast.success("Invoice details copied"); return; }
-    try { const url = await publicUrl(inv, "pdf"); const t = encodeURIComponent(`${text}\n${url}`); const ok = await Linking.canOpenURL(`whatsapp://send?text=${t}`); await Linking.openURL(ok ? `whatsapp://send?text=${t}` : `https://wa.me/?text=${t}`); } catch { toast.error("Could not share invoice"); }
+    // Share the ACTUAL PDF file — never a backend URL.
+    toast.info("Preparing invoice PDF…");
+    try {
+      const r = await shareInvoicePdf(inv, "whatsapp");
+      if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
+    } catch { toast.error("Could not share invoice"); }
   };
   const sendEmail = async () => {
     const addr = emailTo.trim(); if (!addr.includes("@")) { toast.error("Enter a valid email address."); return; }
@@ -222,7 +228,7 @@ export default function InvoicesScreen() {
             <Text numberOfLines={1} style={{ flex: 1, fontSize: 16, fontWeight: "600", color: c.text }}>{preview?.invoice_number || "Invoice"}</Text>
             <Pressable testID="invoice-share" onPress={() => setShareFor(preview)} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Share2 size={16} color={c.text} /></Pressable>
             <Pressable testID="invoice-email-btn" onPress={() => { setEmailTo(preview?.customer_snapshot?.email || ""); setEmailFor(preview); }} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Mail size={16} color={c.text} /></Pressable>
-            <Pressable testID="invoice-open-print" onPress={() => preview?.url && Linking.openURL(preview.url).catch(() => toast.error("Could not open invoice"))} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Printer size={16} color={c.text} /></Pressable>
+            <Pressable testID="invoice-open-print" onPress={() => downloadById(preview)} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><Printer size={16} color={c.text} /></Pressable>
             <Pressable testID="invoice-download-pdf" onPress={() => downloadById(preview)} style={{ height: 36, width: 36, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Download size={16} color="#fff" /></Pressable>
             <Pressable testID="invoice-close-btn" onPress={() => setPreview(null)} style={{ height: 36, width: 36, borderRadius: 6, borderWidth: 1, borderColor: c.border, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.text} /></Pressable>
           </View>

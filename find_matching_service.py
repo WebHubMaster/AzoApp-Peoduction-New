@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://maid-billing-correct.preview.emergentagent.com/api"
+BASE_URL = "https://pdf-share-safe.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"
 

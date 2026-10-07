@@ -7,11 +7,11 @@ import { Image } from "expo-image";
 import { Wrench, Package, Camera, User, CreditCard, MapPin, AlertTriangle, FileText, MessageCircle, Download, X, ChevronLeft, ChevronRight, ImageOff, ShieldCheck, Navigation } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRIMARY, SLATE, EMERALD, ROSE, useTheme } from "../../theme";
-import { api, API_BASE, mediaUrl } from "../../api/client";
+import { api, mediaUrl } from "../../api/client";
 import { useSiteConfig } from "../../context/BrandContext";
 import { fmt } from "../../lib/format";
 import { statusText } from "./nav";
-import { downloadInvoicePdf } from "../../lib/invoiceActions";
+import { downloadInvoicePdf, openLocalFile, shareInvoicePdf } from "../../lib/invoiceActions";
 import { fmtTs } from "./BookingCard";
 import { DrawerShell, Btn } from "./BookingDialogs";
 import { ServiceBreakdown } from "./ServiceBreakdown";
@@ -195,30 +195,28 @@ export function InvoiceDrawer({ booking: b, onClose, toast }: { booking: any; on
   const logoUrl = rawLogo ? mediaUrl(rawLogo) : "";
   const brandName = branding?.brand_name || branding?.site_name || branding?.name || "AzoApp";
   const paid = ["paid", "completed", "refunded"].includes(b.payment_status);
-  const publicPdf = async (download: boolean) => {
+  const resolveInvoice = async () => {
     const list: any = await api.get(`/invoices?booking_id=${b.id}&page_size=1`);
     const inv = (list?.items || list || [])[0];
     if (!inv?.id) throw new Error("Invoice is not generated yet");
-    const s: any = await api.get(`/invoices/${inv.id}/share-link`);
-    return `${API_BASE}${s.path}${download ? "&download=1" : ""}`;
+    return inv;
   };
   const downloadInvoice = async () => {
     setBusy(true);
     try {
-      const list: any = await api.get(`/invoices?booking_id=${b.id}&page_size=1`);
-      const inv = (list?.items || list || [])[0];
-      if (!inv?.id) throw new Error("Invoice is not generated yet");
-      await downloadInvoicePdf(inv);
-      toast.success("Invoice ready — choose a PDF app to view or save.");
+      const inv = await resolveInvoice();
+      const r = await downloadInvoicePdf(inv);
+      toast.success(r.status === "saved" ? "Invoice saved to Downloads — opening PDF" : r.status === "downloaded" ? "Invoice downloaded — opening PDF" : "Invoice ready — choose a PDF app to view or save.");
+      if (r.openUri) { try { await openLocalFile(r.openUri); } catch { toast.error("Downloaded, but no PDF viewer was found to open it"); } }
     } catch (e: any) { toast.error(e?.message || "Could not generate PDF"); } finally { setBusy(false); }
   };
   const shareOnWhatsApp = async () => {
     setSharing(true);
     try {
-      const url = await publicPdf(false);
-      const text = encodeURIComponent(`Invoice ${b.code} · INR ${Number(bd?.total ?? p.total ?? 0).toFixed(2)} — ${brandName}\n${url}`);
-      const ok = await Linking.canOpenURL(`whatsapp://send?text=${text}`);
-      await Linking.openURL(ok ? `whatsapp://send?text=${text}` : `https://wa.me/?text=${text}`);
+      const inv = await resolveInvoice();
+      // Share the ACTUAL PDF file — never a backend URL.
+      const r = await shareInvoicePdf(inv, "whatsapp");
+      if (r === "fallback") toast.info("Shared invoice details — PDF couldn't be attached this time");
     } catch (e: any) { toast.error(e?.message || "Could not share invoice"); } finally { setSharing(false); }
   };
   return (

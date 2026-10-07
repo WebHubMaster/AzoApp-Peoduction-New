@@ -15,7 +15,7 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://maid-billing-correct.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://pdf-share-safe.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
