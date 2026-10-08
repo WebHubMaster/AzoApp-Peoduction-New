@@ -140,6 +140,50 @@ def _range_response(full, rng: str):
                                       "Content-Length": str(end - start + 1)})
 
 
+_IMG_CT = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp",
+           ".gif": "image/gif", ".svg": "image/svg+xml", ".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm"}
+
+
+def _ct_for(name: str, fallback: str = "") -> str:
+    n = name.lower()
+    for ext, ct in _IMG_CT.items():
+        if n.endswith(ext):
+            return ct
+    return fallback or "application/octet-stream"
+
+
+async def _s3_fallback(rel: str):
+    conf = await storage_service._s3_conf()
+    if not conf:
+        return None
+    got = await storage_service.fetch_s3_object(storage_service._s3_key(conf, rel))
+    if got is None and conf.get("folder"):
+        got = await storage_service.fetch_s3_object(rel)
+    if got is None:
+        return None
+    body, ct = got
+    return Response(content=body, media_type=ct if ct and ct != "application/octet-stream" else _ct_for(rel),
+                    headers={"Cache-Control": "public, max-age=2592000, immutable"})
+
+
+def _local_fallback(key: str):
+    root = UPLOAD_DIR.resolve()
+    parts = key.lstrip("/").split("/")
+    # Key may carry the configured base folder prefix → also try without the first segment.
+    for rel in ("/".join(parts), "/".join(parts[1:])):
+        if not rel:
+            continue
+        full = (UPLOAD_DIR / rel).resolve()
+        try:
+            full.relative_to(root)
+        except ValueError:
+            continue
+        if full.is_file():
+            return FileResponse(str(full), media_type=None,
+                                headers={"Cache-Control": "public, max-age=2592000, immutable"})
+    return None
+
+
 @router.get("/file/{path:path}")
 async def serve_file(path: str, request: Request):
     # Serve any locally-stored upload, including nested structured folders
@@ -151,7 +195,11 @@ async def serve_file(path: str, request: Request):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid path")
     if not full.is_file():
-        raise HTTPException(status_code=404, detail="File not found")
+        # Storage may have switched to S3 after upload (or another pod wrote it) → try the bucket.
+        got = await _s3_fallback(rel)
+        if got is None:
+            raise HTTPException(status_code=404, detail="File not found")
+        return got
     rng = request.headers.get("range", "")
     if rel.lower().endswith(".apk") and rng.startswith("bytes="):
         return _range_response(full, rng)
@@ -176,6 +224,10 @@ async def serve_s3(key: str, request: Request):
         return Response(status_code=304, headers={"ETag": etag, "Cache-Control": "public, max-age=31536000, immutable"})
     got = await storage_service.fetch_s3_object(key)
     if got is None:
+        # Object may live on local disk (uploaded before S3 was configured).
+        local = _local_fallback(key)
+        if local is not None:
+            return local
         raise HTTPException(status_code=404, detail="File not found")
     body, content_type = got
     # Force the correct MIME by extension when S3 returns a generic type — otherwise

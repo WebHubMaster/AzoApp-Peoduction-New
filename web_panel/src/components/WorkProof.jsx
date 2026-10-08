@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, ChevronLeft, ChevronRight, Camera, ImageOff, PlayCircle, MapPin, ShieldAlert, ShieldCheck, ScanFace, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import api from "@/lib/api";
+import api, { API, mediaSrc } from "@/lib/api";
 
 /**
  * Shared work-proof (before/after photo) viewer used by Customer, Partner & Admin
@@ -10,7 +10,17 @@ import api from "@/lib/api";
  * arrow keys or buttons to navigate).
  */
 
-const norm = (x) => (typeof x === "string" ? x : (x?.url || x?.image || ""));
+// Stored proof URLs may be relative ("/api/media/...") or point at an old backend host
+// → always resolve them against the CURRENT backend so admin/customer previews load.
+const API_ORIGIN = API.replace(/\/api$/, "");
+export const proofSrc = (u) => {
+  if (!u) return "";
+  const s = String(u).trim();
+  const m = s.match(/^https?:\/\/[^/]+(\/api\/media\/.*)$/i);
+  if (m && API_ORIGIN) return `${API_ORIGIN}${m[1]}`;
+  return mediaSrc(s);
+};
+const norm = (x) => proofSrc(typeof x === "string" ? x : (x?.url || x?.image || ""));
 export const isVideoUrl = (u) => /\.(mp4|mov|webm|3gp|mkv)(\?|$)/i.test(u || "");
 
 export function Lightbox({ images, index, title, onClose, onNav }) {
@@ -134,7 +144,7 @@ function FaceMatchPanel({ bookingId, checkin }) {
       {fm?.reason && <p data-testid="face-match-reason" className="mt-1 opacity-90">{fm.reason}</p>}
       {fm?.kyc_photo_url && (
         <div className="mt-2 flex items-center gap-2">
-          <button type="button" onClick={() => { setIdx(0); setOpen(true); }} className="h-14 w-12 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 cursor-zoom-in" data-testid="face-match-kyc-photo"><img src={fm.kyc_photo_url} alt="KYC" className="h-full w-full object-cover" /></button>
+          <button type="button" onClick={() => { setIdx(0); setOpen(true); }} className="h-14 w-12 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 cursor-zoom-in" data-testid="face-match-kyc-photo"><img src={proofSrc(fm.kyc_photo_url)} alt="KYC" className="h-full w-full object-cover" /></button>
           <span className="opacity-80">KYC photo vs check-in selfie</span>
         </div>
       )}
@@ -150,7 +160,7 @@ export function CheckinProof({ checkin, bookingId, admin = false }) {
     <div className="space-y-2">
     <div data-testid="checkin-proof" className="flex items-center gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-2.5">
       <button type="button" onClick={() => setOpen(true)} className="h-16 w-14 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 cursor-zoom-in">
-        <img src={checkin.selfie_url} alt="Partner selfie" className="h-full w-full object-cover" />
+        <img src={proofSrc(checkin.selfie_url)} alt="Partner selfie" className="h-full w-full object-cover" />
       </button>
       <div className="min-w-0 text-xs">
         <p className="font-bold text-slate-700 dark:text-slate-200">Partner check-in selfie</p>

@@ -24,7 +24,7 @@ import MerchantConsole from "@/pages/admin/MerchantConsole";
 import { KeywordsInput } from "@/pages/admin/adminSectionsPro";
 import SchedulePicker from "@/components/site/SchedulePicker";
 import { Star, IndianRupee, TrendingUp, ClipboardList, Package, Users, Wrench, AlertCircle, Ticket, Trash2, Eye, CheckCircle2, Plus, ArrowLeft, Phone, Mail, MapPin, Wallet, Store, ShieldCheck, FileText, Award, Activity, User as UserIcon, X, XCircle, ZoomIn, Loader2, Search, Ban, Send, Bell, Sparkles, Repeat, ShieldAlert, Clock, Heart, Building2, Globe2, CalendarClock, ToggleRight, Share2, Scale, MessageCircle, RefreshCw, ChevronLeft, ChevronRight, TrendingDown, Camera, Facebook, Instagram, Twitter, Youtube, Linkedin, Smartphone, Save, Globe, AlertTriangle, Radio, Radar } from "lucide-react";
-import WorkProofSection from "@/components/WorkProof";
+import WorkProofSection, { proofSrc } from "@/components/WorkProof";
 import DispatchTimeline from "@/components/admin/DispatchTimeline";
 import AssignConfirm, { busyLabel } from "@/components/admin/AssignConfirm";
 import ServiceBreakdown from "@/components/booking/ServiceBreakdown";
@@ -714,7 +714,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
                     <div key={i} className="py-2.5 first:pt-0 last:pb-0" data-testid={`admin-booking-item-${i}`}>
                       <div className="flex items-center gap-3">
                         {it.image
-                          ? <img src={it.image} alt="" className="h-11 w-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0" />
+                          ? <img src={proofSrc(it.image)} alt="" className="h-11 w-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0" />
                           : <span className="h-11 w-11 rounded-xl bg-primary-50 dark:bg-primary-900/30 grid place-items-center text-primary-700 shrink-0"><Wrench className="h-5 w-5" /></span>}
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{it.service_name || it.name || it.custom_name}</p>
@@ -756,7 +756,7 @@ export const BookingDetailPage = ({ id, onBack, onChanged, onJumpToStatus }) => 
             {partner ? (
               <div className="flex items-start gap-4">
                 <div className="h-14 w-14 rounded-2xl bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 flex items-center justify-center text-xl font-bold overflow-hidden shrink-0">
-                  {partner.photo ? <img src={partner.photo} alt={partner.name} className="h-full w-full object-cover" /> : (partner.name || "P").charAt(0)}
+                  {partner.photo ? <img src={proofSrc(partner.photo)} alt={partner.name} className="h-full w-full object-cover" /> : (partner.name || "P").charAt(0)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
