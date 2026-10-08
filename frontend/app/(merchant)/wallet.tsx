@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -97,14 +97,6 @@ export default function MerchantWallet() {
         testID="wallet-module"
         {...txQ.scrollProps}
       >
-        {/* Page header (MerchantDashboard.jsx) */}
-        <View style={{ marginBottom: 16 }}>
-          <Text testID="merchant-wallet-header" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Wallet & Withdraw</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-            <Icon name="store" size={14} color={P[700]} />
-            <Text style={{ fontSize: 12, lineHeight: 16, color: muted }} numberOfLines={1}>{shopName}</Text>
-          </View>
-        </View>
 
         {accessQ.isLoading || (approved && !ov && !ovQ.isError) ? (
           <View style={{ gap: 20 }}>
@@ -364,6 +356,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardProvider>
       <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "flex-end" }} testID="withdraw-flow">
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <View style={{ maxHeight: "92%", backgroundColor: card, borderTopLeftRadius: 6, borderTopRightRadius: 6, borderWidth: 1, borderColor: dark ? SLATE[800] : SLATE[200], boxShadow: "0px -20px 50px rgba(15,23,42,0.25)" }}>
@@ -477,6 +470,7 @@ function WithdrawFlow({ ov, cfg, fin, onClose, onDone }: { ov: any; cfg: any; fi
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
+      </KeyboardProvider>
     </Modal>
   );
 }

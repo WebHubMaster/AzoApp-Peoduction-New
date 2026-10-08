@@ -188,14 +188,6 @@ export default function MerchantBankKyc() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={P[700]} colors={[P[700]]} />}
         testID="merchant-finance-kyc"
       >
-        {/* Page header (MerchantDashboard.jsx) */}
-        <View style={{ marginBottom: 16 }}>
-          <Text testID="merchant-bankkyc-header" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Bank & KYC</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-            <Icon name="store" size={14} color={P[700]} />
-            <Text style={{ fontSize: 12, lineHeight: 16, color: muted }} numberOfLines={1}>{shopName}</Text>
-          </View>
-        </View>
 
         {!accessQ.isLoading && !approved ? (
           <LockedCard completion={accessQ.data?.completion ?? 0} status={accessQ.data?.status} onGo={() => router.push("/merchant/profilekyc")} />

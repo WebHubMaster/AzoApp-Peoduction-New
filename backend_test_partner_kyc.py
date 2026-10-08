@@ -10,7 +10,7 @@ import sys
 import io
 
 # Base URL from frontend/.env
-BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

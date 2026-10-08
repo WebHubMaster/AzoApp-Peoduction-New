@@ -148,3 +148,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - On admin approval (all approve paths) user gets "Account Approved 🎉 … Tap to log in" via in-app + SSE + push (Expo/FCM/WebPush) with data.type=account_approved, role.
 - App (ChatNotifier): push tap or live SSE → refresh user → open merchant/partner dashboard. Web panel RealtimeContext does the same.
 - Tested: iteration_247 backend 3/3; frontend auto-redirect verified by code review only (no real devices).
+
+## Update (Jun 2026) – Merchant app UI tweaks
+- Removed page title/subtitle headers from Wallet, Analytics, Bank & KYC, Help & Support, Scan QR (other pages already headerless)
+- Bottom nav: Wallet tab replaced by "My Network" (/merchant/partners); Wallet moved into More sheet
+- Safe-area + keyboard: bottom nav hides when keyboard open; Edit Profile, Withdraw & Share modals use KeyboardProvider+KeyboardAvoidingView; Support uses KeyboardAwareScrollView

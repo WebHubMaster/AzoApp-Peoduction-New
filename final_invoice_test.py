@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

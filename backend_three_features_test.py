@@ -18,7 +18,7 @@ import random
 import string
 
 # Base URL from environment
-BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

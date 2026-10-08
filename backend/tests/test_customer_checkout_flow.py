@@ -10,7 +10,7 @@ import uuid
 import requests
 import pytest
 
-BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if "EXPO_PUBLIC_BACKEND_URL" in os.environ else "https://partner-work-queue.preview.emergentagent.com"
+BASE = os.environ["EXPO_PUBLIC_BACKEND_URL"].rstrip("/") if "EXPO_PUBLIC_BACKEND_URL" in os.environ else "https://merchant-menu-swap.preview.emergentagent.com"
 API = f"{BASE}/api"
 
 CUSTOMER_PHONE = "+919000000004"

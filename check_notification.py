@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

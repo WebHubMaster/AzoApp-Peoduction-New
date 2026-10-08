@@ -4,6 +4,7 @@ import { useRouter, useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { BlurView } from "expo-blur";
+import { useKeyboardState } from "react-native-keyboard-controller";
 import * as Haptics from "expo-haptics";
 import {
   LayoutDashboard, Users, QrCode, Wallet, MoreHorizontal,
@@ -28,12 +29,12 @@ const PRIMARY: Item[] = [
   { key: "home", label: "Home", icon: LayoutDashboard, route: "/(merchant)" },
   { key: "customers", label: "Customers", icon: Users, route: "/(merchant)/customers" },
   { key: "scanqr", label: "Scan QR", icon: QrCode, route: "/merchant/scanqr" },
-  { key: "wallet", label: "Wallet", icon: Wallet, route: "/(merchant)/wallet" },
+  { key: "partners", label: "My Network", icon: Network, route: "/merchant/partners" },
 ];
 
 const MORE: Item[] = [
   { key: "profilekyc", label: "Profile & KYC", icon: Store, route: "/merchant/profilekyc" },
-  { key: "partners", label: "My Partners", icon: Network, route: "/merchant/partners" },
+  { key: "wallet", label: "Wallet", icon: Wallet, route: "/(merchant)/wallet" },
   { key: "commission", label: "Commission", icon: TrendingUp, route: "/merchant/commission" },
   { key: "bankkyc", label: "Bank & KYC", icon: CreditCard, route: "/merchant/bankkyc" },
   { key: "analytics", label: "Analytics", icon: Sparkles, route: "/merchant/analytics" },
@@ -60,6 +61,7 @@ export function MerchantBottomNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const active = useActiveKey();
   const activeIsMore = !PRIMARY.some((p) => p.key === active);
+  const keyboardOpen = useKeyboardState((s) => s.isVisible);
 
   const go = (route: string) => {
     Haptics.selectionAsync().catch(() => {});
@@ -69,6 +71,8 @@ export function MerchantBottomNav() {
     setMoreOpen(false);
     setTimeout(() => router.push(route as any), 120);
   };
+
+  if (keyboardOpen && !moreOpen) return null;
 
   return (
     <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, pointerEvents: "box-none" }}>

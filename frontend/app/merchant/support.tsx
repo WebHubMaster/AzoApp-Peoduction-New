@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, Alert, ActivityIndicator, useWindowDimensions } from "react-native";
-import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import { LifeBuoy, Plus, Send, Paperclip, X, ArrowLeft, FileText, CheckCircle2, ShieldCheck, Search, Inbox, MoreVertical, Hash, CalendarDays, Clock, Check, CheckCheck, Tag, AlertCircle } from "lucide-react-native";
@@ -330,22 +330,13 @@ export default function MerchantSupport({ title = "Help & Support" }: { title?: 
   const newBtn = (testID: string) => <Btn testID={testID} label="New Ticket" icon={<Plus size={16} color="#fff" />} onPress={() => setView("new")} bg={EMERALD600} pressedBg={EMERALD700} style={{ alignSelf: "flex-start" }} />;
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <KeyboardAwareScrollView bottomOffset={24} style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={false} onRefresh={loadList} tintColor={P[700]} colors={[P[700]]} />} testID="support-center">
-        {/* Page header (MerchantDashboard.jsx) */}
-        <View style={{ marginBottom: 16 }}>
-          <Text testID="merchant-support-header" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Help & Support</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}><Icon name="store" size={14} color={P[700]} /><Text style={{ fontSize: 12, lineHeight: 16, color: muted }} numberOfLines={1}>{shopName}</Text></View>
-        </View>
 
         {view === "list" ? (
           <>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-              <View style={{ flexShrink: 1 }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><LifeBuoy size={24} color={P[600]} /><Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "800", color: heading }}>{title}</Text></View>
-                <Text style={{ fontSize: 14, lineHeight: 20, color: SLATE[500] }} testID="support-count">{rows.length} ticket{rows.length !== 1 ? "s" : ""} · chat with our support team, attach screenshots, track status.</Text>
-              </View>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 16 }}>
               {newBtn("support-new-btn")}
             </View>
 
@@ -392,7 +383,7 @@ export default function MerchantSupport({ title = "Help & Support" }: { title?: 
         {view === "new" ? <NewTicket meta={meta} onCancel={() => setView("list")} onCreated={(t) => { loadList(); openTicket(t); }} /> : null}
 
         {view === "thread" && active ? <Thread ticket={active} myId={user?.id} tickets={tickets} onBack={() => { setView("list"); loadList(); }} onChanged={loadList} /> : null}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }

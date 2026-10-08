@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Linking, ActivityIndicator, Modal, Platform, KeyboardAvoidingView } from "react-native";
+import { View, Text, Pressable, ScrollView, RefreshControl, TextInput, Linking, ActivityIndicator, Modal, Platform } from "react-native";
+import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -189,11 +190,6 @@ export default function MerchantScanQr() {
           <View style={{ paddingVertical: 80, alignItems: "center" }}><ActivityIndicator color={P[600]} /></View>
         ) : (
           <>
-            {/* Header */}
-            <View style={{ marginBottom: 20 }}>
-              <Text style={{ fontSize: 24, lineHeight: 32, fontWeight: "800", letterSpacing: -0.6, color: heading }} testID="merchant-scanqr-header">Scan QR</Text>
-              <Text style={{ fontSize: 14, lineHeight: 20, color: muted, marginTop: 4 }}>Share your booking link, generate branded QR posters and let customers book your services instantly.</Text>
-            </View>
 
             {/* Hero */}
             <LinearGradient colors={[P[800], P[600]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20, marginBottom: 24, gap: 24, boxShadow: "0px 10px 15px -3px rgba(0,0,0,0.1)" }} testID="scanqr-hero">
@@ -272,7 +268,8 @@ export default function MerchantScanQr() {
 
       {/* Share modal (fallback when the native sheet is unavailable) */}
       <Modal visible={shareOpen} transparent animationType="fade" onRequestClose={() => setShareOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+        <KeyboardProvider>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
         <View style={{ flex: 1, backgroundColor: "rgba(15,23,42,0.5)", justifyContent: "center", padding: 16 }}>
           <Pressable style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }} onPress={() => setShareOpen(false)} />
           <View testID="share-modal" style={{ backgroundColor: dark ? SLATE[900] : "#fff", borderRadius: 6, padding: 20, boxShadow: "0px 25px 50px -12px rgba(0,0,0,0.25)" }}>
@@ -295,6 +292,7 @@ export default function MerchantScanQr() {
           </View>
         </View>
         </KeyboardAvoidingView>
+        </KeyboardProvider>
       </Modal>
     </View>
   );

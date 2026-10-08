@@ -3,6 +3,7 @@ import { View, Text, Pressable, Modal, ScrollView, TextInput, ActivityIndicator 
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { Bell, ChevronDown, LogOut, X, User as UserIcon, ShieldCheck, Save } from "lucide-react-native";
 import { Image } from "expo-image";
 import { useTheme } from "@/src/theme";
@@ -63,6 +64,7 @@ function NotificationBell() {
 /* ─────────────── Edit Profile modal (PUT /auth/profile) ─────────────── */
 function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { user, setUser } = useAuth();
   const toast = useToast();
   const [name, setName] = useState("");
@@ -88,9 +90,10 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
   const field = { height: 46, borderRadius: 6, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 12, marginTop: 6, color: colors.text, fontSize: 15 } as const;
   return (
     <Modal visible={open} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay }}>
+      <KeyboardProvider>
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay }}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={{ backgroundColor: colors.card, borderTopLeftRadius: 6, borderTopRightRadius: 6, padding: 20, paddingBottom: 28 }}>
+        <ScrollView bounces={false} keyboardShouldPersistTaps="handled" style={{ flexGrow: 0, maxHeight: "90%", backgroundColor: colors.card, borderTopLeftRadius: 6, borderTopRightRadius: 6 }} contentContainerStyle={{ padding: 20, paddingBottom: insets.bottom + 28 }}>
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <Text style={{ fontSize: 18, fontWeight: "800", color: colors.text }}>Edit Profile</Text>
             <Pressable onPress={onClose} hitSlop={8}><X size={20} color={colors.textMuted} /></Pressable>
@@ -111,8 +114,9 @@ function EditProfileModal({ open, onClose }: { open: boolean; onClose: () => voi
             {saving ? <ActivityIndicator size="small" color="#fff" /> : <Save size={16} color="#fff" />}
             <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{saving ? "Saving…" : "Save"}</Text>
           </Pressable>
-        </View>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+      </KeyboardProvider>
     </Modal>
   );
 }

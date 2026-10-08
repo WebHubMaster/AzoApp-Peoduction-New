@@ -109,14 +109,6 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
         refreshControl={<RefreshControl refreshing={loading && !!data} onRefresh={load} tintColor={P[700]} colors={[P[700]]} />}
         testID="merchant-analytics"
       >
-        {/* Page header (MerchantDashboard.jsx) */}
-        <View style={{ marginBottom: 16 }}>
-          <Text testID="merchant-analytics-header" style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: heading }} numberOfLines={1}>Analytics</Text>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
-            <Icon name="store" size={14} color={P[700]} />
-            <Text style={{ fontSize: 12, lineHeight: 16, color: muted }} numberOfLines={1}>{shopName}</Text>
-          </View>
-        </View>
 
         {!accessQ.isLoading && !approved ? (
           <LockedCard completion={accessQ.data?.completion ?? 0} status={accessQ.data?.status} onGo={() => router.push("/merchant/profilekyc")} />
@@ -129,8 +121,7 @@ export default function MerchantAnalytics({ title = "Business Analytics" }: { ti
               <View pointerEvents="none" style={{ position: "absolute", left: "85%", top: "80%", height: 180, width: 180, marginLeft: -90, marginTop: -90, borderRadius: 90, backgroundColor: "rgba(255,255,255,0.1)" }} />
               <View style={{ gap: 12 }}>
                 <View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><TrendingUp size={24} color="#fff" /><Text style={{ fontSize: 20, lineHeight: 28, fontWeight: "800", color: "#fff" }}>{title}</Text></View>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                     <CalendarDays size={16} color={SKY100} />
                     <Text testID="analytics-range-label" style={{ flex: 1, fontSize: 14, lineHeight: 20, color: SKY100 }}>{range.from} → {range.to} · {k.customers || 0} customers · {k.partners || 0} partners</Text>
                   </View>

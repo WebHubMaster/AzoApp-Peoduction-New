@@ -4,7 +4,7 @@ import io
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-work-queue.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://merchant-menu-swap.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 

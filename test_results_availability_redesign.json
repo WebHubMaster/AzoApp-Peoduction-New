@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://partner-work-queue.preview.emergentagent.com",
+  "base_url": "https://merchant-menu-swap.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

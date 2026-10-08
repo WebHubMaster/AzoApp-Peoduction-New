@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://a15b4903-eca9-4b4b-8ce2-e948e3dafe74.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://merchant-menu-swap.preview.emergentagent.com").rstrip("/")
 HC_ID = "3385eac1-575f-4875-87fc-e005ffa07c76"
 HC_NAME_LOWER = "home cleaning"
 

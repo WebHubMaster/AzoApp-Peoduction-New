@@ -6,7 +6,7 @@ import requests
 import json
 
 # Base URL from frontend/.env
-BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
+BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 CUSTOMER_PHONE = "+919000000004"  # Priya Verma
