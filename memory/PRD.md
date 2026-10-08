@@ -156,3 +156,4 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 
 ## Update (Jun 2026) – Customer app instant rating popup
 - RateServiceProvider (Customer/src/components/customer/RateService.tsx): opens rating popup instantly on live `booking_update` (status completed/paid) and on foreground/tapped push with booking_id; verifies via /bookings/my/pending-reviews; poll reduced 20s→10s
+- Thank-you celebration (ThanksBurst) after rating submit: pop-in check, star/confetti burst, auto-close 2.2s

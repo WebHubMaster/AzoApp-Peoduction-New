@@ -1,6 +1,6 @@
 /** Rate Service — pending (unrated) completed bookings, rated one at a time (latest first). */
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState, Animated, Easing } from "react-native";
 import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Star, Check, X } from "lucide-react-native";
@@ -133,20 +133,22 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
   const [stars, setStars] = useState(0);
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
-  useEffect(() => { setStars(0); setComment(""); setBusy(false); }, [booking?.id]);
+  const [done, setDone] = useState(0);
+  useEffect(() => { setStars(0); setComment(""); setBusy(false); setDone(0); }, [booking?.id]);
 
   const submit = async () => {
     if (!booking || !stars) return;
     setBusy(true);
-    try { await api.post(`/bookings/${booking.id}/review`, { rating: stars, comment: comment.trim() }); toast.success("Thanks for your rating!"); onClose(true); }
+    try { await api.post(`/bookings/${booking.id}/review`, { rating: stars, comment: comment.trim() }); setDone(stars); setTimeout(() => onClose(true), 2200); }
     catch (e: any) { setBusy(false); if (/already reviewed/i.test(e?.message || "")) onClose(true); else toast.error(e?.message || "Could not submit rating"); }
   };
 
   return (
-    <Modal visible={!!booking} transparent animationType="slide" statusBarTranslucent onRequestClose={() => onClose(false)}>
+    <Modal visible={!!booking} transparent animationType="slide" statusBarTranslucent onRequestClose={() => onClose(!!done)}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(15,23,42,0.45)" }}>
-        <Pressable style={{ flex: 1 }} onPress={() => onClose(false)} />
+        <Pressable style={{ flex: 1 }} onPress={() => onClose(!!done)} />
         <View testID="rate-service-modal" style={{ backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: insets.bottom + 20 }}>
+          {done ? <ThanksBurst stars={done} name={booking?.partner_name} onDone={() => onClose(true)} /> : <>
           <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
             <View style={{ flex: 1 }}>
               <Text style={{ fontSize: 11, fontWeight: "700", color: "#16A34A", letterSpacing: 0.5 }}>SERVICE COMPLETED</Text>
@@ -174,8 +176,52 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
               {busy ? <ActivityIndicator color="#fff" /> : <Text style={{ fontWeight: "800", color: "#fff" }}>Submit rating</Text>}
             </Pressable>
           </View>
+          </>}
         </View>
       </KeyboardAvoidingView>
     </Modal>
+  );
+}
+
+const BURST = ["#F59E0B", "#16A34A", "#3B82F6", "#EC4899", "#FBBF24", "#8B5CF6", "#10B981", "#F97316"];
+
+/** Thank-you celebration: pop-in badge, star burst and confetti dots. */
+function ThanksBurst({ stars, name, onDone }: { stars: number; name?: string; onDone: () => void }) {
+  const { c, isDark } = useTheme();
+  const pop = useRef(new Animated.Value(0)).current;
+  const burst = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.parallel([
+      Animated.spring(pop, { toValue: 1, friction: 4, tension: 120, useNativeDriver: true }),
+      Animated.timing(burst, { toValue: 1, duration: 900, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+      Animated.timing(fade, { toValue: 1, duration: 450, delay: 250, useNativeDriver: true }),
+    ]).start();
+  }, [pop, burst, fade]);
+  return (
+    <Pressable testID="rate-thanks" onPress={onDone} style={{ alignItems: "center", paddingVertical: 24 }}>
+      <View style={{ height: 120, width: 120, alignItems: "center", justifyContent: "center" }}>
+        {BURST.map((col, i) => {
+          const a = (i / BURST.length) * Math.PI * 2;
+          const r = 58 + (i % 2) * 10;
+          return (
+            <Animated.View key={i} style={{ position: "absolute", opacity: burst.interpolate({ inputRange: [0, 0.6, 1], outputRange: [0, 1, 0] }),
+              transform: [{ translateX: burst.interpolate({ inputRange: [0, 1], outputRange: [0, Math.cos(a) * r] }) }, { translateY: burst.interpolate({ inputRange: [0, 1], outputRange: [0, Math.sin(a) * r] }) }, { scale: burst.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }] }}>
+              {i % 2 ? <Star size={14} color={col} fill={col} /> : <View style={{ height: 9, width: 9, borderRadius: 5, backgroundColor: col }} />}
+            </Animated.View>
+          );
+        })}
+        <Animated.View style={{ height: 76, width: 76, borderRadius: 38, backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center", boxShadow: "0px 10px 24px rgba(22,163,74,0.35)", transform: [{ scale: pop }, { rotate: pop.interpolate({ inputRange: [0, 1], outputRange: ["-25deg", "0deg"] }) }] } as any}>
+          <Check size={40} color="#fff" strokeWidth={3} />
+        </Animated.View>
+      </View>
+      <Animated.View style={{ alignItems: "center", opacity: fade, transform: [{ translateY: fade.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) }] }}>
+        <View style={{ flexDirection: "row", gap: 4, marginTop: 8 }}>
+          {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={22} color={n <= stars ? "#F59E0B" : "#CBD5E1"} fill={n <= stars ? "#FBBF24" : "transparent"} />)}
+        </View>
+        <Text testID="rate-thanks-title" style={{ fontSize: 20, fontWeight: "800", color: isDark ? "#fff" : TC.text, marginTop: 12 }}>Thank you!</Text>
+        <Text style={{ fontSize: 13, color: c.textMuted, marginTop: 4, textAlign: "center" }}>{name ? `Your feedback helps ${name} and others serve you better.` : "Your feedback helps us serve you better."}</Text>
+      </Animated.View>
+    </Pressable>
   );
 }
