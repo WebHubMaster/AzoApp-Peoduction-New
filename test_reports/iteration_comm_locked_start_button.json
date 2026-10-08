@@ -1,0 +1,43 @@
+{
+  "summary": "Static/code-level verification of the schedule.comm_locked gating for the Continue · Check-in & Start button on both the Partner WEB panel (web_panel/src/pages/partner/PartnerDashboard.jsx) and the Partner MOBILE app (PartnerApp/app/(partner)/active.tsx). Live end-to-end testing was NOT possible in this pod per the agent_to_agent_context_note: /app/backend has no .env (MONGO_URL/DB_NAME missing), /app/frontend is absent (no CRA served on preview URL), web_panel is a CRA/craco app not managed by supervisor and PartnerApp is an Expo (React Native) app that cannot be driven by Playwright/browser automation. Therefore only a thorough source-level review was performed.",
+  "verification_findings": {
+    "web_panel (PartnerDashboard.jsx)": {
+      "commLocked_source": "Line 383: `const commLocked = !!sched.comm_locked;` — bound to booking.schedule.comm_locked, identical source used by Call/Chat/Navigate gates in the same ActiveJob component.",
+      "open_job_button": "Lines 559-564: `<button data-testid={`open-job-${b.code}`} disabled={commLocked} onClick={() => setWizardOpen(true)} className={... commLocked ? 'bg-slate-100 text-slate-400 ...' : ...}>`. When commLocked is true: button is disabled, shows Lock icon + 'Check-in & Start locked', and the chevron is hidden. When commLocked is false: button is enabled and renders 'Continue · Complete Job' / 'Continue · Start Job' / 'Continue · Check-in & Start' per state, with chevron, and clicking opens the JobWizard (setWizardOpen(true)).",
+      "locked_note": "Line 565: `{commLocked && <p data-testid={`start-locked-note-${b.code}`} ...>Available 30 minutes before the scheduled time</p>}` — renders only when locked, matching Navigation copy on line 523.",
+      "parity_with_other_gates": "Navigate (lines 512-523) uses the same commLocked flag with `navigate-locked-${b.code}` and identical 'Available 30 minutes before the scheduled time' copy. Call (lines 528-534) renders a disabled span with `call-locked-${b.code}`. Chat (line 535) uses `disabled={commLocked}` on the chat-cust button and renders a Lock icon when locked. All four gates are now driven by the SAME commLocked value and will unlock simultaneously."
+    },
+    "mobile_app (active.tsx)": {
+      "commLocked_source": "Line 466: `const commLocked = !!sched.comm_locked;` inside ActiveJobCard, identical pattern to web.",
+      "open_job_button": "Lines 663-667: `<Pressable testID={`open-job-${b.code}`} disabled={commLocked} onPress={openWizard} style={... backgroundColor: commLocked ? colors.surfaceSubtle : inProgress ? EMERALD : colors.secondary, opacity: commLocked ? 0.7 : 1 ...}>` with Lock icon when commLocked and 'Check-in & Start locked' label; when !commLocked the label matches state ('Continue · Complete Job' / 'Continue · Start Job' / 'Continue · Check-in & Start') and onPress calls openWizard which routes to /(partner)/partner/job/[id].",
+      "locked_note": "Line 668: `{commLocked ? <Text testID={`start-locked-note-${b.code}`} ...>Available 30 minutes before the scheduled time</Text> : null}` — present only when locked.",
+      "parity_with_other_gates": "Navigate (lines 628-637) uses `navigate-locked-${b.code}` when commLocked and the same unlock copy. Call (lines 642-646) replaces the Pressable with a disabled View when commLocked. Chat (lines 647-654) uses `disabled={commLocked}` and shows a lock icon. All four gates share the single commLocked flag and will unlock together."
+    }
+  },
+  "test_report_links": [],
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "action_items": [
+    "No action required for this fix on the code level — the gating is correctly implemented in BOTH surfaces and the testIDs (`open-job-<code>`, `start-locked-note-<code>`) are present as specified.",
+    "To get a live e2e signal, the main agent (or next testing agent with a provisioned environment) should: (a) restore backend/.env with MONGO_URL/DB_NAME, (b) seed a partner account with an assigned scheduled booking whose schedule.comm_locked=true (scheduled_at > 30m away) and another with comm_locked=false, (c) serve the web_panel via supervisor or add it to the CRA preview, then run Playwright asserting: locked case => button[data-testid=open-job-<code>] has `disabled` attribute AND contains text 'Check-in & Start locked' AND [data-testid=start-locked-note-<code>] is visible; unlocked case => same button is enabled, text starts with 'Continue · ', and clicking opens the JobWizard dialog."
+  ],
+  "critical_code_review_comments": [
+    "web_panel PartnerDashboard.jsx is 747 lines and houses ActiveJob (~275 lines), CompletedJob, JobStepper, Collapse etc. in one file. Consider splitting ActiveJob and CompletedJob into their own files under components/partner/ for maintainability (file-size guideline >700 lines).",
+    "The locked-state copy 'Available 30 minutes before the scheduled time' is duplicated at least 3 times across each surface (Navigate, Chat tooltip toast, open-job note). Consider extracting a shared constant (e.g., LOCK_HINT_30MIN) to keep copy in sync.",
+    "In web_panel line 418 and mobile line 647, the 'Chat unlocks 30 minutes before the scheduled time' toast message uses slightly different wording than the UI note ('Available 30 minutes before…'). Harmonising wording improves UX consistency.",
+    "The 30-minute threshold is enforced on the server via schedule.comm_locked, which is correct. Front-ends rely solely on this flag — no client-side time comparison — which is the right pattern and prevents clock-skew bugs.",
+    "Minor: on mobile active.tsx line 663, when commLocked is true the Pressable keeps `onPress={openWizard}` (disabled prevents it from firing in RN, which is correct), but for defensive coding you could early-return in openWizard when commLocked to also guard programmatic callers."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (not tested)", "frontend": "static review only — 100% of required gating assertions verified in source for both surfaces"},
+  "test_credentials": "Not applicable — no live run performed. For future runs see /app/memory/test_credentials.md if present.",
+  "seed_data_creation": "None. Seeding was not possible: Mongo empty, backend/.env missing.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "If the environment is repaired (backend/.env + Mongo seed + web_panel served), the exact Playwright assertions to run are listed under action_items. The data-testids to target are: web button `open-job-<code>`, web locked note `start-locked-note-<code>`, web peer locks `navigate-locked-<code>`/`call-locked-<code>`/`chat-cust-<code>` (chat uses disabled attribute); mobile `open-job-<code>`, `start-locked-note-<code>`, `navigate-locked-<code>`. The commLocked value comes from GET /api/bookings for the partner (schedule.comm_locked, computed server-side as true when now < scheduled_at - 30m).",
+  "rca of the issue": "Original bug: the 'Continue · Check-in & Start' button lacked the `disabled={commLocked}` prop and the locked branch in its label/icon/className, so for a far-future scheduled booking (e.g. 13h away) the button appeared enabled while peer actions (Call/Chat/Navigate) were correctly locked by the same schedule.comm_locked flag. Fix (verified in both files at the exact line ranges in files_of_reference): bind the Pressable/button's disabled attribute to commLocked and branch the label ('Check-in & Start locked' vs 'Continue · …'), icon (Lock vs Camera/CheckCircle/Play), and background styling on commLocked, plus render a `start-locked-note-<code>` helper text with the standard '30 minutes before scheduled time' copy. Mitigation (already applied by main agent) brings this CTA into exact parity with the three other gates so all four unlock simultaneously when the server flips schedule.comm_locked to false."
+}
