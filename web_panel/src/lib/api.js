@@ -41,6 +41,7 @@ api.interceptors.request.use((cfg) => {
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
   const c = localStorage.getItem("azo_location");
   if (c && c !== "Your area") cfg.headers["X-City"] = c.split(",")[0].trim();
+  cfg.headers["X-Pay-Return"] = "panel";
   return cfg;
 });
 

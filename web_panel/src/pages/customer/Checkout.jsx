@@ -379,6 +379,7 @@ export default function Checkout() {
       const { data: order } = await api.post(`/subscriptions/${created.id}/pay/order`);
       const ok = await openCheckout(order, {
         user, name: "AzoApp Subscription", description: sub.name || "Subscription",
+        confirm: { path: `/subscriptions/${created.id}/pay/confirm` },
         onVerify: (res) => res.razorpay_payment_id
           ? api.post(`/subscriptions/${created.id}/pay/verify`, { order_id: res.razorpay_order_id, payment_id: res.razorpay_payment_id, signature: res.razorpay_signature })
           : api.post(`/subscriptions/${created.id}/pay/confirm`, { order_id: res.order_id, gw: res.gw }),

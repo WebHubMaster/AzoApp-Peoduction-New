@@ -339,6 +339,7 @@ export default function PartnerRegistration({ regBase = "/partner/registration",
       // selected mode, then confirm server-side. No dev-mock bypass.
       const ok = await openCheckout(order, {
         user, name: "AzoApp Registration", description: "Partner registration fee",
+        confirm: { path: `${RB}/pay/confirm` },
         onVerify: (res) => res.razorpay_payment_id
           ? api.post(`${RB}/pay/confirm`, {
               order_id: res.razorpay_order_id, gateway: "razorpay",

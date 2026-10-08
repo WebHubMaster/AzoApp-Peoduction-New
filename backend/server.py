@@ -148,6 +148,8 @@ app.add_middleware(PerfMiddleware)
 async def _city_ctx(request, call_next):
     from services.city_pricing_service import current_city
     current_city.set((request.headers.get("x-city") or request.query_params.get("city") or "").strip())
+    from services.payment_gateways import pay_return
+    pay_return.set((request.headers.get("x-pay-return") or "").strip().lower())
     return await call_next(request)
 # Structured request logging (Request-ID + level) → Admin Live Logs dashboard.
 app.add_middleware(LogMiddleware)

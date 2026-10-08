@@ -8,13 +8,14 @@ import { TC } from "@/src/theme";
  *    - redirect     : Easebuzz/Juspay hosted page → /payment/return → confirm-return
  *  Mounted ONCE at the app root (app/_layout.tsx). */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Modal, View, Text, Pressable, ActivityIndicator } from "react-native";
+import { Modal, View, Text, Pressable, ActivityIndicator, Platform } from "react-native";
 import { WebView } from "react-native-webview";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { setPaymentOpener, PayContext } from "../lib/payments";
+import { openOnWeb } from "../lib/webCheckout";
 
 const RETURN_HINTS = ["/payment/return", "payu-callback", "easebuzz-callback"];
 
@@ -79,6 +80,7 @@ export function PaymentWebViewHost() {
   }, []);
 
   useEffect(() => {
+    if (Platform.OS === "web") { setPaymentOpener((ord, ctx) => openOnWeb(ord, ctx, user)); return () => setPaymentOpener(null); }
     setPaymentOpener((ord, ctx) => new Promise<boolean>((resolve) => {
       settledRef.current = false;
       ctxRef.current = ctx;
@@ -86,7 +88,7 @@ export function PaymentWebViewHost() {
       setOrder(ord);
     }));
     return () => setPaymentOpener(null);
-  }, []);
+  }, [user]);
 
   const confirmReturn = useCallback(async () => {
     const ord = order; const ctx = ctxRef.current;

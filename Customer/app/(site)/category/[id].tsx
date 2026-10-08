@@ -5,12 +5,13 @@ import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Star, Clock } from "lucide-react-native";
+import { ArrowLeft, Star, Clock, MapPinOff } from "lucide-react-native";
 import { api } from "../../../src/api/client";
 import { PRIMARY, SLATE, AMBER, TC, useTheme } from "../../../src/theme";
 import { fmt } from "../../../src/lib/format";
 import { useNavigate } from "../../../src/lib/navigate";
 import { Sk } from "../../../src/components/site/ui";
+import { useCity } from "../../../src/lib/location";
 
 const PAGE = 8;
 
@@ -24,7 +25,10 @@ export default function CategoryServices() {
   const cardW = (width - 40 - 14) / 2;
   const q = useQuery({ queryKey: ["cat-services", id], queryFn: () => api.get<any[]>(`/catalog/services?category_id=${id}`, { auth: false }), staleTime: 60_000, enabled: !!id });
   const cats = useQuery({ queryKey: ["categories"], queryFn: () => api.get<any[]>("/catalog/categories", { auth: false }), staleTime: 300_000 });
-  const cat = (cats.data || []).find((c) => c.id === id);
+  const meta = useQuery({ queryKey: ["cat-meta", id], queryFn: () => api.get<any>(`/catalog/category/${id}`), staleTime: 60_000, enabled: !!id });
+  const city = useCity();
+  const comingSoon = meta.data?.city_available === false;
+  const cat = (cats.data || []).find((c) => c.id === id) || meta.data;
   const all = q.data || [];
   const [count, setCount] = useState(PAGE);
   useEffect(() => { setCount(PAGE); }, [id]);
@@ -38,10 +42,18 @@ export default function CategoryServices() {
         {cat?.image ? <Image source={{ uri: cat.image }} style={{ height: 36, width: 36, borderRadius: 6 }} contentFit="cover" /> : null}
         <View style={{ flex: 1 }}>
           <Text testID="category-title" style={{ fontSize: 18, fontWeight: "800", color: TC.text }} numberOfLines={1}>{title}</Text>
-          <Text testID="category-count" style={{ fontSize: 12, color: TC.textMuted }}>{q.isLoading ? "Loading…" : `${all.length} service${all.length === 1 ? "" : "s"}`}</Text>
+          <Text testID="category-count" style={{ fontSize: 12, color: TC.textMuted }}>{comingSoon ? "Coming soon in your city" : q.isLoading ? "Loading…" : `${all.length} service${all.length === 1 ? "" : "s"}`}</Text>
         </View>
       </View>
-      {q.isLoading ? (
+      {comingSoon ? (
+        <View testID="category-coming-soon" style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 28 }}>
+          <View style={{ height: 72, width: 72, borderRadius: 20, backgroundColor: "#FEF3C7", alignItems: "center", justifyContent: "center", marginBottom: 16 }}><MapPinOff size={34} color="#D97706" /></View>
+          <Text testID="category-coming-soon-badge" style={{ fontSize: 11, fontWeight: "800", letterSpacing: 1, color: "#B45309", backgroundColor: "#FFFBEB", paddingHorizontal: 12, paddingVertical: 4, borderRadius: 999, overflow: "hidden", marginBottom: 10 }}>COMING SOON</Text>
+          <Text style={{ fontSize: 20, fontWeight: "800", color: TC.text, textAlign: "center" }}>{title} is coming soon{city ? ` to ${city.split(",")[0]}` : " in your city"}</Text>
+          <Text style={{ fontSize: 14, color: TC.textMuted, textAlign: "center", marginTop: 8, maxWidth: 340 }}>We're getting our professionals ready here. Meanwhile, explore other services available near you.</Text>
+          <Pressable testID="category-coming-soon-browse" onPress={() => router.replace("/(site)/services" as any)} style={{ marginTop: 20, height: 46, paddingHorizontal: 24, borderRadius: 8, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "800" }}>Browse available services</Text></Pressable>
+        </View>
+      ) : q.isLoading ? (
         <View style={{ padding: 20, flexDirection: "row", flexWrap: "wrap", gap: 14 }}>{[0, 1, 2, 3].map((i) => <Sk key={i} style={{ width: cardW, height: 220, borderRadius: 6 }} />)}</View>
       ) : (
         <FlatList

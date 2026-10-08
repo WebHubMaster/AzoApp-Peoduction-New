@@ -184,6 +184,7 @@ async def _homepage(city: str = ""):
     banners = await db.banners.find({"status": "active"}, {"_id": 0}).sort("order", 1).to_list(100)
     banners = [b for b in banners
                if (not b.get("start_date") or b["start_date"] <= now) and (not b.get("end_date") or b["end_date"] >= now)]
+    banners = await _cp.filter_linked(banners, city or None)
     coupons = await db.coupons.find({"status": "active"}, {"_id": 0}).to_list(50)
     faqs = await db.faqs.find({"status": "active"}, {"_id": 0}).to_list(50)
     # published blogs for the homepage "blog" section (respect draft/scheduled)

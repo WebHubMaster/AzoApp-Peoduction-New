@@ -103,7 +103,7 @@ async def _public_home(city: str):
     cats = [{"id": c["id"], "name": c["name"], "slug": c.get("slug"), "icon": c.get("icon"), "image": c.get("image"),
              "service_count": per_cat.get(c["id"], 0)} for c in cats if c.get("show_on_home", True)]
     promos = await sc.promotions()
-    offers = promos.get("offers") or []
+    offers = await _cp.filter_linked(promos.get("offers") or [], city or None)
     coupons = promos.get("coupons") or []
 
     def by_demand(key_demand):
@@ -179,6 +179,8 @@ async def _public_home(city: str):
                 item["data"] = [_svc_card(s, demand) for s in visible if s.get("category_id") == cs.get("category_id")][:clim]
                 item["category_id"] = cs.get("category_id")
             elif ctype == "banner":
+                if not await _cp.filter_linked([{"link": cs.get("link") or "", "category_id": cs.get("category_id")}], city or None):
+                    continue
                 item["data"] = {"image": cs.get("image") or "", "link": cs.get("link") or "/services", "title": cs.get("title") or "", "subtitle": cs.get("subtitle") or ""}
             elif ctype == "stories":
                 stories = [st for st in (cs.get("stories") or []) if st.get("enabled", True) and (st.get("video") or st.get("poster"))]
@@ -196,7 +198,7 @@ async def _public_home(city: str):
                      "logo": cfg["branding"].get("logo") or b.get("logo") or "",
                      "tagline": cfg["branding"].get("tagline") or b.get("tagline") or "",
                      "show_tagline": cfg["branding"].get("show_tagline", True)},
-        "hero_slides": [s for s in cfg["hero_slides"] if s.get("enabled", True)],
+        "hero_slides": await _cp.filter_linked([s for s in cfg["hero_slides"] if s.get("enabled", True)], city or None),
         "sections": sections,
         "stats": branding.get("stats") or {},
     }

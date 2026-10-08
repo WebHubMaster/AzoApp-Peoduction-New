@@ -3,6 +3,7 @@
  * Talks to the SAME FastAPI backend that powers the Customer Web Panel.
  * Base URL comes from EXPO_PUBLIC_BACKEND_URL; the ingress routes /api → backend.
  */
+import { Platform } from "react-native";
 import { secureStorage } from "@/src/utils/storage";
 import { getLocationName, getLocationNameAsync } from "@/src/lib/location";
 
@@ -64,6 +65,8 @@ async function request<T = any>(path: string, opts: RequestOpts = {}, attempt = 
   // City is sent on every call (public too) so city-disabled categories stay hidden.
   const _c = getLocationName() || await getLocationNameAsync();
   if (_c && _c !== "Your area") headers["X-City"] = _c.split(",")[0].trim();
+  // Web build: hosted gateways must send the shopper back to this web app.
+  if (Platform.OS === "web") headers["X-Pay-Return"] = "customer";
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;

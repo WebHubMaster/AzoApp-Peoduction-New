@@ -45,7 +45,10 @@ async def homepage(city: str = ""):
 
 @router.get("/site/promotions")
 async def promotions():
-    return await sc.promotions()
+    from services.city_pricing_service import filter_linked
+    out = dict(await sc.promotions())
+    out["offers"] = await filter_linked(out.get("offers") or [])
+    return out
 
 
 @router.get("/content/about")

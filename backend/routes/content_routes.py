@@ -17,7 +17,8 @@ AC_DELETE = require_permission("access_control", "delete")
 # ---------- public content ----------
 @router.get("/content/banners")
 async def banners():
-    return await c.list_docs("banners", {"status": "active"})
+    from services.city_pricing_service import filter_linked
+    return await filter_linked(await c.list_docs("banners", {"status": "active"}))
 
 
 @router.get("/content/faqs")

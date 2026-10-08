@@ -18,6 +18,9 @@ async def categories():
 async def category(slug_or_id: str):
     from services.city_pricing_service import active_doc
     cat = await c.get_category(slug_or_id)
+    if not cat:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Category not found")
     doc = await active_doc()
     if doc and cat:
         allowed = set(doc.get("categories") or [])

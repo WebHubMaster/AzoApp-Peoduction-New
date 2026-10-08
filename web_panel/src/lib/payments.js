@@ -29,16 +29,34 @@ function formPost(action, fields) {
   form.submit();
 }
 
+// Hosted gateways leave the SPA — remember how to confirm & where to come back.
+export const PAY_PENDING_KEY = "azo_pay_pending";
+function rememberPending(order, confirm) {
+  try {
+    sessionStorage.setItem(PAY_PENDING_KEY, JSON.stringify({
+      order_id: order.order_id, gw: order.gateway, mode: order.mode,
+      path: confirm?.path || null, body: confirm?.body || {},
+      back: window.location.pathname.replace(/^\/api\/panel/, "") + window.location.search,
+    }));
+  } catch { /* ignore */ }
+}
+function leaveForGateway(order, confirm) {
+  if (order.method === "form_post") { rememberPending(order, confirm); formPost(order.action, order.fields); return true; }
+  if (order.method === "redirect" && order.payment_url) { rememberPending(order, confirm); window.location.assign(order.payment_url); return true; }
+  return false;
+}
+
 // Open the active gateway's checkout for a PRE-CREATED order (used by flows like
 // the Starter Kit that create their order on a dedicated endpoint and verify on a
 // dedicated endpoint). `onVerify(res)` is called with the gateway response so the
 // caller can POST it to its own /verify route. Resolves true only on verified success.
-export async function openCheckout(order, { user, name = "AzoApp", description = "Payment", onVerify } = {}) {
+export async function openCheckout(order, { user, name = "AzoApp", description = "Payment", onVerify, confirm } = {}) {
   if (!order) return false;
   if (order.method === "cashfree_sdk") {
     const ok = await loadScript("https://sdk.cashfree.com/js/v3/cashfree.js", () => window.Cashfree);
     if (!ok) { toast.error("Could not load Cashfree"); return false; }
     try {
+      rememberPending(order, confirm);
       const cashfree = window.Cashfree({ mode: order.cf_mode || "sandbox" });
       const result = await cashfree.checkout({ paymentSessionId: order.payment_session_id, redirectTarget: "_modal" });
       if (result && result.error) { toast.error(result.error.message || "Payment cancelled"); return false; }
@@ -46,8 +64,8 @@ export async function openCheckout(order, { user, name = "AzoApp", description =
       return true;
     } catch { toast.error("Payment could not be started"); return false; }
   }
-  if (order.method === "form_post") { formPost(order.action, order.fields); return true; }
-  if (order.method === "redirect" && order.payment_url) { window.location.assign(order.payment_url); return true; }
+  // Full-page hosted checkout: the return page confirms via `confirm.path`.
+  if (leaveForGateway(order, confirm)) return new Promise(() => {});
   const ok = await loadRazorpay();
   if (!ok) { toast.error("Could not load payment gateway"); return false; }
   return new Promise((resolve) => {
@@ -95,6 +113,7 @@ export async function runPayment({ purpose, bookingId, groupId, amount, user }) 
     const ok = await loadScript("https://sdk.cashfree.com/js/v3/cashfree.js", () => window.Cashfree);
     if (!ok) { toast.error("Could not load Cashfree"); return false; }
     try {
+      rememberPending(order, null);
       const cashfree = window.Cashfree({ mode: order.cf_mode || "sandbox" });
       const result = await cashfree.checkout({ paymentSessionId: order.payment_session_id, redirectTarget: "_modal" });
       if (result && result.error) { toast.error(result.error.message || "Payment cancelled"); return false; }
@@ -109,17 +128,9 @@ export async function runPayment({ purpose, bookingId, groupId, amount, user }) 
     }
   }
 
-  // PayU — hosted checkout via signed form POST (full-page redirect)
-  if (order.method === "form_post") {
-    formPost(order.action, order.fields);
-    return true;
-  }
-
-  // Easebuzz / Juspay — hosted payment page redirect
-  if (order.method === "redirect" && order.payment_url) {
-    window.location.assign(order.payment_url);
-    return true;
-  }
+  // PayU (form POST) / Easebuzz / Juspay (hosted page) — full-page redirect; the
+  // /payment/return page confirms the payment when the gateway sends the user back.
+  if (leaveForGateway(order, null)) return new Promise(() => {});
 
   // Razorpay — in-page SDK
   const ok = await loadRazorpay();

@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/api";
+import { PAY_PENDING_KEY } from "@/lib/payments";
 import { useCart } from "@/context/CartContext";
 import { Button } from "@/components/ui/button";
 
@@ -20,10 +21,14 @@ export default function PaymentReturn() {
   const [count, setCount] = useState(0);
   const ran = useRef(false);
 
-  const gw = params.get("gw");
-  const orderId = params.get("order_id");
+  const [pending] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem(PAY_PENDING_KEY) || "null"); } catch { return null; }
+  });
+  const gw = params.get("gw") || pending?.gw;
+  const orderId = params.get("order_id") || pending?.order_id;
   const isKit = kind === "starter_kit";
-  const dest = isKit ? "/partner" : "/account";
+  const custom = pending?.path && pending.order_id === orderId;
+  const dest = custom ? (pending.back || "/account") : isKit ? "/partner" : "/account";
 
   useEffect(() => {
     if (ran.current) return;
@@ -33,13 +38,18 @@ export default function PaymentReturn() {
     if (!orderId) { setState("error"); return; }
     (async () => {
       try {
-        const { data } = await api.post("/payments/confirm-return", { gw, order_id: orderId });
+        // Flows with their own confirm route (subscription, membership, starter kit, registration).
+        const { data: raw } = custom
+          ? await api.post(pending.path, { ...(pending.body || {}), order_id: orderId, gw, gateway: gw, mode: pending.mode })
+          : await api.post("/payments/confirm-return", { gw, order_id: orderId });
+        const data = custom ? { ...raw, paid: raw?.paid ?? (raw?.payment_status ? raw.payment_status === "paid" : raw?.ok ?? true), kind: raw?.kind || "custom" } : raw;
+        try { sessionStorage.removeItem(PAY_PENDING_KEY); } catch (e) { /* ignore */ }
         if (data?.kind) setKind(data.kind);
         if (data?.count) setCount(data.count);
         if (data?.paid) {
           setState("paid");
-          toast.success(data.kind === "starter_kit" ? "Payment successful — welcome to AzoApp Pro! 🎉" : "Payment successful — booking confirmed!");
-          setTimeout(() => navigate(data.kind === "starter_kit" ? "/partner" : "/account", { replace: true }), 2000);
+          toast.success(data.kind === "starter_kit" ? "Payment successful — welcome to AzoApp Pro! 🎉" : custom ? "Payment successful!" : "Payment successful — booking confirmed!");
+          setTimeout(() => navigate(custom ? (pending.back || "/account") : data.kind === "starter_kit" ? "/partner" : "/account", { replace: true }), 2000);
         } else {
           setState("pending");
         }

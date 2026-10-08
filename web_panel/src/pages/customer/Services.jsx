@@ -155,9 +155,10 @@ export default function Services() {
 
   // SEO: fetch category structured-data + meta for the /category/<slug> route
   useEffect(() => {
-    if (!slug) { setCatMeta(null); return; }
-    api.get(`/catalog/category/${slug}`).then((r) => setCatMeta(r.data || null)).catch(() => setCatMeta(null));
-  }, [slug, cityKey]);
+    const ref = slug || (activeCat !== "all" ? activeCat : "");
+    if (!ref) { setCatMeta(null); return; }
+    api.get(`/catalog/category/${ref}`).then((r) => setCatMeta(r.data || null)).catch(() => setCatMeta(null));
+  }, [slug, activeCat, cityKey]);
 
   // Lookup map so section headings can show the admin-set category icon/desc.
   const catByName = useMemo(() => Object.fromEntries(cats.map((c) => [c.name, c])), [cats]);
@@ -201,7 +202,7 @@ export default function Services() {
   const noResults = !loading && Object.keys(grouped).length === 0 && rcItems.length === 0;
 
   // Direct link to a category that is turned OFF in the customer's city.
-  const cityUnavailable = !!slug && !loading && catMeta && catMeta.city_available === false;
+  const cityUnavailable = (!!slug || activeCat !== "all") && !loading && catMeta && catMeta.city_available === false;
   const cityName = (catMeta?.city) || (typeof window !== "undefined" ? (localStorage.getItem("azo_location") || "") : "");
 
   return (
@@ -258,12 +259,12 @@ export default function Services() {
             <div className="h-16 w-16 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center mb-5">
               <MapPinOff className="h-8 w-8 text-amber-500" strokeWidth={1.75} />
             </div>
+            <span data-testid="category-coming-soon-badge" className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 dark:bg-amber-500/15 dark:text-amber-300 rounded-full px-3 py-1 mb-3">Coming soon</span>
             <h3 className="font-heading font-bold text-xl text-slate-900 dark:text-white">
-              {catMeta?.name || "This service"} is not available in your city
+              {catMeta?.name || "This service"} is coming soon{cityName ? ` to ${cityName.split(",")[0]}` : " in your city"}
             </h3>
             <p className="text-slate-500 dark:text-slate-400 mt-1.5 max-w-sm">
-              {cityName ? <>We're not serving <span className="font-semibold">{cityName}</span> for this category yet. </> : null}
-              Explore other services available near you.
+              We're getting our professionals ready here. Meanwhile, explore other services available near you.
             </p>
             <button data-testid="category-unavailable-browse" onClick={() => navigate("/services")}
               className="mt-6 h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold text-sm shadow-[0_2px_8px_rgba(13,71,161,0.25)] transition active:scale-[0.98]">

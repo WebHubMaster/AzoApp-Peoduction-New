@@ -50,6 +50,24 @@ async def confirm_return(req: ReturnRequest, user=Depends(PAYER)):
     return await c.confirm_return(user, req.gw, req.order_id)
 
 
+@router.api_route("/webhooks/payu-callback", methods=["GET", "POST"])
+@router.api_route("/webhooks/easebuzz-callback", methods=["GET", "POST"])
+async def hosted_callback(request: Request, ret: str = ""):
+    """PayU / Easebuzz post the customer back here (surl/furl). The payment is verified
+    server-side by /payments/confirm-return on the return page, so we only redirect."""
+    from fastapi.responses import RedirectResponse
+    from services.payment_gateways import return_page
+    gw_name = "payu" if "payu" in request.url.path else "easebuzz"
+    data = dict(request.query_params)
+    if request.method == "POST":
+        try:
+            data.update(dict(await request.form()))
+        except Exception:  # noqa: BLE001
+            pass
+    txnid = str(data.get("txnid") or data.get("udf1") or "")
+    return RedirectResponse(return_page(gw_name, txnid, ret if ret in ("panel", "customer") else ""), status_code=303)
+
+
 @router.get("/refunds")
 async def my_refunds(user=Depends(CUSTOMER)):
     """Customer's cancellation/refund history (latest first)."""

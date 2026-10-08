@@ -35,6 +35,7 @@ export default function PartnerStarterKit({ status, locked = false, onPurchased 
         // in its selected mode. The Pro tag is granted ONLY after server-side verify.
         const ok = await openCheckout(order, {
           user, name: "AzoApp Pro", description: "Starter Kit",
+          confirm: { path: "/starter-kit/confirm" },
           onVerify: (res) => res.razorpay_payment_id
             ? api.post("/starter-kit/verify", {
                 order_id: res.razorpay_order_id,

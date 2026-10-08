@@ -122,6 +122,52 @@ async def filter_categories(cats: list, city=None) -> list:
     return [c for c in cats if c.get("id") in allowed]
 
 
+_LINK_FIELDS = ("link", "button_url", "destination", "cta_link", "url")
+_CAT_RX = re.compile(r"(?:/category/|[?&](?:category|category_id|cat)=)([^/?&#]+)", re.I)
+_SVC_RX = re.compile(r"/services?/([^/?&#]+)", re.I)
+
+
+async def filter_linked(items: list, city=None) -> list:
+    """Drop banners/offers whose linked category (explicit `category_id`, or a
+    /category/<slug>, ?category=<id> or /service/<id> link) is disabled in the city."""
+    doc = await active_doc(city)
+    if not doc or not items:
+        return items
+    allowed = set(doc.get("categories") or [])
+    cats = await db.categories.find({}, {"_id": 0, "id": 1, "slug": 1}).to_list(1000)
+    by_ref = {**{c["id"]: c["id"] for c in cats}, **{(c.get("slug") or "").lower(): c["id"] for c in cats if c.get("slug")}}
+    svc_refs = set()
+    for it in items:
+        for f in _LINK_FIELDS:
+            m = _SVC_RX.search(str((it or {}).get(f) or ""))
+            if m:
+                svc_refs.add(m.group(1))
+    svc_cat = {}
+    if svc_refs:
+        async for x in db.services.find({"$or": [{"id": {"$in": list(svc_refs)}}, {"slug": {"$in": list(svc_refs)}}]},
+                                        {"_id": 0, "id": 1, "slug": 1, "category_id": 1}):
+            svc_cat[x["id"]] = x.get("category_id")
+            if x.get("slug"):
+                svc_cat[x["slug"]] = x.get("category_id")
+
+    def linked(it):
+        out = set()
+        for f in ("category_id", "linked_category_id"):
+            if it.get(f):
+                out.add(it[f])
+        for f in _LINK_FIELDS:
+            v = str(it.get(f) or "")
+            for m in _CAT_RX.finditer(v):
+                cid = by_ref.get(m.group(1).lower()) or by_ref.get(m.group(1))
+                if cid:
+                    out.add(cid)
+            m = _SVC_RX.search(v)
+            if m and svc_cat.get(m.group(1)):
+                out.add(svc_cat[m.group(1)])
+        return out
+    return [it for it in items if not isinstance(it, dict) or linked(it) <= allowed]
+
+
 async def settings_for(settings: dict, city=None) -> dict:
     doc = await active_doc(city)
     if not doc:

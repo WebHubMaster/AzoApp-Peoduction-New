@@ -121,8 +121,14 @@ async def check_order_paid(order_id: str, gateway: str = None, mode: str = None)
         if gwn == "juspay":
             return str(await gw.juspay_order_status(sg, order_id, order_id)).upper() in ("CHARGED", "SUCCEEDED")
         if gwn == "easebuzz":
-            r = await gw.easebuzz_status(sg, order_id)
-            return str((r or {}).get("status", "")).lower() in ("success", "successful")
+            r = await gw.easebuzz_status(sg, order_id) or {}
+            msg = r.get("msg")
+            rows = msg if isinstance(msg, list) else [msg] if isinstance(msg, dict) else [r]
+            return any(str((x or {}).get("status", "")).lower() in ("success", "successful") for x in rows)
+        if gwn == "payu":
+            r = await gw.payu_verify_payment(sg, order_id) or {}
+            t = (r.get("transaction_details") or {}).get(order_id) or {}
+            return str(t.get("status", "")).lower() == "success"
     except Exception:  # noqa: BLE001
         return False
     return False

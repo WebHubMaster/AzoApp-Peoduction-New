@@ -54,6 +54,7 @@ class BannerCreate(BaseModel):
     cta_text: str = ""
     button_url: str = ""
     link: str = ""
+    category_id: str = ""
     order: int = 0
     status: str = "active"
 

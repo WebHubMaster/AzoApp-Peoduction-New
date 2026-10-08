@@ -18,12 +18,29 @@ import hmac
 import base64
 import time
 
+import contextvars
+
 import httpx
+
+# Which client started the checkout: "panel" (web panel), "customer" (Customer app web
+# build) or "" (native app WebView). Decides where hosted gateways send the user back.
+pay_return = contextvars.ContextVar("pay_return", default="")
+RETURN_PREFIX = {"panel": "/api/panel", "customer": "/api/customer"}
 
 
 def _public_base() -> str:
     return (os.environ.get("PUBLIC_APP_URL") or os.environ.get("APP_URL")
             or os.environ.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
+
+
+def return_page(gw: str, order_id: str, target: str | None = None) -> str:
+    t = pay_return.get() if target is None else target
+    return f"{_public_base()}{RETURN_PREFIX.get(t, '')}/payment/return?gw={gw}&order_id={order_id}"
+
+
+def _callback_url(gw: str) -> str:
+    t = pay_return.get()
+    return f"{_public_base()}/api/payments/webhooks/{gw}-callback" + (f"?ret={t}" if t in RETURN_PREFIX else "")
 
 
 def _cust(customer: dict | None) -> dict:
@@ -63,7 +80,7 @@ async def cashfree_create_order(g: dict, amount_inr: float, receipt: str, custom
         "order_id": order_id, "order_amount": round(float(amount_inr), 2), "order_currency": "INR",
         "customer_details": {"customer_id": c["id"], "customer_name": c["name"],
                              "customer_email": c["email"], "customer_phone": c["phone"]},
-        "order_meta": {"return_url": f"{_public_base()}/payment/return?gw=cashfree&order_id={order_id}"},
+        "order_meta": {"return_url": return_page("cashfree", order_id)},
     }
     async with httpx.AsyncClient(timeout=20) as client:
         r = await client.post(f"{_cf_pg_base(g)}/orders", headers=_cf_pg_headers(g), json=body)
@@ -120,7 +137,7 @@ async def payu_create_order(g: dict, amount_inr: float, receipt: str, customer: 
     txnid = ((receipt or "AZO") + uuid.uuid4().hex)[:25]
     amount = f"{float(amount_inr):.2f}"
     productinfo = (receipt or "AzoApp Service")[:100]
-    surl = f"{_public_base()}/api/payments/webhooks/payu-callback"
+    surl = _callback_url("payu")
     p = {
         "key": key, "txnid": txnid, "amount": amount, "productinfo": productinfo,
         "firstname": c["name"], "email": c["email"], "phone": c["phone"],
@@ -190,7 +207,7 @@ async def easebuzz_create_order(g: dict, amount_inr: float, receipt: str, custom
     txnid = ((receipt or "AZO") + uuid.uuid4().hex)[:25]
     amount = f"{float(amount_inr):.2f}"
     productinfo = (receipt or "AzoApp Service")[:100]
-    surl = f"{_public_base()}/api/payments/webhooks/easebuzz-callback"
+    surl = _callback_url("easebuzz")
     p = {"key": key, "txnid": txnid, "amount": amount, "productinfo": productinfo,
          "firstname": c["name"], "email": c["email"], "phone": c["phone"],
          "surl": surl, "furl": surl, "udf1": txnid}
@@ -264,7 +281,7 @@ async def juspay_create_order(g: dict, amount_inr: float, receipt: str, customer
         "customer_id": c["id"], "customer_phone": c["phone"], "customer_email": c["email"],
         "payment_page_client_id": g.get("juspay_payment_page_client_id", ""),
         "action": "paymentPage",
-        "return_url": f"{_public_base()}/payment/return?gw=juspay&order_id={order_id}",
+        "return_url": return_page("juspay", order_id),
     }
     async with httpx.AsyncClient(base_url=_js_base(g), auth=(g.get("juspay_api_key", ""), ""), timeout=20) as client:
         r = await client.post("/session", headers=_js_headers(g, c["id"]), json=body)

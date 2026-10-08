@@ -50,6 +50,7 @@ export default function Membership() {
       // PayU / Easebuzz / Juspay) in its selected mode. No dev-mode bypass.
       const ok = await openCheckout(data, {
         user, name: "AzoApp Membership", description: plan.name,
+        confirm: { path: "/memberships/confirm", body: { plan_id: plan.id } },
         onVerify: (res) => res.razorpay_payment_id
           ? api.post("/memberships/verify", {
               plan_id: plan.id, order_id: res.razorpay_order_id,
