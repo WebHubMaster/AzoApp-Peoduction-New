@@ -6,7 +6,7 @@ import {
   Home, Wallet, Gift, Package, Star, MapPin, Plus, Navigation, User as UserIcon, ShieldCheck,
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
-  Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock, CalendarHeart,
+  Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock,
   Smile, GlassWater, Bath, HeartHandshake,
 } from "lucide-react";
 import api, { fmt, fmtC, mediaSrc } from "@/lib/api";
@@ -58,7 +58,6 @@ import {
 const NAV = [
   { key: "home", label: "Home", short: "Home", icon: Home },
   { key: "orders", label: "My Bookings", short: "Bookings", icon: Package },
-  { key: "subscriptions", label: "Subscriptions", short: "Plans", icon: CalendarHeart },
   { key: "custom_jobs", label: "Custom Requests", short: "Custom", icon: Wrench },
   { key: "refunds", label: "Refunds", short: "Refunds", icon: Receipt },
   { key: "invoices", label: "My Invoices", short: "Invoices", icon: FileText },
