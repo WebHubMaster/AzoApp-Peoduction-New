@@ -1,0 +1,37 @@
+{
+  "summary": "Verified Iter246 merchant fixes: (1) DOB picker disables future dates (reg-dob-day-9..31 aria-disabled=true on Oct 8 2026) and backend PUT /api/merchant/registration/basic returns 400 for future dob; (2) Registration gating works - new merchant (status=incomplete, approved=false) is redirected from /api/provider/ and /api/provider/(merchant) to /api/provider/merchant/register; (3) Approved merchant customer-detail cancellation commission - KPI 'CANCELLATION COMMISSION ₹6', 1 cancelled booking, service row has 'Booking cancelled' badge, data-testid cust-svc-cancel-badge-0 present, backend GET /api/merchant/referral/customers/9811111111 returns report.cancellation_commission=6 with commission_type='cancellation' on cancelled service; (4) Merchant Expo top bar (merchant-top-bar) renders brand (merchant-brand-fallback 'AzoApp — Service at Your Door Steps —') on all tabs (home/customers/wallet/more) with no page-title text, and merchant-bottom-nav is docked full-width (x=0, w=390, borderRadius=0, no side margins). Partner regression: +919000000003 verify-otp returns role=partner. 6/6 backend pytest + all UI assertions pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "MerchantTopBar", "issue": "data-testid merchant-brand-logo not emitted (image asset missing/not loaded) - app falls back to merchant-brand-fallback which is spec-allowed. Low priority, no user impact.", "selector": "[data-testid='merchant-brand-logo']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MerchantTopBar", "issues": ["merchant-top-bar has 6px borderRadius and 16px x-inset vs partner-style full-flat; cosmetic only, brand is correctly displayed."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_merchant_iter246.py",
+    "/app/test_reports/pytest/iter246.xml"
+  ],
+  "action_items": [
+    "(Optional) Ship an actual logo asset so data-testid='merchant-brand-logo' renders (currently always falls back to text fallback).",
+    "(Optional cosmetic) Remove 6px borderRadius / horizontal inset on merchant-top-bar to fully match partner's flat edge-to-edge top bar."
+  ],
+  "critical_code_review_comments": [
+    "backend/services/merchant_reg_service.save_basic correctly rejects future dob with 400 'Date of birth can't be in the future' (verified).",
+    "backend/services/merchant_referral_service returns report.cancellation_commission + commission_type on each service row; cancelled booking (AZO-CXL-DEMO) correctly surfaces ₹6 for customer 9811111111.",
+    "Merchant Expo _layout gate redirects any non-approved merchant to /merchant/register from both root (/api/provider/) and (merchant) group; verified with freshly-created merchant.",
+    "Bottom nav is implemented edge-to-edge (0 border-radius, full width) matching partner app layout; top bar is a shared component across tabs."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_merchant_iter246.py"
+  ],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% of asserted elements"},
+  "test_credentials": "Admin +919000000000, Approved merchant +919000000002, Partner +919000000003, Customer +919000000004 (OTP 123456). Dynamic new-merchant phones +9195550XXXXX generated per test.",
+  "seed_data_creation": "Created transient new-merchant accounts (+9195550XXXXX) during pytest runs; no modification to seeded demo data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression test at /app/backend/tests/test_merchant_iter246.py covers (a) merchant registration future-dob rejection + past-dob acceptance (b) access-state gate flag (c) approved-merchant referral customer detail cancellation_commission=6 for id 9811111111 (d) partner +919000000003 role regression. UI testIDs verified in Expo provider web: merchant-top-bar, merchant-brand-fallback, merchant-bottom-nav, tab-home/tab-customers/tab-wallet/tab-more, reg-dob, reg-dob-day-N (aria-disabled on future days), cust-svc-cancel-badge-0. To re-login programmatically in Playwright, store the verify-otp token under localStorage keys ['token','auth_token','access_token','azo_token','jwt','session_token','authToken']. New merchants land on /api/provider/merchant/register until admin approves.",
+  "rca of the issue": "Not applicable - this iteration validates fixes rather than diagnosing a defect."
+}

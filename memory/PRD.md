@@ -135,3 +135,11 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Banners/offers/hero slides hidden when their linked category (category_id or link) is disabled in the city.
 - "Coming soon in <city>" notice on disabled category pages (web + Customer app).
 - Tested: iteration_245 (15/15 backend, 4/4 UI). Real gateway completion not testable (no keys in env).
+
+## 2026-06 — Merchant fixes (App + Web)
+- DOB: future dates disabled (app + web) + backend 400 on future DOB.
+- Merchant can't enter dashboard until admin approval (Under Review screen) — app routing + layout guards; web MerchantRoot already gated.
+- Referral customer detail shows cancellation commission KPI + "Booking cancelled" badges (also partner detail & commission history); cancellation ledger now stores customer_id + rates (old rows resolved via booking).
+- Merchant app top bar = partner-style brand header (no page title); bottom nav docked full-width like partner.
+- QA-only provider app web preview route /api/provider (frontend/dist-web).
+- Tested: iteration_246 all pass.
