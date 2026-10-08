@@ -3963,6 +3963,10 @@ async def cancel_booking(customer, booking_id, reason=""):
     if cancel_charge > 0:
         await db.commission_ledger.insert_one({
             "id": new_id(), "booking_id": booking_id, "booking_code": b.get("code"),
+            "customer_id": b.get("customer_id"),
+            "rates": {"partner_pct": calc["partner_pct"], "platform_pct": calc["platform_pct"],
+                      "merchant_partner_referral_pct": calc["merchant_partner_pct"],
+                      "merchant_customer_pct": calc["merchant_customer_pct"]},
             "partner_id": partner_id, "partner_earning": partner_cut, "platform_earning": admin_cut,
             "merchant_referral": merchant_partner_comm, "referral_merchant_id": merchant_partner_id,
             "merchant_customer": merchant_customer_comm, "customer_merchant_id": merchant_customer_id,

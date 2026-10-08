@@ -1,6 +1,7 @@
 import React from "react";
 import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, Redirect } from "expo-router";
+import { useAuth } from "@/src/context/AuthContext";
 import { MerchantBottomNav } from "@/src/components/MerchantBottomNav";
 import { MerchantTopBar } from "@/src/components/merchant/MerchantTopBar";
 
@@ -11,6 +12,9 @@ import { MerchantTopBar } from "@/src/components/merchant/MerchantTopBar";
  * persistent on every merchant page.
  */
 export default function MerchantLayout() {
+  const { user } = useAuth();
+  // Not yet approved by admin → stay on the registration / Under Review screen.
+  if (user?.role === "merchant" && !(user.kyc_status === "approved" || user.verified_merchant)) return <Redirect href="/merchant/register" />;
   return (
     <View style={{ flex: 1 }}>
       <MerchantTopBar />

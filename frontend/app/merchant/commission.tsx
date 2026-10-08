@@ -109,7 +109,7 @@ export default function MerchantCommission() {
 
                 {/* Row 2 — Referral / Service (full width) */}
                 <View>
-                  <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "600" }} numberOfLines={1}>{it.service_name}</Text>
+                  <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: "600" }} numberOfLines={1}>{it.service_name}{it.commission_type === "cancellation" ? "  · Booking cancelled" : ""}</Text>
                   <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 1 }} numberOfLines={1}>{it.name}</Text>
                 </View>
 

@@ -198,10 +198,18 @@ async def save_basic(user, data: dict, admin_override: bool = False):
     gender = (data.get("gender") or "").strip().lower()
     if gender and gender not in ("male", "female", "other"):
         raise HTTPException(400, "Invalid gender")
+    dob = str(data.get("dob") or "").strip()[:10]
+    if dob:
+        from datetime import date
+        try:
+            if date.fromisoformat(dob) > date.today():
+                raise HTTPException(400, "Date of birth can't be in the future")
+        except ValueError:
+            raise HTTPException(400, "Invalid date of birth")
     email = await _validate_reg_email(data.get("email"), user["id"])
     payload = {
         "full_name": (data.get("full_name") or "").strip(),
-        "dob": data.get("dob", ""),
+        "dob": dob,
         "gender": gender,
         "email": email,
         "owner_photo": data.get("owner_photo", ""),

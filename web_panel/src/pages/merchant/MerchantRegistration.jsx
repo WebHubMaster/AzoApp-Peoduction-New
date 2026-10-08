@@ -344,7 +344,7 @@ export default function MerchantRegistration({ embedded = false, onComplete, adm
           </Field>
           <div className="grid sm:grid-cols-2 gap-4">
             <Field label="Date of Birth" required>
-              <PremiumDatePicker data-testid="reg-dob" value={basic.dob || ""} disabled={!editable} onChange={(e) => setBasic({ ...basic, dob: e.target.value })} className="!h-12 rounded-xl" placeholder="Date of Birth" />
+              <PremiumDatePicker data-testid="reg-dob" value={basic.dob || ""} disabled={!editable} onChange={(e) => setBasic({ ...basic, dob: e.target.value })} className="!h-12 rounded-xl" placeholder="Date of Birth" min="1940-01-01" max={(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; })()} />
             </Field>
             <Field label="Gender" required>
               <PremiumSelect data-testid="reg-gender" value={basic.gender || ""} disabled={!editable} onChange={(e) => setBasic({ ...basic, gender: e.target.value })} placeholder="Select gender"

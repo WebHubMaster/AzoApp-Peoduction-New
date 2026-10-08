@@ -31,6 +31,7 @@ function CustomerDetail({ id, onBack }) {
     { label: "Yesterday", value: r.yesterday, money: true },
     { label: "Total Services", value: d.total_services },
     { label: "Completed Services", value: d.completed_services },
+    { label: "Cancellation Commission", value: r.cancellation_commission, money: true, sub: `${r.cancellation_count || 0} cancelled bookings` },
   ];
   return (
     <div data-testid="customer-detail">
@@ -53,7 +54,7 @@ function CustomerDetail({ id, onBack }) {
         ) : d.services.map((s, i) => (
           <div key={i} className="flex items-center justify-between gap-3 px-4 py-3 border-t first:border-t-0 border-slate-100 dark:border-slate-800">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{s.service_name}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{s.service_name}{s.commission_type === "cancellation" && <span data-testid={`svc-cancel-badge-${i}`} className="ml-2 text-[10px] font-bold text-red-700 bg-red-50 dark:bg-red-500/15 dark:text-red-300 rounded px-1.5 py-0.5 align-middle">Booking cancelled</span>}</p>
               <p className="text-[11px] text-slate-400">{fmtDate(s.date)} · {s.booking_code || ""} · eligible {fmt(s.eligible_amount)}</p>
             </div>
             <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0">{fmt(s.earned)}</span>

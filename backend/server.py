@@ -131,6 +131,27 @@ async def serve_customer_web(path: str = ""):
         return FileResponse(str(full), headers={"Cache-Control": cache})
     return FileResponse(str(index), headers={"Cache-Control": "no-cache"})
 
+# Partner/Merchant app web preview (optional): cd frontend && npx expo export -p web
+# --output-dir dist-web with experiments.baseUrl="/api/provider". Used for QA only.
+_PROVIDER_DIR = Path(__file__).parent.parent / "frontend" / "dist-web"
+
+
+@app.get("/api/provider", include_in_schema=False)
+@app.get("/api/provider/{path:path}", include_in_schema=False)
+async def serve_provider_web(path: str = ""):
+    index = _PROVIDER_DIR / "index.html"
+    if not index.is_file():
+        raise HTTPException(status_code=404, detail="Provider web preview is not built.")
+    rel = (path or "").lstrip("/")
+    full = (_PROVIDER_DIR / rel).resolve() if rel else index
+    try:
+        full.relative_to(_PROVIDER_DIR.resolve())
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid path")
+    if rel and full.is_file():
+        return FileResponse(str(full))
+    return FileResponse(str(index), headers={"Cache-Control": "no-cache"})
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,

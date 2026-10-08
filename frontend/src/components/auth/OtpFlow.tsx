@@ -18,7 +18,7 @@ const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : "");
 export const homeFor = (u: AppUser) => {
   if (u.role === "agent") return "/(agent)";
   if (u.role === "partner") return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_partner ? "/(partner)" : "/partner/register";
-  return u.onboarding_submitted || u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
+  return u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
 };
 
 function GradButton({ title, icon, busy, onPress, grad, testID, disabled }: { title: string; icon: any; busy: boolean; onPress: () => void; grad: readonly [string, string]; testID: string; disabled?: boolean }) {

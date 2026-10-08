@@ -94,8 +94,21 @@ def _part_pct(r):
 
 
 async def _customer_rows(mid):
-    return await db.commission_ledger.find(
+    rows = await db.commission_ledger.find(
         {"customer_merchant_id": mid}, {"_id": 0}).sort("created_at", -1).to_list(20000)
+    # Older cancellation rows were stored without customer_id — resolve it from the booking.
+    missing = [r.get("booking_id") for r in rows if not r.get("customer_id") and r.get("booking_id")]
+    if missing:
+        bmap = {b["id"]: b.get("customer_id") for b in await db.bookings.find(
+            {"id": {"$in": missing}}, {"_id": 0, "id": 1, "customer_id": 1}).to_list(len(missing))}
+        for r in rows:
+            if not r.get("customer_id"):
+                r["customer_id"] = bmap.get(r.get("booking_id"))
+    return rows
+
+
+def _is_cancel(r):
+    return str(r.get("kind") or "").startswith("cancellation")
 
 
 async def _partner_rows(mid):
@@ -223,7 +236,8 @@ async def commission_history(mid, f=None):
             "eligible_amount": round(float(r.get("base") or 0), 2),
             "commission_pct": pct,
             "earned": earned,
-            "status": bk.get("status") or r.get("kind") or "completed",
+            "status": "cancelled" if _is_cancel(r) else (bk.get("status") or r.get("kind") or "completed"),
+            "commission_type": "cancellation" if _is_cancel(r) else "service",
             "coupon_code": bk.get("coupon_code") or None,
         })
     # filters
@@ -343,7 +357,8 @@ async def customer_detail(mid, cid):
             "booking_code": r.get("booking_code"),
             "eligible_amount": round(float(r.get("base") or 0), 2),
             "commission_pct": _cust_pct(r), "earned": round(_cust_amt(r), 2),
-            "status": bk.get("status") or "completed",
+            "status": "cancelled" if _is_cancel(r) else (bk.get("status") or "completed"),
+            "commission_type": "cancellation" if _is_cancel(r) else "service",
         })
     cb = _buckets(cust, _cust_amt)
     return {
@@ -356,6 +371,8 @@ async def customer_detail(mid, cid):
             "total_commission": cb["total"], "today": cb["today"], "yesterday": cb["yesterday"],
             "this_month": cb["this_month"], "last_month": cb["last_month"],
             "commission_services": len(services),
+            "cancellation_commission": round(sum(x["earned"] for x in services if x["commission_type"] == "cancellation"), 2),
+            "cancellation_count": sum(1 for x in services if x["commission_type"] == "cancellation"),
         },
         "total_commission": cb["total"],
     }
@@ -465,7 +482,8 @@ async def partner_detail(mid, pid):
             "booking_code": r.get("booking_code"),
             "eligible_amount": round(float(r.get("base") or 0), 2),
             "commission_pct": _part_pct(r), "earned": round(_part_amt(r), 2),
-            "status": bk.get("status") or "completed",
+            "status": "cancelled" if _is_cancel(r) else (bk.get("status") or "completed"),
+            "commission_type": "cancellation" if _is_cancel(r) else "service",
         })
     pb = _buckets(part, _part_amt)
     return {

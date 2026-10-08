@@ -7,3 +7,4 @@ web-build/
 *.pem
 .env.local
 expo-env.d.ts
+dist-web

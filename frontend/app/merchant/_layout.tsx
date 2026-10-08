@@ -1,6 +1,7 @@
 import React from "react";
 import { View } from "react-native";
-import { Stack, usePathname } from "expo-router";
+import { Stack, usePathname, Redirect } from "expo-router";
+import { useAuth } from "@/src/context/AuthContext";
 import { MerchantBottomNav } from "@/src/components/MerchantBottomNav";
 import { MerchantTopBar } from "@/src/components/merchant/MerchantTopBar";
 
@@ -17,6 +18,9 @@ import { MerchantTopBar } from "@/src/components/merchant/MerchantTopBar";
 export default function MerchantStackLayout() {
   const pathname = usePathname();
   const isRegister = !!pathname && pathname.startsWith("/merchant/register");
+  const { user } = useAuth();
+  const approved = !!(user?.kyc_status === "approved" || user?.verified_merchant);
+  if (!isRegister && user?.role === "merchant" && !approved) return <Redirect href="/merchant/register" />;
   return (
     <View style={{ flex: 1 }}>
       {isRegister ? null : <MerchantTopBar />}

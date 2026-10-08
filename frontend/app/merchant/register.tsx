@@ -13,6 +13,8 @@ import {
   RejectedBanner, ApprovedBanner, UnderReview, ReviewCard, RegNav, useServiceability, StepDef,
 } from "@/src/components/reg/Fields";
 import { WDatePicker } from "@/src/components/reg/DatePicker";
+
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 import { LivePhotoCapture, GpsPhotoCapture, Uploader } from "@/src/components/reg/Photo";
 import { MapPreview } from "@/src/components/reg/MapPreview";
 
@@ -172,7 +174,7 @@ export default function MerchantRegistration() {
             <WInput value={basic.mobile} disabled />
           </Field>
           <Field label="Date of Birth" required>
-            <WDatePicker testID="reg-dob" value={basic.dob || ""} disabled={!editable} onChange={(v) => setBasic({ ...basic, dob: v })} placeholder="Date of Birth" />
+            <WDatePicker testID="reg-dob" value={basic.dob || ""} disabled={!editable} onChange={(v) => setBasic({ ...basic, dob: v })} placeholder="Date of Birth" min="1940-01-01" max={todayISO()} />
           </Field>
           <Field label="Gender" required>
             <WSelect testID="reg-gender" value={basic.gender || ""} disabled={!editable} onChange={(v) => setBasic({ ...basic, gender: v })} placeholder="Select gender"

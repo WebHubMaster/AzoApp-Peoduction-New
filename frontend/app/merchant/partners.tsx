@@ -113,7 +113,10 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   d.services.map((s: any, i: number) => (
                     <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm }} numberOfLines={1}>{s.service_name}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm, flexShrink: 1 }} numberOfLines={1}>{s.service_name}</Text>
+                          {s.commission_type === "cancellation" ? <Text style={{ fontSize: 10, fontWeight: "800", color: "#B91C1C", backgroundColor: "#FEE2E2", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: "hidden" }}>Booking cancelled</Text> : null}
+                        </View>
                         <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={2}>{[fmtDate(s.date), s.booking_code, `eligible ${fmt(s.eligible_amount)}`].filter(Boolean).join(" · ")}</Text>
                       </View>
                       <Text style={{ color: colors.success, fontWeight: "900", fontSize: fontSize.sm }}>{fmt(s.earned)}</Text>

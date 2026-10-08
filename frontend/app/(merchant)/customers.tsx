@@ -38,6 +38,7 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
     { label: "Yesterday", value: r.yesterday, money: true },
     { label: "Total Services", value: d?.total_services },
     { label: "Completed Services", value: d?.completed_services },
+    { label: "Cancellation Commission", value: r.cancellation_commission, money: true, sub: `${r.cancellation_count || 0} cancelled bookings` },
   ];
 
   return (
@@ -80,7 +81,10 @@ function CustomerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   d.services.map((s: any, i: number) => (
                     <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                       <View style={{ flex: 1 }}>
-                        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14 }} numberOfLines={1}>{s.service_name}</Text>
+                        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                          <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14, flexShrink: 1 }} numberOfLines={1}>{s.service_name}</Text>
+                          {s.commission_type === "cancellation" ? <Text testID={`cust-svc-cancel-badge-${i}`} style={{ fontSize: 10, fontWeight: "800", color: "#B91C1C", backgroundColor: "#FEE2E2", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, overflow: "hidden" }}>Booking cancelled</Text> : null}
+                        </View>
                         <Text style={{ color: colors.textMuted, fontSize: 11, marginTop: 2 }} numberOfLines={2}>{[fmtDate(s.date), s.booking_code, `eligible ${fmt(s.eligible_amount)}`].filter(Boolean).join(" · ")}</Text>
                       </View>
                       <Text style={{ color: colors.success, fontWeight: "800", fontSize: 14, ...TAB }}>{fmt(s.earned)}</Text>

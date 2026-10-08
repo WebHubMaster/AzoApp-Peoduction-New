@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView, TextInput, ActivityIndicator } from "react-native";
-import { useSegments, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { Bell, ChevronDown, LogOut, X, User as UserIcon, ShieldCheck, Save } from "lucide-react-native";
 import { Image } from "expo-image";
@@ -13,21 +12,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
 import { storage } from "@/src/utils/storage";
 
-/** Route (last segment) → page title, mirrors web PanelLayout crumbLabel for the merchant panel. */
-const TITLES: Record<string, string> = {
-  "(merchant)": "Home", index: "Home", customers: "My Customers", wallet: "Wallet & Withdraw",
-  profile: "Profile", profilekyc: "Profile & KYC", partners: "My Partners", network: "My Partners",
-  commission: "Commission", bankkyc: "Bank & KYC", analytics: "Analytics", scanqr: "Scan QR",
-  payouts: "Payouts", reminders: "Reminders", register: "Register", support: "Help & Support",
-};
 const SEEN_KEY = "azo_notif_seen";
-
-function useTitle(): string {
-  const seg = useSegments() as string[];
-  const last = seg[seg.length - 1] || "";
-  if (!last || last === "(merchant)") return "Home";
-  return TITLES[last] || "Merchant";
-}
 
 /* ─────────────── Notification bell (dynamic /notifications + unread badge) ─────────────── */
 function NotificationBell() {
@@ -172,13 +157,12 @@ function ProfileChip() {
 
 /**
  * Persistent merchant top navbar — mirrors the web PanelLayout appMode header:
- * brand (A badge + page title + MERCHANT) on the left, notification bell + profile
+ * brand logo on the left (same as the partner header), notification bell + profile
  * chip on the right. Rendered by the merchant layouts so it shows on every page.
  */
 export function MerchantTopBar() {
   const { colors, mode } = useTheme();
   const insets = useSafeAreaInsets();
-  const title = useTitle();
   const brand = useBrand();
   const b = brand?.branding || ({} as any);
   // Match web PanelLayout: dark mode → logo_dark (fallback light), else logo_light (fallback dark/logo).
@@ -186,21 +170,21 @@ export function MerchantTopBar() {
     (mode === "dark" ? b.logo_dark || b.logo_light : b.logo_light || b.logo_dark) || b.logo,
   );
   const brandName = b.site_name || "AzoApp";
-  const brandInitial = (brandName || "A").trim().charAt(0).toUpperCase();
+  const dark = mode === "dark";
+  // Same as the partner header: full-size brand logo (or site name + tagline) — no page title.
   return (
-    <View style={{ backgroundColor: colors.background, paddingTop: insets.top + 8, paddingHorizontal: 12, paddingBottom: 8 }}>
-      <StatusBar style={colors.background === "#0B1120" ? "light" : "dark"} />
-      <View style={{ backgroundColor: colors.surface, borderRadius: 6, borderWidth: 1, borderColor: colors.border, paddingHorizontal: 12, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 10, boxShadow: "0px 4px 16px rgba(2,6,23,0.06)" }}>
-        {logo ? (
-          <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 36, width: 44, borderRadius: 6 }} contentFit="contain" transition={150} />
-        ) : (
-          <LinearGradient testID="merchant-brand-fallback" colors={[colors.primary, colors.primaryDark] as const} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 36, width: 36, borderRadius: 6, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: "#fff", fontSize: 18, fontWeight: "900" }}>{brandInitial}</Text>
-          </LinearGradient>
-        )}
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text numberOfLines={1} style={{ fontSize: 15, fontWeight: "800", color: colors.text }}>{title}</Text>
-          <Text numberOfLines={1} style={{ fontSize: 9.5, letterSpacing: 1.5, textTransform: "uppercase", color: colors.textMuted, marginTop: 1 }}>Merchant</Text>
+    <View style={{ backgroundColor: colors.background, paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: 8 }}>
+      <StatusBar style={dark ? "light" : "dark"} />
+      <View testID="merchant-top-bar" style={{ backgroundColor: dark ? "rgba(30,41,59,0.92)" : "rgba(255,255,255,0.92)", borderRadius: 6, borderWidth: 1, borderColor: dark ? colors.border : "rgba(255,255,255,0.6)", paddingHorizontal: 12, paddingVertical: 8, minHeight: 56, flexDirection: "row", alignItems: "center", gap: 12, boxShadow: "0px 6px 20px rgba(2,32,71,0.08)", elevation: 3 }}>
+        <View style={{ flex: 1, minWidth: 0, justifyContent: "center" }} testID="merchant-brand">
+          {logo ? (
+            <Image testID="merchant-brand-logo" source={{ uri: logo }} style={{ height: 40, width: 150 }} contentFit="contain" contentPosition="left" transition={150} />
+          ) : (
+            <View testID="merchant-brand-fallback">
+              <Text style={{ color: colors.primary, fontSize: 24, fontWeight: "900", letterSpacing: -0.5, lineHeight: 28 }} numberOfLines={1}>{brandName}</Text>
+              <Text style={{ color: colors.primary, fontSize: 7.5, fontWeight: "700", marginTop: -2, letterSpacing: 0.2 }} numberOfLines={1}>— {b.tagline || "Service at Your Doorstep"} —</Text>
+            </View>
+          )}
         </View>
         <NotificationBell />
         <ProfileChip />
