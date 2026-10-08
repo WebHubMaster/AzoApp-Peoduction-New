@@ -118,3 +118,6 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Backend: `GET /api/app-mgmt/download/{platform}` (stable direct install link, shown in Admin → App Management with Copy). S3 presign now regional endpoint + SigV4.
 - Auto version: `plugins/withAutoVersionName.js` (Partner=frontend, Customer) → versionName = `<major>.<minor>.<versionCode>`; EAS remote autoIncrement bumps versionCode every build. CI/eas.json untouched.
 - Tested iteration_242 (backend 10/10, admin UI pass; native install code-reviewed only).
+
+## Partner reminder full-screen fix (2026-10-07)
+- JobRingOverlay: reminders deduped with `rem:<id>` key (accepting a job no longer blocks its 30-min reminder while app is open). backgroundRing: skips ring/sound when app is foreground (overlay owns it). Tested iteration_243 (backend + code review).

@@ -1,0 +1,50 @@
+{
+  "summary": "Verified fix for partner-app bug: 30-min scheduled-work reminder full-screen alert now shows while the app is OPEN (previously only the ring sound played). Code-reviewed both frontend fixes and ran backend contract test for GET /api/bookings/partner/reminder-pending. 2/2 pytest cases pass. tsc --noEmit on /app/frontend returns exit 0 (only a non-blocking baseUrl deprecation notice). No android/ folder present.",
+  "fix_verification": {
+    "JobRingOverlay.tsx": {
+      "enqueue_uses_rem_key_for_reminder": "L146: handledKey = job._reminder ? `rem:${job.id}` : job.id — so an accepted booking's id in handledRef no longer blocks the scheduled_reminder for the SAME booking.",
+      "dismiss_reminder_adds_rem_key": "L288: handledRef.current.add(`rem:${job.id}`) — dismissed reminder won't re-pop in this session.",
+      "30min_cooldown_still_enforced": "L150: wasReminderShownRecently(job.id) blocks re-show across reopens; L172-174 calls markReminderShown when overlay mounts.",
+      "sse_and_poll_paths_covered": "SSE 'scheduled_reminder' handler L182 and 6s poll of /bookings/partner/reminder-pending L194/205 both call enqueue with _reminder:true."
+    },
+    "backgroundRing.ts": {
+      "foreground_early_return_for_ring_types": "L56-59: if (RING_TYPES.has(type)) { if (AppState.currentState === 'active') return; ... } — background SSE listener no longer plays the tone / posts Notifee while app is foreground. Overlay owns foreground UX.",
+      "background_locked_unchanged": "Still calls displayJobRing + startRingSound + _forceOpenApp when AppState !== 'active'."
+    },
+    "regression_check": {
+      "job_request_dedup_unchanged": "handledKey falls back to job.id for non-reminder jobs — accepted/rejected jobs still deduped.",
+      "reschedule_bypasses_dedup": "L147 has `&& !job._resched` guard — reschedule ring still bypasses handledRef on an accepted booking."
+    }
+  },
+  "backend_test": {
+    "endpoint": "GET /api/bookings/partner/reminder-pending (partner auth)",
+    "cases": [
+      "Seeded booking (partner +919000000003, status=assigned, schedule_type=schedule, scheduled_at = now+20min IST) → endpoint returns list containing {type: 'scheduled_reminder', booking_id, service_name, scheduled_date, scheduled_time}. PASS.",
+      "Seeded booking scheduled 3h out → NOT in reminder-pending (confirms the 30-min window gate). PASS."
+    ],
+    "cleanup": "Both test bookings deleted via pytest fixtures teardown; verified 0 leftover TEST_REM_* docs post-run.",
+    "pytest_results_xml": "/app/test_reports/pytest/iter243.xml"
+  },
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_reminder_pending_iter243.py",
+    "/app/test_reports/pytest/iter243.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "JobRingOverlay.tsx L179 `job_taken` adds plain `id` to handledRef — this is intentional and does NOT affect reminders (reminders use `rem:` prefix). Good.",
+    "backgroundRing.ts imports AppState via require() inside _handle (L59) rather than top-level import — fine for RN but adds a per-event sync require. Low priority.",
+    "ringPrefs.ts markReminderShown prunes >6h entries on every call — O(n) but map should stay tiny (one entry per scheduled booking shown). Acceptable."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_reminder_pending_iter243.py"
+  ],
+  "success_rate": {"backend": "100% (2/2)", "frontend": "code-review only (Expo native app) — tsc exit 0"},
+  "test_credentials": "Partner +919000000003 OTP 123456 (dev)",
+  "seed_data_creation": "Transient bookings TEST_REM_*/TEST_REM_OUT_* assigned to partner +919000000003 — created and deleted by pytest fixtures; confirmed 0 leftovers.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The reminder-pending contract test is parametrised on current UTC → IST. If re-run near IST midnight boundary, scheduled_date rolls over — assertion only checks presence, not exact date string, so still robust. The frontend fix is validated by code review only (Expo native).",
+  "rca of the issue": "Root cause: In JobRingOverlay.tsx, enqueue() dedup used booking.id as the key. Accepting a job added that id to handledRef; the subsequent 'scheduled_reminder' SSE/poll event for the SAME booking was then silently dropped while the app stayed open — so no modal mounted and the overlay's own ring never started. Meanwhile backgroundRing.ts (always-on SSE listener for background push-independent ring) still fired startRingSound() on the ring_types event in foreground, giving the 'sound only' symptom. On reopen, handledRef resets (in-memory Set), so the reminder could finally be enqueued. Fix: (1) scope the handledRef key for reminders to `rem:${id}` so accepted-booking reminders aren't blocked; (2) in backgroundRing._handle, early-return when AppState==='active' so the overlay owns foreground UX. The 30-min cooldown via wasReminderShownRecently/markReminderShown prevents the fix from re-popping the reminder on every app reopen within the window."
+}
