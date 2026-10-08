@@ -2,7 +2,7 @@ import os
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request
 from fastapi.responses import FileResponse
 from starlette.middleware.cors import CORSMiddleware
 
@@ -69,6 +69,11 @@ async def root():
     return {"message": "AzoApp Home Service Platform API", "status": "ok"}
 
 
+async def _rbac_guard(request: Request):
+    from services.rbac_service import admin_rbac_guard
+    await admin_rbac_guard(request)
+
+
 for r in [auth_router, catalog_router, booking_router, merchant_router, merchant_crm_router,
           wallet_router, admin_router, ai_router, content_router, payment_router, geo_router,
           media_router, site_router, partner_router, partner_admin_router,
@@ -80,7 +85,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
           custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router, category_commission_router, price_manager_router]:
-    api_router.include_router(r)
+    api_router.include_router(r, dependencies=[Depends(_rbac_guard)])
 
 app.include_router(api_router)
 
@@ -536,6 +541,20 @@ async def startup():
                 logger.info("custom-job services made live: %s", n)
         except Exception as e:  # noqa: BLE001
             logger.warning("custom-job autolive error: %s", e)
+
+    async def _fix_admin_phones():
+        try:
+            from routes.content_routes import fix_admin_phones
+            n = await fix_admin_phones()
+            if n:
+                logger.info("admin phones normalised to +91: %s", n)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("admin phone fix error: %s", e)
+
+    try:
+        asyncio.create_task(_fix_admin_phones())
+    except Exception as e:  # noqa: BLE001
+        logger.warning("admin phone fix not started: %s", e)
 
     try:
         asyncio.create_task(_custom_job_autolive())

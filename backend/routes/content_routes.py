@@ -231,6 +231,31 @@ async def system_users(admin=Depends(ADMIN)):
     return users
 
 
+def _admin_phone(raw: str) -> str:
+    """Normalise to +91XXXXXXXXXX (same format OTP login uses) so the new user can log in."""
+    import re as _re
+    d = _re.sub(r"\D", "", raw or "")
+    if len(d) == 11 and d.startswith("0"):
+        d = d[1:]
+    if len(d) == 12 and d.startswith("91"):
+        d = d[2:]
+    if not _re.fullmatch(r"[6-9]\d{9}", d):
+        raise HTTPException(status_code=400, detail="Enter a valid 10-digit Indian mobile number")
+    return "+91" + d
+
+
+async def fix_admin_phones() -> int:
+    """Repair admin/staff users saved without the +91 country code (e.g. '+8000000000')."""
+    from config.database import db
+    n = 0
+    async for u in db.users.find({"role": {"$in": ["admin", "staff"]}, "phone": {"$regex": r"^\+?[6-9]\d{9}$"}}, {"_id": 0, "id": 1, "phone": 1}):
+        fixed = "+91" + u["phone"].lstrip("+")
+        if not await db.users.find_one({"phone": fixed, "id": {"$ne": u["id"]}}, {"_id": 1}):
+            await db.users.update_one({"id": u["id"]}, {"$set": {"phone": fixed}})
+            n += 1
+    return n
+
+
 @router.post("/admin/system-users")
 async def create_system_user(data: dict, admin=Depends(AC_CREATE)):
     from config.database import db, now_iso
@@ -239,8 +264,11 @@ async def create_system_user(data: dict, admin=Depends(AC_CREATE)):
     name = (data.get("name") or "").strip()
     if not phone or not name:
         raise HTTPException(status_code=400, detail="Name and phone are required")
-    if not phone.startswith("+"):
-        phone = "+" + phone.lstrip("+")
+    phone = _admin_phone(phone)
+    if not data.get("system_role_id"):
+        raise HTTPException(status_code=400, detail="Please assign a role — it decides what this user can access")
+    if not await db.roles.find_one({"id": data["system_role_id"]}, {"_id": 1}):
+        raise HTTPException(status_code=400, detail="Selected role no longer exists")
     if await db.users.find_one({"phone": phone}):
         raise HTTPException(status_code=400, detail="A user with this phone already exists")
     user = build_user(phone, "admin", name, email=(data.get("email") or ""))

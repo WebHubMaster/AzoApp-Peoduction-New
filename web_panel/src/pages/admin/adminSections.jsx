@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import api, { fmt, fmtC, compact } from "@/lib/api";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { CommissionFlow } from "@/components/admin/CommissionFlow";
-import { phoneInput } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -2964,8 +2963,11 @@ export const SystemUsersSection = () => {
   const roleName = (id) => roles.find((r) => r.id === id)?.name || "";
   const create = async () => {
     if (!f.name.trim() || !f.phone.trim()) return toast.error("Name and phone are required");
+    const digits = f.phone.replace(/\D/g, "").replace(/^(91|0)(?=\d{10}$)/, "");
+    if (!/^[6-9]\d{9}$/.test(digits)) return toast.error("Enter a valid 10-digit mobile number");
+    if (!f.system_role_id) return toast.error("Please assign a role — it decides what this user can access");
     try {
-      await api.post("/admin/system-users", { name: f.name.trim(), phone: f.phone.trim(), email: f.email.trim(), system_role_id: f.system_role_id, system_role: roleName(f.system_role_id) });
+      await api.post("/admin/system-users", { name: f.name.trim(), phone: `+91${digits}`, email: f.email.trim(), system_role_id: f.system_role_id, system_role: roleName(f.system_role_id) });
       toast.success("System user created — they can now log in via OTP");
       setF({ name: "", phone: "", email: "", system_role_id: "" }); load();
     } catch (e) { toast.error(e?.response?.data?.detail || "Failed to create user"); }
@@ -3012,7 +3014,10 @@ export const SystemUsersSection = () => {
         <h3 className="font-heading font-bold text-slate-900 dark:text-white">Add Admin User</h3>
         <p className="text-xs text-slate-400">Create a staff/admin login and assign a role from Roles &amp; Permissions. Their sidebar shows only permitted sections.</p>
         <Input data-testid="sysuser-name" placeholder="Full name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <Input data-testid="sysuser-phone" inputMode="tel" placeholder="Phone (e.g. +9199xxxxxxxx)" value={f.phone} onChange={(e) => setF({ ...f, phone: phoneInput(e.target.value) })} />
+        <div className="flex items-stretch">
+          <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-semibold text-slate-600 dark:text-slate-300" data-testid="sysuser-phone-prefix">+91</span>
+          <Input data-testid="sysuser-phone" inputMode="numeric" maxLength={10} className="rounded-l-none" placeholder="10-digit mobile number" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value.replace(/\D/g, "").slice(-10) })} />
+        </div>
         <Input data-testid="sysuser-email" placeholder="Email (optional)" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
         <Select value={f.system_role_id} onValueChange={(v) => setF({ ...f, system_role_id: v })}>
           <SelectTrigger data-testid="sysuser-role"><SelectValue placeholder="Assign a role" /></SelectTrigger>

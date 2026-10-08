@@ -107,3 +107,65 @@ def require_permission(module: str, action: str = "view"):
             raise HTTPException(status_code=403, detail=f"You don't have permission to {action} {module}")
         return user
     return dep
+
+
+# ---- Server-side guard for every /api/admin/* call (restricted admins only) ----
+_SEG_MODULE = {
+    "bookings": "bookings", "bookings-cos-report": "bookings", "job-requests": "bookings",
+    "dispatch-attention": "live_operations", "dispatch-feed": "live_operations",
+    "partners": "partners", "partner": "partners", "partner-reg": "partners", "kyc": "partners",
+    "area-partners": "partners", "coverage-map": "partners",
+    "customers": "customers", "people": "customers", "users": "customers",
+    "deletion-requests": "customers", "waitlist": "customers",
+    "merchant": "merchants", "merchants": "merchants", "physical-qr": "merchants",
+    "finance": "finance", "payouts": "finance", "refunds": "finance", "ledger": "finance",
+    "payments": "finance", "category-commissions": "finance", "renewals": "finance", "purchases": "finance",
+    "coupons": "marketing", "offers": "marketing", "growth": "marketing", "loyalty": "marketing",
+    "memberships": "marketing",
+    "services": "services", "categories": "services", "subcategories": "services", "addons": "services",
+    "price-manager": "services", "reviews": "services",
+    "seo": "seo",
+    "homepage-sections": "website_cms", "faq-categories": "website_cms", "pages": "website_cms",
+    "app-home": "website_cms",
+    "notifications": "notifications", "sms-templates": "notifications",
+    "support": "communication", "tickets": "communication",
+    "reports": "reports_analytics", "report-runs": "reports_analytics",
+    "report-schedules": "reports_analytics", "report-views": "reports_analytics",
+    "system-users": "access_control", "rbac": "access_control",
+    "settings": "system", "settings-audit": "system", "integrations": "system",
+    "storage": "system", "logs": "system", "apk": "system", "config": "system", "collection": "system",
+}
+# Shared lookups (categories, settings…) are read by many sections → GET is only
+# enforced for modules whose data is private to that section.
+_VIEW_GUARDED = {"bookings", "partners", "customers", "merchants", "finance",
+                 "reports_analytics", "access_control", "communication"}
+_METHOD_ACTION = {"GET": "view", "HEAD": "view", "POST": "create", "PUT": "edit",
+                  "PATCH": "edit", "DELETE": "delete"}
+
+
+async def admin_rbac_guard(request) -> None:
+    path = request.url.path
+    if "/api/admin/" not in path:
+        return
+    auth = request.headers.get("authorization") or ""
+    if not auth:
+        return
+    from middleware.auth import user_from_token
+    user = await user_from_token(auth.replace("Bearer ", "").strip())
+    if not user or user.get("role") not in ("admin", "staff") or is_super(user):
+        return
+    if (user.get("status") or "active") != "active":
+        raise HTTPException(status_code=403, detail="Your admin account is suspended")
+    parts = path.split("/api/admin/", 1)[1].split("/")
+    seg = parts[0]
+    module = _SEG_MODULE.get(seg)
+    if seg == "collection" and len(parts) > 1 and parts[1] == "roles":
+        module = "access_control"
+    if not module:
+        return
+    action = _METHOD_ACTION.get(request.method.upper(), "view")
+    if action == "view" and module not in _VIEW_GUARDED:
+        return
+    perms, _ = await effective_permissions(user)
+    if not perms.get(module, {}).get(action):
+        raise HTTPException(status_code=403, detail=f"You don't have permission to {action} {module.replace('_', ' ')}")
