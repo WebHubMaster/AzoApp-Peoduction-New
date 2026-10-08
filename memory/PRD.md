@@ -210,3 +210,9 @@ User choices: code already in /app; seed realistic demo data; reuse existing adm
 - P1: Fee-level refund tracking in refund records
 - P2: Saved views / scheduled email of Platform Earning report; PDF export
 - P2: Pre-aggregated daily rollups for >1M records
+
+## Vision AI config fix (2026-10-08)
+- Integration Center "Aadhaar OCR" card renamed "Vision AI (OCR & Face Match)"; shows Connected only when an API key is saved
+- 5-step setup guide inside the config popup + "Test Vision AI" button (POST /api/admin/integrations/vision-test)
+- Deep link /admin?tab=integration_center&intg=ocr; Work Proof face panel links straight to it
+- Face match reason text now names the exact card. Tested: iteration_256 (all pass)

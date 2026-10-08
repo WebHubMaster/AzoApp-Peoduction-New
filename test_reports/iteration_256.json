@@ -1,0 +1,40 @@
+{
+  "summary": "Iter 256 — Verified the Vision AI (OCR & Face Match) Integration Center rename, setup guide, Test button failure paths, deep-link, and the new face-match 'Vision AI not configured' reason. 6/6 backend tests pass; full admin UI flow verified via Playwright. No invalid key persisted.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_vision_ai_iter256.py",
+    "/app/test_reports/pytest/iter256_vision.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "DialogContent for Integration Center modal is missing aria-describedby — React a11y warning in console. Minor.",
+    "adminTemplateIntegration.jsx is >2000 lines — consider splitting modals into separate files for maintainability."
+  ],
+  "updated_files": ["/app/backend/tests/test_vision_ai_iter256.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100%"},
+  "test_credentials": "Admin one-click login via /login 'Login as Admin' (phone +919000000000 / OTP 123456)",
+  "seed_data_creation": "Created & removed TESTFM<rand>/TESTNS<rand> bookings + TEST_partner_* users within pytest fixtures. settings.ocr_api_key verified empty before and after.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Admin web_panel URL: https://124932b4-5920-453f-acfb-96fc089c196a.preview.emergentagent.com. For pytest, pass -o addopts='' to disable xdist parallelism when a single admin session is used (xdist causes device_revoked 401 due to single-device-login).",
+  "verification_details": {
+    "backend": [
+      "POST /api/admin/integrations/vision-test {} -> ok=false, error contains 'No API key entered'.",
+      "POST /api/admin/integrations/vision-test {ocr_api_key:'bad-key-xyz'} -> ok=false, Gemini AuthenticationError returned; ocr_api_key NOT saved.",
+      "POST /api/admin/bookings/{seeded}/face-match -> status='unverified', setup_required=true, reason contains 'not configured'.",
+      "POST /api/admin/bookings/{no-selfie}/face-match -> 400 as expected.",
+      "GET /api/admin/partner-reg/integration-center -> 200 with integrations payload.",
+      "POST /api/admin/integrations/s3-test -> 200 regression intact."
+    ],
+    "frontend": [
+      "Deep link /admin?tab=integration_center&intg=ocr auto-opens intg-modal-ocr.",
+      "intg-card-ocr titled 'Vision AI (OCR & Face Match)' and shows 'Not configured' (no false Connected state).",
+      "intg-guide-ocr visible with intg-steps-ocr having 5 numbered steps + 'Open dashboard →' link.",
+      "vision-test-btn with empty key -> vision-test-result 'Vision AI test failed' + 'No API key entered for the selected provider'.",
+      "vision-test-btn with 'bad-key' -> 'Vision AI test failed' + provider (Gemini) auth error.",
+      "Modal closed via Escape; ocr_api_key confirmed empty in Mongo after the test."
+    ],
+    "face_match_configure_link_code_review": "WorkProof.jsx:146 renders <a data-testid='face-match-configure-link' href='/admin?tab=integration_center&intg=ocr'> whenever fm.setup_required or /not configured|turned off/i matches fm.reason — this matches the new backend reason verified in test_face_match_setup_required."
+  }
+}
