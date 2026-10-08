@@ -182,3 +182,31 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - convert_to_service now creates ACTIVE+approved service (visibility default 'all') → shows in its category on web & apps; requester_only stays private
 - One-time startup migration publish_converted_drafts (app_meta flag custom_job_autolive_v1) activates previously converted drafts
 - Tests: backend/tests/run_custom_job_visibility.py (25/25 pass)
+
+
+---
+## Platform Earning module (2026-10-08)
+### Problem statement
+New admin main menu "Platform Earning" — enterprise financial-intelligence dashboard that READS existing
+financial sources (no changes to calculation engine, APIs, DB structure or permissions).
+User choices: code already in /app; seed realistic demo data; reuse existing admin auth/RBAC.
+
+### Implemented
+- Backend `routes/platform_earning_routes.py` + `services/platform_earning_service.py` (prefix /api/admin/platform-earning):
+  meta, summary (KPIs + prev-period, P&L, revenue sources, reconciliation, health), trend (day/week/month/auto),
+  breakdown (service/category/city/partner/merchant/method/source, server sort+pagination), top, commission, fees,
+  payouts, gateway, anomalies (dup txn ref, negative earning, variance, unusual gateway fee, failed refund, high refund,
+  failed payout, missing settlement), records (+detail with audit trail), CSV streaming export. Single Mongo
+  $unionWith fact pipeline over commission_ledger/refunds/payment_transactions/starter_kit/membership/withdrawal fees;
+  45s param-keyed cache; indexes ensured. RBAC: path segment "platform-earning" → finance module.
+- Opex: read from `platform_expenses` if it ever exists; otherwise "Expense data not configured" (net profit null).
+- Frontend `web_panel/src/pages/admin/earning/*`; sidebar item right below Dashboard (module finance).
+  PremiumDateRangePicker gained year navigation + Today button.
+- Seed: `backend/seed_platform_earning_demo.py` (tag _seed=platform_earning, real CommissionEngine.split).
+- Tested: iteration_255 — backend 52/52, frontend core flows pass; export states fixed afterwards.
+
+### Backlog
+- P1: Operating-expense entry UI (platform_expenses) to unlock Net Profit
+- P1: Fee-level refund tracking in refund records
+- P2: Saved views / scheduled email of Platform Earning report; PDF export
+- P2: Pre-aggregated daily rollups for >1M records

@@ -86,9 +86,11 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
   const openPicker = () => document.querySelector('[data-testid="pe-date-range"]')?.click();
 
   const runExport = async (report, sort = "date", order = "desc", q = "") => {
-    if (exportPhase === "preparing" || exportPhase === "generating") return;
+    if (exportPhase !== "idle") return;
     setExportOpen(false);
     setExportPhase("preparing");
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const started = Date.now();
     const tid = toast.loading("Preparing report…");
     try {
       const p = { ...(report === "records" ? recParams : params), report, sort, order };
@@ -96,8 +98,10 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
       if (q) p.q = q;
       const res = await api.get("/admin/platform-earning/export", {
         params: p, responseType: "blob", timeout: 300000,
-        onDownloadProgress: () => { setExportPhase((ph) => (ph === "preparing" ? "generating" : ph)); toast.loading("Generating…", { id: tid }); },
       });
+      await wait(Math.max(0, 500 - (Date.now() - started)));
+      setExportPhase("generating"); toast.loading("Generating…", { id: tid });
+      await wait(500);
       const cd = res.headers?.["content-disposition"] || "";
       const name = /filename="([^"]+)"/.exec(cd)?.[1] || `platform_earning_${report}.csv`;
       const url = URL.createObjectURL(res.data);
@@ -110,7 +114,7 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
       toast.error("Export failed. Please retry.", { id: tid });
     }
   };
-  const busy = exportPhase === "preparing" || exportPhase === "generating";
+  const busy = exportPhase !== "idle";
 
   const chips = [];
   chips.push({ k: "date", label: range.preset && range.preset !== "custom" ? PRESETS[range.preset][0] : `${prettyD(range.from)} – ${prettyD(range.to)}`, clear: range.preset === "all" ? null : () => setRange(rangeOf("all")) });
@@ -134,13 +138,14 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
         <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           <PremiumDateRangePicker data-testid="pe-date-range" from={range.from} to={range.to} presets={PICKER_PRESETS} align="end" triggerLabel="All Time"
             onApply={(r) => { if (!r) return setRange(rangeOf("all")); const k = Object.keys(PRESETS).find((key) => { const x = rangeOf(key); return x.from === r.from && x.to === r.to; }); setRange({ preset: k || "custom", from: r.from, to: r.to }); }} />
+          {range.preset !== "all" && <Button variant="outline" data-testid="pe-preset-all" onClick={() => setRange(rangeOf("all"))} className="h-[42px] px-3 text-[13px]">All Time</Button>}
           <Button variant="outline" data-testid="pe-filter-btn" onClick={() => setShowFilters(true)} className="h-[42px] gap-1.5">
             <SlidersHorizontal className="h-4 w-4" /> Filters {nFilters > 0 && <span data-testid="pe-filter-count" className="h-5 min-w-[20px] px-1 rounded-md bg-[#0D47A1] text-white text-[10px] font-bold flex items-center justify-center">{nFilters}</span>}
           </Button>
           <Button variant="outline" data-testid="pe-refresh" onClick={() => setNonce((n) => n + 1)} className="h-[42px] gap-1.5"><RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> Refresh</Button>
           <div className="relative">
             <Button data-testid="pe-export-btn" disabled={busy} onClick={() => setExportOpen((o) => !o)} className="h-[42px] gap-1.5 bg-[#0D47A1] hover:bg-[#0B3C8A] min-w-[120px]">
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : exportPhase === "ready" ? <CheckCircle2 className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+              {exportPhase === "preparing" || exportPhase === "generating" ? <Loader2 className="h-4 w-4 animate-spin" /> : exportPhase === "ready" ? <CheckCircle2 className="h-4 w-4" /> : <Download className="h-4 w-4" />}
               {exportPhase === "preparing" ? "Preparing…" : exportPhase === "generating" ? "Generating…" : exportPhase === "ready" ? "Ready" : "Export"}
               {!busy && exportPhase === "idle" && <ChevronDown className="h-3.5 w-3.5 opacity-70" />}
             </Button>

@@ -56,7 +56,7 @@ export default function PeFilters({ open, onClose, meta, value, onApply }) {
             return (
               <div key={f.key}>
                 <label className="text-[12px] font-semibold text-slate-600 dark:text-slate-300 block mb-1.5">{f.label}</label>
-                <PremiumMultiSelect data-testid={`pe-filter-${f.key}`} value={draft[f.key] || []} onChange={(v) => set(f.key, v)} options={opts} placeholder={`All ${f.label.toLowerCase()}s`} searchable={opts.length > 8} className="w-full" />
+                <PremiumMultiSelect data-testid={`pe-filter-${f.key}`} value={draft[f.key] || []} onChange={(v) => set(f.key, v)} options={opts} placeholder={`All ${f.label.toLowerCase().replace(/y$/, "ie").replace(/status$/, "statuse")}s`} searchable={opts.length > 8} className="w-full" />
               </div>
             );
           })}

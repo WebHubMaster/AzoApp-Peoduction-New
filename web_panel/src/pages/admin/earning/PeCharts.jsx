@@ -67,7 +67,7 @@ export function PnlChart({ params }) {
       actions={<Seg testid="pe-pnl-chart-bucket" options={BUCKETS} value={bucket} onChange={setBucket} />}>
       <div className="mb-3"><Seg testid="pe-pnl-chart-metric" options={[["revenue", "Revenue"], ["expenses", "Expenses"], ["profit", "Profit"]]} value={metric} onChange={setMetric} /></div>
       <div className="h-[280px] xl:h-[560px] -ml-2 overflow-x-auto"><div className="h-full min-w-[520px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 520, height: 260 }}>
           <AreaChart data={d?.series || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
             <defs><linearGradient id="peFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={M[1]} stopOpacity={0.22} /><stop offset="100%" stopColor={M[1]} stopOpacity={0} /></linearGradient></defs>
             <CartesianGrid stroke="#F1F5F9" vertical={false} />
@@ -91,7 +91,7 @@ export function RevenueExpenseChart({ params }) {
       actions={<Seg testid="pe-rev-exp-bucket" options={BUCKETS.slice(1)} value={bucket === "auto" ? unit || "auto" : bucket} onChange={setBucket} />}>
       <div className="flex gap-4 mb-2 text-[12px]"><span className="flex items-center gap-1.5 text-slate-600"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: C.blue }} />Revenue</span><span className="flex items-center gap-1.5 text-slate-600"><span className="h-2.5 w-2.5 rounded-[3px]" style={{ background: "#F87171" }} />Expenses</span></div>
       <div className="h-[260px] -ml-2 overflow-x-auto"><div className="h-full min-w-[520px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 520, height: 260 }}>
           <BarChart data={d?.series || []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barGap={2}>
             <CartesianGrid stroke="#F1F5F9" vertical={false} />
             <XAxis dataKey="bucket" tickFormatter={(b) => label(b, unit)} tick={axis} axisLine={false} tickLine={false} minTickGap={20} />
@@ -122,7 +122,7 @@ export function ProfitTrendChart({ params }) {
         ))}
       </div>
       <div className="h-[260px] -ml-2 overflow-x-auto"><div className="h-full min-w-[520px]">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 520, height: 260 }}>
           <ComposedChart data={d?.series || []} margin={{ top: 8, right: 4, left: 0, bottom: 0 }}>
             <CartesianGrid stroke="#F1F5F9" vertical={false} />
             <XAxis dataKey="bucket" tickFormatter={(b) => label(b, unit)} tick={axis} axisLine={false} tickLine={false} minTickGap={20} />
