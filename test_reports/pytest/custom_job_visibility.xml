@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="3" failures="0" skipped="0" tests="3" time="1.105" timestamp="2026-10-08T11:56:53.130235+00:00" hostname="agent-env-597752b7-594d-4f35-8a60-3c6561d2975b"><testcase classname="tests.test_custom_job_visibility" name="test_convert_creates_active_visible_service" time="0.001"><error message="failed on setup with &quot;Failed: 'test_custom_job_visibility.py' requested an async fixture 'ctx', with no plugin or hook that handled it. This is an error, as pytest does not natively support it.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">'test_custom_job_visibility.py' requested an async fixture 'ctx', with no plugin or hook that handled it. This is an error, as pytest does not natively support it.
+See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_custom_job_visibility" name="test_requester_only_hidden_from_public_visible_to_requester" time="0.001"><error message="failed on setup with &quot;AssertionError&quot;">/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:361: in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:250: in &lt;lambda&gt;
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/logging.py:858: in pytest_runtest_setup
+    yield
+/root/.venv/lib/python3.11/site-packages/_pytest/capture.py:895: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/root/.venv/lib/python3.11/site-packages/_pytest/python.py:1710: in setup
+    self._request._fillfixtures()
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:806: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:630: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:726: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:1221: in execute
+    assert not self._finalizers
+           ^^^^^^^^^^^^^^^^^^^^
+E   AssertionError</error></testcase><testcase classname="tests.test_custom_job_visibility" name="test_publish_converted_drafts_activates_and_is_idempotent" time="0.001"><error message="failed on setup with &quot;AssertionError&quot;">/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:361: in from_call
+    result: TResult | None = func()
+                             ^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:250: in &lt;lambda&gt;
+    lambda: runtest_hook(item=item, **kwds),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pluggy/_hooks.py:512: in __call__
+    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pluggy/_manager.py:120: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/logging.py:858: in pytest_runtest_setup
+    yield
+/root/.venv/lib/python3.11/site-packages/_pytest/capture.py:895: in pytest_runtest_setup
+    return (yield)
+            ^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:170: in pytest_runtest_setup
+    item.session._setupstate.setup(item)
+/root/.venv/lib/python3.11/site-packages/_pytest/runner.py:536: in setup
+    col.setup()
+/root/.venv/lib/python3.11/site-packages/_pytest/python.py:1710: in setup
+    self._request._fillfixtures()
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:806: in _fillfixtures
+    item.funcargs[argname] = self.getfixturevalue(argname)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:630: in getfixturevalue
+    fixturedef = self._get_active_fixturedef(argname)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:726: in _get_active_fixturedef
+    fixturedef.execute(request=subrequest)
+/root/.venv/lib/python3.11/site-packages/_pytest/fixtures.py:1221: in execute
+    assert not self._finalizers
+           ^^^^^^^^^^^^^^^^^^^^
+E   AssertionError</error></testcase></testsuite></testsuites>

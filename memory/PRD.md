@@ -177,3 +177,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 ## Fix (Jun 2026) – Admin booking details images
 - web_panel WorkProof.jsx: proofSrc() resolves relative/old-host /api/media URLs to current backend (selfie, before/after, KYC, lightbox); adminSections item image + partner photo too
 - backend media_routes: /media/file ↔ /media/s3 cross-fallback (local missing → S3, S3 missing → local)
+
+## Fix (Jun 2026) – Custom Job services visible in category
+- convert_to_service now creates ACTIVE+approved service (visibility default 'all') → shows in its category on web & apps; requester_only stays private
+- One-time startup migration publish_converted_drafts (app_meta flag custom_job_autolive_v1) activates previously converted drafts
+- Tests: backend/tests/run_custom_job_visibility.py (25/25 pass)

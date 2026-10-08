@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only verification of Custom Job -> Service visibility fix. Backend supervisor is crash-looping because /app/backend/.env is missing (KeyError MONGO_URL), so testing is done by driving custom_job_service + catalog_controller functions directly against a scratch Mongo DB (mongodb://localhost:27017). All 25 assertions pass covering: (1) convert_to_service creates service with status=active + approval_status=approved + custom_job_visibility='all', and it immediately appears in public catalog list_services and get_service for the category; (2) convert is idempotent; (3) requester_only visibility correctly stays private (not in public listing, 404 for non-owner, visible only to requesting customer); (4) one-time publish_converted_drafts() flips legacy inactive source=='custom_job' services to active+approved, is guarded by db.app_meta key='custom_job_autolive_v1' so second call returns 0, and legacy services then appear in public category listing after cache bust.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "startup", "issue": "/app/backend/.env is missing in this pod, so supervisor backend crash-loops with KeyError: MONGO_URL. Per request this is deliberately untouched (do NOT create .env). Any live HTTP testing is blocked until .env is restored; functional testing was done in-process."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "web_panel/src/pages/admin/CustomJobsAdmin.jsx line ~269", "issues": ["Status chip currently reads 'Converted to service · Inactive' when the linked service is not active. Per the request this label should read 'Draft' instead of 'Inactive' for clarity. Non-blocking UI wording note; frontend testing was out of scope."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/run_custom_job_visibility.py",
+    "/app/backend/tests/test_custom_job_visibility.py"
+  ],
+  "action_items": [
+    "Restore /app/backend/.env (at least MONGO_URL and DB_NAME) so supervisor backend stops crash-looping and HTTP smoke/regression testing can run. The current pod cannot serve any /api/* request.",
+    "(Optional, from request) Update CustomJobsAdmin.jsx line ~269 label from 'Inactive' to 'Draft' and tweak toast text on line ~205 for clarity."
+  ],
+  "critical_code_review_comments": [
+    "convert_to_service in services/custom_job_service.py now correctly creates the service with status='active' + approval_status='approved' + custom_job_visibility default 'all', then calls on_service_activated(svc) for the requester notification. Logic verified end-to-end.",
+    "publish_converted_drafts() is correctly guarded by db.app_meta {key:'custom_job_autolive_v1'} so the migration is one-shot; it also busts catalog:services:all and site:* caches when it actually activates rows.",
+    "catalog_controller._service_visible correctly short-circuits source=='custom_job' + custom_job_visibility=='requester_only' from the public path; _private_custom_services then re-injects it only for the requesting customer. list_services and get_service both honor this.",
+    "Note: _list_all_services is cached 45s via cache_service.cached. After convert_to_service, create_service -> _after_write busts _CK_SERVICES so new rows are visible immediately. Verified in test (freshly converted service appeared in list_services without stale read)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_custom_job_visibility.py (new, pytest-asyncio style — kept for future when conftest/pytest-asyncio are available)",
+    "/app/backend/tests/run_custom_job_visibility.py (new, standalone async runner — the one actually executed)"
+  ],
+  "success_rate": {"backend": "100% (25/25 functional assertions)", "frontend": "N/A (skipped per request)"},
+  "test_credentials": "N/A — functional tests run in-process; no auth tokens required.",
+  "seed_data_creation": "In the scratch DB (dropped at end of run) the script seeds 1 active category 'Electrician', 1 customer, 2 custom_job requests (one visibility='all', one 'requester_only'), and 2 legacy inactive source='custom_job' services for the migration test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend supervisor is crash-looping (missing /app/backend/.env). Do not re-create the .env — the previous iterations' env was intentionally missing per the review_request. If HTTP testing is needed, export MONGO_URL=mongodb://localhost:27017 DB_NAME=cj_test_tmp and either run tests/run_custom_job_visibility.py directly or spin a one-off uvicorn with those vars. The custom-job visibility fix is fully verified at the service/controller layer; the only remaining items are the two minor web_panel label tweaks noted above and restoring the real .env for live HTTP testing."
+}
