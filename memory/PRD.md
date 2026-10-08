@@ -153,3 +153,6 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Removed page title/subtitle headers from Wallet, Analytics, Bank & KYC, Help & Support, Scan QR (other pages already headerless)
 - Bottom nav: Wallet tab replaced by "My Network" (/merchant/partners); Wallet moved into More sheet
 - Safe-area + keyboard: bottom nav hides when keyboard open; Edit Profile, Withdraw & Share modals use KeyboardProvider+KeyboardAvoidingView; Support uses KeyboardAwareScrollView
+
+## Update (Jun 2026) – Customer app instant rating popup
+- RateServiceProvider (Customer/src/components/customer/RateService.tsx): opens rating popup instantly on live `booking_update` (status completed/paid) and on foreground/tapped push with booking_id; verifies via /bookings/my/pending-reviews; poll reduced 20s→10s

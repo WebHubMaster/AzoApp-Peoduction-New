@@ -9,6 +9,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useRealtime } from "../../context/RealtimeContext";
 import { useToast } from "../Toast";
 import { KeyboardFixedBottom } from "../KeyboardFixedBottom";
+import { onForegroundPush, onFcmNotificationOpen } from "../../lib/notifications";
 import { PRIMARY, TC, useTheme } from "../../theme";
 
 type Pending = { id: string; code: string; service_name: string; partner_name: string; completed_at: string; auto_prompt: boolean };
@@ -18,6 +19,7 @@ export const useRateService = () => useContext(RateCtx);
 
 const LIVE_EVENTS = ["booking_update", "booking_completed", "__resync__"];
 const NO_AUTO_PATHS = ["/login", "/book", "/payment"];
+const DONE = ["completed", "paid"];
 
 export function RateServiceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -30,12 +32,34 @@ export function RateServiceProvider({ children }: { children: React.ReactNode })
 
   const load = useCallback(async () => {
     if (!isCustomer) { setItems([]); return; }
-    try { const r = await api.get<{ items: Pending[] }>("/bookings/my/pending-reviews"); setItems(r.items || []); } catch { /* keep last */ }
+    try { const r = await api.get<{ items: Pending[] }>("/bookings/my/pending-reviews"); setItems(r.items || []); return r.items || []; } catch { return null; }
   }, [isCustomer]);
 
-  useEffect(() => { load(); if (!isCustomer) return; const t = setInterval(load, 20000); return () => clearInterval(t); }, [load, isCustomer]);
+  const live = useRef({ current, path, isCustomer });
+  live.current = { current, path, isCustomer };
+
+  // Instant popup straight from the live "job completed" event — no wait for the next fetch.
+  const openLive = useCallback(async (id: string) => {
+    const list = await load();
+    const b = list?.find((x) => x.id === id && x.auto_prompt);
+    const { current: cur, path: p, isCustomer: ok } = live.current;
+    if (!b || !ok || cur || handled.current.has(id) || NO_AUTO_PATHS.some((x) => (p || "").startsWith(x))) return;
+    handled.current.add(id);
+    setCurrent(b);
+  }, [load]);
+
+  useEffect(() => { load(); if (!isCustomer) return; const t = setInterval(load, 10000); return () => clearInterval(t); }, [load, isCustomer]);
   useEffect(() => { load(); }, [path, load]);
-  useEffect(() => subscribe((ev) => { if (LIVE_EVENTS.includes(ev?.type)) setTimeout(load, 600); }), [subscribe, load]);
+  useEffect(() => subscribe((ev) => {
+    if (!LIVE_EVENTS.includes(ev?.type)) return;
+    if (DONE.includes(ev?.data?.status) && ev?.data?.id) openLive(ev.data.id);
+    else setTimeout(load, 300);
+  }), [subscribe, load, openLive]);
+  useEffect(() => {
+    const onPush = (d: Record<string, any>) => { if (d?.booking_id) openLive(String(d.booking_id)); };
+    const a = onForegroundPush(onPush); const b = onFcmNotificationOpen(onPush);
+    return () => { a(); b(); };
+  }, [openLive]);
   useEffect(() => { const s = AppState.addEventListener("change", (st) => { if (st === "active") load(); }); return () => s.remove(); }, [load]);
 
   // Auto-popup once per booking right after the partner completes it.
