@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
+BASE_URL = "https://earnings-hub-209.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"
 OTP = "123456"

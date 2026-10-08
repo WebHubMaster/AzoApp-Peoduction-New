@@ -30,7 +30,7 @@ sys.path.insert(0, "/app/backend")
 from pymongo import MongoClient  # noqa: E402
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL",
-                          "https://merchant-menu-swap.preview.emergentagent.com").rstrip("/")
+                          "https://earnings-hub-209.preview.emergentagent.com").rstrip("/")
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "azoapp_database")
 OTP = "123456"

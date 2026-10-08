@@ -16,7 +16,7 @@ import json
 import sys
 from typing import Dict, Any, List, Tuple
 
-BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
+BASE_URL = "https://earnings-hub-209.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

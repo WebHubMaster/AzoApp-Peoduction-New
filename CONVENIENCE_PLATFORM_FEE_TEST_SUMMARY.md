@@ -2,7 +2,7 @@
 
 ## Test Overview
 **Date**: 2026-09-14  
-**Environment**: https://merchant-menu-swap.preview.emergentagent.com/api  
+**Environment**: https://earnings-hub-209.preview.emergentagent.com/api  
 **Test Coverage**: All 4 toggle combinations + Historical immutability + Regression  
 **Result**: ✅ **90.5% PASS** (38/42 tests passed)
 

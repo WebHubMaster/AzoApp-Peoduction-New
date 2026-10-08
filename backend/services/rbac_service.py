@@ -119,7 +119,7 @@ _SEG_MODULE = {
     "deletion-requests": "customers", "waitlist": "customers",
     "merchant": "merchants", "merchants": "merchants", "physical-qr": "merchants",
     "finance": "finance", "payouts": "finance", "refunds": "finance", "ledger": "finance",
-    "payments": "finance", "category-commissions": "finance", "renewals": "finance", "purchases": "finance",
+    "payments": "finance", "platform-earning": "finance", "category-commissions": "finance", "renewals": "finance", "purchases": "finance",
     "coupons": "marketing", "offers": "marketing", "growth": "marketing", "loyalty": "marketing",
     "memberships": "marketing",
     "services": "services", "categories": "services", "subcategories": "services", "addons": "services",

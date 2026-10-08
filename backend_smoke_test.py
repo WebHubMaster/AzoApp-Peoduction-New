@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 # Base URL
-BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com/api"
+BASE_URL = "https://earnings-hub-209.preview.emergentagent.com/api"
 
 # Test credentials (OTP = 123456 for all)
 CREDENTIALS = {

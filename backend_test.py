@@ -21,7 +21,7 @@ import sys
 from typing import Dict, Any, List
 
 # Configuration
-BASE_URL = "https://merchant-menu-swap.preview.emergentagent.com"
+BASE_URL = "https://earnings-hub-209.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials

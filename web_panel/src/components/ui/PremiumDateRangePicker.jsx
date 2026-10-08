@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { Calendar as CalIcon, ChevronLeft, ChevronRight, X, Check } from "lucide-react";
+import { Calendar as CalIcon, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, X, Check } from "lucide-react";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DOW = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
@@ -159,13 +159,15 @@ export default function PremiumDateRangePicker({
       {/* Calendars */}
       <div className="p-3">
         <div className="flex items-center justify-between mb-2">
-          <button type="button" aria-label="Previous" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
+          <button type="button" aria-label="Previous year" data-testid={`${testId}-prev-year`} onClick={() => setView((v) => new Date(v.getFullYear() - 1, v.getMonth(), 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronsLeft className="h-4 w-4" /></button>
+          <button type="button" aria-label="Previous" data-testid={`${testId}-prev-month`} onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronLeft className="h-4 w-4" /></button>
           <div className="flex-1 grid" style={{ gridTemplateColumns: `repeat(${months}, minmax(0, 1fr))` }}>
             {Array.from({ length: months }).map((_, i) => (
               <div key={i} className="text-center text-sm font-semibold text-slate-700 dark:text-slate-100">{MONTHS[viewFor(i).getMonth()]} {viewFor(i).getFullYear()}</div>
             ))}
           </div>
-          <button type="button" aria-label="Next" onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+          <button type="button" aria-label="Next" data-testid={`${testId}-next-month`} onClick={() => setView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronRight className="h-4 w-4" /></button>
+          <button type="button" aria-label="Next year" data-testid={`${testId}-next-year`} onClick={() => setView((v) => new Date(v.getFullYear() + 1, v.getMonth(), 1))} className="p-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500"><ChevronsRight className="h-4 w-4" /></button>
         </div>
         <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${months}, minmax(0, 1fr))` }} onMouseLeave={() => setHover(null)}>
           {Array.from({ length: months }).map((_, i) => (
@@ -173,13 +175,14 @@ export default function PremiumDateRangePicker({
           ))}
         </div>
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-2 flex-wrap mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-2 text-[13px]">
             <span className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 min-w-[92px] text-center">{pretty(draft.from) || "Start"}</span>
             <span className="text-slate-400">–</span>
             <span className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 min-w-[92px] text-center">{pretty(draft.to) || "End"}</span>
           </div>
           <div className="flex items-center gap-2">
+            <button type="button" data-testid={`${testId}-today`} onClick={() => { setDraft({ from: today, to: today }); setView(today); }} className="px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Today</button>
             <button type="button" data-testid={`${testId}-clear`} onClick={clear} className="px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Clear</button>
             <button type="button" data-testid={`${testId}-cancel`} onClick={() => setOpen(false)} className="px-3 py-1.5 rounded-md text-[13px] font-medium text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition">Cancel</button>
             <button type="button" data-testid={`${testId}-apply`} onClick={apply} disabled={!draft.from} className="px-4 py-1.5 rounded-md text-[13px] font-bold text-white shadow-sm disabled:opacity-40 inline-flex items-center gap-1" style={{ background: accent }}><Check className="h-4 w-4" /> Apply</button>

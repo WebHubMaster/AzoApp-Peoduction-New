@@ -3,7 +3,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
   Percent, Tag, Bell, Send, Ticket, Image, FileText, HelpCircle, ShieldCheck, Sparkles,
   Activity, MapPin, ShieldAlert, Boxes, Truck, Megaphone, Crown, Gift, ScrollText, ShieldQuestion, KeyRound,
   Layers, Award, GraduationCap, Briefcase, TrendingUp, Receipt, Coins, Handshake, BadgePercent,
-  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone, Calendar } from "lucide-react";
+  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone, Calendar, ChartNoAxesCombined } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
@@ -56,6 +56,7 @@ import PerformanceCenter from "@/pages/admin/PerformanceCenter";
 import CustomJobsAdmin from "@/pages/admin/CustomJobsAdmin";
 import QRConfig, { AgentPayouts } from "@/pages/admin/QRConfig";
 import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
+import PlatformEarning from "@/pages/admin/earning/PlatformEarning";
 
 // Sidebar order = business workflow & usage frequency (Daily Operations →
 // Business/Entity Management → Finance → Growth & Engagement → Content & Digital
@@ -64,6 +65,8 @@ import SubscriptionsAdmin from "@/pages/admin/SubscriptionsAdmin";
 const NAV = [
   // ── Daily operations (most frequently accessed) ──
   { group: "Overview", items: [{ key: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
+  // Executive finance command center: revenue, costs, P&L, commission, fees, refunds, payouts
+  { key: "platform_earning", label: "Platform Earning", icon: ChartNoAxesCombined },
 
   { group: "Bookings", icon: ClipboardList, items: [
     { key: "bookings", label: "Bookings", icon: ClipboardList },
@@ -218,7 +221,7 @@ const GROUP_MODULE = {
   "Website / CMS": "website_cms", "Mobile App": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
   "Access Control": "access_control", "System": "system", "Platform": "system",
 };
-const ITEM_MODULE = { price_manager: "services", category_commission: "finance", tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
+const ITEM_MODULE = { platform_earning: "finance", price_manager: "services", category_commission: "finance", tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
 // reverse: nav key -> module (for guarding the active section)
 const KEY_MODULE = (() => {
   const m = { ...ITEM_MODULE };
@@ -230,7 +233,7 @@ const KEY_MODULE = (() => {
   });
   return m;
 })();
-const KNOWN = new Set(["dashboard","bookings","payouts","refunds","partners","pro_partners","suspended_partners","merchants","customers","app_home",
+const KNOWN = new Set(["dashboard","platform_earning","bookings","payouts","refunds","partners","pro_partners","suspended_partners","merchants","customers","app_home",
   "authcfg","addresscfg","deletions","categories","subcategories","services","addons","custom_jobs","ratings","homepage","media","branding","rate_cards",
   "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","banners","blogs","testimonials","starter_kit_admin",
   "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
@@ -320,7 +323,7 @@ export default function AdminDashboard() {
   const loadDash = useCallback(() => api.get("/admin/dashboard").then((r) => setDash(r.data)), []);
   useEffect(() => { loadDash(); }, [loadDash]);
 
-  const TITLES = { dashboard: "Dashboard", bookings: "Bookings", payouts: "Payment Requests", refunds: "Payment Refunds",
+  const TITLES = { dashboard: "Dashboard", platform_earning: "Platform Earning", bookings: "Bookings", payouts: "Payment Requests", refunds: "Payment Refunds",
     partners: "Providers", merchants: "Merchants", categories: "Service Categories", services: "Services",
     custom_jobs: "Custom Job Requests",
     kyc_approvals: "KYC Approvals",
@@ -426,6 +429,7 @@ export default function AdminDashboard() {
       {active === "app_mgmt" && <AppManagement />}
       {active === "logs_monitor" && <LogsMonitor />}
       {active === "ledger" && <TransactionsLedger />}
+      {active === "platform_earning" && <PlatformEarning onNavigate={(k) => { setViewUser(null); setBookingDetailId(null); setActive(k); }} onOpenBooking={(id) => setBookingDetailId(id)} />}
       {active === "invoices" && <InvoiceManagement />}
       {active === "invoice_config" && <BusinessConfigSettings />}
       {active === "coupons" && <CouponsManager />}
