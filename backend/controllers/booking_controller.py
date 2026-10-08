@@ -2540,7 +2540,16 @@ async def partner_active_jobs(partner):
         if st.get("comm_locked"):
             b["customer_phone"] = None
         _partner_view(b, settings)
+    rows.sort(key=_job_time_key)
     return rows
+
+
+def _job_time_key(b):
+    # Earliest work first: scheduled slot for scheduled jobs, else booking time.
+    st = b.get("schedule") or {}
+    ts = st.get("scheduled_at_utc") if st.get("is_scheduled") else None
+    dt = parse_scheduled(ts or b.get("created_at"))
+    return dt or datetime.max.replace(tzinfo=timezone.utc)
 
 
 async def partner_history(partner, status="all", search="", page=0, page_size=0):

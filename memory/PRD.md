@@ -121,3 +121,6 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 
 ## Partner reminder full-screen fix (2026-10-07)
 - JobRingOverlay: reminders deduped with `rem:<id>` key (accepting a job no longer blocks its 30-min reminder while app is open). backgroundRing: skips ring/sound when app is foreground (overlay owns it). Tested iteration_243 (backend + code review).
+
+## 2026-06 — Active Jobs time-ordering
+- Partner App (`/api/bookings/partner/active`) and Partner Web Panel Active tab now sort jobs by booking date + time slot (earliest first); instant jobs use booking creation time.

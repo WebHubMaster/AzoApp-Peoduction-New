@@ -8,7 +8,7 @@ import requests
 import json
 
 # Configuration
-BASE_URL = "https://customer-review-flow-1.preview.emergentagent.com/api"
+BASE_URL = "https://partner-work-queue.preview.emergentagent.com/api"
 OTP = "123456"
 CUSTOMER_PHONE = "+919000000004"
 

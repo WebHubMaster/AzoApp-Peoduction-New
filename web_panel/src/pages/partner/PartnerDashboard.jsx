@@ -38,6 +38,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Wrench, AlertTriangle, Trash2, Package } from "lucide-react";
 import PartnerStarterKit from "@/pages/partner/PartnerStarterKit";
 import StarterKitUpsellPopup from "@/components/partner/StarterKitUpsellPopup";
+
+// Earliest work first: scheduled slot (naive = IST) for scheduled jobs, else booking time.
+const jobTime = (b) => {
+  const raw = (b.schedule_type === "schedule" && b.scheduled_at) || b.created_at;
+  if (!raw) return Infinity;
+  const s = String(raw);
+  const t = Date.parse(/Z|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s.slice(0, 19)}+05:30`);
+  return Number.isNaN(t) ? Infinity : t;
+};
+
 import JobRequest from "@/pages/partner/modules/JobRequest";
 import PartnerWalletV2 from "@/pages/partner/modules/PartnerWalletV2";
 import BankKyc from "@/pages/partner/modules/BankKyc";
@@ -141,7 +151,8 @@ export default function PartnerDashboard() {
     try { await api.post(`/bookings/${id}/reject`, { reason: "" }); toast.success("Job declined"); setJobs((prev) => prev.filter((j) => j.id !== id)); load(); }
     catch (e) { toast.error(e?.response?.data?.detail || "Could not decline"); }
   };
-  const activeJobs = mine.filter((b) => ["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status));
+  const activeJobs = mine.filter((b) => ["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status))
+    .sort((a, b) => jobTime(a) - jobTime(b));
   const completedJobs = mine.filter((b) => ["completed", "paid"].includes(b.status));
   const [jobView, setJobView] = useState("active"); // "active" | "completed"
 
