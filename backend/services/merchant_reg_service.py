@@ -455,9 +455,10 @@ async def admin_approve_kyc(admin, user_id: str):
         "actor_name": admin.get("name"), "target_id": user_id,
         "created_at": now_iso()})
     from services.notification_service import notify
-    await notify(user_id, "Profile Approved 🎉",
+    await notify(user_id, "Account Approved 🎉",
                  "Congratulations! Your merchant account has been approved. "
-                 "All shop features are now unlocked.", link="/merchant")
+                 "Tap to log in and start using your dashboard.", link="/merchant",
+                 event="merchant_kyc_approved", data={"type": "account_approved", "role": "merchant"})
     return {"ok": True, "status": "approved"}
 
 

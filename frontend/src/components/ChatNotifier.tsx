@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { usePathname, useRouter } from "expo-router";
@@ -27,7 +27,7 @@ export function chatRouteFromData(d: Record<string, any>, myRole?: string) {
  */
 export function ChatNotifier() {
   const { subscribe } = useRealtime();
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const lastRef = useRef<string>("");
@@ -64,6 +64,17 @@ export function ChatNotifier() {
     return () => { unsub?.(); appSub.remove(); try { netUnsub(); } catch { /* ignore */ } };
   }, [user?.id]);
 
+  // Admin approved this partner/merchant → reload the profile and open the dashboard.
+  const openApproved = useCallback(async () => {
+    const u: any = await refresh().catch(() => null);
+    const role = u?.role || user?.role;
+    if (role === "merchant") router.replace("/(merchant)");
+    else if (role === "partner") router.replace("/(partner)");
+  }, [refresh, router, user?.role]);
+  useEffect(() => subscribe((ev) => {
+    if (ev?.type === "notification" && ev.data?.type === "account_approved") openApproved();
+  }), [subscribe, openApproved]);
+
   // Server-triggered silent re-registration (RealtimeContext SSE).
   useEffect(() => subscribe((ev) => {
     if (ev?.type === "push_reregister") registerPushToken().catch(() => {});
@@ -76,6 +87,7 @@ export function ChatNotifier() {
     // reminder, booking update…). Always opens the exact related screen.
     const route = (d: Record<string, any>, action: string) => {
       if (!d) return;
+      if (d.type === "account_approved") { openApproved(); return; }
       const bid = String(d.booking_id || "");
       if (d.type === "chat_message") {
         const r = chatRouteFromData(d, user.role);
@@ -98,7 +110,7 @@ export function ChatNotifier() {
     const offNotifee = onNotificationTap(route);
     const offFcm = onFcmNotificationOpen((d) => route(d, "default"));
     return () => { offNotifee(); offFcm(); };
-  }, [user?.id, user?.role, router, qc]);
+  }, [user?.id, user?.role, router, qc, openApproved]);
 
   useEffect(() => subscribe((ev) => {
     if (ev?.type !== "booking_message") return;

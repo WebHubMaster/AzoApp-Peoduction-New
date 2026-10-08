@@ -493,6 +493,11 @@ async def partner_kyc_action(admin, user_id, action, reason=""):
     if action == "approve":
         await db.users.update_one({"id": user_id},
                                   {"$set": {"kyc_status": "approved", "verified_partner": True}})
+        from services.notification_service import notify
+        await notify(user_id, "Account Approved 🎉",
+                     "Congratulations! Your AzoApp partner account has been approved. Tap to log in and start receiving jobs.",
+                     link="/partner", event="partner_kyc_approved",
+                     data={"type": "account_approved", "role": "partner"})
     else:
         await db.users.update_one({"id": user_id},
                                   {"$set": {"kyc_status": "rejected", "verified_partner": False,

@@ -744,9 +744,10 @@ async def admin_approve_kyc(admin, profile_id: str):
     from services.template_service import fire_event
     await fire_event(
         p["user_id"], "partner_kyc_approved",
-        ctx={"name": p["basic"].get("full_name") or "Partner"},
-        fallback_title="KYC Approved 🎉",
-        fallback_body="Congratulations! Your AzoApp partner account has been approved. You can now start receiving jobs.",
+        ctx={"name": p["basic"].get("full_name") or "Partner",
+             "_data": {"type": "account_approved", "role": "partner"}},
+        fallback_title="Account Approved 🎉",
+        fallback_body="Congratulations! Your AzoApp partner account has been approved. Tap to log in and start receiving jobs.",
         link="/partner")
     from services import activity_service
     await activity_service.log("admin", admin.get("id"), admin.get("name"), "partner.kyc.approved",

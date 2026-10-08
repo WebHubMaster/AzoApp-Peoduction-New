@@ -667,9 +667,11 @@ async def review_person(admin: dict, role: str, uid: str, decision: str, reason:
             try:
                 from services.notification_service import notify
                 if decision == "approve":
-                    await notify(uid, "Profile Approved 🎉",
+                    await notify(uid, "Account Approved 🎉",
                                  "Congratulations! Your partner account has been approved. "
-                                 "You can now receive job requests.", link="/partner")
+                                 "Tap to log in and start receiving jobs.", link="/partner",
+                                 event="partner_kyc_approved",
+                                 data={"type": "account_approved", "role": "partner"})
                 else:
                     await notify(uid, "KYC Update — Action Needed",
                                  f"Your KYC needs corrections: {reason} Please update the details "

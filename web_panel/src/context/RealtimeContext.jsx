@@ -6,7 +6,7 @@ import { isChatOpen } from "@/lib/chatPresence";
 const RealtimeCtx = createContext(null);
 
 export const RealtimeProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, refresh } = useAuth();
   const [connected, setConnected] = useState(false);
   const [config, setConfig] = useState({ enabled: true, sound: true, browser_notifications: true });
   const listeners = useRef(new Set());
@@ -25,6 +25,16 @@ export const RealtimeProvider = ({ children }) => {
   const dispatch = useCallback((ev) => {
     listeners.current.forEach((cb) => { try { cb(ev); } catch { /* ignore */ } });
   }, []);
+
+  // Admin approved this partner/merchant → reload the profile; the panel gate swaps to the dashboard.
+  useEffect(() => subscribe("notification", (d) => {
+    if (d?.type !== "account_approved") return;
+    Promise.resolve(refresh?.()).then(() => {
+      const home = d.role === "merchant" ? "/merchant" : d.role === "partner" ? "/partner" : null;
+      const base = (process.env.PUBLIC_URL || "").replace(/\/$/, "");
+      if (home && !window.location.pathname.startsWith(base + home)) window.location.assign(base + home);
+    });
+  }), [subscribe, refresh]);
 
   // load realtime config (admin-controlled via Integration Center)
   const refreshConfig = useCallback(() => {
