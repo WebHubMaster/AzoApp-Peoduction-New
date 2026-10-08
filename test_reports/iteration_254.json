@@ -1,0 +1,49 @@
+{
+  "summary": "Backend-only verification of the admin RBAC + '+91' phone normalisation fix. Backend supervisor still crash-loops (missing /app/backend/.env — intentional per request), so a scratch uvicorn was spun up on 127.0.0.1:8011 with MONGO_URL=mongodb://localhost:27017 DB_NAME=rbac_test_tmp JWT_SECRET=test. Pytest suite /app/backend/tests/test_admin_rbac_phone.py was authored and runs 20 tests covering all four features from the request. 20/20 PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "startup", "issue": "/app/backend/.env is still missing in this pod so supervisor backend crash-loops with KeyError: MONGO_URL. Deliberately not re-created. All testing was done against a scratch uvicorn on :8011 driven by pytest."}
+    ]
+  },
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_admin_rbac_phone.py",
+    "/app/test_reports/pytest/rbac_results.xml"
+  ],
+  "verified_behaviours": [
+    "POST /api/admin/system-users: _admin_phone normalises '8000000011' / '+918000000012' / '918000000013' / '08000000014' all to '+918000000XXX' (DB-persisted).",
+    "POST /api/admin/system-users: rejects obviously-invalid phones ('12345', '+5000000000', '1234567890', '0000000000') with 400 'Enter a valid 10-digit Indian mobile number'.",
+    "POST /api/admin/system-users: 400 'Please assign a role …' when system_role_id is missing; 400 'Selected role no longer exists' when the role id does not exist in db.roles.",
+    "fix_admin_phones() correctly repairs admin/staff users saved as '+8000000099' and '8000000098' into '+918000000099' / '+918000000098'.",
+    "fix_admin_phones() SKIPS the repair when the +91-prefixed target phone is already used by a different user (returns legacy row unchanged).",
+    "admin_rbac_guard: super admin (+919000000000) bypasses the guard on GET /api/admin/bookings and GET /api/admin/system-users (200).",
+    "admin_rbac_guard: a restricted admin with only {bookings:{view:true}} gets 200 on GET /api/admin/bookings, 403 'You don't have permission to view finance' on GET /api/admin/finance/report, 403 on POST /api/admin/system-users, and 200 on the shared lookup GET /api/admin/settings (system module, not in _VIEW_GUARDED).",
+    "admin_rbac_guard: suspended restricted admin → 403 'Your admin account is suspended' even on an endpoint their role allows.",
+    "admin_rbac_guard: unauthenticated /api/admin/bookings is left untouched by the guard (returns 401 from the normal endpoint auth, not 403).",
+    "Public endpoint /api/catalog/categories still returns 200 without any auth — no regression from the guard being attached to every router.",
+    "/api/auth/me for the restricted admin exposes permissions {'bookings':{'view':true}, 'finance':{'view':false}, 'access_control':{'create':false}, …} and is_super_admin=false — so the sidebar RBAC filtering in AdminDashboard.jsx has the data it needs."
+  ],
+  "action_items": [
+    "(Not functional) Restore /app/backend/.env (MONGO_URL + DB_NAME + JWT_SECRET) so the supervised backend stops crash-looping and the normal preview URL can serve traffic.",
+    "(Nice-to-have) Add a dedicated test cred/.env note or /app/memory/test_credentials.md so future testing agents know the super admin phone is +919000000000 (dev OTP flow)."
+  ],
+  "critical_code_review_comments": [
+    "routes/content_routes.py _admin_phone regex r'[6-9]\\d{9}' correctly rejects numbers that don't start with 6-9 (so '5000000000' and '0000000000' are rejected, matching the OTP login rule).",
+    "server.py attaches Depends(_rbac_guard) to every include_router, so the guard runs for ALL /api/admin/* paths across every router — not just content_routes. Verified against bookings, finance, settings, system-users, categories, catalog.",
+    "rbac_service._SEG_MODULE + _VIEW_GUARDED gives the right trade-off: shared lookups (services/categories/settings/notifications/marketing/seo/website_cms) are GET-readable by any restricted admin, while bookings/finance/customers/… are gated. Create/edit/delete are gated everywhere.",
+    "rbac_service.is_super() keeps a legitimate back-compat path: an admin with role='admin' and NO system_role_id is treated as super, so pre-existing admins are not accidentally locked out when RBAC rolls out.",
+    "fix_admin_phones() correctly handles the conflict case (does not overwrite another user) and is idempotent — a second call reports 0 repairs.",
+    "Minor nit (non-blocking): fix_admin_phones() regex r'^\\+?[6-9]\\d{9}$' will NOT match the exact '+8000000000' value from the screenshot because '8' is in [6-9] but a leading '+' with ten digits starting '8…' DOES match → fine. However it would NOT match an 11-digit no-+ phone like '08000000000' (starts with 0). That path is handled by _admin_phone at CREATE time but not by fix_admin_phones. Low risk in practice."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_admin_rbac_phone.py (new, pytest, 20 tests)"
+  ],
+  "success_rate": {"backend": "100% (20/20)", "frontend": "N/A (skipped per request)"},
+  "test_credentials": "Super admin phone +919000000000 (dev OTP). All other test users are minted directly in Mongo with middleware.auth.create_token(uid, 'admin', sid=current_sid). JWT_SECRET for the scratch run was 'test'.",
+  "seed_data_creation": "Scratch DB rbac_test_tmp (dropped at end). Fresh uvicorn also auto-seeded demo data on startup (services, geo, marketing). RBAC-specific seeds: 1 super admin, 1 restricted 'BookingsViewer' admin, 1 suspended restricted admin, 4+ roles with partial permission matrices, several legacy-format admin phones for the repair test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend supervisor is still crash-looping (missing /app/backend/.env — do NOT restore it, per original request). To rerun the RBAC/phone suite: start uvicorn on 8011 (`cd /app/backend && MONGO_URL=mongodb://localhost:27017 DB_NAME=rbac_test_tmp JWT_SECRET=test uvicorn server:app --host 127.0.0.1 --port 8011 &`) and run `cd /app/backend && REACT_APP_BACKEND_URL=http://127.0.0.1:8011 TEST_BASE_URL=http://127.0.0.1:8011 MONGO_URL=mongodb://localhost:27017 DB_NAME=rbac_test_tmp JWT_SECRET=test python -m pytest tests/test_admin_rbac_phone.py -n 0 -v`. Tests mint tokens via middleware.auth.create_token so no OTP flow is needed. Drop rbac_test_tmp afterwards.",
+  "rca of the issue": "Original bug (admin Access Control → Admin Users saved phone as '+8000000000' without +91 so the newly-created admin could not complete OTP login, which requires +91XXXXXXXXXX): fixed in routes/content_routes.py by (a) _admin_phone normalising any 10/11/12-digit input to '+91XXXXXXXXXX' before insert and (b) fix_admin_phones() running on startup to repair legacy rows. The second part of the user complaint (role should decide what access the user gets) is enforced server-side by admin_rbac_guard attached to every /api/admin/* router (restricted admins get 403 on modules they don't own, super admin + legacy admins without a system_role_id continue to work unchanged). All verified end-to-end with 20 passing tests."
+}
