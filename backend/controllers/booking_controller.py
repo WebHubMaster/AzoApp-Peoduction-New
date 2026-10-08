@@ -11,7 +11,7 @@ from services import money
 from services.engines import PricingEngine, CommissionEngine, MatchingEngine, ServiceAreaEngine
 from services import realtime as rt
 from services import refund_service
-from services.schedule_service import schedule_state, format_scheduled, parse_scheduled, set_lead_minutes
+from services.schedule_service import schedule_state, format_scheduled, parse_scheduled, set_lead_minutes, lead_minutes
 from datetime import datetime, timezone, timedelta
 
 
@@ -897,7 +897,7 @@ async def send_message(user, booking_id, text):
     # Spec 7: for a scheduled job, chat stays locked until 30 minutes before the
     # scheduled time — enforced server-side so a manipulated client cannot bypass it.
     if schedule_state(b).get("comm_locked"):
-        raise HTTPException(status_code=423, detail="Chat unlocks 30 minutes before your scheduled time.")
+        raise HTTPException(status_code=423, detail=f"Chat unlocks {lead_minutes()} minutes before your scheduled time.")
     msg = {"id": new_id(), "booking_id": booking_id, "sender_id": user["id"],
            "sender_role": "customer" if is_customer else "partner",
            "sender_name": user.get("name"), "text": text[:1000], "created_at": now_iso(),
@@ -3030,7 +3030,7 @@ async def update_location(partner, booking_id, lat, lng):
     # job (server-authoritative — a direct API call cannot bypass it).
     if schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Location sharing unlocks 30 minutes before your scheduled time.")
+                            detail=f"Location sharing unlocks {lead_minutes()} minutes before your scheduled time.")
     await db.bookings.update_one({"id": booking_id},
                                  {"$set": {"partner_location": {"lat": lat, "lng": lng, "at": now_iso()}}})
     # Keep the partner's global live location in sync + push to admin live map.
@@ -3083,7 +3083,7 @@ async def verify_start_otp(partner, booking_id, otp):
     # Spec 2/18: Start-Work is locked until 30 minutes before a scheduled job.
     if schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Work can start 30 minutes before the scheduled time.")
+                            detail=f"Work can start {lead_minutes()} minutes before the scheduled time.")
     if not (b.get("evidence", {}).get("before") or []):
         raise HTTPException(status_code=400, detail="Please upload 'before' work photos before starting.")
     if not b.get("checkin"):
@@ -3132,7 +3132,7 @@ async def upload_evidence(partner, booking_id, req):
     # Spec 2: Before-Work photo is LOCKED until 30 min before a scheduled job.
     if req.stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Before-work photo unlocks 30 minutes before your scheduled time.")
+                            detail=f"Before-work photo unlocks {lead_minutes()} minutes before your scheduled time.")
     urls = await _materialize_evidence(b, partner, req.stage, req.images or [])
     if urls:
         have = len((b.get("evidence") or {}).get(req.stage) or [])
@@ -3157,7 +3157,7 @@ async def upload_evidence_file(partner, booking_id, stage, raw, content_type):
     # Spec 2: Before-Work photo is LOCKED until 30 min before a scheduled job.
     if stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Before-work photo unlocks 30 minutes before your scheduled time.")
+                            detail=f"Before-work photo unlocks {lead_minutes()} minutes before your scheduled time.")
     _assert_evidence_room(b, stage)
     ct = (content_type or "").split(";")[0].strip().lower()
     try:
@@ -3203,7 +3203,7 @@ async def upload_evidence_chunk(partner, booking_id, payload: dict):
     b = await _partner_owns(partner, booking_id)
     if stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Before-work proof unlocks 30 minutes before your scheduled time.")
+                            detail=f"Before-work proof unlocks {lead_minutes()} minutes before your scheduled time.")
     _assert_evidence_room(b, stage)
     try:
         raw = _b64.b64decode(str(payload.get("data") or ""), validate=False)
@@ -3235,7 +3235,7 @@ async def checkin_job(partner, booking_id, raw, content_type, lat, lng):
     if b["status"] not in ("assigned", "arrived_shop", "arrived_customer"):
         raise HTTPException(status_code=400, detail="Check-in is only allowed before the job starts")
     if schedule_state(b).get("comm_locked"):
-        raise HTTPException(status_code=423, detail="Check-in opens 30 minutes before the scheduled time.")
+        raise HTTPException(status_code=423, detail=f"Check-in opens {lead_minutes()} minutes before the scheduled time.")
     if not raw:
         raise HTTPException(status_code=400, detail="Selfie photo is required")
     try:
@@ -3279,7 +3279,7 @@ async def remove_evidence(partner, booking_id, stage, url):
     b = await _partner_owns(partner, booking_id)
     if stage == "before" and schedule_state(b).get("comm_locked"):
         raise HTTPException(status_code=423,
-                            detail="Before-work photo unlocks 30 minutes before your scheduled time.")
+                            detail=f"Before-work photo unlocks {lead_minutes()} minutes before your scheduled time.")
     await db.bookings.update_one(
         {"id": booking_id}, {"$pull": {f"evidence.{stage}": url}})
     out = await _get_booking(booking_id)

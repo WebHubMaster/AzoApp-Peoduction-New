@@ -378,7 +378,7 @@ function ScheduledCard({ schedule, role = "partner" }: { schedule: any; role?: s
                 </View>
               ))}
             </View>
-            <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 8 }}>Available 30 minutes before the scheduled time.</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 8 }}>Available {Number(s.lead_minutes) || 30} minutes before the scheduled time.</Text>
           </>
       </View>
       ) : null}
@@ -464,6 +464,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
 
   const sched = b.schedule || {};
   const commLocked = !!sched.comm_locked;
+  const leadMin = Number(sched.lead_minutes) || 30;
   const showSchedule = !["completed", "paid", "cancelled"].includes(status);
   const pendingReq = b.reschedule_request && b.reschedule_request.status === "pending" ? b.reschedule_request : null;
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
@@ -634,7 +635,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
               <Icon name="navigation-variant-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Navigate to Customer</Text>
             </Pressable>
           )}
-          <Text style={{ color: SLATE400, fontSize: 11.5, textAlign: "center", marginTop: 6 }}>{commLocked ? "Available 30 minutes before the scheduled time" : "Opens directions to the customer's location"}</Text>
+          <Text style={{ color: SLATE400, fontSize: 11.5, textAlign: "center", marginTop: 6 }}>{commLocked ? `Available ${leadMin} minutes before the scheduled time` : "Opens directions to the customer's location"}</Text>
         </View>
 
         {/* Contact */}
@@ -644,7 +645,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
           ) : (
             <Pressable testID={`call-cust-${b.code}`} onPress={() => Linking.openURL(`tel:${b.customer_phone}`)} style={outlineBtn({ border: "#A7F3D0" })}><Icon name="phone-outline" size={16} color="#047857" /><Text style={{ color: "#047857", fontWeight: "600", fontSize: 14 }}>Call</Text></Pressable>
           )}
-          <Pressable testID={`chat-cust-${b.code}`} disabled={commLocked} onPress={() => (commLocked ? toast.info("Chat unlocks 30 minutes before the scheduled time") : router.push({ pathname: "/chat/[id]", params: { id: b.id, role: "partner", service: b.service_name || "" } }))} style={[outlineBtn({ border: "#BFDBFE" }), { opacity: commLocked ? 0.5 : 1 }]}>
+          <Pressable testID={`chat-cust-${b.code}`} disabled={commLocked} onPress={() => (commLocked ? toast.info(`Chat unlocks ${leadMin} minutes before the scheduled time`) : router.push({ pathname: "/chat/[id]", params: { id: b.id, role: "partner", service: b.service_name || "" } }))} style={[outlineBtn({ border: "#BFDBFE" }), { opacity: commLocked ? 0.5 : 1 }]}>
             <Icon name={commLocked ? "lock-outline" : "message-outline"} size={16} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "600", fontSize: 14 }}>Chat</Text>
             {!commLocked && unseen > 0 ? (
               <View testID={`chat-unseen-${b.code}`} style={{ minWidth: 18, height: 18, borderRadius: 6, paddingHorizontal: 5, backgroundColor: "#EF4444", alignItems: "center", justifyContent: "center", marginLeft: 2 }}>
@@ -665,7 +666,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
           <Text style={{ color: commLocked ? SLATE400 : "#fff", fontWeight: "800", fontSize: 15 }}>{commLocked ? "Check-in & Start locked" : inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
           {commLocked ? null : <Icon name="chevron-right" size={20} color="#fff" />}
         </Pressable>
-        {commLocked ? <Text testID={`start-locked-note-${b.code}`} style={{ color: SLATE400, fontSize: 11.5, textAlign: "center", marginTop: 6 }}>Available 30 minutes before the scheduled time</Text> : null}
+        {commLocked ? <Text testID={`start-locked-note-${b.code}`} style={{ color: SLATE400, fontSize: 11.5, textAlign: "center", marginTop: 6 }}>Available {leadMin} minutes before the scheduled time</Text> : null}
 
         {/* Secondary actions */}
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>

@@ -381,6 +381,7 @@ const ActiveJob = ({ b, onUpdate }) => {
   const inProgress = b.status === "started";
   const sched = b.schedule || {};
   const commLocked = !!sched.comm_locked;
+  const leadMin = Number(sched.lead_minutes) || 30;
   const pendingReq = b.reschedule_request && b.reschedule_request.status === "pending" ? b.reschedule_request : null;
   const iRequested = pendingReq && pendingReq.requested_by_role === "partner";
   const theyRequested = pendingReq && pendingReq.requested_by_role === "customer";
@@ -415,7 +416,7 @@ const ActiveJob = ({ b, onUpdate }) => {
     finally { setReschedBusy(false); }
   };
   const openChat = () => {
-    if (commLocked) { toast.info("Chat unlocks 30 minutes before the scheduled time"); return; }
+    if (commLocked) { toast.info(`Chat unlocks ${leadMin} minutes before the scheduled time`); return; }
     setChatOpen(true);
   };
 
@@ -520,7 +521,7 @@ const ActiveJob = ({ b, onUpdate }) => {
               <Navigation className="h-5 w-5" /> Navigate to Customer
             </a>
           )}
-          <p className="text-[11.5px] text-slate-400 text-center mt-1.5">{commLocked ? "Available 30 minutes before the scheduled time" : "Opens directions to the customer's location"}</p>
+          <p className="text-[11.5px] text-slate-400 text-center mt-1.5">{commLocked ? `Available ${leadMin} minutes before the scheduled time` : "Opens directions to the customer's location"}</p>
         </div>
 
         {/* Contact */}
@@ -562,7 +563,7 @@ const ActiveJob = ({ b, onUpdate }) => {
           {commLocked ? "Check-in & Start locked" : inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}
           {!commLocked && <ChevronDown className="h-5 w-5 -rotate-90" />}
         </button>
-        {commLocked && <p data-testid={`start-locked-note-${b.code}`} className="text-[11.5px] text-slate-400 text-center -mt-1">Available 30 minutes before the scheduled time</p>}
+        {commLocked && <p data-testid={`start-locked-note-${b.code}`} className="text-[11.5px] text-slate-400 text-center -mt-1">Available {leadMin} minutes before the scheduled time</p>}
 
         {/* Secondary actions */}
         <div className="flex items-center gap-2 flex-wrap">

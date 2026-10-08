@@ -404,7 +404,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
         )}
       </Card>
       {locked ? (
-        <View style={{ borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens 30 minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
+        <View style={{ borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 14, flexDirection: "row", gap: 8 }}><Icon name="lock-outline" size={16} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 12.5, flex: 1 }}>Check-in opens {Number(b.schedule?.lead_minutes) || 30} minutes before the scheduled time ({b.schedule?.scheduled_time}).</Text></View>
       ) : null}
       <Pressable testID="wizard-checkin-submit" disabled={!selfie || !loc || sending || locked} onPress={submit} style={{ height: 54, borderRadius: 6, backgroundColor: colors.primary, opacity: !selfie || !loc || sending || locked ? 0.45 : 1, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8 }}>
         {sending ? <ActivityIndicator color="#fff" /> : <Icon name="check-circle-outline" size={20} color="#fff" />}<Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>{sending ? "Checking in…" : "Check-in & Continue"}</Text>
@@ -421,7 +421,7 @@ function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, on
       {locked ? (
         <View testID={`start-locked-${b.code}`} style={{ borderRadius: 6, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surfaceSubtle, padding: 16 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}><Icon name="lock-outline" size={14} color={colors.textMuted} /><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.6 }}>Start Work locked</Text></View>
-          <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>You can start this job 30 minutes before {b.schedule?.scheduled_time} on {b.schedule?.scheduled_date}.</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12.5, marginTop: 4 }}>You can start this job {Number(b.schedule?.lead_minutes) || 30} minutes before {b.schedule?.scheduled_time} on {b.schedule?.scheduled_date}.</Text>
         </View>
       ) : null}
       <Card testID="wizard-before-proof">
