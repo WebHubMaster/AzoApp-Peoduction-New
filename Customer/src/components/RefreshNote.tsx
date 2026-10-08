@@ -1,9 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, RefreshControl as RNRefreshControl, RefreshControlProps, Text, View } from "react-native";
+import { Animated, Platform, RefreshControl as RNRefreshControl, RefreshControlProps, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CheckCircle2 } from "lucide-react-native";
 
 const subs = new Set<() => void>();
+
+let tickPlayer: any = null;
+/** Soft tick + light haptic when a refresh finishes (respects the phone's silent mode on iOS). */
+function playRefreshFeedback() {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  if (Platform.OS === "web") return;
+  try {
+    const AA = require("expo-audio");
+    if (!tickPlayer) { tickPlayer = AA.createAudioPlayer(require("../../assets/sounds/refresh-tick.wav")); try { tickPlayer.volume = 0.35; } catch { /* ignore */ } }
+    tickPlayer.seekTo?.(0); tickPlayer.play();
+  } catch { /* ignore */ }
+}
 /** Show the floating "Updated just now" note. */
 export const notifyRefreshed = () => subs.forEach((f) => f());
 
@@ -38,6 +51,7 @@ export function RefreshNoteHost() {
   useEffect(() => {
     let t: ReturnType<typeof setTimeout>;
     const fn = () => {
+      playRefreshFeedback();
       setShow(true); clearTimeout(t);
       Animated.spring(a, { toValue: 1, useNativeDriver: true, friction: 7 }).start();
       t = setTimeout(() => Animated.timing(a, { toValue: 0, duration: 220, useNativeDriver: true }).start(() => setShow(false)), 1800);
