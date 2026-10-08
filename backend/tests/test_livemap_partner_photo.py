@@ -2,7 +2,7 @@
 import os
 import requests
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://earnings-hub-209.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://auth-booking-nav.preview.emergentagent.com").rstrip("/")
 
 
 def _admin_token():

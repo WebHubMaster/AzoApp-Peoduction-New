@@ -6,9 +6,9 @@ import asyncio
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://earnings-hub-209.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://auth-booking-nav.preview.emergentagent.com").rstrip("/")
 if "preview.emergentagent.com" not in BASE_URL:
-    BASE_URL = "https://earnings-hub-209.preview.emergentagent.com"
+    BASE_URL = "https://auth-booking-nav.preview.emergentagent.com"
 
 ADMIN_PH = "+919000000000"
 PARTNER_PH = "+919000000003"

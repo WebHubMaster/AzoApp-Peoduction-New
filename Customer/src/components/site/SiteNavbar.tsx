@@ -152,7 +152,7 @@ export default function SiteNavbar({ hideSearch = false }: { hideSearch?: boolea
 const TABS = [
   { key: "home", label: "Home", icon: Home, to: "/(site)" },
   { key: "services", label: "Services", icon: LayoutGrid, to: "/(site)/services" },
-  { key: "cart", label: "Booking", icon: ShoppingBag, to: "/(site)/book" },
+  { key: "cart", label: "Booking", icon: ShoppingBag, to: "/(customer)/orders" },
   { key: "custom", label: "Custom Service", icon: Wrench, to: "" },
   { key: "profile", label: "Profile", icon: User, to: "/(customer)" },
 ];
@@ -166,13 +166,14 @@ export function MobileBottomNav() {
   const [customOpen, setCustomOpen] = useState(false);
   const go = (t: typeof TABS[number]) => {
     if (t.key === "custom") { setCustomOpen(true); return; }
+    if (t.key === "cart" && !user) { router.push({ pathname: "/login", params: { return: "/(customer)/orders" } } as any); return; }
     if (["profile"].includes(t.key) && !user) { router.push("/login"); return; }
     router.push(t.to as any);
   };
   const isActive = (t: typeof TABS[number]) =>
     t.key === "home" ? pathname === "/" || pathname === "/(site)" || pathname === ""
       : t.key === "services" ? pathname.includes("/services")
-        : t.key === "cart" ? pathname.includes("/book")
+        : t.key === "cart" ? pathname.includes("/orders")
           : t.key === "custom" ? customOpen
             : t.key === "profile" ? pathname.includes("/profile")
               : false;

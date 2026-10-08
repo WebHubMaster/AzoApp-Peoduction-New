@@ -22,7 +22,7 @@ import json
 from datetime import datetime, timedelta, timezone
 
 # Base URL from frontend/.env
-BASE_URL = "https://earnings-hub-209.preview.emergentagent.com/api"
+BASE_URL = "https://auth-booking-nav.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

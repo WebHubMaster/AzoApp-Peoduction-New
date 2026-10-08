@@ -17,7 +17,7 @@ import requests
 
 BASE_URL = os.environ.get(
     "EXPO_PUBLIC_BACKEND_URL",
-    "https://earnings-hub-209.preview.emergentagent.com",
+    "https://auth-booking-nav.preview.emergentagent.com",
 ).rstrip("/")
 API = f"{BASE_URL}/api"
 
@@ -27,7 +27,7 @@ CAPTION = (
     "Hi 👋, book any home service with me on AzoApp!\n"
     "Fast • Easy • Trusted\n"
     "Tap the link:\n"
-    f"https://earnings-hub-209.preview.emergentagent.com/?ref={VALID_CODE}"
+    f"https://auth-booking-nav.preview.emergentagent.com/?ref={VALID_CODE}"
 )
 
 

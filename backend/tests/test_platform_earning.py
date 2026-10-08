@@ -11,7 +11,7 @@ import io
 import pytest
 import requests
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://124932b4-5920-453f-acfb-96fc089c196a.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://auth-booking-nav.preview.emergentagent.com").rstrip("/")
 PE = f"{BASE}/api/admin/platform-earning"
 
 

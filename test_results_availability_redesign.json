@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://earnings-hub-209.preview.emergentagent.com",
+  "base_url": "https://auth-booking-nav.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",
