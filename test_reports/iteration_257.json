@@ -1,0 +1,26 @@
+{
+  "summary": "Iter257 — Platform Earning Operating Expenses + Face Mismatch Alerts. Backend: 19/19 pytest cases pass (CRUD, meta, validation 422s, 401 gate, soft-delete, history, Net Profit integration into summary & trend, cache bust on mutation). Face mismatch sim prints 'first 1' / 'second (dedupe) None' and persists notification doc with correct title, link '/admin?tab=bookings&booking=<id>', data.event='face_mismatch', data.booking_code='AZPE100948'. Frontend (web_panel /admin?tab=platform_earning): all data-testids present and working — pe-expenses section, pe-add-expense opens pe-expense-dialog with pe-exp-date/amount/category/description/vendor/mode/reference/save/cancel; save disabled until required fields filled; pe-exp-row-0 renders; pe-exp-total shows ₹37,000; pe-exp-cat-'Rent & Office' bar rendered; pe-kpi-net-profit-value shows ₹33,276.01 (no longer 'not configured'); pe-pnl-net-profit ₹33,276.01, pe-pnl-net-margin 14.5%; pe-profit-toggle-net_profit toggle rendered; pe-exp-edit-0 opens dialog with pe-exp-history audit entries. notif-bell shows '9+', clicking opens dropdown with red-highlighted notif-item-face_mismatch (bg-red-50/70), clicking navigates to booking detail page which shows Face mismatch 91% confidence / 'SIMULATED mismatch' banner with Re-check action. Live SSE toast (red, 30s) code reviewed in PanelLayout.jsx NotificationBell — correctly emitted only from backend's own SSE process (sim script in separate process can't trigger it, as noted in spec).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_platform_expenses_iter257.py",
+    "/app/test_reports/pytest/iter257_expenses.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "platform_expense_routes.py uses pe._CACHE.clear() for cache bust — tightly coupled to service internals; consider a pe.invalidate_cache() helper for better encapsulation (minor).",
+    "pytest-xdist is enabled globally via pytest.ini addopts; this test file must be run with -o addopts='' because concurrent admin OTP logins revoke each other's sessions (device_revoked). Consider making admin token revocation respect a device_id so parallel test workers do not knock each other out, or add a shared conftest fixture that scopes auth to session.",
+    "Face mismatch dedupe is based solely on prev checkin.face_match.status == 'mismatch'. Re-running sim_face_mismatch.py resets status to 'unverified', so operators who legitimately re-check a flagged booking will re-notify. Spec says this is intentional; acceptable."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_platform_expenses_iter257.py (new)",
+    "/app/test_reports/iteration_257.json"
+  ],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100% (all data-testids & flows verified)"},
+  "test_credentials": "Admin phone +919000000000 OTP 123456 (dev); 'Login as Admin' demo button on /login",
+  "seed_data_creation": "Left 2 demo expenses in platform_expenses collection for the user: Rent & Office ₹25,000 and Marketing & Advertising ₹12,000, both dated 2026-10-08 (today). This keeps Net Profit visible in the UI as requested by the main agent note.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Running backend/tests/test_platform_expenses_iter257.py: use `pytest -o addopts='' ...` to disable xdist, because admin OTP login revokes other active admin sessions (device_revoked), which breaks parallel workers. Logging into the web_panel as admin also revokes the pytest token — re-login via send-otp/verify-otp to recover. Server date is 2026-10-08; create expenses with that date (or today) so they fall inside the default 'Last 30 Days' Platform Earning filter.",
+  "rca of the issue": "N/A — no bugs found. All features implemented correctly per spec."
+}
