@@ -143,3 +143,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Merchant app top bar = partner-style brand header (no page title); bottom nav docked full-width like partner.
 - QA-only provider app web preview route /api/provider (frontend/dist-web).
 - Tested: iteration_246 all pass.
+
+## 2026-06 — Approval push alert (Merchant + Partner)
+- On admin approval (all approve paths) user gets "Account Approved 🎉 … Tap to log in" via in-app + SSE + push (Expo/FCM/WebPush) with data.type=account_approved, role.
+- App (ChatNotifier): push tap or live SSE → refresh user → open merchant/partner dashboard. Web panel RealtimeContext does the same.
+- Tested: iteration_247 backend 3/3; frontend auto-redirect verified by code review only (no real devices).

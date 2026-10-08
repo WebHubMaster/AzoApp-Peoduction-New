@@ -1,0 +1,23 @@
+{
+  "summary": "Verified approval-alert feature end-to-end at API+contract level. POST /api/admin/people/merchant/{uid}/review {decision:'approve'} and /partner equivalent each create an in-app notification with title containing 'Approved', body containing 'Tap to log in', data.type='account_approved', data.role='merchant'|'partner' as required. SSE emit shape (type='notification', payload.type='account_approved', payload.role=...) matches what web_panel RealtimeContext and provider ChatNotifier listeners expect, so client auto-refresh/redirect will trigger. Rejection path still fires 'Action Needed' (regression intact). Push delivery (webpush/fcm/expo) is attempted inside notify() under try/except — no device tokens in this env but no errors raised. Both web shells (/api/panel/ and /api/provider/) return 200.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_approval_notification.py",
+    "/app/test_reports/pytest/approval_notif.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "notification_service.notify() correctly forwards data.type into SSE payload via `type: data.get('type') or event`, so RealtimeContext filter `d?.type !== 'account_approved'` works. Confirmed.",
+    "partner_reg_service.admin_approve_kyc passes `_data: {type: account_approved, role: partner}` through ctx; template_service.fire_event spreads `ctx._data` into notify data param — chain is intact.",
+    "people_admin_service.review_person for partners WITHOUT a partner_profiles doc falls back to direct notify() with the correct data payload — covers seeded partners too.",
+    "No real-device push verification possible without expo/fcm tokens in this env; code paths are guarded with try/except so a missing provider cannot break approval."
+  ],
+  "updated_files": ["/app/backend/tests/test_approval_notification.py"],
+  "success_rate": {"backend": "100% (3/3)", "frontend": "code-review only"},
+  "test_credentials": "Admin +919000000000 OTP 123456; pending merchants +919555000198/+919555056561/+919555056572 (tests APPROVED some; re-seed required before manual UI retest)",
+  "seed_data_creation": "None. Note: pytest run approved the pending merchants it found; main agent must re-seed pending merchants (set users.kyc_status=pending, merchant_profiles.status=under_review) if a live UI auto-redirect smoke test is desired.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Approval notification contract fully verified at API level. If a live SSE auto-redirect UI test is wanted: (1) reset a merchant via `db.users.update_one({phone:'+91955...'},{$set:{kyc_status:'pending',verified_merchant:false}})` and same on merchant_profiles.status='under_review'; (2) login via /api/provider or /api/panel as that merchant → should see Under Review screen; (3) call POST /api/admin/people/merchant/{uid}/review {decision:approve}; (4) within ~2s SSE 'notification' with data.type=account_approved should fire and the client redirects to /merchant. The listener code is in web_panel/src/context/RealtimeContext.jsx (lines 29-37) and frontend/src/components/ChatNotifier.tsx (openApproved on SSE + push tap). Both match the server payload shape."
+}
