@@ -556,12 +556,13 @@ const ActiveJob = ({ b, onUpdate }) => {
         )}
 
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
-        <button type="button" data-testid={`open-job-${b.code}`} onClick={() => setWizardOpen(true)}
-          className={`w-full h-12 rounded-md text-white font-extrabold flex items-center justify-center gap-2 shadow-sm azo-press ${inProgress ? "bg-emerald-600 hover:bg-emerald-700" : "bg-primary-600 hover:bg-primary-700"}`}>
-          {inProgress ? <CheckCircle2 className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
-          {inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}
-          <ChevronDown className="h-5 w-5 -rotate-90" />
+        <button type="button" data-testid={`open-job-${b.code}`} disabled={commLocked} onClick={() => setWizardOpen(true)}
+          className={`w-full h-12 rounded-md font-extrabold flex items-center justify-center gap-2 shadow-sm azo-press disabled:cursor-not-allowed ${commLocked ? "bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500" : inProgress ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-primary-600 hover:bg-primary-700 text-white"}`}>
+          {commLocked ? <Lock className="h-5 w-5" /> : inProgress ? <CheckCircle2 className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
+          {commLocked ? "Check-in & Start locked" : inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}
+          {!commLocked && <ChevronDown className="h-5 w-5 -rotate-90" />}
         </button>
+        {commLocked && <p data-testid={`start-locked-note-${b.code}`} className="text-[11.5px] text-slate-400 text-center -mt-1">Available 30 minutes before the scheduled time</p>}
 
         {/* Secondary actions */}
         <div className="flex items-center gap-2 flex-wrap">

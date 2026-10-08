@@ -660,11 +660,12 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
         </Collapse>
 
         {/* Wizard entry — Details → Selfie check-in → Before proof + Start OTP → After proof + Complete OTP */}
-        <Pressable testID={`open-job-${b.code}`} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 6, backgroundColor: inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, transform: [{ scale: pressed ? 0.985 : 1 }] })}>
-          <Icon name={inProgress ? "check-decagram-outline" : b.checkin ? "play-circle-outline" : "camera-account"} size={20} color="#fff" />
-          <Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>{inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
-          <Icon name="chevron-right" size={20} color="#fff" />
+        <Pressable testID={`open-job-${b.code}`} disabled={commLocked} onPress={openWizard} style={({ pressed }) => ({ height: 52, borderRadius: 6, backgroundColor: commLocked ? colors.surfaceSubtle : inProgress ? EMERALD : colors.secondary, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, opacity: commLocked ? 0.7 : 1, transform: [{ scale: pressed && !commLocked ? 0.985 : 1 }] })}>
+          <Icon name={commLocked ? "lock-outline" : inProgress ? "check-decagram-outline" : b.checkin ? "play-circle-outline" : "camera-account"} size={20} color={commLocked ? SLATE400 : "#fff"} />
+          <Text style={{ color: commLocked ? SLATE400 : "#fff", fontWeight: "800", fontSize: 15 }}>{commLocked ? "Check-in & Start locked" : inProgress ? "Continue · Complete Job" : b.checkin ? "Continue · Start Job" : "Continue · Check-in & Start"}</Text>
+          {commLocked ? null : <Icon name="chevron-right" size={20} color="#fff" />}
         </Pressable>
+        {commLocked ? <Text testID={`start-locked-note-${b.code}`} style={{ color: SLATE400, fontSize: 11.5, textAlign: "center", marginTop: 6 }}>Available 30 minutes before the scheduled time</Text> : null}
 
         {/* Secondary actions */}
         <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
