@@ -1,0 +1,44 @@
+{
+  "summary": "Static verification of E1's smooth-long-lists + instant-home perf work. Scope: 6 files across /app/Customer and /app/PartnerApp. Verified via `npx tsc --noEmit -p .` and `npx eslint` in each app, plus a line-by-line logic review for runtime bugs (Proxy on Hermes, memo comparator correctness, hydration races, per-user key leakage, infinite save loops). All 6 touched files produce ZERO new TypeScript or ESLint diagnostics. Pre-existing errors in unrelated PartnerApp files (payouts, permissions, starter-kit, subscriptions, verification, AppTabBar, AdditionalWork, HomeBanners, MaidTasksCard, RealtimeContext, invoiceActions, webPush) and the already-flagged TS7006 at partner/job/[id].tsx lines 190/192 are unchanged. Native Expo apps cannot be run in this preview pod, so this is a rigorous code-review only; recommend runtime verification via `npx expo start --web` on a dev machine.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "static_review_findings": {
+    "Customer/app/(customer)/orders.tsx": "OK — stableActions Proxy at line 119 uses `useMemo(..., [])` with get-trap forwarding to `actionsRef.current[k]`. actionsRef updated each render (line 118) so forwarded functions (toast, unreadFor, respondResched, cancelResched, onPay, onChat, …) are always the latest. BookingCard receives `b={live.get(b.id) || b}` keyed by b.id so cards swap to the live polled copy automatically; `live` Map memoised on [bookings] identity → identity-stable thanks to useStableState in CustomerDataContext.",
+    "Customer/src/components/customer/BookingCard.tsx": "OK — `React.memo(BookingCardInner, (p,n)=>p.b===n.b && p.focus===n.focus && p.unread===n.unread && p.a===n.a)` at line 397 is correct. `a` is reference-stable (Proxy stays same across renders). `b` identity changes only when useStableState detects a payload diff. `unread` prop allows the memo to re-render when chat unread count changes (correct — otherwise the unread pill would go stale). `focus` propagates the deep-link highlight. `fmtTs` still exported for BookingDrawers/BookingDialogs — unchanged. No other call-sites of BookingCard exist.",
+    "Customer/src/context/CustomerDataContext.tsx": "OK — per-user cache key `cust_home_cache_v1_${user.id}` prevents cross-account leak. Hydrate effect (line 63-75) reads fresh ref flags inside the `.then` callback, so any API response landing between `storage.getItem` start and resolution flips `fresh.current.bookings=true` and skips overwriting fresh data. `setLoading(false)` fires only when cached bookings exist. Save effect (line 127-133) debounced 1s, gated on `fresh.current.bookings`, caps bookings@100 / wallet tx@20 / refunds@50 — AsyncStorage payload bounded. useStableState keeps dependency identity stable so the save effect is not re-triggered by no-op poll cycles. One nit (minor): `hasActiveRef.current = …` on line 90 is still a render-time ref write (noted in iter 248). No regression from this iteration.",
+    "PartnerApp/app/(partner)/partner/history.tsx": "OK — `HistoryRow = React.memo(function HistoryRow({ b, onOpen }))` at line 22 with default shallow comparator. `onOpen` is `useCallback((id) => router.push(...), [router])` → stable. `b` identity comes from react-query infinite-list pages which are append-only so prior pages' items keep identity across loads. FlatList tuned: initialNumToRender=8, maxToRenderPerBatch=8, windowSize=7, removeClippedSubviews. testID `history-${b.code}` preserved. Paging via onEndReached/useInfiniteList unchanged.",
+    "PartnerApp/src/lib/queryPersist.ts": "OK — restores only keys that are missing (`qc.getQueryData(k) === undefined`) with `updatedAt: 1` sentinel so react-query treats them as stale and refetches on mount (no race where cache overwrites fresh data). Save subscribes to cache 'updated success' and debounces 1.5s; filters by `dataUpdatedAt > 1` to exclude hydrated entries → no save-loop. Storage write doesn't itself raise a cache event, so no feedback loop. partner-jobs intentionally excluded from ROOTS. Cleanup clears timeout + unsubscribes. Per-user key `partner_home_cache_v1_${userId}` prevents cross-account leak.",
+    "PartnerApp/app/(partner)/_layout.tsx": "OK — `usePersistHomeQueries(qc, user?.id)` wired before the useQuery hooks for jobs/active. Hook short-circuits on undefined userId, so logout state is safe."
+  },
+  "runtime_concerns_checked": {
+    "Proxy on Hermes": "Supported on Hermes 0.11+ (Expo SDK 57 = modern Hermes). Safe.",
+    "Stale handler risk via Proxy": "Each `get` returns `actionsRef.current[k]`, so handlers invoked from memoized cards always reach the latest closure incl. toast, unreadFor, and the just-set dialog state setters (setCancelT, setRev, setDetails, setInvoice, setResched, setAddl, setChat).",
+    "Hydration race (Customer)": "Guarded by fresh refs — fresh network data wins deterministically.",
+    "Save-loop (both apps)": "Debounced writes; neither write path emits an event that re-triggers the save subscription.",
+    "AsyncStorage payload size": "Bounded (bookings@100, wallet tx@20, refunds@50 on Customer; only success queries with updatedAt>1 on Partner)."
+  },
+  "typescript_results": {
+    "Customer": "6 touched Customer files: 0 errors.",
+    "PartnerApp": "3 touched PartnerApp files (history.tsx, queryPersist.ts, (partner)/_layout.tsx): 0 errors. Pre-existing TS7006 at partner/job/[id].tsx 190/192 and other unrelated files unchanged."
+  },
+  "eslint_results": "Clean on all 6 touched files.",
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Nit (pre-existing from iter 248): CustomerDataContext.tsx line 90 still assigns `hasActiveRef.current` during render. Works, but a useEffect([bookings]) assignment would be stylistically cleaner.",
+    "Nit: On user switch (logout → login as another account), the previous user's cache key stays in AsyncStorage. Not a leak (different keyed read), but consider clearing on logout if device-shared.",
+    "Nit: Customer orders.tsx recomputes `qs` string on every render. React-query key path is fine because useServerList depends on `qs`, but a useMemo on the serialized filter would avoid micro-churn."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped)", "frontend": "100% (static)" },
+  "test_credentials": "Not available — native Expo apps, no /app/memory/test_credentials.md.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Perf changes verified statically only (native Expo apps, no supervisor web preview in this pod). To runtime-verify: (1) Launch Customer app, scroll Orders list with 50+ bookings → BookingCard re-renders should be isolated to cards whose b/unread actually changed (use React DevTools highlight updates); verify toast still fires on cancel/review/pay (confirms Proxy forwards latest handlers). (2) Launch Customer app offline right after a prior successful session → bookings/wallet/categories should paint instantly from cache_v1_{userId}; then online fresh API response should replace without flicker. (3) Partner app Job History: scroll 20+ rows, verify renderItem calls scale with window and tap on a row navigates to /booking/{id}. (4) Partner home: restart app offline → dashboard/stats/starter-kit/maid-subs/active cards should hydrate instantly and refetch when online; partner-jobs (ring overlay) should NOT hydrate from cache.",
+  "rca of the issue": "n/a — this iteration verifies E1's perf feature work, not a bug."
+}

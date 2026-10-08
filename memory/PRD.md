@@ -162,3 +162,9 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Partner: per-second timers isolated (useNow hook, CountdownRing/Elapsed leaf components, React.memo RequestCard) → Jobs/Active/Job wizard screens no longer re-render every second
 - Both: react-query focusManager ↔ AppState (pause polling in background, refresh on resume)
 - Customer: CustomerDataContext only updates on changed payloads, memoized value, slower + foreground-only polling (SSE keeps it live); overlay/rating polls gated by AppState
+
+## Update (Jun 2026) – Smooth lists + Instant home
+- Customer Orders: memoized BookingCard + stable Proxy actions (server paging 10/page unchanged)
+- Partner Job History: memoized HistoryRow + FlatList windowing props
+- Customer instant home: CustomerDataContext AsyncStorage snapshot per user (cust_home_cache_v1_{id})
+- Partner instant home: usePersistHomeQueries (src/lib/queryPersist.ts) persists dashboard/stats/starter-kit/maid-subs/active per user; job requests not cached
