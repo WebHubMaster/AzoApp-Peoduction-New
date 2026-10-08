@@ -14,7 +14,7 @@ import requests
 BASE_URL = (
     os.environ.get("REACT_APP_BACKEND_URL")
     or os.environ.get("EXPO_PUBLIC_BACKEND_URL")
-    or "https://auth-booking-nav.preview.emergentagent.com"
+    or "https://data-reconcile-30.preview.emergentagent.com"
 ).rstrip("/")
 
 API = f"{BASE_URL}/api"

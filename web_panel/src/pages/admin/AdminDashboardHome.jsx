@@ -109,17 +109,18 @@ export default function AdminDashboardHome({ onOpenBooking, onNavigate }) {
   if (error) return <div>{Header}{Drawer}<Card className="p-4"><ErrorState onRetry={load} text="Unable to load this data." /></Card></div>;
   if (!d) return <div>{Header}{Drawer}<DashSkeleton /></div>;
 
+  const e = d.earnings || {};
   const kpis = [
-    { testId: "kpi-revenue", label: "Total Revenue", value: d.gmv, currency: true, icon: IndianRupee, tone: "primary", change: cmp.gmv, spark: spark("gmv"), sparkColor: "#0D47A1" },
-    { testId: "kpi-platform", label: "Platform Fee", value: d.platform_revenue, currency: true, icon: TrendingUp, tone: "violet", change: cmp.platform_revenue, spark: spark("platform_revenue"), sparkColor: "#6366f1" },
+    { testId: "kpi-revenue", label: "Gross Platform Revenue", value: d.gmv, currency: true, icon: IndianRupee, tone: "primary", change: cmp.gmv, spark: spark("gmv"), sparkColor: "#0D47A1" },
+    { testId: "kpi-platform", label: "Net Platform Revenue", value: d.platform_revenue, currency: true, icon: TrendingUp, tone: "violet", change: cmp.platform_revenue, spark: spark("platform_revenue"), sparkColor: "#6366f1" },
     { testId: "kpi-bookings", label: "Total Bookings", value: d.total_bookings, icon: ClipboardList, tone: "sky", change: cmp.total_bookings, spark: spark("bookings"), sparkColor: "#0ea5e9" },
     { testId: "kpi-completed", label: "Completed Bookings", value: d.completed_bookings, icon: CheckCircle2, tone: "green", change: cmp.completed_bookings, spark: spark("completed"), sparkColor: "#10b981" },
     { testId: "kpi-pending", label: "Pending Bookings", value: d.pending_bookings, icon: Clock, tone: "amber", change: cmp.pending_bookings, invert: true, sub: "pending · on hold · searching" },
-    { testId: "kpi-cancelled", label: "Cancelled Bookings", value: d.cancelled_bookings, icon: XCircle, tone: "rose", change: cmp.cancelled_bookings, invert: true, sub: `${d.cancellation_rate}% cancellation rate` },
+    { testId: "kpi-cancelled", label: "Cancelled Bookings", value: d.cancelled_bookings, icon: XCircle, tone: "rose", change: cmp.cancelled_bookings, invert: true, sub: `${d.cancellation_rate}% rate · ${e.cancellations ?? 0} refund records` },
     { testId: "kpi-customers", label: "Active Customers", value: d.active_customers, icon: Users, tone: "slate", change: cmp.active_customers, sub: `${d.customers} registered · ${d.new_customers} new` },
     { testId: "kpi-partners", label: "Active Partners", value: d.active_partners, icon: Wrench, tone: "slate", change: cmp.active_partners, sub: `${d.partners} registered · ${d.online_partners} online` },
     { testId: "kpi-merchants", label: "Active Merchants", value: d.active_merchants, icon: Store, tone: "slate", change: cmp.active_merchants, sub: `${d.merchants} registered · ${d.new_merchants} new` },
-    { testId: "kpi-aov", label: "Avg Order Value", value: d.avg_order_value, currency: true, icon: Wallet, tone: "amber", change: cmp.avg_order_value, sub: "per completed booking" },
+    { testId: "kpi-aov", label: "Avg Order Value", value: d.avg_order_value, currency: true, icon: Wallet, tone: "amber", change: cmp.avg_order_value, sub: `${e.settled_bookings ?? 0} settled bookings` },
   ];
   const availableMetrics = ["gmv", "platform_revenue", "merchant_commission", "partner_earnings", "refunds"].filter((k) => series.some((r) => (r[k] || 0) !== 0) || k === "gmv" || k === "platform_revenue");
 

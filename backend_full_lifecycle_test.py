@@ -7,7 +7,7 @@ import requests
 import json
 import time
 
-BASE_URL = "https://auth-booking-nav.preview.emergentagent.com/api"
+BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
 
 # Credentials
 CUSTOMER_PHONE = "+919000000004"

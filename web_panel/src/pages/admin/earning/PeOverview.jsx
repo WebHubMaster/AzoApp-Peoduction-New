@@ -29,7 +29,7 @@ export function KpiGrid({ state, onTrace }) {
   const g = (cur, key) => (pv ? growth(cur, key(pv)) : null);
   const ptsDelta = pv && p.gross_margin != null && pv.gross_margin != null ? p.gross_margin - pv.gross_margin : null;
   const kpis = [
-    { id: "gross-revenue", label: "Gross Platform Revenue", icon: IndianRupee, tone: C.blue, value: p.revenue, delta: g(p.revenue, (x) => x.revenue), sub: `${inr(p.gross_collection, 0)} collected incl. GST`, trace: { sort: "gross" } },
+    { id: "gross-revenue", label: "Gross Platform Revenue", icon: IndianRupee, tone: C.blue, value: p.revenue, delta: g(p.revenue, (x) => x.revenue), sub: `Settled ${inr(s.settled_revenue, 0)} · ${inr(p.gross_collection, 0)} incl. GST`, trace: { sort: "gross" } },
     { id: "net-revenue", label: "Net Platform Revenue", icon: TrendingUp, tone: C.blue, color: C.blue, value: p.platform_revenue, delta: g(p.platform_revenue, (x) => x.platform_revenue), sub: `Take rate ${pct(p.take_rate)}`, trace: { sort: "platform_revenue" } },
     { id: "costs", label: "Total Platform Costs", icon: Receipt, tone: C.red, value: p.costs, delta: g(p.costs, (x) => x.costs), invert: true, sub: "Refunds, payouts & gateway", trace: { sort: "partner_payout" } },
     { id: "gross-profit", label: "Gross Profit", icon: PiggyBank, tone: C.green, color: p.gross_profit < 0 ? C.red : C.green, value: p.gross_profit, delta: g(p.gross_profit, (x) => x.gross_profit), sub: "After gateway charges", trace: { sort: "net_earning" } },

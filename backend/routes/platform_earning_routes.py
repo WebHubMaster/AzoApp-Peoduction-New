@@ -132,7 +132,7 @@ async def summary(request: Request, admin=Depends(ADMIN)):
             plo, phi = pe.bounds(*pb)
             (pt, _ps), pexp = await asyncio.gather(_totals(f, plo, phi), pe.operating_expenses(plo, phi))
             if pt.get("rows"):
-                prev = {**pe.derive(pt, pexp), "rows": pt.get("rows"), "orders": pt.get("orders"),
+                prev = {**pe.derive(pt, pexp), "settled_revenue": pe.settled_revenue(pt), "rows": pt.get("rows"), "orders": pt.get("orders"),
                         "commission": pe._r(pt.get("commission")), "platform_fee": pe._r(pt.get("platform_fee")),
                         "range": {"date_from": pb[0], "date_to": pb[1]}}
         orders = t.get("orders") or 0
@@ -150,7 +150,7 @@ async def summary(request: Request, admin=Depends(ADMIN)):
             "has_data": bool(t.get("rows")),
             "counts": {"rows": t.get("rows") or 0, "orders": orders, "bookings_settled": t.get("booking_orders") or 0,
                        "cancellations": t.get("refund_count") or 0, "gateway_rows": t.get("gateway_rows") or 0},
-            "pnl": pnl,
+            "pnl": pnl, "settled_revenue": pe.settled_revenue(t),
             "commission": pe._r(t.get("commission")), "platform_fee": pe._r(t.get("platform_fee")),
             "cancellation_fee": pe._r(t.get("cancellation_fee")), "other_income": pe._r(t.get("other_income")),
             "merchant_referral": pe._r(t.get("merchant_referral")), "merchant_customer": pe._r(t.get("merchant_customer")),

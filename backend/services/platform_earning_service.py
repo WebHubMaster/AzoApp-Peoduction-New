@@ -17,6 +17,9 @@ from config.database import db
 
 _CACHE: dict = {}
 EXPENSE_LIVE = {"deleted": {"$ne": True}}
+# Excludes seeded / demo rows everywhere money is reported (real data only).
+REAL = {"_seed": {"$exists": False}, "seed_source": {"$exists": False}, "demo": {"$ne": True}, "is_demo": {"$ne": True}}
+_REAL_BOOKING = {"_b.id": {"$exists": True}, "_b._seed": {"$exists": False}, "_b.seed_source": {"$exists": False}}
 _TTL = 45
 _INDEXED = False
 
@@ -124,7 +127,8 @@ def _post_match(f: dict) -> dict:
 # ───────────────────────── fact pipeline ─────────────────────────
 _BOOKING_PROJ = {"_id": 0, "id": 1, "service_name": 1, "category_name": 1, "address.city": 1, "partner_id": 1,
                  "partner_name": 1, "merchant_id": 1, "merchant_name": 1, "customer_id": 1, "customer_name": 1,
-                 "status": 1, "payment_status": 1, "pricing.convenience_fee": 1, "pricing.platform_fee": 1}
+                 "status": 1, "payment_status": 1, "booking_type": 1, "pricing.convenience_fee": 1, "pricing.platform_fee": 1,
+                 "_seed": 1, "seed_source": 1}
 _PAY_PROJ = {"_id": 0, "id": 1, "txn_ref": 1, "method": 1, "status": 1, "gateway_fee": 1}
 
 
@@ -146,7 +150,7 @@ def _common(extra: dict) -> dict:
         "merchant_id": "$_b.merchant_id", "merchant_name": "$_b.merchant_name", "customer_id": "$_b.customer_id",
         "customer_name": "$_b.customer_name", "method": {"$ifNull": ["$_p.method", None]},
         "booking_status": "$_b.status", "payment_status": "$_b.payment_status", "txn_status": "$_p.status",
-        "refund_status": None, "tax": 0.0, "commission": 0.0, "conv_fee": 0.0, "plat_fee": 0.0,
+        "booking_type": "$_b.booking_type", "refund_status": None, "tax": 0.0, "commission": 0.0, "conv_fee": 0.0, "plat_fee": 0.0,
         "platform_fee": 0.0, "cancellation_fee": 0.0, "other_income": 0.0, "refund": 0.0, "refund_pending": 0.0,
         "partner_payout": 0.0, "merchant_payout": 0.0,
         "has_gateway": {"$isNumber": "$_p.gateway_fee"}, "gateway_fee": _num("$_p.gateway_fee"),
@@ -157,8 +161,9 @@ def _common(extra: dict) -> dict:
 
 def _ledger_branch(lo, hi):
     return [
-        {"$match": {"created_at": {"$gte": lo, "$lte": hi}}},
+        {"$match": {"created_at": {"$gte": lo, "$lte": hi}, **REAL}},
         *_lookups(),
+        {"$match": _REAL_BOOKING},
         {"$project": _common({
             "source": "booking", "source_id": "$id", "date": "$created_at",
             "gross": _num("$gross"), "tax": _num("$tax"), "commission": _num("$platform_earning"),
@@ -174,8 +179,9 @@ def _ledger_branch(lo, hi):
 
 def _refund_branch(lo, hi):
     return [
-        {"$match": {"created_at": {"$gte": lo, "$lte": hi}}},
+        {"$match": {"created_at": {"$gte": lo, "$lte": hi}, **REAL}},
         *_lookups(),
+        {"$match": _REAL_BOOKING},
         {"$project": _common({
             "source": "cancellation", "source_id": "$id", "date": "$created_at", "refund_status": "$status",
             "service": {"$ifNull": ["$_b.service_name", "$service_name"]},
@@ -206,7 +212,7 @@ def _income_branch(coll, match, source, amount, who_id, who_name, method, gw, da
         "merchant_customer": 0.0, "has_gateway": {"$isNumber": gw} if gw else False,
         "gateway_fee": _num(gw) if gw else 0.0,
     }
-    return {"coll": coll, "pipeline": [{"$match": match}, {"$project": _lit(proj)}]}
+    return {"coll": coll, "pipeline": [{"$match": {**match, **REAL}}, {"$project": _lit(proj)}]}
 
 
 def fact_pipeline(f: dict, lo: str, hi: str, extra=None):
@@ -220,7 +226,8 @@ def fact_pipeline(f: dict, lo: str, hi: str, extra=None):
         _income_branch("membership_purchases", {"status": {"$in": ["paid", "success", "active"]}, "created_at": rng},
                        "membership", {"$ifNull": ["$amount", "$price"]}, "$user_id", "$user_name", "$method", None,
                        role="customer"),
-        _income_branch("partner_withdrawals", {"status": "completed", "fee": {"$gt": 0}, "created_at": rng},
+        _income_branch("partner_withdrawals", {"status": "completed", "fee": {"$gt": 0}, "created_at": rng,
+                                               "payout.payout_id": {"$not": {"$regex": "^pout_DEMO"}}},
                        "withdrawal_fee", "$fee", "$partner_id", "$partner_name", "$method", None),
         _income_branch("merchant_withdrawals", {"status": "completed", "fee": {"$gt": 0}, "requested_at": rng},
                        "withdrawal_fee", "$fee", "$merchant_id", "$merchant_name", "$method", None,
@@ -253,6 +260,7 @@ def _sum_group(key=None):
          "orders": {"$sum": {"$cond": [{"$in": ["$source", ["booking", "cancellation"]]}, 1, 0]}},
          "booking_orders": {"$sum": {"$cond": [{"$eq": ["$source", "booking"]}, 1, 0]}},
          "booking_gross": {"$sum": {"$cond": [{"$eq": ["$source", "booking"]}, "$gross", 0]}},
+         "booking_tax": {"$sum": {"$cond": [{"$eq": ["$source", "booking"]}, "$tax", 0]}},
          "refund_count": {"$sum": {"$cond": [{"$eq": ["$source", "cancellation"]}, 1, 0]}},
          "gateway_rows": {"$sum": {"$cond": ["$has_gateway", 1, 0]}},
          "merchant_referral": {"$sum": "$merchant_referral"}, "merchant_customer": {"$sum": "$merchant_customer"}}
@@ -267,6 +275,11 @@ def _r(x):
 
 def _pct(a, b):
     return round(a / b * 100, 2) if b else None
+
+
+def settled_revenue(t: dict):
+    """Completed/settled booking revenue (excl. GST) — booking ledger rows only."""
+    return _r((t.get("booking_gross") or 0) - (t.get("booking_tax") or 0))
 
 
 def derive(t: dict, expenses: float | None):
@@ -322,3 +335,13 @@ def csv_stream(columns, rows_iter):
 
 def now_utc():
     return datetime.now(timezone.utc)
+
+
+async def finance(f: dict, lo: str, hi: str, extra=None):
+    """Shared money totals (+ per-day raw sums) — used by Platform Earning AND the Admin Dashboard."""
+    res = await run(fact_pipeline(f, lo, hi, (extra or []) + [{"$facet": {
+        "t": [{"$group": _sum_group()}],
+        "d": [{"$group": _sum_group({"$substrBytes": ["$date", 0, 10]})}],
+    }}]))
+    r = res[0] if res else {}
+    return (r.get("t") or [{}])[0], r.get("d") or []

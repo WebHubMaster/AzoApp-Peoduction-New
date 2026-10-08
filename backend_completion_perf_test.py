@@ -28,7 +28,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Base URL from frontend/.env
-BASE_URL = "https://auth-booking-nav.preview.emergentagent.com/api"
+BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
 
 # Test credentials
 ADMIN_PHONE = "+919000000000"

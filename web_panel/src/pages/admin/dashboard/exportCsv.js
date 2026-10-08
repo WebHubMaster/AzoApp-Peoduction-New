@@ -5,9 +5,9 @@ export function buildDashboardCsv(d, meta) {
   const parts = [
     rows("AzoApp Analytics Export", ["Generated at", "Range", "From", "To", "Filters"], [[d.generated_at, d.range, d.window?.from, d.window?.to, meta.filters]]),
     rows("KPIs", ["Metric", "Value", "Change % vs previous"], [
-      ["Revenue (GMV)", d.gmv, d.compare?.gmv], ["Platform fee", d.platform_revenue, d.compare?.platform_revenue],
+      ["Gross platform revenue", d.gmv, d.compare?.gmv], ["Net platform revenue", d.platform_revenue, d.compare?.platform_revenue],
       ["Partner earnings", d.partner_earnings, d.compare?.partner_earnings], ["Merchant commission", d.merchant_commission, ""],
-      ["Tax collected", d.earnings?.tax, ""], ["Refunds", d.earnings?.refunds, ""], ["Net platform revenue", d.earnings?.net_revenue, ""],
+      ["Tax collected", d.earnings?.tax, ""], ["Refunds", d.earnings?.refunds, ""], ["Net platform revenue", d.earnings?.platform_revenue, ""],
       ["Total bookings", d.total_bookings, d.compare?.total_bookings], ["Completed bookings", d.completed_bookings, d.compare?.completed_bookings],
       ["Pending bookings", d.pending_bookings, d.compare?.pending_bookings], ["Cancelled bookings", d.cancelled_bookings, d.compare?.cancelled_bookings],
       ["Avg order value", d.avg_order_value, d.compare?.avg_order_value], ["Active customers", d.active_customers, d.compare?.active_customers],

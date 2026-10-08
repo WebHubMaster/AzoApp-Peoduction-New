@@ -7,7 +7,7 @@ import requests
 import json
 import sys
 
-BASE_URL = "https://auth-booking-nav.preview.emergentagent.com/api"
+BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
 OTP = "123456"
 
 CHANDAN = "+919128403769"

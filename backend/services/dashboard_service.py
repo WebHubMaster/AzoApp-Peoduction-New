@@ -5,10 +5,13 @@ from collections import OrderedDict
 from datetime import datetime, timedelta, timezone
 
 from config.database import db
+from services import platform_earning_service as pe
 
 _DAYS = {"today": 1, "yesterday": 1, "7d": 7, "15d": 15, "30d": 30,
          "90d": 90, "180d": 180, "365d": 365, "all": 100000}
 DONE = ("completed", "paid")
+REAL_BK = {"_seed": {"$exists": False}, "seed_source": {"$exists": False}}
+RU = {"is_demo": {"$ne": True}}
 STATUS_ORDER = ["searching", "assigned", "arrived_shop", "arrived_customer",
                 "started", "completed", "paid", "on_hold", "cancelled", "pending"]
 
@@ -53,6 +56,37 @@ def _window(range_, date_from, date_to):
     return dict(lo=lo, hi=hi, prev_lo=prev_lo, prev_hi=prev_hi, span=span, is_all=is_all, custom=custom, now=now)
 
 
+def _money(t, expenses):
+    """Map Platform Earning totals → dashboard money fields (single source of truth)."""
+    p = pe.derive(t, expenses)
+    n = t.get("booking_orders") or 0
+    return {
+        "gmv": p["revenue"], "gross_collection": p["gross_collection"], "settled_revenue": pe.settled_revenue(t),
+        "platform_revenue": p["platform_revenue"], "commission": _r(t.get("commission")),
+        "platform_fee": _r(t.get("platform_fee")), "cancellation_fee": _r(t.get("cancellation_fee")),
+        "other_income": _r(t.get("other_income")), "partner_earnings": p["partner_payout"],
+        "merchant_commission": p["merchant_payout"], "tax": p["tax"], "refunds": _r(p["refunds"] + p["refund_pending"]),
+        "gateway_fee": p["gateway_fee"], "gross_profit": p["gross_profit"], "net_profit": p["net_profit"],
+        "settled_bookings": n, "cancellations": t.get("refund_count") or 0,
+        "avg_order_value": _r((t.get("booking_gross") or 0) / n) if n else 0,
+    }
+
+
+async def _finance(range_, date_from, date_to, pf, extra):
+    if range_ == "all" and not (date_from and date_to):
+        date_from = date_to = ""
+    lo, hi = pe.bounds(date_from, date_to)
+    (t, days), exp = await pe.finance(pf, lo, hi, extra), await pe.operating_expenses(lo, hi)
+    cur = _money(t, exp)
+    prev = None
+    pb = pe.prev_bounds(date_from, date_to)
+    if pb:
+        plo, phi = pe.bounds(*pb)
+        (pt, _), pexp = await pe.finance(pf, plo, phi, extra), await pe.operating_expenses(plo, phi)
+        prev = _money(pt, pexp)
+    return cur, prev, days
+
+
 def _bucket_key(iso, bucket):
     d = (iso or "")[:10]
     if not d or bucket == "day":
@@ -72,6 +106,18 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
                 service: str = "", status: str = "", booking_type: str = "", payment_status: str = "",
                 partner: str = "", customer: str = "", category: str = "", merchant: str = "",
                 bucket: str = "auto") -> dict:
+    if range not in ("all", "custom") and not (date_from and date_to):
+        today = datetime.now(timezone.utc).date()
+        if range == "yesterday":
+            date_from = date_to = (today - timedelta(days=1)).isoformat()
+        else:
+            date_to = today.isoformat()
+            date_from = (today - timedelta(days=_DAYS.get(range, 30) - 1)).isoformat()
+    pf = {"date_from": "", "date_to": "", "city": city, "service": service, "category": category,
+          "booking_status": status, "payment_status": payment_status}
+    em = {k: v for k, v in (("partner_name", partner), ("customer_name", customer),
+                            ("merchant_name", merchant), ("booking_type", booking_type)) if v}
+    fin, fin_prev, fin_days = await _finance(range, date_from, date_to, pf, [{"$match": em}] if em else [])
     w = _window(range, date_from, date_to)
     lo, hi, prev_lo, prev_hi, is_all = w["lo"], w["hi"], w["prev_lo"], w["prev_hi"], w["is_all"]
 
@@ -95,16 +141,15 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
         if merchant and (b.get("merchant_name") or "") != merchant: return False
         return True
 
-    all_bookings = await db.bookings.find({}, {"_id": 0, "otps": 0, "eligible_detail": 0, "eligible_partner_ids": 0,
+    all_bookings = await db.bookings.find(REAL_BK, {"_id": 0, "otps": 0, "eligible_detail": 0, "eligible_partner_ids": 0,
                                                "offered_partner_ids": 0, "evidence": 0, "timeline": 0}).to_list(20000)
     ledger_by_code = {}
-    async for l in db.commission_ledger.find({}, {"_id": 0}):
+    async for l in db.commission_ledger.find(pe.REAL, {"_id": 0}):
         ledger_by_code.setdefault(l.get("booking_code"), []).append(l)
 
     matched = [b for b in all_bookings if match(b)]
     bookings = [b for b in matched if in_cur(b.get("created_at"))]
     prev_bookings = [b for b in matched if in_prev(b.get("created_at"))]
-    codes = {b.get("code") for b in bookings}
 
     def ledger_sum(bk, field):
         return sum(float(l.get(field, 0) or 0) for b in bk for l in ledger_by_code.get(b.get("code"), []))
@@ -125,30 +170,24 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
             "active_merchants": len({b.get("merchant_id") for b in bk if b.get("merchant_id")}),
         }
     cur, prev = agg(bookings), agg(prev_bookings)
+    money_keys = ("gmv", "platform_revenue", "partner_earnings", "merchant_commission", "avg_order_value")
+    cur.update({k: fin[k] for k in money_keys})
+    prev.update({k: (fin_prev or {}).get(k, 0) for k in money_keys})
 
-    # ---- refunds / tax (joined to bookings in window) ----
-    refunds_docs = await db.refunds.find({}, {"_id": 0, "timeline": 0}).to_list(10000)
-    ref_in = [r for r in refunds_docs if in_cur(r.get("initiated_at") or r.get("cancelled_at") or r.get("created_at"))
-              and (not codes or r.get("booking_code") in codes or not (city or service or category or status or booking_type or payment_status or partner or customer or merchant))]
-    refund_total = sum(float(r.get("amount") or r.get("refund_amount") or 0) for r in ref_in)
-    pending_refunds = len([r for r in refunds_docs if (r.get("status") or "") in ("pending", "initiated", "processing")])
-    tax_total = 0.0
-    if codes:
-        async for t in db.payment_transactions.find({"booking_code": {"$in": list(codes)}, "status": "success"}, {"_id": 0, "invoice.tax": 1}):
-            tax_total += float(((t.get("invoice") or {}).get("tax")) or 0)
+    pending_refunds = await db.refunds.count_documents({"status": {"$in": ["pending", "initiated", "processing"]}})
 
     # ---- people ----
-    customers = await db.users.count_documents({"role": "customer"})
-    partners_n = await db.users.count_documents({"role": "partner"})
-    merchants = await db.users.count_documents({"role": "merchant"})
+    customers = await db.users.count_documents({"role": "customer", **RU})
+    partners_n = await db.users.count_documents({"role": "partner", **RU})
+    merchants = await db.users.count_documents({"role": "merchant", **RU})
     online = await db.users.count_documents({"role": "partner", "partner_status": "online"})
     created_in = {} if is_all else {"created_at": {"$gte": lo, "$lte": hi}}
-    new_customers = await db.users.count_documents({"role": "customer", **created_in})
-    new_partners = await db.users.count_documents({"role": "partner", **created_in})
-    new_merchants = await db.users.count_documents({"role": "merchant", **created_in})
-    prev_customers = customers if is_all else await db.users.count_documents({"role": "customer", "created_at": {"$lte": prev_hi}})
-    prev_partners = partners_n if is_all else await db.users.count_documents({"role": "partner", "created_at": {"$lte": prev_hi}})
-    prev_merchants = merchants if is_all else await db.users.count_documents({"role": "merchant", "created_at": {"$lte": prev_hi}})
+    new_customers = await db.users.count_documents({"role": "customer", **RU, **created_in})
+    new_partners = await db.users.count_documents({"role": "partner", **RU, **created_in})
+    new_merchants = await db.users.count_documents({"role": "merchant", **RU, **created_in})
+    prev_customers = customers if is_all else await db.users.count_documents({"role": "customer", **RU, "created_at": {"$lte": prev_hi}})
+    prev_partners = partners_n if is_all else await db.users.count_documents({"role": "partner", **RU, "created_at": {"$lte": prev_hi}})
+    prev_merchants = merchants if is_all else await db.users.count_documents({"role": "merchant", **RU, "created_at": {"$lte": prev_hi}})
 
     # ---- status breakdown ----
     present = [s for s in STATUS_ORDER if any(b.get("status") == s for b in bookings)]
@@ -247,17 +286,17 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
         st = b.get("status") or "unknown"
         r[f"s_{st}"] = r.get(f"s_{st}", 0) + 1
         if st in DONE:
-            r["gmv"] += _total(b); r["completed"] += 1
+            r["completed"] += 1
         if st == "cancelled":
             r["cancelled"] += 1
-        for l in ledger_by_code.get(b.get("code"), []):
-            r["platform_revenue"] += float(l.get("platform_earning", 0) or 0)
-            r["partner_earnings"] += float(l.get("partner_earning", 0) or 0)
-            r["merchant_commission"] += float(l.get("merchant_referral", 0) or 0)
-    for rf in ref_in:
-        k = _bucket_key(rf.get("initiated_at") or rf.get("cancelled_at") or rf.get("created_at"), bucket)
-        if k:
-            row(k)["refunds"] += float(rf.get("amount") or rf.get("refund_amount") or 0)
+    for dd in fin_days:
+        k = _bucket_key(dd.get("_id"), bucket)
+        if not k:
+            continue
+        m = _money(dd, None); r = row(k)
+        r["gmv"] += m["gmv"]; r["platform_revenue"] += m["platform_revenue"]
+        r["partner_earnings"] += m["partner_earnings"]; r["merchant_commission"] += m["merchant_commission"]
+        r["refunds"] += m["refunds"]
     combined_series = []
     for r in sorted(ser.values(), key=lambda x: x["date"]):
         for f in ("gmv", "platform_revenue", "partner_earnings", "merchant_commission", "refunds"):
@@ -359,7 +398,6 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
     for b in recent:
         b.pop("commission_config", None); b.pop("addons", None); b.pop("spare_parts", None); b.pop("notes", None)
 
-    net_revenue = _r(cur["platform_revenue"] - cur["merchant_commission"] - refund_total)
     cancelled = cur["cancelled_bookings"]
     return {
         "generated_at": w["now"].isoformat(),
@@ -382,9 +420,8 @@ async def build(range: str = "30d", date_from: str = "", date_to: str = "", city
         },
         "previous": prev,
         "earnings": {
-            "gmv": cur["gmv"], "platform_revenue": cur["platform_revenue"], "partner_earnings": cur["partner_earnings"],
-            "merchant_commission": cur["merchant_commission"], "tax": _r(tax_total), "refunds": _r(refund_total),
-            "net_revenue": net_revenue, "refund_count": len(ref_in),
+            **fin, "refund_count": fin["cancellations"],
+            "compare": {k: pct_change(fin[k], fin_prev[k]) for k in fin if isinstance(fin[k], (int, float))} if fin_prev else {},
             "gmv_change": pct_change(cur["gmv"], prev["gmv"]),
             "platform_revenue_change": pct_change(cur["platform_revenue"], prev["platform_revenue"]),
             "partner_earnings_change": pct_change(cur["partner_earnings"], prev["partner_earnings"]),

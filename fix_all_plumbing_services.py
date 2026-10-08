@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://auth-booking-nav.preview.emergentagent.com/api"
+BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"
 

@@ -216,3 +216,12 @@ User choices: code already in /app; seed realistic demo data; reuse existing adm
 - 5-step setup guide inside the config popup + "Test Vision AI" button (POST /api/admin/integrations/vision-test)
 - Deep link /admin?tab=integration_center&intg=ocr; Work Proof face panel links straight to it
 - Face match reason text now names the exact card. Tested: iteration_256 (all pass)
+
+## Dashboard ↔ Platform Earning data parity (Oct 2026)
+Problem: Admin Dashboard and Platform Earning showed different money figures; user wants only real (non-dummy) data.
+Done:
+- Dashboard money KPIs/series/earnings now come from the same engine as Platform Earning (`platform_earning_service.finance` + `derive`), same date window and filters.
+- Dashboard "Total Revenue" → "Gross Platform Revenue", "Platform Fee" → "Net Platform Revenue"; Revenue vs Earnings panel shows settled revenue, all-bookings revenue, incl.-GST collection, payouts, refunds, commission, net revenue.
+- Seeded/demo rows (`_seed`, `seed_source`, `demo`, `is_demo`, ledger/refunds with no real booking, `pout_DEMO` withdrawals) excluded from both pages.
+- Verified with a parity script: all 11 money figures match exactly (with and without filters).
+Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_merchant_demo, seed_merchant_referral_commission) from production DB; admin "purge demo data" tool.

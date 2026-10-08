@@ -6,20 +6,22 @@ import { Card, SectionTitle, Delta, EmptyState, Seg, Sel, Mini, Bar, fmt, fmtC, 
 import ExactHover from "@/components/ExactHover";
 
 /* ---------------- Revenue vs Earnings ---------------- */
-export function EarningsBreakdown({ e = {}, cmp = {}, hasBaseline }) {
+export function EarningsBreakdown({ e = {}, hasBaseline }) {
+  const c = e.compare || {};
   const rows = [
-    { k: "Gross Booking Value", v: e.gmv, c: cmp.gmv, bar: "bg-primary-600", hint: "Total of completed/paid bookings" },
-    { k: "Partner Earnings", v: e.partner_earnings, c: cmp.partner_earnings, bar: "bg-emerald-500", hint: "Paid out to partners (ledger)" },
-    { k: "Platform Fee", v: e.platform_revenue, c: cmp.platform_revenue, bar: "bg-indigo-500", hint: "Platform commission (ledger)" },
-    { k: "Merchant Commission", v: e.merchant_commission, c: null, bar: "bg-amber-500", hint: "Referral commission owed to merchants" },
-    { k: "Tax Collected", v: e.tax, c: null, bar: "bg-sky-500", hint: "From successful payment invoices" },
-    { k: "Refunds", v: e.refunds, c: null, bar: "bg-red-500", hint: `${e.refund_count ?? 0} refund record${e.refund_count === 1 ? "" : "s"}`, invert: true },
-    { k: "Net Platform Revenue", v: e.net_revenue, c: null, bar: "bg-slate-800", hint: "Platform fee − merchant commission − refunds", strong: true },
+    { k: "Gross Platform Revenue", v: e.gmv, c: c.gmv, bar: "bg-primary-600", hint: "All settled + cancelled bookings & income, excl. GST" },
+    { k: "Settled Booking Revenue", v: e.settled_revenue, c: c.settled_revenue, bar: "bg-blue-400", hint: `${e.settled_bookings ?? 0} completed bookings, excl. GST` },
+    { k: "Collected incl. GST", v: e.gross_collection, c: c.gross_collection, bar: "bg-sky-500", hint: `GST ${fmtC(e.tax)}` },
+    { k: "Partner Payouts", v: e.partner_earnings, c: c.partner_earnings, bar: "bg-emerald-500", hint: "Earnings accrued to partners" },
+    { k: "Merchant Payouts", v: e.merchant_commission, c: c.merchant_commission, bar: "bg-amber-500", hint: "Referral + customer commission" },
+    { k: "Refund Impact", v: e.refunds, c: c.refunds, bar: "bg-red-500", hint: `${e.refund_count ?? 0} cancellations`, invert: true },
+    { k: "Platform Commission", v: e.commission, c: c.commission, bar: "bg-violet-500", hint: `Fees ${fmtC(e.platform_fee)} · Cancel fees ${fmtC(e.cancellation_fee)}` },
+    { k: "Net Platform Revenue", v: e.platform_revenue, c: c.platform_revenue, bar: "bg-slate-800", hint: `Gross profit ${fmtC(e.gross_profit)} after gateway`, strong: true },
   ];
   return (
     <Card className="p-5" data-testid="dash-earnings">
-      <SectionTitle icon={Wallet} sub="Every figure comes from bookings, commission ledger, payment transactions & refunds">Revenue vs Earnings</SectionTitle>
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
+      <SectionTitle icon={Wallet} sub="Same live calculation as Platform Earning — settled ledger, refunds, payments & withdrawals">Revenue vs Earnings</SectionTitle>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {rows.map((r) => (
           <div key={r.k} data-testid={`earn-${r.k.toLowerCase().replace(/[^a-z]+/g, "-")}`} className={`rounded-xl border p-3.5 relative overflow-hidden ${r.strong ? "border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40" : "border-slate-100 dark:border-slate-800"}`}>
             <span className={`absolute left-0 top-0 bottom-0 w-1 ${r.bar}`} />
