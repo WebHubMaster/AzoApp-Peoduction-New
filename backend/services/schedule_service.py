@@ -17,7 +17,7 @@ except Exception:  # pragma: no cover - fallback if tzdata missing
 
 # Call / Chat / Navigation unlock, partner reminder and customer OTP visibility all
 # happen exactly this many minutes before the scheduled start. This is the DEFAULT;
-# admins can override it (30 / 45 / 60) — the sweep refreshes the live value below.
+# admins can override it (15 / 30 / 45 / 60) — the sweep refreshes the live value below.
 LEAD_MINUTES = 30
 _ALLOWED_LEADS = (15, 30, 45, 60)
 _LEAD_OVERRIDE = None  # set from admin settings via set_lead_minutes()

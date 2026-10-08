@@ -1731,8 +1731,9 @@ async def _send_schedule_reminders(b, st):
 
 
 async def scheduled_reminder_tick():
-    """One pass: fire the 30-min reminder/unlock for any scheduled job that has
-    just entered its 30-minute window. Returns how many bookings were notified."""
+    """One pass: fire the reminder/unlock for any scheduled job that has
+    just entered its lead-time window (admin-configurable, default 30 min).
+    Returns how many bookings were notified."""
     now = datetime.now(timezone.utc)
     sent = 0
     # Keep the live lead time in sync with admin config (business_config, fallback scheduling).

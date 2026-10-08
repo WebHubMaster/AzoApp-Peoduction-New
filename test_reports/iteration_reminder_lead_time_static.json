@@ -1,0 +1,62 @@
+{
+  "summary": "Static code-level verification of admin-configurable Partner Reminder Lead Time (business_config.reminder_lead_minutes) propagation across backend schedule service, HTTP 423 lock messages, and partner-facing frontend copy. Live e2e not possible (backend/.env missing MONGO_URL/DB_NAME, panels not served). All four requirement items verified PASS.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "static_verification": {
+    "schedule_service_lead_minutes": {
+      "file": "backend/services/schedule_service.py",
+      "findings": [
+        "lead_minutes() returns _LEAD_OVERRIDE or LEAD_MINUTES (default 30) — line 26-28",
+        "set_lead_minutes validates against _ALLOWED_LEADS=(15,30,45,60); invalid values reset override to None — line 31-39",
+        "schedule_state(): lm = lead_minutes() -> state['lead_minutes']=lm (line 215-216); unlock = sched_utc - timedelta(minutes=lm) (line 217); comm_locked = (now < unlock) (line 233-234)."
+      ],
+      "status": "PASS"
+    },
+    "booking_controller_sweep_and_423": {
+      "file": "backend/controllers/booking_controller.py",
+      "findings": [
+        "scheduled_reminder_tick() at line 1733 reads settings.business_config.reminder_lead_minutes (fallback scheduling.reminder_lead_minutes) and calls set_lead_minutes(_lead) on every 7s pass — lines 1738-1746.",
+        "All HTTP 423 detail strings are f-strings interpolating lead_minutes(): chat (900), location sharing (3032-3033), start-work (3085-3086), before-photo (3134, 3159, 3281), before-proof (3205-3206), check-in (3238). No hardcoded '30' remains."
+      ],
+      "status": "PASS"
+    },
+    "partner_web_PartnerDashboard": {
+      "file": "web_panel/src/pages/partner/PartnerDashboard.jsx",
+      "findings": [
+        "const leadMin = Number(sched.lead_minutes) || 30 (line 384)",
+        "Chat toast (419), navigate note (524), start-locked note (566) all use ${leadMin} minutes."
+      ],
+      "status": "PASS"
+    },
+    "partner_app_active_tsx": {
+      "file": "PartnerApp/app/(partner)/active.tsx",
+      "findings": [
+        "Scheduled-card note `${Number(s.lead_minutes) || 30} minutes` (381)",
+        "const leadMin (467); navigate note (638), chat toast (648), start-locked note (669)."
+      ],
+      "status": "PASS"
+    },
+    "wizards_check_in_copy": {
+      "files": ["web_panel/src/components/partner/JobWizard.jsx", "PartnerApp/app/(partner)/partner/job/[id].tsx"],
+      "findings": [
+        "JobWizard.jsx line 225 + 371 use ${Number(b.schedule?.lead_minutes) || 30}",
+        "job/[id].tsx line 407 + 424 use ${Number(b.schedule?.lead_minutes) || 30}"
+      ],
+      "status": "PASS"
+    },
+    "grep_hardcoded_30_minutes": "No hardcoded partner lock copy; every '30' occurrence is bound to `Number(... .lead_minutes) || 30` fallback as explicitly allowed by spec."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Doc drift: schedule_service.py line 5 docstring and line 20 comment still reference '30-minute' / allowed values '(30/45/60)' while _ALLOWED_LEADS=(15,30,45,60). Cosmetic.",
+    "Doc drift: booking_controller.py line 1734 docstring says 'fire the 30-min reminder/unlock'. Cosmetic.",
+    "Enhancement: log when set_lead_minutes receives an out-of-set value so admins notice invalid persisted config instead of silently falling back to default 30."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (static)", "frontend": "100% (static)"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Static verification only — backend cannot boot in this pod. For true e2e: PATCH /api/admin/settings {business_config:{reminder_lead_minutes:45}}, wait >=8s for the sweep, create a scheduled booking 44 min out, confirm GET booking returns schedule.lead_minutes=45 and schedule.comm_locked=false; booking 46 min out should return comm_locked=true and any locked action should 423 with '45 minutes' in detail."
+}
