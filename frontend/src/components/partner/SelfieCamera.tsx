@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Modal, View, Text, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
+import { Modal, View, Text, Pressable, ActivityIndicator, Image, useWindowDimensions } from "react-native";
 import Svg, { Path, Ellipse } from "react-native-svg";
 import { CameraView } from "expo-camera";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -71,11 +71,13 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
   const [count, setCount] = useState(0);
   const [facing, setFacing] = useState<"front" | "back">("front");
   const [chk, setChk] = useState<Check>({ faceOk: false, dark: false, unavailable: false, checking: true });
+  const [preview, setPreview] = useState<Shot | null>(null);
   const probing = useRef(false);
   const shooting = useRef(false);
   const fails = useRef(0);
+  const pauseProbe = useRef(false);
 
-  useEffect(() => { if (!visible) { setReady(false); setBusy(false); setCount(0); shooting.current = false; setChk({ faceOk: false, dark: false, unavailable: false, checking: true }); } }, [visible]);
+  useEffect(() => { if (!visible) { setReady(false); setBusy(false); setCount(0); setPreview(null); shooting.current = false; setChk({ faceOk: false, dark: false, unavailable: false, checking: true }); } }, [visible]);
 
   // Probe loop: silent low-res frame every ~1s → ML Kit face + EXIF brightness.
   useEffect(() => {
@@ -83,7 +85,7 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     let alive = true; let timer: any = null;
     const loop = async () => {
       if (!alive) return;
-      if (!probing.current && !shooting.current && cam.current) {
+      if (!probing.current && !shooting.current && !pauseProbe.current && cam.current) {
         probing.current = true;
         try {
           const d = await getDetector().catch(() => null);
@@ -102,7 +104,7 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
           if (++fails.current >= 3 && alive) setChk((c) => ({ ...c, faceOk: true, unavailable: true, checking: false }));
         } finally { probing.current = false; }
       }
-      if (alive) timer = setTimeout(loop, 900);
+      if (alive) timer = setTimeout(loop, 1800);
     };
     timer = setTimeout(loop, 400);
     return () => { alive = false; clearTimeout(timer); };
@@ -114,7 +116,7 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     try {
       for (let i = 0; probing.current && i < 40; i++) await new Promise((r) => setTimeout(r, 80));
       const p = await cam.current.takePictureAsync({ quality: 0.7, exif: false });
-      if (p?.uri) onCapture({ uri: p.uri, width: p.width, height: p.height, mimeType: "image/jpeg" });
+      if (p?.uri) setPreview({ uri: p.uri, width: p.width, height: p.height, mimeType: "image/jpeg" });
     } catch (e: any) { onFail(e?.message || "Couldn't capture the selfie. Please try again."); }
     finally { shooting.current = false; setBusy(false); }
   };
@@ -125,9 +127,13 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     return () => clearTimeout(t);
   }, [count]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  pauseProbe.current = !!preview || count > 0 || busy;
   const canShoot = ready && !busy && !count;
   const okLook = chk.faceOk && !chk.unavailable;
   const hint = !ready ? "Starting camera…" : count ? "Hold still…" : chk.dark ? "Too dark — move to a brighter place" : okLook ? "Perfect! Tap the button to capture" : "Align your face in the oval, then tap to capture";
+
+  const usePhoto = () => { if (preview) onCapture(preview); };
+  const retake = () => { setPreview(null); };
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
@@ -136,27 +142,44 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
           <CameraView key={facing} ref={cam} style={{ flex: 1 }} facing={facing} mirror={facing === "front"} animateShutter={false}
             onCameraReady={() => setReady(true)} onMountError={(e) => onFail(e?.message || "Camera unavailable on this device")} />
         ) : null}
-        {ready ? <FaceGuide ok={okLook} /> : null}
-        {ready && chk.dark ? (
-          <View testID="selfie-dark-warning" pointerEvents="none" style={{ position: "absolute", top: insets.top + 64, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(245,158,11,0.95)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 7 }}>
-            <Icon name="weather-night" size={16} color="#451A03" /><Text style={{ color: "#451A03", fontSize: 12.5, fontWeight: "800" }}>Too dark — move to light</Text>
+        {!preview ? (
+          <>
+            {ready ? <FaceGuide ok={okLook} /> : null}
+            {ready && chk.dark ? (
+              <View testID="selfie-dark-warning" pointerEvents="none" style={{ position: "absolute", top: insets.top + 64, alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "rgba(245,158,11,0.95)", borderRadius: 6, paddingHorizontal: 12, paddingVertical: 7 }}>
+                <Icon name="weather-night" size={16} color="#451A03" /><Text style={{ color: "#451A03", fontSize: 12.5, fontWeight: "800" }}>Too dark — move to light</Text>
+              </View>
+            ) : null}
+            {count ? (
+              <View testID="selfie-countdown" pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
+                <Text style={{ color: "#fff", fontSize: 110, fontWeight: "900", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 12 }}>{count}</Text>
+              </View>
+            ) : null}
+            <View style={{ position: "absolute", top: insets.top + 12, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" }}>
+              <Pressable testID="selfie-camera-close" onPress={onClose} hitSlop={10} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={22} color="#fff" /></Pressable>
+              <Pressable testID="selfie-camera-flip" disabled={!!count || busy} onPress={() => { setReady(false); setChk({ faceOk: false, dark: false, unavailable: false, checking: true }); setFacing((f) => (f === "front" ? "back" : "front")); }} hitSlop={10} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}><Icon name="camera-flip-outline" size={22} color="#fff" /></Pressable>
+            </View>
+            <View style={{ position: "absolute", left: 0, right: 0, bottom: insets.bottom + 28, alignItems: "center" }}>
+              <Text testID="selfie-hint" style={{ color: chk.dark ? "#FCD34D" : okLook ? "#86EFAC" : "#fff", fontSize: 13.5, fontWeight: "700", marginBottom: 14 }}>{hint}</Text>
+              <Pressable testID="selfie-camera-shutter" onPress={() => setCount(3)} disabled={!canShoot} style={{ width: 76, height: 76, borderRadius: 38, borderWidth: 5, borderColor: okLook ? "#86EFAC" : "#fff", alignItems: "center", justifyContent: "center", opacity: canShoot ? 1 : 0.45 }}>
+                {busy ? <ActivityIndicator color="#fff" /> : <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: okLook ? "#22C55E" : "#fff" }} />}
+              </Pressable>
+            </View>
+          </>
+        ) : (
+          <View testID="selfie-preview" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "#000" }}>
+            <Image source={{ uri: preview.uri }} resizeMode="cover" style={{ flex: 1, transform: facing === "front" ? [{ scaleX: -1 }] : [] }} />
+            <Pressable testID="selfie-preview-close" onPress={onClose} hitSlop={10} style={{ position: "absolute", top: insets.top + 12, left: 16, width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={22} color="#fff" /></Pressable>
+            <View style={{ position: "absolute", left: 20, right: 20, bottom: insets.bottom + 28, flexDirection: "row", gap: 14 }}>
+              <Pressable testID="selfie-retake" onPress={retake} style={{ flex: 1, height: 54, borderRadius: 12, borderWidth: 2, borderColor: "#fff", alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, backgroundColor: "rgba(0,0,0,0.35)" }}>
+                <Icon name="camera-retake-outline" size={20} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Retake</Text>
+              </Pressable>
+              <Pressable testID="selfie-use" onPress={usePhoto} style={{ flex: 1, height: 54, borderRadius: 12, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 8, backgroundColor: "#22C55E" }}>
+                <Icon name="check" size={22} color="#fff" /><Text style={{ color: "#fff", fontSize: 16, fontWeight: "800" }}>Use Photo</Text>
+              </Pressable>
+            </View>
           </View>
-        ) : null}
-        {count ? (
-          <View testID="selfie-countdown" pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ color: "#fff", fontSize: 110, fontWeight: "900", textShadowColor: "rgba(0,0,0,0.6)", textShadowRadius: 12 }}>{count}</Text>
-          </View>
-        ) : null}
-        <View style={{ position: "absolute", top: insets.top + 12, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" }}>
-          <Pressable testID="selfie-camera-close" onPress={onClose} hitSlop={10} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}><Icon name="close" size={22} color="#fff" /></Pressable>
-          <Pressable testID="selfie-camera-flip" disabled={!!count || busy} onPress={() => { setReady(false); setChk({ faceOk: false, dark: false, unavailable: false, checking: true }); setFacing((f) => (f === "front" ? "back" : "front")); }} hitSlop={10} style={{ width: 42, height: 42, borderRadius: 21, backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center" }}><Icon name="camera-flip-outline" size={22} color="#fff" /></Pressable>
-        </View>
-        <View style={{ position: "absolute", left: 0, right: 0, bottom: insets.bottom + 28, alignItems: "center" }}>
-          <Text testID="selfie-hint" style={{ color: chk.dark ? "#FCD34D" : okLook ? "#86EFAC" : "#fff", fontSize: 13.5, fontWeight: "700", marginBottom: 14 }}>{hint}</Text>
-          <Pressable testID="selfie-camera-shutter" onPress={() => setCount(3)} disabled={!canShoot} style={{ width: 76, height: 76, borderRadius: 38, borderWidth: 5, borderColor: okLook ? "#86EFAC" : "#fff", alignItems: "center", justifyContent: "center", opacity: canShoot ? 1 : 0.45 }}>
-            {busy ? <ActivityIndicator color="#fff" /> : <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: okLook ? "#22C55E" : "#fff" }} />}
-          </Pressable>
-        </View>
+        )}
       </View>
     </Modal>
   );
