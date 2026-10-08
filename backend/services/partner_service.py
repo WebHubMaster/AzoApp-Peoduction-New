@@ -906,30 +906,8 @@ async def process_streak(partner_id, rating):
 
         bonus_paid = 0
         threshold = int(cfg.get("streak_threshold", 5) or 5)
-        if cfg.get("streak_enabled", True) and threshold > 0 and current % threshold == 0:
-            milestone = current // threshold  # 1st, 2nd, 3rd milestone …
-            base = float(cfg.get("streak_base_bonus", 100) or 0)
-            inc = float(cfg.get("streak_increment", 50) or 0)
-            bonus_paid = money.add(base, (milestone - 1) * inc)
-            if bonus_paid > 0:
-                await db.users.update_one({"id": partner_id},
-                                          {"$inc": {"wallet_balance": bonus_paid,
-                                                    "streak_milestones_paid": 1}})
-                await db.partner_ledger.insert_one({
-                    "id": new_id(), "partner_id": partner_id, "kind": "streak_bonus",
-                    "direction": "credit", "amount": bonus_paid, "ref_type": "streak",
-                    "ref_id": f"streak-{current}",
-                    "note": f"Streak bonus · {current} consecutive 5★ jobs",
-                    "status": "completed", "created_at": now_iso()})
-                await db.transactions.insert_one({
-                    "id": new_id(), "user_id": partner_id, "amount": bonus_paid, "type": "credit",
-                    "kind": "streak_bonus",
-                    "note": f"Streak bonus ({current} × 5★)", "created_at": now_iso()})
-                await audit({"id": "system", "name": "Streak Bonus"},
-                            "partner.streak.bonus", partner_id,
-                            {"streak": current, "amount": bonus_paid})
-                await notify(partner_id, "🔥 Streak bonus!",
-                             f"{current} five-star jobs in a row — ₹{bonus_paid} added to your wallet!")
+        # Streak bonuses are permanently disabled: the 5★ streak is tracked for
+        # stats/display only — completing a milestone NEVER credits a wallet bonus.
         return {"streak": current, "best": best, "bonus_paid": bonus_paid, "threshold": threshold}
     except Exception:
         return None
@@ -993,12 +971,12 @@ def _streak_stats(partner, cfg):
     if partner.get("streak_freeze_week") != wk:
         used = 0
     return {
-        "enabled": bool(cfg.get("streak_enabled", True)),
+        "enabled": False,
         "current": current, "best": best, "threshold": threshold,
         "into_milestone": into,
         "remaining": (threshold - into) if threshold else 0,
         "progress_pct": round(into / threshold * 100) if threshold else 0,
-        "next_bonus": next_bonus,
+        "next_bonus": 0,
         "milestones_paid": int(partner.get("streak_milestones_paid", 0) or 0),
         "freeze_enabled": bool(cfg.get("streak_freeze_enabled", True)),
         "freezes_total": per_week,
@@ -1189,8 +1167,9 @@ async def send_streak_reminders():
     per day (17:00–21:00 IST window), idempotent via users.streak_reminder_date."""
     try:
         cfg = await get_wallet_config()
-        if not (cfg.get("streak_reminder_enabled", True) and cfg.get("streak_enabled", True)):
-            return 0
+        # Streak bonuses are permanently disabled — never send the "keep your
+        # streak alive for a ₹ bonus" reminder since no bonus is ever paid.
+        return 0
         now = _ist_now()
         if not (17 <= now.hour <= 21):
             return 0
