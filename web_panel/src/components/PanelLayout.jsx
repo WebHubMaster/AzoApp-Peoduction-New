@@ -126,6 +126,7 @@ const PartnerAlertsReminder = ({ role }) => {
 };
 
 const NotificationBell = () => {
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(() => localStorage.getItem("azo_notif_seen") || "");
@@ -138,8 +139,15 @@ const NotificationBell = () => {
   useEffect(() => subscribe("notification", (ev) => {
     load();
     try { playSound(); } catch { /* ignore */ }
+    if (ev?.event === "face_mismatch") {
+      toast.error(ev.title || "Face mismatch at check-in", {
+        id: `face-${ev.booking_id}`, description: ev.body, duration: 30000, className: "face-mismatch-toast",
+        action: ev.link ? { label: "Open booking", onClick: () => navigate(ev.link) } : undefined,
+      });
+      return;
+    }
     if (ev?.title) toast(ev.title, { description: ev.body });
-  }), [subscribe, playSound]);
+  }), [subscribe, playSound, navigate]);
   useEffect(() => { const h = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
   const unread = items.filter((n) => !seen || (n.created_at || "") > seen).length;
   const toggle = () => { const nx = !open; setOpen(nx); if (nx && items[0]) { const ts = items[0].created_at; localStorage.setItem("azo_notif_seen", ts); setSeen(ts); } };
@@ -155,8 +163,10 @@ const NotificationBell = () => {
           <PushPermissionRow />
           {items.length === 0 && <p className="px-4 py-6 text-center text-sm text-slate-400">No notifications yet</p>}
           {items.slice(0, 30).map((n) => (
-            <div key={n.id} className="px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{n.title}</p>
+            <div key={n.id} data-testid={`notif-item-${n.data?.event || n.data?.type || "item"}`}
+              onClick={() => { if (n.link && n.link !== "/") { setOpen(false); navigate(n.link); } }}
+              className={`px-4 py-3 border-b border-slate-50 dark:border-slate-700/50 last:border-0 ${n.link && n.link !== "/" ? "cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40" : ""} ${n.data?.event === "face_mismatch" ? "bg-red-50/70 dark:bg-red-900/10" : ""}`}>
+              <p className={`text-sm font-semibold ${n.data?.event === "face_mismatch" ? "text-red-700" : "text-slate-800 dark:text-slate-100"}`}>{n.title}</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{n.body || n.message}</p>
             </div>
           ))}

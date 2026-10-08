@@ -34,6 +34,8 @@ async def notify(user_id: str, title: str, body: str, *, link: str = "/",
             "title": title, "body": body, "link": link,
             "event": event, "type": data.get("type") or event or "notification",
             **({"booking_id": data["booking_id"]} if data.get("booking_id") else {}),
+            **({"booking_code": data["booking_code"], "confidence": data.get("confidence"), "partner_name": data.get("partner_name"), "image": image}
+               if event == "face_mismatch" else {}),
         })
         result["sse"] = True
     except Exception:  # noqa: BLE001

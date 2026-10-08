@@ -98,22 +98,42 @@ async def kyc_photo_for(partner_id: str) -> str:
     return (u.get("live_photo_url") or u.get("photo") or "").strip()
 
 
+async def _alert_recipients() -> list:
+    """Admins + staff whose role can view bookings (RBAC respected)."""
+    from services.rbac_service import effective_permissions
+    out = []
+    for u in await db.users.find({"role": {"$in": ["admin", "staff"]}, "is_active": {"$ne": False}},
+                                 {"_id": 0, "id": 1, "role": 1, "system_role_id": 1, "system_role": 1}).to_list(200):
+        perms, sup = await effective_permissions(u)
+        if sup or (perms.get("bookings") or {}).get("view"):
+            out.append(u["id"])
+    return out
+
+
 async def run_checkin_face_match(booking_id: str, partner: dict, selfie_url: str) -> dict:
+    prev = ((await db.bookings.find_one({"id": booking_id}, {"_id": 0, "checkin.face_match.status": 1}) or {})
+            .get("checkin") or {}).get("face_match") or {}
     kyc = await kyc_photo_for(partner["id"])
     res = await compare_faces(kyc, selfie_url)
     res.update({"kyc_photo_url": kyc, "checked_at": now_iso()})
     upd = {"checkin.face_match": res, "face_mismatch": res["status"] == "mismatch"}
     await db.bookings.update_one({"id": booking_id, "checkin.selfie_url": selfie_url}, {"$set": upd})
-    if res["status"] == "mismatch":
+    if res["status"] == "mismatch" and prev.get("status") != "mismatch":
         await db.users.update_one({"id": partner["id"]}, {"$inc": {"face_mismatch_count": 1}, "$set": {"last_face_mismatch_at": now_iso()}})
         b = await db.bookings.find_one({"id": booking_id}, {"_id": 0, "code": 1, "service_name": 1}) or {}
         from services.notification_service import notify
-        title = "Face mismatch at check-in"
+        title = "⚠ Face mismatch at check-in"
         body = f"{partner.get('name') or 'Partner'} · #{b.get('code', '')} {b.get('service_name', '')} — selfie doesn't match KYC photo ({res.get('confidence', 0)}% confidence)."
-        for adm in await db.users.find({"role": "admin"}, {"_id": 0, "id": 1}).to_list(50):
+        link = f"/admin?tab=bookings&booking={booking_id}"
+        sent = 0
+        for uid in await _alert_recipients():
             try:
-                await notify(adm["id"], title, body, link=f"/admin?tab=bookings&booking={booking_id}", event="face_mismatch",
-                             data={"type": "face_mismatch", "booking_id": booking_id, "partner_id": partner["id"]}, image=selfie_url)
+                await notify(uid, title, body, link=link, event="face_mismatch",
+                             data={"type": "face_mismatch", "booking_id": booking_id, "booking_code": b.get("code"),
+                                   "partner_id": partner["id"], "partner_name": partner.get("name"),
+                                   "confidence": res.get("confidence"), "link": link}, image=selfie_url)
+                sent += 1
             except Exception as e:  # noqa: BLE001
                 log.warning("face mismatch notify failed: %s", e)
+        res["alerted"] = sent
     return res

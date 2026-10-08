@@ -57,6 +57,7 @@ from routes.logs_routes import router as logs_router  # noqa: E402
 from routes.category_commission_routes import router as category_commission_router  # noqa: E402
 from routes.price_manager_routes import router as price_manager_router  # noqa: E402
 from routes.platform_earning_routes import router as platform_earning_router  # noqa: E402
+from routes.platform_expense_routes import router as platform_expense_router  # noqa: E402
 from middleware.log_middleware import LogMiddleware  # noqa: E402
 from services import logbus  # noqa: E402
 from middleware.perf_middleware import PerfMiddleware  # noqa: E402
@@ -85,7 +86,7 @@ for r in [auth_router, catalog_router, booking_router, merchant_router, merchant
           starter_kit_router, merchant_panel_router, referral_router, admin_people_router,
           merchant_referral_router,
           merchant_admin_reg_router, growth_router, growth_admin_router, superadmin_router,
-          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router, category_commission_router, price_manager_router, platform_earning_router]:
+          custom_job_router, physical_qr_router, agent_router, subscription_router, legal_router, app_mgmt_router, logs_router, category_commission_router, price_manager_router, platform_expense_router, platform_earning_router]:
     api_router.include_router(r, dependencies=[Depends(_rbac_guard)])
 
 app.include_router(api_router)

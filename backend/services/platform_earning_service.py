@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 from config.database import db
 
 _CACHE: dict = {}
+EXPENSE_LIVE = {"deleted": {"$ne": True}}
 _TTL = 45
 _INDEXED = False
 
@@ -296,10 +297,10 @@ def derive(t: dict, expenses: float | None):
 
 async def operating_expenses(lo, hi):
     """Only real stored expenses. Returns None when the platform has no expense data configured."""
-    if not await db.platform_expenses.estimated_document_count():
+    if not await db.platform_expenses.count_documents(EXPENSE_LIVE, limit=1):
         return None
     r = await db.platform_expenses.aggregate([
-        {"$match": {"date": {"$gte": lo, "$lte": hi}}},
+        {"$match": {**EXPENSE_LIVE, "date": {"$gte": lo, "$lte": hi}}},
         {"$group": {"_id": None, "t": {"$sum": _num("$amount")}}}]).to_list(1)
     return _r(r[0]["t"]) if r else 0.0
 

@@ -10,7 +10,7 @@ const Line = ({ label, value, tone, minus, strong, note, testid, indent }) => (
   </div>
 );
 
-export function PnlStatement({ state }) {
+export function PnlStatement({ state, onAddExpense }) {
   const s = state.data; const p = s?.pnl;
   return (
     <Section testid="pe-pnl" title="Profit & Loss" subtitle="Statement derived from settled ledger, refunds & payouts" icon={Scale} tone={C.green} state={state} isEmpty={s && !s.has_data}>
@@ -25,6 +25,7 @@ export function PnlStatement({ state }) {
         <Line testid="pe-pnl-gateway" minus label="Payment Gateway Charges" value={s.gateway_configured ? inr(p.gateway_fee) : "Not recorded"} tone={C.red} note={s.gateway_configured && s.gateway_coverage < 100 ? `Fee data on ${pct(s.gateway_coverage)} of records` : null} />
         <Line testid="pe-pnl-gross-profit" label="Gross Profit" value={inr(p.gross_profit)} tone={p.gross_profit < 0 ? C.red : C.green} strong />
         <Line testid="pe-pnl-opex" minus label="Operational & Other Expenses" value={s.expense_configured ? inr(p.operating_expenses) : "Expense data not configured"} tone={s.expense_configured ? C.red : "#94A3B8"} />
+        {!s.expense_configured && onAddExpense && <button data-testid="pe-pnl-add-expense" onClick={onAddExpense} className="text-[12px] font-semibold text-[#0D47A1] hover:underline mt-1">+ Record operating expenses to unlock Net Profit</button>}
         <Line testid="pe-pnl-net-profit" label="Net Profit" value={s.expense_configured ? inr(p.net_profit) : "Expense data not configured"} tone={s.expense_configured ? C.green : "#94A3B8"} strong />
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="rounded-xl bg-emerald-50/70 dark:bg-emerald-900/10 p-3" data-testid="pe-pnl-gross-margin"><p className="text-[11px] font-semibold text-emerald-700">Gross Margin</p><p className="font-heading font-extrabold text-xl text-emerald-700 tabular-nums">{pct(p.gross_margin)}</p></div>

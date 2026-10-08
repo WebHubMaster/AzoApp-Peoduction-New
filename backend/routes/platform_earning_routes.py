@@ -47,7 +47,7 @@ async def meta(request: Request, admin=Depends(ADMIN)):
         merchants = await db.users.find({"role": "merchant"}, {"_id": 0, "id": 1, "name": 1, "shop_name": 1}).sort("name", 1).to_list(1000)
         customers = await db.users.find({"role": "customer"}, {"_id": 0, "id": 1, "name": 1, "phone": 1}).sort("name", 1).to_list(1000)
         gw = await db.payment_transactions.count_documents({"gateway_fee": {"$type": "number"}}, limit=1)
-        exp = await db.platform_expenses.estimated_document_count()
+        exp = await db.platform_expenses.count_documents(pe.EXPENSE_LIVE, limit=1)
         clean = lambda xs: sorted(x for x in xs if x)  # noqa: E731
         return {
             "services": clean(services), "categories": clean(categories), "cities": clean(cities),
@@ -225,8 +225,7 @@ async def trend(request: Request, bucket: str = "auto", admin=Depends(ADMIN)):
         exp_map = {}
         if exp_on:
             ex = await db.platform_expenses.aggregate([
-                {"$match": {"date": {"$gte": lo, "$lte": hi}}},
-                {"$set": {"date": {"$toString": "$date"}}},
+                {"$match": {**pe.EXPENSE_LIVE, "date": {"$gte": lo, "$lte": hi}}},
                 {"$group": {"_id": _bucket_expr(b), "t": {"$sum": pe._num("$amount")}}}]).to_list(None)
             exp_map = {e["_id"]: e["t"] for e in ex}
         by = {r["_id"]: r for r in rows}

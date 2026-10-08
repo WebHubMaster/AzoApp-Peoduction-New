@@ -11,6 +11,7 @@ import { PnlStatement, RevenueBreakdown, RefundImpact, Reconciliation, FeeAnalyt
 import { CommissionAnalytics, PayoutAnalytics, GatewayCost, TopPerformers } from "@/pages/admin/earning/PeAnalytics";
 import { ProfitabilityTable, RecordsTable } from "@/pages/admin/earning/PeTables";
 import PeDetailDrawer from "@/pages/admin/earning/PeDetailDrawer";
+import PeExpenses from "@/pages/admin/earning/PeExpenses";
 
 const PnlChart = lazy(() => import("@/pages/admin/earning/PeCharts").then((m) => ({ default: m.PnlChart })));
 const RevenueExpenseChart = lazy(() => import("@/pages/admin/earning/PeCharts").then((m) => ({ default: m.RevenueExpenseChart })));
@@ -47,6 +48,9 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
   const [exportOpen, setExportOpen] = useState(false);
   const [exportPhase, setExportPhase] = useState("idle");
   const recRef = useRef(null);
+  const expRef = useRef(null);
+  const [expSignal, setExpSignal] = useState(0);
+  const addExpense = () => { setExpSignal((n) => n + 1); expRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); };
 
   const params = useMemo(() => {
     const p = { date_from: range.from, date_to: range.to };
@@ -188,7 +192,7 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
         <AnomalyPanel state={anomalies} onNavigate={onNavigate} onSearch={(r) => { setSearch(r); trace({}); }} />
 
         <div className="grid xl:grid-cols-12 gap-4">
-          <div className="xl:col-span-5"><PnlStatement state={summary} /></div>
+          <div className="xl:col-span-5"><PnlStatement state={summary} onAddExpense={addExpense} /></div>
           <div className="xl:col-span-7"><Suspense fallback={<ChartSkel />}><PnlChart params={params} /></Suspense></div>
         </div>
         <div className="grid xl:grid-cols-2 gap-4">
@@ -206,6 +210,7 @@ export default function PlatformEarning({ onNavigate, onOpenBooking }) {
           <PayoutAnalytics state={payouts} onNavigate={onNavigate} />
           <GatewayCost state={gateway} />
         </div>
+        <PeExpenses innerRef={expRef} range={range} openSignal={expSignal} onChanged={() => setNonce((n) => n + 1)} />
         <TopPerformers state={top} onDrill={drill} />
         <ProfitabilityTable params={params} onDrill={drill} exporting={busy} onExport={(dim, sort, order) => runExport(dim, sort, order)} />
         <RecordsTable innerRef={recRef} params={recParams} search={search} setSearch={setSearch} sortState={recSort} onOpen={setDetail} exporting={busy}
