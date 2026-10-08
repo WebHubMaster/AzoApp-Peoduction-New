@@ -14,6 +14,7 @@ import { useToast } from "@/src/components/Toast";
 import { AppShellHeader, Surface, KitEmpty } from "@/src/components/AppShell";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
+import { useNow } from "@/src/lib/useNow";
 
 /* ── helpers (1:1 with web JobRequest.jsx) ── */
 const ago = (iso: string | undefined, now: number) => {
@@ -28,7 +29,8 @@ const earnFracOf = (b: any) => { const p = b?.commission_config?.partner_pct ?? 
 const commBaseOf = (b: any) => (b?.partner_amount != null ? Number(b.partner_amount) : Number(b?.pricing?.commissionable_base || 0) + (b?.coupon_code ? Number(b?.pricing?.discount || 0) : 0));
 const estEarning = (b: any) => commBaseOf(b) * (earnFracOf(b) ?? 0.75);
 
-function CountdownRing({ createdAt, expiryMin, now, size = 46 }: { createdAt?: string; expiryMin: number; now: number; size?: number }) {
+function CountdownRing({ createdAt, expiryMin, size = 46 }: { createdAt?: string; expiryMin: number; size?: number }) {
+  const now = useNow(1000, !!createdAt && !!expiryMin);
   if (!createdAt || !expiryMin) return null;
   const total = expiryMin * 60000;
   const remain = Math.max(0, total - (now - new Date(createdAt).getTime()));
@@ -63,8 +65,9 @@ const Meta = ({ icon, label, value, colors, cap }: { icon: MdiName; label: strin
   </View>
 );
 
-function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b: any; partnerId?: string; now: number; expiryMin: number; onAccept: (id: string) => Promise<void>; onDecline: (id: string) => Promise<void> }) {
+const RequestCard = React.memo(function RequestCard({ b, partnerId, expiryMin, onAccept, onDecline }: { b: any; partnerId?: string; expiryMin: number; onAccept: (id: string) => Promise<void>; onDecline: (id: string) => Promise<void> }) {
   const { colors } = useTheme();
+  const now = useNow(5000);
   const P = palette(colors.primary);
   const [busy, setBusy] = useState("");
   const det = (b.eligible_detail || {})[partnerId || ""] || {};
@@ -104,7 +107,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
               <Text style={{ color: "#94A3B8", fontSize: 10, letterSpacing: 0.6, textTransform: "uppercase" }}>Est. earning</Text>
               <Text style={{ color: "#059669", fontSize: 20, fontWeight: "800", fontVariant: ["tabular-nums"] }}>{fmt(estEarning(b))}</Text>
             </View>
-            <CountdownRing createdAt={b.created_at} expiryMin={expiryMin} now={now} />
+            <CountdownRing createdAt={b.created_at} expiryMin={expiryMin} />
           </View>
         </View>
 
@@ -160,7 +163,7 @@ function RequestCard({ b, partnerId, now, expiryMin, onAccept, onDecline }: { b:
       </View>
     </Surface>
   );
-}
+});
 
 const JOBS_KEY = ["partner-jobs", "paged"] as const;
 
@@ -171,10 +174,8 @@ export default function PartnerJobRequest() {
   const qc = useQueryClient();
   const toast = useToast();
   const { user } = useAuth();
-  const [now, setNow] = useState(Date.now());
   const [expiryMin, setExpiryMin] = useState(5);
 
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
   useEffect(() => {
     api.get<any>("/auth/config").then((r) => { const v = r?.business?.job_auto_expiry_minutes; if (v) setExpiryMin(Number(v)); }).catch(() => {});
   }, []);
@@ -248,7 +249,7 @@ export default function PartnerJobRequest() {
           </Surface>
         ) : (
           <>
-            {jobs.map((b: any) => <RequestCard key={b.id} b={b} partnerId={user?.id} now={now} expiryMin={expiryMin} onAccept={accept} onDecline={decline} />)}
+            {jobs.map((b: any) => <RequestCard key={b.id} b={b} partnerId={user?.id} expiryMin={expiryMin} onAccept={accept} onDecline={decline} />)}
             <LoadMoreFooter list={q} testID="jobs-load-more" />
           </>
         )}

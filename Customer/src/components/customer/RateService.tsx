@@ -48,7 +48,7 @@ export function RateServiceProvider({ children }: { children: React.ReactNode })
     setCurrent(b);
   }, [load]);
 
-  useEffect(() => { load(); if (!isCustomer) return; const t = setInterval(load, 10000); return () => clearInterval(t); }, [load, isCustomer]);
+  useEffect(() => { load(); if (!isCustomer) return; const t = setInterval(() => { if (AppState.currentState === "active") load(); }, 10000); return () => clearInterval(t); }, [load, isCustomer]);
   useEffect(() => { load(); }, [path, load]);
   useEffect(() => subscribe((ev) => {
     if (!LIVE_EVENTS.includes(ev?.type)) return;

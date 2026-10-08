@@ -4,7 +4,8 @@
  *  backend pushes a live `booking_update` / `booking_confirmed` over SSE — so a
  *  partner completing a job shows up on the customer side within ~1s. Heavier
  *  wallet/refunds data is polled on a slower cadence. */
-import React, { createContext, useContext, useCallback, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { AppState } from "react-native";
 import { api } from "@/src/api/client";
 import { ACTIVE_STATES } from "@/src/components/customer/nav";
 import { useRealtime } from "@/src/context/RealtimeContext";
@@ -26,15 +27,27 @@ interface Data {
 const Ctx = createContext<Data | null>(null);
 
 // How often to poll /bookings for status changes.
-const POLL_ACTIVE_MS = 3000;   // a job is in flight → check every 3s
-const POLL_IDLE_MS = 6000;     // nothing active → gentler cadence
-const AUX_POLL_MS = 20000;     // wallet + refunds rarely change → slow poll
+const POLL_ACTIVE_MS = 5000;   // a job is in flight (SSE already pushes changes instantly)
+const POLL_IDLE_MS = 15000;    // nothing active → gentler cadence
+const AUX_POLL_MS = 30000;     // wallet + refunds rarely change → slow poll
+
+const isActive = () => AppState.currentState === "active";
+// Only update state when the payload actually changed → no needless app-wide re-renders on each poll.
+function useStableState<T>(init: T) {
+  const [v, setV] = useState<T>(init);
+  const last = useRef("");
+  const set = useCallback((next: T) => {
+    const k = JSON.stringify(next);
+    if (k !== last.current) { last.current = k; setV(next); }
+  }, []);
+  return [v, set] as const;
+}
 
 export const CustomerDataProvider = ({ children }: { children: React.ReactNode }) => {
   const { subscribe } = useRealtime();
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [refunds, setRefunds] = useState<any[]>([]);
-  const [wallet, setWallet] = useState<{ balance: number; transactions: any[] }>({ balance: 0, transactions: [] });
+  const [bookings, setBookings] = useStableState<any[]>([]);
+  const [refunds, setRefunds] = useStableState<any[]>([]);
+  const [wallet, setWallet] = useStableState<{ balance: number; transactions: any[] }>({ balance: 0, transactions: [] });
   const [cfg, setCfg] = useState<any>({ profile_fields: {}, address_config: {} });
   const [categories, setCategories] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -44,12 +57,12 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
   // Fast path: just the bookings list (drives the live job status).
   const loadBookings = useCallback(() => {
     api.get("/bookings").then((r) => setBookings(r || [])).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+  }, [setBookings]);
   // Slow path: wallet + refunds.
   const loadAux = useCallback(() => {
     api.get("/wallet").then((r) => setWallet(r || { balance: 0, transactions: [] })).catch(() => {});
     api.get("/payments/refunds").then((r) => setRefunds(r || [])).catch(() => {});
-  }, []);
+  }, [setWallet, setRefunds]);
   const load = useCallback(() => { loadBookings(); loadAux(); }, [loadBookings, loadAux]);
 
   // Adaptive bookings poll — speeds up while any job is active.
@@ -59,15 +72,17 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
     loadBookings();
     let timer: ReturnType<typeof setTimeout>;
     const tick = () => {
-      loadBookings();
+      if (isActive()) loadBookings();
       timer = setTimeout(tick, hasActiveRef.current ? POLL_ACTIVE_MS : POLL_IDLE_MS);
     };
     timer = setTimeout(tick, hasActiveRef.current ? POLL_ACTIVE_MS : POLL_IDLE_MS);
-    return () => clearTimeout(timer);
-  }, [loadBookings]);
+    // Instant catch-up when the app returns to the foreground.
+    const sub = AppState.addEventListener("change", (st) => { if (st === "active") { loadBookings(); loadAux(); } });
+    return () => { clearTimeout(timer); sub.remove(); };
+  }, [loadBookings, loadAux]);
 
   // Slow poll for wallet/refunds.
-  useEffect(() => { loadAux(); const t = setInterval(loadAux, AUX_POLL_MS); return () => clearInterval(t); }, [loadAux]);
+  useEffect(() => { loadAux(); const t = setInterval(() => { if (isActive()) loadAux(); }, AUX_POLL_MS); return () => clearInterval(t); }, [loadAux]);
 
   // Instant refresh when the backend pushes a live booking update (job completed,
   // confirmed, reschedule resolved) or after an SSE reconnect resync.
@@ -88,10 +103,12 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
     api.get("/referral/summary").then((r) => setReferral(r || {})).catch(() => {});
   }, [cityKey]);
 
-  const activeCount = bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length;
+  const activeCount = useMemo(() => bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length, [bookings]);
+  const value = useMemo(() => ({ bookings, refunds, wallet, cfg, categories, services, referral, loading, activeCount, load }),
+    [bookings, refunds, wallet, cfg, categories, services, referral, loading, activeCount, load]);
 
   return (
-    <Ctx.Provider value={{ bookings, refunds, wallet, cfg, categories, services, referral, loading, activeCount, load }}>
+    <Ctx.Provider value={value}>
       {children}
     </Ctx.Provider>
   );

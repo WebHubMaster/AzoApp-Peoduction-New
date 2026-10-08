@@ -146,11 +146,11 @@ export function CustomerAlertOverlay() {
           });
         });
         const liveKeys = new Set(pending.map((b) => `resched-${b.id}`));
-        setQueue((q) => q.filter((j) => j._kind !== "reschedule" || liveKeys.has(j._key) || Date.now() - (j._at || 0) < 15000));
+        setQueue((q) => { const n = q.filter((j) => j._kind !== "reschedule" || liveKeys.has(j._key) || Date.now() - (j._at || 0) < 15000); return n.length === q.length ? q : n; });
       } catch { /* retry next tick */ }
     };
     check();
-    const iv = setInterval(check, 6000);
+    const iv = setInterval(() => { if (AppState.currentState === "active") check(); }, 6000);
     const sub = AppState.addEventListener("change", (s) => { if (s === "active") check(); });
     return () => { stopped = true; clearInterval(iv); sub.remove(); };
   }, [enqueueReschedule]);

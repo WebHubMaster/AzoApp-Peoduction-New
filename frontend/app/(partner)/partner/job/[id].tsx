@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNow, fmtElapsed } from "@/src/lib/useNow";
 import { HelpSOS } from "@/src/components/partner/HelpSOS";
 import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
@@ -438,20 +439,21 @@ function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, on
   );
 }
 
+function Elapsed({ startedAt, style, testID }: { startedAt?: string; style: any; testID: string }) {
+  const now = useNow(1000, !!startedAt);
+  return <Text testID={testID} style={style}>{fmtElapsed(startedAt, now)}</Text>;
+}
+
 /* ── Step 4: Work in progress → after proof + Complete OTP ── */
 function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove, onUpdate }: any) {
   const { colors } = useTheme();
-  const [now, setNow] = useState(() => Date.now());
   const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
-  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
-  const es = startedAt ? Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000)) : 0;
-  const elapsed = `${String(Math.floor(es / 3600)).padStart(2, "0")}:${String(Math.floor((es % 3600) / 60)).padStart(2, "0")}:${String(es % 60).padStart(2, "0")}`;
   return (
     <>
       <LinearGradient colors={["#F59E0B", "#F97316"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ borderRadius: 6, paddingHorizontal: 16, paddingVertical: 14, flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#fff" }} />
         <View style={{ flex: 1 }}><Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text><Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5 }}>{startedAt ? `Started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text></View>
-        <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5 }}>{elapsed}</Text>
+        <Elapsed testID={`elapsed-${b.code}`} startedAt={startedAt} style={{ color: "#fff", fontWeight: "800", fontSize: 15, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 10, paddingVertical: 5 }} />
       </LinearGradient>
       <HelpSOS booking={b} testPrefix="wizard-" />
       <Card testID="wizard-after-proof">

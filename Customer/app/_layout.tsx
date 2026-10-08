@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-import { View, Text } from "react-native";
+import { View, Text, AppState } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-controller";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
 import { setupAndroidChannels, requestNotificationPermission } from "../src/lib/notifications";
@@ -28,6 +28,12 @@ import { APP_FONTS, installGlobalFont } from "@/src/lib/globalFont";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 initCrashReporter("customer");
+
+// Pause react-query polling while backgrounded; refresh on return (saves CPU/battery, smoother resume).
+focusManager.setEventListener((handle) => {
+  const sub = AppState.addEventListener("change", (s) => handle(s === "active"));
+  return () => sub.remove();
+});
 
 const queryClient = new QueryClient({ defaultOptions: { queries: {
   retry: 1,

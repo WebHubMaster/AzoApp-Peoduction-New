@@ -206,7 +206,7 @@ export function JobRingOverlay() {
         const liveJobs = new Set(jobList.map((j) => j.id));
         const liveResched = new Set(reList.map((r) => String(r.booking_id)));
         const liveRemind = new Set(rmList.map((r) => String(r.booking_id)));
-        setQueue((q) => q.filter((j) => (j._sub ? liveSubs.has(j.id) : j._reminder ? liveRemind.has(j.id) : j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000));
+        setQueue((q) => { const n = q.filter((j) => (j._sub ? liveSubs.has(j.id) : j._reminder ? liveRemind.has(j.id) : j._resched ? liveResched.has(j.id) : liveJobs.has(j.id)) || j._manual || Date.now() - (j._at || 0) < 15000); return n.length === q.length ? q : n; });
       } catch { /* retry next tick */ }
     };
     check();

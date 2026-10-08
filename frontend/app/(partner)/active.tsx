@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNow, fmtElapsed } from "@/src/lib/useNow";
 import { HelpSOS } from "@/src/components/partner/HelpSOS";
 import * as Location from "expo-location";
 import { View, Text, Pressable, Linking, Modal, ScrollView, Alert, Platform, RefreshControl } from "react-native";
@@ -437,12 +438,16 @@ function CompletedJob({ b }: { b: any }) {
 }
 
 /* ── ActiveJob (web ActiveJob) ── */
+function Elapsed({ startedAt, style, testID }: { startedAt?: string; style: any; testID: string }) {
+  const now = useNow(1000, !!startedAt);
+  return <Text testID={testID} style={style}>{fmtElapsed(startedAt, now)}</Text>;
+}
+
 export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void }) {
   const { colors } = useTheme();
   const toast = useToast();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState<string | null>(null);
 
   const status = b.status as string;
@@ -455,9 +460,6 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
   const unseen = useChatUnread(b.id);
 
   const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
-  useEffect(() => { if (!inProgress) return; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [inProgress]);
-  const es = startedAt ? Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000)) : 0;
-  const elapsed = `${String(Math.floor(es / 3600)).padStart(2, "0")}:${String(Math.floor((es % 3600) / 60)).padStart(2, "0")}:${String(es % 60).padStart(2, "0")}`;
 
   const sched = b.schedule || {};
   const commLocked = !!sched.comm_locked;
@@ -532,7 +534,7 @@ export function ActiveJobCard({ b, onUpdate }: { b: any; onUpdate: () => void })
             <Text style={{ color: "#fff", fontSize: 14, fontWeight: "800" }}>WORK IN PROGRESS</Text>
             <Text style={{ color: "rgba(255,251,235,0.9)", fontSize: 11.5, marginTop: 2 }} numberOfLines={1}>{b.service_name}{startedAt ? ` · started ${new Date(startedAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}` : ""}</Text>
           </View>
-          {startedAt ? <Text testID={`elapsed-${b.code}`} style={{ color: "#fff", fontWeight: "700", fontSize: 14, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }}>{elapsed}</Text> : null}
+          {startedAt ? <Elapsed testID={`elapsed-${b.code}`} startedAt={startedAt} style={{ color: "#fff", fontWeight: "700", fontSize: 14, fontVariant: ["tabular-nums"], backgroundColor: "rgba(255,255,255,0.2)", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 4 }} /> : null}
         </LinearGradient>
       ) : arrived ? (
         <LinearGradient colors={["#7C3AED", colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ paddingHorizontal: 20, paddingVertical: 12, flexDirection: "row", alignItems: "center", gap: 8 }}>
