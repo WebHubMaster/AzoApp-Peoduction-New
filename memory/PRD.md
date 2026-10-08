@@ -157,3 +157,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 ## Update (Jun 2026) – Customer app instant rating popup
 - RateServiceProvider (Customer/src/components/customer/RateService.tsx): opens rating popup instantly on live `booking_update` (status completed/paid) and on foreground/tapped push with booking_id; verifies via /bookings/my/pending-reviews; poll reduced 20s→10s
 - Thank-you celebration (ThanksBurst) after rating submit: pop-in check, star/confetti burst, auto-close 2.2s
+
+## Update (Jun 2026) – Performance pass (Customer + Partner apps)
+- Partner: per-second timers isolated (useNow hook, CountdownRing/Elapsed leaf components, React.memo RequestCard) → Jobs/Active/Job wizard screens no longer re-render every second
+- Both: react-query focusManager ↔ AppState (pause polling in background, refresh on resume)
+- Customer: CustomerDataContext only updates on changed payloads, memoized value, slower + foreground-only polling (SSE keeps it live); overlay/rating polls gated by AppState

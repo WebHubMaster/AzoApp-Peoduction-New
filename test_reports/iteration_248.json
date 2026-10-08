@@ -1,0 +1,38 @@
+{
+  "summary": "Static verification of the Customer + Partner perf optimisation changes (useNow ticking hook, React.memo RequestCard, Elapsed sub-components, focusManager wiring, stable-state customer context, AppState-gated polls). Both Expo apps compile cleanly: ran `npx tsc --noEmit` in /app/PartnerApp and /app/Customer. No new TypeScript errors were introduced; the only remaining errors on the touched files are the pre-existing TS7006 'u' implicit-any at partner/job/[id].tsx lines 190/192 that were flagged in the review request. Could not run the apps (native Expo, no supervisor frontend/backend running in this preview pod and no frontend/.env), so this is a rigorous code review only.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "static_review_findings": {
+    "PartnerApp/src/lib/useNow.ts": "OK — scoped setInterval, pauses on AppState != active, resumes on active, cleans up subscription + interval on unmount. fmtElapsed formats HH:MM:SS correctly.",
+    "PartnerApp/app/(partner)/jobs.tsx": "OK — `const RequestCard = React.memo(function RequestCard(...) { ... });` closes correctly at line 166. Parent list passes only {b, partnerId, expiryMin, onAccept, onDecline} — no leftover `now` prop. CountdownRing uses useNow(1000) only inside itself; `ago(...)` and the fresh border use useNow(5000) inside the memoized card so the heavy parent list no longer re-renders every second.",
+    "PartnerApp/app/(partner)/active.tsx": "OK — Elapsed component at line 441 uses `useNow(1000, !!startedAt)`, consumer at line 537 preserves testID=`elapsed-${b.code}`. ActiveJobCard body itself does not call useNow, so each card no longer re-renders every second.",
+    "PartnerApp/app/(partner)/partner/job/[id].tsx": "OK — Elapsed at line 442, used in WorkStep at line 456 with testID=`elapsed-${b.code}`. Wizard body no longer ticks every second. Pre-existing TS7006 at 190/192 is noted in the review request and unrelated.",
+    "PartnerApp/app/_layout.tsx + Customer/app/_layout.tsx": "OK — focusManager.setEventListener wires AppState → handle(active), returns sub.remove() cleanup, QueryClient defaults keep refetchOnWindowFocus:false so RQ relies on this gating + the explicit polls.",
+    "Customer/src/context/CustomerDataContext.tsx": "OK — useStableState diffs via JSON.stringify before setState → identity-stable arrays on unchanged payloads. bookings poll uses POLL_ACTIVE_MS=5000 while any booking is in ACTIVE_STATES, POLL_IDLE_MS=15000 otherwise, AUX_POLL_MS=30000 for wallet/refunds, all gated by isActive(). Foreground AppState change triggers an instant loadBookings+loadAux catch-up. SSE booking_update/booking_confirmed/booking_completed/reschedule_resolved/__resync__ calls loadBookings. Context value memoized with useMemo. Note: assigning `hasActiveRef.current = …` during render is unusual but valid for a ref read only inside setTimeout; not a bug.",
+    "Customer/src/components/customer/CustomerAlertOverlay.tsx": "OK — setQueue filter at line 149 returns the same array when nothing is removed (`n.length === q.length ? q : n`), avoiding needless re-renders. The 6s reliability poll's `check()` early-returns on AppState !== 'active' and `setInterval` only runs it when active; AppState change listener re-triggers on foreground.",
+    "Customer/src/components/customer/RateService.tsx": "OK — 10s pending-reviews poll gated by `AppState.currentState === 'active'`; AppState 'active' listener triggers immediate reload.",
+    "PartnerApp/src/components/JobRingOverlay.tsx": "OK (intentional) — plain setInterval (not react-query) runs every 6s regardless of focusManager; check() early-returns if backgrounded to avoid network, but the interval keeps ticking so foregrounding triggers an immediate fetch via the AppState 'active' listener. Background ringing is still handled natively by FCM + Notifee, so no missed rings."
+  },
+  "typescript_results": {
+    "PartnerApp": "Only pre-existing errors remain; the 4 touched files (useNow.ts, jobs.tsx, active.tsx, partner/job/[id].tsx — excluding the already-known TS7006 'u' lines 190/192, _layout.tsx) produce no new diagnostics.",
+    "Customer": "No TypeScript errors in CustomerDataContext.tsx, CustomerAlertOverlay.tsx, RateService.tsx, _layout.tsx."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: CustomerDataContext.tsx line 70 mutates `hasActiveRef.current` during render. It works (ref read happens inside setTimeout) but a useEffect assignment would be cleaner.",
+    "Minor: useStableState serialises the full bookings/wallet payload every poll via JSON.stringify. Fine for current sizes; if lists ever grow to thousands of items, switch to shallow-equal of a server-provided updated_at/etag."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a (skipped)", "frontend": "100% (static review)" },
+  "test_credentials": "Not available — /app/memory/test_credentials.md absent for these native Expo apps.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Perf changes verified statically only (native Expo apps, no supervisor web preview in this pod). To runtime-verify: start the backend (sudo supervisorctl status / start), run `npx expo start --web` in /app/PartnerApp and /app/Customer, log in and watch React DevTools' highlight-updates — the Jobs list parent and ActiveJobCard parent should no longer flash every second, only CountdownRing / Elapsed should. Also background the app and confirm react-query stops polling (focusManager) and the AppState-gated setIntervals skip ticks.",
+  "rca of the issue": "n/a — this iteration verifies E1's perf fix, not a bug."
+}
