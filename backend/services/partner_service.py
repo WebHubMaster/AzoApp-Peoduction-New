@@ -919,6 +919,9 @@ async def award_accept_streak_bonus(partner_id, streak):
     `accept_streak_threshold` accepts-in-a-row credits a flat cashable bonus to
     the wallet (withdrawable via the normal payout flow). Never raises."""
     try:
+        # Accept-streak bonus permanently disabled — accepting job requests in a
+        # row no longer credits any wallet bonus.
+        return 0
         cfg = await get_wallet_config()
         if not cfg.get("accept_streak_enabled", True):
             return 0

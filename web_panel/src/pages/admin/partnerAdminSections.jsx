@@ -517,33 +517,13 @@ export function WalletRewardConfig() {
         </div>
       </Card>
       <Card>
-        <p className="font-semibold mb-1">Auto Payout &amp; Streak Bonuses</p>
+        <p className="font-semibold mb-1">Auto Payout &amp; Leaderboard Rewards</p>
         <p className="text-xs text-slate-500 mb-3">Reward partners automatically to keep them active and competitive.</p>
         <div className="space-y-3">
           <label className="flex items-center justify-between gap-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 p-3">
             <span><b>Auto Payout</b> — credit unlocked incentive bonuses to the wallet instantly, without admin approval.</span>
             <Switch data-testid="cfg-auto-payout" checked={cfg.auto_payout_enabled !== false} onCheckedChange={(v) => setCfg({ ...cfg, auto_payout_enabled: v })} />
           </label>
-          <label className="flex items-center justify-between gap-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-            <span><b>Streak Bonuses</b> — reward consecutive 5★ jobs with an auto-increasing bonus.</span>
-            <Switch data-testid="cfg-streak" checked={cfg.streak_enabled !== false} onCheckedChange={(v) => setCfg({ ...cfg, streak_enabled: v })} />
-          </label>
-          <div className="grid grid-cols-3 gap-3">
-            <div><label className="text-xs">Streak length (jobs)</label><Input type="number" value={cfg.streak_threshold ?? 5} onChange={(e) => setCfg({ ...cfg, streak_threshold: Number(e.target.value) })} /></div>
-            <div><label className="text-xs">Base bonus ₹</label><Input type="number" value={cfg.streak_base_bonus ?? 100} onChange={(e) => setCfg({ ...cfg, streak_base_bonus: Number(e.target.value) })} /></div>
-            <div><label className="text-xs">Increment ₹ / milestone</label><Input type="number" value={cfg.streak_increment ?? 50} onChange={(e) => setCfg({ ...cfg, streak_increment: Number(e.target.value) })} /></div>
-          </div>
-          <label className="flex items-center justify-between gap-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-            <span><b>Streak Freeze</b> — protect a partner&apos;s streak from ONE off-day per week.</span>
-            <Switch data-testid="cfg-streak-freeze" checked={cfg.streak_freeze_enabled !== false} onCheckedChange={(v) => setCfg({ ...cfg, streak_freeze_enabled: v })} />
-          </label>
-          <label className="flex items-center justify-between gap-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 p-3">
-            <span><b>Streak Reminders</b> — daily evening nudge to partners on a live streak.</span>
-            <Switch data-testid="cfg-streak-reminder" checked={cfg.streak_reminder_enabled !== false} onCheckedChange={(v) => setCfg({ ...cfg, streak_reminder_enabled: v })} />
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-xs">Freezes / week</label><Input type="number" value={cfg.streak_freeze_per_week ?? 1} onChange={(e) => setCfg({ ...cfg, streak_freeze_per_week: Number(e.target.value) })} /></div>
-          </div>
           <label className="flex items-center justify-between gap-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 p-3">
             <span><b>Weekly Leaderboard Rewards</b> — auto-bonus the previous week&apos;s top 3 partners.</span>
             <Switch data-testid="cfg-lb-rewards" checked={cfg.leaderboard_rewards_enabled !== false} onCheckedChange={(v) => setCfg({ ...cfg, leaderboard_rewards_enabled: v })} />

@@ -3,7 +3,7 @@ import api, { fmt } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
 import {
   Trophy, Gift, Star, Target, Crown, Sparkles, Flame, IndianRupee,
-  CheckCircle2, Lock, TrendingUp, AlertTriangle, Zap, Medal, Snowflake, Receipt,
+  CheckCircle2, Lock, TrendingUp, AlertTriangle, Zap, Medal, Receipt,
 } from "lucide-react";
 
 const Empty = ({ text }) => <div className="text-slate-400 text-sm text-center py-8">{text}</div>;
@@ -40,7 +40,6 @@ export function ChallengesRewards() {
   if (!data) return <div className="text-slate-400 text-sm py-10 text-center">Loading your rewards…</div>;
   const s = data.stats || {};
   const next = s.next_reward;
-  const streak = s.streak || {};
   const eligibleFirst = [...(data.challenges || [])].sort((a, b) => (b.eligible - a.eligible) || (b.progress_pct - a.progress_pct));
 
   return (
@@ -75,8 +74,8 @@ export function ChallengesRewards() {
         </div>
       </div>
 
-      {/* Auto Payout status + Streak bonus card */}
-      <div className="grid md:grid-cols-2 gap-4" data-testid="auto-streak">
+      {/* Auto Payout status */}
+      <div data-testid="auto-streak">
         {/* Auto Payout */}
         <div className={`rounded-2xl border p-4 flex items-center gap-3 ${s.auto_payout ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"}`} data-testid="auto-payout-card">
           <div className={`h-11 w-11 rounded-xl grid place-items-center ${s.auto_payout ? "bg-emerald-500" : "bg-slate-300"} text-white`}>
@@ -95,44 +94,6 @@ export function ChallengesRewards() {
                 : "Bonuses are released after admin approval."}
             </p>
           </div>
-        </div>
-
-        {/* Streak Bonus */}
-        <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4" data-testid="streak-card">
-          <div className="flex items-center justify-between">
-            <p className="font-heading font-bold text-slate-900 flex items-center gap-1.5">
-              <Flame className="h-5 w-5 text-orange-500" /> 5★ Streak
-            </p>
-            <div className="text-right">
-              <span className="font-heading font-extrabold text-2xl text-orange-600">{streak.current || 0}</span>
-              <span className="text-xs text-slate-400"> in a row</span>
-            </div>
-          </div>
-          {streak.enabled === false ? (
-            <p className="text-xs text-slate-500 mt-2">Streak bonuses are currently paused.</p>
-          ) : (
-            <>
-              <div className="flex items-center gap-1 mt-3">
-                {Array.from({ length: streak.threshold || 5 }).map((_, i) => (
-                  <div key={i} className={`h-2.5 flex-1 rounded-full ${i < (streak.into_milestone || 0) ? "bg-orange-500" : "bg-white/80 border border-orange-200"}`} />
-                ))}
-              </div>
-              <p className="text-xs text-slate-600 mt-2">
-                {(streak.remaining || 0) > 0
-                  ? <><b className="text-orange-600">{streak.remaining}</b> more 5★ job{streak.remaining !== 1 ? "s" : ""} to earn a <b className="text-emerald-600">{fmt(streak.next_bonus || 0)}</b> bonus 🔥</>
-                  : <>Keep the streak alive for your next bonus!</>}
-              </p>
-              <p className="text-[11px] text-slate-400 mt-1">
-                Best streak: {streak.best || 0} · Bonuses paid: {streak.milestones_paid || 0}
-              </p>
-              {streak.freeze_enabled && (streak.freezes_total || 0) > 0 && (
-                <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2 py-1 w-fit" data-testid="streak-freeze">
-                  <Snowflake className="h-3.5 w-3.5" />
-                  Streak Freeze: {streak.freezes_left || 0}/{streak.freezes_total} left this week — one off-day won&apos;t break your streak.
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
 
