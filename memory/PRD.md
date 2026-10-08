@@ -124,3 +124,8 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 
 ## 2026-06 — Active Jobs time-ordering
 - Partner App (`/api/bookings/partner/active`) and Partner Web Panel Active tab now sort jobs by booking date + time slot (earliest first); instant jobs use booking creation time.
+
+## 2026-06 — City-disabled categories hidden (Customer App + Web)
+- Root cause: Customer app public calls (auth:false) never sent X-City, and first calls fired before saved city loaded → all services/rate cards/search shown.
+- Fix: X-City on every request (waits for saved location); query cache refetch on city change; web pages reload on location change; backend subcategories + upsell also city-filtered.
+- Tested: iteration_244 — backend 12/12, both frontends pass.

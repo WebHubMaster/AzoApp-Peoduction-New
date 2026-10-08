@@ -1,0 +1,35 @@
+{
+  "summary": "Tested city-scoped Home Cleaning (HC) category hiding end-to-end. In DB, HC (id 3385eac1-575f-4875-87fc-e005ffa07c76) is admin-disabled for Patna via city_pricing, still enabled for Ranchi. Verified backend catalog/ratecard/home/upsell endpoints with X-City header via pytest, and verified Customer Expo web (/api/customer/) and web_panel (/api/panel/) UI with azo_location switched between Patna and Ranchi.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "web_panel landing (Patna)", "issues": ["Static marketing text 'Deep home cleaning' (hero promo overlay) still renders on Patna landing — unrelated to catalog data, but visually mentions cleaning. Non-blocking; main agent may want to tie the hero promo copy to active categories for the city."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_city_filter_hc.py",
+    "/app/test_reports/pytest/city_filter_hc.xml"
+  ],
+  "action_items": [
+    "No functional fixes required. Optionally: make web_panel hero promo text ('Deep home cleaning' / 'Sparkling Homes') city-aware so disabled categories don't appear in marketing content."
+  ],
+  "critical_code_review_comments": [
+    "Backend city-pricing filter correctly cascades through categories, services, subcategories, ratecards, upsell, /app/home and /site/homepage.",
+    "/api/ratecards/by-category/<id> returns raw null on empty result; consider returning [] for type consistency with other list endpoints (test now handles both)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_city_filter_hc.py"
+  ],
+  "success_rate": {"backend": "100% (12/12)", "frontend": "100% (Patna hides HC on both apps, Ranchi shows HC on both apps)"},
+  "test_credentials": "Not required for this test — all endpoints are public and only use X-City header; frontends keyed off localStorage azo_location.",
+  "seed_data_creation": "None. Used pre-existing DB state where Patna's city_pricing has HC removed and Ranchi still has HC. Did NOT re-enable HC in Patna (per request).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend regression tests for city-scoped category filtering live at /app/backend/tests/test_city_filter_hc.py. Run with REACT_APP_BACKEND_URL set. The tests cover categories, services (list + search + by category_id), subcategories, ratecards (by-category + search), /app/home, /site/homepage, upsell for Patna (HC must be absent) and categories+by-category for Ranchi (HC still present).",
+  "rca of the issue": "Previously public endpoints and frontends were not consistently forwarding/respecting city context. Backend city_pricing_service now filters all catalog surfaces (including new subcategories + upsell). Customer client.ts always sends X-City; web_panel Services.jsx/ServiceSearch.jsx/CustomerDashboard listen for azo-location-changed and reload queries. Verified by curl + pytest + Playwright across both frontends."
+}
