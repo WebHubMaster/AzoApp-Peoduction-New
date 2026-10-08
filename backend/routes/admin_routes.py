@@ -74,6 +74,27 @@ async def payments_status(admin=Depends(ADMIN)):
     return await c.payments_status_ctrl()
 
 
+@router.post("/integrations/vision-test")
+async def vision_test(data: dict = Body(default={}), admin=Depends(ADMIN)):
+    """Verify the Vision AI (OCR + face match) provider/key. Body overrides let the
+    admin test unsaved values from the config form."""
+    import litellm
+    from services.ocr_service import _ocr_config, _PREFIX, _DEFAULT_MODEL
+    cfg = await _ocr_config()
+    provider = (data.get("ocr_provider") or cfg["provider"]).lower()
+    prefix = _PREFIX.get(provider, "gemini")
+    model = f"{prefix}/{(data.get('ocr_model') or '').strip() or (cfg['model'].split('/', 1)[1] if cfg['provider'] == provider else _DEFAULT_MODEL.get(prefix))}"
+    key = (data.get("ocr_api_key") or "").strip() or cfg["api_key"]
+    if not key:
+        return {"ok": False, "model": model, "error": "No API key entered for the selected provider"}
+    try:
+        r = await litellm.acompletion(model=model, api_key=key, temperature=0, max_tokens=5,
+                                      messages=[{"role": "user", "content": "Reply with OK"}])
+        return {"ok": True, "model": model, "reply": (r.choices[0].message.content or "").strip()[:40]}
+    except Exception as e:  # noqa: BLE001
+        return {"ok": False, "model": model, "error": str(e)[:300]}
+
+
 @router.post("/integrations/s3-test")
 async def s3_test(data: dict = Body(default={}), admin=Depends(ADMIN)):
     """Diagnose the AWS S3 configuration. Tests saved settings, with optional

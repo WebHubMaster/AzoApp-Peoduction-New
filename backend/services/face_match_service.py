@@ -61,8 +61,10 @@ def _parse(text: str) -> dict:
 async def compare_faces(kyc_url: str, selfie_url: str) -> dict:
     """Returns {status: match|mismatch|unverified, confidence, reason, provider}."""
     cfg = await _ocr_config()
-    if not cfg["enabled"] or not cfg["api_key"]:
-        return {"status": "unverified", "reason": "Vision AI not configured in Integration Center"}
+    if not cfg["enabled"]:
+        return {"status": "unverified", "reason": "Vision AI is turned off — enable it in Integration Center → Vision AI (OCR & Face Match)", "setup_required": True}
+    if not cfg["api_key"]:
+        return {"status": "unverified", "reason": "Vision AI not configured — add an API key in Integration Center → Vision AI (OCR & Face Match)", "setup_required": True}
     if not kyc_url:
         return {"status": "unverified", "reason": "No KYC live photo on file"}
     try:

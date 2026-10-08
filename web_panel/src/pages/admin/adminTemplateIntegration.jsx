@@ -375,9 +375,17 @@ const CARDS = [
     fields: [["smtp_host", "SMTP Host"], ["smtp_port", "Port"], ["smtp_user", "Username"], ["smtp_password", "Password", "password"], ["smtp_from_email", "From Email"], ["smtp_from_name", "From Name"]] },
   { key: "sms", icon: MessageSquare, title: "Fast2SMS", desc: "DLT-compliant SMS gateway", flag: "sms_enabled",
     fields: [["fast2sms_api_key", "API Key", "password"], ["fast2sms_sender_id", "Sender ID"], ["fast2sms_route", "Route (dlt · otp · q for custom)"], ["fast2sms_otp_template_id", "OTP Message ID (Fast2SMS DLT)"], ["sms_brand_name", "Brand name in OTP SMS (custom route)"], ["sms_app_hash", "Android App Hash (11-char, for OTP autofill)"]] },
-  { key: "ocr", icon: ScanLine, title: "Aadhaar OCR", desc: "Extract & verify Aadhaar number", flag: "ocr_enabled",
-    fields: [["ocr_provider", "AI Provider", "select", [["gemini", "Google Gemini"], ["openai", "OpenAI"], ["anthropic", "Anthropic (Claude)"]]], ["ocr_model", "Model (optional)"], ["ocr_api_key", "API Key for the selected provider", "password"]],
-    guide: "Pick your vision AI provider and paste that provider's own API key (Gemini: aistudio.google.com · OpenAI: platform.openai.com · Anthropic: console.anthropic.com). Optionally override the default model. Aadhaar OCR starts working the moment a valid key is saved." },
+  { key: "ocr", icon: ScanLine, title: "Vision AI (OCR & Face Match)", desc: "Aadhaar OCR + partner check-in selfie ↔ KYC photo face match", flag: "ocr_enabled",
+    fields: [["ocr_provider", "AI Provider", "select", [["gemini", "Google Gemini (recommended)"], ["openai", "OpenAI"], ["anthropic", "Anthropic (Claude)"]]], ["ocr_model", "Model (optional — leave blank for default)"], ["ocr_api_key", "API Key for the selected provider", "password"]],
+    guide: "One vision AI key powers BOTH Aadhaar number extraction during partner KYC and the 'KYC photo vs check-in selfie' face verification on bookings.",
+    steps: [
+      "Choose an AI Provider above. Google Gemini is recommended (fast, low cost, supports images).",
+      "Create an API key with that provider — Gemini: aistudio.google.com/app/apikey · OpenAI: platform.openai.com/api-keys · Anthropic: console.anthropic.com/settings/keys. Make sure billing/quota is active.",
+      "Paste the key into 'API Key'. Leave Model blank to use the default (gemini-2.5-flash · gpt-4o · claude-3-5-sonnet-20241022) or type a vision-capable model name.",
+      "Click 'Test Vision AI' below — you should see 'Vision AI connected'.",
+      "Click Save. Keep the card's toggle ON. Then open any booking → Work Proof Photos → Re-check to run the face match.",
+    ],
+    guideLink: "https://aistudio.google.com/app/apikey" },
   { key: "ai", icon: Sparkles, title: "AI Assistant", desc: "Customer / partner / admin chat assistant", flag: "ai_enabled",
     fields: [["ai_provider", "AI Provider", "select", [["anthropic", "Anthropic (Claude)"], ["openai", "OpenAI"], ["gemini", "Google Gemini"]]], ["ai_model", "Model (optional)"], ["ai_api_key", "API Key for the selected provider", "password"]],
     guide: "Powers the in-app chat assistant. Pick a provider and paste that provider's own API key (Anthropic: console.anthropic.com · OpenAI: platform.openai.com · Gemini: aistudio.google.com). Optionally override the default model (e.g. claude-3-5-sonnet-20241022, gpt-4o, gemini-2.5-flash). The assistant starts replying the moment a valid key is saved." },
@@ -747,6 +755,12 @@ export function IntegrationCenter({ onNavigate }) {
   const [data, setData] = useState(null);
   const [integ, setInteg] = useState({});
   const [configuring, setConfiguring] = useState(null);
+  // Deep link: /admin?tab=integration_center&intg=ocr opens that card's setup directly.
+  useEffect(() => {
+    const k = new URLSearchParams(window.location.search).get("intg");
+    const c = k && CARDS.find((x) => x.key === k);
+    if (c) setConfiguring(c);
+  }, []);
 
   const load = useCallback(() => {
     api.get("/admin/partner-reg/integration-center").then((r) => { setData(r.data); setInteg(r.data.integrations || {}); });
@@ -758,7 +772,7 @@ export function IntegrationCenter({ onNavigate }) {
     email: ["smtp_host", "smtp_password"],
     sendgrid: ["sendgrid_api_key", "sendgrid_sender_email"],
     sms: ["fast2sms_api_key"],
-    ocr: ["ocr_enabled"],
+    ocr: ["ocr_api_key"],
     ai: ["ai_api_key"],
     s3: ["aws_access_key_id", "aws_secret_access_key", "aws_bucket"],
     razorpay: ["__rzp"],
@@ -988,6 +1002,30 @@ export function IntegrationCenter({ onNavigate }) {
   );
 }
 
+function VisionTestBlock({ f }) {
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+  const run = async () => {
+    setBusy(true); setRes(null);
+    try { const { data } = await api.post("/admin/integrations/vision-test", { ocr_provider: f.ocr_provider, ocr_model: f.ocr_model, ocr_api_key: f.ocr_api_key }); setRes(data); }
+    catch (e) { setRes({ ok: false, error: e?.response?.data?.detail || "Test failed" }); }
+    finally { setBusy(false); }
+  };
+  return (
+    <div className="mt-3 space-y-2" data-testid="vision-test-block">
+      {res && (
+        <div data-testid="vision-test-result" className={`rounded-xl border px-3 py-2 text-xs ${res.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-rose-50 border-rose-200 text-rose-700"}`}>
+          <p className="font-bold flex items-center gap-1.5">{res.ok ? <CheckCircle2 className="h-4 w-4" /> : <X className="h-4 w-4" />}{res.ok ? "Vision AI connected" : "Vision AI test failed"}{res.model && <span className="ml-auto font-medium opacity-70">{res.model}</span>}</p>
+          {!res.ok && res.error && <p className="mt-1 break-words">{res.error}</p>}
+        </div>
+      )}
+      <Button type="button" variant="outline" className="w-full border-primary-200 text-primary-700 hover:bg-primary-50" data-testid="vision-test-btn" onClick={run} disabled={busy}>
+        {busy ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <ScanLine className="h-4 w-4 mr-1" />} Test Vision AI
+      </Button>
+    </div>
+  );
+}
+
 function ConfigModal({ card, integ, onClose, onSaved }) {
   const [f, setF] = useState(() => Object.fromEntries(card.fields.map(([k]) => [k, integ[k] ?? ""])));
   const [saJson, setSaJson] = useState("");
@@ -1071,6 +1109,7 @@ function ConfigModal({ card, integ, onClose, onSaved }) {
       // strip UI-only section markers before saving
       const payload = Object.fromEntries(Object.entries(f).filter(([k]) => !k.startsWith("__")));
       if (card.provider) { payload.email_provider = card.provider; payload.email_enabled = true; }
+      if (card.key === "ocr" && String(payload.ocr_api_key || "").trim()) payload.ocr_enabled = true;
       // Razorpay: Test & Live both supported. Payout (RazorpayX) follows the active
       // pay-in mode with its own per-mode fields (never mixed).
       if (card.key === "razorpay") {
@@ -1143,6 +1182,11 @@ function ConfigModal({ card, integ, onClose, onSaved }) {
                 {card.guideLink && <> {" "}<a href={card.guideLink} target="_blank" rel="noreferrer" className="text-blue-600 underline font-medium">Open dashboard →</a></>}
               </p>
             )}
+            {card.steps && (
+              <ol className="list-decimal pl-4 space-y-1 text-xs text-slate-600 leading-relaxed" data-testid={`intg-steps-${card.key}`}>
+                {card.steps.map((st, i) => <li key={i}>{st}</li>)}
+              </ol>
+            )}
             {card.webhook && (
               <div>
                 <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400 mb-1">{card.webhook2 ? "Pay-in webhook (refund.* events)" : "Webhook URL — paste this in the provider dashboard"}</p>
@@ -1165,6 +1209,7 @@ function ConfigModal({ card, integ, onClose, onSaved }) {
             )}
           </div>
         )}
+        {card.key === "ocr" && <VisionTestBlock f={f} />}
         {card.key === "sms" && (
           <div className="mt-3 space-y-2" data-testid="sms-test-block">
             <p className="text-[11px] uppercase tracking-wider font-bold text-slate-400">Send a test OTP</p>

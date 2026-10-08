@@ -142,6 +142,9 @@ function FaceMatchPanel({ bookingId, checkin }) {
         </button>
       </div>
       {fm?.reason && <p data-testid="face-match-reason" className="mt-1 opacity-90">{fm.reason}</p>}
+      {(fm?.setup_required || /not configured|turned off/i.test(fm?.reason || "")) && (
+        <a data-testid="face-match-configure-link" href="/admin?tab=integration_center&intg=ocr" className="mt-1.5 inline-flex items-center gap-1 font-bold text-primary-700 underline underline-offset-2">Configure Vision AI in Integration Center →</a>
+      )}
       {fm?.kyc_photo_url && (
         <div className="mt-2 flex items-center gap-2">
           <button type="button" onClick={() => { setIdx(0); setOpen(true); }} className="h-14 w-12 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 cursor-zoom-in" data-testid="face-match-kyc-photo"><img src={proofSrc(fm.kyc_photo_url)} alt="KYC" className="h-full w-full object-cover" /></button>
