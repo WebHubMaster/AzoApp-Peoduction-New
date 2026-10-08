@@ -202,7 +202,7 @@ function CustomJobDetail({ id, onBack, onConverted, navigate }) {
     try {
       const { data } = await api.post(`/custom-jobs/${id}/convert`);
       if (data.already_converted) toast.info("Already converted — opening the linked service.");
-      else toast.success("Draft service created! Configure the details and activate it.");
+      else toast.success("Service created & live in its category for everyone. You can edit price & details anytime.");
       onConverted?.();
       navigate(`/admin?tab=services&editService=${data.service_id}`);
     } catch (e) { toast.error(e?.response?.data?.detail || "Conversion failed"); }
@@ -266,7 +266,7 @@ function CustomJobDetail({ id, onBack, onConverted, navigate }) {
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 text-sm text-violet-700 bg-violet-50 px-3 py-2 rounded-lg">
               <ArrowRightLeft className="h-4 w-4" /> Converted to service
-              {job.service?.status === "active" ? " · Active" : " · Draft"}
+              {job.service?.status === "active" ? " · Active" : " · Inactive"}
             </div>
             <button onClick={() => navigate(`/admin?tab=services&editService=${job.converted_service_id}`)} data-testid="cja-view-service"
               className="h-11 px-5 rounded-md bg-primary-700 hover:bg-primary-800 text-white font-semibold flex items-center gap-2">

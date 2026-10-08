@@ -527,6 +527,21 @@ async def startup():
                 logger.warning("inline evidence migration error: %s", e)
                 break
 
+    async def _custom_job_autolive():
+        await asyncio.sleep(3)
+        try:
+            from services import custom_job_service as _cjs
+            n = await _cjs.publish_converted_drafts()
+            if n:
+                logger.info("custom-job services made live: %s", n)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("custom-job autolive error: %s", e)
+
+    try:
+        asyncio.create_task(_custom_job_autolive())
+    except Exception as e:  # noqa: BLE001
+        logger.warning("custom-job autolive not started: %s", e)
+
     try:
         asyncio.create_task(_inline_evidence_migration())
     except Exception as e:  # noqa: BLE001

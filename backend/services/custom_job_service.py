@@ -307,8 +307,9 @@ async def set_visibility(job_id: str, visibility: str, admin: dict) -> dict:
 
 
 async def convert_to_service(job_id: str, admin: dict) -> dict:
-    """Create a DRAFT service (inactive) prefilled from the request using the
-    EXISTING service-creation system, then permanently link them. Idempotent:
+    """Create a LIVE service prefilled from the request using the EXISTING
+    service-creation system (shows in its category for everyone on web & app, unless
+    visibility is 'requester_only'), then permanently link them. Idempotent:
     a request can only ever be converted once."""
     from controllers import catalog_controller as cc
 
@@ -330,7 +331,7 @@ async def convert_to_service(job_id: str, admin: dict) -> dict:
         "description": job["description"],
         # customer budget → SUGGESTED/initial price only (admin edits the real price)
         "base_price": float(job.get("expected_budget") or 0),
-        "status": "inactive",          # draft — admin reviews/configures before activating
+        "status": "active",            # live in its category right away (admin can still edit/deactivate)
         "show_on_home": False,
         "approval_status": "approved",
         # permanent back-reference to the originating request
@@ -354,6 +355,7 @@ async def convert_to_service(job_id: str, admin: dict) -> dict:
     job = await db.custom_jobs.find_one({"id": job["id"]}, {"_id": 0})
 
     await _notify_status(job, "converted_to_service")
+    await on_service_activated(svc)
     return {"already_converted": False, "service_id": svc["id"], "service": svc,
             "job": await _decorate(job)}
 
@@ -436,3 +438,32 @@ async def on_service_activated(service: dict):
     except Exception:  # noqa: BLE001
         pass
 
+
+
+async def publish_converted_drafts() -> int:
+    """One-time: services converted earlier were created as inactive drafts and never
+    showed in their category. Make them live once; afterwards admin activate/deactivate
+    is respected (guarded by an app_meta flag)."""
+    flag = "custom_job_autolive_v1"
+    if await db.app_meta.find_one({"key": flag}):
+        return 0
+    rows = await db.services.find({"source": "custom_job", "status": {"$ne": "active"}},
+                                  {"_id": 0}).to_list(1000)
+    for svc in rows:
+        await db.services.update_one({"id": svc["id"]},
+                                     {"$set": {"status": "active", "approval_status": "approved",
+                                               "updated_at": now_iso()}})
+        svc["status"] = "active"
+        try:
+            await on_service_activated(svc)
+        except Exception:  # noqa: BLE001
+            pass
+    await db.app_meta.insert_one({"key": flag, "count": len(rows), "at": now_iso()})
+    if rows:
+        try:
+            from services import cache_service as _cache
+            await _cache.bust("catalog:services:all")
+            await _cache.bust_prefix("site:")
+        except Exception:  # noqa: BLE001
+            pass
+    return len(rows)
