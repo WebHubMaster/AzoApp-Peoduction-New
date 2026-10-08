@@ -1,0 +1,35 @@
+{
+  "summary": "Static + unit review of the admin booking-details broken-image fix. proofSrc() in web_panel/src/components/WorkProof.jsx was unit-tested with 12 input cases (relative /api/media/*, absolute old-host /api/media/*, external absolute, data:, blob:, null/undefined/empty, bare relative) — all 12 passed. ESLint on WorkProof.jsx is clean; adminSections.jsx has only an unrelated pre-existing 'unused eslint-disable' warning at line 3807. Backend media_routes.py fallback logic (_s3_fallback / _local_fallback with path-traversal guard) was reviewed statically — pyflakes & ast parse clean, FileResponse/Response imports present, and storage_service._s3_conf / _s3_key / fetch_s3_object / presign_s3 / _put all exist and are used correctly. Live backend testing was NOT possible: /app/backend/.env is missing in this pod so uvicorn crashes with KeyError('MONGO_URL') (supervisor backend is in a crash-loop; curl :8001 → 000). Live frontend testing against the admin booking drawer was skipped — no admin credentials provided (test_credentials.md absent) and no running backend to serve bookings/media.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "/api/media/file/{path} + /api/media/s3/{key}", "issue": "Fallback paths look correct, but could not be exercised at runtime because /app/backend/.env (MONGO_URL/DB_NAME) is missing — backend uvicorn is crash-looping. Not caused by this change; blocks end-to-end verification."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/tests/proofSrc_unit_test.js"],
+  "action_items": [
+    "Restore /app/backend/.env with MONGO_URL and DB_NAME so backend starts and E2E media fallback can be verified against a real booking record.",
+    "After backend is up, open an admin booking that has a check-in selfie + before/after proof files and visually confirm all three thumbnail groups load (previous bug was broken <img> for Partner selfie / Before Work 1 / After Work 1).",
+    "Optional cleanup: remove the unused `// eslint-disable-next-line` directive at adminSections.jsx:3807 (pre-existing, not from this change)."
+  ],
+  "critical_code_review_comments": [
+    "proofSrc() correctly handles the two reported URL shapes (relative /api/media/... and absolute old-host /api/media/...) and leaves data:/blob:/external CDN URLs unchanged — matches expected spec.",
+    "API_ORIGIN is captured at module load from `API.replace(/\\/api$/,'')`; since api.js resolves BACKEND_ORIGIN at runtime (window.location.origin fallback), this remains correct even with a stale/missing REACT_APP_BACKEND_URL.",
+    "media_routes.py `_local_fallback` applies a proper traversal guard (full.relative_to(root)) before serving — safe.",
+    "`serve_s3` handles the if-none-match / 304 path BEFORE calling `_local_fallback`, so a client that cached a now-S3-missing object may still get 304. Minor edge case, not blocking.",
+    "`_s3_fallback` tries the configured-folder-prefixed key first then the raw rel — matches the symmetric strip-first-segment logic in `_local_fallback`. Good."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (static review only — service down due to missing .env)", "frontend": "n/a (unit tests only — 12/12 proofSrc cases pass)"},
+  "test_credentials": "/app/memory/test_credentials.md is missing in this pod — no admin creds available for live UI test.",
+  "seed_data_creation": "None.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend cannot run until /app/backend/.env is restored (MONGO_URL, DB_NAME). After that, retest by: (1) hitting /api/media/file/<known_relative_proof_path> and /api/media/s3/<known_key> to confirm 200 bodies and fallback behaviour; (2) opening an admin booking that has evidence.before/after + checkin.selfie_url in Mongo and visually confirming all three thumbnail blocks render in the admin drawer; (3) re-running `node /app/tests/proofSrc_unit_test.js` as a regression gate for the URL-rewrite logic.",
+  "rca of the issue": "Admin panel booking-details thumbnails broke because proof URLs persisted by the partner app were either relative ('/api/media/...') or absolute pointing at an older preview backend host. When the admin SPA rendered them raw, the browser resolved the relative paths against the panel's own origin (not the backend's) and loaded nothing. The fix adds proofSrc(u) which detects `https?://*/api/media/...` and rewrites it onto the current backend origin, while still routing bare relative paths through mediaSrc(). It's used for the check-in selfie, KYC photo, before/after thumbnails, lightbox images, and the booking drawer item/partner avatars. Unit tests confirm all branches."
+}

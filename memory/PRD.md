@@ -173,3 +173,7 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Logout (Customer + Partner/Merchant): clears all saved home snapshots (cust_home_cache_v1_*/partner_home_cache_v1_*) + react-query cache
 - RefreshNote.tsx (both apps): drop-in RefreshControl + RefreshNoteHost → "Updated just now" pill after pull-to-refresh (all partner screens, customer shell + site home)
 - Refresh feedback: soft tick (assets/sounds/refresh-tick.wav, vol 0.35) + light haptic in RefreshNoteHost (both apps)
+
+## Fix (Jun 2026) – Admin booking details images
+- web_panel WorkProof.jsx: proofSrc() resolves relative/old-host /api/media URLs to current backend (selfie, before/after, KYC, lightbox); adminSections item image + partner photo too
+- backend media_routes: /media/file ↔ /media/s3 cross-fallback (local missing → S3, S3 missing → local)
