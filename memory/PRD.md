@@ -129,3 +129,9 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Root cause: Customer app public calls (auth:false) never sent X-City, and first calls fired before saved city loaded → all services/rate cards/search shown.
 - Fix: X-City on every request (waits for saved location); query cache refetch on city change; web pages reload on location change; backend subcategories + upsell also city-filtered.
 - Tested: iteration_244 — backend 12/12, both frontends pass.
+
+## 2026-06 — Web payments + city-aware banners + coming soon
+- Payments (web panel + Customer web build, all gateways): added PayU/Easebuzz callback routes, client-aware return URLs (X-Pay-Return: panel/customer), PayU status check + Easebuzz parsing fix, no fake success on redirect gateways (sessionStorage pending + return page), Customer web in-page checkout (webCheckout.ts) + /payment/return route.
+- Banners/offers/hero slides hidden when their linked category (category_id or link) is disabled in the city.
+- "Coming soon in <city>" notice on disabled category pages (web + Customer app).
+- Tested: iteration_245 (15/15 backend, 4/4 UI). Real gateway completion not testable (no keys in env).

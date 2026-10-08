@@ -1,0 +1,26 @@
+{
+  "summary": "Verified payment hosted-callback routing (PayU/Easebuzz) for panel + customer web, X-Pay-Return handling (clean 4xx when no gateway keys), city-aware banners/offers (Sparkling Homes hidden in Patna, shown in Ranchi) across /api/content/banners, /api/site/homepage, /api/app/home, /api/site/promotions; coming-soon category UX on web_panel and Customer Expo web, plus 404 handling for unknown category. 15/15 pytest and 4/4 UI flows pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_payments_banners_iter245.py",
+    "/app/test_reports/pytest/iter245.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "pay_return contextvar is set from middleware per-request; return_page()/_callback_url() correctly embed /api/panel or /api/customer prefix only when X-Pay-Return is 'panel' or 'customer'.",
+    "/api/payments/webhooks/{payu,easebuzz}-callback accept GET+POST, extract txnid or udf1, and 303-redirect to the right return page. Default (no ret) correctly falls back to /payment/return.",
+    "/api/catalog/category/{slug_or_id} returns proper 404 for unknown and attaches city_available flag based on active city_pricing doc. filter_linked correctly drops banners/offers whose linked category/service is outside the city's allowed set."
+  ],
+  "updated_files": ["/app/backend/tests/test_payments_banners_iter245.py"],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% (4/4 flows)"},
+  "test_credentials": "OTP login: Customer +919000000004 / OTP 123456 (used only for /api/payments/order 409 check).",
+  "seed_data_creation": "None. Used existing seed: HC category disabled in Patna city_pricing, enabled in Ranchi; Sparkling Homes banner linked to /category/home-cleaning.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Regression tests at /app/backend/tests/test_payments_banners_iter245.py cover (a) PayU/Easebuzz hosted-callback redirect targets panel/customer/default, (b) /api/payments/order with X-Pay-Return returns clean 4xx (not 500) when no gateway configured, (c) city-aware banner filtering across /api/content/banners, /api/site/homepage, /api/app/home, /api/site/promotions, (d) /api/catalog/category/<unknown> → 404, (e) HC city_available flag Patna=false, Ranchi=true. Playwright-verified testIDs: payment-return, payment-return-pending, payment-return-continue, category-city-unavailable, category-coming-soon-badge, category-coming-soon, category-coming-soon-browse."
+}
