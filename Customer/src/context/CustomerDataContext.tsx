@@ -8,6 +8,7 @@ import React, { createContext, useContext, useCallback, useEffect, useRef, useSt
 import { api } from "@/src/api/client";
 import { ACTIVE_STATES } from "@/src/components/customer/nav";
 import { useRealtime } from "@/src/context/RealtimeContext";
+import { useRawLocation } from "@/src/lib/location";
 
 interface Data {
   bookings: any[];
@@ -79,12 +80,13 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
     return unsub;
   }, [subscribe, loadBookings]);
 
+  const cityKey = useRawLocation();
   useEffect(() => {
     api.get("/auth/config").then(setCfg).catch(() => {});
     api.get("/catalog/categories").then((r) => setCategories(r || [])).catch(() => {});
     api.get("/catalog/services").then((r) => setServices(r || [])).catch(() => {});
     api.get("/referral/summary").then((r) => setReferral(r || {})).catch(() => {});
-  }, []);
+  }, [cityKey]);
 
   const activeCount = bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length;
 

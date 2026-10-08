@@ -31,7 +31,13 @@ async def category(slug_or_id: str):
 
 @router.get("/subcategories")
 async def subcategories(category_id: str = None):
-    return await c.list_subcategories(category_id)
+    from services.city_pricing_service import active_doc
+    subs = await c.list_subcategories(category_id)
+    doc = await active_doc()
+    if not doc:
+        return subs
+    allowed = set(doc.get("categories") or [])
+    return [s for s in subs if s.get("category_id") in allowed]
 
 
 @router.get("/services")
@@ -44,8 +50,11 @@ async def services(category_id: str = None, subcategory_id: str = None, q: str =
 
 @router.get("/upsell")
 async def upsell(service_ids: str = ""):
+    from services.city_pricing_service import filter_services
     ids = [x.strip() for x in (service_ids or "").split(",") if x.strip()]
-    return await c.upsell_suggestions(ids)
+    out = await c.upsell_suggestions(ids)
+    out["frequently_together"] = await filter_services(out.get("frequently_together") or [])
+    return out
 
 
 @router.get("/services/{service_id}")

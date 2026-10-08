@@ -11,6 +11,7 @@ import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { CustomerAlertOverlay } from "@/src/components/customer/CustomerAlertOverlay";
 import { RateServiceProvider } from "@/src/components/customer/RateService";
 import { useNavigate } from "../src/lib/navigate";
+import { onCityChange } from "@/src/lib/location";
 setupNotificationHandler();
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -35,6 +36,8 @@ const queryClient = new QueryClient({ defaultOptions: { queries: {
   gcTime: 24 * 60 * 60 * 1000,
   refetchOnWindowFocus: false,
 } } });
+// Location switch → refetch everything so city-disabled categories/services drop out.
+onCityChange(() => { queryClient.invalidateQueries(); });
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { error: Error | null }> {
   state = { error: null as Error | null };

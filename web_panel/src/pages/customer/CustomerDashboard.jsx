@@ -16,6 +16,7 @@ import { onlyDigits } from "@/lib/validation";
 import { getMerchantRefCode } from "@/lib/merchantRef";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
+import useCityKey from "@/hooks/useCityKey";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import CustomerShell from "@/components/customer/CustomerShell";
 import FeeInfoTip from "@/components/FeeInfoTip";
@@ -108,12 +109,13 @@ export default function CustomerDashboard() {
     api.get("/payments/refunds").then((r) => setRefunds(r.data || [])).catch(() => {});
   }, []);
   useEffect(() => { load(); const t = setInterval(load, 8000); return () => clearInterval(t); }, [load]);
+  const cityKey = useCityKey();
   useEffect(() => {
     api.get("/auth/config").then((r) => setCfg(r.data)).catch(() => {});
     api.get("/catalog/categories").then((r) => setCategories(r.data || [])).catch(() => {});
     api.get("/catalog/services").then((r) => setServices(r.data || [])).catch(() => {});
     api.get("/referral/summary").then((r) => setReferral(r.data || {})).catch(() => {});
-  }, []);
+  }, [cityKey]);
   // Capture a friend's referral code from the URL (?fref=CODE) for later apply.
   useEffect(() => {
     const fref = new URLSearchParams(window.location.search).get("fref");

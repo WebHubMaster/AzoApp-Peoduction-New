@@ -6,6 +6,7 @@ import {
   LayoutGrid, AirVent, Zap, Droplet, Droplets, WashingMachine, Hammer, Wrench, MapPinOff,
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
+import useCityKey from "@/hooks/useCityKey";
 import { useCart } from "@/context/CartContext";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import SiteNavbar from "@/components/site/SiteNavbar";
@@ -131,13 +132,14 @@ export default function Services() {
   const navigate = useNavigate();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
+  const cityKey = useCityKey();
   useEffect(() => {
     setLoading(true);
     Promise.all([
       api.get("/catalog/categories").then((r) => setCats(r.data)).catch(() => {}),
       api.get("/catalog/services").then((r) => setServices(r.data)).catch(() => {}),
     ]).finally(() => setLoading(false));
-  }, []);
+  }, [cityKey]);
   useEffect(() => {
     const p = new URLSearchParams(loc.search);
     setActiveCat(p.get("category") || "all");
@@ -155,7 +157,7 @@ export default function Services() {
   useEffect(() => {
     if (!slug) { setCatMeta(null); return; }
     api.get(`/catalog/category/${slug}`).then((r) => setCatMeta(r.data || null)).catch(() => setCatMeta(null));
-  }, [slug]);
+  }, [slug, cityKey]);
 
   // Lookup map so section headings can show the admin-set category icon/desc.
   const catByName = useMemo(() => Object.fromEntries(cats.map((c) => [c.name, c])), [cats]);

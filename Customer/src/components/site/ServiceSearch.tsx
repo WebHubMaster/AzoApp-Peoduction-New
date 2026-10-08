@@ -5,6 +5,7 @@ import { useRouter } from "expo-router";
 import { Search, ArrowRight, TrendingUp, Clock, Zap } from "lucide-react-native";
 import { api } from "@/src/api/client";
 import { storage } from "@/src/utils/storage";
+import { useRawLocation } from "@/src/lib/location";
 import { fmt } from "@/src/lib/format";
 import { PRIMARY, SLATE, TC } from "@/src/theme";
 
@@ -20,6 +21,7 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
   const [loading, setLoading] = useState(false);
   const timer = useRef<any>(null);
   const isHero = variant === "hero";
+  const cityKey = useRawLocation();
 
   useEffect(() => {
     storage.getItem("azo_recent_searches").then((v) => { try { setRecent((JSON.parse(v || "[]") || []).filter((x: any) => typeof x === "string")); } catch {} });
@@ -30,7 +32,7 @@ export function ServiceSearch({ variant = "navbar", placeholder = "Search servic
         setTrending((list || []).slice(0, 6));
       } catch {}
     })();
-  }, []);
+  }, [cityKey]);
 
   const runSearch = (text: string) => {
     if (timer.current) clearTimeout(timer.current);

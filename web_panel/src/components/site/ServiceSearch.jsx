@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Loader2, ArrowRight, Star, Clock, Tag, TrendingUp, History } from "lucide-react";
 import api, { fmt } from "@/lib/api";
+import useCityKey from "@/hooks/useCityKey";
 import { isDiscountActive } from "@/lib/ratecard";
 
 /**
@@ -32,6 +33,7 @@ export default function ServiceSearch({
   const [active, setActive] = useState(-1);
   const boxRef = useRef(null);
   const timer = useRef(null);
+  const cityKey = useCityKey();
 
   const priceOf = (s) =>
     s.discounted_price > 0 && s.discounted_price < s.base_price ? s.discounted_price : s.base_price;
@@ -51,7 +53,7 @@ export default function ServiceSearch({
       } catch { /* ignore */ }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [cityKey]);
 
   const runSearch = useCallback(async (text) => {
     if (!text || text.trim().length < 2) {

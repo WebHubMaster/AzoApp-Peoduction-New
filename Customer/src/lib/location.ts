@@ -7,10 +7,18 @@ import { api } from "@/src/api/client";
 let _city = "";
 const subs = new Set<(c: string) => void>();
 const emit = () => subs.forEach((f) => f(_city));
-storage.getItem("azo_location").then((v) => { if (v) { _city = v; emit(); } });
+const _ready = storage.getItem("azo_location").then((v) => { if (v && !_city) { _city = v; emit(); } }).catch(() => {});
 
-export const setLocationName = (name: string) => { _city = name; storage.setItem("azo_location", name); emit(); };
+export const setLocationName = (name: string) => {
+  const changed = name !== _city;
+  _city = name; storage.setItem("azo_location", name); emit();
+  if (changed) cityListeners.forEach((f) => f(name));
+};
 export const getLocationName = () => _city;
+// Waits for the saved location to load so the first API calls carry the right city.
+export const getLocationNameAsync = async () => { await _ready; return _city; };
+const cityListeners = new Set<(c: string) => void>();
+export const onCityChange = (f: (c: string) => void) => { cityListeners.add(f); return () => { cityListeners.delete(f); }; };
 
 export function useCity() {
   const [city, setCity] = useState(_city);
