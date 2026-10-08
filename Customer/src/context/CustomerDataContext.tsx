@@ -60,6 +60,8 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
   const { user } = useAuth();
   const cacheKey = user?.id ? `cust_home_cache_v1_${user.id}` : "";
   const fresh = useRef({ bookings: false, aux: false, catalog: false, referral: false });
+  const liveKey = useRef(cacheKey);
+  liveKey.current = cacheKey;
   useEffect(() => {
     if (!cacheKey) return;
     storage.getItem(cacheKey).then((raw) => {
@@ -127,6 +129,7 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!cacheKey || !fresh.current.bookings) return;
     const t = setTimeout(() => {
+      if (liveKey.current !== cacheKey) return; // logged out / switched account meanwhile
       storage.setItem(cacheKey, JSON.stringify({ bookings: bookings.slice(0, 100), wallet: { ...wallet, transactions: (wallet?.transactions || []).slice(0, 20) }, refunds: refunds.slice(0, 50), cfg, categories, services, referral }));
     }, 1000);
     return () => clearTimeout(t);

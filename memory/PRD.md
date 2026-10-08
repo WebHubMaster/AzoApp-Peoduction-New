@@ -168,3 +168,7 @@ Verified live: chart renders, series toggle, insights, chips, KPIs, pagination.
 - Partner Job History: memoized HistoryRow + FlatList windowing props
 - Customer instant home: CustomerDataContext AsyncStorage snapshot per user (cust_home_cache_v1_{id})
 - Partner instant home: usePersistHomeQueries (src/lib/queryPersist.ts) persists dashboard/stats/starter-kit/maid-subs/active per user; job requests not cached
+
+## Update (Jun 2026) – Logout privacy + refresh feedback
+- Logout (Customer + Partner/Merchant): clears all saved home snapshots (cust_home_cache_v1_*/partner_home_cache_v1_*) + react-query cache
+- RefreshNote.tsx (both apps): drop-in RefreshControl + RefreshNoteHost → "Updated just now" pill after pull-to-refresh (all partner screens, customer shell + site home)
