@@ -140,7 +140,11 @@ export function JobRingOverlay() {
     // A reschedule request rings on an ALREADY-accepted booking, whose id is already
     // in handledRef (added on accept) — so skip the dedup for reschedules, otherwise
     // the full-screen reschedule alert never shows while the app is open.
-    if (handledRef.current.has(job.id) && !job._resched) return;
+    // Same for the 30-min reminder: it rings on an ACCEPTED booking (accept adds its id
+    // to handledRef), so reminders use their own "rem:" key — otherwise the full-screen
+    // reminder never shows while the app stays open (only the sound played).
+    const handledKey = job._reminder ? `rem:${job.id}` : job.id;
+    if (handledRef.current.has(handledKey) && !job._resched) return;
     // Scheduled 30-min reminder: only show once per cooldown window — never on every
     // app re-open. (Backend keeps offering it while the job hasn't been started.)
     if (job._reminder && wasReminderShownRecently(job.id)) return;
@@ -281,7 +285,7 @@ export function JobRingOverlay() {
 
   const dismissReminder = (job: RingJob) => {
     if (!job) return;
-    handledRef.current.add(job.id); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
+    handledRef.current.add(`rem:${job.id}`); stopAll(); removeFromQueue(job.id); cancelJobRing(job.id).catch(() => {}); refetch();
   };
 
   if (!current) return null;

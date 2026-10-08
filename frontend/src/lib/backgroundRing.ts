@@ -54,6 +54,9 @@ function _handle(ev: any) {
   const type = ev?.type;
   const d = ev?.data || {};
   if (RING_TYPES.has(type)) {
+    // App OPEN: the in-app JobRingOverlay (own SSE + 6s poll) shows the full-screen
+    // alert AND plays the tone. Ringing here too caused "sound only, no screen".
+    if (require("react-native").AppState.currentState === "active") return;
     const bid = String(d.booking_id || d.id || "");
     if (bid) {
       displayJobRing({ ...d, type, booking_id: bid }, "bg", "sse").catch(() => {});
