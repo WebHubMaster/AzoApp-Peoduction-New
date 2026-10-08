@@ -74,7 +74,7 @@ function FaceGuide({ videoRef, onStatus }) {
   const { rx, ry, cx, cy } = ovalOf(w, h);
   const hole = `M${cx - rx} ${cy} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
   const color = st.faceOk && !st.unavailable ? "#22C55E" : "#FFFFFF";
-  const hint = st.loading ? "Starting face check…" : st.dark ? "Too dark — move to a brighter place" : st.unavailable ? "Align your face inside the oval" : st.faceOk ? "Perfect! Hold still and tap capture" : "Align your face inside the oval";
+  const hint = st.loading ? "Starting face check…" : st.dark ? "Too dark — move to a brighter place" : st.faceOk && !st.unavailable ? "Perfect! Hold still and tap capture" : "Align your face in the oval, then tap capture";
   return (
     <div ref={ref} className="pointer-events-none absolute inset-0" data-testid="face-guide" data-face-ok={st.faceOk ? "true" : "false"} data-dark={st.dark ? "true" : "false"}>
       {w > 0 && (
@@ -179,7 +179,7 @@ export default function CameraCapture({ open, title = "Capture photo", onClose, 
   };
   useEffect(() => () => clearInterval(countRef.current), []);
   useEffect(() => { if (!open) { clearInterval(countRef.current); countRef.current = null; setCount(0); setFace({ faceOk: false }); } }, [open]);
-  const canSnap = ready && (!faceGuide || face.faceOk) && !count;
+  const canSnap = ready && !count;
 
   const retake = () => {
     if (shot?.url) URL.revokeObjectURL(shot.url);

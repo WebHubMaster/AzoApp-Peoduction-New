@@ -125,9 +125,9 @@ export function SelfieCamera({ visible, onClose, onCapture, onFail }: { visible:
     return () => clearTimeout(t);
   }, [count]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const canShoot = ready && chk.faceOk && !busy && !count;
+  const canShoot = ready && !busy && !count;
   const okLook = chk.faceOk && !chk.unavailable;
-  const hint = !ready ? "Starting camera…" : count ? "Hold still…" : chk.checking ? "Checking your face…" : chk.dark ? "Too dark — move to a brighter place" : okLook ? "Perfect! Tap to capture" : chk.unavailable ? "Align your face inside the oval" : "Align your face inside the oval";
+  const hint = !ready ? "Starting camera…" : count ? "Hold still…" : chk.dark ? "Too dark — move to a brighter place" : okLook ? "Perfect! Tap the button to capture" : "Align your face in the oval, then tap to capture";
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} statusBarTranslucent>
