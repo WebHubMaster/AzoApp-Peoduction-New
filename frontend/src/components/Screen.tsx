@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Pressable, RefreshControl, StyleProp, ViewStyle } from "react-native";
+import { View, Text, Pressable, StyleProp, ViewStyle } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";

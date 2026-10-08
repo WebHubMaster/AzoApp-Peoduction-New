@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Linking, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, ScrollView, Linking, Modal, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

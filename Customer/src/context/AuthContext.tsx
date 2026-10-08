@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { registerPushToken } from "../lib/push";
 import { api, getToken, setToken } from "@/src/api/client";
 
@@ -60,7 +62,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const logout = useCallback(async () => { await setToken(null); setUser(null); }, []);
+  const qc = useQueryClient();
+  // Shared phones stay private: wipe saved home snapshots + in-memory data on logout.
+  const logout = useCallback(async () => {
+    await setToken(null); setUser(null);
+    try {
+      const keys = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith("cust_home_cache_v1_"));
+      if (keys.length) await AsyncStorage.multiRemove(keys);
+    } catch { /* ignore */ }
+    qc.clear();
+  }, [qc]);
 
   return <Ctx.Provider value={{ user, loading, booting, login, logout, refresh, setUser }}>{children}</Ctx.Provider>;
 };

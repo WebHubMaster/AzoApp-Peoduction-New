@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { clearSavedHomeData } from "@/src/lib/queryPersist";
 import { api, getToken, setToken, setForceLogoutHandler } from "@/src/api/client";
 
 export interface AppUser {
@@ -91,10 +93,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
+  const qc = useQueryClient();
   const logout = useCallback(async () => {
     await setToken(null);
     setUser(null);
-  }, []);
+    // Shared phones stay private: wipe saved home snapshots + in-memory data.
+    await clearSavedHomeData();
+    qc.clear();
+  }, [qc]);
 
   const clearSessionEndedReason = useCallback(() => setSessionEndedReason(null), []);
 

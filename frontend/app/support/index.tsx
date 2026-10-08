@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, ScrollView, RefreshControl, Platform } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, ScrollView, Platform } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, ScrollView, RefreshControl, Animated } from "react-native";
+import { View, Text, ScrollView, Animated } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";

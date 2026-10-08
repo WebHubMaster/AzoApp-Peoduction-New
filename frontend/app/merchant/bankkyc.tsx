@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform, Alert, ActivityIndicator, StyleProp, ViewStyle, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, ScrollView, Modal, TextInput, Platform, Alert, ActivityIndicator, StyleProp, ViewStyle, useWindowDimensions } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

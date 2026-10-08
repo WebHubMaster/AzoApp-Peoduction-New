@@ -10,6 +10,7 @@ import { View, Text, AppState } from "react-native";
 
 import { ThemeProvider } from "@/src/theme";
 import { AuthProvider } from "@/src/context/AuthContext";
+import { RefreshNoteHost } from "@/src/components/RefreshNote";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { ChatProvider } from "@/src/context/ChatContext";
 import { ChatNotifier } from "@/src/components/ChatNotifier";
@@ -111,6 +112,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
               <Stack.Screen name="(agent)" />
               <Stack.Screen name="chat/[id]" options={{ animation: "slide_from_right" }} />
             </Stack>
+            <RefreshNoteHost />
             <OfflineGate />
             <AppUpdateGate />
           </ToastProvider>

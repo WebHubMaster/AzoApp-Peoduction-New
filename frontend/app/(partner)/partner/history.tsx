@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, Pressable, FlatList, RefreshControl, TextInput } from "react-native";
+import { View, Text, Pressable, FlatList, TextInput } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

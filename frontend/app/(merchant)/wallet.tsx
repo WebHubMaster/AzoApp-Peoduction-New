@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, ScrollView, RefreshControl, Modal, TextInput, Platform } from "react-native";
+import { View, Text, Pressable, ScrollView, Modal, TextInput, Platform } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

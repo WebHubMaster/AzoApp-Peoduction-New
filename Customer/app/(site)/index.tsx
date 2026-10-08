@@ -1,6 +1,7 @@
 /** Customer App Home — admin-managed layout (GET /app/home), progressive rendering, offline-first cache. */
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, FlatList, RefreshControl, Pressable } from "react-native";
+import { View, Text, FlatList, Pressable } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";

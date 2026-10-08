@@ -21,6 +21,7 @@ import { CartProvider } from "../src/context/CartContext";
 import { AuthProvider } from "@/src/context/AuthContext";
 import { BrandProvider, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { ToastProvider } from "@/src/components/Toast";
+import { RefreshNoteHost } from "@/src/components/RefreshNote";
 import { PaymentWebViewHost } from "@/src/components/PaymentWebViewHost";
 import AppUpdateGate from "@/src/components/AppUpdateGate";
 import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
@@ -85,6 +86,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
                 <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
                 <Stack.Screen name="(customer)" />
               </Stack></KeyboardAvoidingView></RateServiceProvider>
+              <RefreshNoteHost />
             </ToastProvider>
           </RealtimeProvider>
         </CartProvider></AuthProvider>

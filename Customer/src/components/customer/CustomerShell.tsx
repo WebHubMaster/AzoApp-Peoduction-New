@@ -5,6 +5,7 @@
 import { RateServiceButton } from "./RateService";
 import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, Pressable, Modal, ScrollView, Platform, RefreshControl } from "react-native";
+import { notifyRefreshed } from "@/src/components/RefreshNote";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { KeyboardFixedBottom } from "@/src/components/KeyboardFixedBottom";
 import { useRouter, usePathname } from "expo-router";
@@ -114,7 +115,7 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
 
       {/* Page content */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl testID="pull-refresh" refreshing={pulling} onRefresh={async () => { setPulling(true); await runPullRefresh(); setPulling(false); }} tintColor={PRIMARY[700]} colors={[PRIMARY[700]]} />}
+        refreshControl={<RefreshControl testID="pull-refresh" refreshing={pulling} onRefresh={async () => { setPulling(true); await runPullRefresh(); setPulling(false); notifyRefreshed(); }} tintColor={PRIMARY[700]} colors={[PRIMARY[700]]} />}
         scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}>
         {children}
       </ScrollView>

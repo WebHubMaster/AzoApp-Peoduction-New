@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import type { QueryClient } from "@tanstack/react-query";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storage } from "@/src/utils/storage";
 
 // Home-screen queries kept on the phone so the app opens instantly (even on slow internet).
@@ -35,4 +36,12 @@ export function usePersistHomeQueries(qc: QueryClient, userId?: string) {
     });
     return () => { alive = false; if (t) clearTimeout(t); unsub(); };
   }, [qc, userId]);
+}
+
+/** Removes every saved home snapshot (all accounts) — called on logout. */
+export async function clearSavedHomeData() {
+  try {
+    const keys = (await AsyncStorage.getAllKeys()).filter((k) => k.startsWith("partner_home_cache_v1_"));
+    if (keys.length) await AsyncStorage.multiRemove(keys);
+  } catch { /* ignore */ }
 }

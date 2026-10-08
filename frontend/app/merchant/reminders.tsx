@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, FlatList, Pressable, Linking, RefreshControl } from "react-native";
+import { View, Text, FlatList, Pressable, Linking } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, fontSize } from "@/src/theme";

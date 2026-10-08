@@ -1,6 +1,7 @@
 /* 1:1 port of web MerchantInvoices.jsx (role="partner") — "My Invoices", mobile (<md) variant */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, RefreshControl, Platform } from "react-native";
+import { View, Text, ScrollView, Pressable, Platform } from "react-native";
+import { RefreshControl } from "@/src/components/RefreshNote";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
