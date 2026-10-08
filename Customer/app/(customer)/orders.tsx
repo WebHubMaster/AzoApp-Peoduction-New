@@ -113,6 +113,10 @@ export default function OrdersScreen() {
     onRepeat: repeat, onCancel: setCancelT, onReview: (b: any, rating?: number) => setRev(rating != null ? { ...b, _initRating: rating } : b), onPay: pay, onPayAddl: setAddl, onSpare: spareAction, onRefresh: reload, onDetails: setDetails, onInvoice: setInvoice, onChat: setChat, onReschedule: setResched,
     respondResched, cancelResched, unreadFor, toast,
   };
+  // One stable handler object for all cards (always calls the latest handler) → memoized cards skip re-renders.
+  const actionsRef = useRef(actions);
+  actionsRef.current = actions;
+  const stableActions = useMemo(() => new Proxy({} as CardActions, { get: (_t, k) => (actionsRef.current as any)[k] }), []);
 
   return (
     <View testID="orders-page">
@@ -146,7 +150,7 @@ export default function OrdersScreen() {
         {!list.loading && list.error ? <EmptyState icon={AlertTriangle} title="Couldn't load bookings" desc="Slow connection. Please try again." actionLabel="Retry" onAction={() => list.refresh()} testID="orders-error" /> : null}
         {!list.loading && !list.error && counts.all === 0 ? <EmptyState icon={Package} title="No bookings yet" desc="Book your first home service in minutes." actionLabel="Book a Service" onAction={goNew} testID="orders-empty" /> : null}
         {!list.loading && !list.error && counts.all > 0 && list.total === 0 ? <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testID="orders-nomatch" /> : null}
-        {list.loading ? null : paged.map((b: any) => <BookingCard key={b.id} b={b} focus={!!focusCode && focusCode === b.code} a={actions} />)}
+        {list.loading ? null : paged.map((b: any) => <BookingCard key={b.id} b={b} focus={!!focusCode && focusCode === b.code} unread={unreadFor(b.id)} a={stableActions} />)}
       </View>
       {list.loading ? null : <LoadMoreFooter hasMore={list.hasMore} loading={list.more === "loading"} error={list.more === "error"} onLoadMore={list.loadMore} total={list.items.length} testID="bk-load-more" />}
 

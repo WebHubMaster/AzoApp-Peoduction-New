@@ -8,6 +8,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/api/client";
 import { JobRingOverlay } from "@/src/components/JobRingOverlay";
 import { useRealtime } from "@/src/context/RealtimeContext";
+import { usePersistHomeQueries } from "@/src/lib/queryPersist";
 
 /** Mirrors web PartnerDashboard NAV (rest of the menu lives under "More"). */
 export default function PartnerLayout() {
@@ -19,6 +20,7 @@ export default function PartnerLayout() {
 
   const { connected, subscribe } = useRealtime();
   const qc = useQueryClient();
+  usePersistHomeQueries(qc, user?.id);
   useEffect(() => subscribe((ev) => { if (LIVE_EVENTS.includes(ev.type)) refreshPartnerLive(qc); }), [subscribe, qc]);
   useEffect(() => { const sub = AppState.addEventListener("change", (s) => { if (s === "active") refreshPartnerLive(qc); }); return () => sub.remove(); }, [qc]);
   const jobs = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 15000 });

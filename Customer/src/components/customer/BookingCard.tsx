@@ -231,7 +231,7 @@ export type CardActions = {
   unreadFor: (id: string) => number; toast: any;
 };
 
-export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardActions }) {
+function BookingCardInner({ b, focus, a }: { b: any; focus?: boolean; a: CardActions; unread?: number }) {
   const { c, isDark } = useTheme();
   const [tlOpen, setTlOpen] = useState(false);
   const [reschedBusy, setReschedBusy] = useState(false);
@@ -392,3 +392,6 @@ export function BookingCard({ b, focus, a }: { b: any; focus?: boolean; a: CardA
     </View>
   );
 }
+
+// Re-render a card only when its booking, focus, unread count or handlers change (smooth long lists).
+export const BookingCard = React.memo(BookingCardInner, (p, n) => p.b === n.b && p.focus === n.focus && p.unread === n.unread && p.a === n.a);

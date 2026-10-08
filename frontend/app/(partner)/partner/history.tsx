@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, Pressable, FlatList, RefreshControl, TextInput } from "react-native";
 import { useRouter } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,6 +19,26 @@ const HIST_FILTERS = [
   { key: "cancelled", label: "Cancelled" },
 ] as const;
 
+const HistoryRow = React.memo(function HistoryRow({ b, onOpen }: { b: any; onOpen: (id: string) => void }) {
+  const { colors } = useTheme();
+  const cancelled = b.status === "cancelled";
+  return (
+    <Pressable testID={`history-${b.code}`} onPress={() => onOpen(b.id)} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md }}>
+      <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: cancelled ? colors.dangerSubtle : colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
+        <Icon name={cancelled ? "close-circle-outline" : "wrench"} size={20} color={cancelled ? colors.danger : colors.primary} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm }} numberOfLines={1}>{b.service_name}</Text>
+        <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 }}>#{b.code} · {fmtDate(b.updated_at || b.created_at)}</Text>
+      </View>
+      <View style={{ alignItems: "flex-end", gap: 4 }}>
+        <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{fmt(b.partner_amount ?? b.breakdown?.total ?? b.pricing?.total ?? b.total)}</Text>
+        <StatusBadge status={b.status} />
+      </View>
+    </Pressable>
+  );
+});
+
 export default function PartnerJobHistory() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -31,6 +51,7 @@ export default function PartnerJobHistory() {
   const searchD = useDebounced(search.trim(), 350);
   const q = useInfiniteList(["partner-joblist", "history-paged", histStatus, searchD], (pg, size) => api.get<any>(`/bookings/partner/history?status=${histStatus}&search=${encodeURIComponent(searchD)}&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
   const list = q.items;
+  const openJob = useCallback((id: string) => router.push(`/(partner)/booking/${id}`), [router]);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -70,24 +91,11 @@ export default function PartnerJobHistory() {
           onEndReachedThreshold={0.5}
           ListFooterComponent={<LoadMoreFooter list={q} testID="history-load-more" />}
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 40, gap: spacing.sm }}
-          renderItem={({ item: b }) => {
-            const cancelled = b.status === "cancelled";
-            return (
-              <Pressable testID={`history-${b.code}`} onPress={() => router.push(`/(partner)/booking/${b.id}`)} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, backgroundColor: colors.card, borderRadius: radius.lg, borderWidth: 1, borderColor: colors.border, padding: spacing.md }}>
-                <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: cancelled ? colors.dangerSubtle : colors.primarySubtle, alignItems: "center", justifyContent: "center" }}>
-                  <Icon name={cancelled ? "close-circle-outline" : "wrench"} size={20} color={cancelled ? colors.danger : colors.primary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: colors.text, fontWeight: "700", fontSize: fontSize.sm }} numberOfLines={1}>{b.service_name}</Text>
-                  <Text style={{ color: colors.textMuted, fontSize: fontSize.xs, marginTop: 2 }}>#{b.code} · {fmtDate(b.updated_at || b.created_at)}</Text>
-                </View>
-                <View style={{ alignItems: "flex-end", gap: 4 }}>
-                  <Text style={{ color: colors.text, fontWeight: "800", fontSize: fontSize.sm }}>{fmt(b.partner_amount ?? b.breakdown?.total ?? b.pricing?.total ?? b.total)}</Text>
-                  <StatusBadge status={b.status} />
-                </View>
-              </Pressable>
-            );
-          }}
+          renderItem={({ item }) => <HistoryRow b={item} onOpen={openJob} />}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          removeClippedSubviews
           refreshControl={<RefreshControl refreshing={q.isRefetching && !q.isFetchingNextPage} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-joblist"] })} tintColor={colors.primary} colors={[colors.primary]} />}
           ListEmptyComponent={<EmptyState icon="history" title="No jobs found" subtitle="Your completed & cancelled jobs will appear here." />}
         />

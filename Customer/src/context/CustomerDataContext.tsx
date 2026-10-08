@@ -10,6 +10,8 @@ import { api } from "@/src/api/client";
 import { ACTIVE_STATES } from "@/src/components/customer/nav";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useRawLocation } from "@/src/lib/location";
+import { useAuth } from "@/src/context/AuthContext";
+import { storage } from "@/src/utils/storage";
 
 interface Data {
   bookings: any[];
@@ -54,13 +56,31 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
   const [referral, setReferral] = useState<any>({ reward_amount: 100, referee_discount: 100 });
   const [loading, setLoading] = useState(true);
 
+  // Instant Home: show the last saved dashboard immediately, then refresh from the network.
+  const { user } = useAuth();
+  const cacheKey = user?.id ? `cust_home_cache_v1_${user.id}` : "";
+  const fresh = useRef({ bookings: false, aux: false, catalog: false, referral: false });
+  useEffect(() => {
+    if (!cacheKey) return;
+    storage.getItem(cacheKey).then((raw) => {
+      if (!raw) return;
+      try {
+        const c = JSON.parse(raw);
+        if (!fresh.current.bookings && c.bookings) { setBookings(c.bookings); setLoading(false); }
+        if (!fresh.current.aux) { if (c.wallet) setWallet(c.wallet); if (c.refunds) setRefunds(c.refunds); }
+        if (!fresh.current.catalog) { if (c.categories) setCategories(c.categories); if (c.services) setServices(c.services); if (c.cfg) setCfg(c.cfg); }
+        if (!fresh.current.referral && c.referral) setReferral(c.referral);
+      } catch { /* corrupt cache → ignore */ }
+    });
+  }, [cacheKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Fast path: just the bookings list (drives the live job status).
   const loadBookings = useCallback(() => {
-    api.get("/bookings").then((r) => setBookings(r || [])).catch(() => {}).finally(() => setLoading(false));
+    api.get("/bookings").then((r) => { fresh.current.bookings = true; setBookings(r || []); }).catch(() => {}).finally(() => setLoading(false));
   }, [setBookings]);
   // Slow path: wallet + refunds.
   const loadAux = useCallback(() => {
-    api.get("/wallet").then((r) => setWallet(r || { balance: 0, transactions: [] })).catch(() => {});
+    api.get("/wallet").then((r) => { fresh.current.aux = true; setWallet(r || { balance: 0, transactions: [] }); }).catch(() => {});
     api.get("/payments/refunds").then((r) => setRefunds(r || [])).catch(() => {});
   }, [setWallet, setRefunds]);
   const load = useCallback(() => { loadBookings(); loadAux(); }, [loadBookings, loadAux]);
@@ -98,10 +118,19 @@ export const CustomerDataProvider = ({ children }: { children: React.ReactNode }
   const cityKey = useRawLocation();
   useEffect(() => {
     api.get("/auth/config").then(setCfg).catch(() => {});
-    api.get("/catalog/categories").then((r) => setCategories(r || [])).catch(() => {});
-    api.get("/catalog/services").then((r) => setServices(r || [])).catch(() => {});
-    api.get("/referral/summary").then((r) => setReferral(r || {})).catch(() => {});
+    api.get("/catalog/categories").then((r) => { fresh.current.catalog = true; setCategories(r || []); }).catch(() => {});
+    api.get("/catalog/services").then((r) => { fresh.current.catalog = true; setServices(r || []); }).catch(() => {});
+    api.get("/referral/summary").then((r) => { fresh.current.referral = true; setReferral(r || {}); }).catch(() => {});
   }, [cityKey]);
+
+  // Save a snapshot (debounced) once real data has arrived.
+  useEffect(() => {
+    if (!cacheKey || !fresh.current.bookings) return;
+    const t = setTimeout(() => {
+      storage.setItem(cacheKey, JSON.stringify({ bookings: bookings.slice(0, 100), wallet: { ...wallet, transactions: (wallet?.transactions || []).slice(0, 20) }, refunds: refunds.slice(0, 50), cfg, categories, services, referral }));
+    }, 1000);
+    return () => clearTimeout(t);
+  }, [cacheKey, bookings, wallet, refunds, cfg, categories, services, referral]);
 
   const activeCount = useMemo(() => bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length, [bookings]);
   const value = useMemo(() => ({ bookings, refunds, wallet, cfg, categories, services, referral, loading, activeCount, load }),
