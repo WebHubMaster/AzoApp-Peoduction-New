@@ -346,3 +346,18 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   dialog with note, Reopen.
 - Verified: testing_agent backend 100% (21/21). Clients are Expo/CRA — not runnable in pod; RN typechecked
   (tsc) and admin JSX babel-parsed clean. NOTE: rebuild/redeploy the web_panel to see the admin menu.
+
+---
+## Update 2026-10-09 — Bug Categories added to Report-a-Bug
+
+Added a `category` dimension to the existing Report-a-Bug feature (Customer, Partner, Admin).
+Allowed values: payment, booking, login, account, other (default "other").
+
+Implemented:
+- Backend (`controllers/bug_controller.py`, `routes/bug_routes.py`): `BUG_CATEGORIES` + `_norm_category()`; `create_bug` saves `category`; `_public` normalizes it (legacy rows → "other"); `admin_list` accepts a `category` filter and returns `category_counts` (all + per-category). `BugCreate` model gained optional `category`.
+- Customer app (`/app/Customer/app/(customer)/report-bug.tsx`): category chips selector, sent on submit, badge in My Reports.
+- Partner app (`/app/frontend/app/(partner)/partner/report-bug.tsx`): same chips + badge.
+- Admin panel (`/app/web_panel/src/pages/admin/ReportedBugs.jsx`): category filter tabs with counts + category badge per report.
+
+Verified: backend 26/26 tests pass (iteration_265); both Expo apps tsc-clean on changed files. Nothing existing broken.
+Note: Expo apps + CRA admin panel need rebuild/redeploy to see UI changes.
