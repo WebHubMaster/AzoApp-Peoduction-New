@@ -34,6 +34,15 @@ INDEXES = {
         "created_at",
         "order_group_id",
         "pay_order_id",
+        "code",
+    ],
+    "commission_ledger": [
+        "booking_id",
+        [("partner_id", 1), ("created_at", -1)],
+    ],
+    "refunds": [
+        "booking_id",
+        [("customer_id", 1), ("created_at", -1)],
     ],
     "transactions": [
         "id",

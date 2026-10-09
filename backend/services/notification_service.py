@@ -83,3 +83,24 @@ async def notify(user_id: str, title: str, body: str, *, link: str = "/",
         result["email"] = {"error": str(e)[:120]}
 
     return result
+
+
+_BG_TASKS = set()
+
+
+def fire_and_forget(coro):
+    """Run a notification side-effect (push/SMS/email) off the request path."""
+    import asyncio
+    try:
+        t = asyncio.get_running_loop().create_task(coro)
+    except RuntimeError:
+        return asyncio.run(coro)
+    _BG_TASKS.add(t)
+    t.add_done_callback(_BG_TASKS.discard)
+    return t
+
+
+async def notify_bg(user_id: str, title: str, body: str, **kw) -> dict:
+    """Same as notify() but never blocks the caller (booking hot paths)."""
+    fire_and_forget(notify(user_id, title, body, **kw))
+    return {"queued": True}

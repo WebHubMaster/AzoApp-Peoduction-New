@@ -257,6 +257,12 @@ def _synth_service(name, price, category_id="", category_name=""):
 
 
 async def _notify(user_id, title, body, event_type=None, ctx=None):
+    """Non-blocking: push/SMS/email gateways run in the background so booking actions return instantly."""
+    from services.notification_service import fire_and_forget
+    fire_and_forget(_notify_now(user_id, title, body, event_type, ctx))
+
+
+async def _notify_now(user_id, title, body, event_type=None, ctx=None):
     """Unified dynamic notification: in-app + real-time SSE + push ALWAYS; SMS/email
     fire only when an ACTIVE template exists for the event in the admin Template
     Manager. Every booking activity thus lands as a real device push."""
@@ -925,7 +931,7 @@ async def send_message(user, booking_id, text):
     rt.emit_user(target, "booking_message", {"service_name": service, "code": code, **msg})
     rt.emit_user(user["id"], "booking_message", {"service_name": service, "code": code, **msg})
     try:
-        from services.notification_service import notify
+        from services.notification_service import notify_bg as notify
         # WhatsApp-style: recipient viewing this thread right now → live frame only, no push.
         if target and not _is_present(target, booking_id):
             link = (f"/partner?tab=active&chat={booking_id}" if is_customer
@@ -963,7 +969,7 @@ async def add_tip(user, booking_id, amount, method="wallet"):
         except Exception:
             pass
         try:
-            from services.notification_service import notify
+            from services.notification_service import notify_bg as notify
             await notify(b["partner_id"], "You received a tip \U0001F389",
                          f"{b.get('customer_name', 'A customer')} tipped you {amt:.0f} for {b.get('service_name', 'your service')}.",
                          link="/partner")
@@ -1062,7 +1068,7 @@ async def request_reschedule(user, booking_id, scheduled_at):
         except Exception:  # noqa: BLE001
             pass
         try:
-            from services.notification_service import notify
+            from services.notification_service import notify_bg as notify
             _who = req["requester_name"]
             await notify(
                 target_id, "Reschedule request",
@@ -1141,7 +1147,7 @@ async def respond_reschedule(user, booking_id, action):
             except Exception:  # noqa: BLE001
                 pass
             try:
-                from services.notification_service import notify
+                from services.notification_service import notify_bg as notify
                 await notify(requester_id, "Reschedule accepted",
                              f"{_who} accepted your reschedule request. New schedule: {new_label}.",
                              link=("/account" if req.get("requested_by_role") == "customer" else "/partner"),
@@ -1166,7 +1172,7 @@ async def respond_reschedule(user, booking_id, action):
             except Exception:  # noqa: BLE001
                 pass
             try:
-                from services.notification_service import notify
+                from services.notification_service import notify_bg as notify
                 await notify(requester_id, "Reschedule declined",
                              f"{_who} declined your reschedule request. Your booking stays on {old_label}.",
                              link=("/account" if req.get("requested_by_role") == "customer" else "/partner"),
@@ -1201,7 +1207,7 @@ async def cancel_reschedule(user, booking_id):
             except Exception:  # noqa: BLE001
                 pass
             try:
-                from services.notification_service import notify
+                from services.notification_service import notify_bg as notify
                 await notify(target_id, "Reschedule withdrawn",
                              f"The reschedule request for {b.get('code')} was withdrawn. "
                              f"Booking stays on {req.get('old_label') or 'its original time'}.",
@@ -1698,7 +1704,7 @@ async def _send_schedule_reminders(b, st):
         except Exception:  # noqa: BLE001
             pass
         try:
-            from services.notification_service import notify
+            from services.notification_service import notify_bg as notify
             await notify(pid, "\U0001F514 Scheduled Work Reminder",
                          f"{svc} · {code} starts in 30 minutes ({label}). Tap to view your scheduled work.",
                          link=f"/partner?job={b['id']}", event="scheduled_reminder",
@@ -1731,7 +1737,7 @@ async def _send_schedule_reminders(b, st):
         except Exception:  # noqa: BLE001
             pass
         try:
-            from services.notification_service import notify
+            from services.notification_service import notify_bg as notify
             await notify(cid, "Your scheduled service starts in 30 minutes",
                          f"{svc} · {code} at {st.get('scheduled_time')}. Your Work-Start OTP is now "
                          f"available and you can contact your partner.",

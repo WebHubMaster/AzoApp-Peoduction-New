@@ -59,6 +59,12 @@ DEFAULT_WALLET_CONFIG = {
 
 # ---------------------------------------------------------------- helpers
 async def notify(user_id, title, body, event_type=None, ctx=None):
+    """Non-blocking wrapper — gateways run in the background."""
+    from services.notification_service import fire_and_forget
+    fire_and_forget(_notify_now(user_id, title, body, event_type, ctx))
+
+
+async def _notify_now(user_id, title, body, event_type=None, ctx=None):
     """Unified dynamic notification for partner flows: in-app + real-time SSE + push
     ALWAYS; SMS/email only when an ACTIVE template exists for the event. This ensures
     partner events (withdrawals, incentives, streaks, penalties) reach the device."""
