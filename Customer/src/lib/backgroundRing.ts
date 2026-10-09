@@ -23,7 +23,7 @@ import {
   setupAndroidChannels, displayRescheduleRing, displayBookingRing,
   cancelRescheduleRing, cancelBookingRing, startRingSound,
 } from "@/src/lib/notifications";
-import { setBgListenerActive } from "@/src/lib/ringState";
+import { setBgListenerActive, isUpdateFgsActive } from "@/src/lib/ringState";
 
 const ONLINE_FGS_ID = "azo-cust-online-fgs";
 // ONLY a partner reschedule + a partner-assigned (booking_confirmed) ring the customer.
@@ -169,6 +169,6 @@ export async function stopBackgroundAlertListener(): Promise<void> {
   const n = NotifeeApi();
   if (n) {
     try { await n.cancelNotification(ONLINE_FGS_ID); } catch { /* ignore */ }
-    try { await n.stopForegroundService(); } catch { /* ignore */ }
+    if (!isUpdateFgsActive()) { try { await n.stopForegroundService(); } catch { /* ignore */ } }
   }
 }

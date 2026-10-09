@@ -225,3 +225,9 @@ Done:
 - Seeded/demo rows (`_seed`, `seed_source`, `demo`, `is_demo`, ledger/refunds with no real booking, `pout_DEMO` withdrawals) excluded from both pages.
 - Verified with a parity script: all 11 money figures match exactly (with and without filters).
 Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_merchant_demo, seed_merchant_referral_commission) from production DB; admin "purge demo data" tool.
+
+## Background APK update download — Customer & Partner apps (Oct 2026)
+- New `src/lib/apkUpdate.ts` (both apps): module-level download store; Notifee foreground service + progress notification keeps download alive when app minimised; auto-resume partial file (HTTP Range) after process kill; status restored on reopen (downloading/ready/error); auto-opens installer when user returns.
+- AppUpdateGate uses the store; buttons: Update Now / Resume Download / Install Update; refreshes on AppState active.
+- Shared FGS guarded via `isUpdateFgsActive` (ringState) so job-listener/ring teardown doesn't kill the download.
+- Needs a new APK build to ship; verified by TypeScript only (no device test).

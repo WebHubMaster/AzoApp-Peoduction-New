@@ -7,3 +7,8 @@
 let _bgListenerActive = false;
 export const setBgListenerActive = (v: boolean) => { _bgListenerActive = v; };
 export const isBgListenerActive = () => _bgListenerActive;
+
+/** True while an APK update download owns the Notifee foreground service. */
+let _updateFgs = false;
+export const setUpdateFgsActive = (v: boolean) => { _updateFgs = v; };
+export const isUpdateFgsActive = () => _updateFgs;

@@ -21,7 +21,7 @@ import {
   setupAndroidChannels, displayJobRing, cancelJobRing, startRingSound,
 } from "@/src/lib/notifications";
 import { isDndActive, getRingPrefs, loadLocal } from "@/src/lib/ringPrefs";
-import { setBgListenerActive } from "@/src/lib/ringState";
+import { setBgListenerActive, isUpdateFgsActive } from "@/src/lib/ringState";
 
 const ONLINE_FGS_ID = "azo-online-fgs";
 const RING_TYPES = new Set(["job_request", "reschedule_request", "scheduled_reminder"]);
@@ -177,6 +177,6 @@ export async function stopBackgroundJobListener(): Promise<void> {
   const n = NotifeeApi();
   if (n) {
     try { await n.cancelNotification(ONLINE_FGS_ID); } catch { /* ignore */ }
-    try { await n.stopForegroundService(); } catch { /* ignore */ }
+    if (!isUpdateFgsActive()) { try { await n.stopForegroundService(); } catch { /* ignore */ } }
   }
 }

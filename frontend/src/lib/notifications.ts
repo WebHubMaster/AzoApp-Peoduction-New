@@ -18,7 +18,7 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Device from "expo-device";
 import { storage } from "@/src/utils/storage";
 import { api, mediaUrl } from "@/src/api/client";
-import { isBgListenerActive } from "@/src/lib/ringState";
+import { isBgListenerActive, isUpdateFgsActive } from "@/src/lib/ringState";
 
 export const NOTIF_PROMPTED_KEY = "azo_notif_prompted";
 const DEVICE_ID_KEY = "azo_device_id";
@@ -698,7 +698,7 @@ export async function cancelJobRing(bookingId?: string) {
   // Don't tear down the shared foreground service if the background job listener
   // owns it — that would kill the SSE stream and stop all future rings. When the
   // listener isn't active this is a plain ring, so stopping the service is correct.
-  if (!isBgListenerActive()) { try { await n.stopForegroundService(); } catch { /* ignore */ } }
+  if (!isBgListenerActive() && !isUpdateFgsActive()) { try { await n.stopForegroundService(); } catch { /* ignore */ } }
 }
 
 /** Compat: simple local job alert (used when the full data payload isn't available). */
