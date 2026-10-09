@@ -115,9 +115,9 @@ export default function HomeView({ user, bookings, wallet, refunds, categories, 
           <H2>Explore Services</H2>
           <LinkBtn label="View all" onPress={onBook} testID="home-explore-viewall" />
         </View>
-        <View testID="home-categories" style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between" }}>
-          {categories.slice(0, 12).map((cat) => (
-            <Pressable key={cat.id} testID={`cat-${cat.slug}`} onPress={() => onCategory(cat.id)} style={({ pressed }) => ({ width: "31.5%", marginBottom: 14, transform: [{ translateY: pressed ? -2 : 0 }] })}>
+        <View testID="home-categories" style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start" }}>
+          {categories.slice(0, 12).map((cat, i) => (
+            <Pressable key={cat.id} testID={`cat-${cat.slug}`} onPress={() => onCategory(cat.id)} style={({ pressed }) => ({ width: "31.5%", marginRight: i % 3 === 2 ? 0 : "2.75%", marginBottom: 14, transform: [{ translateY: pressed ? -2 : 0 }] })}>
               <View style={{ width: "100%", aspectRatio: 1, borderRadius: 6, overflow: "hidden", backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
                 {cat.image ? <Image source={{ uri: mediaUrl(cat.image) }} style={{ width: "100%", height: "100%" }} contentFit="cover" cachePolicy="memory-disk" transition={150} recyclingKey={cat.id} /> : <Zap size={24} color={PRIMARY[600]} />}
               </View>
