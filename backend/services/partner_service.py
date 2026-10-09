@@ -757,7 +757,13 @@ async def _incentive_progress(partner, inc):
         if inc.get("end_date") and created > inc["end_date"] + "T23:59:59":
             return False
         return True
-    jobs = [l for l in lg if in_window(l.get("created_at", ""))]
+    # Challenges reward COMPLETED work only — never cancelled/rejected jobs. The
+    # commission ledger also holds cancellation entries (kind "cancellation" /
+    # "cancellation_cos") for jobs the partner was assigned to but that got cancelled,
+    # so we count strictly the completed-job ledger rows.
+    _JOB_KINDS = {"completion", "completion_cos"}
+    jobs = [l for l in lg
+            if l.get("kind") in _JOB_KINDS and in_window(l.get("created_at", ""))]
     job_count = len(jobs)
     revenue = money.add(*[l.get("partner_earning", 0) for l in jobs])
     rating = float(partner.get("rating", 5))
