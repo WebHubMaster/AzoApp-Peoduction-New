@@ -1,0 +1,33 @@
+{
+  "summary": "Static code review + tsc of infinite-scroll pagination completion in PartnerApp active.tsx, PartnerApp partner/subscriptions.tsx, PartnerApp (agent)/wallet.tsx, Customer (customer)/subscriptions.tsx and Customer (customer)/referral.tsx. Found and fixed a CRITICAL missing-import regression in PartnerApp partner/subscriptions.tsx that would have crashed the Maid Subscriptions screen at runtime (ReferenceError: useProgressiveList/LoadMoreFooter not defined). All other target files are correct. tsc runs are clean for the scope of this change (only pre-existing errors remain). Expo apps are not runnable in this pod so no device/UI run was performed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PartnerApp app/(partner)/partner/subscriptions.tsx (Maid Subscriptions)", "issue": "Used `useProgressiveList(subs)` on line 250 and `<LoadMoreFooter list={shown} …/>` on line 316 but the `@/src/lib/infiniteList` import was missing. tsc reported TS2304 'Cannot find name useProgressiveList/LoadMoreFooter'. At runtime this would throw ReferenceError the moment the screen mounts, breaking the entire Maid Subscriptions tab. FIXED by adding the import.", "selector": "maid-subs-list", "priority": "HIGH"}
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "No further changes required for the pagination scope. The fix (import added) is already applied; please verify once in a device/emulator that Maid Subscriptions renders and that the LoadMoreFooter transitions through loading → end states as expected.",
+    "Unrelated/pre-existing tsc issues observed while checking (not introduced by this iteration, flagged for awareness only): PartnerApp partner/subscriptions.tsx uses Icon name='map-pin' which is not in MdiName (line 189); same issue in src/components/partner/home/MaidTasksCard.tsx:99. Customer subscriptions.tsx line 322 AMBER[900] still throws TS7053 as noted in the request."
+  ],
+  "critical_code_review_comments": [
+    "PartnerApp active.tsx line 56 useEffect deps include `activePg.items`, which is a freshly-sliced array on every render. The effect therefore re-runs every render; it is idempotent (setShowAll(true) only when a condition is met, and React bails when the next state === current), so there is no infinite loop, but it is wasteful. Consider depending on `activePg.items.length` and `focusId` only, or memoising items.",
+    "PartnerApp active.tsx line 100 passes a synthesised list `{...activePg, items: activeAll, hasNextPage: false}` when showAll is true. `activePg.total` already equals `activeAll.length` so the footer's end state text ('All N records loaded') is correct. OK.",
+    "PartnerApp active.tsx: `useInfiniteList` queryKey prefix is `['partner-joblist', 'history', 'completed-paged']`; the pull-to-refresh/refresh() invalidator uses prefix `['partner-joblist']` which correctly matches via React Query's hierarchical key match. Good.",
+    "PartnerApp (agent)/wallet.tsx — `useProgressiveList(withdrawals)` has no resetKey. If the wallet refetches and the withdrawals list shrinks (unlikely but possible after admin cancellation), the client count may exceed data.length; `slice(0, count)` is still safe. Minor.",
+    "Customer ux.tsx PlainList already handles that case: it watches `first` key + `data.length` and resets count when data shrinks or first row changes. Good.",
+    "Customer subscriptions.tsx renders two PlainList instances (browse / mine) conditionally; because the parent SegTabs re-renders the whole switch, each PlainList unmounts cleanly on tab change — no hook order risk."
+  ],
+  "updated_files": [
+    "/app/PartnerApp/app/(partner)/partner/subscriptions.tsx (added missing import of useProgressiveList, LoadMoreFooter from @/src/lib/infiniteList)"
+  ],
+  "success_rate": {"backend": "n/a (not in scope)", "frontend": "static-review+tsc; 1 regression found and fixed"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "iteration_283 verified backend pagination contracts and hooks; this iteration (284) only verified the new consumer screens via tsc + static review. One missing-import regression in /app/PartnerApp/app/(partner)/partner/subscriptions.tsx was patched in-place. Expo apps cannot run here. tsc baseline for PartnerApp requires `--ignoreDeprecations 6.0` to see real errors because tsconfig still sets baseUrl and TS exits early otherwise.",
+  "rca of the issue": "During the recent change in /app/PartnerApp/app/(partner)/partner/subscriptions.tsx the author added `useProgressiveList(subs)` and `<LoadMoreFooter list={shown} />` but forgot to add the `import { useProgressiveList, LoadMoreFooter } from '@/src/lib/infiniteList'` statement. The default `tsc --noEmit` in this repo stops at the first error (baseUrl deprecation TS5101) so the regression was not visible in the quick check — only `tsc --noEmit --ignoreDeprecations 6.0` surfaces it. Mitigation applied: import added. Suggested long-term mitigation for E1: add `\"ignoreDeprecations\": \"6.0\"` to tsconfig.json so the project tsc gate catches such regressions before shipping."
+}

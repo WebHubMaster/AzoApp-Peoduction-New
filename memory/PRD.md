@@ -435,3 +435,9 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - (Jun 2026) Job-completed screen: removed 'Jobs today' tile (PartnerApp, frontend, web_panel). Today's earnings now = sum of earnings from jobs completed today only (IST day).
 
 - (Jun 2026) Admin Reported Bugs redesign: KPI cards (clickable), toolbar (debounced search incl BUG-ID, status/app segmented, category select, date range, sort, chips), issue cards, detail drawer, resolve dialog w/ validation, reopen confirm, server pagination 10-100. Backend /api/admin/bugs adds sort, date_from, date_to (IST), page_size cap 100.
+
+## 2026-06 — Infinite scroll pagination: remaining sections completed
+- Partner Active Jobs (10 at a time, client progressive; focus target expands list) + Completed Jobs (server paged /api/bookings/partner/history?status=completed&page&page_size=10).
+- Partner Maid Subscriptions, Agent Withdrawals: progressive 10-at-a-time.
+- Customer Subscriptions (Browse + My Subscriptions) and Referral history: PlainList (10 at a time on scroll).
+- iteration_284: static review + tsc (missing import fixed). Expo apps not run in env. Note: backend/frontend .env files missing in this pod.

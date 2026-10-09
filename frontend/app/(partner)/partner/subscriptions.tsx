@@ -11,6 +11,7 @@ import { api } from "@/src/api/client";
 import { AppShellHeader, Surface, KitEmpty, KV, StatusBadge, money, shortDate } from "@/src/components/AppShell";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 
 const SLATE = "#94A3B8";
 const todayIso = () => new Date().toISOString().slice(0, 10);
