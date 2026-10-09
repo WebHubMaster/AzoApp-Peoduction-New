@@ -3418,6 +3418,24 @@ async def _recompute_additional(booking, settings):
     return addl
 
 
+async def _notify_invoice_updated(b, addl):
+    """Tell the customer their invoice changed because of rate-card additional work."""
+    addl = addl or {}
+    extra = money.money(addl.get("total") or 0)
+    total = money.add((b.get("pricing") or {}).get("total") or 0, extra)
+    if extra <= 0:
+        body = f"Additional work was removed from {b['code']}. Your invoice total is now ₹{total}."
+    elif addl.get("status") == "paid":
+        body = (f"Payment of ₹{extra} for additional work on {b['code']} received. "
+                f"Your invoice is updated — new total ₹{total} (fully paid).")
+    else:
+        body = (f"Your invoice for {b['code']} is updated with additional work of ₹{extra}. "
+                f"New total ₹{total} · balance due ₹{extra}.")
+    await _notify(b["customer_id"], "Invoice updated", body, event_type="invoice_updated",
+                  ctx={"booking_id": b["code"], "amount": extra, "total": total,
+                       "panel": "account?tab=orders", "type": "booking_update"})
+
+
 async def add_additional_work(partner, booking_id, req):
     b = await _partner_owns(partner, booking_id)
     if b["status"] not in ("started", "arrived_customer"):
@@ -3453,6 +3471,7 @@ async def add_additional_work(partner, booking_id, req):
                   f"Your partner added additional work worth ₹{addl['total']} to {b['code']}. "
                   f"Please complete the additional payment in the app so the work can be finished.",
                   event_type="additional_work_added", ctx={"booking_id": b["code"]})
+    await _notify_invoice_updated(b, addl)
     out = await _get_booking(booking_id)
     out["otps"] = {}
     return out
@@ -3472,6 +3491,7 @@ async def remove_additional_item(partner, booking_id, item_id):
         addl["status"] = "pending_payment"
         addl = await _recompute_additional({**b, "additional": addl}, settings)
         await db.bookings.update_one({"id": booking_id}, {"$set": {"additional": addl, "updated_at": now_iso()}})
+    await _notify_invoice_updated(b, addl if items else {})
     out = await _get_booking(booking_id)
     out["otps"] = {}
     return out
@@ -3501,6 +3521,7 @@ async def pay_additional(customer, booking_id, method="online"):
     addl["paid_at"] = now_iso()
     addl["paid_method"] = "wallet" if method == "wallet" else "online"
     await db.bookings.update_one({"id": booking_id}, {"$set": {"additional": addl, "updated_at": now_iso()}})
+    await _notify_invoice_updated(b, addl)
     if b.get("partner_id"):
         await _notify(b["partner_id"], "Additional payment received",
                       f"Customer paid ₹{total} for additional work on {b['code']}. You can now complete the job.")

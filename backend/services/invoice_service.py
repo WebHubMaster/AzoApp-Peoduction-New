@@ -438,7 +438,15 @@ async def refresh_booking_invoice_additional(inv: dict, booking: dict = None, se
     inv["updated_at"] = now_iso()
     fields = {k: inv[k] for k in ("line_items", "subtotal", "tax", "taxable", "total_amount", "commission",
                                   "breakdown", "additional_work", "gst_invoice", "updated_at") if k in inv}
-    await db.invoices.update_one({"id": inv["id"], "additional_work": {"$exists": False}}, {"$set": fields})
+    res = await db.invoices.update_one({"id": inv["id"], "additional_work": {"$exists": False}}, {"$set": fields})
+    if res.modified_count and inv.get("customer_id"):
+        from controllers.booking_controller import _notify
+        await _notify(inv["customer_id"], "Invoice updated",
+                      f"Invoice {inv['invoice_number']} for {inv.get('booking_code')} now includes additional work "
+                      f"of ₹{(inv.get('additional_work') or {}).get('total', 0)}. New total ₹{inv['total_amount']}.",
+                      event_type="invoice_updated",
+                      ctx={"booking_id": inv.get("booking_code"), "amount": (inv.get("additional_work") or {}).get("total", 0),
+                           "total": inv["total_amount"], "panel": "account?tab=orders", "type": "booking_update"})
     return inv
 
 

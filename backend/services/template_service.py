@@ -34,6 +34,7 @@ EVENTS = [
     {"key": "chat_message", "label": "New Chat Message", "vars": ["name", "booking_id"]},
     {"key": "spare_part_approval", "label": "Spare Part Approval Needed", "vars": ["booking_id"]},
     {"key": "additional_work", "label": "Additional Work Added", "vars": ["booking_id", "amount"]},
+    {"key": "invoice_updated", "label": "Invoice Updated (Additional Work)", "vars": ["booking_id", "amount", "total"]},
     {"key": "incentive_awarded", "label": "Incentive / Bonus Awarded", "vars": ["name", "amount"]},
     {"key": "subscription_renewal_reminder", "label": "Subscription Renewal Reminder", "vars": ["name", "booking_id", "plan", "end_date"]},
     {"key": "subscription_paused", "label": "Subscription Paused", "vars": ["name", "booking_id", "from", "to", "end_date"]},
@@ -69,6 +70,8 @@ def _default_meta(key: str):
         return ("MessageSquare", "#db2777")
     if k == "incentive_awarded":
         return ("Gift", "#e11d48")
+    if k == "invoice_updated":
+        return ("FileText", "#0d9488")
     if k in ("spare_part_approval", "additional_work"):
         return ("AlertTriangle", "#d97706")
     return ("Bell", "#64748b")
