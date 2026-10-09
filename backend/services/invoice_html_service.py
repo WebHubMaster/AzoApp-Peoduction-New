@@ -83,6 +83,27 @@ def _read_logo_bytes(logo: str):
     return None, None
 
 
+def _bytes_to_data_uri(data, ext) -> str:
+    try:
+        if data and ext == "svg":
+            import cairosvg
+            return _b64uri(cairosvg.svg2png(bytestring=data, output_height=_LOGO_MAX_H), "image/png")
+        if data and len(data) > 150_000:
+            from PIL import Image
+            im = Image.open(io.BytesIO(data))
+            if im.height > _LOGO_MAX_H:
+                ratio = _LOGO_MAX_H / float(im.height)
+                im = im.convert("RGBA").resize((max(1, int(im.width * ratio)), _LOGO_MAX_H))
+            buf = io.BytesIO()
+            im.save(buf, "PNG")
+            return _b64uri(buf.getvalue(), "image/png")
+        if data:
+            return _b64uri(data, _LOGO_MIME.get(ext, "image/png"))
+    except Exception:  # noqa: BLE001
+        pass
+    return ""
+
+
 def logo_to_data_uri(logo: str) -> str:
     if not logo or not isinstance(logo, str):
         return ""
@@ -90,32 +111,38 @@ def logo_to_data_uri(logo: str) -> str:
         return logo
     if logo in _LOGO_CACHE:
         return _LOGO_CACHE[logo]
-    data, ext = _read_logo_bytes(logo)
-    result = ""
-    try:
-        if data and ext == "svg":
-            import cairosvg
-            png = cairosvg.svg2png(bytestring=data, output_height=_LOGO_MAX_H)
-            result = _b64uri(png, "image/png")
-        elif data:
-            if len(data) > 150_000:
-                from PIL import Image
-                im = Image.open(io.BytesIO(data))
-                if im.height > _LOGO_MAX_H:
-                    ratio = _LOGO_MAX_H / float(im.height)
-                    im = im.convert("RGBA").resize((max(1, int(im.width * ratio)), _LOGO_MAX_H))
-                buf = io.BytesIO()
-                im.save(buf, "PNG")
-                result = _b64uri(buf.getvalue(), "image/png")
-            else:
-                result = _b64uri(data, _LOGO_MIME.get(ext, "image/png"))
-    except Exception:  # noqa: BLE001
-        result = ""
+    result = _bytes_to_data_uri(*_read_logo_bytes(logo))
     if not result:
         # keep an absolute URL as-is (still fetchable); drop unresolved relatives
         result = logo if logo.startswith("http") else ""
-    _LOGO_CACHE[logo] = result
+    else:
+        _LOGO_CACHE[logo] = result
     return result
+
+
+async def resolve_logo_data_uri(logo: str) -> str:
+    """Async logo → data-URI. Private-bucket (/api/media/s3/) logos are read straight
+    from S3 and other URLs off the event loop, so server-side PDFs (email attachments)
+    always embed the logo instead of the backend blocking on a fetch of its own URL."""
+    if not logo or not isinstance(logo, str) or logo.startswith("data:"):
+        return logo or ""
+    if logo in _LOGO_CACHE:
+        return _LOGO_CACHE[logo]
+    data, ext = None, None
+    if "/api/media/s3/" in logo:
+        from services.storage_service import fetch_s3_object
+        key = logo.split("/api/media/s3/", 1)[1].split("?")[0]
+        got = await fetch_s3_object(key)
+        if got:
+            data, ext = got[0], key.rsplit(".", 1)[-1].lower()
+    if not data:
+        import anyio
+        data, ext = await anyio.to_thread.run_sync(_read_logo_bytes, logo)
+    result = _bytes_to_data_uri(data, ext)
+    if result:
+        _LOGO_CACHE[logo] = result
+        return result
+    return logo if logo.startswith("http") else ""
 
 
 # ---- helpers ----------------------------------------------------------------

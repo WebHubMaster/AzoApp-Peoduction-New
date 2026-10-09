@@ -231,3 +231,8 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - AppUpdateGate uses the store; buttons: Update Now / Resume Download / Install Update; refreshes on AppState active.
 - Shared FGS guarded via `isUpdateFgsActive` (ringState) so job-listener/ring teardown doesn't kill the download.
 - Needs a new APK build to ship; verified by TypeScript only (no device test).
+
+## Invoice email logo fix (Oct 2026)
+- Root cause: emailed PDF was built inside the event loop and fetched the logo from the backend's own URL (/api/media/s3/...) synchronously → self-deadlock/timeout → no logo. Failures were also cached.
+- Fix: `invoice_html_service.resolve_logo_data_uri` (async; S3 logos read directly via storage_service, others off-loop) used in `fill_live_branding`; email PDF built in threadpool; failed lookups no longer cached.
+- Logo source: Admin → Branding → "Email & Invoice Logo" (email_logo) → fallbacks logo_light/logo.

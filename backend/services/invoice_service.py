@@ -413,7 +413,8 @@ async def email_invoice(inv: dict, to_email: str = None, audience: str = "custom
     who = snap.get("name") or audience.title()
     # Same document the recipient sees/downloads in their app — identical PDF.
     doc = await prepare_for_role(dict(raw), audience)
-    pdf = build_invoice_pdf(doc)
+    from starlette.concurrency import run_in_threadpool
+    pdf = await run_in_threadpool(build_invoice_pdf, doc)
     intro = ("Aapki service ka invoice is email ke saath PDF me attach kiya gaya hai."
              if audience == "customer"
              else "Aapke service ka invoice (partner copy) is email ke saath PDF me attach kiya gaya hai.")
@@ -1081,6 +1082,8 @@ async def fill_live_branding(inv: dict, force_theme: bool = True):
 
     snap["signature"] = live.get("signature")
     snap["signatory_name"] = live.get("signatory_name")
+    from services.invoice_html_service import resolve_logo_data_uri
+    snap["logo"] = await resolve_logo_data_uri(snap.get("logo") or "")
     inv["business_snapshot"] = snap
     if inv.get("id") and inv.get("id") != "sample":
         inv["verify_url"] = verify_url(inv["id"])
