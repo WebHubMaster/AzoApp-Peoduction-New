@@ -73,6 +73,13 @@ const NAV = [
     { key: "bookings", label: "Bookings", icon: ClipboardList },
     { key: "subscriptions", label: "Subscriptions", icon: Calendar },
   ] },
+
+  // ── Support & feedback: user queries, reported app bugs, message templates ──
+  { group: "Support & Feedback", icon: Bug, items: [
+    { key: "bug_reports", label: "Reported Bugs", icon: Bug },
+    { key: "tickets", label: "Support Tickets", icon: Ticket },
+    { key: "reg_templates", label: "Template Manager", icon: MessageSquare },
+  ] },
   { group: "Live Dispatch Feed", icon: Radio, items: [
     { key: "dispatch_feed", label: "Live Dispatch Feed", icon: Radio },
   ] },
@@ -185,10 +192,6 @@ const NAV = [
     { key: "redirects", label: "Redirects", icon: Route },
   ]},
 
-  { key: "tickets", label: "Support Tickets", icon: Ticket },
-  { key: "bug_reports", label: "Reported Bugs", icon: Bug },
-  { key: "reg_templates", label: "Template Manager", icon: MessageSquare },
-
   { group: "Reports & Analytics", icon: BarChart3, items: [
     { key: "reports_overview", label: "Overview", icon: BarChart3 },
     { key: "export_center", label: "Export Center", icon: FileText },
@@ -222,6 +225,7 @@ const GROUP_MODULE = {
   "Merchants": "merchants", "Finance": "finance", "Marketing": "marketing",
   "Website / CMS": "website_cms", "Mobile App": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
   "Access Control": "access_control", "System": "system", "Platform": "system",
+  "Support & Feedback": "communication",
 };
 const ITEM_MODULE = { platform_earning: "finance", price_manager: "services", category_commission: "finance", tickets: "communication", bug_reports: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
 // reverse: nav key -> module (for guarding the active section)
@@ -312,7 +316,10 @@ export default function AdminDashboard() {
   const [peopleDots, setPeopleDots] = useState({});
   const [pendingCounts, setPendingCounts] = useState({});
   const loadDots = useCallback(() => api.get("/admin/people/unread-counts").then((r) => setPeopleDots({ customers: (r.data?.customer || 0) > 0, partners: (r.data?.partner || 0) > 0, merchants: (r.data?.merchant || 0) > 0 })).catch(() => {}), []);
-  const loadPending = useCallback(() => api.get("/admin/people/pending-counts").then((r) => setPendingCounts({ partners: r.data?.partner || 0, merchants: r.data?.merchant || 0 })).catch(() => {}), []);
+  const loadPending = useCallback(() => {
+    api.get("/admin/people/pending-counts").then((r) => setPendingCounts((p) => ({ ...p, partners: r.data?.partner || 0, merchants: r.data?.merchant || 0 }))).catch(() => {});
+    api.get("/admin/bugs", { params: { status: "open", page_size: 1 } }).then((r) => setPendingCounts((p) => ({ ...p, bugs: r.data?.counts?.open || 0 }))).catch(() => {});
+  }, []);
   useEffect(() => { loadDots(); loadPending(); const t = setInterval(() => { loadDots(); loadPending(); }, 60000); return () => clearInterval(t); }, [loadDots, loadPending]);
 
   const jumpToBookingStatus = (s) => {
@@ -333,7 +340,7 @@ export default function AdminDashboard() {
     suspended_partners: "Suspended Partners",
     commission: "Rate Card & Commission Rules", category_commission: "Commission & Refund", price_manager: "Price Manager", customers: "Customers", ledger: "Transactions & Ledger",
     surge: "Surge Rules", launch_demand: "Launch Demand", coverage_map: "Coverage Map",
-    coupons: "Promo Codes", notifications: "Notifications", tickets: "User Queries", banners: "Sliders / Banners",
+    coupons: "Promo Codes", notifications: "Notifications", tickets: "User Queries", bug_reports: "Reported Bugs", banners: "Sliders / Banners",
     blogs: "Blog", faqs: "FAQs", plans: "Subscription Plans", sysusers: "System Users", ai: "AI Insights",
     liveops: "Live Operations", locations: "Locations", campaigns: "Marketing Campaigns", memberships: "Membership Tiers",
     spareparts: "Spare Parts Inventory", vendors: "Vendors", complaints: "Complaints",
@@ -360,6 +367,7 @@ export default function AdminDashboard() {
     pm_withdrawals: d.pending_withdrawals || 0,
     services: d.pending_service_approval || 0,
     tickets: d.open_tickets || 0,
+    bug_reports: pendingCounts.bugs || 0,
     deletions: d.pending_deletions || 0,
   };
 
