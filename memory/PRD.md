@@ -397,3 +397,4 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - PartnerApp Help chat: composer respects bottom safe-area inset (HelpSOS.tsx).
 - Checkout payment failure (Customer app + web panel): if payment cancelled/failed, bookings are voided via POST /api/bookings/abandon-unpaid (status cancelled, payment_status failed, cancellation.by=payment_failed), cart kept, "Payment failed · order not placed" screen with Try again. Late gateway success revives voided bookings (_revive_failed in payment_controller).
 - Backlog: show "Payment failed" label in My Bookings for payment_failed orders; hide them from customer list.
+- Customer Refund Receipt now uses the same layout as the booking GST invoice (gst_invoice_service.build_refund_html, routed from build_invoice_html for invoice_type=refund) — applies to app, web panel, PDF.

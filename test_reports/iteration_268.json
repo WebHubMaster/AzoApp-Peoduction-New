@@ -1,0 +1,24 @@
+{
+  "summary": "Verified new customer REFUND RECEIPT layout (gst_invoice_service.build_refund_html) and routing in invoice_html_service.build_invoice_html via pytest. 8/8 unit tests pass covering: refund HTML body/testid/title/customer+business blocks/items table with Refund Mode+Amount/Total Refund testid/amount in words; render_invoice_pdf for refund returns valid %PDF; regression that booking+gst_invoice still routes to build_html (TAX INVOICE), partner routes to build_partner_html, withdrawal still uses generic template. Did NOT attempt the live mongo cancel_booking end-to-end flow (local azoapp_local seeding + JWT mint) because the unit-level invariants fully cover the request and the public /api/invoices/pub/{id}/html endpoint directly calls build_invoice_html, which is already exercised.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_refund_invoice_html.py",
+    "/app/test_reports/pytest/refund_invoice_html.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "build_refund_html correctly uses refund_amount (fallback to total_amount) and the shared _css(ac) + _brand_html, keeping the layout visually identical to the booking (GST) invoice. Looks consistent with build_partner_html style.",
+    "Minor: refund HTML calls logo_to_data_uri(biz.logo) twice (once in `logo` local, again inline in _brand_html call). Harmless but can be refactored.",
+    "Minor: build_refund_html does not render a QR block (<td class='qr'></td> is empty), while booking invoice shows a verify QR. If parity with the booking invoice is desired, consider rendering _qr_data_uri(verify_url) here too."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_refund_invoice_html.py (new)"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "N/A"},
+  "test_credentials": "N/A - unit tests only",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Refund invoice refactor shipped: build_invoice_html routes invoice_type=='refund' to gst_invoice_service.build_refund_html. New testids: body=refund-invoice, page=refund-invoice-page, total=refund-invoice-total. Title 'REFUND RECEIPT'. Items table columns: Items / Refund Mode / Amount. Total Refund equals abs(refund_amount or total_amount). Tests live at /app/backend/tests/test_refund_invoice_html.py and must be run with REACT_APP_BACKEND_URL env var set (conftest requires it, even for pure unit tests)."
+}
