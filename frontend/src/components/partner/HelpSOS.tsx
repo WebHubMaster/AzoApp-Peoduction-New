@@ -4,6 +4,7 @@ import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator,
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api } from "../../api/client";
 import { uploadAsset } from "../reg/Photo";
 import { Icon } from "../Icon";
@@ -24,6 +25,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
   const toast = useToast();
   const { colors: C } = useTheme();
   const { subscribe } = useRealtime();
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const [ticket, setTicket] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -161,7 +163,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
               })}
               {agentTyping ? <Text testID="help-sos-agent-typing" style={{ fontSize: 11, fontWeight: "600", color: C.primary }}>Support is typing…</Text> : null}
             </ScrollView>
-            <View style={{ flexDirection: "row", gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: C.border }}>
+            <View style={{ flexDirection: "row", gap: 8, padding: 12, paddingBottom: 12 + insets.bottom, borderTopWidth: 1, borderTopColor: C.border }}>
               <Pressable testID="help-sos-attach" onPress={sendPhoto} disabled={!ticket || uploading} style={{ width: 44, height: 44, borderRadius: 6, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center", opacity: !ticket ? 0.4 : 1 }}>
                 {uploading ? <ActivityIndicator size="small" color={C.textMuted} /> : <Icon name="paperclip" size={18} color={C.textMuted} />}
               </Pressable>

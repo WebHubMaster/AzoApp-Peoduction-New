@@ -11,7 +11,7 @@ import io
 import pytest
 import requests
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://bug-cat-triage.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://help-chat-safe.preview.emergentagent.com").rstrip("/")
 PE = f"{BASE}/api/admin/platform-earning"
 
 

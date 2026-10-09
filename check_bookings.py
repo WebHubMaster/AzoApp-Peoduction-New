@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
+BASE_URL = "https://help-chat-safe.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

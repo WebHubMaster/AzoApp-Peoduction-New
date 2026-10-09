@@ -6,7 +6,7 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("WEB_PANEL_URL",
-                          "https://bug-cat-triage.preview.emergentagent.com").rstrip("/")
+                          "https://help-chat-safe.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 

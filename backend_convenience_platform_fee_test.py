@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
+BASE_URL = "https://help-chat-safe.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

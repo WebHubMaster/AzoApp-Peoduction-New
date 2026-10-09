@@ -6,7 +6,7 @@ import requests
 import json
 import time
 
-BASE = "https://bug-cat-triage.preview.emergentagent.com/api"
+BASE = "https://help-chat-safe.preview.emergentagent.com/api"
 OTP = "123456"
 
 def login(phone):

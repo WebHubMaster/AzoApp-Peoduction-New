@@ -14,7 +14,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 
-BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
+BASE_URL = "https://help-chat-safe.preview.emergentagent.com/api"
 
 # Test credentials
 CUSTOMER_PHONE = "+919000000004"
