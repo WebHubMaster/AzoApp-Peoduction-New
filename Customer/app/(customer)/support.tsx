@@ -1,5 +1,8 @@
 /** Help & Support — port of web SupportCenter.jsx (list / new ticket / thread). */
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
+import { useProgressive } from "@/src/lib/useProgressive";
+import { LoadMoreFooter as PagedFooter } from "@/src/components/customer/ux";
 import { View, Text, Pressable, ActivityIndicator, ScrollView } from "react-native";
 import { LifeBuoy, Plus, ArrowLeft, Inbox, CalendarRange, Filter, ArrowUpDown } from "lucide-react-native";
 import { useAuth } from "../../src/context/AuthContext";
@@ -65,6 +68,7 @@ export default function SupportScreen() {
   useEffect(() => { api.get("/support/meta", { auth: false }).then(setMeta).catch(() => {}); loadList(); }, [loadList]);
   useEffect(() => { if (view !== "list") return; const iv = setInterval(loadList, 6000); return () => clearInterval(iv); }, [view, loadList]);
   const openTicket = (t: any) => { setActive(t); setView("thread"); };
+  useOnPullRefresh(() => loadList());
 
   const rows = useMemo(() => {
     let out = [...tickets];
@@ -75,6 +79,7 @@ export default function SupportScreen() {
     return out;
   }, [tickets, q, status, range, sort]);
 
+  const pg = useProgressive(rows, `${q}|${status}|${range}|${sort}`);
   if (view === "new") return <View testID="support-center"><NewTicket meta={meta} onCancel={() => setView("list")} onCreated={(t) => { loadList(); openTicket(t); }} /></View>;
   if (view === "thread" && active) return <View testID="support-center"><SupportThread ticket={active} myId={user?.id} tickets={tickets} onBack={() => { setView("list"); loadList(); }} onChanged={loadList} /></View>;
 
@@ -96,9 +101,10 @@ export default function SupportScreen() {
             <GreenBtn center testID="support-empty-new" label="New Ticket" onPress={() => setView("new")} />
           </View>
         ) : (
+          <View>
           <View testID="support-list" style={{ borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, overflow: "hidden" }}>
-            {rows.map((tk, i) => (
-              <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)} style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: i === rows.length - 1 ? 0 : 1, borderBottomColor: c.borderSoft, backgroundColor: pressed ? c.bg : "transparent" })}>
+            {pg.items.map((tk, i) => (
+              <Pressable key={tk.id} testID={`support-ticket-${tk.code}`} onPress={() => openTicket(tk)} style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, gap: 8, borderBottomWidth: i === pg.items.length - 1 ? 0 : 1, borderBottomColor: c.borderSoft, backgroundColor: pressed ? c.bg : "transparent" })}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>{tk.unread_user > 0 ? <View testID={`support-unread-${tk.code}`} style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: "#EF4444" }} /> : null}<Text style={{ fontSize: 12, color: TC.textMuted, fontFamily: "monospace" }}>{tk.code}</Text></View>
                   <View style={{ flexDirection: "row", gap: 6 }}><Badge style={PRIORITY_STYLE[tk.priority]}>{tk.priority}</Badge><Badge style={STATUS_STYLE[tk.status]}>{STATUS_LABEL[tk.status]}</Badge></View>
@@ -107,6 +113,8 @@ export default function SupportScreen() {
                 <View style={{ flexDirection: "row", justifyContent: "space-between" }}><Text style={{ fontSize: 12, color: TC.textMuted, textTransform: "capitalize" }}>{tk.category}</Text><Text style={{ fontSize: 12, color: TC.textFaint }}>{ago(tk.created_at)}</Text></View>
               </Pressable>
             ))}
+          </View>
+            <PagedFooter hasMore={pg.hasMore} loading={pg.loading} onLoadMore={pg.loadMore} total={pg.total} testID="support-load-more" />
           </View>
         )}
     </View>

@@ -1,7 +1,7 @@
 /** Ports of web_panel/src/components/customer/ux.jsx primitives (StatTile, StatusChip, EmptyState, skeletons). */
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal, Dimensions } from "react-native";
+import { View, Text, Pressable, Animated, TextInput, ScrollView, Modal, Dimensions, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Inbox, Search, X, Calendar as CalIcon, ChevronLeft, ChevronRight, ArrowUpDown, Check, SlidersHorizontal } from "lucide-react-native";
 import { PRIMARY, SLATE, EMERALD, AMBER, ROSE, VIOLET, INDIGO, ORANGE, BLUE, useTheme, shadowElev, shadowBtn, TC } from "@/src/theme";
@@ -402,17 +402,27 @@ export function useOnPullRefresh(cb: () => unknown) {
 export function LoadMoreFooter({ hasMore, loading, error, onLoadMore, total, testID = "load-more" }: { hasMore: boolean; loading?: boolean; error?: boolean; onLoadMore: () => void; total: number; testID?: string }) {
   const { c, isDark } = useTheme();
   if (total === 0) return null;
-  if (loading) return <View testID={`${testID}-loading`} style={{ marginTop: 16, gap: 12 }}><Shimmer style={{ height: 88, borderRadius: 6, width: "100%" }} /><Text style={{ fontSize: 12, color: TC.textMuted, textAlign: "center" }}>Loading more…</Text></View>;
   if (error) return (
     <View testID={`${testID}-error`} style={{ marginTop: 16, alignItems: "center", gap: 8 }}>
-      <Text style={{ fontSize: 12, color: ROSE[600] }}>Slow connection — couldn't load more.</Text>
+      <Text style={{ fontSize: 12, color: ROSE[600] }}>Unable to load more records. Please check your connection.</Text>
       <Pressable testID={`${testID}-retry`} onPress={onLoadMore} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Retry</Text></Pressable>
     </View>
   );
-  if (hasMore) return (
-    <Pressable testID={`${testID}-btn`} onPress={onLoadMore} style={{ marginTop: 16, height: 40, borderRadius: 6, borderWidth: 1, borderColor: isDark ? SLATE[700] : TC.border, alignItems: "center", justifyContent: "center" }}><Text style={{ fontSize: 13, fontWeight: "600", color: c.text }}>Load more</Text></Pressable>
+  if (loading || hasMore) return (
+    <View testID={`${testID}-loading`} style={{ marginTop: 16, paddingVertical: 8, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }}>
+      <ActivityIndicator size="small" color={PRIMARY[600]} /><Text style={{ fontSize: 12, color: TC.textMuted }}>Loading more records…</Text>
+    </View>
   );
-  return <Text testID={`${testID}-end`} style={{ marginTop: 16, fontSize: 12, color: TC.textFaint, textAlign: "center" }}>You're all caught up</Text>;
+  return (
+    <View testID={`${testID}-end`} style={{ marginTop: 16, paddingVertical: 6, alignItems: "center", gap: 2 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ height: 1, width: 28, backgroundColor: isDark ? SLATE[700] : TC.border }} />
+        <Text style={{ fontSize: 12, fontWeight: "600", color: TC.textMuted }}>You have reached the end of the list</Text>
+        <View style={{ height: 1, width: 28, backgroundColor: isDark ? SLATE[700] : TC.border }} />
+      </View>
+      <Text style={{ fontSize: 11, color: TC.textFaint }}>{`All ${total} record${total === 1 ? "" : "s"} loaded`}</Text>
+    </View>
+  );
 }
 
 /* ------------------------------------------------------- Primary button --- */
@@ -434,10 +444,23 @@ export function PrimaryButton({ label, onPress, icon: Icon, disabled, busy, test
 
 /* Non-virtualized list (pages render inside CustomerShell's ScrollView — avoids nested VirtualizedList warning) */
 export function PlainList({ data, keyExtractor, ListHeaderComponent, ListEmptyComponent, renderItem, testID }: { data: any[]; keyExtractor: (item: any, index: number) => string; ListHeaderComponent?: React.ReactNode; ListEmptyComponent?: React.ReactNode; renderItem: (info: { item: any; index: number }) => React.ReactNode; testID?: string; contentContainerStyle?: any; initialNumToRender?: number }) {
+  const PAGE = 10;
+  const [count, setCount] = useState(PAGE);
+  const [busy, setBusy] = useState(false);
+  const sig = useRef({ first: "", len: 0 });
+  const first = data.length ? keyExtractor(data[0], 0) : "";
+  useEffect(() => {
+    if (first !== sig.current.first || data.length < sig.current.len) setCount(PAGE);
+    sig.current = { first, len: data.length };
+  }, [first, data.length]);
+  const hasMore = count < data.length;
+  const more = () => { if (!hasMore || busy) return; setBusy(true); setTimeout(() => { setCount((n) => n + PAGE); setBusy(false); }, 200); };
+  useOnScrollEnd(more);
   return (
     <View testID={testID}>
       {ListHeaderComponent}
-      {data.length === 0 ? ListEmptyComponent : data.map((item, index) => <React.Fragment key={keyExtractor(item, index)}>{renderItem({ item, index })}</React.Fragment>)}
+      {data.length === 0 ? ListEmptyComponent : data.slice(0, count).map((item, index) => <React.Fragment key={keyExtractor(item, index)}>{renderItem({ item, index })}</React.Fragment>)}
+      {data.length > 0 ? <LoadMoreFooter hasMore={hasMore} loading={busy} onLoadMore={more} total={data.length} testID={`${testID || "list"}-load-more`} /> : null}
     </View>
   );
 }

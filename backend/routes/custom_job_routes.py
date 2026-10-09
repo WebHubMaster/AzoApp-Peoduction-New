@@ -22,8 +22,9 @@ async def submit(data: CustomJobCreate, user=Depends(get_current_user)):
 
 
 @router.get("/mine")
-async def mine(user=Depends(get_current_user)):
-    return await svc.list_mine(user)
+async def mine(page: int = 1, page_size: int = 0, user=Depends(get_current_user)):
+    from services.paging import page_list
+    return page_list(await svc.list_mine(user), page, page_size)
 
 
 # ---------------- admin ----------------

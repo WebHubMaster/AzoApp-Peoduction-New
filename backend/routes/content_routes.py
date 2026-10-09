@@ -134,8 +134,9 @@ async def all_notifications(admin=Depends(ADMIN)):
 
 
 @router.get("/notifications")
-async def my_notifications(user=Depends(get_current_user)):
-    return await c.user_notifications(user)
+async def my_notifications(page: int = 1, page_size: int = 0, user=Depends(get_current_user)):
+    from services.paging import page_list
+    return page_list(await c.user_notifications(user), page, page_size)
 
 
 @router.delete("/notifications/{nid}")

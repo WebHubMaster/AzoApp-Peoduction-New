@@ -2,6 +2,9 @@
  * sees the live status (Open → Solved) with the admin's resolution note, and can delete
  * a report once it's solved. */
 import React, { useCallback, useState } from "react";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
+import { useProgressive } from "@/src/lib/useProgressive";
+import { LoadMoreFooter as PagedFooter } from "@/src/components/customer/ux";
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Image, Alert } from "react-native";
 import { Bug, Camera, X, Send, CheckCircle2, Clock, Trash2, Inbox } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
@@ -35,11 +38,13 @@ export default function ReportBugScreen() {
   const [rows, setRows] = useState<BugRow[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const pg = useProgressive(rows);
   const load = useCallback(() => {
     setLoading(true);
     api.get<BugRow[]>("/bugs/my").then((r) => setRows(r || [])).catch(() => setRows([])).finally(() => setLoading(false));
   }, []);
   useFocusEffect(useCallback(() => { load(); }, [load]));
+  useOnPullRefresh(() => load());
 
   const pickShot = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -148,7 +153,7 @@ export default function ReportBugScreen() {
               <Inbox size={28} color={TC.textFaint} />
               <Text style={{ color: TC.textFaint, fontSize: 13 }}>No bug reports yet.</Text>
             </View>
-          ) : rows.map((b) => (
+          ) : pg.items.map((b) => (
             <View key={b.id} testID={`bug-row-${b.id}`} style={{ backgroundColor: TC.surface, borderRadius: 14, borderWidth: 1, borderColor: solved(b.status) ? "#A7F3D0" : TC.border, padding: 14, gap: 8 }}>
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
                 <Text style={{ flex: 1, fontSize: 15, fontWeight: "700", color: TC.text }}>{b.title}</Text>
@@ -180,6 +185,7 @@ export default function ReportBugScreen() {
               </View>
             </View>
           ))}
+          {!loading && rows.length > 0 ? <PagedFooter hasMore={pg.hasMore} loading={pg.loading} onLoadMore={pg.loadMore} total={pg.total} testID="bugs-load-more" /> : null}
         </View>
       </ScrollView>
     </View>

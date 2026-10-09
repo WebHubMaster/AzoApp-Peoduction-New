@@ -1,5 +1,6 @@
 /** Custom Requests — port of components/customer/MyCustomJobs.jsx + CustomJobWizard.jsx (mobile bottom sheet, 5 steps). */
 import React, { useCallback, useEffect, useState } from "react";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
 import { PlainList } from "../../src/components/customer/ux";
 import { View, Text, Pressable, TextInput, ScrollView, Modal, ActivityIndicator } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -34,6 +35,7 @@ export default function CustomJobsScreen() {
   useEffect(() => { if (openNew === "1") setWizardOpen(true); }, [openNew]);
   const load = useCallback(() => { setLoading(true); api.get<any[]>("/custom-jobs/mine").then((d) => setRows(d || [])).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => { load(); }, [load]);
+  useOnPullRefresh(() => load());
 
   const header = (
     <View style={{ flexDirection: "row", gap: 8, marginBottom: 20 }}>

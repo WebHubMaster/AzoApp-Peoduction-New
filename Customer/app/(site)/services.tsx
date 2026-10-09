@@ -1,6 +1,8 @@
 /** Services — 1:1 port of web Services.jsx: search, category chips, rate-card item results, services grouped by category, quick-add, "View your booking" bar. */
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Pressable, TextInput, ScrollView, useWindowDimensions } from "react-native";
+import { useProgressive } from "../../src/lib/useProgressive";
+import { LoadMoreFooter as PagedFooter } from "../../src/components/customer/ux";
+import { View, Text, Pressable, TextInput, ScrollView, useWindowDimensions, RefreshControl } from "react-native";
 import { Image } from "expo-image";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -55,7 +57,8 @@ export default function ServicesPage() {
   const svcs = useQuery({ queryKey: ["services-all"], queryFn: () => api.get<any[]>("/catalog/services", { auth: false }), staleTime: 60_000 });
   const loading = cats.isLoading || svcs.isLoading;
   const filtered = useMemo(() => (svcs.data || []).filter((s) => (cat === "all" || s.category_id === cat) && (!q || s.name.toLowerCase().includes(q.toLowerCase()) || s.category_name?.toLowerCase().includes(q.toLowerCase()))), [svcs.data, cat, q]);
-  const grouped = useMemo(() => { const m: Record<string, any[]> = {}; filtered.forEach((s) => { (m[s.category_name] = m[s.category_name] || []).push(s); }); return m; }, [filtered]);
+  const pg = useProgressive<any>(filtered, `${cat}|${q}`);
+  const grouped = useMemo(() => { const m: Record<string, any[]> = {}; pg.items.forEach((s) => { (m[s.category_name] = m[s.category_name] || []).push(s); }); return m; }, [pg.items]);
   const activeCatName = (cats.data || []).find((c) => c.id === cat)?.name;
   useEffect(() => {
     const term = q.trim(); if (term.length < 2) { setRcItems([]); return; }
@@ -87,7 +90,8 @@ export default function ServicesPage() {
           {count > 0 ? <View testID="services-cart-count" style={{ position: "absolute", top: -8, right: -8, height: 20, minWidth: 20, paddingHorizontal: 4, borderRadius: 6, backgroundColor: PRIMARY[700], alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontSize: 11, fontWeight: "700" }}>{count}</Text></View> : null}
         </Pressable>
       </View>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: count > 0 ? 160 : 100 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: count > 0 ? 160 : 100 }} keyboardShouldPersistTaps="handled" {...pg.scrollProps}
+        refreshControl={<RefreshControl refreshing={svcs.isRefetching} onRefresh={() => { svcs.refetch(); cats.refetch(); }} tintColor="#0D47A1" colors={["#0D47A1"]} />}>
         <Text style={{ fontSize: 14, color: TC.textMuted }}>Browse and book verified home-service experts near you.</Text>
         <View style={{ flexDirection: "row", alignItems: "center", height: 44, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border, paddingLeft: 14, paddingRight: 8, gap: 8, marginTop: 20 }}>
           <Search size={16} color={TC.textFaint} /><TextInput testID="services-search" value={q} onChangeText={setQ} placeholder="Search services…" placeholderTextColor={TC.textFaint} style={{ flex: 1, fontSize: 14, color: TC.text, height: 42, outlineStyle: "none" } as any} />
@@ -128,6 +132,7 @@ export default function ServicesPage() {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{list.map((s: any) => <ServiceCard key={s.id} s={s} w={cardW} />)}</View>
           </View>
         )) : null}
+        {!loading && filtered.length > 0 ? <PagedFooter hasMore={pg.hasMore} loading={pg.loading} onLoadMore={pg.loadMore} total={pg.total} testID="services-load-more" /> : null}
       </ScrollView>
       {count > 0 ? (
         <View style={{ position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 12, backgroundColor: TC.surface, borderTopWidth: 1, borderTopColor: TC.border, boxShadow: "0px -6px 24px rgba(15,23,42,0.10)" } as any}>

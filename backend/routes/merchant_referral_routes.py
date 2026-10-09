@@ -46,8 +46,9 @@ async def customers(page: int = 1, page_size: int = 10, q: str = "", user=APPROV
 
 
 @router.get("/customers/{cid}")
-async def customer_detail(cid: str, user=APPROVED):
-    return await mrf.customer_detail(user["id"], cid)
+async def customer_detail(cid: str, page: int = 1, page_size: int = 0, user=APPROVED):
+    from services.paging import page_key
+    return page_key(await mrf.customer_detail(user["id"], cid), "services", page, page_size)
 
 
 # ── My Partners ──
@@ -58,5 +59,6 @@ async def partners(page: int = 1, page_size: int = 10, q: str = "", status: str 
 
 
 @router.get("/partners/{pid}")
-async def partner_detail(pid: str, user=APPROVED):
-    return await mrf.partner_detail(user["id"], pid)
+async def partner_detail(pid: str, page: int = 1, page_size: int = 0, user=APPROVED):
+    from services.paging import page_key
+    return page_key(await mrf.partner_detail(user["id"], pid), "services", page, page_size)

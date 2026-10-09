@@ -1,4 +1,5 @@
 import React from "react";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, ScrollView, Animated } from "react-native";
 import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -50,6 +51,7 @@ export default function PartnerRewards() {
   const bq = useQuery({ queryKey: ["partner-bonuses"], queryFn: () => api.get<any>("/partner/my-bonuses") });
   const data = q.data ?? (q.isError ? { challenges: [], stats: {}, penalties: [] } : undefined);
   const bonuses = bq.data ?? (bq.isError ? { rows: [], totals: {}, grand_total: 0, count: 0 } : undefined);
+  const bonusList = useProgressiveList<any>(bonuses?.rows || []);
   const reload = () => { qc.invalidateQueries({ queryKey: ["partner-challenges"] }); qc.invalidateQueries({ queryKey: ["partner-bonuses"] }); };
 
   const H = ({ icon, color, t, right }: { icon: MdiName; color: string; t: string; right?: React.ReactNode }) => (
@@ -59,7 +61,7 @@ export default function PartnerRewards() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
-      <ScrollView testID="challenges-rewards" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 24 }} showsVerticalScrollIndicator={false}
+      <ScrollView testID="challenges-rewards" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 24 }} showsVerticalScrollIndicator={false} {...bonusList.scrollProps}
         refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}>
         {!data ? <Text style={{ color: SLATE400, textAlign: "center", paddingVertical: 40 }}>Loading your rewards…</Text> : (() => {
           const s = data.stats || {}; const next = s.next_reward;
@@ -101,7 +103,7 @@ export default function PartnerRewards() {
                     ))}
                   </View>
                   <View style={{ gap: 6 }}>
-                    {bonuses.rows.map((b: any) => {
+                    {bonusList.items.map((b: any) => {
                       const ic: MdiName = b.kind === "streak_bonus" ? "fire" : b.kind === "leaderboard_reward" ? "trophy-outline" : "flash";
                       const tone = b.kind === "streak_bonus" ? "#F97316" : b.kind === "leaderboard_reward" ? "#F59E0B" : "#10B981";
                       return (
@@ -113,6 +115,7 @@ export default function PartnerRewards() {
                       );
                     })}
                   </View>
+                  <LoadMoreFooter list={bonusList} testID="bonus-load-more" />
                 </View>
               ) : null}
 

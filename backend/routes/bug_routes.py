@@ -27,8 +27,9 @@ async def create_bug(data: BugCreate, user=Depends(ANY_USER)):
 
 
 @router.get("/bugs/my")
-async def my_bugs(user=Depends(ANY_USER)):
-    return await c.my_bugs(user)
+async def my_bugs(page: int = 1, page_size: int = 0, user=Depends(ANY_USER)):
+    from services.paging import page_list
+    return page_list(await c.my_bugs(user), page, page_size)
 
 
 @router.delete("/bugs/{bug_id}")

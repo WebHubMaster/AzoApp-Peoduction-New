@@ -50,6 +50,7 @@ export function activeKeyFor(pathname: string): NavKey | null {
 }
 
 export default function CustomerShell({ badges = {}, children }: { badges?: Partial<Record<NavKey, number>>; children: React.ReactNode }) {
+  const shellH = React.useRef(0);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
@@ -116,7 +117,9 @@ export default function CustomerShell({ badges = {}, children }: { badges?: Part
       {/* Page content */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 140 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl testID="pull-refresh" refreshing={pulling} onRefresh={async () => { setPulling(true); await runPullRefresh(); setPulling(false); notifyRefreshed(); }} tintColor={PRIMARY[700]} colors={[PRIMARY[700]]} />}
-        scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}>
+        scrollEventThrottle={250} onScroll={({ nativeEvent: e }) => { if (e.layoutMeasurement.height + e.contentOffset.y >= e.contentSize.height - 600) emitScrollEnd(); }}
+        onLayout={(e) => { shellH.current = e.nativeEvent.layout.height; }}
+        onContentSizeChange={(_w, h) => { if (shellH.current && h <= shellH.current + 600) emitScrollEnd(); }}>
         {children}
       </ScrollView>
 

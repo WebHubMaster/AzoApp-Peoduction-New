@@ -69,8 +69,10 @@ export function ScreenScroll({
   onRefresh,
   contentStyle,
   bottomInset = true,
+  scrollProps,
 }: {
   children: React.ReactNode;
+  scrollProps?: Record<string, any>;
   refreshing?: boolean;
   onRefresh?: () => void;
   contentStyle?: StyleProp<ViewStyle>;
@@ -88,6 +90,7 @@ export function ScreenScroll({
       ]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      {...scrollProps}
       refreshControl={
         onRefresh ? (
           <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.primary} colors={[colors.primary]} />

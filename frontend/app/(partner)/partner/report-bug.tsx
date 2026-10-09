@@ -1,4 +1,5 @@
 import React from "react";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Image, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -37,7 +38,8 @@ export default function PartnerReportBug() {
   const [submitting, setSubmitting] = React.useState(false);
 
   const q = useQuery({ queryKey: ["partner-bugs"], queryFn: () => api.get<BugRow[]>("/bugs/my") });
-  const rows = q.data || [];
+  const shown = useProgressiveList<BugRow>(q.data || []);
+  const rows = shown.items;
   const solved = (s: string) => s === "solved" || s === "closed";
 
   const pickShot = async () => {
@@ -81,7 +83,7 @@ export default function PartnerReportBug() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" crumbLabel="Report a Bug" />
-      <ScrollView testID="partner-report-bug" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120, gap: 18 }} keyboardShouldPersistTaps="handled">
+      <ScrollView testID="partner-report-bug" contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 120, gap: 18 }} keyboardShouldPersistTaps="handled" {...shown.scrollProps}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", justifyContent: "center" }}>
             <Icon name="bug-outline" size={22} color="#fff" />
@@ -178,6 +180,7 @@ export default function PartnerReportBug() {
               </View>
             </View>
           ))}
+          {!q.isLoading && rows.length > 0 ? <LoadMoreFooter list={shown} testID="bugs-load-more" /> : null}
         </View>
       </ScrollView>
     </View>

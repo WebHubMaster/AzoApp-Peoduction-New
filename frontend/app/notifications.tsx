@@ -1,4 +1,5 @@
 import React from "react";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, FlatList, Pressable, Alert } from "react-native";
 import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +28,7 @@ export default function Notifications() {
     },
   });
   const items = Array.isArray(data) ? data : (data as any)?.items || [];
+  const shown = useProgressiveList(items);
 
   const refreshBadges = () => {
     qc.invalidateQueries({ queryKey: ["notifications"] });
@@ -96,7 +98,9 @@ export default function Notifications() {
         <View style={{ padding: spacing.lg, gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View>
       ) : (
         <FlatList
-          data={items}
+          data={shown.items}
+          {...shown.scrollProps}
+          ListFooterComponent={<LoadMoreFooter list={shown} testID="notif-load-more" />}
           keyExtractor={(n, i) => n.id || String(i)}
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.xl, gap: spacing.sm }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => qc.invalidateQueries({ queryKey: ["notifications"] })} tintColor={colors.primary} colors={[colors.primary]} />}

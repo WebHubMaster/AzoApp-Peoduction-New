@@ -1,5 +1,6 @@
 /** Refunds — port of RefundsView (CustomerDashboard.jsx): KPIs, search, date presets, tabs, cards with refund timeline. */
 import React, { useMemo, useState } from "react";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
 import { PlainList } from "../../src/components/customer/ux";
 import { View, Text, TextInput, Pressable, ScrollView } from "react-native";
 import { Receipt, Clock, CheckCircle2, IndianRupee, Search, SlidersHorizontal } from "lucide-react-native";
@@ -20,7 +21,8 @@ const inRange = (d: string, preset: string) => { if (preset === "All" || !d) ret
 
 export default function RefundsScreen() {
   useTheme();
-  const { refunds, loading } = useCustomerData();
+  const { refunds, loading, load: reloadData } = useCustomerData();
+  useOnPullRefresh(() => reloadData());
   const [q, setQ] = useState(""); const [tab, setTab] = useState("all"); const [range, setRange] = useState("All");
   const pendingSet = ["initiated", "pending", "processing"];
   const filtered = useMemo(() => {

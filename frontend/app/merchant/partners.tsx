@@ -54,8 +54,8 @@ function StatusTabs({ value, onChange }: { value: string; onChange: (v: string) 
 function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const detail = useQuery({ queryKey: ["m-ref-partner", id], queryFn: () => api.get<any>(`/merchant/referral/partners/${id}`) });
-  const d = detail.data;
+  const detail = useInfiniteList(["m-ref-partner", id], (pg, size) => api.get<any>(`/merchant/referral/partners/${id}?page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  const d = detail.data ? detail.first : undefined;
 
   const r = d?.report || {};
   const cards: Kpi[] = [
@@ -72,7 +72,8 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={detail.isFetching} onRefresh={() => detail.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={detail.isRefetching && !detail.isFetchingNextPage} onRefresh={() => detail.refetch()} tintColor={colors.primary} colors={[colors.primary]} />}
+        {...detail.scrollProps}
         testID="partner-detail"
       >
         <MBackLink label="Back to partners" onPress={onBack} />
@@ -106,12 +107,12 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                 <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: "800" }}>Service-wise commission</Text>
               </View>
               <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
-                {(d.services || []).length === 0 ? (
+                {detail.items.length === 0 ? (
                   <View style={{ paddingVertical: 24, alignItems: "center" }}>
                     <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>No commission-earning services yet.</Text>
                   </View>
                 ) : (
-                  d.services.map((s: any, i: number) => (
+                  detail.items.map((s: any, i: number) => (
                     <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: 12, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
@@ -125,6 +126,7 @@ function PartnerDetail({ id, onBack }: { id: string; onBack: () => void }) {
                   ))
                 )}
               </Card>
+              <LoadMoreFooter list={detail} testID="partners-history-load-more" />
             </View>
 
             <MPrivacyNote />

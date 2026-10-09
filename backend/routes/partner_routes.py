@@ -137,6 +137,22 @@ async def earnings_summary(user=Depends(PARTNER)):
     return await ps.earnings_summary(user)
 
 
+@router.get("/reviews")
+async def my_reviews(page: int = 1, page_size: int = 10, user=Depends(PARTNER)):
+    from config.database import db as _db
+    page, page_size = max(1, page), min(100, max(1, page_size))
+    q = {"partner_id": user["id"], "review.rating": {"$gte": 1}}
+    total = await _db.bookings.count_documents(q)
+    rows = await _db.bookings.find(q, {"_id": 0, "id": 1, "review": 1, "service_name": 1, "customer_name": 1,
+                                       "updated_at": 1, "created_at": 1}) \
+        .sort("updated_at", -1).skip((page - 1) * page_size).limit(page_size).to_list(page_size)
+    items = [{"id": b.get("id"), "rating": int(round(float((b.get("review") or {}).get("rating") or 0))),
+              "comment": (b.get("review") or {}).get("comment") or (b.get("review") or {}).get("text") or "",
+              "service": b.get("service_name") or "", "customer": b.get("customer_name") or "Customer",
+              "date": str(b.get("updated_at") or b.get("created_at") or "")[:10]} for b in rows]
+    return {"items": items, "total": total, "page": page, "page_size": page_size}
+
+
 @router.get("/analytics")
 async def analytics(date_from: str = "", date_to: str = "", user=Depends(PARTNER)):
     return await ps.analytics(user, date_from, date_to)
@@ -154,8 +170,9 @@ async def wallet_config(user=Depends(PARTNER)):
 
 
 @router.get("/withdrawals")
-async def my_withdrawals(user=Depends(PARTNER)):
-    return await ps.list_withdrawals(partner_id=user["id"])
+async def my_withdrawals(page: int = 1, page_size: int = 0, user=Depends(PARTNER)):
+    from services.paging import page_list
+    return page_list(await ps.list_withdrawals(partner_id=user["id"]), page, page_size)
 
 
 @router.post("/withdrawals")
@@ -180,8 +197,9 @@ async def leaderboard(period: str = "all", city: str = "", skill: str = "", user
 
 
 @router.get("/my-bonuses")
-async def my_bonuses(user=Depends(PARTNER)):
-    return await ps.partner_bonus_history(user)
+async def my_bonuses(page: int = 1, page_size: int = 0, user=Depends(PARTNER)):
+    from services.paging import page_key
+    return page_key(await ps.partner_bonus_history(user), "rows", page, page_size)
 
 
 @router.get("/penalties")

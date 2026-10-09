@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, Pressable, Modal, TextInput, ScrollView, Platform } from "react-native";
 import { RefreshControl } from "@/src/components/RefreshNote";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -69,6 +70,8 @@ export default function SupportList({ embedded = false }: { embedded?: boolean }
     .filter((t) => range === "all" || now - new Date(t.created_at).getTime() < (range === "7d" ? 7 : 30) * 86400000)
     .sort((x, y) => (sort === "newest" ? 1 : -1) * (new Date(y.updated_at || y.created_at).getTime() - new Date(x.updated_at || x.created_at).getTime()));
 
+  const shown = useProgressiveList(list, `${search}|${status}|${range}|${sort}`);
+
   /* compact pill-style filter (matches customer app) */
   const Pill = ({ id, icon, value, options }: { id: string; icon: any; value: string; options: [string, string][] }) => (
     <>
@@ -108,6 +111,7 @@ export default function SupportList({ embedded = false }: { embedded?: boolean }
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }}
         refreshControl={<RefreshControl refreshing={isFetching && !isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["support-tickets"] })} tintColor={colors.primary} colors={[colors.primary]} />}
+        {...shown.scrollProps}
       >
         <NewBtn full testID="new-ticket" />
 
@@ -137,9 +141,9 @@ export default function SupportList({ embedded = false }: { embedded?: boolean }
           </View>
         ) : (
           <View testID="support-list" style={{ borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, overflow: "hidden" }}>
-            {list.map((item, i) => (
+            {shown.items.map((item, i) => (
               <Pressable key={item.id} testID={`ticket-${item.id}`} onPress={() => router.push((user?.role === "partner" ? "/partner/support/" : "/support/") + item.id)}
-                style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 14, gap: 8, borderBottomWidth: i === list.length - 1 ? 0 : 1, borderBottomColor: colors.border, backgroundColor: pressed ? colors.surfaceSubtle : "transparent" })}>
+                style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 14, gap: 8, borderBottomWidth: i === shown.items.length - 1 ? 0 : 1, borderBottomColor: colors.border, backgroundColor: pressed ? colors.surfaceSubtle : "transparent" })}>
                 <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                     {item.unread_user > 0 ? <View testID={`support-unread-${item.code}`} style={{ height: 8, width: 8, borderRadius: 4, backgroundColor: "#EF4444" }} /> : null}
@@ -159,6 +163,7 @@ export default function SupportList({ embedded = false }: { embedded?: boolean }
             ))}
           </View>
         )}
+        {!isLoading && list.length > 0 ? <LoadMoreFooter list={shown} testID="support-load-more" /> : null}
       </ScrollView>
 
       {/* New ticket sheet */}

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -84,6 +85,7 @@ export default function PartnerAnalytics() {
     return { from: iso(from), to: iso(today) };
   }, [preset, custom]);
 
+  const reviews = useInfiniteList(["partner-reviews"], (pg, size) => api.get<any>(`/partner/reviews?page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
   const q = useQuery({ queryKey: ["partner-analytics", range.from, range.to], queryFn: () => api.get<any>(`/partner/analytics?date_from=${range.from}&date_to=${range.to}`) });
   const [slice, setSlice] = useState<number | null>(null);
   const d = q.data; const k = d?.kpis || {}; const series: any[] = d?.series || []; const status: any[] = d?.status_breakdown || []; const rt = d?.ratings;
@@ -94,8 +96,8 @@ export default function PartnerAnalytics() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={() => qc.invalidateQueries({ queryKey: ["partner-analytics"] })} tintColor={colors.primary} colors={[colors.primary]} />}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }} showsVerticalScrollIndicator={false} {...reviews.scrollProps}
+        refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={() => { qc.invalidateQueries({ queryKey: ["partner-analytics"] }); reviews.refetch(); }} tintColor={colors.primary} colors={[colors.primary]} />}>
         {/* Header */}
         <LinearGradient colors={[colors.secondary, "#4338CA", "#7C3AED"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: 6, padding: 20 }} testID="partner-analytics-header">
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Icon name="trending-up" size={22} color="#fff" /><Text style={{ color: "#fff", fontSize: 22, fontWeight: "800" }}>Earnings Analytics</Text></View>
@@ -170,11 +172,11 @@ export default function PartnerAnalytics() {
                   </View>); })}
               </View>
             </Surface>
-            {(rt.recent || []).length > 0 ? (
-              <Surface style={{ padding: 20 }}>
-                <Text style={{ color: colors.text, fontSize: 17, fontWeight: "700", marginBottom: 12 }}>Recent Reviews</Text>
+            {reviews.items.length > 0 ? (
+              <Surface style={{ padding: 20 }} testID="reviews-list">
+                <Text style={{ color: colors.text, fontSize: 17, fontWeight: "700", marginBottom: 12 }}>Reviews</Text>
                 <View style={{ gap: 8 }}>
-                  {rt.recent.map((r: any, i: number) => (
+                  {reviews.items.map((r: any, i: number) => (
                     <View key={i} style={{ borderRadius: 6, backgroundColor: colors.surfaceSubtle, padding: 12 }}>
                       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
                         <Text style={{ fontSize: 13, letterSpacing: 1 }}>{[1, 2, 3, 4, 5].map((s) => <Text key={s} style={{ color: s <= r.rating ? "#FBBF24" : "#E2E8F0" }}>★</Text>)}</Text>
@@ -185,6 +187,7 @@ export default function PartnerAnalytics() {
                     </View>
                   ))}
                 </View>
+                <LoadMoreFooter list={reviews} testID="reviews-load-more" />
               </Surface>
             ) : null}
           </>

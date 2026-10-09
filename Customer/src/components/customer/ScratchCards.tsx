@@ -1,4 +1,7 @@
 import { TC } from "@/src/theme";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
+import { useProgressive } from "@/src/lib/useProgressive";
+import { LoadMoreFooter as PagedFooter } from "@/src/components/customer/ux";
 /** Port of web_panel/src/components/growth/ScratchCardsPanel.jsx — carousel, View All grid, scratch modal (drag to reveal), claim → wallet. */
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView, PanResponder } from "react-native";
@@ -82,7 +85,9 @@ export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly, hideW
   const [viewAll, setViewAll] = useState(!!gridOnly);
   const load = useCallback(() => { setLoading(true); api.get<any>("/growth/scratch-cards").then((r) => setData(r || { cards: [] })).catch(() => {}).finally(() => setLoading(false)); }, []);
   useEffect(() => { load(); }, [load]);
+  useOnPullRefresh(() => load());
   const cards: any[] = data.cards || []; const summary = data.summary || {};
+  const pg = useProgressive<any>(viewAll ? cards : []);
   // Wallet embeds this panel with hideWhenEmpty — when there are no scratch cards
   // we render nothing there (the full "Reward & Cashback" screen still lists all).
   if (!loading && cards.length === 0 && hideWhenEmpty) return null;
@@ -107,7 +112,8 @@ export function ScratchCardsPanel({ onClaimed, toast, onViewAll, gridOnly, hideW
             <Text style={{ fontSize: 12, color: TC.textMuted }}>Earned {fmt(summary.earned)} · {cards.length} card{cards.length > 1 ? "s" : ""} · scratched cards auto-remove after 30 days</Text>
           </View>
         </View>
-        <View testID="scratch-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{cards.map((x) => <ScratchTile key={x.id} card={x} width="47%" onOpen={() => openCard(x)} />)}</View>
+        <View testID="scratch-grid" style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>{pg.items.map((x: any) => <ScratchTile key={x.id} card={x} width="47%" onOpen={() => openCard(x)} />)}</View>
+        {cards.length > 0 ? <PagedFooter hasMore={pg.hasMore} loading={pg.loading} onLoadMore={pg.loadMore} total={pg.total} testID="scratch-load-more" /> : null}
         {modal}
       </View>
     );

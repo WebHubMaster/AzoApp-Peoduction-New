@@ -47,8 +47,9 @@ async def referral_apply(payload: dict = Body(...), user=Depends(require_role("c
 
 # ---------------- scratch cards ----------------
 @router.get("/scratch-cards")
-async def scratch_cards(user=Depends(require_role("customer"))):
-    return await g.list_cards(user)
+async def scratch_cards(page: int = 1, page_size: int = 0, user=Depends(require_role("customer"))):
+    from services.paging import page_key
+    return page_key(await g.list_cards(user), "cards", page, page_size)
 
 
 @router.post("/scratch-cards/{card_id}/scratch")

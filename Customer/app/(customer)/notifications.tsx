@@ -3,6 +3,9 @@
  *  page marks everything as read (clears the bell's unread badge). Mirrors the
  *  Partner app's notifications screen. */
 import React, { useCallback, useEffect, useState } from "react";
+import { useOnPullRefresh } from "@/src/components/customer/ux";
+import { useProgressive } from "@/src/lib/useProgressive";
+import { LoadMoreFooter as PagedFooter } from "@/src/components/customer/ux";
 import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { Bell, Trash2, X } from "lucide-react-native";
 import { api } from "@/src/api/client";
@@ -19,7 +22,9 @@ export default function NotificationsScreen() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
+  const pg = useProgressive(items);
   const load = useCallback(async () => {
+  useOnPullRefresh(() => load());
     try { const r = await api.get<any[]>("/notifications"); setItems(Array.isArray(r) ? r : []); }
     catch { /* ignore */ }
     finally { setLoading(false); }
@@ -74,7 +79,7 @@ export default function NotificationsScreen() {
         <EmptyState icon={Bell} title="No notifications" desc="Booking updates, offers and reminders will show up here." testID="notif-empty" />
       ) : (
         <View style={{ gap: 10 }}>
-          {items.map((n, i) => (
+          {pg.items.map((n, i) => (
             <View key={n.id || i} testID={`notif-item-${n.id || i}`} style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, borderRadius: 6, borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, padding: 14 }}>
               <View style={{ width: 40, height: 40, borderRadius: 6, backgroundColor: c.primarySoft, alignItems: "center", justifyContent: "center" }}>
                 <Bell size={20} color={c.primaryText} />
@@ -90,6 +95,7 @@ export default function NotificationsScreen() {
               </Pressable>
             </View>
           ))}
+          <PagedFooter hasMore={pg.hasMore} loading={pg.loading} onLoadMore={pg.loadMore} total={pg.total} testID="notif-load-more" />
         </View>
       )}
     </View>

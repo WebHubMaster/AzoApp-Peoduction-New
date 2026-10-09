@@ -1,4 +1,5 @@
 import React from "react";
+import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { View, Text, FlatList, Pressable, Linking } from "react-native";
 import { RefreshControl } from "@/src/components/RefreshNote";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,20 +15,23 @@ export default function MerchantReminders() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
-  const { data, isLoading, isFetching } = useQuery({ queryKey: ["merchant-reminders"], queryFn: () => api.get<any>("/merchant/panel/reminders") });
-  const items: any[] = data?.items || [];
+  const list = useInfiniteList(["merchant-reminders"], (pg, size) => api.get<any>(`/merchant/panel/reminders?page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  const { isLoading } = list;
+  const items: any[] = list.items;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Service Reminders" back embedded subtitle={`${items.length} due`} variant="gradient" testID="merchant-reminders-header" />
+      <AppHeader title="Service Reminders" back embedded subtitle={`${list.total || items.length} due`} variant="gradient" testID="merchant-reminders-header" />
       {isLoading ? (
         <View style={{ padding: spacing.lg, gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View>
       ) : (
         <FlatList
           data={items}
+          {...list.scrollProps}
+          ListFooterComponent={<LoadMoreFooter list={list} testID="reminders-load-more" />}
           keyExtractor={(x, i) => x.id || String(i)}
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.xl, gap: spacing.sm }}
-          refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => qc.invalidateQueries({ queryKey: ["merchant-reminders"] })} tintColor={colors.primary} colors={[colors.primary]} />}
+          refreshControl={<RefreshControl refreshing={list.isRefetching && !list.isFetchingNextPage} onRefresh={() => qc.invalidateQueries({ queryKey: ["merchant-reminders"] })} tintColor={colors.primary} colors={[colors.primary]} />}
           ListEmptyComponent={<EmptyState icon="bell-ring-outline" title="No reminders" subtitle="Customer service reminders will appear here." />}
           renderItem={({ item }) => (
             <Card>
