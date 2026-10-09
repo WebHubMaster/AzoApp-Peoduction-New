@@ -345,3 +345,68 @@ def build_partner_html(inv: dict) -> str:
     </div>"""
     return f"""<!doctype html><html><head><meta charset="utf-8"/><title>{_esc(inv.get("invoice_number") or "Invoice")}</title>
 <style>{_css(ac)}</style></head><body data-testid="partner-invoice">{page}</body></html>"""
+
+
+def build_refund_html(inv: dict) -> str:
+    """Customer Refund Receipt in the SAME layout as the booking (GST) invoice."""
+    from services.invoice_html_service import _esc, _money, _fmt_date, logo_to_data_uri, resolve_theme
+    biz = inv.get("business_snapshot") or {}
+    cust = inv.get("bill_to") or inv.get("customer_snapshot") or {}
+    cur = inv.get("currency") or "INR"
+    ac = biz.get("accent") or resolve_theme(biz.get("theme_key"))["accent"]
+    m = lambda v: _money(v, cur)  # noqa: E731
+    amt = round(abs(float(inv.get("refund_amount") or inv.get("total_amount") or 0)), 2)
+    svc = inv.get("service_name") or ((inv.get("line_items") or [{}])[0].get("detail")) or "Services"
+    _ba = biz.get("address") or ""
+    biz_addr = ", ".join([x for x in [_ba] + [biz.get(k) for k in ("city", "zip")] if x and (x == _ba or str(x) not in _ba)])
+    legal = biz.get("legal_name") or biz.get("name") or ""
+    gstin_row = f'<div class="row"><b>Business GST:</b> {_esc(biz.get("gst"))}</div>' if biz.get("gst") else ""
+    sign = logo_to_data_uri(biz.get("signature") or "")
+    signatory = biz.get("signatory_name") or ""
+    status = (inv.get("payment_status") or "processing").replace("_", " ").title()
+    pct = inv.get("refund_pct")
+    pct_row = f'<tr><td>Refund %</td><td>{float(pct):g}%</td></tr>' if isinstance(pct, (int, float)) else ""
+    reason = f'<div class="note"><b>Cancellation reason:</b> {_esc(inv.get("notes"))}</div>' if inv.get("notes") else ""
+    page = f"""
+    <div class="page" data-testid="refund-invoice-page">
+      <table class="hd"><tr><td>{_brand_html(biz, logo_to_data_uri(biz.get("logo") or ""), _esc)}</td><td class="ttl">REFUND RECEIPT</td></tr></table>
+      <table class="parties"><tr>
+        <td class="pl"><div class="lbl">To</div>
+          <div class="nm">{_esc(cust.get("name") or "Customer")}</div>
+          {f'<div class="row"><b>Address:</b> {_esc(cust.get("address"))}</div>' if cust.get("address") else ""}
+          {f'<div class="row"><b>Phone:</b> {_esc(cust.get("phone"))}</div>' if cust.get("phone") else ""}
+          {f'<div class="row"><b>Email:</b> {_esc(cust.get("email"))}</div>' if cust.get("email") else ""}
+        </td>
+        <td class="pr">
+          <div class="row"><b>Refund No.:</b> {_esc(inv.get("invoice_number") or "")}</div>
+          <div class="row"><b>Date:</b> {_esc(_fmt_date(inv.get("issue_date") or inv.get("created_at")))}</div>
+          <div class="row"><b>Booking ID:</b> {_esc(inv.get("booking_code") or "")}</div>
+          <div class="row"><b>Status:</b> {_esc(status)}</div>
+        </td>
+      </tr></table>
+      <div class="from"><div class="lbl">From</div>
+        <div class="nm">{_esc(legal)}</div>{gstin_row}
+        <div class="row"><b>Address:</b> {_esc(biz_addr or "—")}</div>
+        <div class="row"><b>State Name &amp; Code:</b> {_esc(state_with_code(biz.get("state")) or "—")}</div>
+      </div>
+      <table class="items">
+        <thead><tr><th class="l">Items</th><th>Refund Mode</th><th>Amount</th></tr></thead>
+        <tbody><tr><td class="l">Refund - {_esc(svc)}<div class="sac">Booking {_esc(inv.get("booking_code") or "")}</div></td>
+          <td>{_esc(inv.get("payment_method") or "Original payment method")}</td><td>{m(amt)}</td></tr></tbody>
+      </table>
+      <table class="tot">
+        {pct_row}
+        <tr class="grand" data-testid="refund-invoice-total"><td>Total Refund</td><td>{m(amt)}</td></tr>
+      </table>
+      <div class="words"><b>Amount in words:</b> {_esc(amount_in_words(amt))}</div>
+      <table class="foot"><tr>
+        <td class="qr"></td>
+        <td class="sg">{f'<img src="{sign}"/>' if sign else '<div class="sgspace"></div>'}
+          {f'<div class="sgn">{_esc(signatory)}</div>' if signatory else ''}
+          <div>Signature of authorized representative</div></td>
+      </tr></table>
+      {reason}
+      <div class="note">Refunds are processed as per the platform cancellation policy and credited to the refund mode shown above.</div>
+    </div>"""
+    return f"""<!doctype html><html><head><meta charset="utf-8"/><title>{_esc(inv.get("invoice_number") or "Refund")}</title>
+<style>{_css(ac)}</style></head><body data-testid="refund-invoice">{page}</body></html>"""

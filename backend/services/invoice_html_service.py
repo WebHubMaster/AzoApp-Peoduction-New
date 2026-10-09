@@ -241,6 +241,9 @@ def build_invoice_html(inv: dict) -> str:
     if _rer.get("role") == "partner" and inv.get("invoice_type") in ("booking", "cancellation"):
         from services.gst_invoice_service import build_partner_html
         return build_partner_html(inv)
+    if inv.get("invoice_type") == "refund":
+        from services.gst_invoice_service import build_refund_html
+        return build_refund_html(inv)
     if inv.get("gst_invoice") and inv.get("invoice_type") in ("booking", "cancellation"):
         from services.gst_invoice_service import build_html
         return build_html(inv)
