@@ -162,6 +162,11 @@ async def review(booking_id: str, req: ReviewRequest, user=Depends(require_role(
     return await c.add_review(user, booking_id, req)
 
 
+@router.post("/abandon-unpaid")
+async def abandon_unpaid(data: dict, user=Depends(require_role("customer"))):
+    return await c.abandon_unpaid(user, data.get("booking_ids"), data.get("group_id"))
+
+
 @router.post("/{booking_id}/cancel")
 async def cancel_booking(booking_id: str, data: dict = None, user=Depends(require_role("customer"))):
     return await c.cancel_booking(user, booking_id, (data or {}).get("reason", ""))

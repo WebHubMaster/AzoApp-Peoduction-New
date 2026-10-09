@@ -153,7 +153,18 @@ async def confirm_return(user, gw_name, order_id):
     return {"ok": True, "paid": False, "booking_id": b["id"], "code": b["code"]}
 
 
+async def _revive_failed(q):
+    # A late gateway success for an order voided as "payment failed" restores it.
+    await db.bookings.update_many({**q, "status": "cancelled", "cancellation.by": "payment_failed"},
+                                  {"$set": {"status": "pending_payment", "payment_status": "pending"},
+                                   "$unset": {"cancellation": ""}})
+
+
 async def _apply(user, purpose, booking_id, amount, payment_id=None, order_id=None, group_id=None):
+    if purpose == "booking_group" and group_id:
+        await _revive_failed({"customer_id": user["id"], "order_group_id": group_id})
+    elif purpose == "booking" and booking_id:
+        await _revive_failed({"customer_id": user["id"], "id": booking_id})
     if purpose == "booking_group":
         rows, unpaid = await _group_for_pay(user, group_id)
         if not unpaid:

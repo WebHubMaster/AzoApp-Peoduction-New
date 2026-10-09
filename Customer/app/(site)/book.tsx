@@ -15,7 +15,7 @@ import { fmt } from "../../src/lib/format";
 import { PRIMARY, SLATE, EMERALD, TC, useTheme } from "../../src/theme";
 import { emptyAddress } from "../../src/components/customer/AddressForm";
 import { STEPS, Stepper, StepServices, StepDetails, StepSchedule } from "../../src/components/site/CheckoutUi";
-import { StepContact, StepSummary, StepReview, SuccessScreen } from "../../src/components/site/CheckoutSteps";
+import { StepContact, StepSummary, StepReview, SuccessScreen, FailedScreen } from "../../src/components/site/CheckoutSteps";
 import { openPreparedOrder } from "../../src/lib/payments";
 
 export default function Checkout() {
@@ -207,10 +207,14 @@ export default function Checkout() {
     if (selectedId === "new" && addr.line) { try { await api.post("/auth/address", { ...addr, label: addr.label || "Home" }); } catch {} }
     await refresh();
     setPlacing(false);
-    if (created.length) { nonceRef.current = null; clear(); setPlaced({ count: created.length, total: displayTotal, paid: paidAll, orders: created }); }
+    if (created.length && !paidAll) {
+      try { await postResilient("/bookings/abandon-unpaid", { group_id: nonce, booking_ids: created.map((b) => b.id) }, 2, 15000); } catch {}
+      nonceRef.current = null; setPlaced({ failed: true, count: created.length, total: displayTotal, orders: created });
+    } else if (created.length) { nonceRef.current = null; clear(); setPlaced({ count: created.length, total: displayTotal, paid: paidAll, orders: created }); }
     else toast.error(firstErr || "Could not place your order");
   };
 
+  if (placed?.failed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><FailedScreen onRetry={() => setPlaced(null)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (placed) return <View style={{ flex: 1, backgroundColor: TC.bg, paddingTop: insets.top }}><SuccessScreen placed={placed} onBookings={() => router.replace((placed.subscription ? "/(customer)/subscriptions" : "/(customer)/orders") as any)} onMore={() => router.replace("/(site)/services" as any)} /></View>;
   if (ready && !items.length && step === 0) return (
     <View testID="cart-empty" style={{ flex: 1, backgroundColor: TC.bg, alignItems: "center", justifyContent: "center", padding: 24 }}>

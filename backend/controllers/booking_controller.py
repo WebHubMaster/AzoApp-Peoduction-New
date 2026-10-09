@@ -4704,3 +4704,20 @@ async def _silence_review_prompts(customer_id):
     # Once the customer has seen a rating popup, older unrated jobs never auto-pop (Rate Service button only).
     await db.bookings.update_many({"customer_id": customer_id, "status": {"$in": ["completed", "paid"]}},
                                   {"$set": {"review_prompt_dismissed": True}})
+
+
+async def abandon_unpaid(customer, booking_ids=None, group_id=None):
+    """Checkout payment failed/cancelled → the order is NOT placed: void its unpaid bookings."""
+    q = {"customer_id": customer["id"], "status": "pending_payment", "payment_status": {"$ne": "paid"}}
+    if group_id:
+        q["order_group_id"] = group_id
+    elif booking_ids:
+        q["id"] = {"$in": list(booking_ids)[:50]}
+    else:
+        raise HTTPException(status_code=400, detail="Nothing to cancel")
+    res = await db.bookings.update_many(q, {"$set": {
+        "status": "cancelled", "payment_status": "failed", "updated_at": now_iso(),
+        "cancellation": {"by": "payment_failed", "reason": "Payment not completed — order not placed",
+                         "refund": 0.0, "at": now_iso()}},
+        "$push": {"timeline": {"status": "payment_failed", "at": now_iso()}}})
+    return {"ok": True, "count": res.modified_count}

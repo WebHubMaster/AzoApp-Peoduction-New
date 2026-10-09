@@ -5,7 +5,7 @@ import { View, Text, Pressable, TextInput, Platform } from "react-native";
 import { Image } from "expo-image";
 import { mediaUrl } from "../../api/client";
 import { WebView } from "react-native-webview";
-import { MapPin, Plus, LocateFixed, ShoppingBag, Tag, Layers, CalendarClock, User, Zap, Wallet, CreditCard, Banknote, ShieldCheck, PartyPopper, ArrowRight } from "lucide-react-native";
+import { MapPin, Plus, LocateFixed, ShoppingBag, Tag, Layers, CalendarClock, User, Zap, Wallet, CreditCard, Banknote, ShieldCheck, PartyPopper, ArrowRight, XCircle } from "lucide-react-native";
 import { fmt } from "../../lib/format";
 import { PRIMARY, SLATE, EMERALD } from "../../theme";
 import { AddressForm } from "../customer/AddressForm";
@@ -161,6 +161,18 @@ export function SuccessScreen({ placed, onBookings, onMore }: { placed: any; onB
       ) : null}
       <Pressable testID="go-bookings" onPress={onBookings} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>{placed.subscription ? "View my subscriptions" : "View my bookings"}</Text><ArrowRight size={16} color="#fff" /></Pressable>
       <Pressable testID="book-more" onPress={onMore} style={{ marginTop: 12 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.textMuted }}>Book more services</Text></Pressable>
+    </View>
+  );
+}
+
+export function FailedScreen({ onRetry, onMore }: { onRetry: () => void; onMore: () => void }) {
+  return (
+    <View testID="order-failed" style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <View style={{ height: 80, width: 80, borderRadius: 40, backgroundColor: "#F43F5E", alignItems: "center", justifyContent: "center", marginBottom: 20, boxShadow: "0px 10px 30px rgba(244,63,94,0.3)" } as any}><XCircle size={40} color="#fff" /></View>
+      <Text testID="order-failed-title" style={{ fontSize: 26, fontWeight: "900", color: TC.text }}>Payment failed</Text>
+      <Text testID="order-failed-msg" style={{ fontSize: 14, color: TC.textMuted, marginTop: 8, textAlign: "center", maxWidth: 360 }}>Your payment was cancelled or not completed, so your <Text style={{ fontWeight: "800", color: "#E11D48" }}>order has not been placed</Text>. If any amount was debited, it will be refunded automatically.</Text>
+      <Pressable testID="retry-payment" onPress={onRetry} style={({ pressed }) => ({ marginTop: 24, height: 48, paddingHorizontal: 32, borderRadius: 6, backgroundColor: pressed ? PRIMARY[800] : PRIMARY[700], flexDirection: "row", alignItems: "center", gap: 6 })}><Text style={{ color: "#fff", fontWeight: "600", fontSize: 15 }}>Try again</Text><ArrowRight size={16} color="#fff" /></Pressable>
+      <Pressable testID="failed-browse" onPress={onMore} style={{ marginTop: 12 }}><Text style={{ fontSize: 14, fontWeight: "600", color: TC.textMuted }}>Browse services</Text></Pressable>
     </View>
   );
 }
