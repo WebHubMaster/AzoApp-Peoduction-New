@@ -76,7 +76,7 @@ export function AdditionalWork({ b, onUpdate }: { b: any; onUpdate: () => void }
           </View>
         ) : null}
       </View>
-      <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 17 }}>If any extra parts or labour were used, add them from the category rate card. <Text style={{ color: "#B45309", fontWeight: "700" }}>Collect the payment for additional work from the customer first, then complete the job.</Text></Text>
+      <Text style={{ color: colors.textMuted, fontSize: 12, marginBottom: 12, lineHeight: 17 }}>If any extra parts or labour were used, add them from the category rate card. <Text style={{ color: "#B45309", fontWeight: "700" }}>Please collect the additional payment from the customer before completing the job. Once it's received, complete the job — an itemised invoice is shared with both you and the customer for full transparency.</Text></Text>
       {groups.length > 0 ? (
         <View style={{ backgroundColor: colors.surfaceSubtle, borderRadius: 6, padding: 12, gap: 6, marginBottom: 12 }}>
           {groups.map((g) => (

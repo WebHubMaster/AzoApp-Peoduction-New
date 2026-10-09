@@ -323,6 +323,10 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
         "updated_at": now_iso(),
     }
     inv.update(canc_fields)
+    # Fold PAID rate-card additional work into the booking invoice as extra line items
+    # + totals (customer-facing doc; partner net is added at read time).
+    if itype == "booking":
+        inv = _merge_additional_into_invoice(inv, booking)
     _gb = await _gst_block_for(booking, settings, inv["invoice_number"])
     if _gb:
         inv["gst_invoice"] = _gb
@@ -372,6 +376,65 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 def _valid_email(e) -> bool:
     """Basic RFC-ish validation so we never attempt an unsafe send to a blank/garbage address."""
     return bool(e and _EMAIL_RE.match(str(e).strip()))
+
+
+def _merge_additional_into_invoice(inv: dict, booking: dict) -> dict:
+    """Fold PAID rate-card additional work into the booking invoice as extra line
+    items + totals (user choice: extra line items on the main invoice, generated at
+    job completion).
+
+    Billing rule (kept identical to booking['additional'], computed in
+    _recompute_additional): product/parts carry NO GST and NO commission (100% the
+    partner's); service & labour carry the platform commission and GST is levied on
+    the commission portion only. The partner-facing net earning for this additional
+    work is added in _attach_role_earning from the 'additional_work' commission ledger
+    row, so the partner never sees platform fees/commission here."""
+    addl = booking.get("additional") or {}
+    if addl.get("status") != "paid":
+        return inv
+    parts_total = round(float(addl.get("parts_total") or 0), 2)
+    labour_total = round(float(addl.get("labour_total") or 0), 2)
+    gst = round(float(addl.get("gst") or 0), 2)
+    total = round(float(addl.get("total") or 0), 2)
+    if total <= 0:
+        return inv
+    commission = round(float(addl.get("commission") or 0), 2)
+    new_lines, svc_items = [], []
+    for it in (addl.get("items") or []):
+        desc = (it.get("description") or "Additional work").strip()
+        part = round(float(it.get("part_charge") or 0), 2)
+        labour = round(float(it.get("labour_charge") or 0), 2)
+        if part > 0:
+            new_lines.append({"desc": f"{desc} — product/parts", "detail": "Additional work · no tax", "qty": 1, "rate": part, "amount": part})
+            svc_items.append({"name": f"{desc} — product/parts", "category": "Additional work", "qty": 1, "rate": part, "amount": part, "addons": [], "additional": True})
+        if labour > 0:
+            new_lines.append({"desc": f"{desc} — service & labour", "detail": "Additional work", "qty": 1, "rate": labour, "amount": labour})
+            svc_items.append({"name": f"{desc} — service & labour", "category": "Additional work", "qty": 1, "rate": labour, "amount": labour, "addons": [], "additional": True})
+    inv["line_items"] = (inv.get("line_items") or []) + new_lines
+    inv["subtotal"] = round(float(inv.get("subtotal") or 0) + parts_total + labour_total, 2)
+    inv["tax"] = round(float(inv.get("tax") or 0) + gst, 2)
+    inv["taxable"] = round(float(inv.get("taxable") or 0) + commission, 2)
+    inv["total_amount"] = round(float(inv.get("total_amount") or 0) + total, 2)
+    inv["commission"] = round(float(inv.get("commission") or 0) + commission, 2)
+    bd = dict(inv.get("breakdown") or {})
+    bd["service_items"] = (bd.get("service_items") or []) + svc_items
+    bd["services_subtotal"] = round(float(bd.get("services_subtotal") or 0) + parts_total + labour_total, 2)
+    bd["subtotal"] = round(float(bd.get("subtotal") or 0) + parts_total + labour_total, 2)
+    bd["taxable"] = round(float(bd.get("taxable") or 0) + commission, 2)
+    bd["tax"] = round(float(bd.get("tax") or 0) + gst, 2)
+    bd["total"] = round(float(bd.get("total") or 0) + total, 2)
+    additional_block = {
+        "items": addl.get("items") or [],
+        "parts_total": parts_total, "labour_total": labour_total,
+        "gst": gst, "gst_pct": addl.get("gst_pct"), "commission": commission,
+        "partner_earning": round(float(addl.get("partner_earning") or 0), 2),
+        "platform_earning": round(float(addl.get("platform_earning") or 0), 2),
+        "total": total,
+    }
+    bd["additional_work"] = additional_block
+    inv["breakdown"] = bd
+    inv["additional_work"] = additional_block
+    return inv
 
 
 def _partner_facing_invoice(inv: dict) -> dict:
@@ -1291,6 +1354,13 @@ async def _attach_role_earning(inv: dict, role: str) -> dict:
             return inv
         vc = float(l.get("visiting_charge") or 0)
         net = float(l.get("partner_total") if l.get("partner_total") is not None else pe + vc)
+        # Paid rate-card additional work pays the partner parts 100% + (labour − platform
+        # commission); add that onto the partner's net earning for this booking invoice.
+        _addl_l = await db.commission_ledger.find_one(
+            {"booking_id": inv.get("booking_id"), "kind": "additional_work"}, {"_id": 0})
+        addl_earning = round(float((_addl_l or {}).get("partner_earning") or 0), 2)
+        if addl_earning:
+            net = round(net + addl_earning, 2)
         base = round(float(l.get("base") or 0), 2)
         # Itemise the Visiting Charge that is folded INTO the commission base so the
         # partner can SEE it (spec: any extra charge like Visiting Charge must be visible
@@ -1312,6 +1382,8 @@ async def _attach_role_earning(inv: dict, role: str) -> dict:
             "service_cost": service_cost,
             "commission_label": "Partner Commission",
             "commission": round(pe, 2),
+            "additional_earning": addl_earning,
+            "additional_label": "Additional work (parts + labour)",
             "visiting_charge": vc_show,
             "coupon_code": _coupon_code or None,
             "coupon_discount": _coupon_disc,

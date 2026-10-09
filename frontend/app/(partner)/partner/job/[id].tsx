@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNow, fmtElapsed } from "@/src/lib/useNow";
 import { HelpSOS } from "@/src/components/partner/HelpSOS";
 import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
@@ -76,6 +76,10 @@ export default function PartnerJobWizard() {
       .finally(() => { setBusy(null); setProgress(0); });
   }, [pendingAsset, b?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const [footerH, setFooterH] = useState(120); // measured sticky-footer height → keyboard offset
+  const scrollRef = useRef<any>(null);
+  // Bring the OTP boxes above the keyboard (incl. the "autofill code" bar) when a box
+  // is focused — the OTP card sits at the end of the form, so scroll it fully into view.
+  const scrollOtpIntoView = () => setTimeout(() => { try { scrollRef.current?.scrollToEnd?.({ animated: true }); } catch { /* noop */ } }, 120);
 
   // Opening a DIFFERENT job (id change) must never carry over the previous job's
   // step / OTP / busy state — otherwise the wrong service's wizard step shows.
@@ -190,14 +194,14 @@ export default function PartnerJobWizard() {
         </View>
       </LinearGradient>
 
-      <KeyboardAwareScrollView bottomOffset={footerH + 16} contentContainerStyle={{ padding: 16, paddingBottom: footerH + 28, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <KeyboardAwareScrollView ref={scrollRef} bottomOffset={footerH + 16} contentContainerStyle={{ padding: 16, paddingBottom: footerH + 28, gap: 14 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         {(phase === 4 || step >= 4) ? <DoneStep b={b} /> :
           step === 0 ? <DetailsStep b={b} /> :
           step === 1 ? <CheckinStep b={b} onDone={refresh} /> :
           step === 2 ? (
-            <StartStep b={b} before={before} locked={commLocked} demoOtp={demoOtp.start} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("before", "photo")} onVideo={() => proof("before", "video")} onRemove={(u) => removeProof("before", u)} />
+            <StartStep b={b} before={before} locked={commLocked} demoOtp={demoOtp.start} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("before", "photo")} onVideo={() => proof("before", "video")} onRemove={(u) => removeProof("before", u)} onOtpFocus={scrollOtpIntoView} />
           ) : (
-            <WorkStep b={b} after={after} addlPending={addlPending} demoOtp={demoOtp.completion} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("after", "photo")} onVideo={() => proof("after", "video")} onRemove={(u) => removeProof("after", u)} onUpdate={refresh} />
+            <WorkStep b={b} after={after} addlPending={addlPending} demoOtp={demoOtp.completion} otp={otp} setOtp={setOtp} busy={busy} progress={progress} onPhoto={() => proof("after", "photo")} onVideo={() => proof("after", "video")} onRemove={(u) => removeProof("after", u)} onUpdate={refresh} onOtpFocus={scrollOtpIntoView} />
           )}
       </KeyboardAwareScrollView>
       <ProofCamera visible={!!cam} kind={cam?.kind || "photo"} maxSec={MAX_VIDEO_SEC} onClose={() => setCam(null)} onCapture={onShot} onFail={onCamFail} />
@@ -422,7 +426,7 @@ function CheckinStep({ b, onDone }: { b: any; onDone: () => void }) {
 }
 
 /* ── Step 3: Before proof + Start OTP ── */
-function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove }: any) {
+function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove, onOtpFocus }: any) {
   const { colors } = useTheme();
   return (
     <>
@@ -439,7 +443,7 @@ function StartStep({ b, before, locked, demoOtp, otp, setOtp, busy, progress, on
       <Card testID="wizard-start-otp" style={{ borderColor: "#DBEAFE", backgroundColor: "rgba(239,246,255,0.5)" }}>
         <SectionTitle icon="shield-check-outline" title="Customer verification" />
         <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 14 }}>Ask the customer for their <Text style={{ fontWeight: "800" }}>Start OTP</Text> to begin the job.</Text>
-        <OtpBoxes value={otp} onChange={setOtp} />
+        <OtpBoxes value={otp} onChange={setOtp} onFocus={onOtpFocus} />
         {demoOtp ? <Text testID="demo-start-otp" style={{ color: colors.info, fontSize: 12, fontWeight: "700", textAlign: "center", marginTop: 10 }}>Demo · Start OTP {demoOtp}</Text> : null}
         {before.length === 0 ? <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 10 }}>Add at least one before-work photo/video to enable Start.</Text> : null}
       </Card>
@@ -453,7 +457,7 @@ function Elapsed({ startedAt, style, testID }: { startedAt?: string; style: any;
 }
 
 /* ── Step 4: Work in progress → after proof + Complete OTP ── */
-function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove, onUpdate }: any) {
+function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress, onPhoto, onVideo, onRemove, onUpdate, onOtpFocus }: any) {
   const { colors } = useTheme();
   const startedAt = (b.timeline || []).filter((t: any) => ["started", "in_progress"].includes(t.status)).map((t: any) => t.at).pop();
   return (
@@ -487,7 +491,7 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
         <Card testID="wizard-complete-otp" style={{ borderColor: "#D1FAE5", backgroundColor: "rgba(236,253,245,0.5)" }}>
           <SectionTitle icon="check-circle-outline" title="Complete the job" />
           <Text style={{ color: colors.textMuted, fontSize: 12.5, marginBottom: 14 }}>Enter the customer's <Text style={{ fontWeight: "800" }}>Completion OTP</Text> to finish & credit your earnings.</Text>
-          <OtpBoxes value={otp} onChange={setOtp} />
+          <OtpBoxes value={otp} onChange={setOtp} onFocus={onOtpFocus} />
           {demoOtp ? <Text testID="demo-complete-otp" style={{ color: colors.info, fontSize: 12, fontWeight: "700", textAlign: "center", marginTop: 10 }}>Demo · Completion OTP {demoOtp}</Text> : null}
           {after.length === 0 ? <Text style={{ color: "#B45309", fontSize: 12, fontWeight: "600", textAlign: "center", marginTop: 10 }}>Add at least one after-work photo/video to enable Complete.</Text> : null}
         </Card>

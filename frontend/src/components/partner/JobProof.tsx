@@ -148,7 +148,7 @@ export async function uploadProofVideo(bookingId: string, stage: "before" | "aft
 }
 
 /* ── OtpBoxes (4 boxes) ── */
-export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; onChange: (v: string) => void; len?: number; testID?: string }) {
+export function OtpBoxes({ value, onChange, len = 4, testID, onFocus }: { value: string; onChange: (v: string) => void; len?: number; testID?: string; onFocus?: () => void }) {
   const { colors } = useTheme();
   const refs = useRef<(TextInput | null)[]>([]);
   const digits = Array.from({ length: len }, (_, i) => (value || "")[i] || "");
@@ -184,6 +184,7 @@ export function OtpBoxes({ value, onChange, len = 4, testID }: { value: string; 
           autoComplete={i === 0 ? "sms-otp" : "off"}
           onChangeText={(t) => onBoxChange(i, t, d)}
           onKeyPress={(e) => { if (e.nativeEvent.key === "Backspace" && !d && i > 0) { setAt(i - 1, ""); refs.current[i - 1]?.focus(); } }}
+          onFocus={onFocus}
           selectTextOnFocus
           style={{ width: 56, height: 56, borderRadius: 6, borderWidth: 2, borderColor: d ? colors.secondary : colors.border, backgroundColor: colors.surface, textAlign: "center", fontSize: 22, fontWeight: "800", color: colors.text }}
         />
