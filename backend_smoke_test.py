@@ -28,7 +28,7 @@ import time
 from datetime import datetime, timedelta, timezone
 
 # Base URL
-BASE_URL = "https://swift-booking-fix.preview.emergentagent.com/api"
+BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
 
 # Test credentials (OTP = 123456 for all)
 CREDENTIALS = {

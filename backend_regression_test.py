@@ -10,7 +10,7 @@ import os
 import time
 
 # Base URL from environment or frontend/.env
-REACT_APP_BACKEND_URL = "https://swift-booking-fix.preview.emergentagent.com"
+REACT_APP_BACKEND_URL = "https://bug-cat-triage.preview.emergentagent.com"
 BASE_URL = REACT_APP_BACKEND_URL + "/api"
 print(f"Testing against: {BASE_URL}\n")
 

@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any
 
 # Base URL from frontend/.env
-BASE_URL = "https://swift-booking-fix.preview.emergentagent.com/api"
+BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

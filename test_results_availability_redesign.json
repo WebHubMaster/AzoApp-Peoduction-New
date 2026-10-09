@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://swift-booking-fix.preview.emergentagent.com",
+  "base_url": "https://bug-cat-triage.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",

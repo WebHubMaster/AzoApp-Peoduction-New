@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://swift-booking-fix.preview.emergentagent.com/api"
+BASE_URL = "https://bug-cat-triage.preview.emergentagent.com/api"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"
 

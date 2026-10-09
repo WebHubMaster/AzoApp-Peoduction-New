@@ -12,6 +12,7 @@ ADMIN = require_role("admin")
 class BugCreate(BaseModel):
     title: str
     description: str
+    category: str | None = None
     screenshot_url: str | None = None
 
 
@@ -37,9 +38,9 @@ async def delete_bug(bug_id: str, user=Depends(ANY_USER)):
 
 # ---------- admin inbox ----------
 @router.get("/admin/bugs")
-async def admin_list(status: str = "", role: str = "", q: str = "",
+async def admin_list(status: str = "", role: str = "", q: str = "", category: str = "",
                      page: int = 1, page_size: int = 20, admin=Depends(ADMIN)):
-    return await c.admin_list(status, role, q, page, page_size)
+    return await c.admin_list(status, role, q, category, page, page_size)
 
 
 @router.post("/admin/bugs/{bug_id}/resolve")

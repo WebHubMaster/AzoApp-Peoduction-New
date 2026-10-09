@@ -11,9 +11,18 @@ import { useToast } from "@/src/components/Toast";
 import { uploadAsset } from "@/src/components/reg/Photo";
 
 type BugRow = {
-  id: string; title: string; description: string; screenshot_url?: string | null;
+  id: string; title: string; description: string; category?: string; screenshot_url?: string | null;
   status: string; resolution_note?: string | null; created_at: string;
 };
+
+const CATEGORIES = [
+  { key: "payment", label: "Payment" },
+  { key: "booking", label: "Booking" },
+  { key: "login", label: "Login" },
+  { key: "account", label: "Account" },
+  { key: "other", label: "Other" },
+];
+const CAT_LABEL: Record<string, string> = { payment: "Payment", booking: "Booking", login: "Login", account: "Account", other: "Other" };
 
 export default function PartnerReportBug() {
   const { colors } = useTheme();
@@ -22,6 +31,7 @@ export default function PartnerReportBug() {
   const qc = useQueryClient();
   const [title, setTitle] = React.useState("");
   const [desc, setDesc] = React.useState("");
+  const [category, setCategory] = React.useState("other");
   const [shot, setShot] = React.useState<{ url: string; thumb_url?: string } | null>(null);
   const [uploading, setUploading] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -48,8 +58,8 @@ export default function PartnerReportBug() {
     if (!desc.trim()) { toast.error("Please describe the bug"); return; }
     setSubmitting(true);
     try {
-      await api.post("/bugs", { title: title.trim(), description: desc.trim(), screenshot_url: shot?.url || null });
-      setTitle(""); setDesc(""); setShot(null);
+      await api.post("/bugs", { title: title.trim(), description: desc.trim(), category, screenshot_url: shot?.url || null });
+      setTitle(""); setDesc(""); setCategory("other"); setShot(null);
       qc.invalidateQueries({ queryKey: ["partner-bugs"] });
       toast.success("Bug report sent — thank you! 🐞");
     } catch (e: any) { toast.error(e?.detail || e?.message || "Could not send"); }
@@ -89,6 +99,20 @@ export default function PartnerReportBug() {
             <TextInput testID="bug-title" value={title} onChangeText={setTitle} placeholder="e.g. Earnings not updating" placeholderTextColor={colors.textMuted} style={[inputStyle, { height: 46 }]} maxLength={160} />
           </View>
           <View>
+            <Text style={{ fontSize: 12, fontWeight: "700", color: colors.textSecondary, marginBottom: 6 }}>Category</Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+              {CATEGORIES.map((c) => {
+                const on = category === c.key;
+                return (
+                  <Pressable key={c.key} testID={`bug-category-${c.key}`} onPress={() => setCategory(c.key)}
+                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : colors.surfaceSubtle }}>
+                    <Text style={{ fontSize: 12, fontWeight: "700", color: on ? "#fff" : colors.textSecondary }}>{c.label}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+          <View>
             <Text style={{ fontSize: 12, fontWeight: "700", color: colors.textSecondary, marginBottom: 6 }}>Describe the bug</Text>
             <TextInput testID="bug-description" value={desc} onChangeText={setDesc} placeholder="What happened? What did you expect? Steps to reproduce…" placeholderTextColor={colors.textMuted} multiline style={[inputStyle, { minHeight: 110, paddingTop: 10, textAlignVertical: "top" }]} maxLength={4000} />
           </View>
@@ -126,6 +150,11 @@ export default function PartnerReportBug() {
             <View key={b.id} testID={`bug-row-${b.id}`} style={{ backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: solved(b.status) ? "#6EE7B7" : colors.border, padding: 14, gap: 8 }}>
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
                 <Text style={{ flex: 1, fontSize: 15, fontWeight: "700", color: colors.text }}>{b.title}</Text>
+                {b.category ? (
+                  <View testID={`bug-category-badge-${b.id}`} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border }}>
+                    <Text style={{ fontSize: 11, fontWeight: "800", color: colors.primary }}>{CAT_LABEL[b.category] || "Other"}</Text>
+                  </View>
+                ) : null}
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, backgroundColor: solved(b.status) ? "#D1FAE5" : "#FEF3C7" }}>
                   <Icon name={solved(b.status) ? "check-circle-outline" : "clock-outline"} size={13} color={solved(b.status) ? "#047857" : "#B45309"} />
                   <Text style={{ fontSize: 11, fontWeight: "800", color: solved(b.status) ? "#047857" : "#B45309" }}>{solved(b.status) ? "Solved" : "Open"}</Text>

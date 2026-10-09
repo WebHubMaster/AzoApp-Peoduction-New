@@ -12,11 +12,20 @@ from services import realtime as rt
 
 _APP_LABEL = {"customer": "Customer App", "partner": "Partner App", "merchant": "Merchant App"}
 
+# Allowed bug categories for triage. "other" is the default.
+BUG_CATEGORIES = ("payment", "booking", "login", "account", "other")
+
+
+def _norm_category(value) -> str:
+    cat = (value or "").strip().lower()
+    return cat if cat in BUG_CATEGORIES else "other"
+
 
 def _public(b: dict) -> dict:
     """Shape a bug_report row for API responses (never leak Mongo _id)."""
     b.pop("_id", None)
     b["app_label"] = _APP_LABEL.get(b.get("reporter_role"), "App")
+    b["category"] = _norm_category(b.get("category"))
     return b
 
 
@@ -35,6 +44,7 @@ async def create_bug(user, data: dict) -> dict:
         "reporter_phone": user.get("phone") or "",
         "title": title[:160],
         "description": description[:4000],
+        "category": _norm_category(data.get("category")),
         "screenshot_url": (data.get("screenshot_url") or "").strip() or None,
         "status": "open",
         "resolution_note": None,
@@ -72,13 +82,15 @@ async def delete_bug(user, bug_id: str) -> dict:
 
 
 # ---------------- admin ----------------
-async def admin_list(status: str = "", role: str = "", q: str = "",
+async def admin_list(status: str = "", role: str = "", q: str = "", category: str = "",
                      page: int = 1, page_size: int = 20) -> dict:
     query: dict = {}
     if status in ("open", "solved", "closed"):
         query["status"] = status
     if role in ("customer", "partner", "merchant"):
         query["reporter_role"] = role
+    if category in BUG_CATEGORIES:
+        query["category"] = category
     if q:
         rx = {"$regex": q.strip(), "$options": "i"}
         query["$or"] = [{"title": rx}, {"description": rx},
@@ -92,8 +104,16 @@ async def admin_list(status: str = "", role: str = "", q: str = "",
         "open": await db.bug_reports.count_documents({"status": "open"}),
         "solved": await db.bug_reports.count_documents({"status": {"$in": ["solved", "closed"]}}),
     }
+    # Per-category counts (legacy rows with no/invalid category fall under "other").
+    cat_counts = {"all": counts["all"]}
+    for cat in BUG_CATEGORIES:
+        cat_counts[cat] = await db.bug_reports.count_documents({"category": cat})
+    legacy_other = await db.bug_reports.count_documents(
+        {"category": {"$nin": list(BUG_CATEGORIES)}})
+    cat_counts["other"] += legacy_other
     return {"data": [_public(r) for r in rows], "total": total,
-            "page": int(page), "page_size": int(page_size), "counts": counts}
+            "page": int(page), "page_size": int(page_size),
+            "counts": counts, "category_counts": cat_counts}
 
 
 async def admin_resolve(admin, bug_id: str, note: str = "") -> dict:

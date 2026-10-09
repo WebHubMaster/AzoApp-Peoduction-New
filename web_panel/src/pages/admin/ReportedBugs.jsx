@@ -19,11 +19,22 @@ const TABS = [
   { key: "solved", label: "Solved" },
 ];
 
+const CAT_TABS = [
+  { key: "", label: "All" },
+  { key: "payment", label: "Payment" },
+  { key: "booking", label: "Booking" },
+  { key: "login", label: "Login" },
+  { key: "account", label: "Account" },
+  { key: "other", label: "Other" },
+];
+const CAT_LABEL = { payment: "Payment", booking: "Booking", login: "Login", account: "Account", other: "Other" };
+
 export default function ReportedBugs() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [role, setRole] = useState("");
+  const [category, setCategory] = useState("");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -35,16 +46,17 @@ export default function ReportedBugs() {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await api.get("/admin/bugs", { params: { status, role, q, page, page_size: pageSize } });
+      const r = await api.get("/admin/bugs", { params: { status, role, q, category, page, page_size: pageSize } });
       setData(r.data);
     } catch { /* global handler */ }
     finally { setLoading(false); }
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, role, page, pageSize]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status, role, category, page, pageSize]);
   useEffect(() => { const t = setTimeout(() => { setPage(1); load(); }, 400); return () => clearTimeout(t); /* eslint-disable-next-line */ }, [q]);
 
   const rows = data?.data || [];
   const counts = data?.counts || {};
+  const catCounts = data?.category_counts || {};
   const total = data?.total || 0;
 
   const openResolve = (b) => { setResolveFor(b); setNote(b.resolution_note || ""); };
@@ -102,6 +114,21 @@ export default function ReportedBugs() {
         <div className="sm:ml-auto sm:w-72"><SearchInput value={q} onChange={setQ} placeholder="Search title, text, reporter…" data-testid="bug-search" onClear={() => setQ("")} /></div>
       </div>
 
+      {/* Category filter tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto" data-testid="bug-category-tabs">
+        <span className="shrink-0 text-xs font-semibold text-slate-400 mr-1">Category</span>
+        {CAT_TABS.map((t) => {
+          const on = category === t.key;
+          const c = t.key === "" ? catCounts.all : catCounts[t.key];
+          return (
+            <button key={t.key || "all"} data-testid={`bug-cat-tab-${t.key || "all"}`} onClick={() => { setPage(1); setCategory(t.key); }}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all border ${on ? "bg-indigo-600 text-white border-indigo-600" : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-300"}`}>
+              {t.label}{c != null && <span className={`h-4 min-w-[16px] px-1 rounded-md text-[10px] font-bold flex items-center justify-center ${on ? "bg-white/25 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>{c}</span>}
+            </button>
+          );
+        })}
+      </div>
+
       {/* List */}
       {loading ? <CardListSkeleton count={4} /> : rows.length === 0 ? (
         <EmptyState icon={Bug} title="No bug reports" description="Nothing here yet. Reports from the apps will show up here." data-testid="bug-empty" />
@@ -118,6 +145,9 @@ export default function ReportedBugs() {
                         {isSolved(b.status) ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}{isSolved(b.status) ? "Solved" : "Open"}
                       </span>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"><Smartphone className="h-3 w-3" />{b.app_label || APP_LABEL[b.reporter_role] || "App"}</span>
+                      {b.category ? (
+                        <span data-testid={`bug-category-badge-${b.id}`} className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">{CAT_LABEL[b.category] || "Other"}</span>
+                      ) : null}
                     </div>
                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1 whitespace-pre-wrap">{b.description}</p>
                     <div className="flex items-center gap-3 text-xs text-slate-400 mt-2 flex-wrap">
