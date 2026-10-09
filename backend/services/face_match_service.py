@@ -59,7 +59,7 @@ def _parse(text: str) -> dict:
 
 
 def _pct(x: float, lo: float, hi: float) -> int:
-    return int(max(50, min(99, 50 + (x - lo) / (hi - lo) * 49)))
+    return int(max(75, min(99, 75 + (x - lo) / (hi - lo) * 24)))
 
 
 async def _llm_verdict(cfg, a, b) -> dict:

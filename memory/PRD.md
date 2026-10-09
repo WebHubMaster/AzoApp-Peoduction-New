@@ -251,3 +251,8 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Apps: new `src/lib/notifTap.ts` (both apps) — unified tap handling (Notifee fg/bg/cold start, FCM, expo), de-dupe, waits for splash (markNavReady).
 - Partner: chat → /chat/[id]; booking → /(partner)/booking/[id]; merchant/other → /notifications. Customer: chat → orders?chat=id (opens chat), booking → orders?open=id (opens details), else notifications.
 - Tested: backend pytest 5/5 (iteration_258) + static TS review; needs new app builds + device check.
+
+## Face match fix (Oct 2026)
+- Root cause: check-in face match used only a vision LLM whose prompt said "ignore beard/hair changes" → different people reported as matched.
+- Fix: `services/face_embed.py` — OpenCV YuNet + SFace (ONNX in backend/ml_models, opencv-python-headless) multi-scale/rotation detection + cosine similarity. ≥0.42 match, <0.30 mismatch, between → strict LLM tie-break (if configured) else "unverified". Works even without Vision AI key.
+- Tests: backend/tests/test_face_match.py 12/12 (iteration_259). Existing bookings keep old verdict until admin taps Re-check.
