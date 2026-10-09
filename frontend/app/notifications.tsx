@@ -5,10 +5,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
-import { AppHeader } from "@/src/components/Screen";
+import { AppShellHeader } from "@/src/components/AppShell";
 import { Card, EmptyState, CardSkeleton } from "@/src/components/ui";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
+import { useAuth } from "@/src/context/AuthContext";
 import { timeAgo } from "@/src/lib/format";
 
 export default function Notifications() {
@@ -16,6 +17,7 @@ export default function Notifications() {
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
   const toast = useToast();
+  const { user } = useAuth();
   const [busy, setBusy] = React.useState(false);
 
   const { data, isLoading, isFetching } = useQuery({
@@ -76,7 +78,7 @@ export default function Notifications() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Notifications" back variant="gradient" testID="notifications-header" />
+      <AppShellHeader profileRoute={user?.role === "merchant" ? "/(merchant)/profile" : "/(partner)/profile"} />
 
       {!isLoading && items.length > 0 ? (
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
