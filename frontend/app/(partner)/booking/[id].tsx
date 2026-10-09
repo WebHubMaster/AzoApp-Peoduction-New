@@ -5,7 +5,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme, spacing, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
-import { AppHeader, ScreenScroll } from "@/src/components/Screen";
+import { ScreenScroll } from "@/src/components/Screen";
+import { AppShellHeader } from "@/src/components/AppShell";
 import { Card, Badge, Button, InfoRow, SectionTitle, CardSkeleton, statusTone } from "@/src/components/ui";
 import { Icon } from "@/src/components/Icon";
 import { fmt, fmtDate } from "@/src/lib/format";
@@ -49,7 +50,7 @@ export default function PartnerBookingDetail() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Booking details" back subtitle={b?.code} variant="gradient" testID="booking-detail-header" />
+      <AppShellHeader profileRoute="/(partner)/profile" />
       {isLoading ? (
         <View style={{ padding: spacing.lg, gap: spacing.md }}><CardSkeleton /><CardSkeleton /></View>
       ) : !b ? (

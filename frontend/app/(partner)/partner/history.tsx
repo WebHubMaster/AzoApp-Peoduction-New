@@ -8,9 +8,8 @@ import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { useInfiniteList, LoadMoreFooter } from "@/src/lib/infiniteList";
 import { useDebounced } from "@/src/components/invoice";
 import { api } from "@/src/api/client";
-import { AppHeader } from "@/src/components/Screen";
 import { EmptyState, CardSkeleton } from "@/src/components/ui";
-import { StatusBadge } from "@/src/components/AppShell";
+import { AppShellHeader, StatusBadge } from "@/src/components/AppShell";
 import { Icon } from "@/src/components/Icon";
 import { fmt, fmtDate } from "@/src/lib/format";
 
@@ -56,7 +55,7 @@ export default function PartnerJobHistory() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Job History" subtitle="Completed & cancelled jobs" back testID="partner-history-header" />
+      <AppShellHeader profileRoute="/(partner)/profile" />
       <View style={{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border, paddingHorizontal: spacing.lg, paddingVertical: 10, gap: 10 }}>
         <View style={{ flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 12, height: 44, backgroundColor: colors.surfaceSubtle }}>
           <Icon name="magnify" size={18} color={colors.textMuted} />

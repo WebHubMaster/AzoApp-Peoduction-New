@@ -3,7 +3,8 @@ import { View, Text, TextInput } from "react-native";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme, spacing, radius, fontSize } from "@/src/theme";
 import { api } from "@/src/api/client";
-import { AppHeader, ScreenScroll } from "@/src/components/Screen";
+import { ScreenScroll } from "@/src/components/Screen";
+import { AppShellHeader } from "@/src/components/AppShell";
 import { Card, SectionTitle, Button, Badge, InfoRow, CardSkeleton, EmptyState } from "@/src/components/ui";
 import { Icon } from "@/src/components/Icon";
 import { useToast } from "@/src/components/Toast";
@@ -42,7 +43,7 @@ export function FinanceKycScreen({ base, queryKey }: { base: string; queryKey: s
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppHeader title="Bank & KYC" back variant="gradient" testID="bankkyc-header" />
+      <AppShellHeader profileRoute={base.includes("merchant") ? "/(merchant)/profile" : "/(partner)/profile"} />
       <ScreenScroll>
         {isLoading ? <CardSkeleton /> : (
           <>

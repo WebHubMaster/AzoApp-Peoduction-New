@@ -271,3 +271,10 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Fix: `app/notifications.tsx` now renders `<AppShellHeader profileRoute={role==='merchant' ? '/(merchant)/profile' : '/(partner)/profile'} />` (the real top nav), matching Dashboard/Active Job/Wallet.
 - Verified: testing agent iteration_260 — backend /api/notifications 4/4 PASS; static RN verification confirms AppShellHeader now renders at top of the Notifications screen. retest_needed=false.
 - NOTE (not changed, intentional product decision): other partner sub-screens still use the gutted AppHeader (Job History, Booking details, Bank & KYC) — these show no title bar by design. Flag if the user wants the top nav there too.
+
+## Partner app — top nav extended to Job History / Booking details / Bank & KYC (Jun 2026)
+- Applied the same AppShellHeader top nav (brand + bell + theme + profile) to 3 more partner screens that were using the gutted AppHeader:
+  - app/(partner)/partner/history.tsx (Job History)
+  - app/(partner)/booking/[id].tsx (Booking details)
+  - src/components/FinanceKyc.tsx (Bank & KYC; profileRoute derived from `base` → merchant vs partner)
+- TS compile clean. Reuses the component already verified in iteration_260. Native Expo app → static verification (no web preview).
