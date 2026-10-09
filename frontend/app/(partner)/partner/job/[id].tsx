@@ -140,6 +140,14 @@ export default function PartnerJobWizard() {
       if (updated && String(updated.id) === String(b.id)) {
         qc.setQueryData(["partner-booking", id], (old: any) => (old ? { ...old, ...updated } : updated));
       }
+      // A completed/paid job is no longer "active" — drop it from the active-jobs
+      // cache right away so the Active screen reflects reality instantly instead of
+      // showing the finished job (and a lingering spinner) until the next poll on a
+      // slow network.
+      if (path === "complete") {
+        qc.setQueryData(["partner-active"], (old: any) =>
+          Array.isArray(old) ? old.filter((j: any) => String(j.id) !== String(b.id)) : old);
+      }
       setStep(path === "start-otp" ? 3 : 4);
       toast.success(label);
       refresh();

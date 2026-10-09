@@ -6,7 +6,7 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("WEB_PANEL_URL",
-                          "https://data-reconcile-30.preview.emergentagent.com").rstrip("/")
+                          "https://partner-active.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 

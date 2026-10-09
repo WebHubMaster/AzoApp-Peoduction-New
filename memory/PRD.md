@@ -256,3 +256,11 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Root cause: check-in face match used only a vision LLM whose prompt said "ignore beard/hair changes" → different people reported as matched.
 - Fix: `services/face_embed.py` — OpenCV YuNet + SFace (ONNX in backend/ml_models, opencv-python-headless) multi-scale/rotation detection + cosine similarity. ≥0.42 match, <0.30 mismatch, between → strict LLM tie-break (if configured) else "unverified". Works even without Vision AI key.
 - Tests: backend/tests/test_face_match.py 12/12 (iteration_259). Existing bookings keep old verdict until admin taps Re-check.
+
+## Partner app — "Active Job" stuck loading after completing a job (Jun 2026)
+- Symptom: after completing a job, opening Active Job showed a spinner for ~1-2 min every time, then self-loaded.
+- Root cause: `app/(partner)/active.tsx` wired native `RefreshControl.refreshing` to `activeQ.isFetching`, so the pull-to-refresh spinner lit up for EVERY background refetch — the 15s poll AND the burst of cache-invalidations fired on completion (`refreshPartnerLive` + SSE `finance_update`/`booking_update`). On slow network/backend after completion the spinner stuck on screen though the user never pulled.
+- Fix (frontend only):
+  - `active.tsx`: `refreshing` now reflects ONLY a genuine user pull via local `pulling` state + `onPull` (awaits `activeQ.refetch()`+`doneQ.refetch()`); background polling/invalidations update silently.
+  - `partner/job/[id].tsx`: on completion, optimistically remove the finished booking from the `partner-active` cache so the Active screen is correct instantly instead of waiting for the next poll.
+- Verification: TS compile clean for both files (no new errors). Backend endpoints confirmed cheap/async (not the bottleneck). Native Expo app not exercisable by the browser testing agent here — needs a device check after rebuild.

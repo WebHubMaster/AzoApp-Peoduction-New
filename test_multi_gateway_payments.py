@@ -10,7 +10,7 @@ import time
 from typing import Dict, Optional
 
 # Configuration
-BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
+BASE_URL = "https://partner-active.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

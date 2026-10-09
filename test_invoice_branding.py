@@ -9,7 +9,7 @@ import time
 import sys
 
 # Configuration - read from frontend/.env
-BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
+BASE_URL = "https://partner-active.preview.emergentagent.com/api"
 
 # Test accounts
 ADMIN_PHONE = "+919000000000"

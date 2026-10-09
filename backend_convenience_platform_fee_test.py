@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://data-reconcile-30.preview.emergentagent.com/api"
+BASE_URL = "https://partner-active.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

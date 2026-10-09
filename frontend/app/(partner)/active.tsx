@@ -53,6 +53,19 @@ export default function PartnerActiveJob() {
   const completedJobs = (doneQ.data || []).filter((b) => ["completed", "paid"].includes(b.status));
   const refresh = () => { qc.invalidateQueries({ queryKey: ["partner-active"] }); qc.invalidateQueries({ queryKey: ["partner-joblist"] }); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); };
 
+  // Pull-to-refresh spinner reflects ONLY a genuine user pull — never the 15s
+  // background poll or the burst of cache-invalidations that fire on job
+  // completion (refreshPartnerLive + SSE). Otherwise a slow background refetch
+  // kept the native spinner stuck on screen for a long time after completing a
+  // job, which looked like the screen was "loading forever".
+  const [pulling, setPulling] = useState(false);
+  const onPull = async () => {
+    setPulling(true);
+    qc.invalidateQueries({ queryKey: ["partner-wallet"] });
+    try { await Promise.all([activeQ.refetch(), doneQ.refetch()]); }
+    finally { setPulling(false); }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppShellHeader profileRoute="/(partner)/profile" />
@@ -61,7 +74,7 @@ export default function PartnerActiveJob() {
         testID="active-jobs"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
-        refreshControl={<RefreshControl refreshing={activeQ.isFetching && !activeQ.isLoading} onRefresh={refresh} tintColor={colors.primary} colors={[colors.primary]} />}
+        refreshControl={<RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={colors.primary} colors={[colors.primary]} />}
       >
         {/* Active / Completed chips */}
         <View style={{ flexDirection: "row", gap: 8 }}>
