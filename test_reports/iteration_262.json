@@ -1,0 +1,23 @@
+{
+  "summary": "Verified fix for 'Rewards & Challenges' job count bug. _incentive_progress now whitelists kind in {completion, completion_cos}; cancellation / cancellation_cos / additional_work rows no longer inflate jobs_done. Validated at both the service layer (standalone script) and the public API (/api/partner/challenges and /api/partner/incentives) via OTP-authenticated Bearer token for seeded partner +919000000003.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_challenge_count_api.py",
+    "/app/backend/challenge_count_test.py",
+    "/app/test_reports/pytest/challenge_count_api.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "services/partner_service.py::_incentive_progress fix is correct and minimal — whitelist on kind in {completion, completion_cos}. Good inline comment.",
+    "Minor: _incentive_progress loads all commission_ledger rows (to_list(2000)) client-side then filters in Python. Pushing {kind:{$in:['completion','completion_cos']}} and date range into the Mongo query would be more efficient for high-volume partners.",
+    "/api/partner/challenges returns dict ({challenges, stats, penalties}) while /api/partner/incentives returns a list — inconsistent shape, documented here for future callers/tests."
+  ],
+  "updated_files": ["/app/backend/tests/test_challenge_count_api.py"],
+  "success_rate": {"backend": "100%", "frontend": "N/A (skipped per request)"},
+  "test_credentials": "Partner OTP login: phone=+919000000003, dev OTP=123456",
+  "seed_data_creation": "Inserted temporary commission_ledger rows with booking_code prefix 'TESTAGENT-' for the seeded partner; all cleaned up in test teardown (both success and failure paths).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Pytest API tests live at /app/backend/tests/test_challenge_count_api.py and need REACT_APP_BACKEND_URL env (used http://localhost:8001). Delta-based: counts jobs_done before and after inserting mixed-kind ledger rows and asserts +5 per challenge/incentive and +950 revenue per incentive. Also hits '/api/partner/challenges' which returns {challenges:[...], stats:{...}} (not a plain list)."
+}

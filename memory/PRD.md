@@ -307,3 +307,12 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   invoices + partner rating all confirmed to complete.
 - NOTE: Customer/Partner apps are Expo/React Native — not runnable in this pod; validated at the
   backend controller level. Recommend on-device e2e verification.
+
+## 2026-10-09 — Fix: Partner Rewards & Challenges counts COMPLETED jobs only
+- Problem: Challenge "Complete 20 jobs this month" counted rejected/cancelled jobs too.
+- Root cause: `services/partner_service.py::_incentive_progress` counted EVERY `commission_ledger`
+  row for the partner (including `cancellation` / `cancellation_cos` entries from cancelled jobs).
+- Fix: whitelist `kind in {completion, completion_cos}` before counting `job_count` and summing
+  `revenue`. Cancelled & `additional_work` rows no longer inflate challenge/incentive progress.
+- Verified: testing_agent backend 100% (service layer + GET /api/partner/challenges & /api/partner/incentives,
+  OTP partner +919000000003 / 123456). Tests: backend/challenge_count_test.py, backend/tests/test_challenge_count_api.py.
