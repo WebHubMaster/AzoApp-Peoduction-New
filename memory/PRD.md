@@ -428,3 +428,6 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 
 ## 2026-06 — Customer App home: category grid gap fix
 - Explore Services grid: changed space-between to left-aligned tiles with fixed 2.75% gaps (HomeView.tsx). An incomplete last row no longer leaves a blank middle slot. iteration_276: code review only (Expo can't run in this environment).
+
+## 2026-06 — Report a Bug screen (Customer + Partner app)
+- The form is now full width (removed the inset card wrapper). Inputs, category chips and all buttons use a 6px corner radius. iteration_277: code review passed; partner app TypeScript check clean. Neither app was run on screen.
