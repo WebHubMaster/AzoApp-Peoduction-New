@@ -278,3 +278,14 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   - app/(partner)/booking/[id].tsx (Booking details)
   - src/components/FinanceKyc.tsx (Bank & KYC; profileRoute derived from `base` → merchant vs partner)
 - TS compile clean. Reuses the component already verified in iteration_260. Native Expo app → static verification (no web preview).
+
+## Partner app — rate-card additional work on invoice + OTP keyboard + message (Jun 2026)
+- Feature (user choice: merge as extra line items on the MAIN booking invoice, generated at job completion):
+  - Backend services/invoice_service.py `_merge_additional_into_invoice(inv, booking)` folds PAID booking['additional'] into the booking invoice: appends parts/labour line_items + breakdown.service_items, bumps subtotal/tax/taxable/total_amount/commission, stores breakdown.additional_work + inv.additional_work.
+  - Billing rules preserved (from _recompute_additional): product/parts = NO GST / NO commission (100% partner); service/labour = platform commission; GST = commission_on_labour * gst_pct.
+  - Partner view: _attach_role_earning adds the 'additional_work' commission_ledger partner_earning to role_earning.net (+ exposes role_earning.additional_earning); platform fees/commission stay hidden.
+  - Verified: testing agent iteration_261 — 5/5 backend pytests PASS (merge, customer total, partner net w/o leakage, idempotency). test file: tests/test_additional_merge_into_invoice.py.
+- UI fixes (native; static-verified, not browser-testable):
+  - OTP boxes now scroll above the keyboard: OtpBoxes (src/components/partner/JobProof.tsx) gained an onFocus prop; job/[id].tsx passes scrollOtpIntoView (scrollToEnd) to Start/Work step OTPs via a KeyboardAwareScrollView ref.
+  - Reworded the additional-work payment-collect message in src/components/partner/AdditionalWork.tsx to a professional/trust tone.
+- Env note: /app/backend/.env & /app/frontend/.env were missing after a pod restart; testing agent recreated them (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database, REACT_APP_BACKEND_URL=preview). Services healthy (backend 200).

@@ -1,0 +1,40 @@
+{
+  "summary": "Backend-only verification of the 'PAID rate-card additional work folds into the SAME main booking invoice' feature (services/invoice_service.py :: _merge_additional_into_invoice + _attach_role_earning additional_work branch). Wrote a focused pytest that seeds a completed booking + a main commission_ledger row + an additional_work ledger row (mirroring what complete_job writes), calls ensure_booking_invoice then prepare_for_role for customer and partner, and asserts the three billing rules + idempotency numerically. All 5 tests PASS.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "backend_tests_run": {
+    "test_additional_folds_into_invoice_breakdown": "PASS — breakdown.additional_work + breakdown.service_items + line_items all gain the additional parts/labour rows.",
+    "test_headline_subtotal_tax_total_increase": "PASS — inv.subtotal grows by parts+labour, inv.tax grows by additional.gst (= commission * gst_pct), inv.total_amount grows by additional.total exactly.",
+    "test_customer_view_total_and_parts_no_tax": "PASS — customer total_amount = original booking total + additional.total; product/parts lines carry 'no tax' detail; no commission/net fields leak to customer.",
+    "test_partner_view_role_earning_and_no_platform_fees": "PASS — role_earning.additional_earning == additional.partner_earning; role_earning.net == main partner net + additional partner_earning (parts 100% + labour − platform commission); raw commission / platform_earning / Convenience Fee / Platform Fee are NOT exposed to partner.",
+    "test_regeneration_is_idempotent_no_double_count": "PASS — second ensure_booking_invoice returns the SAME invoice id (uniq_booking_type index) with the SAME total; exactly 1 invoice doc exists for the booking → no double-count."
+  },
+  "environment_fix_applied": "Critical: /app/backend/.env and /app/frontend/.env were MISSING at test start → backend crashed with KeyError: 'MONGO_URL' and /api/* returned 404/502. Recreated them with MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database (matches tests/test_slot_based_availability.py etc.) and REACT_APP_BACKEND_URL=<preview URL from supervisor APP_URL>; sudo supervisorctl restart backend brought the service up. Flagging for main agent — these are PROTECTED env files that must exist.",
+  "test_report_links": [
+    "/app/backend/tests/test_additional_merge_into_invoice.py",
+    "/app/test_reports/pytest/additional_merge.xml"
+  ],
+  "action_items": [
+    "Investigate why /app/backend/.env and /app/frontend/.env were missing from the preview container at the start of this iteration — they are protected and must always be present (I recreated them with the standard local-mongo values; verify they match production preview expectations).",
+    "No action needed on invoice math — all four review-request assertions (merge, customer total, partner net+additional_earning without platform-fee leakage, idempotency) are green."
+  ],
+  "critical_code_review_comments": [
+    "invoice_service._merge_additional_into_invoice correctly guards on addl.status=='paid' and total>0, uses idempotent DuplicateKeyError fallback in ensure_booking_invoice (uniq_booking_type index) → no double-count on retry.",
+    "_attach_role_earning partner branch looks up commission_ledger kind='additional_work' and adds its partner_earning to net while also exposing role_earning.additional_earning — the partner-facing document is correctly stripped of raw commission/platform_earning/convenience_fee/platform_fee by strip_for_role + _strip_platform_fees_invoice.",
+    "Minor: breakdown.taxable and bd.taxable are incremented by `commission` (the platform-commission portion of labour) which matches the live GST base used in _recompute_additional (gst = money.pct(labour_platform, gst_pct)). Consistent with the user's screenshot (parts ₹399 no-GST + labour ₹150 → commission ₹30 → GST ₹5.4 → total ₹554.4)."
+  ],
+  "updated_files": [
+    "/app/backend/.env (recreated — was missing)",
+    "/app/frontend/.env (recreated — was missing)",
+    "/app/backend/tests/test_additional_merge_into_invoice.py (new, 5 pytest cases)"
+  ],
+  "success_rate": { "backend": "100% (5/5)", "frontend": "skipped per request (Expo native, no browser preview)" },
+  "test_credentials": "Not needed — tests seed/clean up a TEST_ booking directly in MongoDB (no HTTP auth path exercised); demo partner +919000000003 / OTP 123456 still works via /api/auth/demo-status if main agent wants an E2E path.",
+  "seed_data_creation": "Each test module seeds 1 TEST_bk_* booking + 2 TEST_* commission_ledger rows + 1 invoice; all cleaned up on teardown (bookings/commission_ledger/invoices/transactions). Verified no TEST_* residue post-run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "If backend returns 404/502, first `cat /app/backend/.env /app/frontend/.env` — in this iteration both were missing. Standard values: MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database, REACT_APP_BACKEND_URL from supervisor APP_URL. For invoice merge math regression, run: `cd /app/backend && /root/.venv/bin/python -m pytest tests/test_additional_merge_into_invoice.py -v -n 0 --dist no`."
+}
