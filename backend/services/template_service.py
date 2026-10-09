@@ -33,7 +33,7 @@ EVENTS = [
     {"key": "job_accepted", "label": "Job Accepted", "vars": ["name", "partner_name", "booking_id"]},
     {"key": "chat_message", "label": "New Chat Message", "vars": ["name", "booking_id"]},
     {"key": "spare_part_approval", "label": "Spare Part Approval Needed", "vars": ["booking_id"]},
-    {"key": "additional_work", "label": "Additional Work Added", "vars": ["booking_id", "amount"]},
+    {"key": "additional_work", "label": "Additional Work Added", "vars": ["booking_id", "amount", "total"]},
     {"key": "invoice_updated", "label": "Invoice Updated (Additional Work)", "vars": ["booking_id", "amount", "total"]},
     {"key": "incentive_awarded", "label": "Incentive / Bonus Awarded", "vars": ["name", "amount"]},
     {"key": "subscription_renewal_reminder", "label": "Subscription Renewal Reminder", "vars": ["name", "booking_id", "plan", "end_date"]},

@@ -3467,11 +3467,13 @@ async def add_additional_work(partner, booking_id, req):
     addl.setdefault("created_at", now_iso())
     addl = await _recompute_additional({**b, "additional": addl}, settings)
     await db.bookings.update_one({"id": booking_id}, {"$set": {"additional": addl, "updated_at": now_iso()}})
-    await _notify(b["customer_id"], "Additional work added",
+    _new_total = money.add((b.get("pricing") or {}).get("total") or 0, addl["total"])
+    await _notify(b["customer_id"], "Additional work added · Invoice updated",
                   f"Your partner added additional work worth ₹{addl['total']} to {b['code']}. "
+                  f"Your invoice is updated — new total ₹{_new_total} · balance due ₹{addl['total']}. "
                   f"Please complete the additional payment in the app so the work can be finished.",
-                  event_type="additional_work_added", ctx={"booking_id": b["code"]})
-    await _notify_invoice_updated(b, addl)
+                  event_type="additional_work_added",
+                  ctx={"booking_id": b["code"], "amount": addl["total"], "total": _new_total})
     out = await _get_booking(booking_id)
     out["otps"] = {}
     return out

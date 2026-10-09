@@ -411,3 +411,12 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Frontend: web `CustomerDashboard.jsx` and Expo `BookingDrawers.tsx` show additional lines through ServiceBreakdown, Balance Due rows and Paid Amount = total − balance due. The separate additional block was removed from the app.
 - Tested: iteration_273 passed (backend + web). Expo app changes were only code-reviewed.
 - Backlog: partner-side regression test with a partner-assigned seed booking; sanitize quotes in build_panel.sh.
+
+## 2026-06 — Invoice Update Alert
+- Customers get a notification with the NEW invoice total whenever rate-card additional work changes it:
+  - Partner adds work → one combined notification "Additional work added · Invoice updated" (new total + balance due, event additional_work_added)
+  - Partner removes an item → "Invoice updated" with the recalculated total (event invoice_updated)
+  - Customer pays the additional work → "Invoice updated … (fully paid)"
+  - An existing invoice updated in place → a single "Invoice updated" with invoice number + total (guarded by modified_count, so it doesn't repeat)
+- New admin template event `invoice_updated` (vars: booking_id, amount, total). Push taps open the booking (type booking_update).
+- Tests: backend/tests/test_invoice_update_notifications.py (iteration_274: 5/5 passed)

@@ -1,0 +1,25 @@
+{
+  "summary": "Backend-only verification of the new 'Invoice Update Alert' notification feature. Wrote /app/backend/tests/test_invoice_update_notifications.py covering (1) partner POST additional -> customer gets BOTH 'Additional work added' AND 'Invoice updated' with body 'Your invoice for <code> is updated with additional work of ₹514.4. New total ₹1694.4 · balance due ₹514.4.', (2) partner DELETE last additional item -> 'Invoice updated' with 'Additional work was removed ... total is now ₹1180.', (3) customer POST additional/pay (wallet) -> customer 'Invoice updated' with 'received ... fully paid' AND partner 'Additional payment received', (4) refresh_booking_invoice_additional on repeated GET /api/invoices/{id} for AZO432C38 is idempotent (3 line_items, total 1714.4 unchanged across 3 GETs) and does not spam 'Invoice updated' notifications (<=1), and (5) 'invoice_updated' is registered in admin template events (GET /api/admin/partner-reg/template-events). All 5 tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_invoice_update_notifications.py",
+    "/app/test_reports/pytest/invoice_update_notifications.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.add_additional_work fires TWO notifications back-to-back ('Additional work added' + 'Invoice updated') with overlapping information — consider consolidating into one message post-launch to avoid customer-side notification fatigue.",
+    "invoice_service.refresh_booking_invoice_additional sends the 'Invoice updated' notification only when the update query modifies the doc (guarded by res.modified_count + {'additional_work': {'$exists': False}} filter) — this is correct and prevents dupes on repeated GETs. Good.",
+    "The 'Invoice updated' body in refresh_booking_invoice_additional uses the invoice_number while the booking-controller variant uses booking.code. Both are fine but admin template authors need to know ctx keys differ (booking_id carries code vs invoice_number interchangeably)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_invoice_update_notifications.py"
+  ],
+  "success_rate": {"backend": "100% (5/5)", "frontend": "n/a (skipped per request)"},
+  "test_credentials": "Customer +919000000004 / OTP 123456, Partner +919000000003 / OTP 123456, Admin +919000000000 / OTP 123456",
+  "seed_data_creation": "Each test run creates one started booking (code AZOTSTxxx, partner_id=Raj, customer_id=Priya, status=started, paid online, pricing.total=1180) via direct Mongo insert and cleans it + its notifications up in the fixture teardown. Also credits +₹2000 to the customer's wallet to allow the wallet-pay step (not reverted — negligible). AZO432C38 and AZOADDL01 seed bookings are untouched.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The 'Invoice updated' feature is fully working end-to-end on the backend. If frontend verification is requested later, the customer in-app notifications are read via GET /api/notifications and the title to look for is 'Invoice updated' (icon 'FileText', color '#0d9488'). For partner-driven state changes you need a booking in 'started' status owned by the partner — AZOADDL01 has NO partner_id so can only be used for customer-side pay via /additional/pay once an admin assigns a partner. Use the seed_started_booking fixture pattern (direct Mongo insert of a booking with status='started', partner_id=Raj, customer_id=Priya) for partner flows.",
+  "rca of the issue": "No bug found. One initial test used the wrong admin endpoint path (/api/admin/notification-events) — fixed to the actual route /api/admin/partner-reg/template-events (served by partner_reg_admin_routes.py which exposes template_service.list_events)."
+}
