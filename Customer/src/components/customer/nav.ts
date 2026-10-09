@@ -1,7 +1,7 @@
 /** Same NAV + status helpers as web_panel/src/pages/customer/CustomerDashboard.jsx */
-import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, Sparkles, BellRing } from "lucide-react-native";
+import { Home, Package, Wrench, Receipt, FileText, MapPin, Wallet, User, Gift, LifeBuoy, Sparkles, BellRing, Bug } from "lucide-react-native";
 
-export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "rewards" | "profile" | "referral" | "support" | "alerts";
+export type NavKey = "home" | "orders" | "subscriptions" | "custom_jobs" | "refunds" | "invoices" | "addresses" | "wallet" | "rewards" | "profile" | "referral" | "support" | "alerts" | "report_bug";
 
 export interface NavItem { key: NavKey; label: string; short: string; icon: any; route: string }
 
@@ -18,6 +18,7 @@ export const NAV: NavItem[] = [
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift, route: "/(customer)/referral" },
   { key: "alerts", label: "Alert Health Check", short: "Alerts", icon: BellRing, route: "/(customer)/alerts" },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy, route: "/(customer)/support" },
+  { key: "report_bug", label: "Report a Bug", short: "Bug", icon: Bug, route: "/(customer)/report-bug" },
 ];
 
 export const MOBILE_PRIMARY: NavKey[] = ["home", "orders", "wallet", "invoices"];

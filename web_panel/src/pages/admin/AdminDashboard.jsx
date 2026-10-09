@@ -3,7 +3,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
   Percent, Tag, Bell, Send, Ticket, Image, FileText, HelpCircle, ShieldCheck, Sparkles,
   Activity, MapPin, ShieldAlert, Boxes, Truck, Megaphone, Crown, Gift, ScrollText, ShieldQuestion, KeyRound,
   Layers, Award, GraduationCap, Briefcase, TrendingUp, Receipt, Coins, Handshake, BadgePercent,
-  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone, Calendar, ChartNoAxesCombined } from "lucide-react";
+  Globe, Route, FileSearch, MessageSquare, BarChart3, Lock, Settings, ClipboardCheck, Search, Radio, Banknote, Clock, Package, Star, Plus, QrCode, Smartphone, Calendar, ChartNoAxesCombined, Bug } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
@@ -33,6 +33,7 @@ import FinanceWithdrawals from "@/pages/admin/finance/FinanceWithdrawals";
 import RegistrationFeeReport from "@/pages/admin/RegistrationFeeReport";
 import RefundsHub from "@/pages/admin/RefundsHub";
 import SupportInbox, { SosAlertListener } from "@/pages/admin/SupportInbox";
+import ReportedBugs from "@/pages/admin/ReportedBugs";
 import FinancialReports from "@/pages/admin/FinancialReports";
 import MembershipManager from "@/pages/admin/MembershipManager";
 import GrowthCenter from "@/pages/admin/GrowthCenter";
@@ -185,6 +186,7 @@ const NAV = [
   ]},
 
   { key: "tickets", label: "Support Tickets", icon: Ticket },
+  { key: "bug_reports", label: "Reported Bugs", icon: Bug },
   { key: "reg_templates", label: "Template Manager", icon: MessageSquare },
 
   { group: "Reports & Analytics", icon: BarChart3, items: [
@@ -221,7 +223,7 @@ const GROUP_MODULE = {
   "Website / CMS": "website_cms", "Mobile App": "website_cms", "SEO": "seo", "Reports & Analytics": "reports_analytics",
   "Access Control": "access_control", "System": "system", "Platform": "system",
 };
-const ITEM_MODULE = { platform_earning: "finance", price_manager: "services", category_commission: "finance", tickets: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
+const ITEM_MODULE = { platform_earning: "finance", price_manager: "services", category_commission: "finance", tickets: "communication", bug_reports: "communication", reg_templates: "communication", starter_kit_admin: "partners" };
 // reverse: nav key -> module (for guarding the active section)
 const KEY_MODULE = (() => {
   const m = { ...ITEM_MODULE };
@@ -235,7 +237,7 @@ const KEY_MODULE = (() => {
 })();
 const KNOWN = new Set(["dashboard","platform_earning","bookings","payouts","refunds","partners","pro_partners","suspended_partners","merchants","customers","app_home",
   "authcfg","addresscfg","deletions","categories","subcategories","services","addons","custom_jobs","ratings","homepage","media","branding","rate_cards",
-  "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","banners","blogs","testimonials","starter_kit_admin",
+  "about","contact","privacy","terms","refund","commission","pricing","surge","ledger","coupons","notifications","tickets","bug_reports","banners","blogs","testimonials","starter_kit_admin",
   "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
   "service_requests","checklists","service_areas","launch_demand","coverage_map","partner_jobs","partner_performance","merchant_verification",
   "merchant_services","merchant_orders","merchant_settlements","taxes","settlements","fin_reports","offers","pages",
@@ -435,6 +437,7 @@ export default function AdminDashboard() {
       {active === "coupons" && <CouponsManager />}
       {active === "notifications" && <P.NotificationCenter />}
       {active === "tickets" && <SupportInbox />}
+      {active === "bug_reports" && <ReportedBugs />}
       {active === "banners" && <P.BannerManager />}
       {active === "testimonials" && <TestimonialsManager />}
       {active === "rate_cards" && <RateCardsManager />}

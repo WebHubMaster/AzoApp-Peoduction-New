@@ -129,6 +129,7 @@ _SEG_MODULE = {
     "app-home": "website_cms",
     "notifications": "notifications", "sms-templates": "notifications",
     "support": "communication", "tickets": "communication",
+    "bugs": "communication",
     "reports": "reports_analytics", "report-runs": "reports_analytics",
     "report-schedules": "reports_analytics", "report-views": "reports_analytics",
     "system-users": "access_control", "rbac": "access_control",

@@ -27,7 +27,7 @@ export default function PartnerLayout() {
   const active = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active") });
   const badges = { jobs: jobs.data?.length || 0, active: active.data?.length || 0 };
 
-  const ROUTES: Record<string, string> = { subscriptions: "/partner/subscriptions", availability: "/partner/availability", bankkyc: "/partner/payouts", earnings: "/partner/earnings", invoices: "/partner/invoices", incentives: "/partner/rewards", analytics: "/partner/analytics", starterkit: "/partner/starter-kit", onboarding: "/partner/verification", support: "/partner/support", permissions: "/partner/permissions" };
+  const ROUTES: Record<string, string> = { subscriptions: "/partner/subscriptions", availability: "/partner/availability", bankkyc: "/partner/payouts", earnings: "/partner/earnings", invoices: "/partner/invoices", incentives: "/partner/rewards", analytics: "/partner/analytics", starterkit: "/partner/starter-kit", onboarding: "/partner/verification", support: "/partner/support", permissions: "/partner/permissions", reportbug: "/partner/report-bug" };
   const moreItems: MoreItem[] = ([
     { key: "subscriptions", label: "Maid Subscriptions", icon: "calendar-heart", onPress: () => router.push("/partner/subscriptions") },
     { key: "availability", label: "My Availability", icon: "calendar-clock-outline", onPress: () => router.push("/partner/availability") },
@@ -40,6 +40,7 @@ export default function PartnerLayout() {
     { key: "starterkit", label: "Starter Kit", icon: "package-variant-closed", onPress: () => router.push("/partner/starter-kit") },
     { key: "onboarding", label: "Profile & KYC", icon: "check-circle-outline", onPress: () => router.push("/partner/verification") },
     { key: "support", label: "Help & Support", icon: "lifebuoy", onPress: () => router.push("/partner/support") },
+    { key: "reportbug", label: "Report a Bug", icon: "bug-outline", onPress: () => router.push("/partner/report-bug") },
   ] as MoreItem[]).filter((it) => !(isMaid && it.key === "incentives") && !(!isMaid && it.key === "subscriptions")).map((it) => ({ ...it, active: pathname.startsWith(ROUTES[it.key]) }));
 
   return (
@@ -54,7 +55,7 @@ export default function PartnerLayout() {
       <Tabs.Screen name="active" options={{ title: "Active Job" }} />
       <Tabs.Screen name="wallet" options={{ title: "Wallet & Withdraw" }} />
       <Tabs.Screen name="booking/[id]" options={{ href: null }} />
-      {["subscriptions", "analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "invoice/[id]", "support/index", "support/[id]", "job/[id]"].map((n) => (
+      {["subscriptions", "analytics", "availability", "bankkyc", "earnings", "history", "invoices", "payouts", "rewards", "starter-kit", "verification", "notifications", "permissions", "report-bug", "invoice/[id]", "support/index", "support/[id]", "job/[id]"].map((n) => (
         <Tabs.Screen key={n} name={`partner/${n}`} options={{ href: null }} />
       ))}
     </Tabs>
