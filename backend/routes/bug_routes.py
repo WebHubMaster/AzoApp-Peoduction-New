@@ -39,8 +39,9 @@ async def delete_bug(bug_id: str, user=Depends(ANY_USER)):
 # ---------- admin inbox ----------
 @router.get("/admin/bugs")
 async def admin_list(status: str = "", role: str = "", q: str = "", category: str = "",
-                     page: int = 1, page_size: int = 20, admin=Depends(ADMIN)):
-    return await c.admin_list(status, role, q, category, page, page_size)
+                     page: int = 1, page_size: int = 20, date_from: str = "", date_to: str = "",
+                     sort: str = "newest", admin=Depends(ADMIN)):
+    return await c.admin_list(status, role, q, category, page, page_size, date_from, date_to, sort)
 
 
 @router.post("/admin/bugs/{bug_id}/resolve")

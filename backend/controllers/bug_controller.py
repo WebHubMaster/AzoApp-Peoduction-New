@@ -82,23 +82,53 @@ async def delete_bug(user, bug_id: str) -> dict:
 
 
 # ---------------- admin ----------------
+_SORTS = {
+    "newest": [("created_at", -1)], "oldest": [("created_at", 1)],
+    "status": [("status", 1), ("created_at", -1)], "category": [("category", 1), ("created_at", -1)],
+    "updated": [("updated_at", -1)],
+}
+
+
+def _ist_bound(day: str, end: bool = False):
+    from datetime import datetime, timedelta, timezone
+    try:
+        d = datetime.strptime(day, "%Y-%m-%d").replace(tzinfo=timezone(timedelta(hours=5, minutes=30)))
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Dates must be YYYY-MM-DD")
+    if end:
+        d += timedelta(days=1)
+    return d.astimezone(timezone.utc).isoformat()
+
+
 async def admin_list(status: str = "", role: str = "", q: str = "", category: str = "",
-                     page: int = 1, page_size: int = 20) -> dict:
+                     page: int = 1, page_size: int = 20, date_from: str = "", date_to: str = "",
+                     sort: str = "newest") -> dict:
+    import re
+    page, page_size = max(1, int(page)), min(100, max(1, int(page_size)))
     query: dict = {}
+    if date_from or date_to:
+        rng = {}
+        if date_from:
+            rng["$gte"] = _ist_bound(date_from)
+        if date_to:
+            rng["$lt"] = _ist_bound(date_to, end=True)
+        query["created_at"] = rng
     if status in ("open", "solved", "closed"):
         query["status"] = status
     if role in ("customer", "partner", "merchant"):
         query["reporter_role"] = role
-    if category in BUG_CATEGORIES:
+    if category == "other":
+        query["category"] = {"$nin": [c for c in BUG_CATEGORIES if c != "other"]}
+    elif category in BUG_CATEGORIES:
         query["category"] = category
-    if q:
-        rx = {"$regex": q.strip(), "$options": "i"}
-        query["$or"] = [{"title": rx}, {"description": rx},
-                        {"reporter_name": rx}, {"reporter_phone": rx}]
+    if q.strip():
+        rx = {"$regex": re.escape(q.strip()), "$options": "i"}
+        query["$or"] = [{"title": rx}, {"description": rx}, {"reporter_name": rx},
+                        {"reporter_phone": rx}, {"id": rx}, {"resolution_note": rx}]
     total = await db.bug_reports.count_documents(query)
-    skip = max(0, (int(page) - 1) * int(page_size))
+    skip = (page - 1) * page_size
     rows = await db.bug_reports.find(query, {"_id": 0}) \
-        .sort("created_at", -1).skip(skip).limit(int(page_size)).to_list(int(page_size))
+        .sort(_SORTS.get(sort, _SORTS["newest"])).skip(skip).limit(page_size).to_list(page_size)
     counts = {
         "all": await db.bug_reports.count_documents({}),
         "open": await db.bug_reports.count_documents({"status": "open"}),
@@ -112,7 +142,7 @@ async def admin_list(status: str = "", role: str = "", q: str = "", category: st
         {"category": {"$nin": list(BUG_CATEGORIES)}})
     cat_counts["other"] += legacy_other
     return {"data": [_public(r) for r in rows], "total": total,
-            "page": int(page), "page_size": int(page_size),
+            "page": page, "page_size": page_size,
             "counts": counts, "category_counts": cat_counts}
 
 
