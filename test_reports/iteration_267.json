@@ -1,0 +1,29 @@
+{
+  "summary": "Verified new POST /api/bookings/abandon-unpaid endpoint and payment_controller._revive_failed restore logic. 7/7 pytest cases pass. Also performed static code review of web_panel Checkout.jsx + Customer/app/(site)/book.tsx + Customer/src/components/site/CheckoutSteps.tsx — payment-failure UX wiring is correct.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_abandon_unpaid.py",
+    "/app/test_reports/pytest/abandon_unpaid.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is 4724 lines — strongly recommend splitting (listing, lifecycle, chat, reschedule, payments-glue, abandon) into focused modules. File >>700 line guideline.",
+    "abandon_unpaid route accepts caller-supplied booking_ids but is already scoped by customer_id in the Mongo query — safe. However, there is no explicit 'at least one of group_id/booking_ids' validation message surfaced; current code raises 400 'Nothing to cancel' only when both missing (verified by test).",
+    "payment_controller._revive_failed uses update_many on {status: cancelled, cancellation.by: payment_failed} — fine, but note it clears cancellation entirely via $unset even if other fields were present; acceptable for this flow since only abandon_unpaid writes that cancellation shape.",
+    "Frontend web_panel Checkout.jsx uses postResilient with proper retries + does NOT clear cart on failed payment (confirmed line 494-500). XCircle import present (line 6). data-testid attributes present for order-failed, order-failed-title, order-failed-msg, retry-payment, failed-browse.",
+    "Customer/app/(site)/book.tsx imports FailedScreen from CheckoutSteps and renders it when placed.failed is set; same abandon-unpaid call wired (line 211). XCircle imported in CheckoutSteps.tsx (line 8). FailedScreen has testID attributes order-failed/-title/-msg.",
+    "Minor: in Checkout.jsx line 494 the body sends BOTH group_id and booking_ids; backend prefers group_id (verified). This is correct behaviour so a stale/missing group_id still has booking_ids as fallback."
+  ],
+  "updated_files": ["/app/backend/tests/test_abandon_unpaid.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a (static review only, no issues)"},
+  "test_credentials": "Not applicable — tests mint JWT via middleware.auth.issue_token with TEST_-prefixed users (cleaned up in teardown). /app/memory/test_credentials.md is MISSING.",
+  "seed_data_creation": "test fixture inserts 2 TEST_ customers + 4 TEST_B_ bookings in one order_group; deleted in fixture teardown.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "test_abandon_unpaid.py covers: ownership scoping (caller's own bookings only), paid-booking immunity, cross-customer immunity, empty-body 400, auth required, non-customer role 403, and _revive_failed by both id and order_group_id. Frontend static review covered the three target files only; no UI test executed because /app/frontend supervisor is FATAL and web_panel has no node_modules per main-agent note."
+}

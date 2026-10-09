@@ -392,3 +392,8 @@ Done (frontend-only, /app/frontend):
 
 Verified: `tsc --noEmit` clean on all changed files (only a pre-existing tsconfig baseUrl deprecation remains); backend API contracts confirmed (finance-kyc returns pan/banks/eligible/blockers; support meta/tickets shapes). Backend unchanged — merchant endpoints already existed and are used as-is.
 Note: Expo apps don't run in this environment — rebuild the Merchant/Partner apps to see the screens.
+
+## 2026-06 Updates
+- PartnerApp Help chat: composer respects bottom safe-area inset (HelpSOS.tsx).
+- Checkout payment failure (Customer app + web panel): if payment cancelled/failed, bookings are voided via POST /api/bookings/abandon-unpaid (status cancelled, payment_status failed, cancellation.by=payment_failed), cart kept, "Payment failed · order not placed" screen with Try again. Late gateway success revives voided bookings (_revive_failed in payment_controller).
+- Backlog: show "Payment failed" label in My Bookings for payment_failed orders; hide them from customer list.
