@@ -4,8 +4,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-query";
-import { Stack } from "expo-router";
-import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
+import { Stack, useRouter } from "expo-router";
+import { useAuth } from "../src/context/AuthContext";
+import { setupNotificationHandler } from "../src/lib/push";
+import { setTapHandler } from "../src/lib/notifTap";
 import { setupAndroidChannels } from "../src/lib/notifications";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { CustomerAlertOverlay } from "@/src/components/customer/CustomerAlertOverlay";
@@ -98,7 +100,21 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
 
 function PushTapBridge() {
   const navigate = useNavigate();
-  useEffect(() => onNotificationTap((link) => navigate(link)), [navigate]);
+  const router = useRouter();
+  const { user, booting } = useAuth();
+  useEffect(() => {
+    if (booting) return undefined;
+    setTapHandler(({ data: d }) => {
+      if (!user) { router.push("/login"); return; }
+      const bid = String(d.booking_id || "");
+      const code = String(d.code || d.booking_code || "");
+      if ((d.type === "chat_message" || d.event === "chat_message") && bid) router.push({ pathname: "/(customer)/orders", params: { chat: bid, focus: code } });
+      else if (bid || code) router.push({ pathname: "/(customer)/orders", params: { open: bid, focus: code } });
+      else if (d.link && d.link !== "/" && !/^\/(partner|merchant|admin)/.test(d.link)) navigate(String(d.link));
+      else router.push("/(customer)/notifications");
+    });
+    return () => setTapHandler(null);
+  }, [user?.id, booting]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 

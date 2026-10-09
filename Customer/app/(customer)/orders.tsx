@@ -27,7 +27,7 @@ const PAGE_SIZE = 10;
 export default function OrdersScreen() {
   const router = useRouter();
   const { c } = useTheme();
-  const params = useLocalSearchParams<{ focus?: string }>();
+  const params = useLocalSearchParams<{ focus?: string; chat?: string; open?: string }>();
   const { bookings, wallet, loading, load: reloadCtx } = useCustomerData();
   const { user } = useAuth();
   const toast = useToast();
@@ -48,6 +48,16 @@ export default function OrdersScreen() {
   const [addl, setAddl] = useState<any>(null);
   const { unreadFor, refresh: refreshChats } = useChatSummary(!!user);
   useEffect(() => { if (focusCode) setQ(focusCode); }, [focusCode]);
+  // Notification tap → open that booking's chat / details directly.
+  useEffect(() => {
+    const id = String(params.chat || params.open || "");
+    if (!id) return;
+    const local = bookings.find((b: any) => b.id === id);
+    const show = (b: any) => { if (!b) return; if (params.chat) setChat(b); else setDetails(b); };
+    if (local) show(local);
+    else api.get(`/bookings/${id}`).then(show).catch(() => {});
+    router.setParams({ chat: undefined, open: undefined } as any);
+  }, [params.chat, params.open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Server-side: 10 bookings per request, next page loads on scroll.
   const qs = new URLSearchParams({ tab, payment, sort, search: q.trim(), page_size: String(PAGE_SIZE), ...(range.preset !== "All" && range.from ? { date_from: range.from.toISOString() } : {}), ...(range.preset !== "All" && range.to ? { date_to: range.to.toISOString() } : {}) }).toString();

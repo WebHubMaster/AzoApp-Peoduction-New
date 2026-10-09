@@ -260,8 +260,19 @@ async def _notify(user_id, title, body, event_type=None, ctx=None):
     """Unified dynamic notification: in-app + real-time SSE + push ALWAYS; SMS/email
     fire only when an ACTIVE template exists for the event in the admin Template
     Manager. Every booking activity thus lands as a real device push."""
-    ctx = ctx or {}
+    ctx = dict(ctx or {})
     _link = f"/{ctx.get('panel', '')}".rstrip("/") or "/"
+    # Push data must carry the real booking id + code so a tap opens that booking.
+    ref = str(ctx.get("booking_id") or "")
+    code = ctx.get("code") or ""
+    bid = ""
+    if ref:
+        hit = await db.bookings.find_one({"$or": [{"id": ref}, {"code": ref}]}, {"_id": 0, "id": 1, "code": 1})
+        if hit:
+            bid, code = hit["id"], code or hit.get("code") or ""
+    if bid:
+        ctx["_data"] = {**(ctx.get("_data") or {}), "type": ctx.get("type") or "booking_update",
+                        "booking_id": bid, "code": code}
     try:
         from services.template_service import fire_event
         await fire_event(user_id, event_type or "general", ctx=ctx,

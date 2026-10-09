@@ -4,7 +4,8 @@ import NetInfo from "@react-native-community/netinfo";
 import { usePathname, useRouter } from "expo-router";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { useAuth } from "@/src/context/AuthContext";
-import { scheduleChatNotification, registerPushToken, onNotificationTap, onFcmNotificationOpen } from "@/src/lib/notifications";
+import { scheduleChatNotification, registerPushToken } from "@/src/lib/notifications";
+import { setTapHandler } from "@/src/lib/notifTap";
 import { respondToJob } from "@/src/lib/pushBackground";
 import { emitRing } from "@/src/lib/ringPrefs";
 import { useQueryClient } from "@tanstack/react-query";
@@ -89,10 +90,9 @@ export function ChatNotifier() {
       if (!d) return;
       if (d.type === "account_approved") { openApproved(); return; }
       const bid = String(d.booking_id || "");
-      if (d.type === "chat_message") {
+      if (d.type === "chat_message" || d.event === "chat_message") {
         const r = chatRouteFromData(d, user.role);
-        if (r) setTimeout(() => router.push(r), 50);
-        return;
+        if (r) { router.push(r); return; }
       }
       if (d.type === "job_request") {
         if (action === "accept" || action === "reject") {
@@ -103,13 +103,12 @@ export function ChatNotifier() {
         return;
       }
       // Generic notifications (booking update / reschedule / reminder / account):
-      // open the specific booking when we know it, else the notifications inbox.
-      if (bid) setTimeout(() => router.push({ pathname: "/(partner)/booking/[id]", params: { id: bid } }), 50);
-      else setTimeout(() => router.push("/notifications"), 50);
+      // partner → that booking; merchant / unknown booking → notifications inbox.
+      if (bid && user.role === "partner") router.push({ pathname: "/(partner)/booking/[id]", params: { id: bid } });
+      else router.push("/notifications");
     };
-    const offNotifee = onNotificationTap(route);
-    const offFcm = onFcmNotificationOpen((d) => route(d, "default"));
-    return () => { offNotifee(); offFcm(); };
+    setTapHandler((t) => route(t.data, t.action));
+    return () => setTapHandler(null);
   }, [user?.id, user?.role, router, qc, openApproved]);
 
   useEffect(() => subscribe((ev) => {

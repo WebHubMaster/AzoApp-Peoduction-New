@@ -7,6 +7,7 @@ import { Image } from "expo-image";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand, useSiteConfigQuery } from "@/src/context/BrandContext";
 import { shouldShowPermissionGate } from "@/src/lib/notifications";
+import { markNavReady } from "@/src/lib/notifTap";
 import { storage } from "@/src/utils/storage";
 import { Icon } from "@/src/components/Icon";
 import { fontSize } from "@/src/theme";
@@ -55,11 +56,13 @@ export default function SplashGate() {
         else if (user.role === "merchant") router.replace(onboarded ? "/(merchant)" : "/merchant/register");
         else if (user.role === "agent") router.replace("/(agent)");
         else setUnsupported(true);
+        markNavReady();
         return;
       }
       const done = await storage.getItem(ONBOARD_DONE_KEY);
-      if (done !== "1") { router.replace("/onboarding/intro"); return; }
+      if (done !== "1") { router.replace("/onboarding/intro"); markNavReady(); return; }
       router.replace("/(auth)/welcome");
+      markNavReady();
     })();
   }, [booting, minElapsed, user]);
 

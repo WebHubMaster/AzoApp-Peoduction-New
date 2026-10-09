@@ -112,6 +112,9 @@ if (pushSupported) {
           if (id === "accept" || id === "reject") await respondToJob(bid, id);
         } else if (type === EventType.DISMISSED && data.type === "job_request") {
           await cancelJobRing(bid);
+        } else if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
+          // App was in background → remember the tap; ChatNotifier opens its screen.
+          require("@/src/lib/notifTap").emitTap(data, type === EventType.PRESS ? "default" : detail?.pressAction?.id || "default"); // eslint-disable-line @typescript-eslint/no-require-imports
         }
       });
     }

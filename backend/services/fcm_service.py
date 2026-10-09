@@ -645,7 +645,7 @@ async def send_to_user(user_id: str, title: str, body: str, link: str = "/", dat
             notification=None if data_only else messaging.AndroidNotification(
                 channel_id=str(chan) if chan else None, tag=str(tag) if tag else None,
                 image=image or None,
-                sound="default", click_action="OPEN_CHAT" if (data or {}).get("type") == "chat_message" else None))
+                sound="default"))
         if data_only:
             msg = messaging.MulticastMessage(
                 tokens=tokens,

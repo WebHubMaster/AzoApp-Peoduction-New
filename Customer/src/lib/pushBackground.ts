@@ -99,8 +99,9 @@ if (pushSupported) {
           const id = detail?.pressAction?.id;
           if (id === "accept" || id === "reject") { stopRingSound(); await respondToReschedule(bid, id); }
         } else if (type === EventType.PRESS || type === EventType.ACTION_PRESS) {
-          // Any tap on the booking-confirmed / reschedule alert stops the ring tone.
+          // Any tap stops the ring tone and opens the related screen once the app is up.
           stopRingSound();
+          require("@/src/lib/notifTap").emitTap(data, "default"); // eslint-disable-line @typescript-eslint/no-require-imports
         } else if (type === EventType.DISMISSED) {
           stopRingSound();
           await cancelRescheduleRing(bid);

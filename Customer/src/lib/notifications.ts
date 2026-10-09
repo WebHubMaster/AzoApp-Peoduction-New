@@ -704,6 +704,7 @@ export function onFcmNotificationOpen(cb: (data: Record<string, any>) => void): 
     EN.getLastNotificationResponseAsync?.().then((resp: any) => {
       const d = resp?.notification?.request?.content?.data;
       if (d && Object.keys(d).length) cb(d);
+      if (resp) EN.clearLastNotificationResponseAsync?.().catch?.(() => {});
     }).catch(() => {});
     subs.push(() => { try { sub.remove(); } catch { /* ignore */ } });
   }
