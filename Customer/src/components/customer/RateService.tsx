@@ -1,11 +1,9 @@
 /** Rate Service — pending (unrated) completed bookings, rated one at a time (latest first). */
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator, AppState, Animated, Easing } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, Keyboard, Platform, ActivityIndicator, AppState, Animated, Easing } from "react-native";
 import { usePathname } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Star, Check, X, Heart, Wallet } from "lucide-react-native";
-import { Image } from "expo-image";
-import { runPayment } from "../../lib/payments";
+import { Star, Check, X } from "lucide-react-native";
 import { api } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useRealtime } from "../../context/RealtimeContext";
@@ -136,8 +134,14 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(0);
-  const [paying, setPaying] = useState(false);
-  useEffect(() => { setStars(0); setComment(""); setBusy(false); setDone(0); setPaying(false); }, [booking?.id]);
+  const [kb, setKb] = useState(0);
+  useEffect(() => { setStars(0); setComment(""); setBusy(false); setDone(0); }, [booking?.id]);
+  useEffect(() => {
+    const ios = Platform.OS === "ios";
+    const show = Keyboard.addListener(ios ? "keyboardWillShow" : "keyboardDidShow", (e) => setKb(e.endCoordinates?.height || 0));
+    const hide = Keyboard.addListener(ios ? "keyboardWillHide" : "keyboardDidHide", () => setKb(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const submit = async () => {
     if (!booking || !stars) return;
@@ -147,10 +151,10 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
   };
 
   return (
-    <Modal visible={!!booking && !paying} transparent animationType="slide" statusBarTranslucent onRequestClose={() => onClose(!!done)}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(15,23,42,0.45)" }}>
+    <Modal visible={!!booking} transparent animationType="slide" statusBarTranslucent onRequestClose={() => onClose(!!done)}>
+      <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(15,23,42,0.45)", paddingBottom: kb }}>
         <Pressable style={{ flex: 1 }} onPress={() => onClose(!!done)} />
-        <View testID="rate-service-modal" style={{ backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: insets.bottom + 20 }}>
+        <View testID="rate-service-modal" style={{ backgroundColor: c.surface, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: kb ? 16 : insets.bottom + 20 }}>
           {done ? <ThanksBurst stars={done} name={booking?.partner_name} onDone={() => onClose(true)} /> : <>
           <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
             <View style={{ flex: 1 }}>
@@ -160,7 +164,6 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
             </View>
             <Pressable testID="rate-modal-close" onPress={() => onClose(false)} hitSlop={10} style={{ height: 32, width: 32, borderRadius: 16, backgroundColor: c.surfaceAlt, alignItems: "center", justifyContent: "center" }}><X size={16} color={c.textFaint} /></Pressable>
           </View>
-          {booking ? <ThankYouTipCard booking={booking} setPaying={setPaying} /> : null}
           <Text style={{ textAlign: "center", marginTop: 20, fontSize: 14, fontWeight: "600", color: c.textMuted }}>How was your experience?</Text>
           <View style={{ flexDirection: "row", justifyContent: "center", gap: 10, marginTop: 12 }}>
             {[1, 2, 3, 4, 5].map((n) => (
@@ -182,7 +185,7 @@ function RateSheet({ booking, onClose }: { booking: Pending | null; onClose: (ra
           </View>
           </>}
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
@@ -227,61 +230,5 @@ function ThanksBurst({ stars, name, onDone }: { stars: number; name?: string; on
         <Text style={{ fontSize: 13, color: c.textMuted, marginTop: 4, textAlign: "center" }}>{name ? `Your feedback helps ${name} and others serve you better.` : "Your feedback helps us serve you better."}</Text>
       </Animated.View>
     </Pressable>
-  );
-}
-
-const TIP_AMOUNTS = [20, 50, 100];
-
-/** Thank-you card with the partner's photo + one-tap tip (wallet if enough balance, else online). */
-function ThankYouTipCard({ booking, setPaying }: { booking: Pending; setPaying: (v: boolean) => void }) {
-  const { c, isDark } = useTheme();
-  const toast = useToast();
-  const [wallet, setWallet] = useState(0);
-  const [sending, setSending] = useState<number | null>(null);
-  const [tipped, setTipped] = useState<number>(booking.tip_amount || 0);
-  useEffect(() => { setTipped(booking.tip_amount || 0); api.get("/wallet").then((r: any) => setWallet(Number(r?.balance || 0))).catch(() => {}); }, [booking.id, booking.tip_amount]);
-  const name = booking.partner_name || "your professional";
-  const tip = async (amt: number) => {
-    if (sending || tipped) return;
-    setSending(amt);
-    try {
-      if (wallet >= amt) {
-        await api.post(`/bookings/${booking.id}/tip`, { amount: amt, method: "wallet" });
-        setWallet((w) => w - amt); setTipped(amt); toast.success(`\u20b9${amt} tip sent to ${name}`);
-      } else {
-        setPaying(true);
-        const ok = await runPayment({ purpose: "tip", bookingId: booking.id, amount: amt } as any, toast);
-        setPaying(false);
-        if (ok) { setTipped(amt); toast.success(`\u20b9${amt} tip sent to ${name}`); }
-      }
-    } catch (e: any) { setPaying(false); toast.error(e?.message || e?.detail || "Could not send tip"); }
-    setSending(null);
-  };
-  return (
-    <View testID="thank-you-card" style={{ marginTop: 16, borderRadius: 14, borderWidth: 1, borderColor: isDark ? "#14532D" : "#BBF7D0", backgroundColor: isDark ? "rgba(22,163,74,0.12)" : "#F0FDF4", padding: 14 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        {booking.partner_photo ? <Image testID="thank-you-partner-photo" source={{ uri: booking.partner_photo }} style={{ height: 52, width: 52, borderRadius: 26, borderWidth: 2, borderColor: "#22C55E" }} contentFit="cover" />
-          : <View style={{ height: 52, width: 52, borderRadius: 26, backgroundColor: "#16A34A", alignItems: "center", justifyContent: "center" }}><Text style={{ color: "#fff", fontWeight: "900", fontSize: 20 }}>{name.charAt(0).toUpperCase()}</Text></View>}
-        <View style={{ flex: 1 }}>
-          <Text testID="thank-you-title" style={{ fontSize: 15, fontWeight: "800", color: isDark ? "#fff" : TC.text }}>Thank you for choosing us!</Text>
-          <Text style={{ fontSize: 12.5, color: c.textMuted, marginTop: 2 }}>{booking.partner_name ? `${booking.partner_name} completed your service.` : "Your service is complete."}</Text>
-        </View>
-      </View>
-      {tipped ? (
-        <View testID="tip-sent" style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 6 }}><Heart size={16} color="#DC2626" fill="#DC2626" /><Text style={{ fontSize: 13, fontWeight: "700", color: "#15803D" }}>{`\u20b9${tipped} tip sent \u2014 thank you for your kindness!`}</Text></View>
-      ) : (
-        <>
-          <Text style={{ fontSize: 12, fontWeight: "700", color: c.textMuted, marginTop: 12 }}>{`Say thanks with a tip \u00b7 100% goes to ${booking.partner_name || "the professional"}`}</Text>
-          <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-            {TIP_AMOUNTS.map((a) => (
-              <Pressable key={a} testID={`tip-${a}`} disabled={!!sending} onPress={() => tip(a)} style={({ pressed }) => ({ flex: 1, height: 42, borderRadius: 10, borderWidth: 1.5, borderColor: "#22C55E", backgroundColor: pressed ? "#DCFCE7" : c.surface, alignItems: "center", justifyContent: "center", opacity: sending && sending !== a ? 0.5 : 1 })}>
-                {sending === a ? <ActivityIndicator color="#16A34A" /> : <Text style={{ fontSize: 15, fontWeight: "800", color: "#15803D" }}>{`\u20b9${a}`}</Text>}
-              </Pressable>
-            ))}
-          </View>
-          {wallet > 0 ? <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 6 }}><Wallet size={12} color={c.textFaint} /><Text style={{ fontSize: 11, color: c.textFaint }}>{`Paid from wallet when balance allows (\u20b9${wallet.toFixed(0)})`}</Text></View> : null}
-        </>
-      )}
-    </View>
   );
 }
