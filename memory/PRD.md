@@ -245,3 +245,9 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 ## Customer app — all permissions in one place (Oct 2026)
 - New `Customer/app/permissions.tsx`: one-time screen after splash (Android/iOS, not web) with Location, Notifications, Photos, Microphone, Full-screen alert, Display over apps, Background battery, OEM autostart; "Allow all" + per-item Allow; Continue/Skip sets `azo_cust_perms_done`.
 - Removed scattered auto prompts: root layout notification request, home location/notification prompt, post-booking AlertPermissionWalkthrough + AlertSetupNudge on HomeView. Alerts screen in profile remains for later changes.
+
+## Notification tap → correct screen (Oct 2026)
+- Backend: booking `_notify` now puts real booking_id + code + type in push data; FCM click_action OPEN_CHAT removed (tray chat taps did nothing).
+- Apps: new `src/lib/notifTap.ts` (both apps) — unified tap handling (Notifee fg/bg/cold start, FCM, expo), de-dupe, waits for splash (markNavReady).
+- Partner: chat → /chat/[id]; booking → /(partner)/booking/[id]; merchant/other → /notifications. Customer: chat → orders?chat=id (opens chat), booking → orders?open=id (opens details), else notifications.
+- Tested: backend pytest 5/5 (iteration_258) + static TS review; needs new app builds + device check.

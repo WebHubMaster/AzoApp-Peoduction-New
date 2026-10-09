@@ -1,0 +1,19 @@
+{
+  "summary": "Backend-only + static code review for notification-tap fix. 5/5 pytest pass: _notify resolves ctx['booking_id'] when passed either real id or code, injects data.{type, booking_id (real id), code}; _notify with no booking_id ctx stores no data.booking_id; fcm_service.py no longer sets click_action anywhere (OPEN_CHAT removed); /api/notifications list endpoint returns 200. Static TS check on touched Expo files (notifTap.ts, ChatNotifier.tsx, pushBackground.ts, splash index.tsx, Customer _layout.tsx PushTapBridge, Customer orders.tsx) — ZERO new TS errors introduced; Customer base has 1 unrelated pre-existing error in (customer)/subscriptions.tsx (color index 900 missing). Partner app has 26 pre-existing errors, unchanged. Logic review PASS: emitTap de-dupes 8s-window keyed on message_id|type|booking_id|link|action; markNavReady queues taps until splash completes router.replace and is invoked on every splash branch (partner: user-authenticated/onboard, needs-onboard, auth welcome, intro; customer: finally() of permissions resolution). Background Notifee PRESS events wire into emitTap in both apps. Partner routes chat→/chat/[id] (via chatRouteFromData), partner booking→/(partner)/booking/[id], merchant/no bid→/notifications. Customer routes chat→/(customer)/orders?chat=<id>&focus=<code>, booking→/(customer)/orders?open=<id>&focus=<code>, else /(customer)/notifications. orders.tsx effect fetches /api/bookings/{id} when not in list, opens BookingChat / BookingDetailsDrawer, then clears params to avoid loops.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_notification_tap_data.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "notifTap.ts dedup key uses message_id|type|booking_id|link|action — for booking updates without message_id, back-to-back notifications with SAME type AND same booking within 8s would collapse. In practice adjacent updates have different types (partner_assigned → partner_arrived → started), so acceptable, but worth noting.",
+    "frontend/app/index.tsx has an `setUnsupported(true)` branch that falls through to markNavReady() — correct, but relies on no `return` before line 59. Fine today; keep in mind if branches are refactored.",
+    "ChatNotifier merchant/admin role gets routed to /notifications for any booking-tap because the role check only matches 'partner' — intentional per request spec."
+  ],
+  "updated_files": ["/app/backend/tests/test_notification_tap_data.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a (Expo native, static review only)"},
+  "test_credentials": "customer +919000000004 OTP 123456",
+  "seed_data_creation": "Transient TEST_* bookings and notifications are created and cleaned per test via pymongo sync client.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend _notify (booking_controller.py L259) now accepts booking_id OR code in ctx['booking_id'] and injects data.{type, booking_id, code} into the stored notification. FCM AndroidNotification no longer carries click_action. Expo apps use /src/lib/notifTap.ts single-entry tap bus (de-dupe 8s, nav-ready queue) wired to Notifee + FCM + background Notifee PRESS. For E2E tap testing a real APK on-device is required — not possible in this preview."
+}
