@@ -949,33 +949,57 @@ async def send_message(user, booking_id, text):
     return msg
 
 
-async def add_tip(user, booking_id, amount, method="wallet"):
-    """Customer adds a gratuity for the partner after a completed booking."""
+TIP_MAX = 5000
+
+
+async def tip_precheck(user, booking_id, amount):
     b = await _get_booking(booking_id)
     _authorize(user, b)
     amt = money.money(amount or 0)
-    if amt <= 0:
-        raise HTTPException(status_code=400, detail="Enter a valid tip amount")
+    if amt <= 0 or amt > TIP_MAX:
+        raise HTTPException(status_code=400, detail=f"Enter a tip between ₹1 and ₹{TIP_MAX}")
     if b["status"] not in ("completed", "paid"):
         raise HTTPException(status_code=400, detail="You can tip after the service is completed")
-    tip = {"amount": amt, "method": method, "at": now_iso()}
-    await db.bookings.update_one({"id": booking_id}, {"$set": {"tip": tip}})
-    if b.get("partner_id"):
-        try:
-            await db.transactions.insert_one({
-                "id": new_id(), "user_id": b["partner_id"], "amount": amt,
-                "type": "credit", "kind": "tip",
-                "note": f"Tip from customer · {b.get('code', '')}", "created_at": now_iso()})
-            await db.users.update_one({"id": b["partner_id"]}, {"$inc": {"wallet_balance": amt}})
-        except Exception:
-            pass
-        try:
-            from services.notification_service import notify_bg as notify
-            await notify(b["partner_id"], "You received a tip \U0001F389",
-                         f"{b.get('customer_name', 'A customer')} tipped you {amt:.0f} for {b.get('service_name', 'your service')}.",
-                         link="/partner")
-        except Exception:
-            pass
+    if (b.get("tip") or {}).get("amount"):
+        raise HTTPException(status_code=400, detail="You have already tipped for this booking")
+    if not b.get("partner_id"):
+        raise HTTPException(status_code=400, detail="No partner to tip for this booking")
+    return b, amt
+
+
+async def add_tip(user, booking_id, amount, method="wallet", payment_ref=None):
+    """Customer tips the partner after a completed booking (once per booking).
+    wallet → debited atomically from the customer's wallet; online → already paid via gateway."""
+    b, amt = await tip_precheck(user, booking_id, amount)
+    tip = {"amount": amt, "method": method, "at": now_iso(), **({"payment_ref": payment_ref} if payment_ref else {})}
+    claim = await db.bookings.update_one(
+        {"id": booking_id, "$or": [{"tip": None}, {"tip": {"$exists": False}}, {"tip.amount": {"$in": [0, None]}}]},
+        {"$set": {"tip": tip}})
+    if not claim.modified_count:
+        raise HTTPException(status_code=400, detail="You have already tipped for this booking")
+    if method == "wallet":
+        debit = await db.users.update_one({"id": user["id"], "wallet_balance": {"$gte": amt}},
+                                          {"$inc": {"wallet_balance": -amt}})
+        if not debit.modified_count:
+            await db.bookings.update_one({"id": booking_id}, {"$unset": {"tip": ""}})
+            raise HTTPException(status_code=400, detail="Insufficient wallet balance")
+        await db.transactions.insert_one({
+            "id": new_id(), "user_id": user["id"], "amount": amt, "type": "debit", "kind": "tip",
+            "note": f"Tip to {b.get('partner_name') or 'partner'} · {b.get('code', '')}", "created_at": now_iso()})
+    pid = b["partner_id"]
+    await db.users.update_one({"id": pid}, {"$inc": {"wallet_balance": amt}})
+    await db.transactions.insert_one({
+        "id": new_id(), "user_id": pid, "amount": amt, "type": "credit", "kind": "tip",
+        "note": f"Tip from customer · {b.get('code', '')}", "created_at": now_iso()})
+    await db.partner_ledger.insert_one({
+        "id": new_id(), "partner_id": pid, "kind": "tip", "direction": "credit", "amount": amt,
+        "ref_type": "booking", "ref_id": booking_id, "note": f"Customer tip · {b.get('code', '')}",
+        "status": "completed", "created_at": now_iso()})
+    rt.emit_user(pid, "finance_update", {"kind": "tip", "booking_id": booking_id, "amount": amt})
+    from services.notification_service import notify_bg as notify
+    await notify(pid, "You received a tip \U0001F389",
+                 f"{b.get('customer_name', 'A customer')} tipped you \u20b9{amt:.0f} for {b.get('service_name', 'your service')}.",
+                 link="/partner")
     return {"ok": True, "tip": tip}
 
 
@@ -4733,13 +4757,18 @@ async def pending_reviews(customer):
          "$or": [{"review": None}, {"review": {"$exists": False}}]},
         {"_id": 0, "id": 1, "code": 1, "service_name": 1, "partner_name": 1, "partner_id": 1,
          "timeline": 1, "updated_at": 1, "created_at": 1, "review_prompt_dismissed": 1,
-         "service_image": 1, "items": 1}).to_list(500)
+         "service_image": 1, "items": 1, "tip": 1}).to_list(500)
+    pids = list({b.get("partner_id") for b in docs if b.get("partner_id")})
+    photos = {u["id"]: u.get("photo") or u.get("selfie") or "" async for u in db.users.find(
+        {"id": {"$in": pids}}, {"_id": 0, "id": 1, "photo": 1, "selfie": 1})} if pids else {}
     items = []
     for b in docs:
         name = b.get("service_name") or ", ".join(
             i.get("service_name", "") for i in (b.get("items") or []) if i.get("service_name")) or "Service"
         items.append({"id": b["id"], "code": b.get("code"), "service_name": name,
                       "partner_name": b.get("partner_name") or "",
+                      "partner_photo": _abs_media(photos.get(b.get("partner_id")) or ""),
+                      "tip_amount": (b.get("tip") or {}).get("amount") or 0,
                       "service_image": b.get("service_image") or "",
                       "completed_at": _completed_at(b),
                       "auto_prompt": not b.get("review_prompt_dismissed")})

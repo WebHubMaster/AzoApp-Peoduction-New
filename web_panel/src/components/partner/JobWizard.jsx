@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown, ArrowLeft, ArrowRight, Camera, Video, X, Check, CheckCircle2, ShieldCheck, MapPin, Phone, Navigation, Clock, ClipboardList, User as UserIcon, Crosshair, Loader2, PlayCircle, Lock, AlertTriangle, Wrench, Trash2, Plus, BadgeCheck, RefreshCw } from "lucide-react";
+import { ChevronDown, ArrowLeft, ArrowRight, Camera, Video, X, Check, CheckCircle2, ShieldCheck, MapPin, Phone, Navigation, Clock, ClipboardList, User as UserIcon, Crosshair, Loader2, PlayCircle, Lock, AlertTriangle, Wrench, Trash2, Plus, BadgeCheck, RefreshCw, PartyPopper } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { toast } from "sonner";
 import CameraCapture from "@/components/partner/CameraCapture";
@@ -9,6 +9,7 @@ import { RateCardModal } from "@/components/RateCardModal";
 import { StatusBadge } from "@/components/partner/ui/kit";
 import { isVideoUrl } from "@/components/WorkProof";
 import JobDetailsBlock from "@/components/partner/JobDetailsBlock";
+import { motion } from "framer-motion";
 
 export const MAX_PROOF_FILES = 5;
 const CHUNK = 700 * 1024;
@@ -290,6 +291,7 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
   const [otp, setOtp] = useState("");
   const { h: vh, top: vTop } = useVisualViewport();
   const [busy, setBusy] = useState(null);
+  const [doneSummary, setDoneSummary] = useState(null);
   const [progress, setProgress] = useState(0);
   const [cam, setCam] = useState(null); // { stage, kind }
   const [nowTs, setNowTs] = useState(() => Date.now());
@@ -323,10 +325,11 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
     finally { setBusy(null); setProgress(0); }
   };
   const removeProof = async (stage, url) => { try { await api.post(`/bookings/${b.id}/evidence/remove`, { stage, url }); toast.success("Removed"); await reload(); } catch (e) { toast.error(errMsg(e, "Could not remove")); } };
-  const verify = async (path, label) => { setBusy(path); try { await api.post(`/bookings/${b.id}/${path}`, { otp }); toast.success(label); setOtp(""); await reload(); } catch (e) { setOtp(""); toast.error(errMsg(e, "Invalid OTP")); } finally { setBusy(null); } };
+  const verify = async (path, label) => { setBusy(path); try { const { data } = await api.post(`/bookings/${b.id}/${path}`, { otp }); if (path === "complete") { setDoneSummary(data?.completion_summary || {}); if (data?.id) setB((o) => ({ ...o, ...data })); } toast.success(label); setOtp(""); reload(); } catch (e) { setOtp(""); toast.error(errMsg(e, "Invalid OTP")); } finally { setBusy(null); } };
 
   const cur = Math.min(step, 3);
-  const footer = phase === 4
+  const isDone = phase === 4 || !!doneSummary;
+  const footer = isDone
     ? <FooterBtn testid="wizard-finish" onClick={onClose} className="bg-emerald-600 hover:bg-emerald-700"><ArrowLeft className="h-5 w-5" /> Back to Active Jobs</FooterBtn>
     : step === 0 ? <FooterBtn testid="wizard-continue" onClick={() => setStep(phase)}>{phase >= 3 ? "Continue to Complete Job" : phase >= 2 ? "Continue to Start Job" : "Continue"} <ArrowRight className="h-5 w-5" /></FooterBtn>
     : step === 1 ? (phase >= 2 ? <FooterBtn testid="wizard-next" onClick={() => setStep(2)}>Continue to Start Job <ArrowRight className="h-5 w-5" /></FooterBtn> : <p className="text-center text-xs text-slate-500">Take your selfie & share live location above, then tap <b>Check-in & Continue</b>.</p>)
@@ -343,7 +346,7 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
             <StatusBadge status={b.status} />
           </div>
           <div className="flex items-start mt-4" data-testid="wizard-steps">
-            {STEPS.map((s, i) => { const done = i < cur || phase === 4, active = i === cur && phase !== 4; const I = s.icon; return (
+            {STEPS.map((s, i) => { const done = i < cur || isDone, active = i === cur && !isDone; const I = s.icon; return (
               <div key={s.key} className="flex-1 flex flex-col items-center">
                 <div className="flex items-center w-full">
                   <div className={`h-0.5 flex-1 ${i === 0 ? "opacity-0" : done || active ? "bg-white" : "bg-white/30"}`} />
@@ -357,13 +360,8 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
       </div>
 
       <div className="flex-1 overflow-y-auto"><div className="max-w-2xl mx-auto p-4 space-y-3.5 pb-8">
-        {phase === 4 ? (
-          <Card testid="wizard-done" className="text-center py-10">
-            <span className="mx-auto h-20 w-20 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><BadgeCheck className="h-11 w-11" /></span>
-            <p className="font-heading text-2xl font-black text-slate-900 dark:text-white mt-4">Job completed!</p>
-            <p className="text-sm text-slate-500 mt-1">{b.service_name} · #{b.code}</p>
-            {(b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning) != null && <div className="inline-block mt-4 rounded-2xl bg-emerald-50 border border-emerald-200 px-6 py-3"><p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">You earned</p><p className="text-2xl font-black text-emerald-700">{fmt(b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning)}</p></div>}
-          </Card>
+        {isDone ? (
+          <DoneCard b={b} summary={doneSummary} />
         ) : step === 0 ? <DetailsStep b={b} />
         : step === 1 ? <CheckinStep b={b} onDone={reload} />
         : step === 2 ? (
@@ -397,4 +395,35 @@ export default function JobWizard({ booking: initial, onClose, onUpdate }) {
 
 function FooterBtn({ children, onClick, disabled, testid, className = "bg-primary-700 hover:bg-primary-800" }) {
   return <button type="button" data-testid={testid} disabled={disabled} onClick={onClick} className={`w-full h-13 py-3.5 rounded-2xl text-white font-extrabold flex items-center justify-center gap-2 transition disabled:opacity-45 ${className}`}>{children}</button>;
+}
+
+const CONFETTI = ["#10B981", "#F59E0B", "#3B82F6", "#EC4899", "#8B5CF6", "#14B8A6", "#F97316", "#22C55E"];
+
+function DoneCard({ b, summary }) {
+  const [today, setToday] = useState(summary && summary.today_earning != null ? summary : null);
+  useEffect(() => { api.get("/bookings/partner/today-summary").then(({ data }) => setToday(data)).catch(() => {}); }, [b.id]);
+  const earning = summary?.earning ?? b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning;
+  return (
+    <Card testid="wizard-done" className="relative overflow-hidden text-center py-10">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-56">
+        {Array.from({ length: 18 }).map((_, i) => (
+          <motion.span key={i} className="absolute left-1/2 top-20 h-3 w-2 rounded-sm" style={{ backgroundColor: CONFETTI[i % CONFETTI.length] }}
+            initial={{ x: 0, y: 0, opacity: 1, rotate: 0 }} animate={{ x: (i - 8.5) * 26, y: [0, -50 - (i % 4) * 22, 140], opacity: [1, 1, 0], rotate: (i % 2 ? 1 : -1) * 540 }}
+            transition={{ duration: 1.6, ease: "easeOut" }} />
+        ))}
+      </div>
+      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 12 }} className="mx-auto h-24 w-24 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><PartyPopper className="h-12 w-12" /></motion.span>
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+        <p data-testid="done-title" className="font-heading text-2xl font-black text-slate-900 dark:text-white mt-4">Job completed!</p>
+        <p className="text-sm text-slate-500 mt-1">{b.service_name} · #{b.code}</p>
+        {earning != null && <div className="inline-block mt-4 rounded-2xl bg-emerald-50 border border-emerald-200 px-7 py-3"><p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">You earned</p><p data-testid="done-earning" className="text-3xl font-black text-emerald-700">{fmt(earning)}</p></div>}
+        {today && (
+          <div data-testid="done-today" className="mt-4 mx-auto max-w-sm grid grid-cols-2 rounded-2xl border border-slate-200 dark:border-slate-700 divide-x divide-slate-200 dark:divide-slate-700">
+            <div className="p-3"><p className="text-[11px] font-bold uppercase text-slate-500">Today's earnings</p><p data-testid="done-today-earning" className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{fmt(today.today_earning)}</p></div>
+            <div className="p-3"><p className="text-[11px] font-bold uppercase text-slate-500">Jobs today</p><p data-testid="done-today-jobs" className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{today.today_jobs}</p></div>
+          </div>
+        )}
+      </motion.div>
+    </Card>
+  );
 }
