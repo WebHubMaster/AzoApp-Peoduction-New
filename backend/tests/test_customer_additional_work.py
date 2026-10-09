@@ -10,7 +10,7 @@ import re
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://31aa4333-390a-4d05-88f6-65e361cce043.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-marked-fix.preview.emergentagent.com").rstrip("/")
 
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"

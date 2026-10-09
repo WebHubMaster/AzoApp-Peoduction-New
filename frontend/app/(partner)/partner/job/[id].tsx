@@ -536,8 +536,6 @@ function DoneStep({ b }: { b: any }) {
       {today.data ? (
         <Animated.View testID="done-today" style={[{ marginTop: 12, width: "100%", flexDirection: "row", borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }, fade]}>
           <View style={{ flex: 1, padding: 12, alignItems: "center" }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Today's earnings</Text><Text testID="done-today-earning" style={{ color: colors.text, fontSize: 20, fontWeight: "900", marginTop: 2 }}>{fmt(today.data.today_earning)}</Text></View>
-          <View style={{ width: 1, backgroundColor: colors.border }} />
-          <View style={{ flex: 1, padding: 12, alignItems: "center" }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Jobs today</Text><Text testID="done-today-jobs" style={{ color: colors.text, fontSize: 20, fontWeight: "900", marginTop: 2 }}>{today.data.today_jobs}</Text></View>
         </Animated.View>
       ) : null}
       {b.payment_method === "cos" && b.cos ? (

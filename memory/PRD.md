@@ -431,3 +431,5 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 
 ## 2026-06 — Report a Bug screen (Customer + Partner app)
 - The form is now full width (removed the inset card wrapper). Inputs, category chips and all buttons use a 6px corner radius. iteration_277: code review passed; partner app TypeScript check clean. Neither app was run on screen.
+
+- (Jun 2026) Job-completed screen: removed 'Jobs today' tile (PartnerApp, frontend, web_panel). Today's earnings now = sum of earnings from jobs completed today only (IST day).

@@ -418,9 +418,8 @@ function DoneCard({ b, summary }) {
         <p className="text-sm text-slate-500 mt-1">{b.service_name} · #{b.code}</p>
         {earning != null && <div className="inline-block mt-4 rounded-2xl bg-emerald-50 border border-emerald-200 px-7 py-3"><p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">You earned</p><p data-testid="done-earning" className="text-3xl font-black text-emerald-700">{fmt(earning)}</p></div>}
         {today && (
-          <div data-testid="done-today" className="mt-4 mx-auto max-w-sm grid grid-cols-2 rounded-2xl border border-slate-200 dark:border-slate-700 divide-x divide-slate-200 dark:divide-slate-700">
+          <div data-testid="done-today" className="mt-4 mx-auto max-w-sm grid grid-cols-1 rounded-2xl border border-slate-200 dark:border-slate-700 divide-x divide-slate-200 dark:divide-slate-700">
             <div className="p-3"><p className="text-[11px] font-bold uppercase text-slate-500">Today's earnings</p><p data-testid="done-today-earning" className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{fmt(today.today_earning)}</p></div>
-            <div className="p-3"><p className="text-[11px] font-bold uppercase text-slate-500">Jobs today</p><p data-testid="done-today-jobs" className="text-xl font-black text-slate-900 dark:text-white mt-0.5">{today.today_jobs}</p></div>
           </div>
         )}
       </motion.div>

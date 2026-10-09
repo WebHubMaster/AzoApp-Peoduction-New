@@ -3533,14 +3533,20 @@ async def pay_additional(customer, booking_id, method="online"):
 
 
 async def partner_today_summary(partner_id):
-    """Today's (UTC day) partner earnings + jobs — shown on the job-completed screen."""
-    from datetime import datetime as _dt, timezone as _tz
-    day = _dt.now(_tz.utc).date().isoformat()
+    """Today's (IST day) earnings from jobs completed today — shown on the job-completed screen."""
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    ist = _tz(_td(hours=5, minutes=30))
+    start = _dt.now(ist).replace(hour=0, minute=0, second=0, microsecond=0).astimezone(_tz.utc).isoformat()
+    done = await db.bookings.find(
+        {"$or": [{"partner_id": partner_id}, {"completed_by_partner": partner_id}],
+         "status": {"$in": ["completed", "paid"]}, "completed_at": {"$gte": start}},
+        {"_id": 0, "id": 1}).to_list(1000)
+    ids = [d["id"] for d in done]
     rows = await db.commission_ledger.find(
-        {"partner_id": partner_id, "created_at": {"$gte": day}, "partner_earning": {"$gt": 0}},
-        {"_id": 0, "partner_earning": 1, "booking_id": 1}).to_list(1000)
+        {"partner_id": partner_id, "booking_id": {"$in": ids}, "partner_earning": {"$gt": 0}},
+        {"_id": 0, "partner_earning": 1}).to_list(5000) if ids else []
     return {"today_earning": money.add(*[r.get("partner_earning", 0) for r in rows]) if rows else 0.0,
-            "today_jobs": len({r.get("booking_id") for r in rows if r.get("booking_id")})}
+            "today_jobs": len(ids)}
 
 
 async def _completion_response(partner, b):

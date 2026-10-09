@@ -9,7 +9,7 @@ from datetime import date, timedelta
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://rate-card-invoice.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-marked-fix.preview.emergentagent.com").rstrip("/")
 
 
 def _login(phone: str, create: bool = False, role: str = "merchant", name: str = "T"):
