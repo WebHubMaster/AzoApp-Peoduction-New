@@ -1,0 +1,22 @@
+{
+  "summary": "Backend verification of admin profile-photo contract (iter 266). All 8 pytest cases pass: partner & admin OTP login, PUT /api/auth/profile accepts data: URL and returns a relative '/api/media/file/partners/<id>/profile/<uuid>.webp' path, GET on that path serves image/webp 200, admin partner list (/api/admin/partners?tab=all&q=9000000003) and detail (/api/admin/users/{id}/detail) both expose the same stored photo URL. Bug-category regression (POST /api/bugs with category=payment, GET /api/admin/bugs with category_counts) still works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_profile_photo_iter266.py",
+    "/app/test_reports/pytest/iter266.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend stores profile photo as relative /api/media/file/... URL as designed; frontend (web_panel) must resolve it against backend origin via mediaSrc() as implemented. Note the admin panel (CRA) is not runnable in this environment, so UI-level broken-image/fallback behavior could not be verified here.",
+    "Response shape of /api/admin/partners uses key 'partners' (not 'items'); keep consistent with other admin list endpoints for maintainability."
+  ],
+  "updated_files": ["/app/backend/tests/test_profile_photo_iter266.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a (not tested per request)"},
+  "test_credentials": "OTP 123456; partner +919000000003, admin +919000000000, customer +919000000004",
+  "seed_data_creation": "Uploaded a 1x1 PNG as partner profile photo; created one TEST_photo_regression bug report (category=payment).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend photo contract verified. If retesting admin UI, note stored photo path is relative like '/api/media/file/partners/<id>/profile/<uuid>.webp' and must be prefixed with REACT_APP_BACKEND_URL to render. Admin partners list key is 'partners' not 'items'.",
+  "rca of the issue": "Confirmed: profile photos are persisted as relative '/api/media/file/...' URLs by auth_controller.update_profile; media_routes serves them with image/webp. The admin broken-image symptom therefore was purely a web_panel issue (no backend-origin prefixing + no onError fallback), already fixed in /app/web_panel via mediaSrc()/SmartImg."
+}

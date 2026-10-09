@@ -361,3 +361,22 @@ Implemented:
 
 Verified: backend 26/26 tests pass (iteration_265); both Expo apps tsc-clean on changed files. Nothing existing broken.
 Note: Expo apps + CRA admin panel need rebuild/redeploy to see UI changes.
+
+---
+## Update 2026-10-09 — Fix: admin profile images intermittently broken (permanent)
+
+Bug: In the admin panel, partner/user profile images sometimes showed, sometimes broke (broken-image icon).
+Root cause: App-uploaded profile photos are stored as RELATIVE URLs ('/api/media/file/.../profile/<uuid>.webp')
+by auth_controller.update_profile; the backend serves them fine (200, image/webp), but the admin React panel
+rendered them raw — no backend-origin resolution and no error fallback. So they only loaded when the panel host
+matched the backend host, and any failed load left a permanent broken icon.
+
+Fix (frontend-only, /app/web_panel):
+- New resilient component `src/components/SmartImg.jsx` (resolves via mediaSrc() + falls back to initials/placeholder on error).
+- Shared People `Avatar` (`pages/admin/people/ui.jsx`) now uses mediaSrc() + onError fallback.
+- All admin profile/avatar/document images now resolve via mediaSrc()/proofSrc(): PartnersHub, MerchantsHub,
+  CustomersHub, UserDetail, PartnerConsole, MerchantConsole, adminSections, adminRealtimeSections,
+  people/Person360, livemap/PartnerDrawer.
+
+Verified: backend photo/serving contract 100% (iteration_266); web_panel `yarn build` compiles clean.
+Note: admin panel (CRA) + Expo apps don't run in this env — rebuild/redeploy to see the change.
