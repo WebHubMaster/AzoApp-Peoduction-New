@@ -380,3 +380,15 @@ Fix (frontend-only, /app/web_panel):
 
 Verified: backend photo/serving contract 100% (iteration_266); web_panel `yarn build` compiles clean.
 Note: admin panel (CRA) + Expo apps don't run in this env — rebuild/redeploy to see the change.
+
+---
+## Update 2026-10-09 — Merchant Bank & KYC + Support redesigned to match Partner app
+
+Request: Make the Merchant app's Bank & KYC and Support Ticket screens look exactly like the Partner app's.
+
+Done (frontend-only, /app/frontend):
+- Extracted the partner Bank & KYC screen (`app/(partner)/partner/payouts.tsx`) into a shared, parameterized component `src/components/BankKycScreen.tsx` (props: financeBase, uploadBase, profileRoute, queryPrefix, embedded). Partner `payouts.tsx` and merchant `app/merchant/bankkyc.tsx` are now thin wrappers → pixel-identical design. Merchant points at `/merchant/panel/finance-kyc` + `/merchant/registration` uploads; `embedded` hides the inner header since the merchant stack already shows MerchantTopBar.
+- Support: added an optional `embedded` prop to the shared `app/support/index.tsx` (partner/customer design) and made `app/merchant/support.tsx` render `<SupportList embedded />` → merchant Support now matches partner exactly (New Ticket, search, filters, chat thread). Ticket detail opens `/support/[id]` (shared).
+
+Verified: `tsc --noEmit` clean on all changed files (only a pre-existing tsconfig baseUrl deprecation remains); backend API contracts confirmed (finance-kyc returns pan/banks/eligible/blockers; support meta/tickets shapes). Backend unchanged — merchant endpoints already existed and are used as-is.
+Note: Expo apps don't run in this environment — rebuild the Merchant/Partner apps to see the screens.

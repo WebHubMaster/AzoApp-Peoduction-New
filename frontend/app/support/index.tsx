@@ -22,7 +22,7 @@ const STATUS_LABEL: Record<string, string> = { open: "Open", in_progress: "In pr
 const prioTone = (p?: string): any => ({ low: "neutral", medium: "info", high: "warning", urgent: "danger" }[(p || "").toLowerCase()] || "warning");
 const inputStyle = (colors: any) => ({ height: 48, borderWidth: 1.5, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: 14, color: colors.text, fontSize: fontSize.md });
 
-export default function SupportList() {
+export default function SupportList({ embedded = false }: { embedded?: boolean } = {}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -103,7 +103,7 @@ export default function SupportList() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppShellHeader profileRoute={user?.role === "merchant" ? "/(merchant)/profile" : "/(partner)/profile"} />
+      {embedded ? null : <AppShellHeader profileRoute={user?.role === "merchant" ? "/(merchant)/profile" : "/(partner)/profile"} />}
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 16 }}
