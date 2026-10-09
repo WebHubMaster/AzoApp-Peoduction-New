@@ -316,3 +316,15 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   `revenue`. Cancelled & `additional_work` rows no longer inflate challenge/incentive progress.
 - Verified: testing_agent backend 100% (service layer + GET /api/partner/challenges & /api/partner/incentives,
   OTP partner +919000000003 / 123456). Tests: backend/challenge_count_test.py, backend/tests/test_challenge_count_api.py.
+
+## 2026-10-09 — Feature: Milestone Celebration (challenge unlock)
+- When a Partner challenge/incentive bonus is credited (auto-payout or admin award), the backend
+  now emits a realtime `challenge_unlocked` event `{name, amount, bonus_amount, auto}` to that
+  partner (services/partner_service.py::_credit_incentive_award, only when amount>0 → idempotent).
+- Partner app (Expo): new global component src/components/partner/ChallengeCelebration.tsx, mounted
+  in app/_layout.tsx inside Realtime+Toast providers. Subscribes to `challenge_unlocked` and shows a
+  confetti burst + congratulations card (trophy, challenge name, +₹amount) + a wallet-credit toast,
+  and invalidates partner-challenges/bonuses/wallet queries. Auto-dismiss ~4s / tap to close.
+- Verified: testing_agent backend 100% (emit + wallet credit + idempotency + challenge-count regression).
+  Tests: backend/challenge_unlock_event_test.py, backend/tests/test_challenge_unlock_celebration.py.
+  Frontend typechecked (tsc) — no new errors; Expo app not runnable in pod so UI is pending on-device check.
