@@ -76,7 +76,7 @@ export default function PartnerReportBug() {
     ]);
   };
 
-  const inputStyle = { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, color: colors.text, fontSize: 14 } as any;
+  const inputStyle = { borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, borderRadius: 6, paddingHorizontal: 12, color: colors.text, fontSize: 14 } as any;
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -93,7 +93,7 @@ export default function PartnerReportBug() {
         </View>
 
         {/* Form */}
-        <View style={{ gap: 12, backgroundColor: colors.surface, borderRadius: 14, borderWidth: 1, borderColor: colors.border, padding: 14 }}>
+        <View testID="bug-form" style={{ gap: 14, width: "100%" }}>
           <View>
             <Text style={{ fontSize: 12, fontWeight: "700", color: colors.textSecondary, marginBottom: 6 }}>Title</Text>
             <TextInput testID="bug-title" value={title} onChangeText={setTitle} placeholder="e.g. Earnings not updating" placeholderTextColor={colors.textMuted} style={[inputStyle, { height: 46 }]} maxLength={160} />
@@ -105,7 +105,7 @@ export default function PartnerReportBug() {
                 const on = category === c.key;
                 return (
                   <Pressable key={c.key} testID={`bug-category-${c.key}`} onPress={() => setCategory(c.key)}
-                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : colors.surfaceSubtle }}>
+                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: on ? colors.primary : colors.border, backgroundColor: on ? colors.primary : colors.surfaceSubtle }}>
                     <Text style={{ fontSize: 12, fontWeight: "700", color: on ? "#fff" : colors.textSecondary }}>{c.label}</Text>
                   </Pressable>
                 );
@@ -121,17 +121,17 @@ export default function PartnerReportBug() {
             {shot ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Image source={{ uri: mediaUrl(shot.thumb_url || shot.url) }} style={{ width: 72, height: 72, borderRadius: 10, borderWidth: 1, borderColor: colors.border }} />
-                <Pressable testID="bug-remove-shot" onPress={() => setShot(null)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border }}>
+                <Pressable testID="bug-remove-shot" onPress={() => setShot(null)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, backgroundColor: colors.surfaceSubtle, borderWidth: 1, borderColor: colors.border }}>
                   <Icon name="close" size={16} color={colors.textSecondary} /><Text style={{ color: colors.textSecondary, fontWeight: "600" }}>Remove</Text>
                 </Pressable>
               </View>
             ) : (
-              <Pressable testID="bug-attach-shot" onPress={pickShot} disabled={uploading} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: colors.primary, backgroundColor: colors.surfaceSubtle }}>
+              <Pressable testID="bug-attach-shot" onPress={pickShot} disabled={uploading} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: colors.primary, backgroundColor: colors.surfaceSubtle }}>
                 {uploading ? <ActivityIndicator color={colors.primary} /> : <><Icon name="camera-outline" size={18} color={colors.primary} /><Text style={{ color: colors.primary, fontWeight: "700" }}>Attach screenshot</Text></>}
               </Pressable>
             )}
           </View>
-          <Pressable testID="bug-submit" onPress={submit} disabled={submitting} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 12, backgroundColor: colors.primary, opacity: submitting ? 0.7 : 1 }}>
+          <Pressable testID="bug-submit" onPress={submit} disabled={submitting} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 6, backgroundColor: colors.primary, opacity: submitting ? 0.7 : 1 }}>
             {submitting ? <ActivityIndicator color="#fff" /> : <><Icon name="send" size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>Submit Bug Report</Text></>}
           </Pressable>
         </View>
@@ -171,7 +171,7 @@ export default function PartnerReportBug() {
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
                 <Text style={{ fontSize: 11, color: colors.textMuted }}>{b.created_at ? new Date(b.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : ""}</Text>
                 {solved(b.status) ? (
-                  <Pressable testID={`bug-delete-${b.id}`} onPress={() => removeRow(b)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: "#FEE2E2" }}>
+                  <Pressable testID={`bug-delete-${b.id}`} onPress={() => removeRow(b)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: "#FEE2E2" }}>
                     <Icon name="delete-outline" size={14} color="#DC2626" /><Text style={{ color: "#DC2626", fontSize: 12, fontWeight: "700" }}>Delete</Text>
                   </Pressable>
                 ) : null}

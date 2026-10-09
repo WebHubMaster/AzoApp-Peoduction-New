@@ -77,7 +77,7 @@ export default function ReportBugScreen() {
     ]);
   };
 
-  const inputStyle = { borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, borderRadius: 10, paddingHorizontal: 12, color: TC.text, fontSize: 14 } as any;
+  const inputStyle = { borderWidth: 1, borderColor: TC.border, backgroundColor: TC.surface, borderRadius: 6, paddingHorizontal: 12, color: TC.text, fontSize: 14 } as any;
   const solved = (s: string) => s === "solved" || s === "closed";
 
   return (
@@ -95,7 +95,7 @@ export default function ReportBugScreen() {
         </View>
 
         {/* Form */}
-        <View style={{ gap: 12, backgroundColor: TC.bg, borderRadius: 14, borderWidth: 1, borderColor: TC.border, padding: 14 }}>
+        <View testID="bug-form" style={{ gap: 14, width: "100%" }}>
           <View>
             <Text style={{ fontSize: 12, fontWeight: "700", color: TC.text2, marginBottom: 6 }}>Title</Text>
             <TextInput testID="bug-title" value={title} onChangeText={setTitle} placeholder="e.g. Payment screen crashes" placeholderTextColor={TC.textFaint} style={[inputStyle, { height: 46 }]} maxLength={160} />
@@ -107,7 +107,7 @@ export default function ReportBugScreen() {
                 const on = category === c.key;
                 return (
                   <Pressable key={c.key} testID={`bug-category-${c.key}`} onPress={() => setCategory(c.key)}
-                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, borderWidth: 1, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[600] : TC.surface }}>
+                    style={{ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: on ? PRIMARY[600] : TC.border, backgroundColor: on ? PRIMARY[600] : TC.surface }}>
                     <Text style={{ fontSize: 12, fontWeight: "700", color: on ? "#fff" : TC.text2 }}>{c.label}</Text>
                   </Pressable>
                 );
@@ -123,17 +123,17 @@ export default function ReportBugScreen() {
             {shot ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
                 <Image source={{ uri: mediaUrl(shot.thumb_url || shot.url) }} style={{ width: 72, height: 72, borderRadius: 10, borderWidth: 1, borderColor: TC.border }} />
-                <Pressable testID="bug-remove-shot" onPress={() => setShot(null)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border }}>
+                <Pressable testID="bug-remove-shot" onPress={() => setShot(null)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, backgroundColor: TC.surface, borderWidth: 1, borderColor: TC.border }}>
                   <X size={16} color={TC.text2} /><Text style={{ color: TC.text2, fontWeight: "600" }}>Remove</Text>
                 </Pressable>
               </View>
             ) : (
-              <Pressable testID="bug-attach-shot" onPress={pickShot} disabled={uploading} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 10, borderWidth: 1, borderStyle: "dashed", borderColor: PRIMARY[400], backgroundColor: TC.surface }}>
+              <Pressable testID="bug-attach-shot" onPress={pickShot} disabled={uploading} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 46, borderRadius: 6, borderWidth: 1, borderStyle: "dashed", borderColor: PRIMARY[400], backgroundColor: TC.surface }}>
                 {uploading ? <ActivityIndicator color={PRIMARY[600]} /> : <><Camera size={18} color={PRIMARY[600]} /><Text style={{ color: PRIMARY[700], fontWeight: "700" }}>Attach screenshot</Text></>}
               </Pressable>
             )}
           </View>
-          <Pressable testID="bug-submit" onPress={submit} disabled={submitting} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 12, backgroundColor: PRIMARY[600], opacity: submitting ? 0.7 : 1 }}>
+          <Pressable testID="bug-submit" onPress={submit} disabled={submitting} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 6, backgroundColor: PRIMARY[600], opacity: submitting ? 0.7 : 1 }}>
             {submitting ? <ActivityIndicator color="#fff" /> : <><Send size={18} color="#fff" /><Text style={{ color: "#fff", fontWeight: "800", fontSize: 15 }}>Submit Bug Report</Text></>}
           </Pressable>
         </View>
@@ -173,7 +173,7 @@ export default function ReportBugScreen() {
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 2 }}>
                 <Text style={{ fontSize: 11, color: TC.textFaint }}>{b.created_at ? new Date(b.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : ""}</Text>
                 {solved(b.status) ? (
-                  <Pressable testID={`bug-delete-${b.id}`} onPress={() => removeRow(b)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: "#FEE2E2" }}>
+                  <Pressable testID={`bug-delete-${b.id}`} onPress={() => removeRow(b)} style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, backgroundColor: "#FEE2E2" }}>
                     <Trash2 size={14} color="#DC2626" /><Text style={{ color: "#DC2626", fontSize: 12, fontWeight: "700" }}>Delete</Text>
                   </Pressable>
                 ) : null}
