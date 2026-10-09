@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar";
 import { Image } from "expo-image";
 import { ShieldCheck } from "lucide-react-native";
 import { useAuth } from "@/src/context/AuthContext";
+import { needsPermissionSetup } from "@/src/lib/permissions";
 import { useSiteConfig, useSiteConfigQuery } from "@/src/context/BrandContext";
 
 export default function Gate() {
@@ -34,7 +35,7 @@ export default function Gate() {
 
   useEffect(() => {
     if (booting || !minElapsed) return;
-    router.replace("/(site)");
+    needsPermissionSetup().then((need) => router.replace(need ? "/permissions" : "/(site)")).catch(() => router.replace("/(site)"));
   }, [booting, minElapsed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const logo = brand.branding.logo_dark || brand.branding.logo_light;

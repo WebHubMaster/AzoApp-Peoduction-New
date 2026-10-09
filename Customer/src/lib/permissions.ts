@@ -60,19 +60,23 @@ export function useNotifPermission() {
   return s;
 }
 
-/** Called once when the app opens: ask location (then auto-detect city) and notifications. */
+/** All permissions are asked together on the one-time /permissions screen. */
+export const PERMS_DONE_KEY = "azo_cust_perms_done";
+export async function needsPermissionSetup(): Promise<boolean> {
+  if (Platform.OS === "web") return false;
+  const { storage } = require("@/src/utils/storage"); // eslint-disable-line @typescript-eslint/no-require-imports
+  return (await storage.getItem(PERMS_DONE_KEY)) !== "1";
+}
+
+/** App open: NEVER prompts — only auto-detects the city if location was already allowed. */
 export async function requestStartupPermissions() {
   try {
     if (Platform.OS !== "web") {
       const cur = await Location.getForegroundPermissionsAsync();
-      const p = cur.granted ? cur : await Location.requestForegroundPermissionsAsync();
-      if (p.granted && !getLocationName()) await detectLocation();
+      if (cur.granted && !getLocationName()) await detectLocation();
     } else if (!getLocationName()) {
       await detectLocation();
     }
   } catch {}
-  try {
-    const s = await refreshNotifPermission();
-    if (s === "undetermined") await requestNotifPermission();
-  } catch {}
+  refreshNotifPermission().catch(() => {});
 }

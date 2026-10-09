@@ -6,7 +6,7 @@ import { KeyboardProvider, KeyboardAvoidingView } from "react-native-keyboard-co
 import { QueryClient, QueryClientProvider, focusManager } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { setupNotificationHandler, onNotificationTap } from "../src/lib/push";
-import { setupAndroidChannels, requestNotificationPermission } from "../src/lib/notifications";
+import { setupAndroidChannels } from "../src/lib/notifications";
 import { RealtimeProvider } from "@/src/context/RealtimeContext";
 import { CustomerAlertOverlay } from "@/src/components/customer/CustomerAlertOverlay";
 import { RateServiceProvider } from "@/src/components/customer/RateService";
@@ -68,7 +68,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
   useEffect(() => { if (fontsLoaded) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded]);
   // Create the loud full-screen ring channels + ask for notification permission at
   // app open so the reschedule alert can render on the very first event.
-  useEffect(() => { setupAndroidChannels().catch(() => {}); requestNotificationPermission().catch(() => {}); }, []);
+  useEffect(() => { setupAndroidChannels().catch(() => {}); }, []);
   if (!fontsLoaded) return null;
   return (
     <ThemeProvider brandPrimary={data?.theme?.primary}>
@@ -84,6 +84,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
                 <Stack.Screen name="index" />
                 <Stack.Screen name="(site)" />
                 <Stack.Screen name="login" options={{ animation: "slide_from_bottom" }} />
+                <Stack.Screen name="permissions" />
                 <Stack.Screen name="(customer)" />
               </Stack></KeyboardAvoidingView></RateServiceProvider>
               <RefreshNoteHost />

@@ -241,3 +241,7 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Permission screen (/onboarding/notifications) no longer shown before login or for merchants.
 - `goHome()` in OtpFlow.tsx: partner login/signup → permission screen (if notifications not granted / not yet prompted) → `next` (partner home/register). Merchant → straight to merchant home/register.
 - Splash: logged-in partner gets the same gate; logged-out users go to welcome.
+
+## Customer app — all permissions in one place (Oct 2026)
+- New `Customer/app/permissions.tsx`: one-time screen after splash (Android/iOS, not web) with Location, Notifications, Photos, Microphone, Full-screen alert, Display over apps, Background battery, OEM autostart; "Allow all" + per-item Allow; Continue/Skip sets `azo_cust_perms_done`.
+- Removed scattered auto prompts: root layout notification request, home location/notification prompt, post-booking AlertPermissionWalkthrough + AlertSetupNudge on HomeView. Alerts screen in profile remains for later changes.
