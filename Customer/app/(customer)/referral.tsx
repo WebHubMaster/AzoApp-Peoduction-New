@@ -11,7 +11,7 @@ import { useToast } from "../../src/components/Toast";
 import { api, API_BASE } from "../../src/api/client";
 import { fmt, fmtC } from "../../src/lib/format";
 import { PRIMARY, SLATE, EMERALD, useTheme, shadowElev, TC } from "../../src/theme";
-import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList } from "../../src/components/customer/ux";
+import { StatTile, StatSlider, CARD_W, StatusChip, EmptyState, SkeletonList, PlainList } from "../../src/components/customer/ux";
 import { FInput } from "../../src/components/customer/FormControls";
 
 const ORIGIN = API_BASE.replace(/\/api$/, "");
@@ -149,9 +149,8 @@ export default function ReferralScreen() {
       <View>
         <Text style={{ fontWeight: "700", fontSize: 18, color: c.text, marginBottom: 12 }}>Referral history</Text>
         {loading ? <SkeletonList rows={3} /> : history.length === 0 ? <EmptyState icon={Gift} title="No referrals yet" desc="Share your code to start earning rewards." testID="referral-empty" /> : (
-          <View testID="referral-history" style={{ gap: 8 }}>
-            {history.map((h) => (
-              <View key={h.id} testID={`referral-row-${h.id}`} style={{ ...card, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <PlainList testID="referral-history" data={history} keyExtractor={(h: any) => h.id} renderItem={({ item: h }) => (
+              <View testID={`referral-row-${h.id}`} style={{ ...card, padding: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1, minWidth: 0 }}>
                   <View style={{ height: 40, width: 40, borderRadius: 6, backgroundColor: isDark ? "rgba(7,52,115,0.4)" : PRIMARY[100], alignItems: "center", justifyContent: "center" }}><Text style={{ fontWeight: "700", color: c.primaryText }}>{(h.name || "F")[0]}</Text></View>
                   <View style={{ flex: 1, minWidth: 0 }}>
@@ -164,8 +163,7 @@ export default function ReferralScreen() {
                   <Text style={{ fontWeight: "700", fontSize: 14, color: h.payment_status === "paid" ? EMERALD[600] : TC.textFaint }}>{h.payment_status === "paid" ? "+" : ""}{fmt(h.reward)}</Text>
                 </View>
               </View>
-            ))}
-          </View>
+            )} />
         )}
       </View>
 

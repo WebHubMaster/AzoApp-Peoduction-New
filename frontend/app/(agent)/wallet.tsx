@@ -11,6 +11,7 @@ import { Card, StatCard, SectionTitle, Button, Badge, EmptyState, CardSkeleton, 
 import { Icon } from "@/src/components/Icon";
 import { fmt, timeAgo } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
+import { useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 
 export default function AgentWallet() {
   const { colors } = useTheme();
@@ -26,6 +27,7 @@ export default function AgentWallet() {
   const bank = me.data?.bank || null;
   const bankVerified = !!(bank && bank.verified);
   const withdrawals: any[] = wds.data?.withdrawals || [];
+  const shown = useProgressiveList(withdrawals);
 
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [amount, setAmount] = useState("");
@@ -74,7 +76,7 @@ export default function AgentWallet() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <AppHeader title="Wallet" subtitle="Earnings & withdrawals" variant="gradient" testID="agent-wallet-header" />
-      <ScreenScroll refreshing={me.isFetching} onRefresh={() => { qc.invalidateQueries({ queryKey: ["agent-me"] }); qc.invalidateQueries({ queryKey: ["agent-withdrawals"] }); }}>
+      <ScreenScroll scrollProps={shown.scrollProps} refreshing={me.isFetching} onRefresh={() => { qc.invalidateQueries({ queryKey: ["agent-me"] }); qc.invalidateQueries({ queryKey: ["agent-withdrawals"] }); }}>
         {me.isLoading ? <CardSkeleton /> : (
           <LinearGradient colors={[colors.primary, colors.primaryHover]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ borderRadius: radius.lg, padding: spacing.lg }}>
             <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: fontSize.xs, fontWeight: "700" }}>AVAILABLE BALANCE</Text>
@@ -121,7 +123,7 @@ export default function AgentWallet() {
             <Card><EmptyState icon="bank-transfer" title="No withdrawals yet" subtitle="Your payout requests will appear here." /></Card>
           ) : (
             <Card padded={false} style={{ paddingHorizontal: spacing.lg }}>
-              {withdrawals.map((t, i) => (
+              {shown.items.map((t, i) => (
                 <View key={t.id || i} style={{ flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: colors.border }}>
                   <View style={{ width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceSubtle, alignItems: "center", justifyContent: "center" }}>
                     <Icon name="bank-transfer-out" size={18} color={colors.textSecondary} />
@@ -135,6 +137,7 @@ export default function AgentWallet() {
               ))}
             </Card>
           )}
+          <LoadMoreFooter list={shown} testID="agent-wd-load-more" />
         </View>
       </ScreenScroll>
 

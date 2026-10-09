@@ -247,6 +247,7 @@ export default function MaidSubscriptions() {
   const q = useQuery({ queryKey: ["maid-subs"], queryFn: () => api.get<any[]>("/subscriptions/partner/mine") });
   const subs: any[] = Array.isArray(q.data) ? q.data : [];
   const open = subs.find((x) => x.id === openId);
+  const shown = useProgressiveList(subs);
   const reload = () => qc.invalidateQueries({ queryKey: ["maid-subs"] });
 
   // Advance view — next 7 days of scheduled work across all active subscriptions.
@@ -266,6 +267,7 @@ export default function MaidSubscriptions() {
       ) : (
         <ScrollView
           testID="maid-subs-list"
+          {...shown.scrollProps}
           contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: 14 }}
           showsVerticalScrollIndicator={false}
           refreshControl={<RefreshControl refreshing={q.isFetching && !q.isLoading} onRefresh={reload} tintColor={colors.primary} colors={[colors.primary]} />}
@@ -291,7 +293,7 @@ export default function MaidSubscriptions() {
           ) : subs.length === 0 ? (
             <KitEmpty icon="calendar-heart" title="No subscriptions yet" desc="Recurring maid subscriptions assigned to you will appear here." testID="maid-subs-empty" />
           ) : (
-            subs.map((s) => (
+            shown.items.map((s) => (
               <Pressable key={s.id} testID={`maid-sub-${s.id}`} onPress={() => setOpenId(s.id)}>
                 <Surface style={{ padding: 16, gap: 10 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -311,6 +313,7 @@ export default function MaidSubscriptions() {
               </Pressable>
             ))
           )}
+          {!q.isLoading ? <LoadMoreFooter list={shown} testID="maid-subs-load-more" /> : null}
         </ScrollView>
       )}
     </View>

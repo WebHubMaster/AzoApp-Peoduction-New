@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://partner-marked-fix.preview.emergentagent.com/api"
+BASE_URL = "https://lazy-pagination.preview.emergentagent.com/api"
 CHANDAN = "+919128403769"
 OTP = "123456"
 

@@ -12,7 +12,7 @@ import pytest
 import requests
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL",
-                     "https://09e40263-459c-4b13-ad21-80a8fbcecf41.preview.emergentagent.com").rstrip("/")
+                     "https://lazy-pagination.preview.emergentagent.com").rstrip("/")
 API = f"{BASE}/api"
 
 CUSTOMER_PHONE = "+919000000004"

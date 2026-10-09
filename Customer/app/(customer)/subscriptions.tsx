@@ -11,7 +11,7 @@ import { api } from "../../src/api/client";
 import { saveInvoicePdf, openInvoicePdf, emailInvoice } from "../../src/lib/invoiceActions";
 import { useToast } from "../../src/components/Toast";
 import { PRIMARY, SLATE, EMERALD, AMBER, useTheme, TC } from "../../src/theme";
-import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList } from "../../src/components/customer/ux";
+import { EmptyState, BottomSheet, PrimaryButton, SegTabs, SkeletonList, PlainList } from "../../src/components/customer/ux";
 import { SchedulePicker } from "../../src/components/customer/SchedulePicker";
 import { openPreparedOrder } from "../../src/lib/payments";
 
@@ -499,9 +499,8 @@ export default function SubscriptionsScreen() {
               </Pressable>
             </View>
           ) : (
-            <View style={{ gap: 12 }}>
-              {services.map((s) => (
-                <Pressable key={s.id} testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, backgroundColor: c.surface, overflow: "hidden" }}>
+            <PlainList testID="sub-browse-list" data={services} keyExtractor={(s: any) => s.id} renderItem={({ item: s }) => (
+                <Pressable testID={`sub-service-${s.id}`} onPress={() => setPicked(s)} style={{ borderWidth: 1, borderColor: c.border, borderRadius: 6, backgroundColor: c.surface, overflow: "hidden", marginBottom: 12 }}>
                   <View style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 16 }}>
                     <View style={{ height: 52, width: 52, borderRadius: 6, backgroundColor: TC.primarySoft, alignItems: "center", justifyContent: "center" }}>
                       <CalendarHeart size={26} color={TC.primaryText} />
@@ -521,14 +520,13 @@ export default function SubscriptionsScreen() {
                     <Text style={{ color: "#fff", fontWeight: "700", fontSize: 14 }}>Choose a plan</Text>
                   </View>
                 </Pressable>
-              ))}
-            </View>
+              )} />
           )
         ) : (
           mine.length === 0 ? (
             <EmptyState icon={Clock} title="No subscriptions yet" desc="Book a plan from Browse Plans to get started." />
           ) : (
-            <View style={{ gap: 14 }}>{mine.map((s) => <SubCard key={s.id} s={s} />)}</View>
+            <PlainList testID="sub-mine-list" data={mine} keyExtractor={(s: any) => s.id} renderItem={({ item }) => <View style={{ marginBottom: 14 }}><SubCard s={item} /></View>} />
           )
         )}
       {picked ? <PlanSheet service={picked} onClose={() => setPicked(null)} onDone={() => { setPicked(null); setTab("mine"); load(); }} /> : null}

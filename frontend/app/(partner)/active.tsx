@@ -18,6 +18,7 @@ import { Icon, MdiName } from "@/src/components/Icon";
 import { fmt } from "@/src/lib/format";
 import { useToast } from "@/src/components/Toast";
 import { useChatUnread } from "@/src/context/ChatContext";
+import { useInfiniteList, useProgressiveList, LoadMoreFooter } from "@/src/lib/infiniteList";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -48,9 +49,14 @@ export default function PartnerActiveJob() {
   useEffect(() => { if (params.view === "completed" || params.view === "active") setView(params.view); }, [params.view]);
 
   const activeQ = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active"), refetchInterval: 15000 });
-  const doneQ = useQuery({ queryKey: ["partner-joblist", "history", "completed"], queryFn: () => api.get<any[]>("/bookings/partner/history?status=completed") });
-  const activeJobs = activeQ.data || [];
-  const completedJobs = (doneQ.data || []).filter((b) => ["completed", "paid"].includes(b.status));
+  const doneQ = useInfiniteList(["partner-joblist", "history", "completed-paged"], (pg, size) => api.get<any>(`/bookings/partner/history?status=completed&page=${pg}&page_size=${size}`, { timeoutMs: 60000 }));
+  const activeAll = activeQ.data || [];
+  const activePg = useProgressiveList(activeAll, view);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => { if (focusId && activeAll.some((b) => b.id === focusId) && !activePg.items.some((b) => b.id === focusId)) setShowAll(true); }, [focusId, activeAll, activePg.items]);
+  const activeJobs = showAll ? activeAll : activePg.items;
+  const completedJobs = doneQ.items;
+  const listScroll = view === "active" ? activePg.scrollProps : doneQ.scrollProps;
   const refresh = () => { qc.invalidateQueries({ queryKey: ["partner-active"] }); qc.invalidateQueries({ queryKey: ["partner-joblist"] }); qc.invalidateQueries({ queryKey: ["partner-wallet"] }); };
 
   // Pull-to-refresh spinner reflects ONLY a genuine user pull — never the 15s
@@ -72,6 +78,7 @@ export default function PartnerActiveJob() {
       <ScrollView
         ref={scrollRef}
         testID="active-jobs"
+        {...listScroll}
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + 110, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={pulling} onRefresh={onPull} tintColor={colors.primary} colors={[colors.primary]} />}
@@ -79,17 +86,27 @@ export default function PartnerActiveJob() {
         {/* Active / Completed chips */}
         <View style={{ flexDirection: "row", gap: 8 }}>
           <Pressable testID="job-view-active" onPress={() => setView("active")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: view === "active" ? colors.primary : colors.surfaceSubtle }}>
-            <Text style={{ color: view === "active" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Active{activeJobs.length ? ` (${activeJobs.length})` : ""}</Text>
+            <Text style={{ color: view === "active" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Active{activeAll.length ? ` (${activeAll.length})` : ""}</Text>
           </Pressable>
           <Pressable testID="job-view-completed" onPress={() => setView("completed")} style={{ height: 36, paddingHorizontal: 16, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: view === "completed" ? EMERALD : colors.surfaceSubtle }}>
-            <Text style={{ color: view === "completed" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Completed{completedJobs.length ? ` (${completedJobs.length})` : ""}</Text>
+            <Text style={{ color: view === "completed" ? "#fff" : colors.textSecondary, fontSize: 14, fontWeight: "600" }}>Completed{doneQ.total ? ` (${doneQ.total})` : ""}</Text>
           </Pressable>
         </View>
 
         {view === "active" ? (
-          activeQ.isLoading ? <Empty text="Loading…" /> : activeJobs.length === 0 ? <Empty text="No active jobs. Accept a request to get started." /> : activeJobs.map((b) => focusWrap(b.id, <ActiveJobCard b={b} onUpdate={refresh} />))
+          activeQ.isLoading ? <Empty text="Loading…" /> : activeJobs.length === 0 ? <Empty text="No active jobs. Accept a request to get started." /> : (
+            <>
+              {activeJobs.map((b) => focusWrap(b.id, <ActiveJobCard b={b} onUpdate={refresh} />))}
+              <LoadMoreFooter list={activeJobs === activeAll ? { ...activePg, items: activeAll, hasNextPage: false } : activePg} testID="active-load-more" />
+            </>
+          )
         ) : (
-          doneQ.isLoading ? <Empty text="Loading…" /> : completedJobs.length === 0 ? <Empty text="No completed jobs yet. Finished jobs will appear here." /> : completedJobs.map((b) => focusWrap(b.id, <CompletedJob b={b} />))
+          doneQ.isLoading ? <Empty text="Loading…" /> : completedJobs.length === 0 ? <Empty text="No completed jobs yet. Finished jobs will appear here." /> : (
+            <>
+              {completedJobs.map((b) => focusWrap(b.id, <CompletedJob b={b} />))}
+              <LoadMoreFooter list={doneQ} testID="completed-load-more" />
+            </>
+          )
         )}
       </ScrollView>
     </View>
