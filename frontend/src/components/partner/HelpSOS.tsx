@@ -48,17 +48,6 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
   useEffect(() => { if (kbH) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); }, [kbH]);
   const androidKb = Platform.OS === "android" ? kbH : 0;
   const sheetH = Math.min(winH * 0.85, winH - androidKb - insets.top - 16);
-  const { height: winH } = useWindowDimensions();
-  const [kbH, setKbH] = useState(0);
-
-  useEffect(() => {
-    const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (e) => setKbH(e.endCoordinates.height));
-    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () => setKbH(0));
-    return () => { show.remove(); hide.remove(); };
-  }, []);
-  useEffect(() => { if (kbH) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); }, [kbH]);
-  const androidKb = Platform.OS === "android" ? kbH : 0;
-  const sheetH = Math.min(winH * 0.85, winH - androidKb - insets.top - 16);
 
   const openChat = async () => {
     setOpen(true);

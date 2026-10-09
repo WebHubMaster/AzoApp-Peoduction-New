@@ -1,0 +1,30 @@
+{
+  "summary": "Static code review of HelpSOS.tsx keyboard-handling fix (Partner Help chat input above Android keyboard). Found and fixed a CRITICAL bug: the entire keyboard-handling block (useWindowDimensions, kbH state, Keyboard listeners, scroll effect, androidKb, sheetH) was duplicated inside the component body, causing 5 TypeScript redeclaration errors (TS2451 for winH, kbH, setKbH, androidKb, sheetH) and runtime double-registration of Keyboard listeners / double setState per keyboard event. After removing the duplicate block, `npx tsc --noEmit -p .` reports zero errors in HelpSOS.tsx (only unrelated pre-existing errors remain in other files). Note: /app/PartnerApp/src/components/partner/HelpSOS.tsx and /app/frontend/src/components/partner/HelpSOS.tsx are hard-linked (same inode 525964), so the single edit fixed both. Logic review of the (now de-duplicated) fix: correct — Android uses keyboardDidShow/Hide, iOS uses keyboardWillShow/Hide; androidKb is 0 on iOS so KeyboardAvoidingView behavior='padding' does not double-pad; sheetH = min(85% window, window - androidKb - insets.top - 16) keeps header+messages+input visible above keyboard; input bar paddingBottom = 12 + (kbH ? 0 : insets.bottom) correctly drops safe-area inset while keyboard is up and restores it when keyboard closes. Modal has statusBarTranslucent as required for edge-to-edge Android. No regressions to send, attach photo, close, or typing-indicator paths.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "None required — critical duplicate-block bug fixed by testing agent. Main agent should be aware that /app/PartnerApp/src/components/partner/HelpSOS.tsx is hard-linked to /app/frontend/src/components/partner/HelpSOS.tsx; a single edit updates both.",
+    "Pre-existing (out-of-scope) TS errors remain in: HomeBanners.tsx (rose700), MaidTasksCard.tsx & subscriptions.tsx (icon name 'map-pin'), verification.tsx, invoiceActions.ts, webPush.ts, RealtimeContext.tsx, AppTabBar.tsx, BankKycScreen.tsx, AdditionalWork.tsx, starter-kit.tsx, permissions.tsx, job/[id].tsx — not caused by this change but worth tracking.",
+    "tsconfig uses deprecated baseUrl; TS 7.0 will remove it. Consider adding '\"ignoreDeprecations\": \"6.0\"' or migrating to 'paths' without baseUrl."
+  ],
+  "critical_code_review_comments": [
+    "CRITICAL (fixed): Duplicated 11-line keyboard-handling block in HelpSOS.tsx caused TS2451 redeclaration errors and would have double-registered Keyboard listeners, scheduled duplicate scrollToEnd timers, and caused double re-renders on every keystroke-driven keyboard event.",
+    "Logic OK: Keyboard event names are platform-correct (iOS=Will*, Android=Did*); androidKb gating prevents double padding on iOS where KeyboardAvoidingView already uses behavior='padding'.",
+    "Minor: `useEffect(() => { if (kbH) setTimeout(...) }, [kbH])` leaks the timer on unmount; consider clearing it in the cleanup. Not a crash, just hygiene."
+  ],
+  "updated_files": [
+    "/app/PartnerApp/src/components/partner/HelpSOS.tsx (hard-linked to /app/frontend/src/components/partner/HelpSOS.tsx) — removed duplicated hook/effect block (lines 51-61 of original), file now 193 lines."
+  ],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "100% (tsc clean for HelpSOS.tsx, logic verified)"},
+  "test_credentials": "N/A",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Partner Help chat keyboard fix was broken by duplicated hook block; fixed by removing duplicate. Both /app/PartnerApp and /app/frontend copies are hard-linked (inode 525964). No device emulator available — verification was via `npx tsc --noEmit -p . --ignoreDeprecations 6.0` in /app/PartnerApp and static logic review.",
+  "rca of the issue": "RCA: Main agent's patch pasted the keyboard-handling snippet twice into HelpSOS.tsx — lines 40-50 (useWindowDimensions, kbH state, Keyboard addListener show/hide, scroll-to-end effect, androidKb const, sheetH const) were immediately re-pasted at lines 51-61. TypeScript flagged 5 TS2451 'Cannot redeclare block-scoped variable' errors (winH, kbH, setKbH, androidKb, sheetH). The duplicate was initially masked locally because `tsc` was aborting on the tsconfig TS5101 baseUrl deprecation error before reaching the file; running with --ignoreDeprecations 6.0 surfaced the errors. Reproduction: `cd /app/PartnerApp && npx tsc --noEmit -p . --ignoreDeprecations 6.0`. Mitigation applied: deleted the duplicated 11-line block; re-ran tsc — no HelpSOS errors."
+}
