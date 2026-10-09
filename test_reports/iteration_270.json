@@ -1,0 +1,30 @@
+{
+  "summary": "Iter 270 backend verification of instant-success-screen / offline-retry / live-customer-sync. 11/11 tests PASS. Verified: (1) POST /api/bookings/{id}/complete now returns completion_summary {earning, today_earning, today_jobs}; (2) GET /api/bookings/partner/today-summary returns {today_earning, today_jobs} and increments correctly after completion; (3) Idempotency: retried /complete with same or any OTP after success returns 200 with completion_summary (not 400), produces exactly one commission_ledger earning row, one partner_ledger 'earning' credit, and jobs_completed increments to 1 only; (4) Concurrency: 5 parallel /complete threads on one started booking → exactly one commission_ledger row, one partner_ledger earning row, jobs_completed=1; all 5 responses 200 or 409, zero 500s; (5) Lock safety: 'completing' field unset after success, and stale (>60s) lock is reclaimable by the next /complete call; (6) Error paths: wrong OTP → 400 'Invalid completion OTP', not started → 400 'Job not started yet', another partner → 403; (7) Live sync: in-process spy on services.realtime.emit_user confirms it is called synchronously with (customer_id, 'booking_update', {status:'completed', …}) BEFORE complete_job returns; customer GET /api/bookings/my/pending-reviews immediately after completion lists the booking with auto_prompt=True. Static frontend review of PartnerApp (symlinked to /app/frontend) + web_panel also passes — all required testIDs, hooks, listeners, and realtime subscriptions present as described.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_complete_summary_iter270.py",
+    "/app/test_reports/pytest/iter270_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller.py is now 4777 lines — still well above the 700-line guideline. Strongly recommend splitting into booking/lifecycle.py (claim/complete/cancel), booking/dispatch.py (ring/accept), booking/chat.py, booking/reviews.py.",
+    "partner_today_summary queries commission_ledger with {created_at: {$gte: day}} where day is a date string ISO 'YYYY-MM-DD'; this relies on created_at being stored as an ISO datetime string lexicographically sortable. Confirmed via now_iso() which returns timezone-aware ISO — safe today, but worth a code comment near the query to prevent regressions if someone switches to BSON Date.",
+    "Idempotent return path at line 3506 ignores the OTP value entirely once status is completed+same partner. This is intentional (safer retries) but should be commented more loudly; currently a retry with any OTP will return 200 after success, which is correct per the spec but surprising to a reader.",
+    "The 'completing' lock release in except BaseException (line 3538) only matches status='started'. If an exception occurs *after* status transitioned to 'completed' (e.g., during background _post_complete), the stale-lock path at line 3522 still allows reclaim after 60s — defensive and acceptable.",
+    "completeQueue.ts: MAX_AGE_MS = 6h is reasonable; retriable() correctly treats status===undefined (network error) as retriable. NetInfo listener wakes all sleeping retries via `kick` array — good.",
+    "Frontend DoneStep uses b.completion_summary?.earning first then falls back to commission.partner_earning — resilient when the queued-background completion later resolves and refreshes the booking."
+  ],
+  "updated_files": ["/app/backend/tests/test_complete_summary_iter270.py"],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "static review only — all required testIDs/hooks present"},
+  "test_credentials": "none — mints JWT via backend/.env JWT_SECRET using middleware.auth compatible payload (uid/role/sid). All seeded users and bookings are TEST_-prefixed and cleaned up per test.",
+  "seed_data_creation": "Per-test disposable TEST_ partner + customer + 'started' booking (evidence.after=['/u/x.jpg'], otps.completion='2222', prepaid, pricing.total=500) via sync pymongo. Teardown removes users/bookings/commission_ledger/partner_ledger/notifications/transactions/invoices.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reusable regression suite at /app/backend/tests/test_complete_summary_iter270.py — complements iter269 suite. Run with: REACT_APP_BACKEND_URL=http://localhost:8001 python -m pytest tests/test_complete_summary_iter270.py -v (took ~2s). Concurrency test uses ThreadPoolExecutor against the live uvicorn so it exercises the real Mongo atomic-claim path in bookings.update_one({'$or':[not-exists, stale]}). The emit_user sync test monkey-patches both services.realtime.emit_user and the controller-local reference bc.rt.emit_user — necessary because booking_controller imports realtime as `rt`.",
+  "rca of the issue": "N/A — no bugs found. All iter 270 features working as specified."
+}
