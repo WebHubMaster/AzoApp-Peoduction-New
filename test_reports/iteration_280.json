@@ -1,0 +1,33 @@
+{
+  "summary": "End-to-end testing of the redesigned Admin 'Reported Bugs' module. Backend: 15/15 pytest cases pass against GET /api/admin/bugs (new sort, date_from, date_to params, page_size cap=100, category=other legacy inclusion, q with BUG-ID prefix, invalid dates returning 400) and lifecycle (POST /bugs, /bugs/my, /admin/bugs/{id}/resolve, /admin/bugs/{id}/reopen). Frontend: all required data-testids are present and functional; KPI cards, segmented filters, search (debounced server-side), chips, Clear all, sort select, pagination (page_size 10/20/50/100 via native select, next/prev, 'Page X of Y'), resolve dialog (with min-5-char validation), reopen with confirm dialog, drawer with sections including 'Previous resolution', empty state with Clear all, mobile 390px with no horizontal overflow and full-width drawer.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Reported Bugs toolbar", "issues": ["Page-size and sort controls use native HTML <select> elements rather than the shadcn Select used elsewhere in the admin UI; this works correctly but looks inconsistent with the premium enterprise visual language requested (and prevents option-level data-testids). Consider migrating to shadcn Select for consistency."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_admin_bugs.py",
+    "/app/test_reports/pytest/admin_bugs.xml"
+  ],
+  "action_items": [
+    "(Low priority / optional) Replace native <select> on pagination-page-size and bug-sort-select with the shadcn Select component to match the premium #0D47A1 enterprise look used across the toolbar."
+  ],
+  "critical_code_review_comments": [
+    "bug_controller.admin_list builds category_counts with N+1 count_documents (one per category + legacy). On larger datasets consider a single aggregation pipeline.",
+    "admin_reopen keeps the previous resolution_note (good for the 'Previous resolution' drawer section) but does NOT emit an SSE/notification like admin_resolve does. If reporters should learn when their bug is reopened, mirror the notify/emit_user block from admin_resolve.",
+    "admin_resolve always overwrites resolution_note (even with the default 'Fixed. Thanks for reporting!') — this is fine, but if an admin reopens then resolves again, the drawer's 'Previous resolution' is overwritten. Consider pushing to a resolutions[] history array."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_admin_bugs.py (new)"
+  ],
+  "success_rate": {"backend": "100% (15/15)", "frontend": "100% of listed scenarios"},
+  "test_credentials": "Admin via web panel 'Login as Admin' demo button (no OTP input needed). API: +919000000000 / OTP 123456 (admin), +919000000004 (customer), +919000000003 (partner). Note: /app/memory/test_credentials.md is missing; using credentials from review request.",
+  "seed_data_creation": "Test created a few TEST_UI bug reports via POST /api/bugs during pytest + two bugs via UI resolve/reopen flow. 30 TEST_bug reports already seeded. No existing data was deleted.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend regression file is /app/backend/tests/test_admin_bugs.py and MUST be run with `-n 0` (serial) because admin/customer/partner OTP logins mutate a single demo-account token and parallel xdist workers invalidate each other's sessions. The web panel is a prebuilt static bundle served by backend from /app/web_panel/build; if web_panel source is changed, rebuild via `cd /app/web_panel && bash build_panel.sh`. Pagination controls on Reported Bugs use NATIVE <select> (use locator.select_option, not click). Admin login in UI tests uses the 'Login as Admin' one-click demo button on /api/panel/login (no OTP typing); direct localStorage token injection is NOT viable because the panel's auth code validates against its own session.",
+  "rca of the issue": "Not applicable — no bugs reproduced. All 14 feature scenarios in the review request behave as specified."
+}
