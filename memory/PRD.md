@@ -264,3 +264,10 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   - `active.tsx`: `refreshing` now reflects ONLY a genuine user pull via local `pulling` state + `onPull` (awaits `activeQ.refetch()`+`doneQ.refetch()`); background polling/invalidations update silently.
   - `partner/job/[id].tsx`: on completion, optimistically remove the finished booking from the `partner-active` cache so the Active screen is correct instantly instead of waiting for the next poll.
 - Verification: TS compile clean for both files (no new errors). Backend endpoints confirmed cheap/async (not the bottleneck). Native Expo app not exercisable by the browser testing agent here — needs a device check after rebuild.
+
+## Partner app — Notifications screen missing top nav (Jun 2026)
+- Symptom: tapping the bell → Notifications screen had NO top navigation header (brand + bell + theme + profile); user wanted the top nav visible like other screens.
+- Root cause: `app/notifications.tsx` used `<AppHeader/>` from `src/components/Screen.tsx`, which was gutted app-wide (now renders only an invisible safe-area spacer).
+- Fix: `app/notifications.tsx` now renders `<AppShellHeader profileRoute={role==='merchant' ? '/(merchant)/profile' : '/(partner)/profile'} />` (the real top nav), matching Dashboard/Active Job/Wallet.
+- Verified: testing agent iteration_260 — backend /api/notifications 4/4 PASS; static RN verification confirms AppShellHeader now renders at top of the Notifications screen. retest_needed=false.
+- NOTE (not changed, intentional product decision): other partner sub-screens still use the gutted AppHeader (Job History, Booking details, Bank & KYC) — these show no title bar by design. Flag if the user wants the top nav there too.

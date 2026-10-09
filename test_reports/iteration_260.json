@@ -1,0 +1,37 @@
+{
+  "summary": "Verified PartnerApp notifications-screen top-nav fix. STATIC verification of RN code + BACKEND API verification against the preview backend. Native UI could not be exercised in a browser (Expo React Native app, no web preview), so UI check is static as instructed in the review request.",
+  "static_frontend_verification": {
+    "file": "/app/PartnerApp/app/notifications.tsx",
+    "finding_1": "Line 8 imports AppShellHeader from '@/src/components/AppShell'.",
+    "finding_2": "Line 81 renders <AppShellHeader profileRoute={user?.role === 'merchant' ? '/(merchant)/profile' : '/(partner)/profile'} /> as the FIRST child inside the root <View> (before the count row and FlatList) — so the top nav is now the first thing on the screen.",
+    "finding_3": "AppShellHeader (/app/PartnerApp/src/components/AppShell.tsx L25-149) renders a visible glass-card header with testID 'app-shell-header' and contains: brand/logo wordmark, bell Pressable testID 'partner-notifications' (unread badge), theme toggle testID 'theme-toggle', divider, and profile chip testID 'partner-profile-chip' — matches the expected top-nav described in the bug report.",
+    "finding_4": "AppShellHeader uses paddingTop=insets.top+12 so it respects the safe-area and is NOT hidden under the status bar.",
+    "finding_5": "The old <AppHeader/> in /app/PartnerApp/src/components/Screen.tsx remains gutted (insets spacer only) — but notifications.tsx no longer uses it, so the regression it caused on this screen is fixed.",
+    "finding_6": "Route re-export at /app/PartnerApp/app/(partner)/partner/notifications.tsx just re-exports the fixed component, so /partner/notifications (the route pushed by the bell at AppShell.tsx L97) renders the same header.",
+    "verdict": "FIX LOOKS CORRECT: the Notifications screen now has the AppShellHeader (brand + bell + theme-toggle + profile chip) at the top like Dashboard/Active Job/Wallet."
+  },
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": { "ui_bugs": [], "integration_issues": [], "design_issues": [] },
+  "backend_tests_run": {
+    "endpoint_GET_/api/notifications_authenticated": "PASS - 200, returns a list",
+    "endpoint_GET_/api/notifications_unauthenticated": "PASS - 401/403",
+    "endpoint_DELETE_/api/notifications/{id}_nonexistent": "PASS - 200 (idempotent hide)",
+    "endpoint_DELETE_/api/notifications_clear_all_then_GET": "PASS - 200 + GET returns empty list"
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_notifications_api.py",
+    "/app/test_reports/pytest/notif_screen_header.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: profileRoute logic in notifications.tsx uses role==='merchant' → '/(merchant)/profile' else '/(partner)/profile'. For customers (if they ever hit this shared screen) they get the partner profile route — fine because this screen is reached from the (partner) group bell. Not a bug for the reported flow.",
+    "Note: AppHeader in Screen.tsx is intentionally gutted but still exported — any OTHER screen still importing <AppHeader/> (not AppShellHeader) will have the SAME 'invisible top nav' regression. Recommend grep -rn 'AppHeader' in PartnerApp/app to find similar screens and either delete AppHeader or route it to AppShellHeader to prevent future recurrence."
+  ],
+  "updated_files": ["/app/backend/tests/test_notifications_api.py"],
+  "success_rate": { "backend": "100% (4/4)", "frontend": "static-only (no runnable native UI harness)" },
+  "test_credentials": "Partner demo account +919000000003 (Raj Kumar), OTP 123456 — fetched live from /api/auth/demo-status.",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PartnerApp is an Expo RN app; no web preview. For UI checks do static reads of app/*.tsx + verify the component imports AppShellHeader (NOT the gutted AppHeader from Screen.tsx). Backend auth: /api/auth/send-otp then /api/auth/verify-otp with phone from /api/auth/demo-status and OTP 123456 (demo_mode=true)."
+}
