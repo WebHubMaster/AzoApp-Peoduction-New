@@ -27,9 +27,9 @@ const cases = [
   // [input, expected, label]
   ["/api/media/s3/jobs/x.webp", `${ORIGIN}/api/media/s3/jobs/x.webp`, "relative /api/media/s3 → prefixed"],
   ["/api/media/file/jobs/a.webp", `${ORIGIN}/api/media/file/jobs/a.webp`, "relative /api/media/file → prefixed"],
-  ["https://help-chat-safe.preview.emergentagent.com/api/media/file/jobs/a.webp",
+  ["https://rate-card-invoice.preview.emergentagent.com/api/media/file/jobs/a.webp",
    `${ORIGIN}/api/media/file/jobs/a.webp`, "absolute old-host /api/media/... → rewritten to current origin"],
-  ["https://help-chat-safe.preview.emergentagent.com/api/media/s3/kyc/u.webp",
+  ["https://rate-card-invoice.preview.emergentagent.com/api/media/s3/kyc/u.webp",
    `${ORIGIN}/api/media/s3/kyc/u.webp`, "absolute old-host /api/media/s3 → rewritten"],
   ["https://cdn.example.com/a.webp", "https://cdn.example.com/a.webp", "external absolute non-media → unchanged"],
   ["data:image/png;base64,abc", "data:image/png;base64,abc", "data URI → unchanged"],

@@ -18,6 +18,6 @@
   "seed_data_creation": "Support ticket TKT-100003 ('Help · Booking AZO557577') created during Help-flow test with messages: customer 'I need help with my Fan Installation...', customer 'TEST customer msg hello', admin 'TEST admin reply from support'.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "All web requirements for this task pass. Expo Customer app was explicitly out of scope. If reopening: public URL REACT_APP_BACKEND_URL=https://help-chat-safe.preview.emergentagent.com. Customer dashboard route is /account (NOT /dashboard). Admin dashboard route is /admin; Support Inbox opens via left-nav 'Support Tickets' item. localStorage key for auth is 'azo_token'.",
+  "context_for_next_testing_agent": "All web requirements for this task pass. Expo Customer app was explicitly out of scope. If reopening: public URL REACT_APP_BACKEND_URL=https://rate-card-invoice.preview.emergentagent.com. Customer dashboard route is /account (NOT /dashboard). Admin dashboard route is /admin; Support Inbox opens via left-nav 'Support Tickets' item. localStorage key for auth is 'azo_token'.",
   "rca of the issue": "N/A — no bugs reproduced."
 }

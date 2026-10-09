@@ -1,0 +1,31 @@
+{
+  "summary": "Verified end-to-end that rate-card additional work merges into the customer booking breakdown and the SAME invoice (idempotent) as separate line items for both PAID (AZO432C38) and PENDING (AZOADDL01) cases. Backend: 4/4 relevant pytests pass (partner-no-merge test SKIPPED because partner is not assigned to AZO432C38). Frontend web_panel: validated login, My Bookings list, booking details drawer (shows 'Tap replacement — product/parts ₹300' and 'Tap replacement — service & labour ₹200' with 'Additional work · Rate card · Payment pending' label), Invoice drawer (3 line items, Grand Total ₹1,714.4), and Payment Summary balance due testid summary-balance-due = '₹514.4' for AZOADDL01. One blocker (fixed as test-level fix): web_panel was built with a literal-quoted REACT_APP_BACKEND_URL (because /app/backend/.env has quotes around the value and build_panel.sh pipes it as-is) → axios baseURL became `\"https://…\"/api`, causing all API calls to be relative paths like `/api/panel/\"https://…\"/api/auth/send-otp` → 405 Method Not Allowed. Rebuilt the panel passing REACT_APP_BACKEND_URL without quotes directly to yarn build to unblock testing.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "web_panel build / Customer OTP login", "issue": "build_panel.sh reads REACT_APP_BACKEND_URL from backend/.env via `cut -d'=' -f2` without stripping surrounding quotes. backend/.env currently stores the value quoted, so the built bundle bakes in a quoted string. axios then treats baseURL as relative (anchored to current path), yielding e.g. GET/POST /api/panel/\"https://31aa4333-…\"/api/auth/send-otp → 405. Observable as a 'Method Not Allowed' toast immediately on clicking Send OTP, plus the earlier 'Something went wrong' ErrorBoundary on /api/panel/ (TypeError: (a||[]).filter is not a function originates from the config endpoints failing). Fix at source: strip quotes in build_panel.sh (e.g. `BACKEND_URL=$(grep ^REACT_APP_BACKEND_URL ../backend/.env | cut -d'=' -f2- | tr -d '\\\"'`)) OR remove quotes from backend/.env. I temporarily rebuilt the panel directly so this testing run could proceed.", "affected_selectors": ["[data-testid=\"forgot-send-otp\"]", "OtpLogin phone input", "all /api/* calls from panel"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_customer_additional_work.py", "/app/test_reports/pytest/customer_additional_work.xml"],
+  "action_items": [
+    "Harden /app/web_panel/build_panel.sh to strip quotes from the env value (or remove quotes from backend/.env). Current behavior produces a broken production bundle at /api/panel/ as soon as CI/CD runs build_panel.sh. Repro: `cd /app/web_panel && bash build_panel.sh` → open {backend}/api/panel/login → Send OTP → 405. After fix, run the same flow with +919000000004 / OTP 123456 and confirm /api/auth/send-otp POST returns 200.",
+    "Consider adding a 'Partner can see its own AZO432C38 variant' seed row so the partner-no-merge regression test does not SKIP."
+  ],
+  "critical_code_review_comments": [
+    "build_panel.sh does not sanitize env values from backend/.env — any quoted or whitespace-containing value will silently corrupt the bundle (as happened here with REACT_APP_BACKEND_URL=\"https://…\").",
+    "web_panel axios client (src/lib/api.js) does not validate that _envBackend is a well-formed absolute URL; a defensive check (startsWith('http')) with fallback to window.location.origin would have prevented this class of 405/404 failures from a bad build."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_customer_additional_work.py",
+    "/app/web_panel/build (rebuilt with unquoted REACT_APP_BACKEND_URL — ephemeral)"
+  ],
+  "success_rate": {"backend": "100% (4 passed, 1 n/a-skipped)", "frontend": "100% on the additional-work customer flows after rebuild"},
+  "test_credentials": "Customer +919000000004 / 123456; Partner +919000000003 / 123456 (dev OTP; same as /app/memory/test_credentials.md).",
+  "seed_data_creation": "none (used existing seeded bookings AZO432C38 completed + paid additional; AZOADDL01 started + pending additional).",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend behaviour for the additional-work merge is correct and idempotent — invoice INV-2026-000002 for AZO432C38 contains 3 line_items including the two additional ones, gst_invoice.grand_total == total_amount == 1714.4, repeated GETs do not duplicate rows, invoice_number stays stable. On frontend, after a correct build the Invoice drawer and Booking Details drawer render exactly as the spec requires (separate line items with 'Additional work · Rate card' tag, correct Grand Total, and `data-testid=\"summary-balance-due\"` showing ₹514.4 only for AZOADDL01). Only remaining concern is the build_panel.sh env parsing bug — see action_items.",
+  "rca of the issue": "RCA for the frontend 405: Variable REACT_APP_BACKEND_URL in /app/backend/.env is stored as `\"https://31aa4333-…\"` (with surrounding double quotes). /app/web_panel/build_panel.sh does `BACKEND_URL=$(grep REACT_APP_BACKEND_URL ../backend/.env | cut -d '=' -f2)` which captures the quotes verbatim, then exports to yarn build. CRA bakes `process.env.REACT_APP_BACKEND_URL` into the bundle. In src/lib/api.js, BACKEND_ORIGIN is derived from this string and used as axios baseURL; because it starts with `\"` (not `http`), browsers treat it as a relative URL path. Result: every /api call becomes /api/panel/\"https:…\"/api/… which the FastAPI SPA handler matches with method GET (returning the index.html for GETs, hence config endpoints 200 but with HTML body — likely triggers the ErrorBoundary filter-on-non-array error) and 405 for POST (SPA route only registers GET). Mitigation inside build_panel.sh: `BACKEND_URL=$(grep ^REACT_APP_BACKEND_URL= ../backend/.env | cut -d= -f2- | sed -e 's/^\"//' -e 's/\"$//')`. Alternative: remove quotes from backend/.env."
+}

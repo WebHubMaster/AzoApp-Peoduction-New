@@ -17,7 +17,7 @@
   "seed_data_creation": "Created & removed TESTFM<rand>/TESTNS<rand> bookings + TEST_partner_* users within pytest fixtures. settings.ocr_api_key verified empty before and after.",
   "retest_needed": false,
   "main_agent_can_self_test": true,
-  "context_for_next_testing_agent": "Admin web_panel URL: https://help-chat-safe.preview.emergentagent.com. For pytest, pass -o addopts='' to disable xdist parallelism when a single admin session is used (xdist causes device_revoked 401 due to single-device-login).",
+  "context_for_next_testing_agent": "Admin web_panel URL: https://rate-card-invoice.preview.emergentagent.com. For pytest, pass -o addopts='' to disable xdist parallelism when a single admin session is used (xdist causes device_revoked 401 due to single-device-login).",
   "verification_details": {
     "backend": [
       "POST /api/admin/integrations/vision-test {} -> ok=false, error contains 'No API key entered'.",

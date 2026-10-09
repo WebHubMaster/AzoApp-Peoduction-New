@@ -403,3 +403,11 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Partner web JobWizard: celebratory DoneCard (confetti, earning, today's earnings/jobs) shown instantly from completion_summary.
 - Customer thank-you card (Expo + web RateService): partner photo + one-tap tip ₹20/50/100 (wallet if balance else online gateway purpose "tip"). Backend add_tip now debits customer wallet atomically, one tip per booking, partner_ledger "tip"; payments purpose "tip" (create_order/_apply/confirm_return using stored pay_tip_amount). pending-reviews returns partner_photo, tip_amount.
 - CI fix: backend/requirements.txt must NOT include emergentintegrations or litellm url lines (Dockerfile installs emergentintegrations separately via extra index).
+
+## 2026-06 — Rate-card Additional Work on Customer Invoice (Customer App + Customer Web)
+- Problem: Additional work added from the rate card was missing from the customer invoice.
+- User choices: show it as separate line items with recalculated total; update the SAME invoice; show balance due if unpaid; no customer approval needed.
+- Backend: `engines.merge_additional_breakdown` adds the additional work lines and totals to the customer booking breakdown (`balance_due` while unpaid). `invoice_service.refresh_booking_invoice_additional` updates an existing invoice in place (same id/number, idempotent) on ensure/get/public. The GST invoice block (`_gst_block_for`) now includes the additional work: commission and GST on the platform page, partner share on the partner receipt, and in the grand total. The completion notification total includes the additional work.
+- Frontend: web `CustomerDashboard.jsx` and Expo `BookingDrawers.tsx` show additional lines through ServiceBreakdown, Balance Due rows and Paid Amount = total − balance due. The separate additional block was removed from the app.
+- Tested: iteration_273 passed (backend + web). Expo app changes were only code-reviewed.
+- Backlog: partner-side regression test with a partner-assigned seed booking; sanitize quotes in build_panel.sh.

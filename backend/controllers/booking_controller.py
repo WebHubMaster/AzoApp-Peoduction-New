@@ -9,7 +9,7 @@ from pymongo.errors import DuplicateKeyError
 from config.database import db, now_iso, get_settings
 from models.user import new_id
 from services import money
-from services.engines import PricingEngine, CommissionEngine, MatchingEngine, ServiceAreaEngine
+from services.engines import PricingEngine, CommissionEngine, MatchingEngine, ServiceAreaEngine, merge_additional_breakdown
 from services import realtime as rt
 from services import refund_service
 from services.schedule_service import schedule_state, format_scheduled, parse_scheduled, set_lead_minutes, lead_minutes
@@ -2363,6 +2363,8 @@ async def _enrich_rows(user, rows):
         # Canonical financial breakdown (single source of truth) — every panel renders
         # THIS, never re-derives amounts locally.
         b["breakdown"] = PricingEngine.build_breakdown(b, settings, audience=role)
+        if role == "customer" and b.get("status") != "cancelled":
+            b["breakdown"] = merge_additional_breakdown(b["breakdown"], b.get("additional"))
         if role in ("partner", "merchant"):
             _hide_platform_fees(b)
         # Partner viewing a still-locked scheduled job cannot see the customer phone.
@@ -2409,6 +2411,8 @@ async def get_booking(user, booking_id):
     b["schedule"] = st
     b["otps"] = _visible_otps(user, b)
     b["breakdown"] = PricingEngine.build_breakdown(b, await get_settings(), audience=user.get("role"))
+    if user.get("role") == "customer" and b.get("status") != "cancelled":
+        b["breakdown"] = merge_additional_breakdown(b["breakdown"], b.get("additional"))
     _strip_face_match(user, b)
     if user.get("role") in ("partner", "merchant"):
         _hide_platform_fees(b)
@@ -3686,7 +3690,7 @@ async def _complete_claimed(partner, booking_id, b, addl):
         rt.emit_user(partner["id"], "finance_update", {"kind": "job_completed", "booking_id": booking_id})
         await _notify(
             b.get("customer_id"), "Service completed",
-            f"Invoice for {b.get('code')} is ready: ₹{(b.get('pricing') or {}).get('total', 0)}. Please rate your experience.",
+            f"Invoice for {b.get('code')} is ready: ₹{money.add((b.get('pricing') or {}).get('total', 0), (addl or {}).get('total', 0) if (addl or {}).get('status') == 'paid' else 0)}. Please rate your experience.",
             event_type="booking_completed",
             ctx={"customer_name": b.get("customer_name", ""), "booking_id": b["code"]})
 

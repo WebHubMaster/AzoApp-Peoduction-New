@@ -9,7 +9,7 @@ from pymongo import ReturnDocument
 from pymongo.errors import DuplicateKeyError
 from config.database import db, get_settings, now_iso
 from services.invoice_html_service import resolve_theme, DEFAULT_THEME
-from services.engines import PricingEngine
+from services.engines import PricingEngine, additional_work_lines, merge_additional_breakdown
 from services.money import TAX_LABEL
 import uuid
 import re
@@ -106,6 +106,20 @@ async def _gst_block_for(booking: dict, settings: dict, invoice_number: str) -> 
     share = None
     if (booking.get("pricing") or {}).get("partner_share") is None:
         share = _CE.compute_split(booking, settings).get("partner_earning")
+    addl = booking.get("additional") or {}
+    if addl.get("status") == "paid" and float(addl.get("total") or 0) > 0:
+        # Paid rate-card additional work: GST + commission → platform page; parts +
+        # partner labour share → partner receipt; grand total includes it.
+        from services import money as _m
+        pr = dict(booking.get("pricing") or {})
+        base_share = pr.get("partner_share") if pr.get("partner_share") is not None else share
+        pr["partner_share"] = _m.add(base_share or 0, addl.get("partner_earning") or 0)
+        pr["total"] = _m.add(pr.get("total") or 0, addl.get("total") or 0)
+        pr["gst"] = _m.add(pr.get("gst") or pr.get("tax") or 0, addl.get("gst") or 0)
+        pr.pop("cgst", None)
+        if pr.get("platform_commission") is not None:
+            pr["platform_commission"] = _m.add(pr.get("platform_commission") or 0, addl.get("commission") or 0)
+        return _gis.build_block({**booking, "pricing": pr}, settings, partner, invoice_number)
     return _gis.build_block(booking, settings, partner, invoice_number, share)
 
 
@@ -149,6 +163,8 @@ async def ensure_booking_invoice(booking: dict, settings: dict = None):
         {"booking_id": booking["id"], "invoice_type": itype}, {"_id": 0}
     )
     if existing:
+        if itype == "booking":
+            return await refresh_booking_invoice_additional(existing, booking, settings)
         return existing
 
     pr = booking.get("pricing") or {}
@@ -379,61 +395,50 @@ def _valid_email(e) -> bool:
 
 
 def _merge_additional_into_invoice(inv: dict, booking: dict) -> dict:
-    """Fold PAID rate-card additional work into the booking invoice as extra line
-    items + totals (user choice: extra line items on the main invoice, generated at
-    job completion).
-
-    Billing rule (kept identical to booking['additional'], computed in
-    _recompute_additional): product/parts carry NO GST and NO commission (100% the
-    partner's); service & labour carry the platform commission and GST is levied on
-    the commission portion only. The partner-facing net earning for this additional
-    work is added in _attach_role_earning from the 'additional_work' commission ledger
-    row, so the partner never sees platform fees/commission here."""
+    """Fold PAID rate-card additional work into the booking invoice as extra line items
+    + recalculated totals. Parts carry no GST/commission; labour carries the platform
+    commission and GST on that commission (see _recompute_additional)."""
     addl = booking.get("additional") or {}
-    if addl.get("status") != "paid":
+    total = round(float(addl.get("total") or 0), 2)
+    if addl.get("status") != "paid" or total <= 0 or inv.get("additional_work"):
         return inv
     parts_total = round(float(addl.get("parts_total") or 0), 2)
     labour_total = round(float(addl.get("labour_total") or 0), 2)
     gst = round(float(addl.get("gst") or 0), 2)
-    total = round(float(addl.get("total") or 0), 2)
-    if total <= 0:
-        return inv
     commission = round(float(addl.get("commission") or 0), 2)
-    new_lines, svc_items = [], []
-    for it in (addl.get("items") or []):
-        desc = (it.get("description") or "Additional work").strip()
-        part = round(float(it.get("part_charge") or 0), 2)
-        labour = round(float(it.get("labour_charge") or 0), 2)
-        if part > 0:
-            new_lines.append({"desc": f"{desc} — product/parts", "detail": "Additional work · no tax", "qty": 1, "rate": part, "amount": part})
-            svc_items.append({"name": f"{desc} — product/parts", "category": "Additional work", "qty": 1, "rate": part, "amount": part, "addons": [], "additional": True})
-        if labour > 0:
-            new_lines.append({"desc": f"{desc} — service & labour", "detail": "Additional work", "qty": 1, "rate": labour, "amount": labour})
-            svc_items.append({"name": f"{desc} — service & labour", "category": "Additional work", "qty": 1, "rate": labour, "amount": labour, "addons": [], "additional": True})
+    new_lines = [{"desc": n, "detail": "Additional work · no tax" if is_part else "Additional work",
+                  "qty": 1, "rate": a, "amount": a, "additional": True}
+                 for n, a, is_part in additional_work_lines(addl)]
     inv["line_items"] = (inv.get("line_items") or []) + new_lines
     inv["subtotal"] = round(float(inv.get("subtotal") or 0) + parts_total + labour_total, 2)
     inv["tax"] = round(float(inv.get("tax") or 0) + gst, 2)
     inv["taxable"] = round(float(inv.get("taxable") or 0) + commission, 2)
     inv["total_amount"] = round(float(inv.get("total_amount") or 0) + total, 2)
     inv["commission"] = round(float(inv.get("commission") or 0) + commission, 2)
-    bd = dict(inv.get("breakdown") or {})
-    bd["service_items"] = (bd.get("service_items") or []) + svc_items
-    bd["services_subtotal"] = round(float(bd.get("services_subtotal") or 0) + parts_total + labour_total, 2)
-    bd["subtotal"] = round(float(bd.get("subtotal") or 0) + parts_total + labour_total, 2)
-    bd["taxable"] = round(float(bd.get("taxable") or 0) + commission, 2)
-    bd["tax"] = round(float(bd.get("tax") or 0) + gst, 2)
-    bd["total"] = round(float(bd.get("total") or 0) + total, 2)
-    additional_block = {
-        "items": addl.get("items") or [],
-        "parts_total": parts_total, "labour_total": labour_total,
-        "gst": gst, "gst_pct": addl.get("gst_pct"), "commission": commission,
-        "partner_earning": round(float(addl.get("partner_earning") or 0), 2),
-        "platform_earning": round(float(addl.get("platform_earning") or 0), 2),
-        "total": total,
-    }
-    bd["additional_work"] = additional_block
+    bd = merge_additional_breakdown(inv.get("breakdown") or {}, addl, include_pending=False)
     inv["breakdown"] = bd
-    inv["additional_work"] = additional_block
+    inv["additional_work"] = bd.get("additional_work")
+    return inv
+
+
+async def refresh_booking_invoice_additional(inv: dict, booking: dict = None, settings: dict = None) -> dict:
+    """Update an EXISTING booking invoice in place (same id/number) when paid rate-card
+    additional work is not yet on it."""
+    if not inv or inv.get("invoice_type") != "booking" or inv.get("additional_work"):
+        return inv
+    booking = booking or await db.bookings.find_one({"id": inv.get("booking_id")}, {"_id": 0})
+    addl = (booking or {}).get("additional") or {}
+    if addl.get("status") != "paid" or float(addl.get("total") or 0) <= 0:
+        return inv
+    settings = settings or await get_settings()
+    inv = _merge_additional_into_invoice(dict(inv), booking)
+    _gb = await _gst_block_for(booking, settings, inv["invoice_number"])
+    if _gb:
+        inv["gst_invoice"] = _gb
+    inv["updated_at"] = now_iso()
+    fields = {k: inv[k] for k in ("line_items", "subtotal", "tax", "taxable", "total_amount", "commission",
+                                  "breakdown", "additional_work", "gst_invoice", "updated_at") if k in inv}
+    await db.invoices.update_one({"id": inv["id"], "additional_work": {"$exists": False}}, {"$set": fields})
     return inv
 
 
@@ -1463,6 +1468,7 @@ async def get_invoice(user: dict, invoice_id: str):
         return "forbidden"
     if role == "partner" and inv.get("partner_id") != user["id"]:
         return "forbidden"
+    inv = await refresh_booking_invoice_additional(inv)
     return await prepare_for_role(inv, role)
 
 
@@ -1489,6 +1495,7 @@ async def get_invoice_public(invoice_id: str):
     if not inv:
         return None
     role = "customer"
+    inv = await refresh_booking_invoice_additional(inv)
     inv = await fill_live_branding(inv)
     inv = await _attach_role_earning(inv, role)
     inv = await _attach_bill_to(inv, role)

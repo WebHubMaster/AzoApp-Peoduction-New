@@ -1434,6 +1434,9 @@ function PaymentSummary({ b }) {
       <div className="border-t border-slate-100 dark:border-slate-800 pt-2">
         <DRow k="Total Booking Amount" v={fmt(bd.total)} strong />
       </div>
+      {Number(bd.balance_due || 0) > 0 && (
+        <div data-testid="summary-balance-due"><DRow k="Balance Due (Additional work)" v={fmt(bd.balance_due)} strong /></div>
+      )}
       <DRow k="Payment status" v={(bd.payment_status || b.payment_status || "pending").toUpperCase()} />
     </>
   );
@@ -1670,7 +1673,7 @@ function InvoiceDrawer({ b, open, onClose }) {
       const row = (k, v, bold) => { doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setTextColor(bold ? 13 : 71, bold ? 71 : 85, bold ? 161 : 105); doc.text(k, M, y); doc.text(v, W - M, y, { align: "right" }); y += 22; };
       lines.forEach(([k, v]) => row(k, `${v < 0 ? "- " : ""}INR ${Math.abs(v).toFixed(2)}`));
       y += 6; doc.line(M, y, W - M, y); y += 26;
-      row("Grand Total", `INR ${Number(p.total ?? 0).toFixed(2)}`, true);
+      row("Grand Total", `INR ${Number(bd?.total ?? p.total ?? 0).toFixed(2)}`, true);
       y += 10; doc.setFont("helvetica", "normal"); doc.setTextColor(100, 116, 139); doc.setFontSize(10);
       doc.text(`Payment: ${(b.payment_method || "UPI / Wallet")} · ${(b.payment_status || "pending").toUpperCase()}`, M, y);
       y += 30; doc.text(`Thank you for choosing ${brandName}!`, M, y);
@@ -1690,7 +1693,7 @@ function InvoiceDrawer({ b, open, onClose }) {
       const doc = await buildClientPdf();
       const blob = doc.output("blob");
       const file = new File([blob], `AzoApp-Invoice-${b.code}.pdf`, { type: "application/pdf" });
-      const text = `Invoice ${b.code} \u00b7 INR ${Number(p.total ?? 0).toFixed(2)} \u2014 ${brandName}`;
+      const text = `Invoice ${b.code} \u00b7 INR ${Number(bd?.total ?? p.total ?? 0).toFixed(2)} \u2014 ${brandName}`;
       await shareFilePdf(file, { title: `Invoice ${b.code}`, text, channel: "whatsapp", toastId: t });
     } catch { toast.error("Could not share invoice", { id: t }); }
     finally { setSharing(false); }
@@ -1719,7 +1722,10 @@ function InvoiceDrawer({ b, open, onClose }) {
         )}
         {Number(bd?.tax ?? p.gst ?? 0) > 0 && <DRow k={<>Est. Govt. Taxes <FeeInfoTip kind="tax" /></>} v={fmt(bd?.tax ?? p.gst)} />}
         <div className="border-t border-slate-200 dark:border-slate-700 pt-2"><DRow k="Grand Total" v={fmt(bd?.total ?? p.total)} strong /></div>
-        <DRow k="Paid Amount" v={fmt((b.payment_status === "paid" || b.payment_status === "completed" || b.payment_status === "refunded") ? (bd?.total ?? p.total) : 0)} />
+        <DRow k="Paid Amount" v={fmt((b.payment_status === "paid" || b.payment_status === "completed" || b.payment_status === "refunded") ? Number(bd?.total ?? p.total ?? 0) - Number(bd?.balance_due || 0) : 0)} />
+        {Number(bd?.balance_due || 0) > 0 && (
+          <div data-testid="invoice-balance-due"><DRow k="Balance Due (Additional work)" v={fmt(bd.balance_due)} strong /></div>
+        )}
         {bd?.refund ? (
           <div className="mt-2 rounded-xl border border-rose-200 dark:border-rose-900/40 bg-rose-50/60 dark:bg-rose-900/10 p-3 space-y-2" data-testid="invoice-cancel-card">
             <p className="text-[11px] font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">Cancellation &amp; Refund</p>

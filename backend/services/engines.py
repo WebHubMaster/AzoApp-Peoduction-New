@@ -1038,3 +1038,51 @@ class ServiceAreaEngine:
                 return {"serviceable": True, "area": a.get("name"), "city": a.get("city"), "match": "city"}
         return {"serviceable": False, "area": None, "match": "none",
                 "serviced_cities": sorted({a.get("city") for a in active if a.get("city")})}
+
+
+def additional_work_lines(addl: dict) -> list:
+    """Rate-card additional work as invoice lines: (name, amount, is_parts)."""
+    out = []
+    for it in (addl or {}).get("items") or []:
+        desc = (it.get("description") or "Additional work").strip()
+        part = money.money(it.get("part_charge") or 0)
+        labour = money.money(it.get("labour_charge") or 0)
+        if part > 0:
+            out.append((f"{desc} — product/parts", part, True))
+        if labour > 0:
+            out.append((f"{desc} — service & labour", labour, False))
+    return out
+
+
+def merge_additional_breakdown(bd: dict, addl: dict, include_pending: bool = True) -> dict:
+    """Fold rate-card additional work into a customer breakdown as extra service lines
+    and recalculated totals. Unpaid work shows as balance due."""
+    addl = addl or {}
+    total = money.money(addl.get("total") or 0)
+    paid = addl.get("status") == "paid"
+    if not bd or total <= 0 or (not paid and not include_pending) or bd.get("additional_work"):
+        return bd
+    parts = money.money(addl.get("parts_total") or 0)
+    labour = money.money(addl.get("labour_total") or 0)
+    gst = money.money(addl.get("gst") or 0)
+    commission = money.money(addl.get("commission") or 0)
+    tag = "Additional work · Rate card" + ("" if paid else " · Payment pending")
+    svc = [{"name": n, "category": "Additional work", "qty": 1, "rate": a, "amount": a,
+            "addons": [], "additional": True, "tier_label": tag}
+           for n, a, _ in additional_work_lines(addl)]
+    bd = dict(bd)
+    bd["service_items"] = (bd.get("service_items") or []) + svc
+    for k in ("services_subtotal", "subtotal"):
+        bd[k] = money.add(bd.get(k) or 0, parts, labour)
+    bd["taxable"] = money.add(bd.get("taxable") or 0, commission)
+    bd["tax"] = money.add(bd.get("tax") or 0, gst)
+    bd["total"] = money.add(bd.get("total") or 0, total)
+    bd["additional_work"] = {
+        "items": [{k: i.get(k) for k in ("id", "description", "part_charge", "labour_charge", "warranty")}
+                  for i in addl.get("items") or []],
+        "parts_total": parts, "labour_total": labour, "gst": gst,
+        "gst_pct": addl.get("gst_pct"), "total": total,
+        "status": "paid" if paid else "pending_payment", "paid_at": addl.get("paid_at"),
+    }
+    bd["balance_due"] = money.add(bd.get("balance_due") or 0, 0 if paid else total)
+    return bd
