@@ -8,7 +8,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Icon, MdiName } from "@/src/components/Icon";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
-import { homeFor, LOGIN_ROLES } from "@/src/components/auth/OtpFlow";
+import { goHome, LOGIN_ROLES } from "@/src/components/auth/OtpFlow";
 
 const LOGO_A = require("../../assets/welcome-logo-a.png");
 const PERSON = require("../../assets/welcome-person.webp");
@@ -150,7 +150,7 @@ export default function Welcome() {
   const { user, booting } = useAuth();
   const { width, height } = useWindowDimensions();
 
-  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) router.replace(homeFor(user) as any); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) goHome(router, user); }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const primary = brand.theme?.primary || "#0659B2";
   const siteName = brand.branding.site_name || "AzoApp";

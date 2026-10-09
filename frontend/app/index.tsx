@@ -47,7 +47,11 @@ export default function SplashGate() {
         const onboarded = user.role === "merchant"
           ? !!(user.kyc_status === "approved" || user.verified_merchant)
           : !!(user.onboarding_submitted || user.kyc_status === "approved" || user.verified_partner);
-        if (user.role === "partner") router.replace(onboarded ? "/(partner)" : "/partner/register");
+        if (user.role === "partner") {
+          const home = onboarded ? "/(partner)" : "/partner/register";
+          if (await shouldShowPermissionGate().catch(() => false)) router.replace({ pathname: "/onboarding/notifications", params: { next: home } });
+          else router.replace(home);
+        }
         else if (user.role === "merchant") router.replace(onboarded ? "/(merchant)" : "/merchant/register");
         else if (user.role === "agent") router.replace("/(agent)");
         else setUnsupported(true);
@@ -55,8 +59,7 @@ export default function SplashGate() {
       }
       const done = await storage.getItem(ONBOARD_DONE_KEY);
       if (done !== "1") { router.replace("/onboarding/intro"); return; }
-      const showGate = await shouldShowPermissionGate();
-      router.replace(showGate ? "/onboarding/notifications" : "/(auth)/welcome");
+      router.replace("/(auth)/welcome");
     })();
   }, [booting, minElapsed, user]);
 

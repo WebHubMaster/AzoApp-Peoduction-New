@@ -21,6 +21,19 @@ export const homeFor = (u: AppUser) => {
   return u.kyc_status === "approved" || u.verified_merchant ? "/(merchant)" : "/merchant/register";
 };
 
+/** Partner-only: show the permissions screen after login/signup (never for merchants). */
+export async function goHome(router: any, u: AppUser) {
+  const home = homeFor(u);
+  if (u.role === "partner") {
+    const { shouldShowPermissionGate } = require("@/src/lib/notifications"); // eslint-disable-line @typescript-eslint/no-require-imports
+    if (await shouldShowPermissionGate().catch(() => false)) {
+      router.replace({ pathname: "/onboarding/notifications", params: { next: home } });
+      return;
+    }
+  }
+  router.replace(home as any);
+}
+
 function GradButton({ title, icon, busy, onPress, grad, testID, disabled }: { title: string; icon: any; busy: boolean; onPress: () => void; grad: readonly [string, string]; testID: string; disabled?: boolean }) {
   const off = busy || disabled;
   return (
@@ -72,7 +85,7 @@ export function OtpFlow({ mode, role, accent, onNewUser, onStepChange, onRouting
     onRouting?.(true);
     await login(token, u);
     toast.success(greeting || `Welcome, ${u.name || "back"}!`);
-    router.replace(homeFor(u) as any);
+    await goHome(router, u);
   };
 
   const sendOtp = async () => {

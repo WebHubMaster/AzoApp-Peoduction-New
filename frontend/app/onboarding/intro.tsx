@@ -35,7 +35,7 @@ export default function Onboarding() {
 
   const finish = useCallback(async () => {
     try { await storage.setItem(ONBOARD_DONE_KEY, "1"); } catch { /* ignore */ }
-    router.replace("/onboarding/notifications");
+    router.replace("/(auth)/welcome");
   }, [router]);
 
   const goTo = (i: number) => { scrollRef.current?.scrollTo({ x: i * width, animated: true }); setIndex(i); };

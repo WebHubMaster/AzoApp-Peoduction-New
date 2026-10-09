@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Animated, Easing, AppState, ScrollView, Platform, Linking } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import { StatusBar } from "expo-status-bar";
 import { useTheme, spacing, radius, fontSize, palette } from "@/src/theme";
@@ -72,7 +72,8 @@ export default function PermissionsOnboarding() {
     return () => sub.remove();
   }, [load]);
 
-  const finish = useCallback(async () => { await markPrompted(); router.replace("/(auth)/welcome"); }, [router]);
+  const { next } = useLocalSearchParams<{ next?: string }>();
+  const finish = useCallback(async () => { await markPrompted(); router.replace((next || "/(partner)") as any); }, [router, next]);
 
   const runOne = useCallback(async (key: PermKey): Promise<PermState | null> => {
     try {

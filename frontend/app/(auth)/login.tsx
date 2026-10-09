@@ -9,7 +9,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import { Icon } from "@/src/components/Icon";
 import { useBrand } from "@/src/context/BrandContext";
 import { AUTH, FS, AuthHeader, LOGIN_ACCENT, NeedHelpLink, SafeSecureCard } from "@/src/components/auth/AuthUi";
-import { OtpFlow, homeFor, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
+import { OtpFlow, goHome, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
 
 const ILLUSTRATION = require("../../assets/auth-login-illustration.png");
 
@@ -22,7 +22,7 @@ export default function Login() {
   const [step, setStep] = useState<Step>("phone");
   const [heroH, setHeroH] = useState(160);
 
-  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) { setRouting(true); router.replace(homeFor(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) { setRouting(true); goHome(router, user); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showLoader = booting || loading || routing || (user && LOGIN_ROLES.includes(user.role as any));
 

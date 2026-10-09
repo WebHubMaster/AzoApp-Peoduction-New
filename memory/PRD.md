@@ -236,3 +236,8 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Root cause: emailed PDF was built inside the event loop and fetched the logo from the backend's own URL (/api/media/s3/...) synchronously → self-deadlock/timeout → no logo. Failures were also cached.
 - Fix: `invoice_html_service.resolve_logo_data_uri` (async; S3 logos read directly via storage_service, others off-loop) used in `fill_live_branding`; email PDF built in threadpool; failed lookups no longer cached.
 - Logo source: Admin → Branding → "Email & Invoice Logo" (email_logo) → fallbacks logo_light/logo.
+
+## Partner app permission screen — partner only (Oct 2026)
+- Permission screen (/onboarding/notifications) no longer shown before login or for merchants.
+- `goHome()` in OtpFlow.tsx: partner login/signup → permission screen (if notifications not granted / not yet prompted) → `next` (partner home/register). Merchant → straight to merchant home/register.
+- Splash: logged-in partner gets the same gate; logged-out users go to welcome.

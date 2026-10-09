@@ -10,7 +10,7 @@ import { Icon } from "@/src/components/Icon";
 import { useAuth } from "@/src/context/AuthContext";
 import { useBrand } from "@/src/context/BrandContext";
 import { AUTH, FS, Accent, AuthHeader, NeedHelpCard, NeedHelpLink, ROLE_ACCENT } from "@/src/components/auth/AuthUi";
-import { OtpFlow, Role, homeFor, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
+import { OtpFlow, Role, goHome, LOGIN_ROLES, Step } from "@/src/components/auth/OtpFlow";
 
 const HERO: Record<Role, any> = {
   partner: require("../../assets/hero-partner-arms.png"),
@@ -62,7 +62,7 @@ export default function Register() {
   const [routing, setRouting] = useState(false);
   const [heroH, setHeroH] = useState(150);
 
-  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) { setRouting(true); router.replace(homeFor(user) as any); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (user && LOGIN_ROLES.includes(user.role as any)) { setRouting(true); goHome(router, user); } }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showLoader = booting || loading || routing || (user && LOGIN_ROLES.includes(user.role as any));
   const ac = role ? ROLE_ACCENT[role] : null;
