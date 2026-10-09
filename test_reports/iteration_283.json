@@ -1,0 +1,31 @@
+{
+  "summary": "Backend-only verification of opt-in infinite-scroll pagination for Customer+Partner mobile apps. All 9 pytest cases passed. Verified legacy response shape preserved when page_size is absent/0; opt-in {items,total,page,page_size,has_more} shape; page 2 distinctness; has_more flips to False at end; page_size cap 100. Specifically for /api/bugs/my the exact scenario cited in the request was reproduced live: 17 total → page1=10 has_more=true, page2=7 has_more=false. Also performed a static code review of /app/PartnerApp/src/lib/infiniteList.tsx, /app/Customer/src/lib/useProgressive.ts and /app/Customer/src/components/customer/ux.tsx — no React hook-order violations and loadMore has correct double-fire guards.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_pagination_iter283.py",
+    "/app/test_reports/pytest/iter283.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "infiniteList.tsx useInfiniteList: hooks (useInfiniteQuery, useEndDetector) are called unconditionally — no hook-order risk. loadMore guards on hasNextPage && !isFetchingNextPage && !isFetchNextPageError so rapid onScroll events (throttled 250ms) will not double-fire fetchNextPage.",
+    "useProgressiveList / useProgressive: 200ms setTimeout + `busy` state guard reliably prevent double-fire when onContentSizeChange + onScroll race on first paint.",
+    "LoadMoreFooter (both Partner and Customer): early-return `if (total===0) return null` / `if (!list.items.length) return null` occurs AFTER useTheme hook call, so hook order is preserved across renders.",
+    "page_list cap: min(page_size,100) and max(1,page) correctly clamp inputs. page_key preserves non-list dict keys and overlays items/total/page/page_size/has_more — covers scratch-cards (cards), partner my-bonuses (rows), and merchant referral detail (services) use cases.",
+    "Observation (not a bug): PartnerApp LoadMoreFooter.onPress calls list.fetchNextPage() directly for retry; because React Query maintains isFetchNextPageError, the retry correctly re-triggers the failed page without duplicating state."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_pagination_iter283.py"
+  ],
+  "success_rate": {"backend": "100% (9/9)", "frontend": "static-review-only"},
+  "test_credentials": "Customer +919000000004, Partner +919000000003, Merchant +919000000002, OTP 123456 (via /api/auth/send-otp + /api/auth/verify-otp).",
+  "seed_data_creation": "none — relied on existing seeded data. Customer already had 17 bug reports which satisfied the ‘page1 10 / page2 7’ assertion.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Pagination contract: send ?page=N&page_size=K to opt in; absence of page_size returns legacy shape unchanged. Endpoints covered: /api/notifications, /api/custom-jobs/mine, /api/growth/scratch-cards (dict with 'cards'), /api/bugs/my, /api/partner/withdrawals, /api/partner/my-bonuses (dict with 'rows'), /api/partner/reviews (DB skip/limit, items+total only, no has_more), /api/merchant/referral/customers/{id} and /partners/{id} (dict with 'services'). page_size is capped at 100 server-side. Native Expo apps could not be executed in this environment (no device/emulator), so UI behavior was validated only via static code review of the three hook/UI files mentioned in the request.",
+  "rca of the issue": "n/a — no issues found."
+}
