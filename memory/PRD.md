@@ -420,3 +420,8 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
   - An existing invoice updated in place → a single "Invoice updated" with invoice number + total (guarded by modified_count, so it doesn't repeat)
 - New admin template event `invoice_updated` (vars: booking_id, amount, total). Push taps open the booking (type booking_update).
 - Tests: backend/tests/test_invoice_update_notifications.py (iteration_274: 5/5 passed)
+
+## 2026-06 — Rate Service sheet: tip removed + keyboard fix
+- Removed the tip / thank-you card from the Rate Service sheet (Expo customer app + customer web). The backend tip endpoint was left unchanged.
+- Expo app: Keyboard listeners now lift the sheet by the keyboard height so the comment box stays above the keyboard. Web: a visualViewport keyboard-inset hook does the same.
+- iteration_275: web 100% passed; Expo changes were only code-reviewed.

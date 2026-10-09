@@ -12,7 +12,7 @@ import { KeyboardFixedBottom } from "../KeyboardFixedBottom";
 import { onForegroundPush, onFcmNotificationOpen } from "../../lib/notifications";
 import { PRIMARY, TC, useTheme } from "../../theme";
 
-type Pending = { id: string; code: string; service_name: string; partner_name: string; partner_photo?: string; tip_amount?: number; completed_at: string; auto_prompt: boolean };
+type Pending = { id: string; code: string; service_name: string; partner_name: string; partner_photo?: string; completed_at: string; auto_prompt: boolean };
 type Ctx = { items: Pending[]; openLatest: () => void };
 const RateCtx = createContext<Ctx>({ items: [], openLatest: () => {} });
 export const useRateService = () => useContext(RateCtx);

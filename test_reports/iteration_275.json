@@ -1,0 +1,23 @@
+{
+  "summary": "Verified Rate Service modal on web_panel (customer, mobile viewport 390x844). Logged in as +919000000004 / OTP 123456, clicked rate-service-btn, modal opened. Confirmed tip/thank-you UI is fully removed (no thank-you-card, tip-20, tip-50, tip-100 testids and no 'Say thanks with a tip' or any 'tip' word in the modal). All required testids present (rate-modal-service, rate-star-1..5, rate-star-label, rate-comment, rate-later-btn, rate-submit-btn, rate-modal-close). Rated 5 stars (label 'Excellent'), added a comment, submit succeeded (POST /api/bookings/{id}/review 200), toast 'Thanks for your rating!' shown and modal closed. Keyboard-inset backdrop paddingBottom is 0px when keyboard is closed (no layout regression). Code review of Customer/src/components/customer/RateService.tsx confirmed tip card removed, KeyboardAvoidingView replaced by Keyboard.addListener (keyboardWillShow on iOS / keyboardDidShow on Android) that drives paddingBottom = keyboard height on both the backdrop and the sheet — no TS/runtime issues found; the tip_amount field in the Pending type is still declared but is only a type-level artefact and harmless. Rebuilt /app/web_panel (yarn build) because the previous static /api/panel bundle still contained the old tip markup (tip-20 / thank-you-card / 'Say thanks with a tip'); new bundle is clean.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Customer/src/components/customer/RateService.tsx still declares tip_amount?: number on the Pending type. Harmless (nothing reads it in the UI anymore) but can be removed for cleanliness.",
+    "web_panel static build must be rebuilt whenever RateService.jsx changes — otherwise /api/panel serves stale JS. Consider wiring the rebuild into CI or a supervisor pre-start hook so the main agent does not have to remember to run build_panel.sh."
+  ],
+  "updated_files": ["/app/web_panel/build/* (regenerated via build_panel.sh)"],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100%"},
+  "test_credentials": "Customer +919000000004 / OTP 123456",
+  "seed_data_creation": "None required — customer already had 2 pending reviews (AZO432C38 AC Service Split, AZOC2E4E6 AC Installation).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Web panel is a static build at /app/web_panel/build served by backend under /api/panel/. If RateService.jsx (or any web_panel source) is modified, you MUST run `bash /app/web_panel/build_panel.sh` before UI testing or the old bundle will be served. Login via /api/panel/login with +919000000004 OTP 123456. Pending reviews come from GET /api/bookings/my/pending-reviews; auto_prompt=false in current data so modal is opened by clicking data-testid='rate-service-btn' on home.",
+  "rca of the issue": "Original bug: Rate modal still showed tip card + comment box was hidden by soft keyboard. Fix shipped by E1: (a) removed tip/thank-you markup from both web_panel RateService.jsx and Customer RateService.tsx; (b) web uses useKeyboardInset() to set paddingBottom on the backdrop equal to window.innerHeight - visualViewport.height, keeping sheet above keyboard; (c) RN uses Keyboard.addListener keyboardWillShow (iOS) / keyboardDidShow (Android) to set paddingBottom = e.endCoordinates.height on backdrop AND sheet. Static panel bundle had to be rebuilt because build was from before the fix."
+}
