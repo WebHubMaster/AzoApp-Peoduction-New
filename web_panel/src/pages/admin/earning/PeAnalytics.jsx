@@ -113,11 +113,11 @@ export function TopPerformers({ state, onDrill }) {
   return (
     <div data-testid="pe-top">
       <div className="flex items-center gap-2 mb-3"><Trophy className="h-4 w-4 text-amber-500" /><p className="font-heading font-bold text-[15px] text-slate-900 dark:text-white">Top Performers</p></div>
-      <div className="flex gap-3 overflow-x-auto pb-1 snap-x">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {TOPS.map(([k, l, metric, dim]) => {
           const v = d?.[k];
           return (
-            <Card key={k} data-testid={`pe-top-${k}`} onClick={() => v && onDrill(dim, dim === "partner" || dim === "merchant" ? v.key : v.name)} className={`p-4 min-w-[210px] flex-1 snap-start ${v ? "cursor-pointer hover:border-[#0D47A1]/30" : ""} transition-colors`}>
+            <Card key={k} data-testid={`pe-top-${k}`} onClick={() => v && onDrill(dim, dim === "partner" || dim === "merchant" ? v.key : v.name)} className={`p-4 min-w-0 ${v ? "cursor-pointer hover:border-[#0D47A1]/30" : ""} transition-colors`}>
               <div className="flex items-center justify-between"><p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-slate-400">{l}</p><span className="text-[11px] font-black text-amber-500">#{1}</span></div>
               {!d ? <div className="mt-3 space-y-2"><Skel h="h-5" /><Skel h="h-3" w="w-2/3" /></div> : v ? <>
                 <p className="mt-2 font-heading font-bold text-[15px] text-slate-900 dark:text-white truncate" title={v.name}>{v.name}</p>

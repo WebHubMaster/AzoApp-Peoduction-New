@@ -1,0 +1,34 @@
+{
+  "summary": "Verified fix for admin-panel bug where clicking any sidebar menu while on the Booking Details page kept re-opening Booking Details. Tested the exact scenarios in the review request against the built web_panel served at /api/panel.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix is correct: AdminDashboard.jsx now reads the one-shot 'booking' param from react-router useSearchParams and immediately deletes it via setSearchParams(replace:true). Combined with useTabParam.setActive copying from the live searchParams, subsequent menu clicks no longer carry booking=<id> in the URL so the deep-link effect does not re-fire. useEffect depends only on deepBooking so it is a true one-shot.",
+    "PanelLayout onNavigate already clears bookingDetailId before setActive, which is additionally defensive — good.",
+    "Minor: the useEffect disables exhaustive-deps for setBookingDetailId/searchParams/setSearchParams; functionally fine because the effect is intentionally a one-shot keyed on deepBooking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "100% of listed scenarios for the bug fix"},
+  "test_credentials": "Admin via /api/panel/login -> 'Login as Admin' demo button. API: +919000000000 / OTP 123456 (verify-otp returns token in field 'token', not 'access_token').",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web panel is prebuilt at /app/web_panel/build and served by backend from /api/panel. If web_panel/src changes, rebuild with `cd /app/web_panel && bash build_panel.sh`. verify-otp returns 'token' (not 'access_token'). On the Bookings list, the 'View' button opens a RIGHT-SIDE DRAWER (BookingDetailModal) with an 'Open Booking' button that then navigates to the full Booking Details page; the eye icon on Dashboard 'Recent Bookings' opens the full Booking Details directly. document.title updates via useEffect so give a 1-2s wait after state transitions before asserting title.",
+  "scenarios_tested": [
+    {"name": "Deep link /api/panel/admin?tab=bookings&booking=<id>", "result": "PASS", "detail": "Booking Details page renders; URL booking param is removed (replace); only ?tab=bookings remains."},
+    {"name": "After deep link, click sidebar 'Dashboard'", "result": "PASS", "detail": "URL -> ?tab=dashboard, title 'Dashboard · AzoApp' (NOT Booking Details)."},
+    {"name": "After deep link, click sidebar 'Live Operations'", "result": "PASS", "detail": "URL -> ?tab=liveops, title 'Live Operations · AzoApp'."},
+    {"name": "After deep link, click sidebar 'Reported Bugs'", "result": "PASS", "detail": "Correctly navigates (verified via subsequent nav state)."},
+    {"name": "After deep link, click sidebar 'Services'", "result": "PASS", "detail": "Navigates to Services section correctly."},
+    {"name": "Dashboard -> open booking from Recent Bookings (eye icon) -> full Booking Details", "result": "PASS", "detail": "Title becomes 'Booking Details · AzoApp'. Sidebar menu then navigates away correctly (verified in combined runs)."},
+    {"name": "Back button on Booking Details returns to Bookings list", "result": "PASS", "detail": "URL changes from ?tab=bookings&booking=<id> to ?tab=bookings; Bookings list renders. (Doc.title has a small async lag but functional nav works.)"},
+    {"name": "Reload on a normal tab (?tab=services)", "result": "PASS", "detail": "After reload URL and page stay on Services; no booking details reopened."}
+  ],
+  "rca of the issue": "Previous bug cause: setActive from useTabParam built the next URLSearchParams by copying the CURRENT searchParams, which still included booking=<id> after a deep link. The old effect was keyed on window.location.search, so every menu click (which only mutated 'tab') kept booking=<id> and re-triggered setBookingDetailId. Fix: AdminDashboard now (a) uses react-router useSearchParams and (b) runs a one-shot useEffect keyed on deepBooking that immediately deletes 'booking' from the URL via setSearchParams(replace:true). All subsequent setActive calls see no booking param, so the booking detail does not re-open on menu clicks."
+}
