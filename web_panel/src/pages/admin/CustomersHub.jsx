@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Users, Filter, X, ChevronLeft, ChevronRight, Wallet, ShoppingBag, TrendingUp, Ban, Repeat, Send, Download, Gift, Award } from "lucide-react";
 import { toast } from "sonner";
+import SmartImg from "@/components/SmartImg";
 
 const TABS = [
   { key: "all", label: "All Customers" },
@@ -244,8 +245,8 @@ export default function CustomersHub({ onView }) {
                   </td>
                   <td className="px-4 py-3 cursor-pointer" onClick={() => onView?.(cst.id)}>
                     <div className="flex items-center gap-2.5">
-                      {cst.photo ? <img src={cst.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
-                        : <span className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">{(cst.name || "C").slice(0, 2).toUpperCase()}</span>}
+                      <SmartImg src={cst.photo} alt="" className="h-8 w-8 rounded-full object-cover"
+                        fallback={<span className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">{(cst.name || "C").slice(0, 2).toUpperCase()}</span>} />
                       <div>
                         <p className="font-medium text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                           {cst.name || "—"}

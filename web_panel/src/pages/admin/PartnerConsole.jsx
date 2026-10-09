@@ -1,6 +1,6 @@
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import api, { fmt } from "@/lib/api";
+import api, { fmt, mediaSrc } from "@/lib/api";
 import { onlyDigits } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import DataTable from "@/components/admin/DataTable";
+import SmartImg from "@/components/SmartImg";
 import { SBadge } from "@/pages/admin/adminSections";
 import {
   ArrowLeft, Phone, Mail, MapPin, Star, Wallet, Package, FileText, Award, Activity,
@@ -100,14 +101,14 @@ const DocLightbox = ({ url, label, onClose }) => {
             <button data-testid="doc-zoom-in" onClick={() => setScale((s) => Math.min(4, +(s + 0.25).toFixed(2)))} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white text-xl font-bold grid place-items-center">+</button>
           </>
         )}
-        <a href={url} target="_blank" rel="noreferrer" className="h-10 px-3 rounded-lg bg-white/15 hover:bg-white/25 text-white text-sm font-semibold grid place-items-center">Open ↗</a>
+        <a href={mediaSrc(url)} target="_blank" rel="noreferrer" className="h-10 px-3 rounded-lg bg-white/15 hover:bg-white/25 text-white text-sm font-semibold grid place-items-center">Open ↗</a>
         <button data-testid="doc-close" onClick={onClose} className="h-10 w-10 rounded-md bg-white/15 hover:bg-white/25 text-white grid place-items-center"><X className="h-5 w-5" /></button>
       </div>
       {label && <div className="absolute top-5 left-5 text-white/80 text-sm font-medium z-10">{label}</div>}
       <div className="relative max-w-[92vw] max-h-[88vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         {isPdf
-          ? <iframe title={label || "document"} src={url} className="w-[85vw] h-[85vh] rounded-lg bg-white" />
-          : <img src={url} alt={label || "document"} className="rounded-lg shadow-2xl transition-transform duration-150 select-none" style={{ transform: `scale(${scale})`, transformOrigin: "center" }} />}
+          ? <iframe title={label || "document"} src={mediaSrc(url)} className="w-[85vw] h-[85vh] rounded-lg bg-white" />
+          : <img src={mediaSrc(url)} alt={label || "document"} className="rounded-lg shadow-2xl transition-transform duration-150 select-none" style={{ transform: `scale(${scale})`, transformOrigin: "center" }} />}
       </div>
     </div>
   );
@@ -492,7 +493,7 @@ export default function PartnerConsole({ userId, onBack }) {
           <div className="-mt-14 flex flex-wrap items-end justify-between gap-4">
             <div className="relative shrink-0">
               <div className="h-24 w-24 rounded-2xl ring-4 ring-white dark:ring-slate-900 bg-gradient-to-br from-primary-600 to-primary-800 overflow-hidden grid place-items-center text-white text-3xl font-extrabold shadow-lg">
-                {u.photo ? <img src={u.photo} alt="" className="h-full w-full object-cover" /> : initials}
+                {u.photo ? <SmartImg src={u.photo} alt="" className="h-full w-full object-cover" fallback={<span className="grid h-full w-full place-items-center">{initials}</span>} /> : initials}
               </div>
               <span className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900 grid place-items-center ${verified ? "bg-emerald-500" : u.kyc_status === "rejected" ? "bg-red-500" : "bg-amber-500"}`}>
                 {verified ? <ShieldCheck className="h-3.5 w-3.5 text-white" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
@@ -683,7 +684,7 @@ export default function PartnerConsole({ userId, onBack }) {
                       <div key={label} className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         {url ? (
                           <button type="button" data-testid={`doc-zoom-${label.replace(/\s+/g, "-").toLowerCase()}`} onClick={() => setZoom({ url, label })} className="relative block w-full group">
-                            <img src={url} alt={label} className="h-28 w-full object-cover" />
+                            <img src={mediaSrc(url)} alt={label} className="h-28 w-full object-cover" />
                             <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100"><ZoomIn className="h-6 w-6 text-white" /></span>
                           </button>
                         ) : <div className="h-28 w-full grid place-items-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800">Not uploaded</div>}

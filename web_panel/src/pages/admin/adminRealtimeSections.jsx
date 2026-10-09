@@ -1,7 +1,7 @@
 import AssignConfirm, { busyLabel } from "@/components/admin/AssignConfirm";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import React, { useEffect, useState, useCallback, useMemo } from "react";
-import api, { fmt } from "@/lib/api";
+import api, { fmt, mediaSrc } from "@/lib/api";
 import { useRealtime } from "@/context/RealtimeContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -316,7 +316,7 @@ export function AreaPartners({ onView }) {
                 <tr key={p.id} data-testid={`area-partner-${p.id}`} onClick={() => onView?.(p.id)} className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/30">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      {p.photo ? <img src={p.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      {p.photo ? <img src={mediaSrc(p.photo)} alt="" className="h-8 w-8 rounded-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} />
                         : <span className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 font-bold flex items-center justify-center">{(p.name || "P")[0]}</span>}
                       <div><p className="font-medium text-slate-800 dark:text-slate-200 leading-tight">{p.name}</p>
                         {p.rating ? <span className="text-xs text-slate-400 flex items-center gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}</span> : null}</div>

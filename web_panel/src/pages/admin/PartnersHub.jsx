@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Search, Users, Filter, X, Star, Plus, ChevronLeft, ChevronRight, Crown } from "lucide-react";
 import { toast } from "sonner";
 import AddPartnerWizard from "@/components/AddPartnerWizard";
+import SmartImg from "@/components/SmartImg";
 
 const TABS = [
   { key: "all", label: "All Partners" },
@@ -152,8 +153,8 @@ export default function PartnersHub({ onView, premiumOnly = false }) {
                   className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      {p.photo ? <img src={p.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
-                        : <span className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">{(p.name || "P").slice(0, 2).toUpperCase()}</span>}
+                      <SmartImg src={p.photo} alt="" className="h-8 w-8 rounded-full object-cover"
+                        fallback={<span className="h-8 w-8 rounded-full bg-primary-100 text-primary-700 text-xs font-bold flex items-center justify-center">{(p.name || "P").slice(0, 2).toUpperCase()}</span>} />
                       <div>
                         <p className="font-medium text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
                           {p.name || "—"}

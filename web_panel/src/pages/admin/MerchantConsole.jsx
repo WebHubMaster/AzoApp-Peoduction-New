@@ -4,7 +4,7 @@ import {
   ShieldAlert, XCircle, CheckCircle2, Loader2, Lock, FileCheck2, CreditCard,
   User, Building2, Image as ImageIcon, FileText,
 } from "lucide-react";
-import api, { fmt, fmtC } from "@/lib/api";
+import api, { fmt, fmtC, mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -29,7 +29,7 @@ const DocCard = ({ label, url, onZoom }) => (
       <button type="button" onClick={() => onZoom(url)} className="block w-full">
         {isPdf(url)
           ? <span className="w-full h-40 grid place-items-center bg-slate-50 dark:bg-slate-800/40 text-rose-500"><span className="flex flex-col items-center"><FileText className="h-10 w-10" /><span className="text-[11px] font-bold mt-1">View PDF</span></span></span>
-          : <img src={url} alt={label} className="w-full h-40 object-cover" onError={(e) => { e.currentTarget.style.opacity = 0.3; }} />}
+          : <img src={mediaSrc(url)} alt={label} className="w-full h-40 object-cover" onError={(e) => { e.currentTarget.style.opacity = 0.3; }} />}
       </button>
     ) : (
       <div className="h-40 grid place-items-center text-slate-300 text-sm">Not uploaded</div>
@@ -105,7 +105,7 @@ export default function MerchantConsole({ userId, onBack }) {
           <div className="-mt-14 flex flex-wrap items-end justify-between gap-4">
             <div className="relative shrink-0">
               <div className="h-24 w-24 rounded-2xl ring-4 ring-white dark:ring-slate-900 bg-gradient-to-br from-primary-600 to-primary-800 overflow-hidden grid place-items-center text-white text-3xl font-extrabold shadow-lg">
-                {u.photo ? <img src={u.photo} alt="" className="h-full w-full object-cover" /> : initials}
+                {u.photo ? <img src={mediaSrc(u.photo)} alt="" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : initials}
               </div>
               <span className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900 grid place-items-center ${verified ? "bg-emerald-500" : u.kyc_status === "rejected" ? "bg-red-500" : "bg-amber-500"}`}>
                 {verified ? <ShieldCheck className="h-3.5 w-3.5 text-white" /> : <ShieldAlert className="h-3.5 w-3.5 text-white" />}
@@ -284,8 +284,8 @@ export default function MerchantConsole({ userId, onBack }) {
       {zoom && (
         <div className="fixed inset-0 z-50 bg-black/80 grid place-items-center p-6" onClick={() => setZoom(null)}>
           {isPdf(zoom)
-            ? <iframe title="document" src={zoom} className="w-full max-w-4xl h-[85vh] rounded-xl bg-white" onClick={(e) => e.stopPropagation()} />
-            : <img src={zoom} alt="" className="max-h-[85vh] max-w-full rounded-xl shadow-2xl" />}
+            ? <iframe title="document" src={mediaSrc(zoom)} className="w-full max-w-4xl h-[85vh] rounded-xl bg-white" onClick={(e) => e.stopPropagation()} />
+            : <img src={mediaSrc(zoom)} alt="" className="max-h-[85vh] max-w-full rounded-xl shadow-2xl" />}
         </div>
       )}
     </div>

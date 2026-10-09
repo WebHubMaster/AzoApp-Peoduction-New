@@ -3,7 +3,7 @@ import PremiumDatePicker from "@/components/ui/PremiumDatePicker";
 /* Person360 — complete 360° profile for a Customer / Partner / Merchant (admin view).
    All data is the same underlying real data the user panels read; sections are server-paginated. */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import api from "@/lib/api";
+import api, { mediaSrc } from "@/lib/api";
 import { toast } from "sonner";
 import { ArrowLeft, Bell, CheckCheck, Wallet, ShoppingBag, IndianRupee, RotateCcw, MapPin, Gift, Award, Activity, History, FileText, ScrollText, Landmark, Star, Wrench, Users, Network, CreditCard, Package, Sparkles, Phone, Mail, Calendar, ShieldCheck, Store, User, TrendingUp, ArrowDownToLine, Receipt, CheckCircle2, XCircle, ShieldAlert, Loader2, Pencil, Ban, MessageSquare, BellRing, Navigation, Crown, Send, FileWarning, ArrowRight, Eye, Lock, ChevronDown, Trash2, Smartphone } from "lucide-react";
 import RangeCalendar from "./RangeCalendar";
@@ -343,7 +343,7 @@ const DocThumb = ({ doc, onOpen }) => (
     <div className="h-28 w-full grid place-items-center overflow-hidden">
       {doc.kind === "pdf"
         ? <div className="flex flex-col items-center text-rose-500"><FileText className="h-9 w-9" /><span className="text-[10px] font-bold mt-1">PDF</span></div>
-        : <img src={doc.url} alt={doc.label} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform" />}
+        : <img src={mediaSrc(doc.url)} alt={doc.label} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform" />}
     </div>
     <div className="px-2 py-1.5 border-t border-slate-100 dark:border-slate-800"><p className="text-[11px] font-semibold truncate">{doc.label}</p></div>
   </button>
@@ -356,13 +356,13 @@ const DocLightbox = ({ doc, onClose }) => {
       <div className="max-w-3xl w-full max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100 dark:border-slate-800">
           <FileText className="h-4 w-4 text-primary-600" /><p className="font-bold text-sm">{doc.label}</p>
-          <a href={doc.url} target="_blank" rel="noreferrer" className="ml-auto text-xs font-bold text-primary-700 underline">Open in new tab</a>
+          <a href={mediaSrc(doc.url)} target="_blank" rel="noreferrer" className="ml-auto text-xs font-bold text-primary-700 underline">Open in new tab</a>
           <button onClick={onClose} className="h-7 w-7 grid place-items-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"><XCircle className="h-5 w-5" /></button>
         </div>
         <div className="p-3 bg-slate-50 dark:bg-slate-950 grid place-items-center max-h-[80vh] overflow-auto">
           {doc.kind === "pdf"
-            ? <iframe title={doc.label} src={doc.url} className="w-full h-[75vh] rounded-lg bg-white" />
-            : <img src={doc.url} alt={doc.label} className="max-w-full max-h-[80vh] object-contain rounded-lg" />}
+            ? <iframe title={doc.label} src={mediaSrc(doc.url)} className="w-full h-[75vh] rounded-lg bg-white" />
+            : <img src={mediaSrc(doc.url)} alt={doc.label} className="max-w-full max-h-[80vh] object-contain rounded-lg" />}
         </div>
       </div>
     </div>

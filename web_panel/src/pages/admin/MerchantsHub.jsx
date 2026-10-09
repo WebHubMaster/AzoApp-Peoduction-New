@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Store, Filter, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import SmartImg from "@/components/SmartImg";
 
 const TABS = [
   { key: "all", label: "All Merchants" },
@@ -146,8 +147,8 @@ export default function MerchantsHub({ onView }) {
                   className="border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
-                      {m.photo ? <img src={m.photo} alt="" className="h-8 w-8 rounded-full object-cover" />
-                        : <span className="h-8 w-8 rounded-lg bg-primary-100 text-primary-700 flex items-center justify-center"><Store className="h-4 w-4" /></span>}
+                      <SmartImg src={m.photo} alt="" className="h-8 w-8 rounded-full object-cover"
+                        fallback={<span className="h-8 w-8 rounded-lg bg-primary-100 text-primary-700 flex items-center justify-center"><Store className="h-4 w-4" /></span>} />
                       <div>
                         <p className="font-medium text-slate-800 dark:text-slate-100">{m.shop_name || m.name || "—"}</p>
                         <p className="text-[11px] text-slate-400">{m.name || "—"}</p>

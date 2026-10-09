@@ -1092,8 +1092,8 @@ const DocLightbox = ({ url, label, onClose }) => {
       {label && <div className="absolute top-5 left-5 text-white/80 text-sm font-medium z-10">{label}</div>}
       <div className="relative max-w-[92vw] max-h-[88vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
         {isPdf
-          ? <iframe title={label || "document"} src={url} className="w-[85vw] h-[85vh] rounded-lg bg-white" />
-          : <img src={url} alt={label || "document"} className="rounded-lg shadow-2xl transition-transform duration-150 select-none" style={{ transform: `scale(${scale})`, transformOrigin: "center" }} />}
+          ? <iframe title={label || "document"} src={proofSrc(url)} className="w-[85vw] h-[85vh] rounded-lg bg-white" />
+          : <img src={proofSrc(url)} alt={label || "document"} className="rounded-lg shadow-2xl transition-transform duration-150 select-none" style={{ transform: `scale(${scale})`, transformOrigin: "center" }} />}
       </div>
     </div>
   );
@@ -1362,7 +1362,7 @@ const CustomerProfile360 = ({ d, userId, reload, onBack }) => {
         <div className="px-4 md:px-6 pb-5">
           <div className="-mt-12 flex items-end gap-4">
             <div className="h-24 w-24 rounded-2xl ring-4 ring-white dark:ring-slate-900 bg-gradient-to-br from-primary-600 to-primary-800 overflow-hidden grid place-items-center text-white text-3xl font-extrabold shadow-lg shrink-0">
-              {u.photo ? <img src={u.photo} alt="" className="h-full w-full object-cover" /> : initials}
+              {u.photo ? <img src={proofSrc(u.photo)} alt="" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : initials}
             </div>
           </div>
           <div className="mt-3">
@@ -1743,7 +1743,7 @@ export const UserProfile360 = ({ userId, onBack }) => {
           <div className="-mt-14 flex flex-wrap items-end justify-between gap-4">
             <div className="relative shrink-0">
               <div className="h-24 w-24 rounded-2xl ring-4 ring-white dark:ring-slate-900 bg-gradient-to-br from-primary-600 to-primary-800 overflow-hidden grid place-items-center text-white text-3xl font-extrabold shadow-lg">
-                {u.photo ? <img src={u.photo} alt="" className="h-full w-full object-cover" /> : initials}
+                {u.photo ? <img src={proofSrc(u.photo)} alt="" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = "none"; }} /> : initials}
               </div>
             </div>
           </div>
@@ -2022,7 +2022,7 @@ export const UserProfile360 = ({ userId, onBack }) => {
                       <div key={label} className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                         {url ? (
                           <button type="button" data-testid={`doc-zoom-${label.replace(/\s+/g, "-").toLowerCase()}`} onClick={() => setZoom({ url, label })} className="relative block w-full group">
-                            <img src={url} alt={label} className="h-28 w-full object-cover" />
+                            <img src={proofSrc(url)} alt={label} className="h-28 w-full object-cover" />
                             <span className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                               <ZoomIn className="h-6 w-6 text-white" />
                             </span>

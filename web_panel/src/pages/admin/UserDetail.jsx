@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Star, Wallet, Phone, Mail, MapPin, Package, ShieldCheck, Store, Wrench, User as UserIcon } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
+import SmartImg from "@/components/SmartImg";
 
 const SC = { completed: "bg-emerald-100 text-emerald-700", paid: "bg-emerald-100 text-emerald-700", searching: "bg-amber-100 text-amber-700", assigned: "bg-blue-100 text-blue-700", started: "bg-indigo-100 text-indigo-700", cancelled: "bg-red-100 text-red-700" };
 const RoleIcon = { customer: UserIcon, partner: Wrench, merchant: Store, admin: ShieldCheck };
@@ -30,7 +31,7 @@ export default function UserDetail() {
         {/* profile header */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-5 mb-6">
           <div className="h-20 w-20 rounded-2xl bg-primary-700 flex items-center justify-center text-white">
-            {u.photo ? <img src={u.photo} alt="" className="h-full w-full object-cover rounded-2xl" /> : <Icon className="h-9 w-9" />}
+            <SmartImg src={u.photo} alt="" className="h-full w-full object-cover rounded-2xl" fallback={<Icon className="h-9 w-9" />} />
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">

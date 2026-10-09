@@ -1,5 +1,8 @@
 import { X, Star, Clock, AlertTriangle, Briefcase, CheckCircle2 } from "lucide-react";
 import { statusColor, statusLabel, isWorking, timeAgo, inr } from "@/lib/partnerSim";
+import { mediaSrc } from "@/lib/api";
+
+const DUMMY_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#E2E8F0"/><circle cx="32" cy="25" r="11" fill="#94A3B8"/><path d="M12 56c2-11 10-17 20-17s18 6 20 17" fill="#94A3B8"/></svg>');
 
 function StatusPill({ status }) {
   const c = statusColor(status);
@@ -48,7 +51,7 @@ export default function PartnerDrawer({ partner: p, onClose }) {
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <img src={p.avatar} alt={p.name} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-white dark:ring-slate-800 shadow" />
+              <img src={mediaSrc(p.avatar) || DUMMY_AVATAR} alt={p.name} onError={(e) => { e.currentTarget.src = DUMMY_AVATAR; }} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-white dark:ring-slate-800 shadow" />
               <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white dark:border-[#0f1729]" style={{ background: statusColor(p.status) }} />
             </div>
             <div className="min-w-0">

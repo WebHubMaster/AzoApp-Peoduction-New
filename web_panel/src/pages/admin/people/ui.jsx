@@ -1,7 +1,7 @@
 /* Shared premium primitives for Admin → People (Customers / Partners / Merchants). */
 import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import api, { fmt } from "@/lib/api";
+import api, { fmt, mediaSrc } from "@/lib/api";
 import { StatValue } from "@/components/ExactHover";
 import { AlertTriangle, ChevronLeft, ChevronRight, Inbox, RefreshCw, X, Loader2 } from "lucide-react";
 import PremiumSelect from "@/components/ui/PremiumSelect";
@@ -68,13 +68,20 @@ const HUES = ["from-sky-500 to-blue-700", "from-violet-500 to-purple-700", "from
 export const hue = (s = "") => HUES[[...s].reduce((a, c) => a + c.charCodeAt(0), 0) % HUES.length];
 
 /* ---------- atoms ---------- */
-export const Avatar = ({ name, src, size = 40, dot, className = "" }) => (
-  <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }}>
-    {src ? <img src={src} alt={name} className="h-full w-full rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700" />
-      : <div className={`h-full w-full rounded-xl bg-gradient-to-br ${hue(name)} text-white font-bold flex items-center justify-center shadow-inner`} style={{ fontSize: size * 0.36 }}>{initials(name)}</div>}
-    {dot && <span data-testid="row-unread-dot" className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />}
-  </div>
-);
+export const Avatar = ({ name, src, size = 40, dot, className = "" }) => {
+  const resolved = mediaSrc(src);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [resolved]);
+  const showImg = resolved && !failed;
+  return (
+    <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }}>
+      {showImg
+        ? <img src={resolved} alt={name} onError={() => setFailed(true)} loading="lazy" className="h-full w-full rounded-xl object-cover ring-1 ring-slate-200 dark:ring-slate-700" />
+        : <div className={`h-full w-full rounded-xl bg-gradient-to-br ${hue(name)} text-white font-bold flex items-center justify-center shadow-inner`} style={{ fontSize: size * 0.36 }}>{initials(name)}</div>}
+      {dot && <span data-testid="row-unread-dot" className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white dark:ring-slate-900 animate-pulse" />}
+    </div>
+  );
+};
 export const RedDot = ({ className = "" }) => <span className={`inline-block h-2 w-2 rounded-full bg-red-500 ring-2 ring-red-200 dark:ring-red-900/40 ${className}`} />;
 
 const PILL = {
