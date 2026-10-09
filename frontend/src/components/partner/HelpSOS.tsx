@@ -1,6 +1,6 @@
 /** Partner Help & SOS — on a started job. Help → real-time WhatsApp-style chat with Support; SOS → calls 112. */
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, Linking, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Pressable, Modal, TextInput, ScrollView, ActivityIndicator, Linking, Alert, KeyboardAvoidingView, Platform, Keyboard, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -37,6 +37,28 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
   const typingTimer = useRef<any>(null);
   const lastTyping = useRef(0);
   const code = booking?.code || "";
+  const { height: winH } = useWindowDimensions();
+  const [kbH, setKbH] = useState(0);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (e) => setKbH(e.endCoordinates.height));
+    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () => setKbH(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  useEffect(() => { if (kbH) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); }, [kbH]);
+  const androidKb = Platform.OS === "android" ? kbH : 0;
+  const sheetH = Math.min(winH * 0.85, winH - androidKb - insets.top - 16);
+  const { height: winH } = useWindowDimensions();
+  const [kbH, setKbH] = useState(0);
+
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (e) => setKbH(e.endCoordinates.height));
+    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", () => setKbH(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  useEffect(() => { if (kbH) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 60); }, [kbH]);
+  const androidKb = Platform.OS === "android" ? kbH : 0;
+  const sheetH = Math.min(winH * 0.85, winH - androidKb - insets.top - 16);
 
   const openChat = async () => {
     setOpen(true);
@@ -135,9 +157,9 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
         </Pressable>
       </View>
 
-      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View testID="help-sos-modal" style={{ height: "85%", backgroundColor: C.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
+      <Modal visible={open} transparent statusBarTranslucent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, justifyContent: "flex-end", paddingBottom: androidKb, backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View testID="help-sos-modal" style={{ height: sheetH, backgroundColor: C.surface, borderTopLeftRadius: 6, borderTopRightRadius: 6, overflow: "hidden" }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10, padding: 14, borderBottomWidth: 1, borderBottomColor: C.border }}>
               <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" }}><Icon name="shield-check" size={18} color="#fff" /></View>
               <View style={{ flex: 1 }}>
@@ -163,7 +185,7 @@ export function HelpSOS({ booking, testPrefix = "" }: { booking: any; testPrefix
               })}
               {agentTyping ? <Text testID="help-sos-agent-typing" style={{ fontSize: 11, fontWeight: "600", color: C.primary }}>Support is typing…</Text> : null}
             </ScrollView>
-            <View style={{ flexDirection: "row", gap: 8, padding: 12, paddingBottom: 12 + insets.bottom, borderTopWidth: 1, borderTopColor: C.border }}>
+            <View style={{ flexDirection: "row", gap: 8, padding: 12, paddingBottom: 12 + (kbH ? 0 : insets.bottom), borderTopWidth: 1, borderTopColor: C.border }}>
               <Pressable testID="help-sos-attach" onPress={sendPhoto} disabled={!ticket || uploading} style={{ width: 44, height: 44, borderRadius: 6, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center", opacity: !ticket ? 0.4 : 1 }}>
                 {uploading ? <ActivityIndicator size="small" color={C.textMuted} /> : <Icon name="paperclip" size={18} color={C.textMuted} />}
               </Pressable>
