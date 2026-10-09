@@ -41,7 +41,7 @@ function usePendingReviews(isCustomer) {
     return () => { clearInterval(t); document.removeEventListener("visibilitychange", vis); };
   }, [load, isCustomer]);
   const subscribe = rt?.subscribe;
-  useEffect(() => subscribe?.((ev) => { if (LIVE_EVENTS.includes(ev?.type)) setTimeout(load, 600); }), [subscribe, load]);
+  useEffect(() => subscribe?.((ev) => { if (LIVE_EVENTS.includes(ev?.type)) setTimeout(load, 150); }), [subscribe, load]);
   return { items, setItems, load };
 }
 

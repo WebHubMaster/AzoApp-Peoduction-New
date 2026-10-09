@@ -9,6 +9,7 @@ import { api } from "@/src/api/client";
 import { JobRingOverlay } from "@/src/components/JobRingOverlay";
 import { useRealtime } from "@/src/context/RealtimeContext";
 import { usePersistHomeQueries } from "@/src/lib/queryPersist";
+import { resumePendingCompletions, onCompletion } from "@/src/lib/completeQueue";
 
 /** Mirrors web PartnerDashboard NAV (rest of the menu lives under "More"). */
 export default function PartnerLayout() {
@@ -22,6 +23,7 @@ export default function PartnerLayout() {
   const qc = useQueryClient();
   usePersistHomeQueries(qc, user?.id);
   useEffect(() => subscribe((ev) => { if (LIVE_EVENTS.includes(ev.type)) refreshPartnerLive(qc); }), [subscribe, qc]);
+  useEffect(() => { resumePendingCompletions(); return onCompletion((ev) => { if (ev.state === "done") refreshPartnerLive(qc); }); }, [qc]);
   useEffect(() => { const sub = AppState.addEventListener("change", (s) => { if (s === "active") refreshPartnerLive(qc); }); return () => sub.remove(); }, [qc]);
   const jobs = useQuery({ queryKey: ["partner-jobs"], queryFn: () => api.get<any[]>("/bookings/partner/jobs"), refetchInterval: connected ? 60000 : 15000 });
   const active = useQuery({ queryKey: ["partner-active"], queryFn: () => api.get<any[]>("/bookings/partner/active") });

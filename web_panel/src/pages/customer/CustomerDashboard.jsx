@@ -15,6 +15,7 @@ import { runPayment } from "@/lib/payments";
 import { onlyDigits } from "@/lib/validation";
 import { getMerchantRefCode } from "@/lib/merchantRef";
 import { useAuth } from "@/context/AuthContext";
+import { useRealtime } from "@/context/RealtimeContext";
 import useTabParam from "@/hooks/useTabParam";
 import useCityKey from "@/hooks/useCityKey";
 import { useSiteConfig } from "@/context/SiteConfigContext";
@@ -108,6 +109,9 @@ export default function CustomerDashboard() {
     api.get("/payments/refunds").then((r) => setRefunds(r.data || [])).catch(() => {});
   }, []);
   useEffect(() => { load(); const t = setInterval(load, 8000); return () => clearInterval(t); }, [load]);
+  const rtSubscribe = useRealtime()?.subscribe;
+  // Live sync: partner completes / updates a job → reflect it here within a second.
+  useEffect(() => rtSubscribe?.((ev) => { if (["booking_update", "booking_completed", "booking_confirmed", "__resync__"].includes(ev?.type)) load(); }), [rtSubscribe, load]);
   const cityKey = useCityKey();
   useEffect(() => {
     api.get("/auth/config").then((r) => setCfg(r.data)).catch(() => {});

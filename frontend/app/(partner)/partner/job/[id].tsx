@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNow, fmtElapsed } from "@/src/lib/useNow";
 import { HelpSOS } from "@/src/components/partner/HelpSOS";
-import { View, Text, Pressable, ActivityIndicator, Linking } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Linking, Animated, Easing } from "react-native";
 import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,6 +23,7 @@ import { AdditionalWork } from "@/src/components/partner/AdditionalWork";
 import { SelfieCamera } from "@/src/components/partner/SelfieCamera";
 import { JobDetailsBlock } from "../../active";
 import { refreshPartnerLive } from "@/src/lib/partnerLive";
+import { completeJob, onCompletion, isCompletionPending, resumePendingCompletions } from "@/src/lib/completeQueue";
 
 const EMERALD = "#059669";
 const SLATE400 = "#94A3B8";
@@ -83,7 +84,29 @@ export default function PartnerJobWizard() {
 
   // Opening a DIFFERENT job (id change) must never carry over the previous job's
   // step / OTP / busy state — otherwise the wrong service's wizard step shows.
-  useEffect(() => { setStep(0); setOtp(""); setBusy(null); setProgress(0); }, [id]);
+  useEffect(() => { setStep(0); setOtp(""); setBusy(null); setProgress(0); setQueued(false); }, [id]);
+  const [queued, setQueued] = useState(false);
+  const applyUpdated = (updated: any, path: "start-otp" | "complete") => {
+    if (updated && String(updated.id) === String(id)) {
+      qc.setQueryData(["partner-booking", id], (old: any) => (old ? { ...old, ...updated } : updated));
+    }
+    if (path === "complete") {
+      qc.setQueryData(["partner-active"], (old: any) =>
+        Array.isArray(old) ? old.filter((j: any) => String(j.id) !== String(id)) : old);
+      if (updated?.completion_summary) qc.setQueryData(["partner-today-summary"], updated.completion_summary);
+    }
+    setStep(path === "start-otp" ? 3 : 4);
+  };
+  // Weak-network completion running in the background → follow it here.
+  useEffect(() => {
+    if (!id) return undefined;
+    isCompletionPending(String(id)).then((p) => { if (p) { setQueued(true); resumePendingCompletions(); } });
+    return onCompletion((ev) => {
+      if (String(ev.id) !== String(id)) return;
+      if (ev.state === "done") { setQueued(false); applyUpdated(ev.data, "complete"); toast.success("Job completed! Earnings credited 🎉"); refreshPartnerLive(qc); }
+      else if (ev.state === "failed") { setQueued(false); toast.error(ev.error || "Could not complete job"); }
+    });
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Server moved forward (OTP verified / completed) → wizard follows.
   useEffect(() => { if (step > 0 && phase > step) setStep(phase); }, [phase]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -136,23 +159,15 @@ export default function PartnerJobWizard() {
   const verify = async (path: "start-otp" | "complete", label: string) => {
     setBusy(path);
     try {
-      const updated = await api.post<any>(`/bookings/${b.id}/${path}`, { otp });
+      const updated = path === "complete" ? await completeJob(String(b.id), otp) : await api.post<any>(`/bookings/${b.id}/${path}`, { otp });
+      if (updated?.queued) {
+        setQueued(true);
+        toast.info("Weak network — completing in the background. You can stay on this screen.");
+        return;
+      }
       setOtp("");
-      // Advance the wizard IMMEDIATELY from server truth — don't wait for the poll,
-      // otherwise the partner can tap Complete while the cache still says "assigned"
-      // (→ "Job not started yet") or the Start screen lingers after a verified OTP.
-      if (updated && String(updated.id) === String(b.id)) {
-        qc.setQueryData(["partner-booking", id], (old: any) => (old ? { ...old, ...updated } : updated));
-      }
-      // A completed/paid job is no longer "active" — drop it from the active-jobs
-      // cache right away so the Active screen reflects reality instantly instead of
-      // showing the finished job (and a lingering spinner) until the next poll on a
-      // slow network.
-      if (path === "complete") {
-        qc.setQueryData(["partner-active"], (old: any) =>
-          Array.isArray(old) ? old.filter((j: any) => String(j.id) !== String(b.id)) : old);
-      }
-      setStep(path === "start-otp" ? 3 : 4);
+      // Advance the wizard IMMEDIATELY from server truth — don't wait for the poll.
+      applyUpdated(updated, path);
       toast.success(label);
       refresh();
     } catch (e: any) { setOtp(""); toast.error(e?.detail || "Invalid OTP"); }
@@ -218,7 +233,7 @@ export default function PartnerJobWizard() {
         ) : step === 2 ? (
           <Cta testID={`start-otp-${b.code}`} label={busy === "start-otp" ? "Verifying…" : "Verify OTP & Start Job"} icon="play-circle-outline" color={primary} disabled={commLocked || before.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("start-otp", "Job started ✓")} />
         ) : (
-          <Cta testID={`complete-otp-${b.code}`} label={busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : (b.payment_method === "cos" ? "Payment Received · Complete Job" : "Verify OTP & Complete Job")} icon="check-decagram-outline" color={EMERALD} disabled={addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", b.payment_method === "cos" ? "Cash received · Job completed! 🎉" : "Job completed! Earnings credited 🎉")} />
+          <Cta testID={`complete-otp-${b.code}`} label={queued ? "Completing in background…" : busy === "complete" ? "Completing…" : addlPending ? "Additional payment pending" : (b.payment_method === "cos" ? "Payment Received · Complete Job" : "Verify OTP & Complete Job")} icon="check-decagram-outline" color={EMERALD} disabled={queued || addlPending || after.length === 0 || otp.length < 4 || !!busy} onPress={() => verify("complete", b.payment_method === "cos" ? "Cash received · Job completed! 🎉" : "Job completed! Earnings credited 🎉")} />
         )}
       </View>
       </KeyboardStickyView>
@@ -504,13 +519,27 @@ function WorkStep({ b, after, addlPending, demoOtp, otp, setOtp, busy, progress,
 /* ── Done ── */
 function DoneStep({ b }: { b: any }) {
   const { colors } = useTheme();
-  const earning = b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning ?? null;
+  const earning = b.completion_summary?.earning ?? b.commission?.partner_earning ?? b.breakdown?.earning?.net_earning ?? null;
+  const today = useQuery({ queryKey: ["partner-today-summary"], queryFn: () => api.get<any>("/bookings/partner/today-summary"), initialData: b.completion_summary, staleTime: 5000 });
+  const pop = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.spring(pop, { toValue: 1, friction: 5, tension: 120, useNativeDriver: true }).start(); }, [pop]);
+  const fade = { opacity: pop, transform: [{ translateY: pop.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }] };
   return (
-    <Card testID="wizard-done" style={{ alignItems: "center", paddingVertical: 32 }}>
-      <View style={{ width: 84, height: 84, borderRadius: 42, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center" }}><Icon name="check-decagram" size={44} color={EMERALD} /></View>
-      <Text style={{ color: colors.text, fontSize: 22, fontWeight: "900", marginTop: 16 }}>Job completed!</Text>
-      <Text style={{ color: colors.textMuted, fontSize: 13.5, marginTop: 6, textAlign: "center" }}>{b.service_name} · #{b.code}</Text>
-      {earning != null ? <View style={{ marginTop: 18, borderRadius: 6, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text style={{ color: "#047857", fontSize: 26, fontWeight: "900" }}>{fmt(earning)}</Text></View> : null}
+    <Card testID="wizard-done" style={{ alignItems: "center", paddingVertical: 32, overflow: "hidden" }}>
+      <Confetti />
+      <Animated.View style={{ width: 96, height: 96, borderRadius: 48, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center", transform: [{ scale: pop }] }}><Icon name="party-popper" size={48} color={EMERALD} /></Animated.View>
+      <Animated.View style={[{ alignItems: "center" }, fade]}>
+        <Text testID="done-title" style={{ color: colors.text, fontSize: 24, fontWeight: "900", marginTop: 16 }}>Job completed!</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 13.5, marginTop: 6, textAlign: "center" }}>{b.service_name} · #{b.code}</Text>
+      </Animated.View>
+      {earning != null ? <Animated.View style={[{ marginTop: 18, borderRadius: 6, backgroundColor: "rgba(236,253,245,0.8)", borderWidth: 1, borderColor: "#A7F3D0", paddingHorizontal: 22, paddingVertical: 12, alignItems: "center" }, fade]}><Text style={{ color: "#047857", fontSize: 11, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.6 }}>You earned</Text><Text testID="done-earning" style={{ color: "#047857", fontSize: 30, fontWeight: "900" }}>{fmt(earning)}</Text></Animated.View> : null}
+      {today.data ? (
+        <Animated.View testID="done-today" style={[{ marginTop: 12, width: "100%", flexDirection: "row", borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden" }, fade]}>
+          <View style={{ flex: 1, padding: 12, alignItems: "center" }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Today's earnings</Text><Text testID="done-today-earning" style={{ color: colors.text, fontSize: 20, fontWeight: "900", marginTop: 2 }}>{fmt(today.data.today_earning)}</Text></View>
+          <View style={{ width: 1, backgroundColor: colors.border }} />
+          <View style={{ flex: 1, padding: 12, alignItems: "center" }}><Text style={{ color: colors.textMuted, fontSize: 11, fontWeight: "700", textTransform: "uppercase" }}>Jobs today</Text><Text testID="done-today-jobs" style={{ color: colors.text, fontSize: 20, fontWeight: "900", marginTop: 2 }}>{today.data.today_jobs}</Text></View>
+        </Animated.View>
+      ) : null}
       {b.payment_method === "cos" && b.cos ? (
         <View testID="done-cos-receipt" style={{ marginTop: 16, width: "100%", borderRadius: 6, backgroundColor: "#FFF7ED", borderWidth: 1, borderColor: "#FED7AA", paddingHorizontal: 16, paddingVertical: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 8 }}><Icon name="cash-multiple" size={15} color="#9A3412" /><Text style={{ color: "#9A3412", fontSize: 12, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.5 }}>Cash On Service</Text></View>
@@ -519,5 +548,21 @@ function DoneStep({ b }: { b: any }) {
         </View>
       ) : null}
     </Card>
+  );
+}
+
+const CONFETTI = ["#10B981", "#F59E0B", "#3B82F6", "#EC4899", "#8B5CF6", "#14B8A6", "#F97316", "#22C55E"];
+function Confetti() {
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => { Animated.timing(v, { toValue: 1, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(); }, [v]);
+  return (
+    <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 220 }}>
+      {Array.from({ length: 16 }).map((_, i) => {
+        const x = (i - 7.5) * 22; const up = 40 + (i % 4) * 22;
+        return <Animated.View key={i} style={{ position: "absolute", top: 70, left: "50%", width: 8, height: 12, borderRadius: 2, backgroundColor: CONFETTI[i % CONFETTI.length],
+          opacity: v.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
+          transform: [{ translateX: v.interpolate({ inputRange: [0, 1], outputRange: [0, x] }) }, { translateY: v.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0, -up, 120] }) }, { rotate: v.interpolate({ inputRange: [0, 1], outputRange: ["0deg", `${(i % 2 ? 1 : -1) * 540}deg`] }) }] }} />;
+      })}
+    </View>
   );
 }

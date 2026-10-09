@@ -99,6 +99,11 @@ async def partner_dashboard(range: str = "30d", date_from: str = "", date_to: st
     return await c.partner_dashboard(user, range, date_from, date_to)
 
 
+@router.get("/partner/today-summary")
+async def partner_today_summary(user=Depends(require_role("partner"))):
+    return await c.partner_today_summary(user["id"])
+
+
 @router.get("/partner/job/{booking_id}")
 async def partner_job_detail(booking_id: str, user=Depends(require_role("partner"))):
     return await c.partner_job_detail(user, booking_id)

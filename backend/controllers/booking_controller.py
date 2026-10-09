@@ -1,3 +1,4 @@
+import asyncio
 import random
 import string
 import os
@@ -3480,8 +3481,30 @@ async def pay_additional(customer, booking_id, method="online"):
     return out
 
 
+async def partner_today_summary(partner_id):
+    """Today's (UTC day) partner earnings + jobs — shown on the job-completed screen."""
+    from datetime import datetime as _dt, timezone as _tz
+    day = _dt.now(_tz.utc).date().isoformat()
+    rows = await db.commission_ledger.find(
+        {"partner_id": partner_id, "created_at": {"$gte": day}, "partner_earning": {"$gt": 0}},
+        {"_id": 0, "partner_earning": 1, "booking_id": 1}).to_list(1000)
+    return {"today_earning": money.add(*[r.get("partner_earning", 0) for r in rows]) if rows else 0.0,
+            "today_jobs": len({r.get("booking_id") for r in rows if r.get("booking_id")})}
+
+
+async def _completion_response(partner, b):
+    out = _slim_partner_job({**b, "otps": {}}, partner["id"])
+    summary = await partner_today_summary(partner["id"])
+    summary["earning"] = money.money((b.get("commission") or {}).get("partner_earning") or 0)
+    out["completion_summary"] = summary
+    return out
+
+
 async def complete_job(partner, booking_id, otp):
     b = await _partner_owns(partner, booking_id)
+    # Idempotent: a retried request (weak network) after a successful completion returns success.
+    if b["status"] in ("completed", "paid") and b.get("completed_by_partner") == partner["id"]:
+        return await _completion_response(partner, b)
     if b["status"] != "started":
         raise HTTPException(status_code=400, detail="Job not started yet")
     if not (b.get("evidence", {}).get("after") or []):
@@ -3494,6 +3517,30 @@ async def complete_job(partner, booking_id, otp):
             detail="Additional work payment is pending. Please ask the customer to complete the additional payment before finishing the job.")
     if b["otps"]["completion"] != otp:
         raise HTTPException(status_code=400, detail="Invalid completion OTP")
+    # Atomic claim so concurrent retries can never settle (credit) the same job twice.
+    from datetime import datetime as _dt, timezone as _tz, timedelta as _td
+    _stale = (_dt.now(_tz.utc) - _td(seconds=60)).isoformat()
+    claim = await db.bookings.update_one(
+        {"id": booking_id, "status": "started",
+         "$or": [{"completing": {"$exists": False}}, {"completing": {"$lt": _stale}}]},
+        {"$set": {"completing": now_iso()}})
+    if not claim.modified_count:
+        for _ in range(20):
+            await asyncio.sleep(0.25)
+            cur = await _get_booking(booking_id)
+            if cur.get("status") in ("completed", "paid"):
+                return await _completion_response(partner, cur)
+            if not cur.get("completing"):
+                break
+        raise HTTPException(status_code=409, detail="Completion is already in progress. Please wait a moment.")
+    try:
+        return await _complete_claimed(partner, booking_id, b, addl)
+    except BaseException:
+        await db.bookings.update_one({"id": booking_id, "status": "started"}, {"$unset": {"completing": ""}})
+        raise
+
+
+async def _complete_claimed(partner, booking_id, b, addl):
     settings = await get_settings()
     is_cos = (b.get("payment_method") or "") == "cos"
     ledger = await CommissionEngine.settle(b, settings, partner, cash_mode=is_cos)
@@ -3556,7 +3603,9 @@ async def complete_job(partner, booking_id, otp):
                   **({"cos.cash_collected": True,
                       "cos.collected_amount": float((b.get("cos") or {}).get("cash_to_collect") or 0),
                       "cos.collected_at": now_iso()} if is_cos else {}),
-                  "commission": ledger, "updated_at": now_iso()},
+                  "commission": ledger, "completed_by_partner": partner["id"],
+                  "completed_at": now_iso(), "updated_at": now_iso()},
+         "$unset": {"completing": ""},
          "$push": {"timeline": {"status": "completed", "at": now_iso()}}})
     try:
         await _notify(b["customer_id"], "Work completed \u2705",
@@ -3622,8 +3671,7 @@ async def complete_job(partner, booking_id, otp):
         _aio.create_task(_post_complete())
     except RuntimeError:
         await _post_complete()
-    out["otps"] = {}
-    return _slim_partner_job(out, partner["id"])
+    return await _completion_response(partner, out)
 
 
 async def expire_stale_jobs():
