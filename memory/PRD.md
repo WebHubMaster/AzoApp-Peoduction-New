@@ -289,3 +289,21 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
   - OTP boxes now scroll above the keyboard: OtpBoxes (src/components/partner/JobProof.tsx) gained an onFocus prop; job/[id].tsx passes scrollOtpIntoView (scrollToEnd) to Start/Work step OTPs via a KeyboardAwareScrollView ref.
   - Reworded the additional-work payment-collect message in src/components/partner/AdditionalWork.tsx to a professional/trust tone.
 - Env note: /app/backend/.env & /app/frontend/.env were missing after a pod restart; testing agent recreated them (MONGO_URL=mongodb://localhost:27017, DB_NAME=azoapp_database, REACT_APP_BACKEND_URL=preview). Services healthy (backend 200).
+
+---
+
+## 2026-10-09 — Performance fix: fast booking cancellation & rating (Customer App)
+- Problem: Customer-app booking cancellation took ~10–15s every time; rating sometimes slow.
+- Root cause: `backend/controllers/booking_controller.py` ran ALL side-effects synchronously on
+  the request path — refund processing (with push notifications), partner/merchant wallet credits,
+  commission-ledger writes, GST + refund invoice PDF generation, and multi-channel push/SMS/email
+  notifications (WebPush + FCM + Expo + SMS + Email each hit the network).
+- Fix (mirrors existing `_post_complete()` pattern): status flip (→`cancelled`) and review save stay
+  synchronous (retry-safe); everything else moved into one `asyncio.create_task(...)` background task:
+  - `cancel_booking` → `_post_cancel()`; COS path → `_post_cancel_cos()`.
+  - `add_review` → `_post_review()` (rating recompute, auto-suspend, 5★ streak, incentives).
+- Also: recreated missing `/app/backend/.env` (MONGO_URL, DB_NAME=test_database) which blocked backend start.
+- Verified via `backend/perf_cancel_rating_test.py`: cancel ~4ms, rating ~2ms; background refund +
+  invoices + partner rating all confirmed to complete.
+- NOTE: Customer/Partner apps are Expo/React Native — not runnable in this pod; validated at the
+  backend controller level. Recommend on-device e2e verification.

@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://partner-active.preview.emergentagent.com/api"
+BASE_URL = "https://swift-booking-fix.preview.emergentagent.com/api"
 
 resp = requests.get(f"{BASE_URL}/catalog/services")
 services = resp.json()

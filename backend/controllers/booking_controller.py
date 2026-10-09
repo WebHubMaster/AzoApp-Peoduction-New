@@ -3873,18 +3873,26 @@ async def cancel_booking(customer, booking_id, reason=""):
                              "at": now_iso()},
             "updated_at": now_iso()},
             "$push": {"timeline": {"status": "cancelled", "at": now_iso()}}})
-        try:
-            await _notify(b["customer_id"], "Booking cancelled",
-                          f"{b.get('code')} cancelled. The token amount \u20b9{token} is non-refundable.",
-                          "booking_cancelled",
-                          {"booking_id": booking_id, "code": b.get("code"), "type": "booking_status"})
-        except Exception:
-            pass
         out = await _get_booking(booking_id)
+
+        async def _post_cancel_cos():
+            try:
+                await _notify(b["customer_id"], "Booking cancelled",
+                              f"{b.get('code')} cancelled. The token amount \u20b9{token} is non-refundable.",
+                              "booking_cancelled",
+                              {"booking_id": booking_id, "code": b.get("code"), "type": "booking_status"})
+            except Exception:
+                pass
+            try:
+                rt.emit_admin("job_update", _job_brief(out))
+            except Exception:
+                pass
+
+        import asyncio as _aio
         try:
-            rt.emit_admin("job_update", _job_brief(out))
-        except Exception:
-            pass
+            _aio.create_task(_post_cancel_cos())
+        except RuntimeError:
+            await _post_cancel_cos()
         return out
     # --------------------------------------------------------------------------------
     partner_id = b.get("partner_id")
@@ -3914,80 +3922,13 @@ async def cancel_booking(customer, booking_id, reason=""):
     merchant_partner_id = calc["merchant_partner_id"]
     merchant_customer_id = calc["merchant_customer_id"]
 
-    # 1) Create + process the customer refund (back to source / wallet). Only when there
-    #    is actually money to return (avoids empty ₹0 refund records for unpaid bookings).
-    refund_rec = None
-    if refund_amt > 0:
-        refund_rec = await refund_service.initiate_refund(
-            b, refund_amt, reason,
-            breakdown={"refund_pct": refund_pct, "partner_cancellation_pct": partner_cancel_pct,
-                       "partner_cancellation_amount": cancel_charge, "platform_commission": admin_cut,
-                       "merchant_partner_commission": merchant_partner_comm,
-                       "merchant_customer_commission": merchant_customer_comm,
-                       "service_cost": base, "service_refund": service_refund,
-                       "gst_refund": gst_refund, "tax_amount": gst})
-
-    # 2) Credit the assigned partner the cancellation compensation (minus platform cut).
+    # Persist the cancellation on the booking IMMEDIATELY so the customer's tap returns
+    # at once. The status flip to "cancelled" happens here (synchronously) which also
+    # makes a double-tap / retry safe. ALL money movement (refund, partner & merchant
+    # credits, ledger), invoice PDF generation and multi-channel notifications are
+    # side-effects the customer does NOT need to wait for — they run in ONE background
+    # task (mirrors the completion flow) so the response is near-instant.
     partner_id = b.get("partner_id")
-    if partner_id and partner_cut > 0:
-        await db.users.update_one({"id": partner_id}, {"$inc": {"wallet_balance": partner_cut}})
-        await db.partner_ledger.insert_one({
-            "id": new_id(), "partner_id": partner_id, "kind": "cancellation_comp",
-            "direction": "credit", "amount": partner_cut, "ref_type": "booking",
-            "ref_id": booking_id, "note": f"Cancellation compensation · {b.get('code')}",
-            "status": "completed", "created_at": now_iso()})
-        await _notify(partner_id, "Booking cancelled — compensation credited",
-                      f"{b.get('code')} was cancelled. ₹{partner_cut} credited to your wallet.")
-
-    # 2b) Merchant referral commission out of the cancellation charge — the SAME
-    #     referral flow as a completed booking (Model B): the merchant earns its
-    #     configured Customer and/or Partner referral % of the cancellation charge,
-    #     but only for relationships that actually exist on this booking. If the same
-    #     merchant referred BOTH sides, one combined wallet transaction is created.
-    #     No eligible merchant → NO zero/duplicate wallet transaction is created.
-    if partner_on_job and cancel_charge > 0:
-        if merchant_partner_id and merchant_customer_id and merchant_partner_id == merchant_customer_id:
-            _m_total = money.add(merchant_partner_comm, merchant_customer_comm)
-            if _m_total > 0:
-                await CommissionEngine._credit(
-                    merchant_partner_id, _m_total, "cancellation_referral_commission",
-                    f"Cancellation referral commission · {b.get('code')} · "
-                    f"Partner referral ₹{merchant_partner_comm} + Customer referral ₹{merchant_customer_comm}")
-                await _notify(merchant_partner_id, "Cancellation referral commission credited",
-                              f"₹{_m_total} credited for cancelled booking {b.get('code')} "
-                              f"(partner ₹{merchant_partner_comm} + customer ₹{merchant_customer_comm}).")
-        else:
-            if merchant_partner_comm > 0 and merchant_partner_id:
-                await CommissionEngine._credit(
-                    merchant_partner_id, merchant_partner_comm, "cancellation_referral_commission",
-                    f"Cancellation referral commission · {b.get('code')} · Partner referral")
-                await _notify(merchant_partner_id, "Cancellation referral commission credited",
-                              f"₹{merchant_partner_comm} credited for cancelled booking {b.get('code')} (partner referral).")
-            if merchant_customer_comm > 0 and merchant_customer_id:
-                await CommissionEngine._credit(
-                    merchant_customer_id, merchant_customer_comm, "cancellation_referral_commission",
-                    f"Cancellation referral commission · {b.get('code')} · Customer referral")
-                await _notify(merchant_customer_id, "Cancellation referral commission credited",
-                              f"₹{merchant_customer_comm} credited for cancelled booking {b.get('code')} (customer referral).")
-
-    # 3) Record the cancellation split in the immutable ledger (even when the
-    #    platform's own cut is ₹0 but merchant/partner shares moved money).
-    if cancel_charge > 0:
-        await db.commission_ledger.insert_one({
-            "id": new_id(), "booking_id": booking_id, "booking_code": b.get("code"),
-            "customer_id": b.get("customer_id"),
-            "rates": {"partner_pct": calc["partner_pct"], "platform_pct": calc["platform_pct"],
-                      "merchant_partner_referral_pct": calc["merchant_partner_pct"],
-                      "merchant_customer_pct": calc["merchant_customer_pct"]},
-            "partner_id": partner_id, "partner_earning": partner_cut, "platform_earning": admin_cut,
-            "merchant_referral": merchant_partner_comm, "referral_merchant_id": merchant_partner_id,
-            "merchant_customer": merchant_customer_comm, "customer_merchant_id": merchant_customer_id,
-            # legacy aliases so existing merchant-facing readers keep working
-            "merchant_booking": merchant_customer_comm, "merchant_id": merchant_customer_id,
-            "platform_gross": calc["platform_gross"], "tax": calc["gst_retained"],
-            "base": commission_charge, "gross": original_amount, "kind": "cancellation",
-            "created_at": now_iso()})
-
     await db.bookings.update_one(
         {"id": booking_id},
         {"$set": {"status": "cancelled",
@@ -4015,32 +3956,118 @@ async def cancel_booking(customer, booking_id, reason=""):
                                    "merchant_customer_pct": calc["merchant_customer_pct"],
                                    "partner_split_pct": calc["partner_pct"],
                                    "item_refunds": item_refunds,
-                                   "refund_id": refund_rec.get("id") if refund_rec else None,
-                                   "refund_status": refund_rec.get("status") if refund_rec else None,
+                                   "refund_id": None,
+                                   "refund_status": "initiated" if refund_amt > 0 else None,
                                    "at": now_iso()},
                   "updated_at": now_iso()},
          "$push": {"timeline": {"status": "cancelled", "at": now_iso(), "reason": reason}}})
-    # Generate the two clearly-typed documents for this cancellation now, at the event
-    # (both idempotent — safe against retries / double-clicks / reloads):
-    #   • Cancellation / Adjustment  → the credit-note for the cancelled service
-    #   • Refund Receipt             → proof of the money returned to the customer
+
+    async def _post_cancel():
+        # 1) Create + process the customer refund (back to source / wallet). Only when
+        #    there is actually money to return (avoids empty ₹0 refund records).
+        refund_rec = None
+        if refund_amt > 0:
+            refund_rec = await refund_service.initiate_refund(
+                b, refund_amt, reason,
+                breakdown={"refund_pct": refund_pct, "partner_cancellation_pct": partner_cancel_pct,
+                           "partner_cancellation_amount": cancel_charge, "platform_commission": admin_cut,
+                           "merchant_partner_commission": merchant_partner_comm,
+                           "merchant_customer_commission": merchant_customer_comm,
+                           "service_cost": base, "service_refund": service_refund,
+                           "gst_refund": gst_refund, "tax_amount": gst})
+            await db.bookings.update_one({"id": booking_id}, {"$set": {
+                "cancellation.refund_id": refund_rec.get("id") if refund_rec else None,
+                "cancellation.refund_status": refund_rec.get("status") if refund_rec else None}})
+
+        # 2) Credit the assigned partner the cancellation compensation (minus platform cut).
+        if partner_id and partner_cut > 0:
+            await db.users.update_one({"id": partner_id}, {"$inc": {"wallet_balance": partner_cut}})
+            await db.partner_ledger.insert_one({
+                "id": new_id(), "partner_id": partner_id, "kind": "cancellation_comp",
+                "direction": "credit", "amount": partner_cut, "ref_type": "booking",
+                "ref_id": booking_id, "note": f"Cancellation compensation · {b.get('code')}",
+                "status": "completed", "created_at": now_iso()})
+            await _notify(partner_id, "Booking cancelled — compensation credited",
+                          f"{b.get('code')} was cancelled. ₹{partner_cut} credited to your wallet.")
+
+        # 2b) Merchant referral commission out of the cancellation charge — the SAME
+        #     referral flow as a completed booking (Model B): the merchant earns its
+        #     configured Customer and/or Partner referral % of the cancellation charge,
+        #     but only for relationships that actually exist on this booking. If the same
+        #     merchant referred BOTH sides, one combined wallet transaction is created.
+        #     No eligible merchant → NO zero/duplicate wallet transaction is created.
+        if partner_on_job and cancel_charge > 0:
+            if merchant_partner_id and merchant_customer_id and merchant_partner_id == merchant_customer_id:
+                _m_total = money.add(merchant_partner_comm, merchant_customer_comm)
+                if _m_total > 0:
+                    await CommissionEngine._credit(
+                        merchant_partner_id, _m_total, "cancellation_referral_commission",
+                        f"Cancellation referral commission · {b.get('code')} · "
+                        f"Partner referral ₹{merchant_partner_comm} + Customer referral ₹{merchant_customer_comm}")
+                    await _notify(merchant_partner_id, "Cancellation referral commission credited",
+                                  f"₹{_m_total} credited for cancelled booking {b.get('code')} "
+                                  f"(partner ₹{merchant_partner_comm} + customer ₹{merchant_customer_comm}).")
+            else:
+                if merchant_partner_comm > 0 and merchant_partner_id:
+                    await CommissionEngine._credit(
+                        merchant_partner_id, merchant_partner_comm, "cancellation_referral_commission",
+                        f"Cancellation referral commission · {b.get('code')} · Partner referral")
+                    await _notify(merchant_partner_id, "Cancellation referral commission credited",
+                                  f"₹{merchant_partner_comm} credited for cancelled booking {b.get('code')} (partner referral).")
+                if merchant_customer_comm > 0 and merchant_customer_id:
+                    await CommissionEngine._credit(
+                        merchant_customer_id, merchant_customer_comm, "cancellation_referral_commission",
+                        f"Cancellation referral commission · {b.get('code')} · Customer referral")
+                    await _notify(merchant_customer_id, "Cancellation referral commission credited",
+                                  f"₹{merchant_customer_comm} credited for cancelled booking {b.get('code')} (customer referral).")
+
+        # 3) Record the cancellation split in the immutable ledger (even when the
+        #    platform's own cut is ₹0 but merchant/partner shares moved money).
+        if cancel_charge > 0:
+            await db.commission_ledger.insert_one({
+                "id": new_id(), "booking_id": booking_id, "booking_code": b.get("code"),
+                "customer_id": b.get("customer_id"),
+                "rates": {"partner_pct": calc["partner_pct"], "platform_pct": calc["platform_pct"],
+                          "merchant_partner_referral_pct": calc["merchant_partner_pct"],
+                          "merchant_customer_pct": calc["merchant_customer_pct"]},
+                "partner_id": partner_id, "partner_earning": partner_cut, "platform_earning": admin_cut,
+                "merchant_referral": merchant_partner_comm, "referral_merchant_id": merchant_partner_id,
+                "merchant_customer": merchant_customer_comm, "customer_merchant_id": merchant_customer_id,
+                # legacy aliases so existing merchant-facing readers keep working
+                "merchant_booking": merchant_customer_comm, "merchant_id": merchant_customer_id,
+                "platform_gross": calc["platform_gross"], "tax": calc["gst_retained"],
+                "base": commission_charge, "gross": original_amount, "kind": "cancellation",
+                "created_at": now_iso()})
+
+        # Generate the two clearly-typed documents for this cancellation (both idempotent
+        # — safe against retries / double-clicks / reloads):
+        #   • Cancellation / Adjustment  → the credit-note for the cancelled service
+        #   • Refund Receipt             → proof of the money returned to the customer
+        try:
+            from services import invoice_service as _inv
+            fresh_b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
+            await _inv.ensure_booking_invoice(fresh_b, settings)
+            if refund_rec:
+                fresh_r = await db.refunds.find_one({"id": refund_rec["id"]}, {"_id": 0}) or refund_rec
+                await _inv.ensure_refund_invoice(fresh_r, settings)
+        except Exception:
+            pass
+        _refund_msg = (f" ₹{refund_amt} ({refund_pct:g}%) refund is being processed."
+                       if refund_amt > 0 else "")
+        await _notify(customer["id"], "Booking cancelled",
+                      f"{b.get('code')} cancelled.{_refund_msg}")
+        fresh = await _get_booking(booking_id)
+        rt.emit_admin("job_update", _job_brief(fresh))
+        if partner_id:
+            rt.emit_user(partner_id, "booking_update", _job_brief(fresh))
+
+    import asyncio as _aio
     try:
-        from services import invoice_service as _inv
-        fresh_b = await db.bookings.find_one({"id": booking_id}, {"_id": 0})
-        await _inv.ensure_booking_invoice(fresh_b, settings)
-        if refund_rec:
-            fresh_r = await db.refunds.find_one({"id": refund_rec["id"]}, {"_id": 0}) or refund_rec
-            await _inv.ensure_refund_invoice(fresh_r, settings)
-    except Exception:
-        pass
-    _refund_msg = (f" ₹{refund_amt} ({refund_pct:g}%) refund is being processed."
-                   if refund_amt > 0 else "")
-    await _notify(customer["id"], "Booking cancelled",
-                  f"{b.get('code')} cancelled.{_refund_msg}")
+        _aio.create_task(_post_cancel())
+    except RuntimeError:
+        await _post_cancel()
+
     out = await _get_booking(booking_id)
-    rt.emit_admin("job_update", _job_brief(out))
-    if b.get("partner_id"):
-        rt.emit_user(b.get("partner_id"), "booking_update", _job_brief(out))
     out["otps"] = {}
     return out
 
@@ -4091,7 +4118,14 @@ async def add_review(customer, booking_id, req):
               "booking_code": b.get("code", "")}
     await db.bookings.update_one({"id": booking_id}, {"$set": {"review": review}})
     await _silence_review_prompts(b["customer_id"])
-    if b.get("partner_id"):
+
+    # The review is saved — the customer's tap can return now. Recomputing the partner's
+    # average rating (a scan over all their reviews), rating-risk auto-suspension, 5-star
+    # streak bonuses and incentive auto-awards are all side-effects the customer does NOT
+    # need to wait for, so they run in ONE background task.
+    async def _post_review():
+        if not b.get("partner_id"):
+            return
         agg = await db.bookings.find({"partner_id": b["partner_id"], "review": {"$ne": None}},
                                      {"_id": 0, "review": 1}).to_list(1000)
         ratings = [x["review"]["rating"] for x in agg]  # already includes this review
@@ -4113,6 +4147,12 @@ async def add_review(customer, booking_id, req):
             await _ps.auto_award_incentives(b["partner_id"])
         except Exception:
             pass
+
+    import asyncio as _aio
+    try:
+        _aio.create_task(_post_review())
+    except RuntimeError:
+        await _post_review()
     out = await _get_booking(booking_id)
     out["otps"] = _visible_otps(customer, out)
     return out

@@ -10,7 +10,7 @@ import hashlib
 import requests
 import pytest
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://partner-active.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://swift-booking-fix.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 CHUNK_SIZE = 768 * 1024  # match frontend

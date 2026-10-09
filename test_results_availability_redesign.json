@@ -1,6 +1,6 @@
 {
   "test_name": "Partner My Availability - REDESIGNED UI",
-  "base_url": "https://partner-active.preview.emergentagent.com",
+  "base_url": "https://swift-booking-fix.preview.emergentagent.com",
   "tests": [
     {
       "name": "LOGIN - Demo button",
