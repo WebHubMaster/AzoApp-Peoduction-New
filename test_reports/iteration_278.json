@@ -1,0 +1,29 @@
+{
+  "summary": "Verified the new 'Support & Feedback' sidebar group in the admin panel (web_panel) containing Reported Bugs (first), Support Tickets, Template Manager — positioned right after 'Bookings'. Backend bug-report APIs (reporter create + admin list/filter/resolve) all pass (8/8 pytest). End-to-end flow seeded via API as customer (+919000000004, payment category) and partner (+919000000003, login category) was then verified in the admin UI: items appear with correct role/category/Open badge, KPI counts (Total/Open/Solved) are accurate, sidebar badge equals open-bug count, and admin resolve-with-note works (status flips to Solved, resolution note shown, reporter notification toast fires). Regression: Support Tickets and Template Manager still open correctly. Browser tab title correctly reads 'Reported Bugs · AzoApp'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin tab title", "issues": ["Clicking Template Manager sets document.title to 'Admin · AzoApp' instead of 'Template Manager · AzoApp' — the TITLES map in web_panel/src/pages/admin/AdminDashboard.jsx is missing an entry for key 'reg_templates'. Reported Bugs and Support Tickets titles are correct ('Reported Bugs · …', 'User Queries · …'). Non-blocking."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_reported_bugs.py", "/app/test_reports/pytest/reported_bugs.xml"],
+  "action_items": [
+    "Optional: Add 'reg_templates: \"Template Manager\"' to the TITLES map in web_panel/src/pages/admin/AdminDashboard.jsx so the browser tab title matches the on-page heading."
+  ],
+  "critical_code_review_comments": [
+    "web_panel/src/pages/admin/AdminDashboard.jsx is >600 lines — consider splitting NAV config, TITLES map, and badge/polling logic into separate modules for maintainability.",
+    "loadPending polls /admin/bugs every 60s with page_size=1 just to read counts.open — fine, but a dedicated lightweight count endpoint would be cleaner.",
+    "bug_controller._public mutates the dict passed in (pops _id); minor — fine for internal use.",
+    "bug_controller.admin_list executes 7+ count_documents queries per call (counts + per-category); for larger datasets consider a single $facet aggregation."
+  ],
+  "updated_files": ["/app/backend/tests/test_reported_bugs.py"],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "100% core flows"},
+  "test_credentials": "Admin +919000000000 OTP 123456; Customer +919000000004 OTP 123456; Partner +919000000003 OTP 123456",
+  "seed_data_creation": "Created two bug_reports via API: TEST_payment_fail (customer, category=payment) and TEST_partner_login_issue (partner, category=login). Both were later marked Solved during UI resolve test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Web panel is served at BACKEND_URL/api/panel/ as a single SPA (web_panel). Admin lands at /api/panel/admin via Protected route after login. Use /api/panel/login then click [data-testid='demo-admin'] for the fastest admin login. ReportedBugs testids: reported-bugs-page, bug-tab-{all|open|solved}, bug-app-{all|customer|partner}, bug-cat-tab-{all|payment|...}, bug-list, bug-card-{id}, bug-resolve-{id}, bug-resolve-dialog, bug-resolve-note, bug-resolve-confirm, bug-reopen-{id}. Seeded TEST_ bugs remain in bug_reports collection (Solved). Backend auth endpoints are /api/auth/send-otp + /api/auth/verify-otp (not /request-otp).",
+  "rca of the issue": "N/A — the reported user issue ('admin me nahi dikh raha hai kaha dikhega reported bug') was addressed by the fix adding a dedicated 'Support & Feedback' sidebar group right after Bookings with Reported Bugs as the first item plus an open-count badge. The item is now easy to find; verified in UI."
+}
