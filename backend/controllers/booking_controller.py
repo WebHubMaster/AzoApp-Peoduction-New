@@ -3612,8 +3612,8 @@ async def complete_job(partner, booking_id, otp):
             pass
         rt.emit_user(partner["id"], "finance_update", {"kind": "job_completed", "booking_id": booking_id})
         await _notify(
-            b["customer_id"], "Service completed",
-            f"Invoice for {b['code']} is ready: ₹{b['pricing']['total']}. Please rate your experience.",
+            b.get("customer_id"), "Service completed",
+            f"Invoice for {b.get('code')} is ready: ₹{(b.get('pricing') or {}).get('total', 0)}. Please rate your experience.",
             event_type="booking_completed",
             ctx={"customer_name": b.get("customer_name", ""), "booking_id": b["code"]})
 

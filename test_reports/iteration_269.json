@@ -1,0 +1,23 @@
+{
+  "summary": "Backend-only verification of iter 269 fix: complete_job now fires notification gateways (push/SMS/email/template) via fire_and_forget / notify_bg. Baseline HTTP POST /api/bookings/{id}/complete returns in ~11ms. With fcm/webpush/expo/template.fire_event each monkeypatched to sleep 5s, direct controllers.booking_controller.complete_job returns in ~6ms — proving gateway latency is fully off the request path. Booking becomes completed, commission_ledger + partner_ledger rows written synchronously, customer in-app notification document appears shortly after via background task. Wrong OTP still 400 'Invalid completion OTP'. Missing after-photos still 400. Startup indexes bookings.code, commission_ledger.booking_id, refunds.booking_id all present. start-otp regression path intact. 6/6 tests passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_complete_job_fast_iter269.py",
+    "/app/test_reports/pytest/iter269_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "notification_service.fire_and_forget silently falls back to asyncio.run when no loop is running — fine in request path but could block callers invoked from sync contexts. Current call sites (_notify in booking_controller / partner_service) are all async, so safe today.",
+    "booking_controller.py is 4730 lines; strongly recommend splitting (actions, dispatch, lifecycle, notifications) per the >700-line guideline.",
+    "In complete_job the inner _post_complete still awaits _notify (which itself is fire-and-forget), so that's OK, but note the fallback branch 'except RuntimeError: await _post_complete()' can re-introduce blocking if ever called from a sync context."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "test_credentials": "none required — tests mint JWT via middleware.auth signature using backend/.env JWT_SECRET and seed partner/customer users directly in mongo (azoapp_local). All seeded data is prefixed TEST_ and cleaned up per test.",
+  "seed_data_creation": "Each test seeds a disposable partner, customer, and 'started' booking with evidence.after and otps.completion='2222' directly via pymongo; cleanup removes users/bookings/commission_ledger/partner_ledger/notifications/transactions/invoices after each test.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reusable regression suite at /app/backend/tests/test_complete_job_fast_iter269.py — uses sync pymongo for seed/cleanup to sidestep motor/pytest-asyncio event-loop-reuse issues, and asyncio.run for the direct-controller slow-gateway proof. Run with: REACT_APP_BACKEND_URL=http://localhost:8001 pytest tests/test_complete_job_fast_iter269.py -v",
+  "rca of the issue": "Previously complete_job awaited notification side-effects (fcm/webpush/expo push + SMS + email + template fire_event) inline. Any slow gateway (DLT SMS, FCM retry, Expo timeout, SMTP) added seconds to the request. Fix moved these to notification_service.fire_and_forget (asyncio.create_task) via _notify wrapper + notify_bg helper. Reproduction: monkeypatch fcm_service.send_to_user, webpush_service.send_to_user, expo_push_service.send_to_user, template_service.fire_event to sleep 5s; call controllers.booking_controller.complete_job directly — before fix would have blocked ~5s+, now returns in <10ms. Mitigation already shipped; test guards against regression."
+}
