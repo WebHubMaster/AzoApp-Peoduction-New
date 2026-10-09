@@ -819,6 +819,16 @@ async def _credit_incentive_award(inc, partner_id, actor, auto=False):
                  f"₹{amount} bonus for {inc['name']} added to your wallet"
                  + (" automatically." if auto else "."),
                  event_type="incentive_awarded", ctx={"amount": amount})
+    # Milestone celebration: push a structured real-time event so the partner app can
+    # fire a congratulations animation + wallet-credit toast the instant a challenge unlocks.
+    if amount:
+        try:
+            from services import realtime as rt
+            rt.emit_user(partner_id, "challenge_unlocked",
+                         {"name": inc.get("name"), "amount": amount,
+                          "bonus_amount": inc.get("bonus_amount", amount), "auto": bool(auto)})
+        except Exception:  # noqa: BLE001
+            pass
     return amount
 
 

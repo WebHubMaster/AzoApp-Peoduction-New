@@ -18,6 +18,7 @@ import { OfflineGate } from "@/src/components/OfflineGate";
 import AppUpdateGate from "@/src/components/AppUpdateGate";
 import { initCrashReporter, reportError } from "@/src/lib/crashReporter";
 import { ToastProvider } from "@/src/components/Toast";
+import ChallengeCelebration from "@/src/components/partner/ChallengeCelebration";
 import { BrandProvider, useSiteConfigQuery, SiteConfig } from "@/src/context/BrandContext";
 import { setupAndroidChannels } from "@/src/lib/notifications";
 import { APP_FONTS, installGlobalFont } from "@/src/lib/globalFont";
@@ -115,6 +116,7 @@ function ThemedRoot({ fontsLoaded }: { fontsLoaded: boolean }) {
             <RefreshNoteHost />
             <OfflineGate />
             <AppUpdateGate />
+            <ChallengeCelebration />
           </ToastProvider>
           </ChatProvider>
           </RealtimeProvider>
