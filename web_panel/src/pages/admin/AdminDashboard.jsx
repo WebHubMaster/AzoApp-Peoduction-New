@@ -7,6 +7,7 @@ import { LayoutDashboard, ClipboardList, Wallet, RefreshCcw, Wrench, Store, User
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import useTabParam from "@/hooks/useTabParam";
+import { useSearchParams } from "react-router-dom";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import { PanelLayout } from "@/components/PanelLayout";
 import OnboardingTour from "@/components/tour/OnboardingTour";
@@ -306,10 +307,15 @@ export default function AdminDashboard() {
   const [openBooking, setOpenBooking] = useState(null);
   const [bookingDetailId, setBookingDetailId] = useState(null);
   // Deep link from alerts (e.g. face mismatch): /admin?tab=bookings&booking=<id>
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepBooking = searchParams.get("booking");
   useEffect(() => {
-    const sp = new URLSearchParams(window.location.search); const bid = sp.get("booking");
-    if (bid) setBookingDetailId(bid);
-  }, [typeof window !== "undefined" ? window.location.search : ""]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!deepBooking) return;
+    setBookingDetailId(deepBooking);
+    // consume the one-shot deep link so later menu clicks don't reopen this booking
+    const next = new URLSearchParams(searchParams); next.delete("booking");
+    setSearchParams(next, { replace: true });
+  }, [deepBooking]); // eslint-disable-line react-hooks/exhaustive-deps
   const [bookingsTab, setBookingsTab] = useState("");
   const [viewUser, setViewUser] = useState(null);
   // Profile-update red dots: unread self-service profile changes per role (persisted server-side).
