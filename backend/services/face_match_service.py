@@ -14,13 +14,13 @@ from services.storage_service import UPLOAD_DIR, fetch_s3_object
 log = logging.getLogger("azoapp")
 
 _PROMPT = (
-    "You are a strict identity-verification assistant. Image 1 is a person's KYC registration "
-    "photo. Image 2 is a live selfie taken today at a job site. Decide if both show the SAME person "
-    "(ignore lighting, angle, beard/hair changes, glasses, cap, mirroring). If either image has no "
-    "clear human face, say so. Respond ONLY with compact JSON: "
+    "You are a strict anti-fraud identity checker. Image 1 is a KYC registration photo, image 2 is a "
+    "check-in selfie. Compare PERMANENT facial structure only: face shape, eye spacing and shape, nose, "
+    "lips, ears, eyebrows, jawline, skin tone, age. Do NOT explain differences away — if the faces are "
+    "not clearly the same individual, answer same_person=false. Respond ONLY with compact JSON: "
     '{"same_person": true|false, "confidence": 0-100, "face_found": true|false, "reason": "<max 15 words>"}'
 )
-MISMATCH_MIN_CONFIDENCE = 60
+LLM_MATCH_MIN_CONFIDENCE = 85
 
 
 async def _load_bytes(url: str):
@@ -58,32 +58,61 @@ def _parse(text: str) -> dict:
     return json.loads(m.group(0)) if m else {}
 
 
+def _pct(x: float, lo: float, hi: float) -> int:
+    return int(max(50, min(99, 50 + (x - lo) / (hi - lo) * 49)))
+
+
+async def _llm_verdict(cfg, a, b) -> dict:
+    messages = [{"role": "user", "content": [
+        {"type": "text", "text": _PROMPT},
+        {"type": "image_url", "image_url": {"url": _data_uri(*a)}},
+        {"type": "image_url", "image_url": {"url": _data_uri(*b)}},
+    ]}]
+    resp = await litellm.acompletion(model=cfg["model"], messages=messages, api_key=cfg["api_key"], temperature=0)
+    return _parse(resp.choices[0].message.content or "")
+
+
 async def compare_faces(kyc_url: str, selfie_url: str) -> dict:
-    """Returns {status: match|mismatch|unverified, confidence, reason, provider}."""
-    cfg = await _ocr_config()
-    if not cfg["enabled"]:
-        return {"status": "unverified", "reason": "Vision AI is turned off — enable it in Integration Center → Vision AI (OCR & Face Match)", "setup_required": True}
-    if not cfg["api_key"]:
-        return {"status": "unverified", "reason": "Vision AI not configured — add an API key in Integration Center → Vision AI (OCR & Face Match)", "setup_required": True}
+    """Returns {status: match|mismatch|unverified, confidence, reason, provider, similarity}.
+    Primary: on-server face embeddings (YuNet + SFace). The vision LLM is used only as a
+    tie-breaker for borderline scores and can never override a clear embedding verdict."""
     if not kyc_url:
         return {"status": "unverified", "reason": "No KYC live photo on file"}
     try:
         a, b = await _load_bytes(kyc_url), await _load_bytes(selfie_url)
         if not a or not b:
             return {"status": "unverified", "reason": "Could not load KYC photo or selfie"}
-        messages = [{"role": "user", "content": [
-            {"type": "text", "text": _PROMPT},
-            {"type": "image_url", "image_url": {"url": _data_uri(*a)}},
-            {"type": "image_url", "image_url": {"url": _data_uri(*b)}},
-        ]}]
-        resp = await litellm.acompletion(model=cfg["model"], messages=messages, api_key=cfg["api_key"], temperature=0)
-        out = _parse(resp.choices[0].message.content or "")
-        conf = int(float(out.get("confidence") or 0))
-        if out.get("face_found") is False:
-            return {"status": "mismatch", "confidence": conf, "reason": out.get("reason") or "No clear face found", "provider": cfg["provider"]}
-        same = bool(out.get("same_person"))
-        status = "match" if same else ("mismatch" if conf >= MISMATCH_MIN_CONFIDENCE else "unverified")
-        return {"status": status, "confidence": conf, "reason": (out.get("reason") or "")[:160], "provider": cfg["provider"]}
+        import anyio
+        from services import face_embed as fe
+        r = await anyio.to_thread.run_sync(fe.compare, a[0], b[0])
+        prov = "face-embedding (SFace)"
+        if not r["selfie_face"]:
+            return {"status": "mismatch", "confidence": 90, "reason": "No clear face found in the check-in selfie", "provider": prov}
+        if not r["kyc_face"]:
+            return {"status": "unverified", "reason": "No clear face found in the KYC photo — update the partner's KYC live photo", "provider": prov}
+        sim = round(r["score"], 3)
+        if sim >= fe.MATCH_MIN:
+            return {"status": "match", "confidence": _pct(sim, fe.MATCH_MIN, 0.75), "similarity": sim,
+                    "reason": f"Facial features match (similarity {sim:.2f})", "provider": prov}
+        if sim < fe.MISMATCH_MAX:
+            return {"status": "mismatch", "confidence": _pct(fe.MISMATCH_MAX - sim, 0, fe.MISMATCH_MAX), "similarity": sim,
+                    "reason": f"Different person — facial features do not match (similarity {sim:.2f})", "provider": prov}
+        # Borderline → optional vision-LLM tie-breaker, otherwise manual review.
+        cfg = await _ocr_config()
+        if cfg["enabled"] and cfg["api_key"]:
+            try:
+                out = await _llm_verdict(cfg, a, b)
+                conf = int(float(out.get("confidence") or 0))
+                if out.get("same_person") is True and conf >= LLM_MATCH_MIN_CONFIDENCE:
+                    return {"status": "match", "confidence": min(conf, 80), "similarity": sim, "provider": f"{prov} + {cfg['provider']}",
+                            "reason": f"Borderline similarity {sim:.2f}; AI review: {(out.get('reason') or '')[:100]}"}
+                if out.get("same_person") is False:
+                    return {"status": "mismatch", "confidence": max(60, conf), "similarity": sim, "provider": f"{prov} + {cfg['provider']}",
+                            "reason": f"Borderline similarity {sim:.2f}; AI review: {(out.get('reason') or '')[:100]}"}
+            except Exception as e:  # noqa: BLE001
+                log.warning("face match llm tie-break failed: %s", e)
+        return {"status": "unverified", "confidence": 50, "similarity": sim, "provider": prov,
+                "reason": f"Borderline similarity {sim:.2f} — please review the photos manually"}
     except Exception as e:  # noqa: BLE001
         log.warning("face match failed: %s", e)
         return {"status": "unverified", "reason": f"Face check error: {str(e)[:120]}"}
