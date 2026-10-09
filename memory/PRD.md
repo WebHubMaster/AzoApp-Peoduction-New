@@ -425,3 +425,6 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Removed the tip / thank-you card from the Rate Service sheet (Expo customer app + customer web). The backend tip endpoint was left unchanged.
 - Expo app: Keyboard listeners now lift the sheet by the keyboard height so the comment box stays above the keyboard. Web: a visualViewport keyboard-inset hook does the same.
 - iteration_275: web 100% passed; Expo changes were only code-reviewed.
+
+## 2026-06 — Customer App home: category grid gap fix
+- Explore Services grid: changed space-between to left-aligned tiles with fixed 2.75% gaps (HomeView.tsx). An incomplete last row no longer leaves a blank middle slot. iteration_276: code review only (Expo can't run in this environment).
