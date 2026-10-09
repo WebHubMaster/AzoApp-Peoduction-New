@@ -328,3 +328,21 @@ Backlog: remove/flag one-time startup demo bookings (seed_demo_activity, seed_me
 - Verified: testing_agent backend 100% (emit + wallet credit + idempotency + challenge-count regression).
   Tests: backend/challenge_unlock_event_test.py, backend/tests/test_challenge_unlock_celebration.py.
   Frontend typechecked (tsc) — no new errors; Expo app not runnable in pod so UI is pending on-device check.
+
+## 2026-10-09 — Feature: Report a Bug (Customer, Partner, Admin)
+- Backend: new `bug_reports` collection + controllers/bug_controller.py + routes/bug_routes.py.
+  - Reporter (customer/partner/merchant): POST /api/bugs {title, description, screenshot_url?},
+    GET /api/bugs/my, DELETE /api/bugs/{id} (allowed ONLY after status solved/closed).
+  - Admin: GET /api/admin/bugs (filters status/role/q, pagination, counts), POST /api/admin/bugs/{id}/resolve
+    {note} (status→solved, stores resolution_note + notifies reporter in-app/push/SSE), POST .../reopen.
+  - Screenshot reuses existing POST /api/support/upload. RBAC seg 'bugs'→'communication'.
+- Customer app (Expo /app/Customer): new screen app/(customer)/report-bug.tsx + "Report a Bug" item in
+  the More menu (src/components/customer/nav.ts). Form (title+desc+optional screenshot), my-reports list
+  with live status, resolution note, delete (only when solved).
+- Partner app (Expo /app/frontend): new screen app/(partner)/partner/report-bug.tsx + "Report a Bug" in the
+  More menu (app/(partner)/_layout.tsx). Same UX; uses uploadAsset + react-query + Toast.
+- Admin panel (CRA /app/web_panel): new page src/pages/admin/ReportedBugs.jsx wired into AdminDashboard NAV
+  as "Reported Bugs" (key bug_reports). KPIs, status/app tabs, search, screenshot preview, Mark Solved
+  dialog with note, Reopen.
+- Verified: testing_agent backend 100% (21/21). Clients are Expo/CRA — not runnable in pod; RN typechecked
+  (tsc) and admin JSX babel-parsed clean. NOTE: rebuild/redeploy the web_panel to see the admin menu.
