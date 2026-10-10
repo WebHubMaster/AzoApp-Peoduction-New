@@ -27,6 +27,8 @@ const LocationGate = () => {
     const dismissed = sessionStorage.getItem("azo_loc_dismissed");
     if (!has && !dismissed) { const t = setTimeout(() => setOpen(true), 900); return () => clearTimeout(t); }
   }, []);
+  // One pop-up at a time: rating / alert nudges wait until this modal closes.
+  useEffect(() => { window.__azoLocOpen = open; window.dispatchEvent(new Event("azo:modal")); return () => { window.__azoLocOpen = false; window.dispatchEvent(new Event("azo:modal")); }; }, [open]);
   const dismiss = () => { sessionStorage.setItem("azo_loc_dismissed", "1"); setOpen(false); };
   const allow = () => {
     if (!navigator.geolocation) { dismiss(); return; }

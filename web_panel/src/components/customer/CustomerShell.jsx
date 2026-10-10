@@ -32,12 +32,17 @@ function Avatar({ user, size = "h-9 w-9" }) {
     : <span className={`${size} rounded-full grid place-items-center bg-gradient-to-br from-primary-500 to-primary-800 text-white font-bold text-sm ring-2 ring-white/70 dark:ring-slate-700`}>{initials}</span>;
 }
 
-function NotificationBell({ testId = "notif-btn" }) {
+function NotificationBell({ testId = "notif-btn", onViewAll }) {
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(() => localStorage.getItem("azo_notif_seen") || "");
   const load = useCallback(() => { api.get("/notifications").then((r) => setItems(r.data || [])).catch(() => {}); }, []);
   useEffect(() => { load(); const t = setInterval(load, 20000); return () => clearInterval(t); }, [load]);
+  useEffect(() => {
+    const h = () => { setSeen(localStorage.getItem("azo_notif_seen") || ""); load(); };
+    window.addEventListener("azo-notif-seen", h);
+    return () => window.removeEventListener("azo-notif-seen", h);
+  }, [load]);
   const unread = items.filter((n) => !seen || (n.created_at || "") > seen).length;
   const markAll = () => { const now = new Date().toISOString(); localStorage.setItem("azo_notif_seen", now); setSeen(now); };
   return (
@@ -71,6 +76,10 @@ function NotificationBell({ testId = "notif-btn" }) {
             );
           })}
         </div>
+        {onViewAll && (
+          <button data-testid={`${testId}-view-all`} onClick={() => { setOpen(false); onViewAll(); }}
+            className="w-full py-3 text-sm font-bold text-primary-700 dark:text-primary-300 border-t border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/60">View all notifications</button>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -134,7 +143,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
   const primaryKeys = mobilePrimary || ["home", "orders", "wallet", "invoices"];
   const primaryNav = primaryKeys.map((k) => nav.find((n) => n.key === k)).filter(Boolean);
   const moreNav = nav.filter((n) => !primaryKeys.includes(n.key));
-  const activeLabel = nav.find((n) => n.key === active)?.label || "Dashboard";
+  const activeLabel = nav.find((n) => n.key === active)?.label || (active === "notifications" ? "Notifications" : "Dashboard");
   const location = user?.addresses?.find((a) => a.is_default)?.city || user?.addresses?.[0]?.city || "Patna";
 
   const go = (k) => { onNavigate(k); setMoreOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
@@ -207,7 +216,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
           <div className="flex-1 min-w-0">
             <GlobalSearch nav={nav} onNavigate={go} />
           </div>
-          <NotificationBell />
+          <NotificationBell onViewAll={() => go("notifications")} />
           <ThemeToggle />
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700" />
           <AvatarMenu user={user} onNavigate={go} />
@@ -227,7 +236,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
                 <p className="text-sm font-bold text-slate-800 dark:text-white truncate leading-tight">{location}</p>
               </div>
             )}
-            <NotificationBell testId="m-notif-btn" />
+            <NotificationBell testId="m-notif-btn" onViewAll={() => go("notifications")} />
             <ThemeToggle />
           </div>
         </header>

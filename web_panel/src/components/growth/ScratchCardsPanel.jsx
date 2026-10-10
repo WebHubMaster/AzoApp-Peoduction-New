@@ -14,11 +14,11 @@ const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
  *  - "View All" opens a dedicated full grid page (in-panel route via `viewAll` state).
  *  - scratched cards auto-delete after 30 days (server sweep + lazy purge on list).
  */
-export default function ScratchCardsPanel({ onClaimed }) {
+export default function ScratchCardsPanel({ onClaimed, gridOnly = false }) {
   const [data, setData] = useState({ cards: [], summary: {} });
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
-  const [viewAll, setViewAll] = useState(false);
+  const [viewAll, setViewAll] = useState(gridOnly);
   const scrollerRef = useRef(null);
 
   const load = useCallback(() => {
@@ -53,8 +53,8 @@ export default function ScratchCardsPanel({ onClaimed }) {
     return (
       <div className="mb-6" data-testid="scratch-viewall">
         <div className="flex items-center gap-2 mb-4">
-          <button onClick={() => setViewAll(false)} data-testid="scratch-viewall-back"
-            className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"><ArrowLeft className="h-5 w-5" /></button>
+          {!gridOnly && <button onClick={() => setViewAll(false)} data-testid="scratch-viewall-back"
+            className="h-9 w-9 grid place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"><ArrowLeft className="h-5 w-5" /></button>}
           <div>
             <h3 className="font-heading font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2"><Sparkles className="h-5 w-5 text-amber-500" /> All Scratch Cards</h3>
             <p className="text-xs text-slate-500">Earned {fmt(summary.earned)} · {cards.length} card{cards.length > 1 ? "s" : ""} · scratched cards auto-remove after 30 days</p>

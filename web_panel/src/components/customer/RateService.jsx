@@ -68,12 +68,15 @@ export default function RateService() {
   const [current, setCurrent] = useState(null);
   const handled = useRef(new Set());
   useEffect(() => { load(); }, [pathname, load]);
+  const [locOpen, setLocOpen] = useState(() => !!window.__azoLocOpen);
+  useEffect(() => { const h = () => setLocOpen(!!window.__azoLocOpen); window.addEventListener("azo:modal", h); return () => window.removeEventListener("azo:modal", h); }, []);
+  useEffect(() => { window.__azoRateOpen = !!current; window.dispatchEvent(new Event("azo:modal")); }, [current]);
 
   useEffect(() => {
-    if (current || !isCustomer || NO_AUTO.some((p) => pathname.startsWith(p))) return;
+    if (current || locOpen || !isCustomer || NO_AUTO.some((p) => pathname.startsWith(p))) return;
     const next = items[0]?.auto_prompt && !handled.current.has(items[0].id) ? items[0] : null;
     if (next) { handled.current.add(next.id); setCurrent(next); }
-  }, [items, current, isCustomer, pathname]);
+  }, [items, current, locOpen, isCustomer, pathname]);
 
   const close = (rated) => {
     const b = current;

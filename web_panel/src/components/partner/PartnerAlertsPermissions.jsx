@@ -16,6 +16,13 @@ const CARDS = [
   { key: "install", icon: MonitorSmartphone, title: "Install as App", why: "Add AzoApp Partner to your home screen / desktop so alerts arrive reliably like a real app.", affected: "Alerts may stop when the browser tab is closed.", tint: "#38BDF8" },
 ];
 
+const CUSTOMER_CARDS = [
+  { key: "notifications", icon: BellRing, title: "Notifications", why: "Get booking, partner arrival, reschedule & chat alerts — even when this tab is in the background.", affected: "Without this you will NOT get any alert about your bookings.", tint: "#F59E0B", critical: true },
+  { key: "sound", icon: Volume2, title: "Alert Sound", why: "Let the browser play the alert sound when a partner confirms or wants to reschedule.", affected: "Browsers mute sound until you allow it once — alerts may be silent.", tint: "#22C55E" },
+  { key: "location", icon: MapPin, title: "Location", why: "Auto-detect your address and show services available in your area.", affected: "You'll have to type your address manually.", tint: "#A78BFA" },
+  { key: "install", icon: MonitorSmartphone, title: "Install as App", why: "Add AzoApp to your home screen / desktop so alerts arrive reliably like a real app.", affected: "Alerts may stop when the browser tab is closed.", tint: "#38BDF8" },
+];
+
 async function readStates() {
   const notif = currentPermission();
   let loc = "prompt";
@@ -61,7 +68,8 @@ function PermCard({ c, st, busy, onAllow }) {
 }
 
 /** Alerts & Permissions — web counterpart of the Partner app's Permission Center. */
-export default function PartnerAlertsPermissions() {
+export default function PartnerAlertsPermissions({ variant = "partner" }) {
+  const isCust = variant === "customer";
   const [s, setS] = useState(null);
   const [busy, setBusy] = useState(null);
   const [diag, setDiag] = useState(null);
@@ -119,7 +127,7 @@ export default function PartnerAlertsPermissions() {
     setTesting(null); loadDiag();
   };
 
-  const shown = CARDS;
+  const shown = isCust ? CUSTOMER_CARDS : CARDS;
   const readyCount = s ? shown.filter((c) => s[c.key]?.granted).length : 0;
   const criticalMissing = s ? shown.some((c) => c.critical && s[c.key]?.available && !s[c.key]?.granted) : false;
 
@@ -128,14 +136,14 @@ export default function PartnerAlertsPermissions() {
       <div className="flex items-center gap-3">
         <div className="h-10 w-10 rounded-xl bg-primary-700 text-white flex items-center justify-center shrink-0"><ShieldCheck className="h-5 w-5" /></div>
         <div>
-          <h2 className="font-heading font-extrabold text-lg text-slate-900 dark:text-white">Alerts &amp; Permissions</h2>
+          <h2 className="font-heading font-extrabold text-lg text-slate-900 dark:text-white">{isCust ? "Alert Health Check" : "Alerts & Permissions"}</h2>
           <p data-testid="perm-ready-count" className="text-xs text-slate-500">{readyCount}/{shown.length} enabled</p>
         </div>
       </div>
       {criticalMissing ? (
         <div data-testid="perm-critical-banner" className="flex gap-2.5 rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-900/20 p-3 text-amber-800 dark:text-amber-200">
           <AlertTriangle className="h-5 w-5 shrink-0" />
-          <p className="text-xs font-semibold leading-relaxed">A required permission is turned off. New jobs may not ring reliably until you allow it below.</p>
+          <p className="text-xs font-semibold leading-relaxed">A required permission is turned off. {isCust ? "Your booking alerts may not reach you until you allow it below." : "New jobs may not ring reliably until you allow it below."}</p>
         </div>
       ) : null}
       <div className="grid gap-3 md:grid-cols-2">
@@ -144,7 +152,7 @@ export default function PartnerAlertsPermissions() {
 
       {help ? (
         <div data-testid="perm-help" className="rounded-xl border border-primary-200 bg-primary-50 dark:bg-primary-900/20 p-4 text-sm text-slate-700 dark:text-slate-200 space-y-1.5">
-          <p className="font-extrabold">{help === "install" ? "Install AzoApp Partner" : "Unblock in your browser"}</p>
+          <p className="font-extrabold">{help === "install" ? (isCust ? "Install AzoApp" : "Install AzoApp Partner") : "Unblock in your browser"}</p>
           {help === "install" ? (
             <ol className="list-decimal pl-5 space-y-1 text-xs">
               <li>Android Chrome: tap the ⋮ menu → “Install app” / “Add to Home screen”.</li>
@@ -166,7 +174,7 @@ export default function PartnerAlertsPermissions() {
         <p className="font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2"><Radio className="h-5 w-5 text-primary-700" /> Push &amp; Ring Diagnostics</p>
         <p className="text-xs text-slate-500 flex items-center gap-1.5">
           {diag?.enabled ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4 text-amber-600" />}
-          Server push service: <b className={diag?.enabled ? "text-emerald-600" : "text-amber-600"}>{diag?.enabled ? "Configured" : "Not configured (contact admin)"}</b>
+          Server push service: <b className={diag?.enabled ? "text-emerald-600" : "text-amber-600"}>{diag?.enabled ? "Configured" : (isCust ? "Not configured (contact support)" : "Not configured (contact admin)")}</b>
         </p>
         <p className="text-xs text-slate-500 flex items-center gap-1.5">
           {diag?.registered ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <AlertCircle className="h-4 w-4 text-amber-600" />}
@@ -175,7 +183,7 @@ export default function PartnerAlertsPermissions() {
         <p className="text-[11.5px] text-slate-500 leading-relaxed">Send a real test to this device. For the ring test, switch to another tab or minimise the browser first.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           <button data-testid="test-ring-btn" disabled={!!testing} onClick={() => sendTest("ring")} className="h-11 rounded-md bg-primary-700 hover:bg-primary-800 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1.5 disabled:opacity-60">
-            <PhoneCall className="h-4 w-4" /> {testing === "ring" ? "Sending…" : "Test Job Ring"}
+            <PhoneCall className="h-4 w-4" /> {testing === "ring" ? "Sending…" : isCust ? "Test Alert Ring" : "Test Job Ring"}
           </button>
           <button data-testid="test-push-btn" disabled={!!testing} onClick={() => sendTest("push")} className="h-11 rounded-md border-[1.5px] border-primary-700 text-primary-700 dark:text-primary-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 disabled:opacity-60 hover:bg-primary-50 dark:hover:bg-primary-900/20">
             <Bell className="h-4 w-4" /> {testing === "push" ? "Sending…" : "Test Notification"}

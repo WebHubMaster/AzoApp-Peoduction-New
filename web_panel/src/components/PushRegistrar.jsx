@@ -63,6 +63,12 @@ export function PushNudge() {
   const { pathname } = useLocation();
   const [hidden, setHidden] = useState(true);
   const [rateBar, setRateBar] = useState(() => !!window.__azoRateBar);
+  const [otherModal, setOtherModal] = useState(() => !!(window.__azoLocOpen || window.__azoRateOpen));
+  useEffect(() => {
+    const h = () => setOtherModal(!!(window.__azoLocOpen || window.__azoRateOpen));
+    window.addEventListener("azo:modal", h);
+    return () => window.removeEventListener("azo:modal", h);
+  }, []);
   useEffect(() => {
     const on = () => setRateBar(!!window.__azoRateBar);
     window.addEventListener("azo:ratebar", on);
@@ -85,7 +91,7 @@ export function PushNudge() {
   }, [user, perm]);
 
   const close = () => { localStorage.setItem("azo_push_nudge_at", String(Date.now())); setHidden(true); };
-  if (hidden || !user || suppressed) return null;
+  if (hidden || !user || suppressed || otherModal) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[70] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-3 pointer-events-none" data-testid="push-nudge">

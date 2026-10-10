@@ -7,7 +7,7 @@ import {
   Camera, Pencil, Trash2, Star as StarIcon, ShieldAlert, RefreshCcw, Receipt, FileText,
   AlertTriangle, CheckCircle2, Crown, ChevronRight, ChevronDown, ArrowRight, LifeBuoy, Copy, Share2,
   Clock, TrendingUp, Zap, Phone, IndianRupee, KeyRound, MessageCircle, CreditCard, Download, Wrench, Circle, X, Info as InfoIcon, Lock,
-  Smile, GlassWater, Bath, HeartHandshake,
+  Smile, GlassWater, Bath, HeartHandshake, Sparkles, BadgePercent, BellRing, Bug,
 } from "lucide-react";
 import api, { fmt, fmtC, mediaSrc } from "@/lib/api";
 import { shareInvoicePdf, shareFilePdf } from "@/lib/invoiceShare";
@@ -28,6 +28,9 @@ import InvoiceCenter from "@/components/invoices/InvoiceCenter";
 import SupportCenter from "@/components/SupportCenter";
 import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
+import { NotificationsView, OffersView, RewardsView } from "@/components/customer/CustomerExtras";
+import PartnerAlertsPermissions from "@/components/partner/PartnerAlertsPermissions";
+import PartnerReportBug from "@/components/partner/PartnerReportBug";
 import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
 import LiveTrack from "@/components/customer/LiveTrack";
 import PartnerProfileModal from "@/components/customer/PartnerProfileModal";
@@ -64,9 +67,13 @@ const NAV = [
   { key: "invoices", label: "My Invoices", short: "Invoices", icon: FileText },
   { key: "addresses", label: "My Addresses", short: "Address", icon: MapPin },
   { key: "wallet", label: "Wallet", short: "Wallet", icon: Wallet },
+  { key: "rewards", label: "Reward & Cashback", short: "Rewards", icon: Sparkles },
+  { key: "offers", label: "Offers & Savings", short: "Offers", icon: BadgePercent },
   { key: "profile", label: "My Profile", short: "Profile", icon: UserIcon },
   { key: "referral", label: "Refer & Earn", short: "Refer", icon: Gift },
+  { key: "alerts", label: "Alert Health Check", short: "Alerts", icon: BellRing },
   { key: "support", label: "Help & Support", short: "Support", icon: LifeBuoy },
+  { key: "report_bug", label: "Report a Bug", short: "Bug", icon: Bug },
 ];
 
 const ACTIVE_STATES = ["pending", "pending_payment", "searching", "assigned", "arrived_shop", "arrived_customer", "started"];
@@ -210,6 +217,11 @@ export default function CustomerDashboard() {
       {active === "addresses" && <div><SectionHeader title="My Addresses" sub="Saved locations for faster checkout" onNew={() => navigate("/services")} /><AddressBook cfg={cfg.address_config || {}} onSaved={refresh} /></div>}
       {active === "invoices" && <InvoiceCenter role="customer" title="My Invoices" subtitle="View & download invoices for your bookings and payments." />}
       {active === "support" && <SupportCenter />}
+      {active === "rewards" && <RewardsView onClaimed={load} />}
+      {active === "offers" && <OffersView />}
+      {active === "notifications" && <NotificationsView />}
+      {active === "alerts" && <PartnerAlertsPermissions variant="customer" />}
+      {active === "report_bug" && <div><SectionHeader title="Report a Bug" sub="Found something broken? Tell us and track the fix here" /><PartnerReportBug /></div>}
     </CustomerShell>
   );
 }
