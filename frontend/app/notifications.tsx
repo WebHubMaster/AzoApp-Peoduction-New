@@ -13,7 +13,7 @@ import { useToast } from "@/src/components/Toast";
 import { useAuth } from "@/src/context/AuthContext";
 import { timeAgo } from "@/src/lib/format";
 
-export default function Notifications() {
+export default function Notifications({ embedded = false }: { embedded?: boolean } = {}) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const qc = useQueryClient();
@@ -27,7 +27,7 @@ export default function Notifications() {
       try { return await api.get<any[]>("/notifications"); } catch { return []; }
     },
   });
-  const items = Array.isArray(data) ? data : (data as any)?.items || [];
+  const items: any[] = Array.isArray(data) ? data : (data as any)?.items || [];
   const shown = useProgressiveList(items);
 
   const refreshBadges = () => {
@@ -80,7 +80,7 @@ export default function Notifications() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <AppShellHeader profileRoute={user?.role === "merchant" ? "/(merchant)/profile" : "/(partner)/profile"} />
+      {embedded ? null : <AppShellHeader profileRoute={user?.role === "merchant" ? "/(merchant)/profile" : "/(partner)/profile"} />}
 
       {!isLoading && items.length > 0 ? (
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
@@ -102,7 +102,7 @@ export default function Notifications() {
           {...shown.scrollProps}
           ListFooterComponent={<LoadMoreFooter list={shown} testID="notif-load-more" />}
           keyExtractor={(n, i) => n.id || String(i)}
-          contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + spacing.xl, gap: spacing.sm }}
+          contentContainerStyle={{ padding: spacing.lg, paddingBottom: insets.bottom + (embedded ? 110 : spacing.xl), gap: spacing.sm }}
           refreshControl={<RefreshControl refreshing={isFetching} onRefresh={() => qc.invalidateQueries({ queryKey: ["notifications"] })} tintColor={colors.primary} colors={[colors.primary]} />}
           ListEmptyComponent={<EmptyState icon="bell-outline" title="No notifications" subtitle="Job rings, booking updates and payouts will appear here." />}
           renderItem={({ item }) => (

@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Pressable, Modal, ScrollView, TextInput, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { KeyboardAvoidingView, KeyboardProvider } from "react-native-keyboard-controller";
@@ -11,28 +12,17 @@ import { api, mediaUrl } from "@/src/api/client";
 import { useBrand } from "@/src/context/BrandContext";
 import { useAuth } from "@/src/context/AuthContext";
 import { useToast } from "@/src/components/Toast";
-import { storage } from "@/src/utils/storage";
 
-const SEEN_KEY = "azo_notif_seen";
 
 /* ─────────────── Notification bell (dynamic /notifications + unread badge) ─────────────── */
 function NotificationBell() {
-  const { colors, mode } = useTheme();
-  const insets = useSafeAreaInsets();
-  const [items, setItems] = useState<any[]>([]);
-  const [open, setOpen] = useState(false);
-  const [seen, setSeen] = useState("");
-  const load = useCallback(() => { api.get<any[]>("/notifications").then((r) => setItems(r || [])).catch(() => {}); }, []);
-  useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, [load]);
-  useEffect(() => { storage.getItem(SEEN_KEY).then((v) => setSeen(v || "")); }, []);
-  const unread = items.filter((n) => !seen || (n.created_at || "") > seen).length;
-  const toggle = () => {
-    const nx = !open; setOpen(nx);
-    if (nx && items[0]?.created_at) { const ts = items[0].created_at; storage.setItem(SEEN_KEY, ts); setSeen(ts); }
-  };
+  const { colors } = useTheme();
+  const router = useRouter();
+  const notifs = useQuery({ queryKey: ["partner-notifs"], queryFn: () => api.get<any[]>("/notifications"), refetchInterval: 30000 });
+  const unread = (Array.isArray(notifs.data) ? notifs.data : []).filter((n) => !n.read).length;
   return (
     <>
-      <Pressable testID="notif-bell" onPress={toggle} hitSlop={6}
+      <Pressable testID="notif-bell" onPress={() => router.push("/merchant/notifications" as any)} hitSlop={6}
         style={{ height: 38, width: 38, borderRadius: 6, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }}>
         <Bell size={18} color={colors.textSecondary} strokeWidth={1.9} />
         {unread > 0 ? (
@@ -41,22 +31,6 @@ function NotificationBell() {
           </View>
         ) : null}
       </Pressable>
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable style={{ flex: 1, backgroundColor: colors.overlay }} onPress={() => setOpen(false)} />
-        <View style={{ position: "absolute", top: insets.top + 58, right: 12, width: 320, maxWidth: "92%", maxHeight: 420, backgroundColor: colors.card, borderRadius: 6, borderWidth: 1, borderColor: colors.border, overflow: "hidden", boxShadow: "0px 12px 40px rgba(2,6,23,0.25)" }}>
-          <Text style={{ paddingHorizontal: 16, paddingVertical: 10, fontSize: 11, fontWeight: "800", letterSpacing: 0.6, textTransform: "uppercase", color: colors.textMuted, borderBottomWidth: 1, borderBottomColor: colors.border }}>Notifications</Text>
-          <ScrollView>
-            {items.length === 0 ? (
-              <Text style={{ paddingVertical: 28, textAlign: "center", color: colors.textMuted, fontSize: 14 }}>No notifications yet</Text>
-            ) : items.slice(0, 30).map((n, i) => (
-              <View key={n.id || i} style={{ paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: mode === "dark" ? "rgba(51,65,85,0.5)" : "#F1F5F9" }}>
-                <Text style={{ fontSize: 14, fontWeight: "700", color: colors.text }}>{n.title}</Text>
-                <Text style={{ fontSize: 12, color: colors.textMuted, marginTop: 2 }}>{n.body || n.message}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
-      </Modal>
     </>
   );
 }
