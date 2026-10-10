@@ -23,7 +23,7 @@ import pytest
 import requests
 
 BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL")
-            or "https://lazy-pagination.preview.emergentagent.com").rstrip("/")
+            or "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 CUSTOMER_PHONE = "+919000000004"

@@ -18,7 +18,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Configuration
-BASE_URL = "https://lazy-pagination.preview.emergentagent.com/api"
+BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
 DEMO_OTP = "123456"
 
 # Demo credentials

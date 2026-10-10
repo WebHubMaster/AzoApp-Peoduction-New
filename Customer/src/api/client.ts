@@ -66,7 +66,11 @@ async function request<T = any>(path: string, opts: RequestOpts = {}, attempt = 
   const _c = getLocationName() || await getLocationNameAsync();
   if (_c && _c !== "Your area") headers["X-City"] = _c.split(",")[0].trim();
   // Web build: hosted gateways must send the shopper back to this web app.
-  if (Platform.OS === "web") headers["X-Pay-Return"] = "customer";
+  if (Platform.OS === "web") {
+    headers["X-Pay-Return"] = "customer";
+    const loc: any = (globalThis as any).location;
+    if (loc?.origin) headers["X-Pay-Return-Base"] = loc.origin + (String(loc.pathname || "").startsWith("/api/customer") ? "/api/customer" : "");
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let res: Response;

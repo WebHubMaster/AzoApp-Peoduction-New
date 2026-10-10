@@ -9,7 +9,7 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://lazy-pagination.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 MERCHANT_PHONE = "+919000000002"

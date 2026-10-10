@@ -25,7 +25,41 @@ import httpx
 # Which client started the checkout: "panel" (web panel), "customer" (Customer app web
 # build) or "" (native app WebView). Decides where hosted gateways send the user back.
 pay_return = contextvars.ContextVar("pay_return", default="")
+# Exact web origin (+ base path) the checkout was started from, e.g.
+# "https://webhubmaster.shop" or "https://x.preview.emergentagent.com". Lets hosted
+# gateways return to the SAME site the customer is on (prod domain or preview).
+pay_return_base = contextvars.ContextVar("pay_return_base", default="")
 RETURN_PREFIX = {"panel": "/api/panel", "customer": "/api/customer"}
+_TRUSTED_SUFFIXES = (".emergentagent.com", ".emergent.host", ".emergent.sh")
+
+
+def _root_domain(host: str) -> str:
+    return ".".join(host.split(".")[-2:]) if host else ""
+
+
+def safe_return_base(raw: str | None, req_host: str = "") -> str:
+    """Accept only http(s) origins on a trusted domain (anti open-redirect)."""
+    from urllib.parse import urlparse
+    v = (raw or "").strip().rstrip("/")
+    if not v:
+        return ""
+    try:
+        u = urlparse(v)
+    except Exception:  # noqa: BLE001
+        return ""
+    host = (u.hostname or "").lower()
+    if u.scheme not in ("http", "https") or not host:
+        return ""
+    allowed = {h.strip().lower() for h in (os.environ.get("PAY_RETURN_ALLOWED_HOSTS") or "").split(",") if h.strip()}
+    pub = (urlparse(_public_base()).hostname or "").lower()
+    ok = (host in allowed or host == pub or host.endswith(_TRUSTED_SUFFIXES)
+          or (pub and _root_domain(host) == _root_domain(pub))
+          or (req_host and _root_domain(host) == _root_domain(req_host.split(":")[0].lower()))
+          or host in ("localhost", "127.0.0.1"))
+    if not ok:
+        return ""
+    path = (u.path or "").rstrip("/")
+    return f"{u.scheme}://{u.netloc}{path if path in ('', '/api/panel', '/api/customer') else ''}"
 
 
 def _public_base() -> str:
@@ -33,14 +67,23 @@ def _public_base() -> str:
             or os.environ.get("REACT_APP_BACKEND_URL") or "").rstrip("/")
 
 
-def return_page(gw: str, order_id: str, target: str | None = None) -> str:
+def return_page(gw: str, order_id: str, target: str | None = None, base: str | None = None, req_host: str = "") -> str:
+    b = safe_return_base(base, req_host) if base is not None else pay_return_base.get()
+    if b:
+        return f"{b}/payment/return?gw={gw}&order_id={order_id}"
     t = pay_return.get() if target is None else target
     return f"{_public_base()}{RETURN_PREFIX.get(t, '')}/payment/return?gw={gw}&order_id={order_id}"
 
 
 def _callback_url(gw: str) -> str:
+    from urllib.parse import urlencode
     t = pay_return.get()
-    return f"{_public_base()}/api/payments/webhooks/{gw}-callback" + (f"?ret={t}" if t in RETURN_PREFIX else "")
+    q = {}
+    if t in RETURN_PREFIX:
+        q["ret"] = t
+    if pay_return_base.get():
+        q["rb"] = pay_return_base.get()
+    return f"{_public_base()}/api/payments/webhooks/{gw}-callback" + (f"?{urlencode(q)}" if q else "")
 
 
 def _cust(customer: dict | None) -> dict:

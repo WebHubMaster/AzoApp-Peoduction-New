@@ -15,7 +15,7 @@ import os
 import time
 
 # Base URL from environment
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://lazy-pagination.preview.emergentagent.com") + "/api"
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com") + "/api"
 print(f"Testing against: {BASE_URL}")
 
 # Admin credentials

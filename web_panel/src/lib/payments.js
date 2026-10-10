@@ -79,12 +79,14 @@ export async function openCheckout(order, { user, name = "AzoApp", description =
           if (onVerify) await onVerify(res);
           resolve(true);
         } catch (e) {
-          toast.error(e?.response?.data?.detail || "Payment verification failed");
+          lastPayError = e?.response?.data?.detail || "Payment verification failed";
+          toast.error(lastPayError);
           resolve(false);
         }
       },
-      modal: { ondismiss: () => resolve(false) },
+      modal: { ondismiss: () => { lastPayError = lastPayError || "Payment cancelled"; resolve(false); } },
     });
+    rzp.on?.("payment.failed", (r) => { lastPayError = r?.error?.description || "Payment failed at the bank"; });
     rzp.open();
   });
 }
@@ -98,7 +100,20 @@ export async function openCheckout(order, { user, name = "AzoApp", description =
  * is NO dev-mock fallback — if the active gateway is not configured the backend
  * returns a 409 and the caller surfaces the error. Resolves true on success.
  */
-export async function runPayment({ purpose, bookingId, groupId, amount, user }) {
+export let lastPayError = "";
+
+export async function runPayment(opts) {
+  lastPayError = "";
+  try {
+    return await _runPayment(opts);
+  } catch (e) {
+    lastPayError = e?.response?.data?.detail || e?.message || "Payment could not be started";
+    toast.error(lastPayError);
+    return false;
+  }
+}
+
+async function _runPayment({ purpose, bookingId, groupId, amount, user }) {
   const { data: order } = await api.post("/payments/order", {
     purpose,
     booking_id: bookingId,
@@ -120,10 +135,12 @@ export async function runPayment({ purpose, bookingId, groupId, amount, user }) 
       // Verify with the backend (uses the booking's stored gateway+mode snapshot).
       const { data } = await api.post("/payments/confirm-return", { gw: "cashfree", order_id: order.order_id });
       if (data && data.paid) { toast.success("Payment successful"); return true; }
-      toast.error("Payment not completed. If money was debited it will reflect shortly.");
+      lastPayError = "Payment not completed. If money was debited it will reflect shortly.";
+      toast.error(lastPayError);
       return false;
     } catch (e) {
-      toast.error("Payment could not be started");
+      lastPayError = e?.response?.data?.detail || "Payment could not be started";
+      toast.error(lastPayError);
       return false;
     }
   }
@@ -163,12 +180,14 @@ export async function runPayment({ purpose, bookingId, groupId, amount, user }) 
           toast.success("Payment successful");
           resolve(true);
         } catch (e) {
-          toast.error(e?.response?.data?.detail || "Payment verification failed");
+          lastPayError = e?.response?.data?.detail || "Payment verification failed";
+          toast.error(lastPayError);
           resolve(false);
         }
       },
-      modal: { ondismiss: () => resolve(false) },
+      modal: { ondismiss: () => { lastPayError = lastPayError || "Payment cancelled"; resolve(false); } },
     });
+    rzp.on?.("payment.failed", (r) => { lastPayError = r?.error?.description || "Payment failed at the bank"; });
     rzp.open();
   });
 }

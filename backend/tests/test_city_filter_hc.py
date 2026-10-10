@@ -3,7 +3,7 @@ import os
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://lazy-pagination.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
 HC_ID = "3385eac1-575f-4875-87fc-e005ffa07c76"
 HC_NAME_LOWER = "home cleaning"
 

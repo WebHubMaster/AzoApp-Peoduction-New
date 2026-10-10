@@ -6,7 +6,7 @@ import {
   Tag, MapPin, CalendarClock, Zap, ShieldCheck, User, Pencil, PartyPopper, Clock, Star, LocateFixed, Loader2, Wallet, CreditCard, Banknote, Layers, XCircle,
 } from "lucide-react";
 import api, { fmt } from "@/lib/api";
-import { runPayment, openCheckout } from "@/lib/payments";
+import { runPayment, openCheckout, lastPayError } from "@/lib/payments";
 import FeeInfoTip from "@/components/FeeInfoTip";
 import { getMerchantRefCode } from "@/lib/merchantRef";
 
@@ -493,7 +493,7 @@ export default function Checkout() {
       // Payment failed/cancelled → the order is NOT placed; void the unpaid bookings, keep the cart.
       try { await postResilient("/bookings/abandon-unpaid", { group_id: nonce, booking_ids: created.map((b) => b.id) }, { retries: 2, timeout: 15000 }); } catch { /* ignore */ }
       orderNonceRef.current = null;
-      setPlaced({ failed: true, count: codes.length, total: displayTotal, orders: created });
+      setPlaced({ failed: true, count: codes.length, total: displayTotal, orders: created, reason: lastPayError });
     } else if (codes.length) {
       orderNonceRef.current = null; // fresh nonce for any future order
       clear();
@@ -513,6 +513,7 @@ export default function Checkout() {
         </motion.div>
         <h1 data-testid="order-failed-title" className="font-heading font-black text-2xl sm:text-3xl text-slate-900">Payment failed</h1>
         <p data-testid="order-failed-msg" className="text-slate-500 mt-2 max-w-sm">Your payment was cancelled or not completed, so your <b className="text-rose-600">order has not been placed</b>. If any amount was debited, it will be refunded automatically.</p>
+        {placed.reason && <p data-testid="order-failed-reason" className="mt-3 max-w-sm text-sm font-semibold text-rose-700 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2">{placed.reason}</p>}
         <Button data-testid="retry-payment" onClick={() => setPlaced(null)} className="mt-6 h-12 px-8 bg-primary-700 hover:bg-primary-800">Try again <ArrowRight className="h-4 w-4 ml-1" /></Button>
         <button data-testid="failed-browse" onClick={() => navigate("/services")} className="mt-3 text-sm font-semibold text-slate-500 hover:text-primary-700">Browse services</button>
       </div>

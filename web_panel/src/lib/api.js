@@ -43,6 +43,8 @@ api.interceptors.request.use((cfg) => {
   const c = localStorage.getItem("azo_location");
   if (c && c !== "Your area") cfg.headers["X-City"] = c.split(",")[0].trim();
   cfg.headers["X-Pay-Return"] = "panel";
+  // Hosted gateways (PayU/Easebuzz/Juspay/Cashfree redirect) send the user back to THIS site.
+  cfg.headers["X-Pay-Return-Base"] = window.location.origin + (process.env.PUBLIC_URL || "");
   // New signups via a merchant link become that merchant's customer.
   if ((cfg.url || "").endsWith("/auth/verify-otp")) cfg.data = withMerchantRef(cfg.data);
   return cfg;

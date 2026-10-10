@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://lazy-pagination.preview.emergentagent.com/api"
+BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

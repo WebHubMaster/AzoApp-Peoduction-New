@@ -52,7 +52,7 @@ async def confirm_return(req: ReturnRequest, user=Depends(PAYER)):
 
 @router.api_route("/webhooks/payu-callback", methods=["GET", "POST"])
 @router.api_route("/webhooks/easebuzz-callback", methods=["GET", "POST"])
-async def hosted_callback(request: Request, ret: str = ""):
+async def hosted_callback(request: Request, ret: str = "", rb: str = ""):
     """PayU / Easebuzz post the customer back here (surl/furl). The payment is verified
     server-side by /payments/confirm-return on the return page, so we only redirect."""
     from fastapi.responses import RedirectResponse
@@ -65,7 +65,7 @@ async def hosted_callback(request: Request, ret: str = ""):
         except Exception:  # noqa: BLE001
             pass
     txnid = str(data.get("txnid") or data.get("udf1") or "")
-    return RedirectResponse(return_page(gw_name, txnid, ret if ret in ("panel", "customer") else ""), status_code=303)
+    return RedirectResponse(return_page(gw_name, txnid, ret if ret in ("panel", "customer") else "", base=rb or None, req_host=request.headers.get("x-forwarded-host") or request.headers.get("host") or ""), status_code=303)
 
 
 @router.get("/refunds")

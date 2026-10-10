@@ -179,6 +179,8 @@ async def _city_ctx(request, call_next):
     current_city.set((request.headers.get("x-city") or request.query_params.get("city") or "").strip())
     from services.payment_gateways import pay_return
     pay_return.set((request.headers.get("x-pay-return") or "").strip().lower())
+    from services.payment_gateways import pay_return_base, safe_return_base
+    pay_return_base.set(safe_return_base(request.headers.get("x-pay-return-base"), request.headers.get("x-forwarded-host") or request.headers.get("host") or ""))
     return await call_next(request)
 # Structured request logging (Request-ID + level) → Admin Live Logs dashboard.
 app.add_middleware(LogMiddleware)
