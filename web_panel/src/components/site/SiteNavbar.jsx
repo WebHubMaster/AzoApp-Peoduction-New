@@ -211,7 +211,7 @@ export default function SiteNavbar({ showSearch = true }) {
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <button onClick={() => navigate("/services")} className="hidden lg:inline-flex items-center h-10 px-3 rounded-md text-sm font-semibold text-slate-700 hover:text-primary-700 hover:bg-primary-50 transition-colors">All Services</button>
           {membership_enabled !== false && (
-            <button data-testid="nav-membership" onClick={() => navigate("/membership")} className="text-sm font-semibold text-amber-600 hover:text-amber-700 hidden lg:flex items-center gap-2"><MembershipBadge size={44} /> Membership</button>
+            <button data-testid="nav-membership" onClick={() => navigate("/membership")} className="text-sm font-semibold text-amber-600 hover:text-amber-700 hidden lg:flex items-center gap-2"><MembershipBadge size={40} /> Membership</button>
           )}
           {/* Premium animated gold Membership badge (mobile/tablet) */}
           {membership_enabled !== false && (
