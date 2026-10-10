@@ -23,7 +23,7 @@ const MembershipBadge = ({ size = 40, className = "", animate = true, ...rest })
         src="/membership-crown.png?v=4"
         alt="Membership"
         draggable={false}
-        style={{ width: "80%", height: "80%", objectFit: "contain", display: "block" }}
+        style={{ width: "55%", height: "55%", objectFit: "contain", display: "block" }}
       />
     </span>
   );
