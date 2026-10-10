@@ -38,22 +38,51 @@ function PageHead({ icon: Icon, title, sub, right }) {
 }
 
 /* ---------------------------------------------------------- Notifications --- */
-function NotifRow({ n, onRemove }) {
+const TAB_KEYS = ["home", "orders", "custom_jobs", "refunds", "invoices", "addresses", "wallet", "rewards", "offers", "profile", "referral", "alerts", "support", "report_bug", "subscriptions"];
+
+/** Where a notification should take the customer: { tab, code?, bookingId?, chat?, ticketId?, href? } */
+export function notifTarget(n = {}) {
+  const d = n.data || {};
+  const type = String(d.type || d.event || "").toLowerCase();
+  const link = String(n.link || "");
+  const text = `${n.title || ""} ${n.body || n.message || ""}`.toLowerCase();
+  if (link === "support" || type.includes("support") || type.includes("ticket")) return { tab: "support", ticketId: n.ref_id || d.ticket_id };
+  const bookingId = d.booking_id || n.ref_id;
+  const code = d.code || d.booking_code;
+  if (bookingId || code) {
+    const chat = type.includes("chat");
+    if (type.includes("invoice")) return { tab: "invoices" };
+    if (type.includes("refund")) return { tab: "refunds" };
+    return { tab: "orders", bookingId, code, chat };
+  }
+  const m = link.match(/[?&]tab=([a-z_]+)/);
+  if (m && TAB_KEYS.includes(m[1])) return { tab: m[1] };
+  if (/scratch|cashback/.test(text)) return { tab: "rewards" };
+  if (/refund/.test(text)) return { tab: "refunds" };
+  if (/invoice/.test(text)) return { tab: "invoices" };
+  if (/subscription/.test(text)) return { tab: "subscriptions" };
+  if (/booking|partner|job/.test(text)) return { tab: "orders" };
+  if (link.startsWith("/") && !link.startsWith("/account") && link !== "/" && !link.startsWith("/partner") && !link.startsWith("/merchant") && !link.startsWith("/admin")) return { href: link };
+  return { tab: "home" };
+}
+
+function NotifRow({ n, onRemove, onOpen }) {
   return (
-    <div data-testid={`notif-item-${n.id}`} className="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 azo-fade-up">
+    <div data-testid={`notif-item-${n.id}`} role="button" tabIndex={0} onClick={() => onOpen?.(n)} onKeyDown={(e) => e.key === "Enter" && onOpen?.(n)}
+      className="flex items-start gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 azo-fade-up cursor-pointer hover:border-primary-300 hover:shadow-md transition-[border-color,box-shadow]">
       <span className="h-10 w-10 rounded-xl bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 grid place-items-center shrink-0"><Bell className="h-5 w-5" /></span>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-sm text-slate-800 dark:text-white break-words">{n.title}</p>
         <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed break-words">{n.body || n.message}</p>
         <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
       </div>
-      <button data-testid={`notif-remove-${n.id}`} aria-label="Remove notification" onClick={() => onRemove(n.id)}
+      <button data-testid={`notif-remove-${n.id}`} aria-label="Remove notification" onClick={(e) => { e.stopPropagation(); onRemove(n.id); }}
         className="h-8 w-8 grid place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-rose-600 transition-colors shrink-0"><X className="h-4 w-4" /></button>
     </div>
   );
 }
 
-export function NotificationsView() {
+export function NotificationsView({ onOpen }) {
   const [items, setItems] = useState(null);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -88,7 +117,7 @@ export function NotificationsView() {
         <EmptyState icon={Bell} title="No notifications" desc="Booking updates, offers and reminders will show up here." testId="notif-empty" />
       ) : (
         <div className="space-y-2.5" data-testid="notif-list">
-          {shown.items.map((n, i) => <NotifRow key={n.id || i} n={n} onRemove={removeOne} />)}
+          {shown.items.map((n, i) => <NotifRow key={n.id || i} n={n} onRemove={removeOne} onOpen={onOpen} />)}
           <LoadMoreSentinel list={shown} testId="notif-load-more" />
         </div>
       )}

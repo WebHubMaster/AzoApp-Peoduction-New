@@ -28,7 +28,7 @@ import InvoiceCenter from "@/components/invoices/InvoiceCenter";
 import SupportCenter from "@/components/SupportCenter";
 import ReferralShareCard from "@/components/growth/ReferralShareCard";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
-import { NotificationsView, OffersView, RewardsView } from "@/components/customer/CustomerExtras";
+import { NotificationsView, OffersView, RewardsView, notifTarget } from "@/components/customer/CustomerExtras";
 import PartnerAlertsPermissions from "@/components/partner/PartnerAlertsPermissions";
 import PartnerReportBug from "@/components/partner/PartnerReportBug";
 import WorkProofSection, { CheckinProof } from "@/components/WorkProof";
@@ -54,7 +54,7 @@ import { Badge } from "@/components/ui/badge";
 import PremiumSelect from "@/components/ui/PremiumSelect";
 import { toast } from "sonner";
 import {
-  StatTile, StatusChip, EmptyState, SkeletonList, StatSkeleton, SearchInput,
+  StatTile, StatusChip, EmptyState, ErrorState, SkeletonList, StatSkeleton, SearchInput,
   DateRangePicker, SortMenu, FilterButton, FilterSheet, Paginator, SegTabs,
   useIsMobile, inDateRange,
 } from "@/components/customer/ux";
@@ -109,6 +109,8 @@ export default function CustomerDashboard() {
   const [stars, setStars] = useState(5);
   const [cmt, setCmt] = useState("");
   const [focusCode, setFocusCode] = useState("");
+  const [openChat, setOpenChat] = useState(false);
+  const [openTicketId, setOpenTicketId] = useState(null);
 
   const load = useCallback(() => {
     api.get("/bookings").then((r) => setBookings(r.data || [])).catch(() => {}).finally(() => setLoading(false));
@@ -145,7 +147,17 @@ export default function CustomerDashboard() {
 
   const activeCount = bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length;
 
-  const goTo = (key, code) => { setActive(key); if (code) setFocusCode(code); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const goTo = (key, code) => { setActive(key); setOpenChat(false); if (key !== "support") setOpenTicketId(null); if (code) setFocusCode(code); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  // Notification tap → the exact booking / chat / ticket / section it is about.
+  const openNotif = async (n) => {
+    const t = notifTarget(n);
+    if (t.href) { navigate(t.href); return; }
+    let code = t.code;
+    if (!code && t.bookingId) code = bookings.find((x) => x.id === t.bookingId)?.code || (await api.get(`/bookings/${t.bookingId}`).then((r) => r.data?.code).catch(() => ""));
+    if (t.tab === "support") setOpenTicketId(t.ticketId || null);
+    goTo(t.tab, code);
+    if (t.chat) setOpenChat(true);
+  };
   const openBooking = (b) => { setFocusCode(b.code); setActive("orders"); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   /* ---- mutations (unchanged business logic) ---- */
@@ -189,7 +201,7 @@ export default function CustomerDashboard() {
   };
 
   return (
-    <CustomerShell nav={NAV} active={active} onNavigate={(k) => goTo(k)} user={user} badges={{ orders: activeCount }} mobilePrimary={["home", "orders", "wallet", "invoices"]}>
+    <CustomerShell nav={NAV} active={active} onNavigate={(k) => goTo(k)} onNotification={openNotif} user={user} badges={{ orders: activeCount }} mobilePrimary={["home", "orders", "wallet", "invoices"]}>
       <OnboardingTour />
       <ScheduleAlerts role="customer" onChanged={load} />
       <RescheduleRing onResolved={load} />
@@ -203,7 +215,7 @@ export default function CustomerDashboard() {
       )}
 
       {active === "orders" && (
-        <BookingsView bookings={bookings} wallet={wallet} loading={loading} focusCode={focusCode}
+        <BookingsView bookings={bookings} wallet={wallet} loading={loading} focusCode={focusCode} openChat={openChat}
           onNew={() => navigate("/services")} onRepeat={repeat} onCancel={setCancelTarget} onReview={(b, n = 5) => { setRev(b); setStars(n); setCmt(""); }}
           onPay={pay} onPayAddl={setAddlTarget} onSpare={spareAction} onRefresh={load} />
       )}
@@ -216,10 +228,10 @@ export default function CustomerDashboard() {
       {active === "profile" && <div className="max-w-3xl"><SectionHeader title="My Profile" sub="Manage your personal details & preferences" onNew={() => navigate("/services")} /><ProfileEditor user={user} fields={cfg.profile_fields || {}} onSaved={refresh} /></div>}
       {active === "addresses" && <div><SectionHeader title="My Addresses" sub="Saved locations for faster checkout" onNew={() => navigate("/services")} /><AddressBook cfg={cfg.address_config || {}} onSaved={refresh} /></div>}
       {active === "invoices" && <InvoiceCenter role="customer" title="My Invoices" subtitle="View & download invoices for your bookings and payments." />}
-      {active === "support" && <SupportCenter />}
+      {active === "support" && <SupportCenter openTicketId={openTicketId} />}
       {active === "rewards" && <RewardsView onClaimed={load} />}
       {active === "offers" && <OffersView />}
-      {active === "notifications" && <NotificationsView />}
+      {active === "notifications" && <NotificationsView onOpen={openNotif} />}
       {active === "alerts" && <PartnerAlertsPermissions variant="customer" />}
       {active === "report_bug" && <div><SectionHeader title="Report a Bug" sub="Found something broken? Tell us and track the fix here" /><PartnerReportBug /></div>}
     </CustomerShell>
@@ -452,7 +464,7 @@ const matchTab = (b, tab) => {
   }
 };
 
-function BookingsView({ bookings, wallet, loading, focusCode, onNew, onRepeat, onCancel, onReview, onPay, onPayAddl, onSpare, onRefresh }) {
+function BookingsView({ bookings, wallet, loading, focusCode, openChat, onNew, onRepeat, onCancel, onReview, onPay, onPayAddl, onSpare, onRefresh }) {
   const isMobile = useIsMobile();
   const [q, setQ] = useState(focusCode || "");
   const [tab, setTab] = useState("all");
@@ -462,28 +474,32 @@ function BookingsView({ bookings, wallet, loading, focusCode, onNew, onRepeat, o
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [fOpen, setFOpen] = useState(false);
-  useEffect(() => { if (focusCode) setQ(focusCode); }, [focusCode]);
+  const [srv, setSrv] = useState({ items: [], total: 0, counts: {} });
+  const [srvLoading, setSrvLoading] = useState(true);
+  const [srvError, setSrvError] = useState(false);
+  useEffect(() => { if (focusCode) { setQ(focusCode); setTab("all"); } }, [focusCode]);
   useEffect(() => { setPage(1); }, [q, tab, payment, range, sort, pageSize]);
 
-  const filtered = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    let list = bookings.filter((b) =>
-      matchTab(b, tab) &&
-      (payment === "all" || b.payment_status === payment) &&
-      inDateRange(bkDate(b), range) &&
-      (!t || (b.code || "").toLowerCase().includes(t) || (b.service_name || "").toLowerCase().includes(t) || (b.partner_name || "").toLowerCase().includes(t))
-    );
-    list = [...list].sort((a, b) => {
-      if (sort === "new") return new Date(b.created_at) - new Date(a.created_at);
-      if (sort === "old") return new Date(a.created_at) - new Date(b.created_at);
-      if (sort === "amt_hi") return (b.pricing?.total || 0) - (a.pricing?.total || 0);
-      if (sort === "amt_lo") return (a.pricing?.total || 0) - (b.pricing?.total || 0);
-      return 0;
-    });
-    return list;
-  }, [bookings, q, tab, payment, range, sort]);
-
-  const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
+  // Server-side filters + pagination (same /bookings/my/paged API as the Customer app).
+  const qs = useMemo(() => new URLSearchParams({
+    tab, payment, sort, search: q.trim(), page: String(page), page_size: String(pageSize),
+    ...(range.preset !== "All" && range.from ? { date_from: new Date(range.from).toISOString() } : {}),
+    ...(range.preset !== "All" && range.to ? { date_to: new Date(range.to).toISOString() } : {}),
+  }).toString(), [tab, payment, sort, q, page, pageSize, range]);
+  const fetchPage = useCallback((quiet) => {
+    if (!quiet) setSrvLoading(true);
+    return api.get(`/bookings/my/paged?${qs}`, { timeout: 60000 })
+      .then((r) => { setSrv(r.data || { items: [], total: 0, counts: {} }); setSrvError(false); })
+      .catch(() => { if (!quiet) setSrvError(true); })
+      .finally(() => setSrvLoading(false));
+  }, [qs]);
+  useEffect(() => { fetchPage(false); }, [fetchPage]);
+  // New / removed bookings (dashboard poll + SSE) → quietly refresh the current page.
+  useEffect(() => { fetchPage(true); }, [bookings.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const live = useMemo(() => new Map(bookings.map((b) => [b.id, b])), [bookings]);
+  const paged = (srv.items || []).map((b) => (live.get(b.id) ? { ...b, ...live.get(b.id) } : b));
+  const counts = srv.counts || {};
+  const refreshAll = () => { onRefresh?.(); fetchPage(true); };
   const activeFilters = (payment !== "all" ? 1 : 0) + (range.preset !== "All" ? 1 : 0) + (sort !== "new" ? 1 : 0);
   const spent = bookings.filter((b) => DONE_STATES.includes(b.status)).reduce((s, b) => s + (b.pricing?.total || 0), 0);
 
@@ -521,21 +537,21 @@ function BookingsView({ bookings, wallet, loading, focusCode, onNew, onRepeat, o
               <><DateRangePicker value={range} onChange={setRange} testId="bk-date" /><SortMenu value={sort} options={SORTS} onChange={setSort} testId="bk-sort" />{paymentSel}</>
             )}
           </div>
-          <SegTabs tabs={BK_TABS} value={tab} onChange={setTab} testId="bk-tab"
-            counts={{ all: bookings.length, active: bookings.filter((b) => ACTIVE_STATES.includes(b.status)).length, searching: bookings.filter((b) => b.status === "searching").length, ongoing: bookings.filter((b) => ["assigned", "arrived_shop", "arrived_customer", "started"].includes(b.status)).length, completed: bookings.filter((b) => DONE_STATES.includes(b.status)).length, cancelled: bookings.filter((b) => b.status === "cancelled").length }} />
+          <SegTabs tabs={BK_TABS} value={tab} onChange={setTab} testId="bk-tab" counts={counts} />
         </div>
       </div>
 
       {/* List */}
       <div className="mt-4 space-y-3" data-testid="orders-list">
-        {loading && bookings.length === 0 && <SkeletonList rows={4} />}
-        {!loading && bookings.length === 0 && <EmptyState icon={Package} title="No bookings yet" desc="Book your first home service in minutes." actionLabel="Book a Service" onAction={onNew} testId="orders-empty" />}
-        {!loading && bookings.length > 0 && filtered.length === 0 && <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testId="orders-nomatch" />}
-        {paged.map((b) => (
-          <BookingCard key={b.id} b={b} focus={focusCode === b.code} onRepeat={onRepeat} onCancel={onCancel} onReview={onReview} onPay={onPay} onPayAddl={onPayAddl} onSpare={onSpare} onRefresh={onRefresh} wallet={wallet} />
+        {srvLoading && <SkeletonList rows={4} />}
+        {!srvLoading && srvError && <ErrorState onRetry={() => fetchPage(false)} message="Couldn't load your bookings. Please try again." testId="orders-error" />}
+        {!srvLoading && !srvError && !counts.all && <EmptyState icon={Package} title="No bookings yet" desc="Book your first home service in minutes." actionLabel="Book a Service" onAction={onNew} testId="orders-empty" />}
+        {!srvLoading && !srvError && counts.all > 0 && srv.total === 0 && <EmptyState icon={Package} title="No bookings match" desc="Try adjusting filters or search." testId="orders-nomatch" />}
+        {!srvLoading && paged.map((b) => (
+          <BookingCard key={b.id} b={b} focus={focusCode === b.code} autoChat={openChat && focusCode === b.code} onRepeat={onRepeat} onCancel={onCancel} onReview={onReview} onPay={onPay} onPayAddl={onPayAddl} onSpare={onSpare} onRefresh={refreshAll} wallet={wallet} />
         ))}
       </div>
-      <Paginator page={page} pageSize={pageSize} total={filtered.length} onPage={setPage} onPageSize={setPageSize} testId="bk-pager" />
+      <Paginator page={page} pageSize={pageSize} total={srv.total || 0} onPage={setPage} onPageSize={setPageSize} testId="bk-pager" />
 
       {/* Mobile filter sheet */}
       <FilterSheet open={fOpen} onOpenChange={setFOpen} onClear={() => { clearAll(); setFOpen(false); }} onApply={() => setFOpen(false)} title="Filter bookings">
@@ -580,7 +596,7 @@ function OtpBanner({ kind, code, bcode }) {
   );
 }
 
-function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl, onSpare, onRefresh, wallet }) {
+function BookingCard({ b, focus, autoChat, onRepeat, onCancel, onReview, onPay, onPayAddl, onSpare, onRefresh, wallet }) {
   const [tlOpen, setTlOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showInvoice, setShowInvoice] = useState(false);
@@ -632,6 +648,12 @@ function BookingCard({ b, focus, onRepeat, onCancel, onReview, onPay, onPayAddl,
     if (commLocked) { toast.info("Chat unlocks 30 minutes before your scheduled time"); return; }
     setShowChat(true);
   };
+  // Deep link from a notification: bring this card into view (and open the chat).
+  useEffect(() => {
+    if (!focus) return;
+    document.querySelector(`[data-testid="booking-card-${b.code}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (autoChat && assigned) chatPartner();
+  }, [focus, autoChat]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div data-testid={`booking-card-${b.code}`} className={`rounded-2xl border bg-white dark:bg-slate-900 p-4 sm:p-5 transition-shadow hover:shadow-lg azo-fade-up ${focus ? "border-primary-400 ring-2 ring-primary-200 dark:ring-primary-900/50" : "border-slate-200 dark:border-slate-800"}`}>
       <div className="flex items-start justify-between gap-3">

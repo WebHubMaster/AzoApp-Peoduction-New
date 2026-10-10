@@ -391,7 +391,7 @@ const Thread = ({ ticket, myId, tickets, onBack, onChanged }) => {
 };
 
 /* -------- main -------- */
-export default function SupportCenter({ title = "Help & Support" }) {
+export default function SupportCenter({ title = "Help & Support", openTicketId }) {
   const { user } = useAuth();
   const [meta, setMeta] = useState(null);
   const [tickets, setTickets] = useState([]);
@@ -414,6 +414,13 @@ export default function SupportCenter({ title = "Help & Support" }) {
   useEffect(() => { if (view !== "list") return; const iv = setInterval(loadList, 6000); return () => clearInterval(iv); }, [view, loadList]);
 
   const openTicket = (t) => { setActive(t); setView("thread"); };
+  // Deep link (e.g. tapped a support notification) → open that ticket's thread.
+  useEffect(() => {
+    if (!openTicketId) return;
+    const t = tickets.find((x) => x.id === openTicketId);
+    if (t) { openTicket(t); return; }
+    api.get(`/support/tickets/${openTicketId}`).then((r) => r.data && openTicket(r.data.ticket || r.data)).catch(() => {});
+  }, [openTicketId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const view_rows = useMemo(() => {
     let out = [...tickets];

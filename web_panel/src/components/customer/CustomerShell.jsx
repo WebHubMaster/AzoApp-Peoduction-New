@@ -32,7 +32,7 @@ function Avatar({ user, size = "h-9 w-9" }) {
     : <span className={`${size} rounded-full grid place-items-center bg-gradient-to-br from-primary-500 to-primary-800 text-white font-bold text-sm ring-2 ring-white/70 dark:ring-slate-700`}>{initials}</span>;
 }
 
-function NotificationBell({ testId = "notif-btn", onViewAll }) {
+function NotificationBell({ testId = "notif-btn", onViewAll, onOpen }) {
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(() => localStorage.getItem("azo_notif_seen") || "");
@@ -63,7 +63,8 @@ function NotificationBell({ testId = "notif-btn", onViewAll }) {
           {items.map((n, i) => {
             const isNew = !seen || (n.created_at || "") > seen;
             return (
-              <div key={n.id || i} className={`px-4 py-3 border-b border-slate-50 dark:border-slate-800/60 ${isNew ? "bg-primary-50/40 dark:bg-primary-900/10" : ""}`}>
+              <button type="button" key={n.id || i} data-testid={`${testId}-item-${n.id || i}`} onClick={() => { setOpen(false); onOpen?.(n); }}
+                className={`block w-full text-left px-4 py-3 border-b border-slate-50 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors ${isNew ? "bg-primary-50/40 dark:bg-primary-900/10" : ""}`}>
                 <div className="flex items-start gap-2.5">
                   {isNew && <span className="mt-1.5 h-2 w-2 rounded-full bg-primary-500 shrink-0" />}
                   <div className={isNew ? "" : "pl-4"}>
@@ -72,7 +73,7 @@ function NotificationBell({ testId = "notif-btn", onViewAll }) {
                     <p className="text-[11px] text-slate-400 mt-1">{timeAgo(n.created_at)}</p>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -122,7 +123,7 @@ function AvatarMenu({ user, onNavigate }) {
   );
 }
 
-export default function CustomerShell({ nav, active, onNavigate, user, badges = {}, mobilePrimary, children }) {
+export default function CustomerShell({ nav, active, onNavigate, onNotification, user, badges = {}, mobilePrimary, children }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const chatOpen = useChatOpen();
@@ -216,7 +217,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
           <div className="flex-1 min-w-0">
             <GlobalSearch nav={nav} onNavigate={go} />
           </div>
-          <NotificationBell onViewAll={() => go("notifications")} />
+          <NotificationBell onViewAll={() => go("notifications")} onOpen={onNotification} />
           <ThemeToggle />
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700" />
           <AvatarMenu user={user} onNavigate={go} />
@@ -236,7 +237,7 @@ export default function CustomerShell({ nav, active, onNavigate, user, badges = 
                 <p className="text-sm font-bold text-slate-800 dark:text-white truncate leading-tight">{location}</p>
               </div>
             )}
-            <NotificationBell testId="m-notif-btn" onViewAll={() => go("notifications")} />
+            <NotificationBell testId="m-notif-btn" onViewAll={() => go("notifications")} onOpen={onNotification} />
             <ThemeToggle />
           </div>
         </header>
