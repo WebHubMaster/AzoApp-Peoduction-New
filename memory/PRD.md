@@ -500,3 +500,25 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - SupportCenter `openTicketId` prop; BookingCard `autoChat`.
 - BookingsView now uses GET /bookings/my/paged (server filters/tabs counts/pagination), live-merged with dashboard poll/SSE.
 - iteration_292: backend 15/15, frontend 100%.
+
+---
+# City Pages = Homepage Parity + Footer City Strip Removal (2026-06)
+
+## Problem
+(1) Remove the "Cities we serve" city-links strip from the site footer.
+(2) /city/:slug must render EXACTLY like the main homepage (same sections/order/design, admin-driven) but filtered to that city's Price Manager — only its categories/services, its prices.
+
+## Implemented
+- `web_panel/src/components/site/SiteFooter.jsx`: removed `FooterCities` component + its usage + now-unused `api`/`useEffect`/`useState` imports. Rest of footer unchanged. (`data-testid="footer-cities"` no longer exists.)
+- `web_panel/src/pages/customer/Landing.jsx`: now accepts optional `{fixedCity, citySlug, cityData}`. City mode → loads `GET /api/site/homepage?city=<fixedCity>`, derives hero categories from city-filtered category sections (service_count>0), hides zero-service categories, shows `OutOfAreaWaitlist` (`city-empty`) when the city has no services, renders `CityExtras` (`city-local-info`, from `/api/seo/city-extras/:slug`) above FAQ, uses `<Seo path="/city/:slug">`, and NEVER writes localStorage. Container testid: `city-page` (city) / `home-page` (main).
+- `web_panel/src/pages/customer/CityPage.jsx`: thin wrapper — resolves city via `GET /api/site/city/:slug` (404 → `city-notfound`), renders `<Landing fixedCity citySlug cityData/>`.
+- `web_panel/src/pages/customer/home/HomeHero.jsx`: optional `cityName` → eyebrow "Now serving {city}" (`hero-eyebrow`), heading "Home services in {city}" (`hero-heading`).
+- `web_panel/src/components/CategoryServicesSheet.jsx`: optional `city` prop → forwards `?city=` so the city-page drill-down shows that city's services/prices.
+- Backend `routes/catalog_routes.py` `GET /catalog/services`: added optional `?city=` param → `filter_services(..., city)`.
+- seo_core `linked` logic: UNCHANGED — served city pages are already hardcoded `linked: True`, so removing footer links does not trigger the orphan audit.
+
+## Tested (iteration_city_page_homepage_parity.json)
+Backend 100%, Frontend 95%. Footer strip gone; /city/patna & /city/ranchi render homepage layout filtered to the city; main homepage unchanged & location-driven; visiting a city page never changes `azo_location`; unknown slug → not-found; `GET /api/seo/render?path=/city/patna` → 200 "Home Services in Patna"; service-card → /service/:id detail intact. City `city-local-info` renders when admin sets intro/FAQs (verified for Patna).
+
+## Backlog
+- P2: optionally interlink cities on the city page (cross-city "also serving" strip) now that the footer strip is gone (SEO audit already satisfied).
