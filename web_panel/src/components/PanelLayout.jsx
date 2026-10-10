@@ -125,7 +125,7 @@ const PartnerAlertsReminder = ({ role }) => {
   );
 };
 
-const NotificationBell = () => {
+const NotificationBell = ({ onOpenPage }) => {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -134,6 +134,7 @@ const NotificationBell = () => {
   const { subscribe, playSound } = useRealtime();
   const load = () => api.get("/notifications").then((r) => setItems(r.data || [])).catch(() => {});
   useEffect(() => { load(); const t = setInterval(load, 15000); return () => clearInterval(t); }, []);
+  useEffect(() => { const h = () => load(); window.addEventListener("azo-partner-notifs-changed", h); return () => window.removeEventListener("azo-partner-notifs-changed", h); }, []);
   // Real-time: instantly refresh the bell + toast whenever a push/notification
   // event arrives over SSE (chat message, job update, withdrawal, etc.).
   useEffect(() => subscribe("notification", (ev) => {
@@ -149,8 +150,9 @@ const NotificationBell = () => {
     if (ev?.title) toast(ev.title, { description: ev.body });
   }), [subscribe, playSound, navigate]);
   useEffect(() => { const h = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); }; document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
-  const unread = items.filter((n) => !seen || (n.created_at || "") > seen).length;
-  const toggle = () => { const nx = !open; setOpen(nx); if (nx && items[0]) { const ts = items[0].created_at; localStorage.setItem("azo_notif_seen", ts); setSeen(ts); } };
+  // Page mode (partner): same as the Partner app — bell opens the full Notifications page.
+  const unread = onOpenPage ? items.filter((n) => !n.read).length : items.filter((n) => !seen || (n.created_at || "") > seen).length;
+  const toggle = () => { if (onOpenPage) { onOpenPage(); return; } const nx = !open; setOpen(nx); if (nx && items[0]) { const ts = items[0].created_at; localStorage.setItem("azo_notif_seen", ts); setSeen(ts); } };
   return (
     <div className="relative" ref={box}>
       <button data-testid="notif-bell" onClick={toggle} className="relative h-9 w-9 rounded-md border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
@@ -609,7 +611,7 @@ export const PanelLayout = ({ title, nav, active, onNavigate, badges = {}, dots 
             )}
             {user?.role === "admin" && <div className="hidden sm:block flex-1"><GlobalSearch onNavigate={handleNav} /></div>}
             <div className={`${user?.role === "admin" ? "" : "ml-auto"} flex items-center gap-2 shrink-0`}>
-              <NotificationBell />
+              <NotificationBell onOpenPage={user?.role === "partner" && onNavigate ? () => handleNav("notifications") : undefined} />
               <ThemeToggle />
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1" />
               <ProfileChip user={user} onLogout={() => { logout(); navigate("/"); }} />

@@ -21,7 +21,10 @@ import { ChallengesRewards } from "@/pages/partner/ChallengesRewards";
 import PartnerSubscriptions from "@/pages/partner/PartnerSubscriptions";
 import { PartnerHome } from "@/pages/partner/PartnerHomeV2";
 import { LayoutDashboard, CreditCard } from "lucide-react";
-import { LifeBuoy } from "lucide-react";
+import { LifeBuoy, BellRing as BellCog, Bug } from "lucide-react";
+import PartnerNotificationsPage from "@/components/partner/PartnerNotificationsPage";
+import PartnerReportBug from "@/components/partner/PartnerReportBug";
+import PartnerAlertsPermissions from "@/components/partner/PartnerAlertsPermissions";
 import SupportCenter from "@/components/SupportCenter";
 import JobWizard from "@/components/partner/JobWizard";
 import BookingChat from "@/components/booking/BookingChat";
@@ -61,6 +64,7 @@ const NAV = [
   { key: "active", label: "Active Job", icon: Navigation },
   { key: "subscriptions", label: "Maid Subscriptions", icon: CalendarHeart },
   { key: "availability", label: "My Availability", icon: CalendarClock },
+  { key: "permissions", label: "Alerts & Permissions", icon: BellCog },
   { key: "wallet", label: "Wallet & Withdraw", icon: Wallet },
   { key: "bankkyc", label: "Bank & KYC", icon: CreditCard },
   { key: "earnings", label: "Earnings Ledger", icon: TrendingUp },
@@ -70,6 +74,7 @@ const NAV = [
   { key: "starterkit", label: "Starter Kit", icon: Package },
   { key: "onboarding", label: "Profile & KYC", icon: CheckCircle2 },
   { key: "support", label: "Help & Support", icon: LifeBuoy },
+  { key: "reportbug", label: "Report a Bug", icon: Bug },
 ];
 
 // Bottom-nav primary tabs for the mobile "app" experience (rest live under "More").
@@ -188,7 +193,7 @@ export default function PartnerDashboard() {
           </div>
         </div>
       ) : null}
-      <div className={`${active === "home" ? "hidden" : active === "invoices" ? "hidden" : "hidden lg:flex"} items-center justify-between mb-6`}>
+      <div className={`${["home", "invoices", "notifications", "reportbug", "permissions"].includes(active) ? "hidden" : "hidden lg:flex"} items-center justify-between mb-6`}>
         <div>
           {active === "home" ? (
             <>
@@ -324,6 +329,9 @@ export default function PartnerDashboard() {
       {active === "analytics" && <PremiumAnalytics role="partner" title="Earnings Analytics" />}
       {active === "invoices" && <MerchantInvoices role="partner" shopName={user?.name || "Partner"} title="My Invoices" subtitle="Booking, earnings, settlement & withdrawal documents" />}
       {active === "support" && <SupportCenter />}
+      {active === "notifications" && <PartnerNotificationsPage />}
+      {active === "reportbug" && <PartnerReportBug />}
+      {active === "permissions" && <PartnerAlertsPermissions />}
       {active === "starterkit" && <PartnerStarterKit status={kit} onPurchased={() => { loadKit(); refresh(); }} />}
     </PanelLayout>
     <IncomingJobRing onAccepted={() => { setActive("active"); load(); }} onChanged={load} />
