@@ -474,3 +474,9 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Offers tab: live per-second countdown on every offer (end_date) and coupon (valid_until); <24h urgent style; expired = "Offer ended", dimmed, CTA hidden, sorted last; CTA uses cta_text/destination.
 - Wallet scratch "View All" → ?tab=rewards (ScratchCardsPanel onViewAll).
 - iteration_291: 100%.
+
+## 2026-06 — Notification deep links + server-paged bookings
+- notifTarget(n) in CustomerExtras.jsx: booking → orders (highlight + scroll), chat_message → opens chat, support (link "support", ref_id) → ticket thread, ?tab= links, scratch/cashback → rewards. Works from bell popover items + notifications page.
+- SupportCenter `openTicketId` prop; BookingCard `autoChat`.
+- BookingsView now uses GET /bookings/my/paged (server filters/tabs counts/pagination), live-merged with dashboard poll/SSE.
+- iteration_292: backend 15/15, frontend 100%.
