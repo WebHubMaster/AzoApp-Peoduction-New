@@ -1,0 +1,30 @@
+{
+  "summary": "Static code review + tsc + eslint of the merchant notifications parity change (bell dropdown → full Notifications page, mirroring partner panel). Scope files: PartnerApp src/components/merchant/MerchantTopBar.tsx, app/merchant/notifications.tsx, app/notifications.tsx, app/merchant/_layout.tsx, src/components/AppShell.tsx (reference). No tsc errors introduced in-scope. One pre-existing eslint warning in EditProfileModal unrelated to this change. Expo apps cannot be run in this pod, so no device/UI verification was performed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "MerchantTopBar.tsx NotificationBell: logic matches AppShell (useQuery queryKey ['partner-notifs'], 30s refetch, unread = (data||[]).filter(n=>!n.read).length, 9+ cap, red dot with surface border). Navigation uses router.push('/merchant/notifications' as any) — route exists at /app/PartnerApp/app/merchant/notifications.tsx, verified. No leftover dropdown Modal or unused state.",
+    "Minor nit: NotificationBell returns `<>...<Pressable/></>` — the fragment wrapping a single child can be removed. Non-blocking.",
+    "Minor nit: destructured only `notifs.data` via `notifs.data`; could be `const { data } = useQuery(...)` for clarity. Non-blocking.",
+    "app/merchant/notifications.tsx: thin wrapper `<Notifications embedded />` — correct; MerchantStackLayout already renders MerchantTopBar + MerchantBottomNav so AppShellHeader is suppressed via `embedded` prop. Good.",
+    "app/notifications.tsx embedded prop: when embedded, AppShellHeader is skipped and FlatList contentContainerStyle paddingBottom becomes `insets.bottom + 110` (bottom nav clearance) vs `insets.bottom + spacing.xl` otherwise. Reasonable. 110px is a magic constant — consider centralising via a `MERCHANT_BOTTOM_NAV_HEIGHT` export from MerchantBottomNav for future consistency, but not blocking.",
+    "Partner re-export app/(partner)/partner/notifications.tsx = `export { default } from '@/app/notifications'` still works unchanged; `embedded` defaults to false there so the standalone page renders the AppShellHeader. Correct.",
+    "useProgressiveList is used on `items` (10-at-a-time) and LoadMoreFooter renders at end — matches the referenced partner implementation. The remove-single (DELETE /notifications/:id) and clear-all (DELETE /notifications) with optimistic rollback and refreshBadges() invalidating both ['notifications'] and ['partner-notifs'] query keys will keep the merchant bell badge in sync. Good.",
+    "data-testid coverage: notif-bell, notif-clear-all, notif-remove-${id}, notif-load-more — all present and testable.",
+    "Pre-existing eslint warning (NOT introduced by this change): MerchantTopBar.tsx:47 react-hooks/set-state-in-effect in EditProfileModal useEffect. Flagged for awareness; not in scope of this iteration.",
+    "No tsc errors in scope. Full `npx tsc --noEmit --ignoreDeprecations 6.0` filtered to the four scope files produced zero diagnostics."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (not in scope)", "frontend": "static review + tsc + eslint — pass, no regressions"},
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "iteration_285: Merchant notifications now share the partner Notifications page via an `embedded` prop. Partner route still re-exports default and renders standalone (embedded=false). Merchant stack layout provides its own TopBar/BottomNav so AppShellHeader is skipped. Expo pod cannot run UI; verifications were static (tsc + eslint) only. No regressions found.",
+  "rca of the issue": "n/a — no bug found. The implementation parallels AppShell NotificationBell (queryKey, refetchInterval, unread calc) and reuses the full Notifications screen. Prop-based embedding is the right pattern to avoid duplicating ~130 LOC of list/empty/remove/clear logic."
+}

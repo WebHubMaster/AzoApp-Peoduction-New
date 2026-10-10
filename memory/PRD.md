@@ -441,3 +441,6 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Partner Maid Subscriptions, Agent Withdrawals: progressive 10-at-a-time.
 - Customer Subscriptions (Browse + My Subscriptions) and Referral history: PlainList (10 at a time on scroll).
 - iteration_284: static review + tsc (missing import fixed). Expo apps not run in env. Note: backend/frontend .env files missing in this pod.
+
+## 2026-06 — Merchant notifications = Partner panel logic
+- MerchantTopBar bell now opens full page /merchant/notifications (shared app/notifications.tsx with `embedded`), unread badge = !n.read via ['partner-notifs'] query, remove one / Clear all, 10-at-a-time scroll. Old dropdown removed. iteration_285: static review + tsc pass.
