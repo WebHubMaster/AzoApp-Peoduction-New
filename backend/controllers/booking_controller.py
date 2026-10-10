@@ -2032,33 +2032,56 @@ async def _resolve_referral_merchant(customer, req):
     Returns the merchant user dict (or None) — never raises. Silently ignores
     invalid/unknown codes so a bad link never blocks a real booking.
     """
+    # Rule: only a NEW customer (registered via the merchant link) becomes the merchant's
+    # customer — permanently. Already-registered customers using a link earn nothing.
+    if not customer:
+        return None
+    fresh = await db.users.find_one({"id": customer["id"]}, {"_id": 0, "customer_merchant_id": 1, "created_at": 1}) or {}
+    mid = fresh.get("customer_merchant_id")
+    if mid:
+        return await db.users.find_one(
+            {"id": mid, "role": "merchant"},
+            {"_id": 0, "id": 1, "name": 1, "shop_name": 1, "merchant_code": 1, "phone": 1})
     code = None
     if req is not None:
         code = getattr(req, "merchant_ref_code", None)
         if code is None and isinstance(req, dict):
             code = req.get("merchant_ref_code")
-    if code:
-        try:
-            from services import merchant_code_service
-            m = await merchant_code_service.validate_code(code)
-        except Exception:  # noqa: BLE001
-            m = None
-        if m:
-            # Persist for repeat bookings — permanent link.
-            try:
-                await db.users.update_one(
-                    {"id": customer["id"]},
-                    {"$set": {"customer_merchant_id": m["id"], "customer_merchant_code": m.get("merchant_code")}})
-            except Exception:  # noqa: BLE001
-                pass
-            return m
-    # Fallback to already-linked merchant on the customer profile.
-    mid = customer.get("customer_merchant_id") if customer else None
-    if mid:
-        return await db.users.find_one(
-            {"id": mid, "role": "merchant"},
-            {"_id": 0, "id": 1, "name": 1, "shop_name": 1, "merchant_code": 1, "phone": 1})
-    return None
+    if not code or not await _is_new_customer(customer["id"], fresh.get("created_at")):
+        return None
+    try:
+        from services import merchant_code_service
+        m = await merchant_code_service.validate_code(code)
+    except Exception:  # noqa: BLE001
+        m = None
+    if m:
+        await db.users.update_one(
+            {"id": customer["id"], "customer_merchant_id": {"$in": [None, ""]}},
+            {"$set": {"customer_merchant_id": m["id"], "customer_merchant_code": m.get("merchant_code"),
+                      "referred_by_merchant": m["id"], "merchant_linked_at": now_iso()}})
+    return m
+
+
+NEW_CUSTOMER_WINDOW_MIN = 30
+
+
+async def _is_new_customer(customer_id, created_at):
+    """Fallback for signups that didn't carry the merchant code: account created moments
+    ago and no earlier real booking (voided payment-failed attempts are ignored)."""
+    from datetime import datetime, timezone, timedelta
+    try:
+        dt = datetime.fromisoformat(str(created_at).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+    except Exception:  # noqa: BLE001
+        return False
+    if datetime.now(timezone.utc) - dt > timedelta(minutes=NEW_CUSTOMER_WINDOW_MIN):
+        return False
+    prior = await db.bookings.count_documents({
+        "customer_id": customer_id,
+        "status": {"$ne": "pending_payment"},
+        "cancellation.by": {"$ne": "payment_failed"}})
+    return prior == 0
 
 
 async def create_direct(customer, req):

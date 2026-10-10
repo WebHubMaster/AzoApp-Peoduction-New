@@ -111,7 +111,19 @@ async def send_otp(phone):
     return await auth_service.send_otp(phone)
 
 
-async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, device_id=None, device_name=None):
+async def _link_new_customer_to_merchant(user, code):
+    """A customer who signs up via a merchant link becomes that merchant's customer for life."""
+    from services import merchant_code_service
+    m = await merchant_code_service.validate_code(code)
+    if not m:
+        return
+    link = {"customer_merchant_id": m["id"], "customer_merchant_code": m.get("merchant_code"),
+            "referred_by_merchant": m["id"], "merchant_linked_at": now_iso()}
+    await db.users.update_one({"id": user["id"]}, {"$set": link})
+    user.update(link)
+
+
+async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, device_id=None, device_name=None, merchant_ref_code=None):
     res = await auth_service.verify_otp(phone, otp, name, create_if_new, role, device_id, device_name)
     if not res["ok"]:
         if res.get("reason") == "device_mismatch":
@@ -149,6 +161,8 @@ async def verify_otp(phone, otp, name=None, create_if_new=True, role=None, devic
     if res.get("new_user"):
         return {"new_user": True}
     user = res["user"]
+    if res.get("created") and merchant_ref_code and user.get("role") == "customer":
+        await _link_new_customer_to_merchant(user, merchant_ref_code)
     token = await issue_token(user["id"], user["role"], did=device_id)
     if user.get("role") in ("admin", "staff"):
         from services.rbac_service import enrich_user

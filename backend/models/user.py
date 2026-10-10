@@ -22,6 +22,7 @@ class VerifyOTPRequest(BaseModel):
     role: Optional[str] = None
     device_id: Optional[str] = None
     device_name: Optional[str] = None
+    merchant_ref_code: Optional[str] = None
 
 
 class RegisterProviderRequest(BaseModel):

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { toast } from "sonner";
+import { withMerchantRef } from "@/lib/merchantRef";
 
 // Resolve the backend origin at RUNTIME. We prefer the build-time configured
 // REACT_APP_BACKEND_URL, but fall back to the current window origin if it is
@@ -42,6 +43,8 @@ api.interceptors.request.use((cfg) => {
   const c = localStorage.getItem("azo_location");
   if (c && c !== "Your area") cfg.headers["X-City"] = c.split(",")[0].trim();
   cfg.headers["X-Pay-Return"] = "panel";
+  // New signups via a merchant link become that merchant's customer.
+  if ((cfg.url || "").endsWith("/auth/verify-otp")) cfg.data = withMerchantRef(cfg.data);
   return cfg;
 });
 
