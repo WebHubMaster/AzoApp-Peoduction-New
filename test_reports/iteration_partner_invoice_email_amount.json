@@ -1,0 +1,20 @@
+{
+  "summary": "Backend regression test for bug: partner invoice email body previously showed customer total (599.0) while partner PDF showed Total Earning 479.20. Verified fix in /app/backend/services/invoice_service.py email_invoice (~L497-510) which now uses doc.role_earning.net for partner/merchant audience and formats via invoice_html_service._money. Wrote pytest test_partner_invoice_email_amount.py that: (1) monkeypatches send_email + build_invoice_pdf + prepare_for_role + db.invoices.find_one, calls email_invoice for partner & customer, asserts partner HTML contains 'Your Earning: \u20b9479.20' with no '599', and customer HTML contains 'Amount: \u20b9599.00'; (2) calls gst_invoice_service.build_partner_html and asserts the partner-invoice-total row equals 479.20 (same as email), with no 599.00 anywhere outside base64 asset blobs. Both tests pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_partner_invoice_email_amount.py",
+    "/app/test_reports/pytest/partner_email_amount.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "email_invoice correctly guards amount selection with `_re.get('net') is not None` so audience='partner' with missing role_earning falls back to total_amount (defensive)."
+  ],
+  "updated_files": ["/app/backend/tests/test_partner_invoice_email_amount.py"],
+  "success_rate": {"backend": "100%", "frontend": "n/a"},
+  "seed_data_creation": "In-memory doc; monkeypatched db.invoices.find_one to return None so the function uses the passed dict. Temp DB name was set but not written to.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Pod has NO backend .env; run pytest with REACT_APP_BACKEND_URL=http://localhost:8001 MONGO_URL=mongodb://localhost:27017 and `-o addopts=''` to disable xdist (pytest.ini enables -n auto which hides print output and can mangle serial test logs).",
+  "rca of the issue": "Original email_invoice built HTML using doc.get('total_amount') regardless of audience, so partner recipients saw the customer total in the email body while the attached partner PDF (build_partner_html) rendered role_earning.net as 'Total Earning'. Fix selects role_earning.net for partner/merchant when present and uses invoice_html_service._money for formatting, aligning the email body with the attached partner PDF."
+}

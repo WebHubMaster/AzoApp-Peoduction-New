@@ -452,3 +452,6 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 
 ## 2026-06 — Customer app permission setup: auto pop-ups + settings wizard
 - app/permissions.tsx: Phase 1 auto-fires system dialogs (Location, Notifications, Photos, Mic) one by one on open; Phase 2 step-by-step wizard (Step X of N, how-to steps, Open Settings / Skip, auto-advance on return when granted) for Full-Screen Alert, Display Over Apps, Battery, OEM Autostart + any runtime perm blocked permanently. Auto-finishes when nothing left. iteration_287 static review pass.
+
+## 2026-06 — Fix: partner/merchant invoice email amount = PDF amount
+- invoice_service.email_invoice: partner/merchant email shows "Your Earning: ₹<role_earning.net>" (same as attached PDF "Total Earning"); customer email "Amount: ₹<total>". Test: backend/tests/test_partner_invoice_email_amount.py (pass).
