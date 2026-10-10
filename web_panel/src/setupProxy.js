@@ -25,7 +25,12 @@ async function template() {
 
 function seoHtml(req, res, next) {
   const path = req.path || "/";
-  const wantsHtml = (req.headers.accept || "").includes("text/html") || /bot|crawl|spider|slurp|facebookexternalhit|whatsapp/i.test(req.headers["user-agent"] || "");
+  const ua = req.headers["user-agent"] || "";
+  // Only crawlers/scrapers get the pre-rendered crawlable body. Real browsers get the
+  // SPA shell with a lightweight loader so there's no flash of the static fallback list
+  // on reload — React controls first paint (smooth even on slow networks).
+  const isBot = /bot|crawl|spider|slurp|facebookexternalhit|whatsapp|telegram|slackbot|linkedinbot|embedly|pinterest|redditbot|discordbot|bingpreview|vkshare|skypeuripreview|googlebot|applebot|yandex|baiduspider|duckduckbot/i.test(ua);
+  const wantsHtml = (req.headers.accept || "").includes("text/html") || isBot;
   if (req.method !== "GET" || !wantsHtml || SKIP.test(path) || /\.[a-z0-9]{2,5}$/i.test(path)) return next();
   (async () => {
     const [html, meta] = await Promise.all([
@@ -40,8 +45,10 @@ function seoHtml(req, res, next) {
     let out = html;
     STRIP.forEach((rx) => { out = out.replace(rx, ""); });
     out = out.replace(/<html lang="[^"]*"/i, `<html lang="${meta.lang}"`)
-      .replace("</head>", `${meta.head}\n</head>`)
-      .replace('<div id="root"></div>', `<div id="root">${meta.body}</div>`);
+      .replace("</head>", `${meta.head}\n</head>`);
+    if (isBot) {
+      out = out.replace(/<div id="root">[\s\S]*?<\/div>\s*<\/div>/i, `<div id="root">${meta.body}</div>`);
+    }
     res.status(meta.status).set({ "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-cache" }).send(out);
   })().catch(() => next());
 }

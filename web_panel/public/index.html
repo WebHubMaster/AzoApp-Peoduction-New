@@ -38,12 +38,20 @@
         Learn how to configure a non-root public URL by running `npm run build`.
         -->
         <title>AzoApp — Advanced Home Service Platform</title>
+        <style>
+            #root { min-height: 100vh; }
+            /* First-paint loader shown to real browsers while the app bundle loads
+               (even on slow networks). React replaces #root on mount, removing it. */
+            .azo-boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #ffffff; z-index: 9999; }
+            .azo-boot::after { content: ""; width: 44px; height: 44px; border-radius: 50%; border: 3px solid #e2e8f0; border-top-color: #1d4ed8; animation: azo-spin .7s linear infinite; }
+            @keyframes azo-spin { to { transform: rotate(360deg); } }
+        </style>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
         <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
-        <div id="root"></div>
+        <div id="root"><div class="azo-boot" aria-label="Loading"></div></div>
         <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
