@@ -1,4 +1,24 @@
-# AzoApp — Finance Module Upgrade (Enterprise Finance Operations)
+# AzoApp — Admin Platform PRD
+
+## Enterprise SEO Management System (2026-10-10)
+User choices: GSC framework now (service-account JSON later, honest "Not connected"); cities from existing service_areas; all 10 tabs functional.
+### Backend
+- `services/seo_core.py`: global/technical settings (versioned, 409 on stale save, sanitized URLs/robots), cached page index of static/category/subcategory/service/city/city-service/blog pages with inheritance Global → category defaults → subcategory defaults → page override; auto-meta from real name/category/price/booking ratings/served cities; rule-based audit (dup/missing/length/canonical/noindex/alt/thin/slug/redirect/orphan) + transparent score; JSON-LD builder (Organization, WebSite, BreadcrumbList, Service, LocalBusiness only for admin-entered real offices, BlogPosting) + validation; sitemap index + chunked child sitemaps (only canonical indexable URLs, real lastmod); robots.txt generator with essential-path guard; redirects (loop reject, chain collapse, same-domain only); service slug backfill.
+- `services/seo_workflow.py`: background worker (15s) — reconcile page fingerprints → validation steps → sitemap regen → queued GSC sitemap submission (throttled, backoff 1m/5m/15m/1h, max 4) ; auto 301 on published slug change (hooked into catalog update_*).
+- `services/seo_audit.py`: background audit runs (technical checks, live HTTP checks of key URLs, image weight sampling).
+- `services/gsc_service.py`: Search Console service-account (file at GSC_CREDENTIALS_PATH, 0600, never returned) — sites, property, sitemap submit/list, searchAnalytics sync, URL inspection.
+- `routes/seo_routes.py`: public `/api/seo/resolve|redirects|city-extras|city-service`, admin `/api/admin/seo/*` (overview, global, pages+export, page detail/save, bulk preview/apply, cities, city-pages, technical, redirects, sitemap, schema, gsc/*, indexing, events, jobs retry, audit).
+- `/api/sitemap.xml` (index), `/api/sitemaps/{type}-{n}.xml`, `/api/robots.txt`; root `/sitemap.xml`, `/sitemaps/*`, `/robots.txt` proxied in `web_panel/src/setupProxy.js`.
+### Frontend
+- `web_panel/src/pages/admin/seo/*` — SeoCenter (10 tabs) + PageEditor drawer + BulkDialog + PagesTable (server pagination/filters/export/mobile cards). Sidebar SEO items map via `SEO_TAB_FOR` in AdminDashboard.
+- `components/Seo.jsx` now resolves meta/JSON-LD from backend (single source, no duplicate schema, removed fake reviewCount fallback); `SeoRouteGuard` (SPA redirects + private noindex); `CityServicePage` (/city/:slug/:serviceSlug); CityPage shows local intro/FAQs/service-page links.
+- Tested: iteration_293 — 40/40 backend, frontend 100%.
+### Backlog
+- P1: connect real GSC credentials & property; image alt per gallery image; SSR/prerender for crawlers (SPA meta is client-rendered).
+- P2: hreflang if multiple languages; per-city pricing in service schema offers; scheduled weekly audits.
+
+---
+# (Previous) Finance Module Upgrade (Enterprise Finance Operations)
 
 ## Problem statement
 Upgrade the entire AzoApp admin Finance module (Withdrawal Requests, Transactions,

@@ -1,0 +1,31 @@
+{
+  "summary": "Full backend + UI smoke of the new Enterprise SEO Center (10 tabs). 40/40 pytest cases pass against the preview backend. UI renders all 10 tabs, all 9 Overview KPIs, 5 overview filters; Global tab, Services table (12 testids), Audit run button, Indexing 'Not connected' banner, Cities expand (patna), city-service public page, legacy slug redirect, mobile layout — all verified working. GSC is correctly 'Not connected' with honest '—' for indexed counts (no fake numbers). Rejection paths (aggregateRating JSON-LD, unserved city /delhi, thin-content publish, redirect loop, external redirect, Disallow: /, root in private_paths, bulk noindex without confirm) all return 400 as specified. Sitemap index + child + robots.txt all 200 with expected content. Legacy /service/ac-gas-refill → /service/ac-gas-refill-home 301 works.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Admin dashboard (not SEO-related)", "issues": ["Chart container warns 'width(-1) height(-1)' in console during initial render — cosmetic, charts render fine after animation."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_seo_center.py",
+    "/app/test_reports/pytest/seo_center.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Global SEO uses integer `version` for optimistic concurrency; page-level uses string `expected_updated_at` keyed off `seo_updated_at`. Review request mentioned 'old version' generically — current behaviour is correct (both reject stale saves with 409). Consider documenting the two mechanisms in the admin UI tooltip for clarity.",
+    "`/api/catalog/admin/services` is served under the `/catalog` prefix (not `/api/admin/services`). Not a bug, but worth noting so future tests / docs reference the right path.",
+    "Technical SEO page correctly flags the intentionally-seeded broken redirect `/old-ac → /services/ac-repair` as HIGH 'Redirect destinations resolve to real pages'. This is the expected per setup note; no action required."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_seo_center.py"
+  ],
+  "success_rate": {"backend": "100% (40/40)", "frontend": "100% (all required testids + flows verified)"},
+  "test_credentials": "Admin phone +919000000000, OTP 123456 (or 'Login as Admin' demo button). Loaded from /app/memory/test_credentials.md.",
+  "seed_data_creation": "No new seed data created. Test created temporary bulk-edit title overrides and immediately cleared them via clear_overrides. Also created a /test-old-<ts> redirect and deleted it in the same test. No destructive side-effects remain.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests at /app/backend/tests/test_seo_center.py. Run with: pytest /app/backend/tests/test_seo_center.py -n 0 (xdist loadscope is forced globally; -n 0 ensures sequential execution so admin login tokens are not revoked by parallel re-logins). The intentionally broken seeded redirect /old-ac → /services/ac-repair will always show as a HIGH technical issue; do not treat as regression. Preferred host is empty, so canonicals use the 2b4c... preview base. Admin super-admin (+919000000000) bypasses RBAC. GSC genuinely not connected — 503/400 on submit-sitemap / sync / inspect is correct behaviour, not a bug.",
+  "rca of the issue": "N/A — no bugs found. Two initial test failures were test-side issues: (1) wrong field name `expected_updated_at` for Global SEO stale check (real field is integer `version`); (2) wrong path `/api/admin/services` (real path `/api/catalog/admin/services`). Both corrected and tests now pass."
+}
