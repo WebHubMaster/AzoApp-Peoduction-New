@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Bell, Trash2, X, BadgePercent, Copy, Ticket, Sparkles, ArrowRight } from "lucide-react";
+import { Bell, Trash2, X, BadgePercent, Copy, Ticket, Sparkles, ArrowRight, Clock } from "lucide-react";
 import api, { fmt } from "@/lib/api";
 import useProgressive, { LoadMoreSentinel } from "@/hooks/useProgressive";
 import ScratchCardsPanel from "@/components/growth/ScratchCardsPanel";
@@ -109,6 +109,30 @@ export function NotificationsView() {
 }
 
 /* ----------------------------------------------------------------- Offers --- */
+const pad = (n) => String(n).padStart(2, "0");
+const endMs = (v) => { if (!v) return null; const t = new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T23:59:59` : v).getTime(); return Number.isFinite(t) ? t : null; };
+
+function useNow(active) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { if (!active) return undefined; const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, [active]);
+  return now;
+}
+
+function remain(ms) {
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return d > 0 ? `${d}d ${pad(h)}h ${pad(m)}m ${pad(sec)}s` : `${pad(h)}h ${pad(m)}m ${pad(sec)}s`;
+}
+
+export function OfferTimer({ end, light, testId }) {
+  const now = useNow(!!end);
+  if (!end) return null;
+  const left = end - now;
+  if (left <= 0) return <span data-testid={testId} className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full ${light ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}><Clock className="h-3 w-3" /> Offer ended</span>;
+  const urgent = left < 24 * 3600 * 1000;
+  const tone = light ? (urgent ? "bg-rose-500 text-white" : "bg-white/20 text-white") : (urgent ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-700");
+  return <span data-testid={testId} className={`inline-flex items-center gap-1 text-[11px] font-extrabold px-2 py-0.5 rounded-full tabular-nums ${tone} ${urgent ? "animate-pulse" : ""}`}><Clock className="h-3 w-3" /> Ends in {remain(left)}</span>;
+}
 const grab = (code) => {
   localStorage.setItem("azo_coupon", code);
   try { navigator.clipboard?.writeText(code); } catch { /* ignore */ }
@@ -116,19 +140,24 @@ const grab = (code) => {
 };
 
 function OfferCard({ o, onUse }) {
+  const end = endMs(o.end_date);
+  const ended = end !== null && end <= Date.now();
   return (
-    <div data-testid={`offers-offer-${o.id}`} className="relative overflow-hidden rounded-2xl azo-mesh text-white p-5 azo-elev azo-fade-up">
+    <div data-testid={`offers-offer-${o.id}`} className={`relative overflow-hidden rounded-2xl azo-mesh text-white p-5 azo-elev azo-fade-up ${ended ? "opacity-60 grayscale" : ""}`}>
       <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-white/10" />
-      <p className="text-xs font-semibold text-white/85">{o.title}</p>
+      <div className="flex items-start justify-between gap-2 relative">
+        <p className="text-xs font-semibold text-white/85 min-w-0">{o.title}</p>
+        <OfferTimer end={end} light testId={`offer-timer-${o.id}`} />
+      </div>
       <p className="font-heading font-black text-2xl sm:text-3xl mt-1">{o.discount_label || `${o.discount}% OFF`}</p>
       {o.subtitle && <p className="text-xs text-white/85 mt-1">{o.subtitle}</p>}
       <div className="mt-4 flex items-center gap-2 flex-wrap relative">
-        {o.code && (
+        {o.code && !ended && (
           <button data-testid={`offers-copy-${o.code}`} onClick={() => grab(o.code)}
             className="inline-flex items-center gap-2 h-9 px-3 rounded-md bg-white text-primary-700 text-sm font-extrabold azo-press">{o.code} <Copy className="h-3.5 w-3.5" /></button>
         )}
-        <button data-testid={`offers-use-${o.id}`} onClick={() => { if (o.code) grab(o.code); onUse(o.link); }}
-          className="inline-flex items-center gap-1 h-9 px-3 rounded-md bg-white/15 hover:bg-white/25 text-sm font-bold">Book now <ArrowRight className="h-4 w-4" /></button>
+        {!ended && <button data-testid={`offers-use-${o.id}`} onClick={() => { if (o.code) grab(o.code); onUse(o.destination || o.link); }}
+          className="inline-flex items-center gap-1 h-9 px-3 rounded-md bg-white/15 hover:bg-white/25 text-sm font-bold">{o.cta_text || "Book now"} <ArrowRight className="h-4 w-4" /></button>}
       </div>
     </div>
   );
@@ -141,6 +170,7 @@ function CouponRow({ c }) {
       <div className="flex-1 min-w-0">
         <p className="font-extrabold text-sm text-slate-800 dark:text-white truncate">{c.label || c.code}</p>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{c.description || (c.min_order ? `Min order ${fmt(c.min_order)}` : "No minimum order")}</p>
+        {c.valid_until && <div className="mt-1.5"><OfferTimer end={endMs(c.valid_until)} testId={`coupon-timer-${c.code}`} /></div>}
       </div>
       <button data-testid={`offers-coupon-copy-${c.code}`} onClick={() => grab(c.code)}
         className="shrink-0 h-9 px-3 rounded-md border border-dashed border-primary-600 text-primary-700 dark:text-primary-300 text-xs font-extrabold hover:bg-primary-50 dark:hover:bg-primary-900/20 azo-press">{c.code}</button>
@@ -154,7 +184,8 @@ export function OffersView() {
   const [error, setError] = useState(false);
   const load = useCallback(() => { setError(false); api.get("/site/promotions").then((r) => setData(r.data || {})).catch(() => setError(true)); }, []);
   useEffect(() => { load(); }, [load]);
-  const offers = data?.offers || [];
+  const isEnded = (o) => { const e = endMs(o.end_date); return e !== null && e <= Date.now(); };
+  const offers = [...(data?.offers || [])].sort((a, b) => isEnded(a) - isEnded(b));
   const coupons = data?.coupons || [];
   const onUse = (link) => navigate(link && link.startsWith("/") ? link : "/services");
 

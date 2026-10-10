@@ -211,7 +211,7 @@ export default function CustomerDashboard() {
       {active === "refunds" && <RefundsView refunds={refunds} loading={loading} />}
       {active === "subscriptions" && <MySubscriptions />}
       {active === "custom_jobs" && <MyCustomJobs />}
-      {active === "wallet" && <WalletView wallet={wallet} user={user} onReload={load} />}
+      {active === "wallet" && <WalletView wallet={wallet} user={user} onReload={load} onRewards={() => goTo("rewards")} />}
       {active === "referral" && <ReferralView user={user} bookings={bookings} />}
       {active === "profile" && <div className="max-w-3xl"><SectionHeader title="My Profile" sub="Manage your personal details & preferences" onNew={() => navigate("/services")} /><ProfileEditor user={user} fields={cfg.profile_fields || {}} onSaved={refresh} /></div>}
       {active === "addresses" && <div><SectionHeader title="My Addresses" sub="Saved locations for faster checkout" onNew={() => navigate("/services")} /><AddressBook cfg={cfg.address_config || {}} onSaved={refresh} /></div>}
@@ -873,7 +873,7 @@ function RefundsView({ refunds, loading }) {
 }
 
 /* ======================================================== WALLET ======== */
-function WalletView({ wallet, user, onReload }) {
+function WalletView({ wallet, user, onReload, onRewards }) {
   const isMobile = useIsMobile();
   const [type, setType] = useState("all");
   const [q, setQ] = useState("");
@@ -896,7 +896,7 @@ function WalletView({ wallet, user, onReload }) {
   return (
     <div>
       <SectionHeader title="Wallet" sub="Your AzoApp balance, top-ups and payments" />
-      <ScratchCardsPanel onClaimed={onReload} />
+      <ScratchCardsPanel onClaimed={onReload} onViewAll={onRewards} />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <div className="lg:col-span-1 relative overflow-hidden rounded-3xl azo-mesh text-white p-6 azo-elev azo-fade-up">
           <div className="absolute -right-6 -bottom-6 h-32 w-32 rounded-full bg-white/10" />

@@ -14,7 +14,7 @@ const fmt = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
  *  - "View All" opens a dedicated full grid page (in-panel route via `viewAll` state).
  *  - scratched cards auto-delete after 30 days (server sweep + lazy purge on list).
  */
-export default function ScratchCardsPanel({ onClaimed, gridOnly = false }) {
+export default function ScratchCardsPanel({ onClaimed, gridOnly = false, onViewAll }) {
   const [data, setData] = useState({ cards: [], summary: {} });
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(null);
@@ -79,7 +79,7 @@ export default function ScratchCardsPanel({ onClaimed, gridOnly = false }) {
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-500 hidden sm:inline">Earned {fmt(summary.earned)}</span>
           {cards.length > 1 && (
-            <button onClick={() => setViewAll(true)} data-testid="scratch-viewall-btn"
+            <button onClick={() => (onViewAll ? onViewAll() : setViewAll(true))} data-testid="scratch-viewall-btn"
               className="text-sm font-semibold text-primary-600 hover:text-primary-700">View All ({cards.length})</button>
           )}
         </div>
