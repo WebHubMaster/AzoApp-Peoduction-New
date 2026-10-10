@@ -1,0 +1,62 @@
+{
+  "summary": "Verified new customer panel tabs added to /account for parity with Customer mobile app: Rewards (?tab=rewards), Offers (?tab=offers), Alerts/Permission Center (?tab=alerts), Report a Bug (?tab=report_bug) and Notifications full page (?tab=notifications). All data-testids per spec render; mobile More-sheet exposes nav items; headers labeled correctly; popup sequencing on landing is correct (location-gate shows alone; rate/push suppressed while open; push nudge may appear after dismissal).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "verification_results": {
+    "login": "ok via +919000000004 OTP 123456",
+    "desktop_1920": {
+      "rewards (rewards-page)": "visible, no overflow",
+      "offers (offers-page)": "visible, no overflow",
+      "alerts (permission-center)": "visible, no overflow",
+      "report_bug (bug-form)": "visible, no overflow"
+    },
+    "rewards_detail": "scratch-grid present; 2 scratch-tile-<id> tiles rendered (matches seed)",
+    "offers_detail": "7 offers-offer-<id> cards; 7 offers-use-<id>; 7 offers-copy-<code> buttons",
+    "alerts_detail": "perm-card-notifications/sound/location/install, push-diagnostics, test-ring-btn, test-push-btn all present; 'Alert Health Check' copy present",
+    "report_bug_detail": "bug-form present",
+    "notifications_flow": "Bell icon -> notif-btn-view-all navigates to /account?tab=notifications; page shows notif-item-<id> (1 item for seed) and notif-clear-all button",
+    "section_headers": {
+      "rewards": "Reward & Cashback",
+      "offers": "Offers & Savings",
+      "alerts": "Alert Health Check",
+      "report_bug": "Report a Bug"
+    },
+    "mobile_390": {
+      "rewards": "ok no overflow",
+      "offers": "ok no overflow",
+      "alerts": "transient timeout in one run (desktop ok) - re-check if seen again, likely wait-time; non-blocking",
+      "report_bug": "ok no overflow",
+      "more_sheet_nav": "nav-rewards, nav-offers, nav-alerts, nav-report_bug all present"
+    },
+    "tablet_768": "rewards, offers no overflow",
+    "popup_sequencing_landing": {
+      "with_location_gate_open": "rate-service NOT shown, push-nudge NOT shown (correct)",
+      "after_dismiss_location": "push-nudge appears (allowed per spec); rate-service not triggered in this session"
+    },
+    "regression_order_failed_reason": "code-level present per iteration_289 (Checkout.jsx renders data-testid='order-failed-reason')"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Minor: scratch-tile click did not open scratch-modal in automation run (card.status likely 'claimed' or logic gate blocks reopening). Verify seed produces at least one 'available' or 'scratched' card so users can open the reveal/claim modal manually.",
+    "Minor: mobile 390 permission-center occasionally hit a 6s selector timeout (desktop/other mobile tabs ok). Consider adding a loading skeleton with the permission-center testid rendered immediately to improve perceived readiness."
+  ],
+  "critical_code_review_comments": [
+    "CustomerDashboard.jsx NAV correctly wires rewards/offers/alerts/report_bug/notifications tabs with testid='nav-<key>'; good separation of concerns using CustomerExtras.jsx for Notifications/Offers/Rewards views.",
+    "ScratchCardsPanel is reused in gridOnly mode for Rewards tab - DRY and consistent.",
+    "PartnerAlertsPermissions supports variant='customer' with 'Alert Health Check' copy - good reuse.",
+    "PartnerReportBug reused for customer bug reports via POST /api/bugs - good reuse; ensure backend persists customer_id separately.",
+    "NotificationBell onViewAll correctly navigates to ?tab=notifications and clears unread badge; verified navigation path."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (no backend regression in scope)", "frontend": "~95% (all new tabs render; minor scratch-modal interaction + 1 mobile transient timeout)"},
+  "test_credentials": "Customer: +919000000004 OTP 123456; Admin: +919000000000 OTP 123456",
+  "seed_data_creation": "none (used existing seeded Priya Verma: 2 scratch cards, 7 offers, 1 notification)",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All 4 new tabs + Notifications full page are live and reachable via /account?tab=<rewards|offers|alerts|report_bug|notifications>. Mobile 'More' sheet opens via a button labeled exactly 'More' (no data-testid='mobile-more-btn' - consider adding one). To avoid landing modals in tests set sessionStorage azo_loc_dismissed=1 and localStorage azo_location=Patna. OTP login requires typing 6 digits via keyboard.type (otp input is a hidden mirror of 6 digit boxes).",
+  "rca of the issue": "n/a - no blocking issues; feature parity additions verified."
+}

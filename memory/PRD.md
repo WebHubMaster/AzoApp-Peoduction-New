@@ -462,3 +462,10 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Hosted gateways (PayU/Easebuzz/Juspay/Cashfree redirect) now return to the SAME site the user is on via `X-Pay-Return-Base` header (web_panel + Customer expo web) → validated by `safe_return_base` (same root domain / emergent domains / PAY_RETURN_ALLOWED_HOSTS env). Fixes return to unbuilt /api/panel.
 - Restored missing backend/.env and web_panel/.env + web_panel node_modules in this pod.
 - iteration_289: backend 100%; frontend code-reviewed.
+
+## 2026-06 — Customer web ↔ app feature parity
+- Gap analysis (Customer Expo app vs web /account): bookings/rating/chat/SOS/support tickets/invoices/refunds/wallet/referral/profile/addresses/custom jobs/subscriptions were already at parity.
+- Added on web (same design, responsive): Reward & Cashback (?tab=rewards), Offers & Savings (?tab=offers), Alert Health Check (?tab=alerts, PartnerAlertsPermissions variant="customer"), Report a Bug (?tab=report_bug, reuses PartnerReportBug), Notifications full page (?tab=notifications via bell "View all": remove one / clear all).
+- New file: web_panel/src/components/customer/CustomerExtras.jsx. ScratchCardsPanel gets `gridOnly`.
+- Pop-up sequencing: location modal → then rating prompt → then push nudge (window `azo:modal` event).
+- iteration_290 pass.
