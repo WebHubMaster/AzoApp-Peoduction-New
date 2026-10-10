@@ -24,6 +24,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Server-rendered SEO tags are for crawlers/no-JS clients; Helmet owns the head once the app runs.
+document.querySelectorAll("[data-ssr-seo]").forEach((n) => n.remove());
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>

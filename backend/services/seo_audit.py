@@ -106,6 +106,12 @@ async def crawl_checks(idx):
                 res.append({"url": base + path, "status": r.status_code, "content_type": ctype.split(";")[0], "ok": ok})
             except Exception as e:  # noqa: BLE001
                 res.append({"url": base + path, "status": 0, "error": str(e)[:120], "ok": False})
+        try:
+            r = await c.get(base + "/", headers={"Accept": "text/html", "User-Agent": "Googlebot"})
+            ssr = "data-ssr-seo" in r.text and "<title>" in r.text
+            res.append({"url": base + "/ (server-rendered meta)", "status": r.status_code, "content_type": "SSR head present" if ssr else "SSR head missing", "ok": ssr})
+        except Exception as e:  # noqa: BLE001
+            res.append({"url": base + "/ (server-rendered meta)", "status": 0, "error": str(e)[:120], "ok": False})
         imgs = []
         seen = set()
         for p in idx["pages"]:

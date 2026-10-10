@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import api from "@/lib/api";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Youtube, Phone, Mail, ShieldCheck, Clock, Star, Play, Apple } from "lucide-react";
 import { useSiteConfig } from "@/context/SiteConfigContext";
@@ -25,6 +26,20 @@ const FooterCol = ({ title, links }) => (
     </ul>
   </div>
 );
+
+const FooterCities = () => {
+  const [cities, setCities] = useState([]);
+  useEffect(() => { api.get("/site/cities").then((r) => setCities(r.data || [])).catch(() => {}); }, []);
+  if (!cities.length) return null;
+  return (
+    <div className="border-t border-white/5" data-testid="footer-cities">
+      <div className="max-w-7xl mx-auto px-6 py-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+        <span className="font-heading font-bold text-white">Cities we serve</span>
+        {cities.map((c) => <Link key={c.slug} to={`/city/${c.slug}`} data-testid={`footer-city-${c.slug}`} className="text-slate-400 hover:text-white transition-colors">Home services in {c.city}</Link>)}
+      </div>
+    </div>
+  );
+};
 
 export default function SiteFooter() {
   const { branding, stats = {}, apps = {} } = useSiteConfig();
@@ -117,6 +132,8 @@ export default function SiteFooter() {
           </div>
         </div>
       </div>
+
+      <FooterCities />
 
       {/* bottom bar */}
       <div className="border-t border-white/5">

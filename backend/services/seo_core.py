@@ -458,7 +458,10 @@ async def _build_index():
              "service_count": n}
         ctx = {"name": c.get("name"), "category": c.get("name"), "site_name": site_name}
         auto_desc = _trim(f"{clean_text(c.get('description'))} Book {n} verified {c.get('name')} service{'s' if n != 1 else ''} with {site_name}." if c.get("description") else f"Book verified {c.get('name')} services with {site_name}.")
-        finalize(p, [], _tpl(g.get("category_title_template") or "{name} Services", ctx), auto_desc)
+        ctpl = g.get("category_title_template") or "{name} Services"
+        if re.search(r"services?$", c.get("name") or "", re.I):
+            ctpl = ctpl.replace("{name} Services", "{name}")
+        finalize(p, [], _tpl(ctpl, ctx), auto_desc)
         pages.append(p)
     for s in subs:
         seo = s.get("seo") or {}

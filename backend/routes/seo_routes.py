@@ -45,6 +45,12 @@ async def resolve(path: str = "/"):
             "image_alt": r["image_alt"] or p["name"], "jsonld": core.build_schema(p, idx)}
 
 
+@router.get("/seo/render")
+async def render_head(path: str = "/"):
+    from services import seo_render
+    return await seo_render.render(path)
+
+
 @router.get("/seo/redirects")
 async def public_redirects():
     rows = await db.redirects.find({}, {"_id": 0, "from_path": 1, "to_path": 1, "type": 1}).to_list(5000)

@@ -115,6 +115,7 @@ export default function PageEditor({ pageKey, onClose, onSaved }) {
           <Field label="Canonical URL" hint={`Leave empty for self-canonical: ${d.base}${p.path}`}><input data-testid="editor-canonical" className={inputCls} value={seo.canonical} onChange={setS("canonical")} placeholder={`${d.base}${p.path}`} /></Field>
           <Field label={<>Robots <Src s={!seo.robots && p.sources?.robots} /></>}><Select testId="editor-robots" value={seo.robots} onChange={setS("robots")} options={ROBOTS} /></Field>
           <div><p className="text-[12px] font-semibold text-slate-700 mb-1.5">Public URL</p><CopyField value={url} testId="editor-url" /></div>
+          <a href={`${API}/seo/render?path=${encodeURIComponent(p.path)}`} target="_blank" rel="noreferrer" data-testid="editor-crawler-view" className="text-xs font-semibold text-[#0D47A1] hover:underline">View what search engines receive (server-rendered head) →</a>
         </Section>
 
         {isCity && (
