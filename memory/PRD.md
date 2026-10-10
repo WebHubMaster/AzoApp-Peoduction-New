@@ -444,3 +444,8 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 
 ## 2026-06 — Merchant notifications = Partner panel logic
 - MerchantTopBar bell now opens full page /merchant/notifications (shared app/notifications.tsx with `embedded`), unread badge = !n.read via ['partner-notifs'] query, remove one / Clear all, 10-at-a-time scroll. Old dropdown removed. iteration_285: static review + tsc pass.
+
+## 2026-06 — Merchant customer commission: only NEW customers via link
+- Rule: a customer becomes a merchant's customer ONLY if they sign up via that merchant's link (verify-otp with merchant_ref_code on account creation) — fallback: unlinked account created ≤30 min ago with no prior real booking + code on first booking. Once linked, permanent (all future bookings earn commission, other codes ignored). Already-registered customers booking via a link → no merchant_id on booking → no commission.
+- Files: booking_controller._resolve_referral_merchant/_is_new_customer, auth_controller._link_new_customer_to_merchant, VerifyOTPRequest.merchant_ref_code, web_panel lib/api.js interceptor adds code to /auth/verify-otp.
+- iteration_286: 11/11 backend scenarios passed (temp DB). Old wrongly-linked customers not migrated.

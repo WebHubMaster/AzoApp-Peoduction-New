@@ -1,0 +1,25 @@
+{
+  "summary": "Backend-only direct-call tests of the merchant referral linking rules. Spun up a temp MongoDB database (test_merchant_ref_*), imported backend modules with MONGO_URL/DB_NAME in-process (no .env created), exercised booking_controller._resolve_referral_merchant, _is_new_customer, auth_controller._link_new_customer_to_merchant and the full auth_controller.verify_otp path with dev OTP 123456, then dropped the temp DB. 11/11 scenarios passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_merchant_referral_linking.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "booking_controller._resolve_referral_merchant correctly enforces persistent linking: fresh fetch of users.customer_merchant_id BEFORE considering any code, so once linked a customer stays linked forever irrespective of what code (or none) comes in — verified by scenarios 2 (relink attempt with another code still returns m1) and 7 (no code returns m1).",
+    "_is_new_customer window is a strict 30-min on created_at AND no prior booking where status != 'pending_payment' and cancellation.by != 'payment_failed'. Correctly ignores payment-failed cancels and pending_payment stubs (scenario 4) and refuses after 30 min (scenario 5) or any real prior booking (scenario 3).",
+    "Linking update uses the guard {customer_merchant_id: {$in:[None,'']}} so a race between two parallel first bookings cannot overwrite an already-set merchant. Good.",
+    "auth_controller._link_new_customer_to_merchant is only invoked when res['created'] is True AND role == 'customer' AND merchant_ref_code is provided (auth_controller.verify_otp line ~164). Existing users (res['created']==False) are NOT re-linked — verified in scenario 11 (second verify_otp with a different code did not change customer_merchant_id).",
+    "VerifyOTPRequest.merchant_ref_code: Optional[str] = None and routes/auth_routes.py verify_otp passes it through — correct wiring.",
+    "merchant_code_service.validate_code enforces CODE_RE ^[A-Z0-9]{7}$ and uppercases input; invalid-format codes (e.g. 'badcode') return None, so bad links silently no-op (scenario 6).",
+    "web_panel/src/lib/api.js interceptor only mutates body for cfg.url ending with '/auth/verify-otp' and withMerchantRef skips when body already has merchant_ref_code — safe idempotent injection from the azo_merchant_ref localStorage key (30-day TTL in merchantRef.js). Static review clean.",
+    "Minor observation (not a bug): _resolve_referral_merchant returns the already-linked merchant via a direct db.users.find_one for the stored id. If the merchant doc is later deleted the function will return None and future bookings will not credit anyone — fine, but means stale customer_merchant_id/code remain on the user. Not in scope to fix."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (11/11 scenarios)", "frontend": "n/a (not in scope)"},
+  "test_credentials": "n/a — tests use a temp Mongo DB and dev OTP 123456",
+  "seed_data_creation": "Each scenario seeds its own merchant/customer in the temp DB test_merchant_ref_<rand> and _reset()s between scenarios. Temp DB is dropped on completion.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Full regression file at /app/backend/tests/test_merchant_referral_linking.py. Run with: cd /app/backend && MONGO_URL=mongodb://localhost:27017 python tests/test_merchant_referral_linking.py. It self-provisions and self-cleans its temp DB (NO backend/.env needed). Covers: already-registered customer with code -> None (no commission); persistent linking after first use regardless of later code or no code; prior-real-booking disqualification; pending_payment & payment_failed cancellation ignored; 30-min window expiry; invalid-format and unknown code -> None; _link_new_customer_to_merchant direct; dict-shaped request support; full auth_service.verify_otp (dev OTP 123456) new-signup links, existing-user re-login does NOT re-link.",
+  "rca of the issue": "n/a — behaviour matches the stated rule. The 'customer already linked -> ignore any other code and never re-link to another merchant' invariant is upheld by (a) reading customer_merchant_id from a fresh users doc before any code logic, and (b) the $in:[None,''] guard on the linking update. The 'ignore any other code' part specifically means later bookings via a different merchant's QR do NOT change ownership — commissions continue to flow to the original referring merchant (via booking.merchant_id snapshot) exactly as required."
+}
