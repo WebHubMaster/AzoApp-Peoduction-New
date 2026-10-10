@@ -449,3 +449,6 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - Rule: a customer becomes a merchant's customer ONLY if they sign up via that merchant's link (verify-otp with merchant_ref_code on account creation) — fallback: unlinked account created ≤30 min ago with no prior real booking + code on first booking. Once linked, permanent (all future bookings earn commission, other codes ignored). Already-registered customers booking via a link → no merchant_id on booking → no commission.
 - Files: booking_controller._resolve_referral_merchant/_is_new_customer, auth_controller._link_new_customer_to_merchant, VerifyOTPRequest.merchant_ref_code, web_panel lib/api.js interceptor adds code to /auth/verify-otp.
 - iteration_286: 11/11 backend scenarios passed (temp DB). Old wrongly-linked customers not migrated.
+
+## 2026-06 — Customer app permission setup: auto pop-ups + settings wizard
+- app/permissions.tsx: Phase 1 auto-fires system dialogs (Location, Notifications, Photos, Mic) one by one on open; Phase 2 step-by-step wizard (Step X of N, how-to steps, Open Settings / Skip, auto-advance on return when granted) for Full-Screen Alert, Display Over Apps, Battery, OEM Autostart + any runtime perm blocked permanently. Auto-finishes when nothing left. iteration_287 static review pass.

@@ -1,0 +1,30 @@
+{
+  "summary": "Static code review of Customer app permissions.tsx (Phase1 Auto + Phase2 Wizard). Ran tsc and eslint as per request. tsc has NO errors in app/permissions.tsx (only one unrelated pre-existing error in app/(customer)/subscriptions.tsx:322 regarding color index 900). eslint clean. Code adheres to all stated requirements with proper hook rules, ref-guarded one-shot Phase 1, ref-guarded auto-advance in Wizard, and safe finish paths.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "permissions.tsx: tsc --noEmit clean; eslint clean.",
+    "Hook rules: useState/useEffect/useRef/useCallback used at top level in PermissionsScreen, AutoPhase, Wizard. OK.",
+    "Phase 1 one-shot: `started = useRef(false)` guards the useEffect even though `finish` is in deps; `finish` is useCallback([router]) and router from useRouter() is stable in expo-router, so no re-run risk. OK.",
+    "Stale closures: Wizard's `advanceIfGranted` useCallback deps include [key, idx, steps.length, onDone, setIdx]; AppState effect re-subscribes when it changes. OK.",
+    "Double navigation guard: `advanced = useRef<Key|null>(null)` with `advanced.current === key` check prevents double advance when both AppState 'active' and inline readAll-after-request fire. OK.",
+    "Unreachable finish: covered via (a) Phase1 → no wizard keys → finish(); (b) Wizard next() last step → onDone(); (c) advanceIfGranted last step → onDone(); (d) Skip button labelled 'Finish' on last step. OK.",
+    "Web platform: needsPermissionSetup() returns false on web (permissions.ts:66) so the screen is not shown. OK.",
+    "Infinite loop risk: Phase1 effect deps=[finish] + started.current guard → cannot re-enter. OK.",
+    "Minor: rapid double-tap of Skip/Finish could call router.replace twice; low impact since replace is idempotent for same route. Non-blocking.",
+    "Minor: WizardProps types `setS` and `setIdx` narrower than React Dispatch types; passing parent setters still assignable to narrower function types. OK (TS passes).",
+    "Pre-existing unrelated TS error (not from this change): app/(customer)/subscriptions.tsx:322 — PRIMARY[900] not in color map. Flag to main agent if desired."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% (static)"},
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Static review only (Expo native cannot run). tsc/eslint clean for app/permissions.tsx. One pre-existing unrelated TS error in subscriptions.tsx:322 (PRIMARY[900] missing)."
+}
