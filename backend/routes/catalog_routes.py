@@ -45,10 +45,10 @@ async def subcategories(category_id: str = None):
 
 @router.get("/services")
 async def services(category_id: str = None, subcategory_id: str = None, q: str = None,
-                   featured: bool = None, trending: bool = None,
+                   featured: bool = None, trending: bool = None, city: str = None,
                    user=Depends(get_current_user_optional)):
     from services.city_pricing_service import filter_services
-    return await filter_services(await c.list_services(category_id, subcategory_id, q, featured, trending, user))
+    return await filter_services(await c.list_services(category_id, subcategory_id, q, featured, trending, user), city or None)
 
 
 @router.get("/upsell")

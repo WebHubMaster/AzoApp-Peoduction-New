@@ -17,7 +17,7 @@ import { iconName } from "@/pages/customer/home/ui";
  *   onClose   — called when the sheet should close
  *   navigate  — react-router navigate (to open a service / see-all)
  */
-export default function CategoryServicesSheet({ category, onClose, navigate }) {
+export default function CategoryServicesSheet({ category, onClose, navigate, city = null }) {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const open = !!category;
@@ -28,12 +28,12 @@ export default function CategoryServicesSheet({ category, onClose, navigate }) {
     setLoading(true);
     setServices([]);
     api
-      .get("/catalog/services", { params: { category_id: category.id } })
+      .get("/catalog/services", { params: { category_id: category.id, ...(city ? { city } : {}) } })
       .then((r) => { if (alive) setServices(Array.isArray(r.data) ? r.data : []); })
       .catch(() => { if (alive) setServices([]); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [category?.id]);
+  }, [category?.id, city]);
 
   const go = (s) => { onClose?.(); navigate(`/service/${s.id}`); };
   const seeAll = () => { onClose?.(); navigate(`/services?category=${category.id}`); };

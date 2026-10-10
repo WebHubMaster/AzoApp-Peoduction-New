@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import api, { mediaSrc } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -7,14 +7,17 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import SiteNavbar from "@/components/site/SiteNavbar";
 import SiteFooter from "@/components/site/SiteFooter";
 import Promotions from "@/components/site/Promotions";
-import Seo, { orgJsonLd, websiteJsonLd } from "@/components/Seo";
+import Seo, { orgJsonLd, websiteJsonLd, breadcrumbJsonLd } from "@/components/Seo";
 import { useSiteConfig } from "@/context/SiteConfigContext";
 import OutOfAreaWaitlist from "@/components/OutOfAreaWaitlist";
 import HomeHero, { TrustBar } from "./home/HomeHero";
 import { CategoriesSection, ServicesSection, BannersSection, LocationHint } from "./home/HomeSections";
 import { ReviewsSection, GrowCta, FaqSection, BlogSection } from "./home/HomeBlocks";
-import { Container, RowSkeleton, ErrorState, Sk, useCity } from "./home/ui";
+import { Container, SectionHead, RowSkeleton, ErrorState, Sk, useCity } from "./home/ui";
 import CategoryServicesSheet from "@/components/CategoryServicesSheet";
+
+const CATEGORY_TYPES = ["popular_categories", "featured_categories", "category_slider"];
+const SERVICE_TYPES = ["featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services"];
 
 /* ---------- First-visit location permission popup ---------- */
 const LocationGate = () => {
@@ -145,13 +148,56 @@ function VideoSection({ sec }) {
   );
 }
 
-export default function Landing() {
+/* ---------- City local guide (intro / coverage / FAQs / service-page links) ----------
+   Admin-managed in SEO → City & Local. Rendered in the same homepage section style,
+   just above the FAQ section, on city pages only. */
+function CityExtras({ slug, cityName }) {
+  const [x, setX] = useState(null);
+  useEffect(() => { api.get(`/seo/city-extras/${slug}`).then((r) => setX(r.data)).catch(() => setX(null)); }, [slug]);
+  if (!x || (!x.intro && !x.coverage && !x.faqs?.length && !x.service_pages?.length)) return null;
+  return (
+    <section className="py-10 sm:py-16 bg-white border-t border-slate-100" data-testid="city-local-info">
+      <Container>
+        <div className="grid lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-7 space-y-5">
+            {x.intro && <div><SectionHead eyebrow="Local guide" title={`About our services in ${cityName}`} /><p className="text-slate-600 leading-relaxed whitespace-pre-line" data-testid="city-intro">{x.intro}</p></div>}
+            {x.coverage && <p className="text-sm text-slate-500 leading-relaxed" data-testid="city-coverage-note">{x.coverage}</p>}
+            {x.service_pages?.length > 0 && (
+              <div data-testid="city-service-pages">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Service guides for {cityName}</p>
+                <div className="flex flex-wrap gap-2">{x.service_pages.map((sp) => <Link key={sp.path} to={sp.path} data-testid={`city-service-link-${sp.path}`} className="rounded-xl bg-primary-50 ring-1 ring-primary-100 px-3.5 py-2 text-sm font-semibold text-primary-800 hover:bg-primary-100">{sp.name}</Link>)}</div>
+              </div>
+            )}
+          </div>
+          {x.faqs?.length > 0 && (
+            <div className="lg:col-span-5" data-testid="city-faqs">
+              <SectionHead eyebrow="FAQ" title={`Questions from ${cityName}`} />
+              <div className="space-y-2">{x.faqs.map((f, i) => <details key={i} className="rounded-xl ring-1 ring-slate-200 bg-white px-4 py-3" data-testid={`city-faq-${i}`}><summary className="font-semibold text-slate-800 cursor-pointer text-sm">{f.q}</summary><p className="text-sm text-slate-600 mt-2">{f.a}</p></details>)}</div>
+            </div>
+          )}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+/**
+ * Landing — the main customer homepage. Driven entirely by admin "Customer App Home"
+ * sections. Also reused for city pages (/city/:slug): pass `fixedCity` (the city name
+ * resolved from the slug) + `citySlug` and the page renders the SAME layout/design,
+ * filtered to that city's Price Manager (categories, services and prices).
+ */
+export default function Landing({ fixedCity = null, citySlug = null, cityData = null }) {
+  const cityMode = !!fixedCity;
   const [sections, setSections] = useState(null);
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState(false);
   const [sheetCat, setSheetCat] = useState(null);
   const navigate = useNavigate();
-  const city = useCity();
+  const dynamicCity = useCity();
+  // A city page ALWAYS uses its own city, independent of the visitor's saved header
+  // location — and never writes to localStorage just by being visited.
+  const city = cityMode ? fixedCity : dynamicCity;
   const { seo = {}, branding = {} } = useSiteConfig();
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const siteName = seo.site_name || branding.site_name || "AzoApp";
@@ -161,14 +207,39 @@ export default function Landing() {
 
   const load = useCallback(() => {
     setError(false);
-    api.get("/catalog/categories").then((r) => setCategories(r.data || [])).catch(() => {});
+    // Hero/sheet categories: the main homepage pulls the global list (filtered by the
+    // visitor's X-City header); a city page derives them from the city-filtered homepage
+    // sections below, so the city param is always respected regardless of saved location.
+    if (!cityMode) api.get("/catalog/categories").then((r) => setCategories(r.data || [])).catch(() => {});
     api.get("/site/homepage", { params: city ? { city } : {} })
       .then((r) => setSections(Array.isArray(r.data) ? r.data : []))
       .catch(() => { setError(true); setSections((s) => s || []); });
-  }, [city]);
+  }, [city, cityMode]);
   useEffect(() => { load(); }, [load]);
 
   const secs = sections || [];
+
+  // Categories available in this city (service_count > 0), derived from the city-filtered
+  // homepage category sections. Used for the hero tiles/chips and the category sheet.
+  const cityCategories = useMemo(() => {
+    if (!cityMode || !sections) return [];
+    const map = new Map();
+    sections.forEach((s) => {
+      if (CATEGORY_TYPES.includes(s.type)) {
+        (s.data || []).forEach((c) => { if ((c.service_count || 0) > 0 && !map.has(c.id)) map.set(c.id, c); });
+      }
+    });
+    return [...map.values()];
+  }, [cityMode, sections]);
+  const heroCategories = cityMode ? cityCategories : categories;
+
+  // Does the city have anything to sell? (any service row or any non-empty category)
+  const cityHasServices = useMemo(() => {
+    if (!cityMode || !sections) return true;
+    const anySvc = sections.some((s) => SERVICE_TYPES.includes(s.type) && (s.data || []).length > 0);
+    return anySvc || cityCategories.length > 0;
+  }, [cityMode, sections, cityCategories]);
+
   const heroBanners = (secs.find((s) => s.type === "hero_banner") || {}).data || [];
   const faqSec = secs.find((s) => s.type === "faq") || {};
   const blogSec = secs.find((s) => ["blog", "latest_blogs", "blogs", "insights"].includes(s.type)) || {};
@@ -176,17 +247,35 @@ export default function Landing() {
   const openLocation = () => document.querySelector('[data-testid="nav-location"]')?.click();
   let serviceRows = 0;
 
+  const otherCities = (cityData?.other_cities || []).map((c) => c.city);
+
   return (
-    <div className="bg-white min-h-screen">
-      <Seo
-        title={seo.site_title || `${siteName} — Home services at your doorstep`}
-        description={seo.meta_description || "Book trusted, verified professionals for AC repair, home cleaning, electrician, plumbing, carpentry & more. Fast booking, transparent pricing, on-time service."}
-        jsonLd={[orgJsonLd(siteName, seo.logo || branding.logo, origin, seo.phone), websiteJsonLd(siteName, origin)]}
-      />
+    <div className="bg-white min-h-screen" data-testid={cityMode ? "city-page" : "home-page"}>
+      {cityMode ? (
+        <Seo
+          title={`Home services in ${city}`}
+          description={`Book verified professionals in ${city}${cityData?.areas?.length ? ` (${cityData.areas.slice(0, 3).join(", ")})` : ""}. Transparent pricing, on-time service, doorstep delivery.`}
+          path={`/city/${citySlug}`}
+          jsonLd={[
+            breadcrumbJsonLd([{ name: "Home", url: "/" }, { name: `Home services in ${city}`, url: `/city/${citySlug}` }], origin),
+            {
+              "@context": "https://schema.org", "@type": "Service", name: `Home services in ${city}`,
+              provider: { "@type": "Organization", name: siteName, url: origin },
+              areaServed: { "@type": "City", name: city, ...(cityData?.lat && cityData?.lng ? { geo: { "@type": "GeoCoordinates", latitude: cityData.lat, longitude: cityData.lng } } : {}) },
+            },
+          ]}
+        />
+      ) : (
+        <Seo
+          title={seo.site_title || `${siteName} — Home services at your doorstep`}
+          description={seo.meta_description || "Book trusted, verified professionals for AC repair, home cleaning, electrician, plumbing, carpentry & more. Fast booking, transparent pricing, on-time service."}
+          jsonLd={[orgJsonLd(siteName, seo.logo || branding.logo, origin, seo.phone), websiteJsonLd(siteName, origin)]}
+        />
+      )}
       <SiteNavbar />
-      <HomeHero categories={categories} banners={heroBanners} loaded={loaded} navigate={navigate} city={city} onCategory={setSheetCat} />
+      <HomeHero categories={heroCategories} banners={heroBanners} loaded={loaded} navigate={navigate} city={city} onCategory={setSheetCat} cityName={cityMode ? city : ""} />
       <TrustBar />
-      <LocationHint city={city} onPick={openLocation} />
+      {!cityMode && <LocationHint city={city} onPick={openLocation} />}
       <MemberSavingsBanner navigate={navigate} />
 
       {!loaded && (
@@ -197,27 +286,43 @@ export default function Landing() {
       )}
       {error && loaded && secs.length === 0 && <Container className="py-10"><ErrorState onRetry={load} text="We couldn't load the homepage content." /></Container>}
 
-      {secs.map((sec) => {
-        if (["popular_categories", "featured_categories", "category_slider"].includes(sec.type)) return <CategoriesSection key={sec.id} sec={sec} navigate={navigate} onCategory={setSheetCat} />;
-        if (["featured_services", "trending_services", "most_requested", "recommended_services", "service_collection", "category_services"].includes(sec.type)) {
-          serviceRows += 1;
-          return <ServicesSection key={sec.id} sec={sec} navigate={navigate} city={city} tone={serviceRows % 2 === 0 ? "tint" : "white"} />;
-        }
-        if (["promo_banner", "slider"].includes(sec.type)) return <BannersSection key={sec.id} sec={sec} navigate={navigate} />;
-        if (sec.type === "video") return <VideoSection key={sec.id} sec={sec} />;
-        return null; // hero_banner → rendered inside the hero; coupons/faq → dedicated sections below
-      })}
+      {/* City with no available services → friendly waitlist / empty state (matches app behaviour). */}
+      {cityMode && loaded && !cityHasServices ? (
+        <Container className="py-16">
+          <div className="max-w-md mx-auto rounded-3xl bg-white ring-1 ring-slate-200 p-7 shadow-sm" data-testid="city-empty">
+            <OutOfAreaWaitlist city={city} servicedCities={otherCities} />
+          </div>
+        </Container>
+      ) : (
+        secs.map((sec) => {
+          if (CATEGORY_TYPES.includes(sec.type)) {
+            // On a city page, hide categories that have zero available services here.
+            const secOut = cityMode ? { ...sec, data: (sec.data || []).filter((c) => (c.service_count || 0) > 0) } : sec;
+            if (cityMode && (secOut.data || []).length === 0) return null;
+            return <CategoriesSection key={sec.id} sec={secOut} navigate={navigate} onCategory={setSheetCat} />;
+          }
+          if (SERVICE_TYPES.includes(sec.type)) {
+            if (cityMode && (sec.data || []).length === 0) return null;
+            serviceRows += 1;
+            return <ServicesSection key={sec.id} sec={sec} navigate={navigate} city={city} tone={serviceRows % 2 === 0 ? "tint" : "white"} />;
+          }
+          if (["promo_banner", "slider"].includes(sec.type)) return <BannersSection key={sec.id} sec={sec} navigate={navigate} />;
+          if (sec.type === "video") return <VideoSection key={sec.id} sec={sec} />;
+          return null; // hero_banner → rendered inside the hero; coupons/faq → dedicated sections below
+        })
+      )}
 
       <Promotions />
       <ReviewsSection />
       <GrowCta navigate={navigate} />
+      {cityMode && <CityExtras slug={citySlug} cityName={city} />}
       <FaqSection title={faqSec.title} subtitle={faqSec.subtitle} seeded={faqSec.data} />
       {blogSec.enabled !== false && <BlogSection title={blogSec.title} subtitle={blogSec.subtitle} seeded={blogSec.data} limit={blogSec.config?.limit || 3} />}
 
       <SiteFooter />
       <MobileBottomNav />
-      <LocationGate />
-      <CategoryServicesSheet category={sheetCat} onClose={() => setSheetCat(null)} navigate={navigate} />
+      {!cityMode && <LocationGate />}
+      <CategoryServicesSheet category={sheetCat} onClose={() => setSheetCat(null)} navigate={navigate} city={cityMode ? city : null} />
     </div>
   );
 }

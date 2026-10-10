@@ -19,7 +19,7 @@ import re
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 OTP = "123456"
 ADMIN_PHONE = "+919000000000"
 PARTNER_PHONE = "+919000000003"

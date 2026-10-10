@@ -9,7 +9,7 @@ import json
 import sys
 
 # Base URL from frontend/.env
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 
 # Test credentials (demo accounts with OTP 123456)
 ADMIN_PHONE = "+919000000000"

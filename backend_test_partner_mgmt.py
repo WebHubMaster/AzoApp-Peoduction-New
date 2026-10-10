@@ -7,7 +7,7 @@ import json
 from typing import Dict, Any
 
 # Base URL from frontend/.env
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 
 # Test results tracking
 test_results = {

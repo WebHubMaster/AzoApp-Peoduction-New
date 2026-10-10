@@ -9,7 +9,7 @@ import { Container, iconName, compactNum, Sk } from "./ui";
 
 const fade = (d = 0) => ({ initial: { opacity: 0, y: 14 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.45, delay: d, ease: "easeOut" } });
 
-export default function HomeHero({ categories, banners, loaded, navigate, city, onCategory }) {
+export default function HomeHero({ categories, banners, loaded, navigate, city, onCategory, cityName = "" }) {
   const { stats = {}, branding = {} } = useSiteConfig();
   const tiles = useMemo(() => (categories || []).filter((c) => c.show_on_home !== false).slice(0, 8), [categories]);
   const visuals = (banners || []).filter((b) => b.desktop_image || b.image).slice(0, 3);
@@ -26,10 +26,10 @@ export default function HomeHero({ categories, banners, loaded, navigate, city, 
           <div className="lg:col-span-7">
             <motion.div {...fade(0)} className="inline-flex items-center gap-2 rounded-md bg-primary-50 ring-1 ring-primary-100 px-3.5 py-1.5">
               <ShieldCheck className="h-4 w-4 text-primary-700" />
-              <span className="text-xs font-semibold text-primary-800">{branding.tagline || `${branding.site_name || "AzoApp"} — verified home services`}</span>
+              <span className="text-xs font-semibold text-primary-800" data-testid="hero-eyebrow">{cityName ? `Now serving ${cityName}` : (branding.tagline || `${branding.site_name || "AzoApp"} — verified home services`)}</span>
             </motion.div>
-            <motion.h1 {...fade(0.05)} className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 leading-[1.04] mt-5">
-              Premium home services,<br /><span className="text-primary-700">at your doorstep</span>
+            <motion.h1 {...fade(0.05)} className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight text-slate-900 leading-[1.04] mt-5" data-testid="hero-heading">
+              {cityName ? <>Home services in <span className="text-primary-700">{cityName}</span></> : <>Premium home services,<br /><span className="text-primary-700">at your doorstep</span></>}
             </motion.h1>
             <motion.p {...fade(0.1)} className="mt-5 text-slate-500 text-base sm:text-lg max-w-xl leading-relaxed">
               Background-verified professionals, upfront pricing and on-time service{city ? <> in <span className="font-semibold text-slate-700">{city}</span></> : ""}. Book in seconds, pay securely.

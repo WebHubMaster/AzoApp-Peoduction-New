@@ -10,7 +10,7 @@ import re
 import pytest
 import requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://local-city-hub.preview.emergentagent.com").rstrip("/")
 
 CUSTOMER_PHONE = "+919000000004"
 PARTNER_PHONE = "+919000000003"

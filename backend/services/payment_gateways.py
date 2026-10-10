@@ -26,7 +26,7 @@ import httpx
 # build) or "" (native app WebView). Decides where hosted gateways send the user back.
 pay_return = contextvars.ContextVar("pay_return", default="")
 # Exact web origin (+ base path) the checkout was started from, e.g.
-# "https://webhubmaster.shop" or "https://azo-seo-console.preview.emergentagent.com". Lets hosted
+# "https://webhubmaster.shop" or "https://local-city-hub.preview.emergentagent.com". Lets hosted
 # gateways return to the SAME site the customer is on (prod domain or preview).
 pay_return_base = contextvars.ContextVar("pay_return_base", default="")
 RETURN_PREFIX = {"panel": "/api/panel", "customer": "/api/customer"}

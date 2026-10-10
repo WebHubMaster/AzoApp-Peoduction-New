@@ -16,7 +16,7 @@ import json
 import sys
 from typing import Dict, Any, List, Tuple
 
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

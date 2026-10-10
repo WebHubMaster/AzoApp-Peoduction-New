@@ -13,7 +13,7 @@ import requests
 import json
 from datetime import datetime, timedelta, timezone
 
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test credentials

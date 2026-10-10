@@ -6,7 +6,7 @@ import pytest
 import requests
 
 BASE_URL = os.environ.get("WEB_PANEL_URL",
-                          "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
+                          "https://local-city-hub.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 
 

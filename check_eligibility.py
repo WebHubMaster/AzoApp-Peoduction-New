@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
+BASE_URL = "https://local-city-hub.preview.emergentagent.com/api"
 PARTNER_PHONE = "+919000000003"
 CUSTOMER_PHONE = "+919000000004"
 OTP = "123456"

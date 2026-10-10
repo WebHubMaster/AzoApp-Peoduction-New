@@ -12,7 +12,7 @@ import pytest
 import requests
 
 BASE = os.environ.get("REACT_APP_BACKEND_URL",
-                     "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
+                     "https://local-city-hub.preview.emergentagent.com").rstrip("/")
 API = f"{BASE}/api"
 
 CUSTOMER_PHONE = "+919000000004"
