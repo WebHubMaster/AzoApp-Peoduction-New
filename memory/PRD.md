@@ -455,3 +455,10 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 
 ## 2026-06 — Fix: partner/merchant invoice email amount = PDF amount
 - invoice_service.email_invoice: partner/merchant email shows "Your Earning: ₹<role_earning.net>" (same as attached PDF "Total Earning"); customer email "Amount: ₹<total>". Test: backend/tests/test_partner_invoice_email_amount.py (pass).
+
+## 2026-06 — Web payment fix (all gateways, test + live)
+- Root cause: preview web uses its own DB with NO gateway keys → /payments/order 409; web Checkout swallowed the error → generic "Payment failed". Mobile uses prod backend (api.webhubmaster.shop) with keys.
+- web_panel/src/lib/payments.js: runPayment never throws; toasts real reason; `lastPayError` shown on Checkout failed screen (order-failed-reason). Razorpay payment.failed reason captured.
+- Hosted gateways (PayU/Easebuzz/Juspay/Cashfree redirect) now return to the SAME site the user is on via `X-Pay-Return-Base` header (web_panel + Customer expo web) → validated by `safe_return_base` (same root domain / emergent domains / PAY_RETURN_ALLOWED_HOSTS env). Fixes return to unbuilt /api/panel.
+- Restored missing backend/.env and web_panel/.env + web_panel node_modules in this pod.
+- iteration_289: backend 100%; frontend code-reviewed.

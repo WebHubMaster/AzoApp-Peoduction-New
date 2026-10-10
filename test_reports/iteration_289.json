@@ -1,0 +1,34 @@
+{
+  "summary": "Verified web payment fix: backend returns 409 with meaningful detail when gateway keys are missing; X-Pay-Return-Base header is validated (anti open-redirect); hosted PayU callback uses the trusted rb for the SPA redirect; /payment/return page loads at root. Frontend code review confirms runPayment catches errors, surfaces toast via lastPayError, and Checkout.jsx renders the reason in data-testid='order-failed-reason'.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Customer landing/dashboard", "issues": ["Multiple stacked modals (Allow location, Service completed rating prompt, Turn on alerts) appear simultaneously on load and block interaction for automation/users; recommend sequencing or auto-dismissing after a timeout."]}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_289.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "payment_gateways.safe_return_base correctly blocks open-redirect: untrusted hosts return empty, callers fall back to PUBLIC_APP_URL. Confirmed behavior for evil.com -> empty.",
+    "hosted_callback (payu/easebuzz) honors rb only when trusted; falls back to _public_base()+optional RETURN_PREFIX. Working as intended.",
+    "web_panel runPayment wrapper catches all errors (axios + inline) into lastPayError and shows toast; Checkout.jsx shows reason text via data-testid='order-failed-reason' (verified source).",
+    "api.js injects X-Pay-Return-Base = window.location.origin + PUBLIC_URL on every request; server middleware stores it in a ContextVar for later use by return_page()."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (6/6 scenarios)", "frontend": "code-review verified; live click-through blocked by stacked modals"},
+  "verification_results": {
+    "payments_order_no_keys": "409 with detail='Razorpay TEST MODE (pay-in) is not fully configured.' (expected)",
+    "payu_surl_trusted_rb": "surl contains rb=<preview origin> URL-encoded (expected)",
+    "payu_surl_untrusted_rb": "surl has NO rb parameter (expected, evil.com stripped)",
+    "payu_callback_trusted_rb": "303 Location: <preview>/payment/return?gw=payu&order_id=T1 (expected)",
+    "payu_callback_untrusted_rb": "303 Location: <preview>/payment/return?gw=payu&order_id=T1 (safe fallback to PUBLIC_APP_URL — evil.com NOT present; note: without ret param, path uses root /payment/return rather than /api/panel/payment/return, which still resolves correctly because the web SPA serves /payment/return at root)",
+    "payment_return_root": "HTTP 200 with 'Payment not completed' text at <preview>/payment/return?gw=payu&order_id=UNKNOWN (expected)"
+  },
+  "seed_data_creation": "Temporarily set settings.integrations active_payin_gateway=payu with dummy test keys to exercise PayU form_post path, then RESTORED to active_payin_gateway=razorpay and cleared payu_test_* keys via /tmp/patch_settings.py (confirmed by second ORIG dump).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Backend credentials: Customer +919000000004 OTP 123456, Admin +919000000000 OTP 123456. Web panel served from root (frontend/.env REACT_APP_BACKEND_URL=preview). Preview DB has no live gateway keys — payment order endpoint returns 409 with meaningful detail. For UI E2E you must dismiss: 'Allow location' modal (button 'Not now'), post-login 'Service completed / rate service' modal (close X), and 'Turn on alerts' bottom banner (X button); only then is sidebar nav usable. One-click 'Login as Customer' button appears to lead to /account landing without full session — the OTP flow with +919000000004 / 123456 is the reliable path.",
+  "test_credentials": "Customer: +919000000004 OTP 123456; Admin: +919000000000 OTP 123456 (dev mode)"
+}
