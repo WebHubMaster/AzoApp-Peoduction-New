@@ -495,11 +495,15 @@ async def email_invoice(inv: dict, to_email: str = None, audience: str = "custom
              if audience == "customer"
              else "Aapke service ka invoice (partner copy) is email ke saath PDF me attach kiya gaya hai.")
     subject = f"Invoice {inv.get('invoice_number')} — {biz.get('name', 'AzoApp')}"
+    from services.invoice_html_service import _money
+    _re = doc.get("role_earning") or {}
+    # Amount must match the attached PDF's total (partner/merchant → their own earning).
+    amount = _re.get("net") if audience in ("partner", "merchant") and _re.get("net") is not None else doc.get("total_amount")
     html = (
         f"<h2>Invoice {inv.get('invoice_number')}</h2>"
         f"<p>Namaste {who},</p>"
         f"<p>{intro}</p>"
-        f"<p><b>Amount: {doc.get('currency', 'INR')} {doc.get('total_amount')}</b><br/>"
+        f"<p><b>{'Your Earning' if audience in ('partner', 'merchant') and _re.get('net') is not None else 'Amount'}: {_money(amount, doc.get('currency') or 'INR')}</b><br/>"
         f"Status: {doc.get('payment_status', '')}</p>"
         f"<p>Dhanyavaad,<br/>{biz.get('name', 'AzoApp')}</p>"
     )
