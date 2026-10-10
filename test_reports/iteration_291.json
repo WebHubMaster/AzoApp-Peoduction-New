@@ -1,0 +1,50 @@
+{
+  "summary": "Frontend-only tests for (1) Offer Expiry Timer on /account?tab=offers and (2) Wallet Rewards 'View All' link on /account?tab=wallet. Both features work correctly end-to-end at 1920px and 390px.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "offer_timer": {
+      "offer-timer-<offerId> present on each offer card with end_date": true,
+      "format 'Ends in Xd HHh MMm SSs'": true,
+      "seconds tick every second (verified 24s -> 22s after 1.8s wait)": true,
+      "past end_date -> 'Offer ended' badge": true,
+      "ended card dimmed + grayscale (opacity-60 grayscale classes)": true,
+      "ended card hides copy & book buttons": true,
+      "ended offers sorted at the end (Summer Special ended is order=6, last)": true,
+      "CTA button data-testid offers-use-<id> uses offer cta_text ('Book Now','Claim Offer','Notify Me','Grab Offer','Explore')": true,
+      "CTA navigates to /services (fallback) when destination missing": true,
+      "coupon-timer-<code>": "No coupons currently have valid_until in seeded data (coupons array shows AZO50/SAVE100/MONSOON20 without valid_until) - component code supports it correctly via OfferTimer in CouponRow"
+    },
+    "wallet_viewall": {
+      "scratch-viewall-btn visible (2 scratch cards > 1)": true,
+      "button text 'View All (2)'": true,
+      "click navigates to /account?tab=rewards": true,
+      "rewards-page data-testid visible on new tab": true,
+      "sidebar nav-rewards active (bg-primary-700 text-white)": true,
+      "browser back returns to /account?tab=wallet with scratch panel visible": true
+    },
+    "responsive": {
+      "390px no horizontal overflow (sw=390, cw=390)": true,
+      "1920px no horizontal overflow": true,
+      "timers rendered inside cards without clipping": true
+    },
+    "urgent_style_<24h": "Not triggered in current data (earliest offer ends in 19d). Code path verified: urgent=true applies rose/pulse classes (bg-rose-500 text-white + animate-pulse)."
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CustomerExtras.jsx OfferTimer uses setInterval(1000) per timer. Multiple offers each spin an independent interval; consider lifting a single global `now` state to parent (OffersView) to reduce setState churn when there are many cards.",
+    "endMs regex handles YYYY-MM-DD but assumes local timezone. For UTC-stored end_date, consider appending 'Z' or server-aligning timezone to avoid off-by-one-day drift at midnight."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100%"},
+  "test_credentials": "Customer demo button on /login (Priya Verma, +919000000004)",
+  "seed_data_creation": "None - used existing seeded offers (Monsoon 20%, First Booking, Diwali, 50% OFF, Deep Cleaning ₹100, Monsoon Special, Summer Special-Ended) and 2 scratch cards.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Offer timer + Wallet View All rewards link both verified. No urgent-style (<24h) offer in current seed; if testing that path, create an offer with end_date within next 24h to see rose/pulse styling. Coupons currently lack valid_until in seed - code supports coupon-timer-<code> but seed data would need updating to visually exercise it."
+}

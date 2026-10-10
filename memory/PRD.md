@@ -469,3 +469,8 @@ Note: Expo apps don't run in this environment — rebuild the Merchant/Partner a
 - New file: web_panel/src/components/customer/CustomerExtras.jsx. ScratchCardsPanel gets `gridOnly`.
 - Pop-up sequencing: location modal → then rating prompt → then push nudge (window `azo:modal` event).
 - iteration_290 pass.
+
+## 2026-06 — Offer countdown + Wallet→Rewards link
+- Offers tab: live per-second countdown on every offer (end_date) and coupon (valid_until); <24h urgent style; expired = "Offer ended", dimmed, CTA hidden, sorted last; CTA uses cta_text/destination.
+- Wallet scratch "View All" → ?tab=rewards (ScratchCardsPanel onViewAll).
+- iteration_291: 100%.
