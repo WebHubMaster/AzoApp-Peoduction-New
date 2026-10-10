@@ -419,10 +419,15 @@ async def create_category(data: dict):
 
 
 async def update_category(category_id, data: dict):
+    old = await db.categories.find_one({"id": category_id}, {"_id": 0}) or {}
     upd = {k: v for k, v in data.items() if v is not None and k not in ("id", "created_at")}
+    upd["updated_at"] = now_iso()
     await db.categories.update_one({"id": category_id}, {"$set": upd})
     await _after_write("category_update")
-    return await db.categories.find_one({"id": category_id}, {"_id": 0})
+    new = await db.categories.find_one({"id": category_id}, {"_id": 0})
+    from services.seo_workflow import on_slug_change
+    await on_slug_change("category", old, new)
+    return new
 
 
 async def delete_category(category_id):
@@ -453,10 +458,15 @@ async def create_subcategory(data: dict):
 
 
 async def update_subcategory(sub_id, data: dict):
+    old = await db.subcategories.find_one({"id": sub_id}, {"_id": 0}) or {}
     upd = {k: v for k, v in data.items() if v is not None and k not in ("id", "created_at")}
+    upd["updated_at"] = now_iso()
     await db.subcategories.update_one({"id": sub_id}, {"$set": upd})
     await _after_write("subcategory_update")
-    return await db.subcategories.find_one({"id": sub_id}, {"_id": 0})
+    new = await db.subcategories.find_one({"id": sub_id}, {"_id": 0})
+    from services.seo_workflow import on_slug_change
+    await on_slug_change("subcategory", old, new)
+    return new
 
 
 async def delete_subcategory(sub_id):
@@ -500,9 +510,12 @@ async def update_service(service_id, data: dict):
         upd["subcategory_name"] = sub["name"] if sub else ""
     if upd.get("discounted_price") and upd.get("base_price") and upd["discounted_price"] > upd["base_price"]:
         raise HTTPException(status_code=400, detail="Discounted price cannot exceed original price")
+    upd["updated_at"] = now_iso()
     await db.services.update_one({"id": service_id}, {"$set": upd})
     await _after_write("service_update")
     new = await db.services.find_one({"id": service_id}, {"_id": 0})
+    from services.seo_workflow import on_slug_change
+    await on_slug_change("service", old, new)
     # When a service that came from a Custom Job Request goes LIVE (active),
     # tell the customer who requested it that they can now book it.
     if (new and new.get("custom_job_id") and old.get("status") != "active"

@@ -6,7 +6,7 @@ import requests
 import json
 
 # Base URL from frontend/.env
-BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
+BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
 
 # Test credentials from /app/memory/test_credentials.md
 CUSTOMER_PHONE = "+919000000004"  # Priya Verma

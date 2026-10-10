@@ -11,7 +11,7 @@ import requests
 from datetime import datetime
 
 # Configuration
-BASE_URL = os.getenv("REACT_APP_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com")
+BASE_URL = os.getenv("REACT_APP_BACKEND_URL", "https://azo-seo-console.preview.emergentagent.com")
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials (from /app/memory/test_credentials.md)

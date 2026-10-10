@@ -255,12 +255,12 @@ const ServiceGallery = ({ svc }) => {
   return (
     <div>
       <div className="relative w-full h-64 sm:h-72 rounded-2xl overflow-hidden bg-slate-100">
-        <SmartImage src={imgs[active]} alt={svc.name} eager />
+        <SmartImage src={imgs[active]} alt={(svc.seo && svc.seo.image_alt) || svc.name} eager />
       </div>
       {imgs.length > 1 && (
         <div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar">
           {imgs.map((im, i) => (
-            <button key={i} onClick={() => setActive(i)} className={`h-16 w-24 rounded-md overflow-hidden border-2 shrink-0 ${i === active ? "border-primary-700" : "border-transparent"}`}><img src={im} alt="" className="h-full w-full object-cover" /></button>
+            <button key={i} onClick={() => setActive(i)} className={`h-16 w-24 rounded-md overflow-hidden border-2 shrink-0 ${i === active ? "border-primary-700" : "border-transparent"}`}><img src={im} alt={`${svc.name} photo ${i + 1}`} className="h-full w-full object-cover" /></button>
           ))}
         </div>
       )}

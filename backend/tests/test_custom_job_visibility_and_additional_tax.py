@@ -14,7 +14,7 @@ import requests
 BASE_URL = (
     os.environ.get("REACT_APP_BACKEND_URL")
     or os.environ.get("EXPO_PUBLIC_BACKEND_URL")
-    or "https://payment-gateway-fix-47.preview.emergentagent.com"
+    or "https://azo-seo-console.preview.emergentagent.com"
 ).rstrip("/")
 
 API = f"{BASE_URL}/api"

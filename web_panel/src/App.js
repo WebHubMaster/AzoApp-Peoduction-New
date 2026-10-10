@@ -15,6 +15,7 @@ import InstallPrompt from "@/components/pwa/InstallPrompt";
 import MerchantRefCatcher from "@/components/MerchantRefCatcher";
 import CustomJobFAB from "@/components/customer/CustomJobFAB";
 import RateService from "@/components/customer/RateService";
+import SeoRouteGuard from "@/components/SeoRouteGuard";
 // Landing stays eager — it is the primary public entry (fast first paint, no flash).
 import Landing from "@/pages/customer/Landing";
 import PosterDevTest from "@/pages/PosterDevTest";
@@ -24,6 +25,7 @@ import PosterDevTest from "@/pages/PosterDevTest";
 // separate chunks — heavy libs like antd/recharts/jspdf load on demand only).
 const Services = lazy(() => import("@/pages/customer/Services"));
 const ServiceDetail = lazy(() => import("@/pages/customer/ServiceDetail"));
+const CityServicePage = lazy(() => import("@/pages/customer/CityServicePage"));
 const Checkout = lazy(() => import("@/pages/customer/Checkout"));
 const PaymentReturn = lazy(() => import("@/pages/customer/PaymentReturn"));
 const StaticPage = lazy(() => import("@/pages/customer/StaticPage"));
@@ -71,12 +73,14 @@ function App() {
         <BrowserRouter basename={process.env.PUBLIC_URL || "/"}>
           <MaintenanceBanner />
           <MerchantRefCatcher />
+          <SeoRouteGuard />
           <Suspense fallback={<RouteFallback />}>
           <RouteTransition>
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/services" element={<Services />} />
             <Route path="/city/:slug" element={<CityPage />} />
+            <Route path="/city/:slug/:serviceSlug" element={<CityServicePage />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/category/:slug" element={<Services />} />
             <Route path="/book" element={<Checkout />} />

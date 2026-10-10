@@ -13,7 +13,7 @@ import time
 import pytest
 import requests
 
-BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
+BASE_URL = (os.environ.get("REACT_APP_BACKEND_URL") or "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
 API = f"{BASE_URL}/api"
 ADMIN_PHONE = "+919000000000"
 OTP = "123456"

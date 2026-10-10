@@ -180,57 +180,25 @@ def _site_base():
 
 
 async def _build_sitemap_urls():
-    """Every active category, sub-category, service (+ core pages). Uses each
-    doc's canonical SEO URL when the admin has set one, else builds it."""
-    from config.database import db
-    base = _site_base()
-    now = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%d")
-    urls = [
-        {"loc": f"{base}/", "priority": "1.0", "changefreq": "daily"},
-        {"loc": f"{base}/services", "priority": "0.9", "changefreq": "daily"},
-        {"loc": f"{base}/about", "priority": "0.4", "changefreq": "monthly"},
-        {"loc": f"{base}/contact", "priority": "0.4", "changefreq": "monthly"},
-    ]
-
-    def _canon(doc, path):
-        return ((doc.get("seo") or {}).get("canonical") or "").strip() or f"{base}/{path}"
-
-    cats = await db.categories.find({"status": "active"}, {"_id": 0, "slug": 1, "id": 1, "seo": 1}).to_list(2000)
-    for c in cats:
-        urls.append({"loc": _canon(c, f"category/{c.get('slug') or c.get('id')}"), "priority": "0.8", "changefreq": "weekly"})
-    subs = await db.subcategories.find({"status": "active"}, {"_id": 0, "slug": 1, "id": 1, "seo": 1}).to_list(3000)
-    for s in subs:
-        if s.get("slug") or s.get("id"):
-            urls.append({"loc": _canon(s, f"category/{s.get('slug') or s.get('id')}"), "priority": "0.7", "changefreq": "weekly"})
-    svcs = await db.services.find({"status": "active", "approval_status": {"$ne": "disapproved"}},
-                                  {"_id": 0, "slug": 1, "id": 1, "seo": 1}).to_list(5000)
-    for s in svcs:
-        urls.append({"loc": _canon(s, f"service/{s.get('slug') or s.get('id')}"), "priority": "0.7", "changefreq": "weekly", "lastmod": now})
-    from services.city_service import slugify as _slug
-    for c in await db.service_areas.distinct("city", {"status": {"$ne": "inactive"}}):
-        if c:
-            urls.append({"loc": f"{base}/city/{_slug(c)}", "priority": "0.8", "changefreq": "weekly", "lastmod": now})
-    # de-dupe by loc preserving order
-    seen, out = set(), []
-    for u in urls:
-        if u["loc"] in seen:
-            continue
-        seen.add(u["loc"])
-        u.setdefault("lastmod", now)
-        out.append(u)
-    return out
+    from services import seo_core
+    _, groups = await seo_core.sitemap_entries()
+    return [u for v in groups.values() for u in v]
 
 
 @router.get("/sitemap.xml")
 async def sitemap():
-    urls = await _build_sitemap_urls()
-    items = "".join(
-        f"<url><loc>{u['loc']}</loc><lastmod>{u['lastmod']}</lastmod>"
-        f"<changefreq>{u['changefreq']}</changefreq><priority>{u['priority']}</priority></url>"
-        for u in urls
-    )
-    xml = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{items}</urlset>'
-    return Response(content=xml, media_type="application/xml")
+    from services import seo_core
+    return Response(content=await seo_core.sitemap_index_xml(), media_type="application/xml",
+                    headers={"Cache-Control": "public, max-age=300"})
+
+
+@router.get("/sitemaps/{name}.xml")
+async def sitemap_part(name: str):
+    from services import seo_core
+    xml = await seo_core.sitemap_part_xml(name)
+    if xml is None:
+        raise HTTPException(status_code=404, detail="Sitemap not found")
+    return Response(content=xml, media_type="application/xml", headers={"Cache-Control": "public, max-age=300"})
 
 
 @router.get("/admin/seo/status")
@@ -239,8 +207,8 @@ async def seo_status(admin=Depends(ADMIN)):
     urls = await _build_sitemap_urls()
     doc = await db.settings.find_one({"id": "seo_ping"}, {"_id": 0}) or {}
     return {
-        "sitemap_url": f"{_site_base()}/api/sitemap.xml",
-        "robots_url": f"{_site_base()}/api/robots.txt",
+        "sitemap_url": f"{_site_base()}/sitemap.xml",
+        "robots_url": f"{_site_base()}/robots.txt",
         "total_urls": len(urls),
         "last_ping": doc.get("last_ping"),
         "last_results": doc.get("last_results", []),
@@ -256,6 +224,5 @@ async def ping_sitemap(admin=Depends(ADMIN)):
 
 @router.get("/robots.txt")
 async def robots():
-    base = _site_base()
-    txt = f"User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/admin\nSitemap: {base}/api/sitemap.xml\n"
-    return Response(content=txt, media_type="text/plain")
+    from services import seo_core
+    return Response(content=await seo_core.robots_txt(), media_type="text/plain")

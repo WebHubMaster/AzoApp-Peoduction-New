@@ -1,7 +1,7 @@
 """Backend tests for Booking Filters Sync (/api/bookings/my/paged) and notifications feed."""
 import os, pytest, requests
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://3ebb5e9f-eaa1-4389-b521-35047e7d73a5.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
 PHONE = "+919000000004"
 OTP = "123456"
 

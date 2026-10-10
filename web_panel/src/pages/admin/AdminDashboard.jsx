@@ -53,6 +53,10 @@ import HomepageBuilderPro from "@/pages/admin/HomepageBuilderPro";
 import BookingsPro from "@/pages/admin/BookingsPro";
 import { guardNav } from "@/lib/navGuard";
 import LogsMonitor from "@/pages/admin/LogsMonitor";
+import SeoCenter from "@/pages/admin/seo/SeoCenter";
+
+const SEO_TAB_FOR = { seo_dashboard: "overview", global_seo: "global", service_seo: "services", category_seo: "categories", city_seo: "cities",
+  technical_seo: "technical", redirects: "technical", sitemap: "sitemap", schema: "schema", indexing_seo: "indexing", seo_audit: "audit" };
 import AdminDashboardHome from "@/pages/admin/AdminDashboardHome";
 import PerformanceCenter from "@/pages/admin/PerformanceCenter";
 import CustomJobsAdmin from "@/pages/admin/CustomJobsAdmin";
@@ -187,9 +191,16 @@ const NAV = [
   ]},
 
   { group: "SEO", icon: Search, items: [
-    { key: "seo_dashboard", label: "SEO Dashboard", icon: Search },
-    { key: "global_seo", label: "Global SEO", icon: Globe },
+    { key: "seo_dashboard", label: "SEO Overview", icon: Search },
+    { key: "global_seo", label: "Global Meta", icon: Globe },
+    { key: "service_seo", label: "Service SEO", icon: Search },
+    { key: "category_seo", label: "Category SEO", icon: Search },
+    { key: "city_seo", label: "City & Local SEO", icon: Globe },
+    { key: "technical_seo", label: "Technical SEO", icon: Route },
     { key: "sitemap", label: "Sitemap & Robots", icon: Route },
+    { key: "schema", label: "Schema Markup", icon: FileText },
+    { key: "indexing_seo", label: "Indexing & Console", icon: Search },
+    { key: "seo_audit", label: "SEO Audit", icon: Search },
     { key: "redirects", label: "Redirects", icon: Route },
   ]},
 
@@ -246,7 +257,7 @@ const KNOWN = new Set(["dashboard","platform_earning","bookings","payouts","refu
   "faqs","plans","sysusers","liveops","locations","campaigns","memberships","growth","spareparts","vendors",  "complaints","disputes","warranty","roles","flags","integrations","audit","ai","pm_workflow","pm_verify",  "pm_skills","pm_certs","pm_withdrawals","payout_config","invoice_config","pm_incentives","pm_penalties","pm_training","pm_leaves","business","sms_templates",
   "service_requests","checklists","service_areas","launch_demand","coverage_map","partner_jobs","partner_performance","merchant_verification",
   "merchant_services","merchant_orders","merchant_settlements","taxes","settlements","fin_reports","offers","pages",
-  "seo_dashboard","global_seo","category_seo","service_seo","sitemap","schema","redirects","channels",
+  "seo_dashboard","global_seo","category_seo","service_seo","sitemap","schema","redirects","city_seo","technical_seo","indexing_seo","seo_audit","channels",
   "reports_overview","export_center","login_activity","settings_general","storage_settings",
   "integration_center","category_commission","price_manager","reg_templates","reg_kyc_pending","reg_kyc_approved","reg_kyc_rejected",
   "reg_education","reg_experience","reg_notifications","area_partners","realtime_settings","dispatch_feed","sys_performance"]);
@@ -526,22 +537,7 @@ export default function AdminDashboard() {
         columns={[{ key: "partner", label: "Provider" }, { key: "amount", label: "Amount", render: (r) => "₹" + (r.amount || 0) }, { key: "period", label: "Period" }, { key: "status", label: "Status", render: (r) => <S.SBadge s={r.status || "pending"} /> }]} />}
       {active === "fin_reports" && <FinancialReports />}
       {active === "offers" && <OffersManager />}
-      {active === "seo_dashboard" && <S.SeoInfoPanel kind="seo" />}
-      {active === "global_seo" && <S.SettingsForm title="Global SEO" skey="seo" note="These meta tags are used site-wide unless overridden per category/service."
-        fields={[{ key: "site_title", label: "Site Title" }, { key: "meta_description", label: "Meta Description", type: "textarea" }, { key: "meta_keywords", label: "Meta Keywords", type: "keywords" }, { key: "og_image", label: "OG Image URL" }]} />}
-      {active === "category_seo" && <S.CmsManager title="Category SEO" endpoint="collection/category_seo"
-        fields={[{ key: "page", label: "Category", required: true }, { key: "title", label: "Meta title" }, { key: "description", label: "Meta description", type: "textarea" }, { key: "keywords", label: "Keywords", type: "keywords" }]}
-        columns={[{ key: "page", label: "Category" }, { key: "title", label: "Meta Title" }, { key: "keywords", label: "Keywords" }]} />}
-      {active === "service_seo" && <S.CmsManager title="Service SEO" endpoint="collection/service_seo"
-        fields={[{ key: "page", label: "Service", required: true }, { key: "title", label: "Meta title" }, { key: "description", label: "Meta description", type: "textarea" }, { key: "keywords", label: "Keywords", type: "keywords" }]}
-        columns={[{ key: "page", label: "Service" }, { key: "title", label: "Meta Title" }, { key: "keywords", label: "Keywords" }]} />}
-      {active === "sitemap" && <S.SeoInfoPanel kind="sitemap" />}
-      {active === "schema" && <S.CmsManager title="Schema" endpoint="collection/schema_markup"
-        fields={[{ key: "name", label: "Name", required: true }, { key: "type", label: "Type (Organization/Service...)" }, { key: "code", label: "JSON-LD", type: "textarea" }]}
-        columns={[{ key: "name", label: "Name" }, { key: "type", label: "Type" }]} />}
-      {active === "redirects" && <S.CmsManager title="Redirect" endpoint="collection/redirects"
-        fields={[{ key: "from_path", label: "From path", required: true }, { key: "to_path", label: "To path", required: true }, { key: "type", label: "Type (301/302)" }]}
-        columns={[{ key: "from_path", label: "From" }, { key: "to_path", label: "To" }, { key: "type", label: "Type" }]} />}
+      {SEO_TAB_FOR[active] && <SeoCenter key={active} initialTab={SEO_TAB_FOR[active]} />}
       {active === "channels" && <S.CmsManager title="Channel" endpoint="collection/channels"
         fields={[{ key: "name", label: "Channel name", required: true }, { key: "type", label: "Type (sms/email/push)" }, { key: "status", label: "Status (active/inactive)" }]}
         columns={[{ key: "name", label: "Channel" }, { key: "type", label: "Type" }, { key: "status", label: "Status", render: (r) => <S.SBadge s={r.status || "active"} /> }]} />}

@@ -1,9 +1,5 @@
-// Development-only reverse proxy: routes `/api/*` from the frontend dev server
-// (which the platform ingress dispatches all traffic to) to the FastAPI
-// backend running on localhost:8001. Without this, external `/api/*` requests
-// are 404'd by React Router because the ingress isn't splitting traffic.
-//
-// This file is auto-loaded by Create React App / CRACO — no wiring required.
+// Development-only reverse proxy: routes `/api/*` (plus root-level robots.txt and
+// sitemaps, which crawlers expect at the domain root) to the FastAPI backend.
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 module.exports = function (app) {
@@ -12,9 +8,17 @@ module.exports = function (app) {
     createProxyMiddleware({
       target: "http://localhost:8001",
       changeOrigin: true,
-      ws: true, // preserve SSE / websocket upgrade for realtime
-      // The backend already listens on /api/*, so no rewrite is needed.
+      ws: true,
       logLevel: "warn",
+    })
+  );
+  app.use(
+    ["/robots.txt", "/sitemap.xml", "/sitemaps"],
+    createProxyMiddleware({
+      target: "http://localhost:8001",
+      changeOrigin: true,
+      logLevel: "warn",
+      pathRewrite: (path) => "/api" + path,
     })
   );
 };

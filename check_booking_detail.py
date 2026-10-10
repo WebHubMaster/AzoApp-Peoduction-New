@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
+BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
 ADMIN = "+919000000000"
 OTP = "123456"
 

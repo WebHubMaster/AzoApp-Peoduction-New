@@ -7,7 +7,7 @@ import json
 import sys
 from datetime import datetime
 
-BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
+BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
 OTP = "123456"
 
 ADMIN_PHONE = "+919000000000"

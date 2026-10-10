@@ -74,6 +74,12 @@ async def do_ping(source: str = "manual", throttle: bool = False):
 
 
 def auto_ping(source: str = "catalog"):
+    """Catalog write hook → SEO reconcile workflow (sitemap refresh + authorised GSC actions)."""
+    from services import seo_workflow
+    seo_workflow.on_change(source)
+
+
+def _legacy_auto_ping(source: str = "catalog"):
     """Fire-and-forget throttled ping. Safe to call from any async write path;
     never blocks the request and never raises."""
     try:

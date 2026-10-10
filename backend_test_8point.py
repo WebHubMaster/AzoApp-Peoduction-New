@@ -9,7 +9,7 @@ import sys
 from datetime import datetime
 
 # Configuration
-BASE_URL = "https://payment-gateway-fix-47.preview.emergentagent.com/api"
+BASE_URL = "https://azo-seo-console.preview.emergentagent.com/api"
 OTP = "123456"
 
 # Test accounts

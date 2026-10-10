@@ -4,7 +4,7 @@ import time
 import pytest
 import requests
 
-BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("EXPO_PUBLIC_BACKEND_URL", "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
 PHONE = "+919000000002"
 OTP = "123456"
 

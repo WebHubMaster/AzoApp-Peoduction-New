@@ -16,6 +16,36 @@ import { GrowCta } from "./home/HomeBlocks";
 
 const titleCase = (s) => (s || "").replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+function CityExtras({ slug, cityName }) {
+  const [x, setX] = useState(null);
+  useEffect(() => { api.get(`/seo/city-extras/${slug}`).then((r) => setX(r.data)).catch(() => setX(null)); }, [slug]);
+  if (!x || (!x.intro && !x.coverage && !x.faqs?.length && !x.service_pages?.length)) return null;
+  return (
+    <section className="py-10 sm:py-14" data-testid="city-local-info">
+      <Container>
+        <div className="grid lg:grid-cols-12 gap-10">
+          <div className="lg:col-span-7 space-y-5">
+            {x.intro && <div><SectionHead eyebrow="Local guide" title={`About our services in ${cityName}`} /><p className="text-slate-600 leading-relaxed whitespace-pre-line" data-testid="city-intro">{x.intro}</p></div>}
+            {x.coverage && <p className="text-sm text-slate-500 leading-relaxed" data-testid="city-coverage-note">{x.coverage}</p>}
+            {x.service_pages?.length > 0 && (
+              <div data-testid="city-service-pages">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Service guides for {cityName}</p>
+                <div className="flex flex-wrap gap-2">{x.service_pages.map((sp) => <Link key={sp.path} to={sp.path} className="rounded-xl bg-primary-50 ring-1 ring-primary-100 px-3.5 py-2 text-sm font-semibold text-primary-800 hover:bg-primary-100">{sp.name}</Link>)}</div>
+              </div>
+            )}
+          </div>
+          {x.faqs?.length > 0 && (
+            <div className="lg:col-span-5" data-testid="city-faqs">
+              <SectionHead eyebrow="FAQ" title={`Questions from ${cityName}`} />
+              <div className="space-y-2">{x.faqs.map((f, i) => <details key={i} className="rounded-xl ring-1 ring-slate-200 bg-white px-4 py-3"><summary className="font-semibold text-slate-800 cursor-pointer text-sm">{f.q}</summary><p className="text-sm text-slate-600 mt-2">{f.a}</p></details>)}</div>
+            </div>
+          )}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
 export default function CityPage() {
   const { slug } = useParams();
   const navigate = useNavigate();
@@ -131,6 +161,7 @@ export default function CityPage() {
             </Container>
           </section>
 
+          <CityExtras slug={slug} cityName={cityName} />
           <GrowCta navigate={navigate} />
         </>
       )}

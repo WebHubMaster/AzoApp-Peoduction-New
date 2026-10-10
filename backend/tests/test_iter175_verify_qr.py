@@ -3,7 +3,7 @@ import os, re, base64, io
 import requests
 import pytest
 
-BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://payment-gateway-fix-47.preview.emergentagent.com").rstrip("/")
+BASE = os.environ.get("REACT_APP_BACKEND_URL", "https://azo-seo-console.preview.emergentagent.com").rstrip("/")
 INV_ID = "4bc7ebb5-2a9f-4d78-a19e-9a296a7c1f25"
 VERIFY_SIG = "e00ad16b124d71d4bbbd1170"
 

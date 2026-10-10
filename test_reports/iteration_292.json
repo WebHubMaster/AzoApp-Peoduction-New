@@ -47,7 +47,7 @@
   "updated_files": ["/app/backend/tests/test_booking_paged_and_notifs.py"],
   "success_rate": {"backend": "100% (15/15)", "frontend": "100% (7/7 deep-link scenarios + orders paging)"},
   "test_credentials": "Customer: +919000000004 OTP 123456, or demo button 'Login as Customer' on /login",
-  "seed_data_creation": "Inserted 5 TEST_ notifications in test_database.notifications for Priya (user_id=973fa21e-6c08-4675-ab10-476a939b0bb4) covering: booking (AZO4B04FB), chat_message (AZO028C98 started), support_reply (TKT-100003 created via POST /api/support/tickets), link=/account?tab=wallet, title='TEST_Scratch card ready'. Support ticket id: 40347db1-ed68-483f-8fd9-ed2baa989ee6 (TKT-100003). Script at /tmp/seed_notifs.py.",
+  "seed_data_creation": "Inserted 5 TEST_ notifications in test_database.notifications for Priya (user_id=azo-seo-console) covering: booking (AZO4B04FB), chat_message (AZO028C98 started), support_reply (TKT-100003 created via POST /api/support/tickets), link=/account?tab=wallet, title='TEST_Scratch card ready'. Support ticket id: 40347db1-ed68-483f-8fd9-ed2baa989ee6 (TKT-100003). Script at /tmp/seed_notifs.py.",
   "retest_needed": false,
   "should_main_agent_self_test": false,
   "context_for_next_testing_agent": "Server-side bookings paging (/api/bookings/my/paged) returns {items,total,page,page_size,counts}. counts.all is unfiltered by search (good). tab=completed includes status 'paid' as well. 5 TEST_ notifications remain seeded (cleanup optional per request). Chat deep link opened dialog successfully – chat was not locked on the 'started' booking AZO028C98. Support ticket TKT-100003 persists."
